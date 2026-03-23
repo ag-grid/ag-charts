@@ -58,6 +58,16 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
+        if (
+            domain.length === this._domain.length &&
+            domain.length >= 2 &&
+            domain[0].valueOf() === this._domain[0].valueOf() &&
+            domain[1].valueOf() === this._domain[1].valueOf()
+        ) {
+            this._domain = domain;
+            return;
+        }
+
         this._domain = domain;
         this._bands = undefined;
         this._numericBands = undefined;
@@ -335,13 +345,9 @@ export class UnitTimeScale extends DiscreteTimeScale {
         visibleRange: [number, number],
         extend: boolean = false
     ): { bands: Date[]; firstBandIndex: number | undefined } {
-        if (
-            domain === this.domain &&
-            visibleRange[0] === 0 &&
-            visibleRange[1] === 1 &&
-            !extend &&
-            this._bands != null
-        ) {
+        const isDefaultParams = domain === this.domain && visibleRange[0] === 0 && visibleRange[1] === 1 && !extend;
+
+        if (isDefaultParams && this._bands != null) {
             return { bands: this._bands, firstBandIndex: 0 };
         }
 
@@ -365,6 +371,11 @@ export class UnitTimeScale extends DiscreteTimeScale {
 
         const bands = intervalRange(interval, start, stop, rangeParams);
         const firstBandIndex = intervalRangeStartIndex(interval, start, stop, rangeParams);
+
+        if (isDefaultParams) {
+            this._bands = bands;
+        }
+
         return { bands, firstBandIndex };
     }
 
@@ -376,12 +387,18 @@ export class UnitTimeScale extends DiscreteTimeScale {
     ): ScaleTickResult<Date> | undefined {
         if (domain.length < 2) return;
 
+        const isOwnDomain = domain === this.domain && !extend;
+
+        // Fast path: use numeric bands (cached timestamps) to avoid materialising Date objects
+        if (isOwnDomain && interval != null) {
+            return this.ticksFromNumericBands(interval, domain, visibleRange, extend);
+        }
+
         let bands: Date[];
         let firstBandIndex: number | undefined;
         let bandsSliceIndices: [number, number] | undefined;
 
-        if (domain === this.domain && !extend) {
-            // Use cached values
+        if (isOwnDomain) {
             ({ bands } = this.calculateBands(domain, [0, 1], false));
             bandsSliceIndices = visibleTickSliceIndices(bands, false, visibleRange);
             firstBandIndex = bandsSliceIndices[0];
@@ -393,6 +410,94 @@ export class UnitTimeScale extends DiscreteTimeScale {
             return { ticks: bands, count: undefined, firstTickIndex: firstBandIndex };
         }
 
+        return this.ticksFromBands(interval, bands, domain, visibleRange, extend, bandsSliceIndices, firstBandIndex);
+    }
+
+    /** Optimised tick generation using cached numeric bands — avoids creating Date objects for all bands. */
+    private ticksFromNumericBands(
+        interval: AgTimeInterval | AgTimeIntervalUnit | number,
+        domain: Date[],
+        visibleRange: [number, number],
+        extend: boolean
+    ): ScaleTickResult<Date> | undefined {
+        const numBands = this.numericBands; // Cached number[], computed once
+        const n = numBands.length;
+        if (n === 0) return { ticks: [], count: 0, firstTickIndex: undefined };
+
+        const bandsSliceIndices = visibleTickSliceIndices(numBands, false, visibleRange);
+        const firstBandIndex = bandsSliceIndices[0];
+
+        const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
+        const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
+        const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
+
+        let intervalTickValues: number[];
+        let intervalStartIndex: number;
+        let intervalEndIndex: number;
+
+        if (isPlainObject(interval) || typeof interval === 'string') {
+            const intervalDates = intervalRange(interval, domain[0], domain[1], { extend: true, visibleRange });
+            intervalTickValues = intervalDates.map((d) => d.valueOf());
+            intervalStartIndex = 0;
+            intervalEndIndex = intervalTickValues.length - 1;
+        } else {
+            const i0 = bandsSliceIndices[0];
+            const i1 = bandsSliceIndices[1] - 1;
+            intervalTickValues = numBands;
+            intervalStartIndex = findMaxIndex(i0, i1, (index) => numBands[index] <= d0) ?? i0;
+            intervalEndIndex = findMaxIndex(i0, i1, (index) => numBands[index] <= d1) ?? i1;
+        }
+
+        const ticks: Date[] = [];
+        const tickTimestamps: number[] = [];
+        let lastIndex: number | undefined;
+        for (let i = intervalStartIndex; i <= intervalEndIndex; i++) {
+            const intervalTickValue = intervalTickValues[i];
+            const bandIndex = findMaxIndex(0, n - 1, (index) => numBands[index] <= intervalTickValue);
+            if (bandIndex != null && bandIndex !== lastIndex) {
+                if (intervalTickValue - numBands[bandIndex] <= milliseconds) {
+                    ticks.push(new Date(numBands[bandIndex]));
+                    tickTimestamps.push(numBands[bandIndex]);
+                }
+            }
+            lastIndex = bandIndex;
+        }
+
+        let bandStart: number;
+        let bandEnd: number;
+        if (this.interval) {
+            const bandRange = calculateBandRange([new Date(d0), new Date(d1)], this.interval);
+            bandStart = bandRange[0].valueOf();
+            bandEnd = bandRange[1].valueOf();
+        } else {
+            bandStart = d0;
+            bandEnd = d1;
+        }
+        let firstTickIndex = findMinIndex(0, ticks.length - 1, (i) => tickTimestamps[i] >= bandStart) ?? 0;
+        let lastTickIndex = findMaxIndex(0, ticks.length - 1, (i) => tickTimestamps[i] <= bandEnd) ?? ticks.length - 1;
+
+        if (extend) {
+            firstTickIndex = Math.max(firstTickIndex - 1, 0);
+            lastTickIndex = Math.min(lastTickIndex + 1, ticks.length - 1);
+        }
+
+        return {
+            ticks: ticks.slice(firstTickIndex, lastTickIndex + 1),
+            count: ticks.length,
+            firstTickIndex: firstBandIndex,
+        };
+    }
+
+    /** Fallback tick generation using Date[] bands (for non-default domain / sub-domain calls). */
+    private ticksFromBands(
+        interval: AgTimeInterval | AgTimeIntervalUnit | number,
+        bands: Date[],
+        domain: Date[],
+        visibleRange: [number, number],
+        extend: boolean,
+        bandsSliceIndices: [number, number] | undefined,
+        firstBandIndex: number | undefined
+    ): ScaleTickResult<Date> | undefined {
         const milliseconds = this.interval ? intervalMilliseconds(this.interval) : Infinity;
 
         const d0 = Math.min(domain[0].valueOf(), domain[1].valueOf());
@@ -408,7 +513,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         } else {
             const i0 = bandsSliceIndices ? bandsSliceIndices[0] : 0;
             const i1 = bandsSliceIndices ? bandsSliceIndices[1] : bands.length - 1;
-            intervalTicks = bands; // Could be large array - avoid copying
+            intervalTicks = bands;
             intervalStartIndex = findMaxIndex(i0, i1, (index) => bands[index].valueOf() <= d0) ?? i0;
             intervalEndIndex = findMaxIndex(i0, i1, (index) => bands[index].valueOf() <= d1) ?? i1;
         }
