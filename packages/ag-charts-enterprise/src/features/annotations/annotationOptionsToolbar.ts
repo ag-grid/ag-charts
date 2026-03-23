@@ -138,6 +138,10 @@ export class AnnotationOptionsToolbar extends BaseProperties {
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
 
+    private textSizeMenuMinWidth?: number;
+    private lineStyleTypeMenuMinWidth?: number;
+    private lineStrokeWidthMenuMinWidth?: number;
+
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getActiveDatum: () => AnnotationProperties | undefined
@@ -287,6 +291,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
                     items: LINE_STYLE_TYPE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
+                    minWidth: this.lineStyleTypeMenuMinWidth,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-style-type-menu',
                 });
@@ -299,6 +304,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
                     items: LINE_STROKE_WIDTH_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStrokeWidth'),
                     value: strokeWidth,
+                    minWidth: this.lineStrokeWidthMenuMinWidth,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-stroke-width-menu',
                 });
@@ -333,6 +339,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
+                    minWidth: this.textSizeMenuMinWidth,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
                     class: 'ag-charts-annotations__text-size-menu',
                 });
@@ -374,17 +381,23 @@ export class AnnotationOptionsToolbar extends BaseProperties {
             const fallbackAnchor = { y: bounds.y };
 
             switch (button.value) {
-                case AnnotationOptions.LineStrokeWidth:
+                case AnnotationOptions.LineStrokeWidth: {
+                    this.lineStrokeWidthMenuMinWidth = bounds.width + 1;
                     this.lineStrokeWidthMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
 
-                case AnnotationOptions.LineStyleType:
+                case AnnotationOptions.LineStyleType: {
+                    this.lineStyleTypeMenuMinWidth = bounds.width + 1;
                     this.lineStyleTypeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
 
-                case AnnotationOptions.TextSize:
+                case AnnotationOptions.TextSize: {
+                    this.textSizeMenuMinWidth = bounds.width + 1;
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
             }
         }
     }
