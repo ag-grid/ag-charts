@@ -123,9 +123,11 @@ export class SizeMonitor {
             // avoiding a spurious second resize from border-box/content-box mismatch.
             const style = element.ownerDocument.defaultView?.getComputedStyle(element);
             const width =
-                element.clientWidth - (parseFloat(style?.paddingLeft ?? '0') + parseFloat(style?.paddingRight ?? '0'));
+                element.clientWidth -
+                (Number.parseFloat(style?.paddingLeft ?? '0') + Number.parseFloat(style?.paddingRight ?? '0'));
             const height =
-                element.clientHeight - (parseFloat(style?.paddingTop ?? '0') + parseFloat(style?.paddingBottom ?? '0'));
+                element.clientHeight -
+                (Number.parseFloat(style?.paddingTop ?? '0') + Number.parseFloat(style?.paddingBottom ?? '0'));
             if (width > 0 || height > 0) {
                 this.checkSize(entry, element, width, height);
             }
