@@ -1217,7 +1217,11 @@ export class SeriesAreaManager extends BaseManager {
         if (
             targetElement &&
             this.chart.tooltip.interactive &&
-            this.chart.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
+            this.chart.ctx.domManager.isManagedChildDOMElement(
+                targetElement,
+                'tooltip-container',
+                DEFAULT_TOOLTIP_CLASS
+            )
         ) {
             // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
             return;
@@ -1260,7 +1264,7 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
             this.pickManager.maybeActivate(undefined, (): void => {
                 this.tooltip.lastHover = undefined;
-                this.chart.ctx.tooltipManager.removeTooltip(this.id);
+                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
                 this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
             });
         });
