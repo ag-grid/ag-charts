@@ -346,12 +346,7 @@ export class SeriesAreaManager extends BaseManager {
             } finally {
                 this.focus.pendingViewportFocus = undefined;
             }
-            // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        } else if (
-            this.isState(InteractionState.Focusable) &&
-            this.getHoverDevice() !== 'pointer' &&
-            this.focusIndicator?.isFocusVisible()
-        ) {
+        } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
             // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
             // setting mode='never' to avoid announcing the change.
@@ -647,9 +642,10 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(): void {
-        if (!this.isState(InteractionState.Focusable)) return;
+        if (!this.isState(InteractionState.Focusable) || !this.focusIndicator) return;
         this.initFocus(this.chart.keyboard.initialFocus);
-        this.setHoverDevice(this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer');
+        const focusVisibleStyle: boolean = this.focusIndicator.onFocus();
+        this.setHoverDevice(focusVisibleStyle ? 'keyboard' : 'pointer');
         this.refreshFocus();
     }
 
@@ -659,7 +655,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
-        this.focusIndicator?.overrideFocusVisible(undefined);
+        this.focusIndicator?.onBlur();
     }
 
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
