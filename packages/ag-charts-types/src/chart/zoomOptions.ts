@@ -41,7 +41,7 @@ export interface AgZoomButtons extends Toggleable {
 
 export type AgZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
-export interface AgZoomButton extends ToolbarButton {
+export interface AgZoomButton extends Omit<ToolbarButton, 'iconPosition'> {
     /** The action to perform when the button is clicked. */
     value: AgZoomButtonValue;
     /** The toolbar section in which to display this button. */
