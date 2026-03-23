@@ -656,6 +656,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected updateSelections() {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
         if (!this.visible && animationSkipUpdate) {
+            if (this._contextNodeData) {
+                this._contextNodeData.visible = false;
+            }
             return false;
         }
         const { nodeDataRefresh } = this;
