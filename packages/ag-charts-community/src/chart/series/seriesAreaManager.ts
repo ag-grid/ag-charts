@@ -1217,11 +1217,7 @@ export class SeriesAreaManager extends BaseManager {
         if (
             targetElement &&
             this.chart.tooltip.interactive &&
-            this.chart.ctx.domManager.isManagedChildDOMElement(
-                targetElement,
-                'tooltip-container',
-                DEFAULT_TOOLTIP_CLASS
-            )
+            this.chart.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
         ) {
             // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
             return;
