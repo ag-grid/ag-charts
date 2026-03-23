@@ -132,6 +132,15 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
+// A lot of `datum` values in `ag-charts-types` are declared as `TDatum`. Total & subtotal datums are nodes that have
+// special-handling. In particular, they do not directly map to an element in the input `data: TDatum[]`. But we also
+// need to be store internal meta-data like the "X Axis Label". Therefore, total/subtotal datums have this structure:
+//
+//    {
+//        externalDatum: TDatum, // This datum is broadcast in callbacks.
+//        ...otherKeys, // Other input properties from `WaterfallSeriesTotal`, for internal use.
+//    }
+//
 function isTotalNode(
     isTotal: boolean,
     isSubtotal: boolean,
