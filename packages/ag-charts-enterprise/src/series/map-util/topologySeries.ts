@@ -50,7 +50,10 @@ export abstract class TopologySeries<
             highlightedDatum?.datum == null &&
             legendItemName === highlightedDatum?.legendItemName;
 
-        if (highlightedDatum != null && highlightedDatum.series !== this && !matchingLegendItemName) {
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
             highlightedDatum = undefined;
         }
 
