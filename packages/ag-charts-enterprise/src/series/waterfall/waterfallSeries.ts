@@ -137,7 +137,7 @@ function isTotalNode(
     isSubtotal: boolean,
     datum: unknown
 ): datum is { externalDatum: Record<string, unknown> } {
-    return (isTotal || isSubtotal) && typeof datum === 'object' && datum && 'externalDatum' in datum;
+    return (isTotal || isSubtotal) && typeof datum === 'object' && datum != null && 'externalDatum' in datum;
 }
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
