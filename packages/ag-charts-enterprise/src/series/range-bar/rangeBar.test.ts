@@ -617,7 +617,7 @@ describe('RangeBarSeries', () => {
             yHighKey: 'high',
         };
 
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+        for (const ratio of [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1]) {
             it(`should animate legend toggle off at ${ratio * 100}%`, async () => {
                 animate(1200, 1);
 
