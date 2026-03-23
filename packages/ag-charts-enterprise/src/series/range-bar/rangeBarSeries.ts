@@ -1305,23 +1305,45 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
         const mode = previousContextData == null ? 'fade' : 'normal';
-        const initPos = midpointStartingBarPosition(this.isVertical(), mode);
+        const isVertical = this.isVertical();
+        const initPos = midpointStartingBarPosition(isVertical, mode);
         const fns = prepareBarAnimationFunctions(initPos, 'added');
 
-        // CRT-1082: When the series becomes invisible (legend toggle off), collapse bars
-        // to their previous midpoint rather than to the forced-to-zero baseline.
-        const animFns =
-            !this.visible && previousContextData != null
-                ? {
-                      ...fns,
-                      toFn: ((rect: any, datum: any, status: any, ctx: any) => {
-                          if (status !== 'removed' && rect.previousDatum != null) {
-                              return initPos.calculate(rect.previousDatum);
-                          }
-                          return fns.toFn(rect, datum, status, ctx);
-                      }) as typeof fns.toFn,
-                  }
-                : fns;
+        // CRT-1082: Range-bar legend toggle should collapse bars to their previous
+        // midpoint in the 'remove' phase, and expand from midpoint in the 'add' phase.
+        let animFns = fns;
+        if (previousContextData != null) {
+            if (!this.visible) {
+                animFns = {
+                    ...fns,
+                    fromFn: ((rect: any, datum: any, status: any, ctx: any) => {
+                        const result = fns.fromFn(rect, datum, status, ctx);
+                        if (status !== 'removed' && rect.previousDatum != null) {
+                            return { ...result, phase: 'remove' };
+                        }
+                        return result;
+                    }) as typeof fns.fromFn,
+                    toFn: ((rect: any, datum: any, status: any, ctx: any) => {
+                        if (status !== 'removed' && rect.previousDatum != null) {
+                            return initPos.calculate(rect.previousDatum);
+                        }
+                        return fns.toFn(rect, datum, status, ctx);
+                    }) as typeof fns.toFn,
+                };
+            } else {
+                const collapsedDim = isVertical ? 'height' : 'width';
+                animFns = {
+                    ...fns,
+                    fromFn: ((rect: any, datum: any, status: any, ctx: any) => {
+                        const result = fns.fromFn(rect, datum, status, ctx);
+                        if (status !== 'added' && rect[collapsedDim] < 0.5) {
+                            return { ...result, phase: 'add' };
+                        }
+                        return result;
+                    }) as typeof fns.fromFn,
+                };
+            }
+        }
 
         motion.fromToMotion(
             this.id,
