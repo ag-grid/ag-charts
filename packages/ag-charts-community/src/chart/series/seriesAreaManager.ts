@@ -1260,7 +1260,7 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
             this.pickManager.maybeActivate(undefined, (): void => {
                 this.tooltip.lastHover = undefined;
-                this.chart.ctx.tooltipManager.removeTooltip(this.id);
+                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
                 this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
             });
         });
