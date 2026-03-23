@@ -763,6 +763,7 @@ export abstract class Axis<
     protected updateCrossLines() {
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         for (const crossLine of this.crossLines) {
+            crossLine.gridPadding = this.gridPadding;
             crossLine.update(crosslinesVisible);
         }
     }
@@ -971,6 +972,7 @@ export abstract class Axis<
     private initCrossLine(crossLine: CrossLine) {
         crossLine.scale = this.scale;
         crossLine.gridLength = this.gridLength;
+        crossLine.gridPadding = this.gridPadding;
     }
 
     protected hasVisibleSeries() {

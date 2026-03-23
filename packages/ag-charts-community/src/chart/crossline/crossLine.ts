@@ -56,6 +56,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     fill?: string;
     fillOpacity?: number;
     gridLength: number;
+    gridPadding: number;
     lineGroup: Group;
     rangeGroup: Group;
     id: string;

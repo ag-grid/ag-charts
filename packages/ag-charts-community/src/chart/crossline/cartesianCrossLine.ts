@@ -171,6 +171,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
+    gridPadding: number = 0;
     position: AgCartesianAxisPosition = 'top';
 
     get defaultLabelPosition(): AgCrossLineLabelPosition {
@@ -293,19 +294,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     private updateNodes() {
-        const { position, data: [r0, r1] = [0, 0], gridLength } = this;
+        const { position, data: [r0, r1] = [0, 0], gridLength, gridPadding } = this;
 
         const dr = Number.isFinite(r1) ? r1 - r0 : 0;
+        // Mirror the grid line padding pattern (see cartesianAxis.ts calculateTickLayout).
+        const direction = position === 'bottom' || position === 'right' ? -1 : 1;
+        const crossStart = Math.min(direction * gridPadding, direction * (gridLength + gridPadding));
 
         let bounds: BBox;
         switch (position) {
             case 'top':
             case 'bottom':
-                bounds = new BBox(r0, position === 'top' ? 0 : -gridLength, dr, gridLength);
+                bounds = new BBox(r0, crossStart, dr, gridLength);
                 break;
             case 'left':
             case 'right':
-                bounds = new BBox(position === 'left' ? 0 : -gridLength, r0, gridLength, dr);
+                bounds = new BBox(crossStart, r0, gridLength, dr);
         }
 
         this.updateRangeNode(bounds);
