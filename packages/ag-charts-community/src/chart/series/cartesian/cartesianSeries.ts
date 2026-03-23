@@ -656,6 +656,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected updateSelections() {
         const animationSkipUpdate = !this.opts.animationAlwaysUpdateSelections && this.ctx.animationManager.isSkipped();
         if (!this.visible && animationSkipUpdate) {
+            // Sync visibility even though we skip createNodeData(). Without this,
+            // _contextNodeData retains stale visible:true from before the series was
+            // hidden, causing a spurious animation on the next non-skipped update.
             if (this._contextNodeData) {
                 this._contextNodeData.visible = false;
             }
