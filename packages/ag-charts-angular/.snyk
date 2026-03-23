@@ -2,6 +2,18 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-SOCKETIOPARSER-15680278:
+        - karma@6.4.2 > socket.io@4.7.2 > socket.io-parser@4.2.4:
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-23T10:18:05.711Z
+    SNYK-JS-FLATTED-15700433:
+        - karma@6.4.2 > log4js@6.9.1 > flatted@3.2.9:
+              reason: >-
+                  Test dependency - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-03-23T10:17:57.621Z
     SNYK-JS-FLATTED-15518041:
         - karma@6.4.2 > log4js@6.9.1 > flatted@3.2.9:
               reason: >-
