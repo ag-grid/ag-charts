@@ -132,6 +132,14 @@ interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
 
 type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
 
+function isTotalNode(
+    isTotal: boolean,
+    isSubtotal: boolean,
+    datum: unknown
+): datum is { externalDatum: Record<string, unknown> } {
+    return (isTotal || isSubtotal) && typeof datum === 'object' && datum && 'externalDatum' in datum;
+}
+
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
     static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
@@ -185,7 +193,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             const totalsAtIndex = totalsMap.get(i);
             if (totalsAtIndex) {
                 for (const total of totalsAtIndex) {
-                    dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel });
+                    // Ensure that key `externalDatum` isn't already in use:
+                    total satisfies typeof total & { externalDatum?: never };
+                    dataWithTotals.push({
+                        ...total.toJson(),
+                        [xKey]: total.axisLabel,
+                        externalDatum: { ...data?.data.at(total.index) },
+                    });
                 }
             }
         }
@@ -319,6 +333,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             }
 
             const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
+            if (isTotalNode(isTotal, isSubtotal, datum)) {
+                datum.externalDatum[this.properties.yKey] = value;
+            }
 
             // Update scratch params
             paramsScratch.datumIndex = datumIndex;
@@ -925,7 +942,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
@@ -941,13 +957,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const datumType = totalTypeValues[datumIndex];
         const isPositive = (yValue ?? 0) >= 0;
+        const isTotal = this.isTotal(datumType);
+        const isSubtotal = this.isSubtotal(datumType);
 
         const seriesItemType = this.getSeriesItemType(isPositive, datumType);
 
         let total: number;
-        if (this.isTotal(datumType)) {
+        if (isTotal) {
             total = yCurrTotalValues[datumIndex];
-        } else if (this.isSubtotal(datumType)) {
+        } else if (isSubtotal) {
             total = yCurrTotalValues[datumIndex];
             for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
                 if (this.isSubtotal(totalTypeValues[previousIndex])) {
@@ -958,6 +976,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         } else {
             total = yValue;
         }
+
+        const dataSourceDatum: unknown = processedData.dataSources.get(this.id)?.data[datumIndex];
+        const datum: unknown = isTotalNode(isTotal, isSubtotal, dataSourceDatum)
+            ? dataSourceDatum.externalDatum
+            : dataSourceDatum;
 
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
