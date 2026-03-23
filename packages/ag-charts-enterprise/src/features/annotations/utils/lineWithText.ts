@@ -19,7 +19,6 @@ export function updateLineText(
     id: string,
     line: CollidableLine,
     coords: Bounds4,
-
     textProperties?: Partial<LineTextProperties>,
     textNode?: CollidableText,
     text?: string,

@@ -1,7 +1,7 @@
 import { type TextOptions, _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type Point, Vec2, Vec4 } from 'ag-charts-core';
 
-import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, LineTextAlignment } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
@@ -183,7 +183,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         });
     }
 
-    private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
+    private updateRangeLabels(trendLineProperties: Datum, { xAxis, isRtl }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
         const {
             strokes: colors,
@@ -200,7 +200,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             fontWeight,
         };
 
-        const withinBounds = this.checkWithinBounds(xAxis, labelProperties, this.labelsGroupSelection.at(0));
+        const withinBounds = this.checkWithinBounds(xAxis, labelProperties, isRtl, this.labelsGroupSelection.at(0));
 
         this.labelsGroupSelection.each((textNode, datum, index) => {
             const textColor = color ?? (isMultiColor ? colors[index % colors.length] : rangeStroke);
@@ -220,7 +220,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                     x: coords.x1,
                     y: coords.y1,
                     textBaseline: 'middle',
-                    textAlign: 'end',
+                    textAlign: isRtl ? 'left' : 'end',
                     fill: textColor,
                 });
                 updateLineText(textNode.id, line, coords);
@@ -229,7 +229,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                     ...labelProperties,
                     label: text,
                     position: 'center' as const,
-                    alignment: 'left' as const,
+                    alignment: (isRtl ? 'right' : 'left') as LineTextAlignment,
                     color: textColor,
                 };
                 updateLineText(textNode.id, line, coords, textProperties, textNode, text, strokeWidth);
@@ -237,7 +237,12 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         });
     }
 
-    private checkWithinBounds(xAxis: AnnotationAxisContext, fontOptions: TextOptions, textNode?: CollidableText) {
+    private checkWithinBounds(
+        xAxis: AnnotationAxisContext,
+        fontOptions: TextOptions,
+        isRtl: boolean,
+        textNode?: CollidableText
+    ) {
         if (!textNode) {
             return false;
         }
@@ -248,12 +253,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             x: coords.x1,
             y: coords.y1,
             textBaseline: 'middle',
-            textAlign: 'end',
+            textAlign: isRtl ? 'left' : 'end',
         });
 
-        const { x } = textNode.getBBox();
+        const bbox = textNode.getBBox();
+        const labelLeft = bbox.x;
+        const labelRight = bbox.x + bbox.width;
+        const boundsLeft = xAxis.bounds.x;
+        const boundsRight = xAxis.bounds.x + xAxis.bounds.width;
 
-        return x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
+        return labelLeft >= boundsLeft && labelRight <= boundsRight;
     }
 
     protected updateText(datum: Datum, coords: Bounds4) {
