@@ -254,7 +254,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = this.visible ? {} : { forceValue: NaN };
+        const visibleProps = this.visible ? {} : { forceValue: Number.NaN };
         const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
