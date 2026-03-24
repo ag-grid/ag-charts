@@ -8,10 +8,12 @@ import {
     type AgPolarChartOptions,
     type AgRadarLineSeriesOptions,
     type AgRadarLineSeriesStyle,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     MIN_UNHIGHLIGHT_DELAY,
     type MockRadarLineStyler,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -633,6 +635,49 @@ describe('RadarLineSeries', () => {
                     { type: 'radar-line', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
                 ],
             },
+        });
+    });
+
+    // CRT-1064: closestDatum() returns `any` — in radar-line, the line path selection uses
+    // `[true]` as its datum (a boolean, not an object). If a node with a non-object datum is
+    // picked, pickNodesExactShape must filter it out rather than pushing it into the results.
+    describe('non-object datum filtering in pickNodesExactShape (CRT-1064)', () => {
+        it('should not include non-object datums in pick results', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+
+            // Verify the radar-line scene graph contains the non-object datum scenario:
+            // lineSelection nodes have datum=true (a boolean, not an object).
+            const lineNode = series.lineSelection?.nodes()?.[0];
+            expect(lineNode).toBeDefined();
+            expect(lineNode.datum).toBe(true);
+
+            // Create a pickable Rect with a non-object datum and add it to the content group.
+            // This reproduces the CRT-1064 scenario: a node in the scene graph whose
+            // closestDatum() returns a non-object value.
+            const rect = new _ModuleSupport.Rect();
+            rect.x = 0;
+            rect.y = 0;
+            rect.width = 800;
+            rect.height = 600;
+            rect.datum = true; // non-object datum — same as radar-line's lineSelection
+            series.contentGroup.appendChild(rect);
+
+            // pickNodesExactShape should filter out the non-object datum
+            const result = series.pickNodesExactShape({ x: 400, y: 300 });
+            for (const datum of result) {
+                expect(typeof datum).toBe('object');
+                expect(datum).not.toBeNull();
+            }
+
+            // Clean up
+            series.contentGroup.removeChild(rect);
         });
     });
 

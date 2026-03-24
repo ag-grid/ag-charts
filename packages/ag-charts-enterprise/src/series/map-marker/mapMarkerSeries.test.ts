@@ -100,6 +100,33 @@ describe('MapMarkerSeries', () => {
         });
     });
 
+    // CRT-1078: When hovering over a legend item, the highlightManager may produce a
+    // highlightedDatum with datum == null (legend-only highlight). TopologySeries.getHighlightedDatum()
+    // must handle this gracefully rather than passing it through and causing a downstream error.
+    describe('legend highlight with null datum (CRT-1078)', () => {
+        it('should return undefined when highlighted datum has null datum property', async () => {
+            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const mapMarkerSeries = chart.series[1] as MapMarkerSeries;
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+
+            // Simulate the legend hover scenario: highlight with datum == null.
+            // This occurs when hovering a legend item that has no direct datum association.
+            highlightManager.updateHighlight(chart.id, {
+                series: mapMarkerSeries,
+                datum: undefined,
+            } as any);
+
+            // getHighlightedDatum should return undefined for null-datum highlights
+            const result = mapMarkerSeries['getHighlightedDatum']();
+            expect(result).toBeUndefined();
+        });
+    });
+
     describe('Bubble markers', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...SIZE_EXAMPLE };
