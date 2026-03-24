@@ -1333,6 +1333,16 @@ test.describe('state', () => {
             const ANDROID_HOMEFEED_COORDS = { x: 404, y: 355 } as const;
             let canvas: Locator;
 
+            const INACTIVE_CHANGE = Object.freeze({
+                activeItem: undefined,
+                datum: undefined,
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
             const ANDROID_HOMEFEED_ACTIVE_ITEM = Object.freeze({
                 type: 'series-node',
                 seriesId: 'BubbleSeries-2',
@@ -1347,6 +1357,37 @@ test.describe('state', () => {
                 source: 'user-interaction',
                 type: 'activeChange',
             });
+
+            const ANDROID_LEGEND_ACTIVE_ITEM = Object.freeze({
+                type: 'legend',
+                seriesId: 'BubbleSeries-2',
+                itemId: 'crashRate',
+            });
+            const ANDROID_LEGEND_ACTIVE_CHANGE = Object.freeze({
+                activeItem: ANDROID_LEGEND_ACTIVE_ITEM,
+                datum: undefined,
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const IOS_LEGEND_ACTIVE_ITEM = Object.freeze({
+                type: 'legend',
+                seriesId: 'BubbleSeries-1',
+                itemId: 'crashRate',
+            });
+            const IOS_LEGEND_ACTIVE_CHANGE = Object.freeze({
+                activeItem: IOS_LEGEND_ACTIVE_ITEM,
+                datum: undefined,
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
             const IOS_MESSAGING_ACTIVE_ITEM = Object.freeze({
                 type: 'series-node',
                 seriesId: 'BubbleSeries-1',
@@ -1355,6 +1396,20 @@ test.describe('state', () => {
             const IOS_MESSAGING_ACTIVE_CHANGE = Object.freeze({
                 activeItem: IOS_MESSAGING_ACTIVE_ITEM,
                 datum: { name: 'Messaging', sessionMinutes: 5.3, crashRate: 1.1, dau: 510 },
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+            const IOS_SEARCH_ACTIVE_ITEM = Object.freeze({
+                type: 'series-node',
+                seriesId: 'BubbleSeries-1',
+                itemId: 0,
+            });
+            const IOS_SEARCH_ACTIVE_CHANGE = Object.freeze({
+                activeItem: IOS_SEARCH_ACTIVE_ITEM,
+                datum: { name: 'Search', sessionMinutes: 5.1, crashRate: 0.8, dau: 420 },
                 dataIdKey: undefined,
                 frozen: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
@@ -1468,6 +1523,53 @@ test.describe('state', () => {
 
                     await clickOnAndroidHomeFeed(page);
                     expect(await popChartEvents(page)).toEqual([IOS_MESSAGING_ACTIVE_CHANGE]);
+                });
+            });
+
+            test.describe('AG-16744 legend responds to hover events when series-area focus indicator is shown', () => {
+                async function hoverOveriOSLegend(page: Page): Promise<void> {
+                    await page.mouse.move(724, 329);
+                }
+                async function hoverOverAndroidLegend(page: Page): Promise<void> {
+                    await page.mouse.move(726, 356);
+                }
+                async function tabIntoChart(page: Page): Promise<void> {
+                    await repeat(4, async () => page.keyboard.press('Tab'));
+                }
+                test('screenshots', async ({ page }) => {
+                    await tabIntoChart(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-focus-iossearch.png');
+
+                    await hoverOverAndroidLegend(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend2-focus-iossearch.png');
+
+                    await hoverOveriOSLegend(page);
+                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend1-focus-iossearch.png');
+                });
+
+                test('states', async ({ page }) => {
+                    await tabIntoChart(page);
+                    expect((await getChartState(page)).active?.activeItem).toEqual(IOS_SEARCH_ACTIVE_ITEM);
+
+                    await hoverOverAndroidLegend(page);
+                    expect((await getChartState(page)).active?.activeItem).toEqual(ANDROID_LEGEND_ACTIVE_ITEM);
+
+                    await hoverOveriOSLegend(page);
+                    expect((await getChartState(page)).active?.activeItem).toEqual(IOS_LEGEND_ACTIVE_ITEM);
+                });
+
+                test('popEvents', async ({ page }) => {
+                    await tabIntoChart(page);
+                    expect(await popChartEvents(page)).toEqual([IOS_SEARCH_ACTIVE_CHANGE]);
+
+                    await hoverOverAndroidLegend(page);
+                    expect(await popChartEvents(page)).toEqual([ANDROID_LEGEND_ACTIVE_CHANGE]);
+
+                    await hoverOveriOSLegend(page);
+                    expect(await popChartEvents(page)).toEqual([
+                        INACTIVE_CHANGE, // FIXME: AG-16973
+                        IOS_LEGEND_ACTIVE_CHANGE,
+                    ]);
                 });
             });
         });
