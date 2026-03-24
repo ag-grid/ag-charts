@@ -125,4 +125,8 @@ export class TopologyChart extends Chart {
             layoutBox: ctx.layoutBox,
         });
     }
+
+    override hasPgUpPgDownSupport(): boolean {
+        return false;
+    }
 }

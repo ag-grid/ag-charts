@@ -496,6 +496,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const { ctx, tooltip, highlight, keyboard, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const hasViewportSupport: () => boolean = () => this.hasViewportSupport();
+        const hasPgUpPgDownSupport: () => boolean = () => this.hasPgUpPgDownSupport();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
         const getTooltipContent = <DatumIndex extends DatumIndexType>(
@@ -507,6 +508,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         return {
             hasViewportSupport,
+            hasPgUpPgDownSupport,
             fireEvent,
             getUpdateType,
             getTooltipContent,
@@ -2138,5 +2140,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             zoom: this.modulesManager.getModule('zoom'),
             scrollbar: this.modulesManager.getModule('scrollbar'),
         });
+    }
+
+    public hasPgUpPgDownSupport(): boolean {
+        return true;
     }
 }

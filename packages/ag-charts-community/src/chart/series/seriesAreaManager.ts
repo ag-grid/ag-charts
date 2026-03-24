@@ -91,6 +91,7 @@ type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
 
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
+    hasPgUpPgDownSupport(): boolean;
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex extends DatumIndexType>(
@@ -705,6 +706,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.chart.hasPgUpPgDownSupport()) return;
         if (!this.onNav(widgetEvent)) return;
         const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
