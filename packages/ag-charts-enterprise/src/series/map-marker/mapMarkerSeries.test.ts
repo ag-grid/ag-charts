@@ -12,6 +12,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    computeLegendBBox,
     deproxy,
     extractImageData,
     hoverAction,
@@ -100,30 +101,25 @@ describe('MapMarkerSeries', () => {
         });
     });
 
-    // CRT-1078: When hovering over a legend item, the highlightManager may produce a
-    // highlightedDatum with datum == null (legend-only highlight). TopologySeries.getHighlightedDatum()
-    // must handle this gracefully rather than passing it through and causing a downstream error.
-    describe('legend highlight with null datum (CRT-1078)', () => {
-        it('should return undefined when highlighted datum has null datum property', async () => {
-            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+    // CRT-1078: Hovering a legend item in a map marker chart produces a highlight with
+    // datum == null. Without the fix, getHighlightedDatum() passes this through and the
+    // render cycle crashes accessing point.x on the undefined datum.
+    describe('legend hover with null datum (CRT-1078)', () => {
+        it('should not crash when hovering the legend item', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                legend: { enabled: true },
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            const mapMarkerSeries = chart.series[1] as MapMarkerSeries;
-            const highlightManager = (chart as Chart).ctx.highlightManager;
-
-            // Simulate the legend hover scenario: highlight with datum == null.
-            // This occurs when hovering a legend item that has no direct datum association.
-            highlightManager.updateHighlight(chart.id, {
-                series: mapMarkerSeries,
-                datum: undefined,
-            } as any);
-
-            // getHighlightedDatum should return undefined for null-datum highlights
-            const result = mapMarkerSeries['getHighlightedDatum']();
-            expect(result).toBeUndefined();
+            // Hover over the legend item — triggers a highlight with datum == null.
+            // Without the fix this crashes the render cycle.
+            const { x, y } = computeLegendBBox(chart);
+            await hoverAction(x + 10, y + 10)(chart);
+            await waitForChartStability(chart);
         });
     });
 
