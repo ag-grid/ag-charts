@@ -208,6 +208,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
             fontSize: datum.statistics.fontSize,
             fontStyle: datum.statistics.fontStyle,
             fontWeight: datum.statistics.fontWeight,
+            textAlign: 'left' as const,
             textBaseline: 'top' as const,
         };
     }

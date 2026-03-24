@@ -42,6 +42,7 @@ const EXPECTED_DEV_STAGING_FOLDER_CONTENTS = {
         'ag-charts-react.tgz',
         'ag-charts-types.tgz',
         'ag-charts-vue3.tgz',
+        'ag-charts-server-side.tgz',
         'contents',
         'sbom.json',
     ],
@@ -54,6 +55,7 @@ const EXPECTED_DEV_STAGING_FOLDER_CONTENTS = {
         'ag-charts-react',
         'ag-charts-types',
         'ag-charts-vue3',
+        'ag-charts-server-side',
     ],
 };
 

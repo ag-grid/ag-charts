@@ -924,7 +924,7 @@ export abstract class Series<
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
             const datum = node.closestDatum();
-            if (datum != null && datum.missing !== true) {
+            if (typeof datum === 'object' && datum != null && datum.missing !== true) {
                 datums.push(datum);
             }
         }
@@ -943,7 +943,7 @@ export abstract class Series<
     ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
         const datum = match.nearest?.closestDatum();
-        if (datum != null && datum.missing !== true) {
+        if (typeof datum === 'object' && datum != null && datum.missing !== true) {
             return { datum, distance: Math.sqrt(match.distanceSquared) };
         }
     }

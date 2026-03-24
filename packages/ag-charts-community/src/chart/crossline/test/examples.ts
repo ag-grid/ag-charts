@@ -553,3 +553,156 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
         },
     },
 };
+
+// Dual-axis examples: crosslines on secondary/stacked axes (CRT-1084)
+
+const dualAxisData = DATA_OIL_PETROLEUM.map((d) => ({
+    ...d,
+    volume: d.petrol * 10,
+}));
+
+const dualAxisSeries: AgCartesianChartOptions['series'] = [
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'petrol',
+        stroke: '#01c185',
+    },
+    {
+        type: 'line',
+        xKey: 'date',
+        yKey: 'volume',
+        yKeyAxis: 'ySecondary',
+        stroke: '#000000',
+    },
+];
+
+export const DUAL_LEFT_AXES_CROSSLINE_LINE: AgCartesianChartOptions = {
+    data: dualAxisData,
+    series: dualAxisSeries,
+    axes: {
+        x: { position: 'bottom', type: 'unit-time' },
+        y: {
+            position: 'left',
+            type: 'number',
+            title: { text: 'Price' },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 130,
+                    label: { text: 'Price threshold', position: 'right' },
+                    ...yAxisCrossLineStyle,
+                },
+            ],
+        },
+        ySecondary: { position: 'left', type: 'number', title: { text: 'Volume' } },
+    },
+};
+
+export const DUAL_LEFT_AXES_CROSSLINE_RANGE: AgCartesianChartOptions = {
+    data: dualAxisData,
+    series: dualAxisSeries,
+    axes: {
+        x: { position: 'bottom', type: 'unit-time' },
+        y: {
+            position: 'left',
+            type: 'number',
+            title: { text: 'Price' },
+            crossLines: [
+                {
+                    type: 'range',
+                    range: [128, 134],
+                    label: { text: '128 - 134', position: 'inside-top' },
+                    ...yAxisCrossLineStyle,
+                },
+            ],
+        },
+        ySecondary: { position: 'left', type: 'number', title: { text: 'Volume' } },
+    },
+};
+
+export const LEFT_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
+    data: dualAxisData,
+    series: dualAxisSeries,
+    axes: {
+        x: { position: 'bottom', type: 'unit-time' },
+        y: { position: 'left', type: 'number', title: { text: 'Price' } },
+        ySecondary: {
+            position: 'right',
+            type: 'number',
+            title: { text: 'Volume' },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 1300,
+                    label: { text: 'Volume threshold', position: 'left' },
+                    ...yAxisCrossLineStyle,
+                },
+                {
+                    type: 'range',
+                    range: [1280, 1340],
+                    label: { text: '1280 - 1340', position: 'inside-top' },
+                    ...yAxisCrossLineStyle,
+                },
+            ],
+        },
+    },
+};
+
+export const DUAL_RIGHT_AXES_CROSSLINE: AgCartesianChartOptions = {
+    data: dualAxisData,
+    series: dualAxisSeries,
+    axes: {
+        x: { position: 'bottom', type: 'unit-time' },
+        y: {
+            position: 'right',
+            type: 'number',
+            title: { text: 'Price' },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: 130,
+                    label: { text: 'Price threshold', position: 'left' },
+                    ...yAxisCrossLineStyle,
+                },
+            ],
+        },
+        ySecondary: { position: 'right', type: 'number', title: { text: 'Volume' } },
+    },
+};
+
+export const DUAL_BOTTOM_AXES_CROSSLINE: AgCartesianChartOptions = {
+    data: DATA_OIL_PETROLEUM,
+    series: [
+        {
+            type: 'line',
+            xKey: 'date',
+            yKey: 'petrol',
+            stroke: '#01c185',
+        },
+        {
+            type: 'line',
+            xKey: 'date',
+            xKeyAxis: 'xSecondary',
+            yKey: 'diesel',
+            stroke: '#000000',
+        },
+    ],
+    axes: {
+        x: {
+            position: 'bottom',
+            type: 'unit-time',
+            title: { text: 'Date (primary)' },
+            crossLines: [
+                {
+                    type: 'line',
+                    value: new Date(2019, 6, 1),
+                    label: { text: 'Jul 2019', position: 'top' },
+                    ...xAxisCrossLineStyle,
+                },
+            ],
+        },
+        xSecondary: { position: 'bottom', type: 'unit-time', title: { text: 'Date (secondary)' } },
+        y: { position: 'left', type: 'number' },
+    },
+};

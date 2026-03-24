@@ -1,0 +1,239 @@
+---
+title: 'Range Controls'
+description: 'Use range controls in $framework Charts to provide quick navigation buttons for cartesian charts.'
+enterprise: true
+---
+
+Range Controls allow the user to easily navigate to specific time periods and ranges along the chart timeline.
+
+## Enabling Range Controls
+
+Set `ranges.enabled` to `true` to display range control buttons.
+
+{% chartExampleRunner title="Range Controls" name="range-controls" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: { enabled: true },
+}
+```
+
+In this example:
+
+-   Clicking a range button updates the visible range to the corresponding time period.
+-   Time periods are calculated from the end of the axis domain. For example, '1 M' shows the last month of data.
+-   Range controls are commonly used alongside [Zoom](./zoom/) and [Navigator](./navigator/) for a complete navigation experience.
+-   Financial Charts also include range controls - see [Financial Charts - Range Buttons](./range-buttons/).
+
+## Position
+
+Use the `position` property to change where the range buttons are displayed. The default is `'top-right'`.
+
+{% chartExampleRunner title="Position" name="position" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        position: 'bottom-left',
+    },
+}
+```
+
+In this example:
+
+-   Use the dropdown to select different positions for the range buttons.
+-   Available positions are: `'top-left'`, `'top'`, `'top-right'`, `'bottom-left'`, `'bottom'`, `'bottom-right'`.
+
+## Custom Ranges
+
+Override the default buttons by providing a `buttons` array. Each button has a `label`, and a `value` that determines the range.
+
+{% chartExampleRunner title="Custom Buttons" name="custom-buttons" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        buttons: [
+            { label: '6 Months', value: 6 * 30 * 24 * 60 * 60 * 1000 },
+            { label: '1 Year', value: 365 * 24 * 60 * 60 * 1000 },
+            { label: 'H1 2023', value: [new Date(2023, 0, 1), new Date(2023, 6, 1)] },
+            { label: 'All Data', value: undefined },
+        ],
+    },
+}
+```
+
+The `value` property accepts:
+
+-   [Calendar Interval](#calendar-intervals) - An `AgTimeInterval` or `AgTimeIntervalUnit` for calendar-aware ranges on time axes.
+-   Number - A duration in milliseconds for time axes, or a numeric offset for number axes.
+-   Pair - A Number, Date or `undefined` array `[start, end]` defining an absolute range.
+-   [Function](#window-relative-functions) - A function that receives the data domain and current visible window, and returns a new range.
+-   `undefined` - Resets the zoom to show all data or the initial zoom range.
+
+### Calendar Intervals
+
+Use `AgTimeInterval` or `AgTimeIntervalUnit` values for calendar-aware ranges that handle variable-length months and years correctly.
+
+{% chartExampleRunner title="Calendar Intervals" name="calendar-intervals" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        buttons: [
+            { label: '1 Month', value: 'month' },
+            { label: '3 Months', value: { unit: 'month', step: 3 } },
+            { label: '1 Year', value: 'year' },
+            { label: 'All Data', value: undefined },
+        ],
+    },
+}
+```
+
+-   Calendar intervals account for varying month lengths rather than using a fixed number of milliseconds. For example, '1 Month' from 31 March navigates back to 28 February.
+-   See [Time Intervals](./axes-time/#time-intervals) for more details.
+
+### Window-Relative Functions
+
+For full control, provide a function that receives the data domain and current visible window, and returns a new range.
+
+{% chartExampleRunner title="Window-Relative Functions" name="window-relative" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        buttons: [
+            {
+                label: 'Last 1M',
+                value: (_start, _end, _windowStart, windowEnd) => {
+                    const month = 30 * 24 * 60 * 60 * 1000;
+                    return [Number(windowEnd) - month, windowEnd];
+                },
+            },
+            {
+                label: '1M Centre',
+                value: (_start, _end, windowStart, windowEnd) => {
+                    const mid = (Number(windowStart) + Number(windowEnd)) / 2;
+                    const halfMonth = (30 * 24 * 60 * 60 * 1000) / 2;
+                    return [mid - halfMonth, mid + halfMonth];
+                },
+            },
+            {
+                label: '< 1M',
+                value: (_start, _end, windowStart, windowEnd) => {
+                    const month = 30 * 24 * 60 * 60 * 1000;
+                    return [Number(windowStart) - month, Number(windowEnd) - month];
+                },
+            },
+            { label: 'All', value: undefined },
+        ],
+    },
+}
+```
+
+Use the Navigator to zoom into the middle of the data, then try the buttons:
+
+-   'Last 1M' and 'Last 3M' - Shows the last 1 or 3 months from the right edge of the current window.
+-   '1M Centre' and '3M Centre' - Zooms to 1 or 3 months centred on the midpoint of the current window.
+-   '< 1M' and '1M >' - Pan the entire window one month backward or forward.
+
+The function receives:
+
+-   `start` and `end` - The full data domain bounds.
+-   `windowStart` and `windowEnd` - The currently visible range.
+-   `source` - Indicates what triggered the function call. As the function is also called to determine [whether the button should be disabled](#out-of-range-buttons), this allows differentiation.
+
+## Appearance
+
+### Out-of-Range Buttons
+
+When buttons specify ranges that exceed the data bounds, they are disabled by default. Set `enableOutOfRange` to `true` to keep them enabled.
+
+{% chartExampleRunner title="Out-of-Range Buttons" name="out-of-range" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        enableOutOfRange: true,
+    },
+}
+```
+
+In this example:
+
+-   The data only spans 3 months, so the '6 Months', 'YTD', and '1 Year' buttons are disabled by default.
+-   The 'All' button is always enabled.
+-   Individual buttons can use the `enabled` property within their definition to force enable or disable states.
+
+### Responsive Dropdown
+
+When the chart is too narrow for all buttons, they automatically collapse into a dropdown.
+
+{% chartExampleRunner title="Responsive Dropdown" name="dropdown" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        dropdown: { visible: 'auto' },
+    },
+}
+```
+
+Control this behaviour with the `dropdown.visible` property.
+
+In this example:
+
+-   Select the different options and use the resize handle to see how the buttons respond when the chart width is reduced.
+    -   `'auto'` (default) - Switches to dropdown when buttons exceed available space.
+    -   `'always'` - Always shows a dropdown.
+    -   `'never'` - Never collapses to dropdown; buttons may overflow.
+
+### Styling
+
+Customise the appearance of range buttons using styling properties on the `ranges` options object.
+
+{% chartExampleRunner title="Styling" name="styling" type="generated" /%}
+
+```js format="snippet"
+{
+    ranges: {
+        fill: '#6366f1',
+        cornerRadius: 8,
+        textColor: '#ffffff',
+        stroke: '#4f46e5',
+        active: {
+            fill: '#16a34a',
+            textColor: '#ffffff',
+            stroke: '#15803d',
+        },
+        hover: {
+            fill: '#ea580c',
+            textColor: '#ffffff',
+            stroke: '#c2410c',
+        },
+        disabled: {
+            fill: '#e5e7eb',
+            textColor: '#9ca3af',
+            stroke: '#d1d5db',
+        },
+    },
+}
+```
+
+In this example:
+
+-   Default - Purple fill. The idle state for buttons that are not active, hovered, or disabled.
+-   Active - Green fill. Click a button to see this state.
+-   Hover - Orange fill. Hover over a button to see this state.
+-   Disabled - Light grey fill with muted text. The '1 Year' button shows this state as the data only spans 6 months.
+-   Button and dropdown styling inherit from the top level options, but can be overridden with the `button` and `dropdown` objects.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgRangesOptions" label="Range Options" %}
+{% apiReference id="AgRangesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

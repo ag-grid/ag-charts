@@ -95,15 +95,20 @@ export function midpointStartingBarPosition(
 ): InitialPosition<AnimatableBarDatum> {
     return {
         isVertical,
-        calculate: (datum) => {
-            return {
-                x: isVertical ? datum.x : datum.x + datum.width / 2,
-                y: isVertical ? datum.y + datum.height / 2 : datum.y,
-                width: isVertical ? datum.width : 0,
-                height: isVertical ? 0 : datum.height,
-                clipBBox: datum.clipBBox,
-                opacity: datum.opacity ?? 1,
-            };
+        calculate: (datum, prevDatum?) => {
+            let x = isVertical ? datum.x : datum.x + datum.width / 2;
+            let y = isVertical ? datum.y + datum.height / 2 : datum.y;
+            let width = isVertical ? datum.width : 0;
+            let height = isVertical ? 0 : datum.height;
+
+            if (prevDatum && (Number.isNaN(x) || Number.isNaN(y))) {
+                x = isVertical ? prevDatum.x : prevDatum.x + prevDatum.width / 2;
+                y = isVertical ? prevDatum.y + prevDatum.height / 2 : prevDatum.y;
+                width = isVertical ? prevDatum.width : 0;
+                height = isVertical ? 0 : prevDatum.height;
+            }
+
+            return { x, y, width, height, clipBBox: datum.clipBBox, opacity: datum.opacity ?? 1 };
         },
         mode,
     };
