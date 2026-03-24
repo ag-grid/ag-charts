@@ -913,7 +913,7 @@ test.describe('state', () => {
 
             test.describe('AG-16741', () => {
                 async function tabIntoChart(page: Page): Promise<void> {
-                    await repeat(6, async () => await page.keyboard.press('Tab'));
+                    await repeat(7, async () => await page.keyboard.press('Tab'));
                 }
 
                 async function tabToSpainLegend(page: Page): Promise<void> {
