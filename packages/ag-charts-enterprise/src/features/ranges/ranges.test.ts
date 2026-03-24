@@ -37,6 +37,8 @@ describe('Ranges', () => {
                         { label: '50%', value: [5, 15] },
                         { label: 'All', value: [0, 19] },
                     ],
+                    // Force dropdown mode via public API (simulates container too small for buttons)
+                    dropdown: { visible: 'always' },
                 },
             } as any);
 
@@ -46,12 +48,9 @@ describe('Ranges', () => {
             const chartInstance = deproxy(chart);
             const rangesModule = chartInstance.modulesManager.getModule('ranges') as any;
             expect(rangesModule).toBeDefined();
-
-            // Force dropdown state (simulates container being too small for buttons)
-            rangesModule.isDropdown = true;
             expect(rangesModule.isDropdown).toBe(true);
 
-            // Disable ranges — isDropdown should be reset
+            // Disable ranges via update — isDropdown should be reset
             await chart.update({ ...options, ranges: { ...(options as any).ranges, enabled: false } } as any);
             await waitForChartStability(chart);
 

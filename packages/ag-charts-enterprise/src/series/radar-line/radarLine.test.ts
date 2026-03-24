@@ -8,7 +8,6 @@ import {
     type AgPolarChartOptions,
     type AgRadarLineSeriesOptions,
     type AgRadarLineSeriesStyle,
-    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     MIN_UNHIGHLIGHT_DELAY,
@@ -641,8 +640,13 @@ describe('RadarLineSeries', () => {
     // CRT-1064: closestDatum() returns `any` — in radar-line, the line path selection uses
     // `[true]` as its datum (a boolean, not an object). If a node with a non-object datum is
     // picked, pickNodesExactShape must filter it out rather than pushing it into the results.
+    //
+    // Canvas path hit-testing (isPointInPath) does not work in JSDOM, so neither hoverAction
+    // nor Rect-based containsPoint can trigger the guard through the full user interaction
+    // pipeline. Instead we verify the guard directly on a real chart's series instance, passing
+    // a node list that includes the naturally-occurring boolean datum from the line path.
     describe('non-object datum filtering in pickNodesExactShape (CRT-1064)', () => {
-        it('should not include non-object datums in pick results', async () => {
+        it('should filter non-object datums returned by closestDatum()', async () => {
             const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
             prepareEnterpriseTestOptions(options as any);
 
@@ -652,32 +656,31 @@ describe('RadarLineSeries', () => {
             const chartInstance = deproxy(chart);
             const series = chartInstance.series[0] as any;
 
-            // Verify the radar-line scene graph contains the non-object datum scenario:
-            // lineSelection nodes have datum=true (a boolean, not an object).
+            // Confirm the radar-line scene graph naturally contains a non-object datum:
+            // lineSelection nodes carry datum=true (a boolean).
             const lineNode = series.lineSelection?.nodes()?.[0];
             expect(lineNode).toBeDefined();
             expect(lineNode.datum).toBe(true);
 
-            // Create a pickable Rect with a non-object datum and add it to the content group.
-            // This reproduces the CRT-1064 scenario: a node in the scene graph whose
-            // closestDatum() returns a non-object value.
-            const rect = new _ModuleSupport.Rect();
-            rect.x = 0;
-            rect.y = 0;
-            rect.width = 800;
-            rect.height = 600;
-            rect.datum = true; // non-object datum — same as radar-line's lineSelection
-            series.contentGroup.appendChild(rect);
+            // Feed the line node (with its boolean datum) directly through pickNodesExactShape
+            // by temporarily including it in the content group's pick results. We override
+            // pickNodes on the content group to return our target node alongside any real picks.
+            const origPickNodes = series.contentGroup.pickNodes.bind(series.contentGroup);
+            series.contentGroup.pickNodes = (x: number, y: number, into: any[] = []) => {
+                into.push(lineNode); // inject the node with boolean datum
+                return origPickNodes(x, y, into);
+            };
 
-            // pickNodesExactShape should filter out the non-object datum
-            const result = series.pickNodesExactShape({ x: 400, y: 300 });
+            const result = series.pickNodesExactShape({ x: 300, y: 300 });
+
+            // Restore original
+            series.contentGroup.pickNodes = origPickNodes;
+
+            // All returned datums must be objects — the boolean must be filtered out.
             for (const datum of result) {
                 expect(typeof datum).toBe('object');
                 expect(datum).not.toBeNull();
             }
-
-            // Clean up
-            series.contentGroup.removeChild(rect);
         });
     });
 
