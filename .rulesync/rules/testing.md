@@ -37,6 +37,31 @@ This guide covers testing strategies, best practices, and philosophy for AG Char
 -   **Keep tests focused**: One behavior per test, clear test names
 -   **Simplify test helpers**: Prefer simple operation counters over complex tracking mechanisms
 
+### Prefer User-Facing Options Over Internal State Manipulation
+
+When writing regression tests, prefer driving the chart through user-facing APIs rather than directly manipulating internal state. Follow this hierarchy:
+
+1.  **User-facing chart options** — `chart.update(options)` with `visible`, `enabled`, `dropdown.visible`, etc. This is the strongest form of test.
+2.  **Test harness interaction utilities** — `hoverAction`, `clickAction`, `computeLegendBBox`, `dragAction`. These simulate user input at the DOM level.
+3.  **Internal state reads** (assertions only) — Reading `contextNodeData`, `isDropdown`, module state via `deproxy()` is acceptable for assertions.
+4.  **Internal state writes** (avoid) — Directly setting instance properties, overriding methods, or monkey-patching. Use only as a last resort and document why no higher-level approach works.
+
+If a test cannot be written at levels 1-2, consider whether E2E (Playwright) is a better fit than JSDOM.
+
+## Canvas Hit-Testing in JSDOM
+
+AG Charts renders to HTML Canvas. In JSDOM (the Jest test environment), canvas operations are stubbed:
+
+-   **`isPointInPath` / `isPointInStroke`** — Always return `false`. This means `Shape.containsPoint()` and `Group.pickNodes()` cannot perform real hit-testing. Hover/click interactions that rely on picking canvas shapes will not reach the picking code path.
+-   **Exception: `Rect` with unrounded corners** — `Rect.updatePath()` replaces the hit-tester with a BBox check (`bbox.containsPoint`), which works without canvas. However, the Rect must have had `updatePath()` called (happens during rendering).
+-   **Image snapshots work** — `extractImageData(ctx)` and `toMatchImageSnapshot()` use the mock canvas to capture rendered output. Visual comparisons are valid.
+
+### When to Escalate to E2E
+
+If a regression test requires real canvas hit-testing (e.g., verifying that hovering a specific shape triggers or does not trigger an error), write a **Playwright E2E test** instead of a JSDOM unit test. Playwright uses a real browser where `isPointInPath` works correctly.
+
+**Note:** Headless Chromium may behave differently from headed mode for canvas path operations. When writing E2E tests that depend on canvas picking, verify the test works in the CI configuration (typically headless).
+
 ## Code Quality Tools
 
 -   **ESLint**: Comprehensive setup with TypeScript rules, SonarJS, and custom AG Charts rules
