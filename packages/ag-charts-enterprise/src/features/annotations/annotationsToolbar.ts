@@ -12,7 +12,7 @@ import {
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
-import { type AnnotationType } from './annotationTypes';
+import { AnnotationType } from './annotationTypes';
 import {
     FIBONACCI_ANNOTATION_ITEMS,
     LINE_ANNOTATION_ITEMS,
@@ -40,6 +40,17 @@ type AnnotationsToolbarButtonValue =
     | 'text-menu'
     | 'shape-menu'
     | 'measurer-menu'
+    | 'line'
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'fibonacci-retracement'
+    | 'fibonacci-retracement-trend-based'
+    | 'text'
+    | 'comment'
+    | 'callout'
+    | 'note'
     | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
@@ -155,10 +166,6 @@ export class AnnotationsToolbar extends BaseProperties {
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
         switch (button.value) {
-            case 'clear':
-                this.events.emit('pressed-clear', null);
-                break;
-
             case 'line-menu':
                 this.onToolbarButtonPressShowMenu(
                     event,
@@ -213,6 +220,54 @@ export class AnnotationsToolbar extends BaseProperties {
                     MEASURER_ANNOTATION_ITEMS
                 );
                 break;
+
+            case 'line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Line);
+                break;
+
+            case 'horizontal-line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.HorizontalLine);
+                break;
+
+            case 'vertical-line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.VerticalLine);
+                break;
+
+            case 'parallel-channel':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.ParallelChannel);
+                break;
+
+            case 'disjoint-channel':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.DisjointChannel);
+                break;
+
+            case 'fibonacci-retracement':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracement);
+                break;
+
+            case 'fibonacci-retracement-trend-based':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracementTrendBased);
+                break;
+
+            case 'text':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Text);
+                break;
+
+            case 'comment':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Comment);
+                break;
+
+            case 'callout':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Callout);
+                break;
+
+            case 'note':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Note);
+                break;
+
+            case 'clear':
+                this.events.emit('pressed-clear', null);
+                break;
         }
     }
 
@@ -251,6 +306,12 @@ export class AnnotationsToolbar extends BaseProperties {
         this.updateButtonByIndex(index, { icon: item.icon });
         this.events.emit('pressed-create-annotation', { annotation: item.value });
         this.annotationMenu.hide();
+    }
+
+    private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
+        const index = this.buttons.findIndex((button) => button.value === item);
+        this.toolbar.toggleActiveButtonByIndex(index);
+        this.events.emit('pressed-create-annotation', { annotation });
     }
 
     private onKeyDown({ sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
