@@ -32,4 +32,6 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
         'a total definition options array'
     ),
     width: positiveNumberNonZero,
+    minWidth: positiveNumber,
+    maxWidth: positiveNumber,
 };

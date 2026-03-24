@@ -417,8 +417,7 @@ export abstract class Series<
                 type,
                 visible,
                 seriesGrouping: next,
-                // TODO: is there a better way to pass width through here?
-                width: 'width' in this.properties ? (this.properties.width as number) : 0,
+                width: this.getSeriesStateWidth(),
             });
         }
 
@@ -705,9 +704,12 @@ export abstract class Series<
             type,
             visible,
             seriesGrouping,
-            // TODO: is there a better way to pass width through here?
-            width: 'width' in this.properties ? (this.properties.width as number) : 0,
+            width: this.getSeriesStateWidth(),
         });
+    }
+
+    protected getSeriesStateWidth(): number | undefined {
+        return undefined;
     }
 
     // Produce data joins and update selection's nodes using node data.

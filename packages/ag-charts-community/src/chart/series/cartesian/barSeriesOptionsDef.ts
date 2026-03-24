@@ -60,6 +60,8 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
+    minWidth: positiveNumber,
+    maxWidth: positiveNumber,
 };
 
 // @ts-expect-error undocumented option

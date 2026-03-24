@@ -111,6 +111,10 @@ export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     width?: PixelSize;
     /** Ratio of the bandwidth (or specified width) to use for the width for each bar in the series. */
     widthRatio?: Ratio;
+    /** Minimum width of each bar in the series. */
+    minWidth?: PixelSize;
+    /** Maximum width of each bar in the series.  */
+    maxWidth?: PixelSize;
 }
 
 export interface AgBarHighlightStyleOptions extends AgBarSeriesStyle {

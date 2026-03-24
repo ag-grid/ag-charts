@@ -3,6 +3,7 @@ import {
     type Point,
     Property,
     type Scaling,
+    clamp,
     extent,
     findMinMax,
     isFiniteNumber,
@@ -39,6 +40,12 @@ export abstract class AbstractBarSeriesProperties<T extends object> extends Cart
 
     @Property
     widthRatio?: number = undefined;
+
+    @Property
+    minWidth?: number = undefined;
+
+    @Property
+    maxWidth?: number = undefined;
 }
 
 export interface AbstractBarSeriesNodeDataContext<
@@ -114,15 +121,15 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
     }
 
     override getMinimumRangeSeries(ranges: number[]) {
-        const { width } = this.properties;
-        if (width == null) return;
+        const minWidth = this.properties.width ?? this.properties.minWidth;
+        if (minWidth == null) return;
 
         const axis = this.getCategoryAxis();
         if (!axis) return;
 
         // Find the max width for each stack that shares the same index.
         const { index } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-        ranges[index] = Math.max(ranges[index] ?? 0, width);
+        ranges[index] = Math.max(ranges[index] ?? 0, minWidth);
     }
 
     override getMinimumRangeChart(ranges: number[]) {
@@ -190,13 +197,19 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
         return findMinMax(ys) as [number, number];
     }
 
+    override getSeriesStateWidth() {
+        return this.properties.width;
+    }
+
     protected getBarDimensions() {
+        const { minWidth, maxWidth } = this.properties;
+
         const categoryAxis = this.getCategoryAxis()!;
         const bandwidth = this.getBandwidth(categoryAxis);
 
         this.ctx.seriesStateManager.updateGroupScale(this, bandwidth, categoryAxis);
 
-        const barWidth = this.getBarWidth();
+        const barWidth = clamp(minWidth ?? -Infinity, this.getBarWidth(), maxWidth ?? Infinity);
         const barOffset = this.getBarOffset(barWidth);
         let groupOffset = this.getGroupOffset();
 
@@ -219,6 +232,8 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
      * The offset for each bar in this series to centre it on the datum.
      */
     private getBarOffset(barWidth: number) {
+        const { width, minWidth, maxWidth, widthRatio } = this.properties;
+
         const groupScale = this.ctx.seriesStateManager.getGroupScale(this);
         const xAxis = this.getCategoryAxis()!;
 
@@ -230,7 +245,7 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
             // For ungrouped series, centre the bar within the width of the group.
             const rangeWidth = this.getGroupScaleRangeWidth(groupScale);
             barOffset = (rangeWidth - barWidth) / 2;
-        } else if (groupScale && this.properties.widthRatio != null) {
+        } else if (groupScale && (widthRatio != null || (width == null && (minWidth != null || maxWidth != null)))) {
             // For grouped series with fixed widths, centre the bar on its own width adjusted by the default width of
             // bars within the group.
             barOffset = (groupScale.bandwidth - barWidth) / 2;
