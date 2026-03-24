@@ -19,7 +19,6 @@
             "Bash(git fetch:*)",
             "Bash(git log:*)",
             "Bash(git ls-tree:*)",
-            "Bash(git push:*)",
             "Bash(git stash list:*)",
             "Bash(git stash show:*)",
             "Bash(git status:*)",
