@@ -69,8 +69,9 @@ export class NavigatorDOMProxy {
             slider.keyboardStep = SliderWidget.STEP_ONE;
             slider.orientation = 'horizontal';
             slider.setPreventsDefault(false);
+            slider.addListener('blur', () => this.clearFocusOverride(slider));
             slider.addListener('focus', () => this.clearFocusOverride(slider));
-            slider.addListener('keydown', () => this.clearFocusOverride(slider));
+            slider.addListener('keydown', () => this.onKeyDown(slider));
             slider.addListener('drag-start', (ev) => this.onDragStart(index, ev, key));
             slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
@@ -139,6 +140,10 @@ export class NavigatorDOMProxy {
 
     private clearFocusOverride(slider: _Widget.Widget) {
         slider.setFocusOverride(undefined);
+    }
+
+    private onKeyDown(slider: _Widget.Widget) {
+        slider.setFocusOverride(true);
     }
 
     private onDragStart(index: number, event: _ModuleSupport.DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
