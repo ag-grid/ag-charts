@@ -69,6 +69,7 @@ enum PickedFocusStatus {
     SERIES_NOT_FOUND,
     DATUM_NOT_FOUND,
     PAN_REQUIRED,
+    PENDING_VIEWPORT_FOCUS,
 }
 
 type FocusIndices = {
@@ -90,6 +91,7 @@ type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
 
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
+    hasPgUpPgDownSupport(): boolean;
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
     getTooltipContent: <DatumIndex extends DatumIndexType>(
@@ -340,18 +342,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        if (this.focus.pendingViewportFocus && this.focus.series !== undefined) {
-            try {
-                this.pickViewportFocus(this.focus.pendingViewportFocus);
-            } finally {
-                this.focus.pendingViewportFocus = undefined;
-            }
-            // NOTE: Do the `isFocusVisible()` check last as its the most expensive part.
-        } else if (
-            this.isState(InteractionState.Focusable) &&
-            this.getHoverDevice() !== 'pointer' &&
-            this.focusIndicator?.isFocusVisible()
-        ) {
+        const { pendingViewportFocus } = this.focus;
+        if (pendingViewportFocus && this.focus.series !== undefined) {
+            this.focus.pendingViewportFocus = undefined;
+            this.pickViewportFocus(pendingViewportFocus);
+        } else if (this.isState(InteractionState.Focusable) && this.focusIndicator?.isFocusVisible()) {
             // This function is usually called when something in the scene is redrawn such as a resize, or zoompan
             // change. In such a case, we need to update the bounds of the focus indicator, but not aria-label. Hence
             // setting mode='never' to avoid announcing the change.
@@ -647,10 +642,16 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(): void {
-        if (!this.isState(InteractionState.Focusable)) return;
+        if (!this.isState(InteractionState.Focusable) || !this.focusIndicator) return;
         this.initFocus(this.chart.keyboard.initialFocus);
-        this.setHoverDevice(this.focusIndicator?.isFocusVisible(true) ? 'keyboard' : 'pointer');
-        this.refreshFocus();
+        const focusVisibleStyle: boolean = this.focusIndicator.onFocus();
+        this.setHoverDevice(focusVisibleStyle ? 'keyboard' : 'pointer');
+
+        const { pendingViewportFocus } = this.focus;
+        if (this.refreshFocus() === PickedFocusStatus.PENDING_VIEWPORT_FOCUS && pendingViewportFocus) {
+            this.focus.pendingViewportFocus = undefined;
+            this.pickViewportFocus(pendingViewportFocus);
+        }
     }
 
     private onBlur(event: FocusEvent) {
@@ -659,7 +660,7 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.isState(InteractionState.Frozen) && !this.maybeEnterInteractiveTooltip(event)) {
             this.clearAll(true); // true = delayed
         }
-        this.focusIndicator?.overrideFocusVisible(undefined);
+        this.focusIndicator?.onBlur();
     }
 
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
@@ -705,6 +706,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
+        if (!this.chart.hasPgUpPgDownSupport()) return;
         if (!this.onNav(widgetEvent)) return;
         const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
@@ -809,23 +811,26 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.eventsHub.emit('series:focus-change', null);
     }
 
-    private refreshFocus(): void {
-        this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
+    private refreshFocus(): PickedFocusStatus {
+        return this.handleFocus({ datumIndexDelta: 0, otherIndexDelta: 0 });
     }
 
-    private handleFocus(inputs: HandleFocusInputs) {
+    private handleFocus(inputs: HandleFocusInputs): PickedFocusStatus {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
-            if (this.handleSeriesFocus(inputs) === PickedFocusStatus.SUCCESS) {
+            const status = this.handleSeriesFocus(inputs);
+            if (status === PickedFocusStatus.SUCCESS) {
                 this.announceMode = 'when-changed';
             } else {
                 // As a safe-guard, always announce the next focus-change if this current focus-change failed.
                 this.announceMode = 'always';
             }
+            return status;
         } else {
             this.focusIndicator?.update(overlayFocus.rect, this.seriesRect, false);
             this.swapChain.update(overlayFocus.text);
             this.announceMode = 'always';
+            return PickedFocusStatus.SUCCESS;
         }
     }
 
@@ -939,6 +944,7 @@ export class SeriesAreaManager extends BaseManager {
         const { datumIndexDelta, oldDatumIndex, otherIndexDelta, oldOtherIndex } = inputs;
         const { focus, hoverRect } = this;
         if (focus.series == null || hoverRect == null) return PickedFocusStatus.SERIES_NOT_FOUND;
+        if (focus.pendingViewportFocus !== undefined) return PickedFocusStatus.PENDING_VIEWPORT_FOCUS;
 
         const { datum } = pick;
         focus.datum = datum;
@@ -1260,7 +1266,7 @@ export class SeriesAreaManager extends BaseManager {
         return this.chart.tooltip.maybeEnterInteractiveTooltip(event, () => {
             this.pickManager.maybeActivate(undefined, (): void => {
                 this.tooltip.lastHover = undefined;
-                this.chart.ctx.tooltipManager.removeTooltip(this.id);
+                this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
                 this.chart.ctx.highlightManager.updateHighlight(this.id, undefined, true); // true = delayed
             });
         });

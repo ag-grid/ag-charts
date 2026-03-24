@@ -363,6 +363,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "RangesModule",
+                    "name": "Range Controls",
+                    "path": "range-controls",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "ScrollbarModule",
                     "name": "Scrollbar",
                     "path": "scrollbar",

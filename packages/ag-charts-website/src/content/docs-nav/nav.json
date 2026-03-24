@@ -285,6 +285,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Range Controls",
+                            "path": "range-controls",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Scrollbar",
                             "path": "scrollbar",
                             "isEnterprise": true

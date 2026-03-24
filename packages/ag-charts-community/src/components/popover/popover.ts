@@ -150,8 +150,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
 
         popover.style.setProperty('right', 'unset');
         popover.style.setProperty('bottom', 'unset');
-        if (position.x != null) popover.style.setProperty('left', `${Math.floor(position.x)}px`);
-        if (position.y != null) popover.style.setProperty('top', `${Math.floor(position.y)}px`);
+        if (position.x != null) popover.style.setProperty('left', `${position.x}px`);
+        if (position.y != null) popover.style.setProperty('top', `${position.y}px`);
 
         // AG-13167 Deferred focus() call after position have been initialised
         this.initialFocus?.focus();

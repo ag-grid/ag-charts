@@ -144,7 +144,18 @@ export abstract class BaseToolbar<
     protected getButtonWidgetBounds(buttonWidget: ButtonWidget) {
         const parent = this.getBounds();
         const bounds = buttonWidget.getBounds();
-        return new BBox(bounds.x + parent.x, bounds.y + parent.y, bounds.width, bounds.height);
+
+        // Adjust the relative position by the fractional part of the absolute position for a more precise placement.
+        const preciseBounds = buttonWidget.getBoundingClientRect();
+        const floatingPositionAdjustX = preciseBounds.x - Math.floor(preciseBounds.x);
+        const floatingPositionAdjustY = preciseBounds.y - Math.floor(preciseBounds.y);
+
+        return new BBox(
+            bounds.x + parent.x + floatingPositionAdjustX,
+            bounds.y + parent.y + floatingPositionAdjustY,
+            preciseBounds.width,
+            preciseBounds.height
+        );
     }
 
     private refreshButtonClasses() {

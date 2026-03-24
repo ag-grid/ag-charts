@@ -57,14 +57,14 @@ export function createFibonacciRangesData(
     bands: FibonacciBands = 10
 ): FibonacciRangeDatum[] {
     const verticalDistance = y1 - y2;
-
     const direction = reverse ? -1 : 1;
-    let startY = yZero;
     const data: FibonacciRangeDatum[] = [];
+    const { yAxis, isRtl } = context;
+    let startY = yZero;
 
     for (const [index, ratio] of FIBONACCI_RATIOS_MAP[bands].entries()) {
         const endY = yZero + verticalDistance * (ratio / 100) * direction;
-        const yDatumVal = context.yAxis.scaleInvert(endY);
+        const yDatumVal = yAxis.scaleInvert(endY);
 
         data.push({
             id: index,
@@ -74,11 +74,15 @@ export function createFibonacciRangesData(
             y2: endY,
             tag: ratio == 100 ? FibonacciNodeTag.OneLine : FibonacciNodeTag.HorizontalLine,
             label: {
-                x1: Math.min(x1, x2) - FIBONACCI_RANGE_LABEL_PADDING,
+                x1: isRtl
+                    ? Math.max(x1, x2) + FIBONACCI_RANGE_LABEL_PADDING
+                    : Math.min(x1, x2) - FIBONACCI_RANGE_LABEL_PADDING,
                 x2: x2,
                 y1: endY,
                 y2: endY,
-                text: `${(ratio / 100).toFixed(3)} (${yDatumVal.toFixed(2)})`,
+                text: isRtl
+                    ? `(${yDatumVal.toFixed(2)}) ${(ratio / 100).toFixed(3)}`
+                    : `${(ratio / 100).toFixed(3)} (${yDatumVal.toFixed(2)})`,
             },
         });
         startY = endY;

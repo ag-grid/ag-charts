@@ -71,7 +71,7 @@ export type AgRangesDropdownVisible = 'auto' | 'always' | 'never';
 
 export type AgRangesPosition = 'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right';
 
-export interface AgRangesButton extends ToolbarButton {
+export interface AgRangesButton extends Omit<ToolbarButton, 'iconPosition'> {
     /** Set to force this button to be enabled or disabled. */
     enabled?: boolean;
     /** Timestamp range on which to focus the chart, as either a single start time, a pair of times or a function that returns a pair of times. */
