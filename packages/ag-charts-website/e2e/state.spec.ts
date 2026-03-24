@@ -955,15 +955,15 @@ test.describe('state', () => {
 
                         await tabToGermanyLegend(page);
                         expect(await popChartEvents(page)).toEqual([
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             UKLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
                         ]);
                     });
@@ -1000,7 +1000,7 @@ test.describe('state', () => {
                         await tabToSpainLegend(page);
                         expect(await popChartEvents(page)).toEqual([
                             SPAIN2010_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
                         ]);
 
@@ -1009,13 +1009,13 @@ test.describe('state', () => {
 
                         await arrowRightToGermanyLegend(page);
                         expect(await popChartEvents(page)).toEqual([
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             UKLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
                             GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
                         ]);
                     });
