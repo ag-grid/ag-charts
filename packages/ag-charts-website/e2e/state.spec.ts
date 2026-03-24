@@ -125,6 +125,125 @@ test.describe('state', () => {
         test.describe('line-example', () => {
             let canvas: Locator;
 
+            const COMMON_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                dataIdKey: undefined,
+                frozen: false,
+                preventDefault: PREVENT_DEFAULT_STUB,
+                source: 'user-interaction',
+                type: 'activeChange',
+            });
+
+            const INACTIVE_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                activeItem: undefined,
+                datum: undefined,
+            });
+
+            const SPAIN2010_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'series-node',
+                itemId: 0,
+                seriesId: 'LineSeries-1',
+            });
+            const SPAIN2010_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: SPAIN2010_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const SPAIN2010_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...SPAIN2010_THAWED_ACTIVESTATE,
+                datum: { Year: '2010', Spain: -50000, UK: 245000, Ireland: -30000, France: 70000, Germany: 128000 },
+            });
+
+            const GERMANY2015_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'series-node',
+                itemId: 5,
+                seriesId: 'LineSeries-5',
+            });
+            const GERMANY2015_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: GERMANY2015_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const GERMANY2015_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...GERMANY2015_THAWED_ACTIVESTATE,
+                datum: { Year: '2015', Spain: 10000, UK: 330000, Ireland: 20000, France: 120000, Germany: 1139000 },
+            });
+
+            const SPAINLEGEND_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'legend',
+                itemId: 'Spain',
+                seriesId: 'LineSeries-1',
+            });
+            const SPAINLEGEND_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: SPAINLEGEND_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const SPAINLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...SPAINLEGEND_THAWED_ACTIVESTATE,
+                datum: undefined,
+            });
+
+            const UKLEGEND_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'legend',
+                itemId: 'UK',
+                seriesId: 'LineSeries-2',
+            });
+            const UKLEGEND_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: UKLEGEND_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const UKLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...UKLEGEND_THAWED_ACTIVESTATE,
+                datum: undefined,
+            });
+
+            const IRELANDLEGEND_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'legend',
+                itemId: 'Ireland',
+                seriesId: 'LineSeries-3',
+            });
+            const IRELANDLEGEND_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: IRELANDLEGEND_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const IRELANDLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...IRELANDLEGEND_THAWED_ACTIVESTATE,
+                datum: undefined,
+            });
+
+            const FRANCELEGEND_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'legend',
+                itemId: 'France',
+                seriesId: 'LineSeries-4',
+            });
+            const FRANCELEGEND_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: FRANCELEGEND_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const FRANCELEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...FRANCELEGEND_THAWED_ACTIVESTATE,
+                datum: undefined,
+            });
+
+            const GERMANYLEGEND_THAWED_ACTIVEITEM = Object.freeze({
+                type: 'legend',
+                itemId: 'Germany',
+                seriesId: 'LineSeries-5',
+            });
+            const GERMANYLEGEND_THAWED_ACTIVESTATE = Object.freeze({
+                activeItem: GERMANYLEGEND_THAWED_ACTIVEITEM,
+                frozen: false,
+            });
+            const GERMANYLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
+                ...COMMON_THAWED_UI_ACTIVECHANGE,
+                ...GERMANYLEGEND_THAWED_ACTIVESTATE,
+                datum: undefined,
+            });
+
             async function pickDatum(page: Page, datum: { country: string; year: string }): Promise<void> {
                 await page.selectOption('#myCountry', datum.country);
                 await page.selectOption('#myYear', datum.year);
@@ -789,6 +908,117 @@ test.describe('state', () => {
                     await clickOnGermanyLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
+                });
+            });
+
+            test.describe('AG-16741', () => {
+                async function tabIntoChart(page: Page): Promise<void> {
+                    await repeat(6, async () => page.keyboard.press('Tab'));
+                }
+
+                async function tabToSpainLegend(page: Page): Promise<void> {
+                    await page.keyboard.press('Tab');
+                }
+
+                async function arrowRightToGermanyLegend(page: Page): Promise<void> {
+                    await repeat(4, async () => page.keyboard.press('ArrowRight'));
+                }
+
+                async function tabToGermanyLegend(page: Page): Promise<void> {
+                    await tabToSpainLegend(page);
+                    await arrowRightToGermanyLegend(page);
+                }
+
+                async function hoverNearGermany2015(page: Page): Promise<void> {
+                    await page.mouse.move(358, 174);
+                }
+
+                test.describe('without mousemove', () => {
+                    test('screenshots', async ({ page }) => {
+                        await tabIntoChart(page);
+                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
+
+                        await tabToGermanyLegend(page);
+                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
+                    });
+
+                    test('states', async ({ page }) => {
+                        await tabIntoChart(page);
+                        expect((await getChartState(page)).active).toEqual(SPAIN2010_THAWED_ACTIVESTATE);
+
+                        await tabToGermanyLegend(page);
+                        expect((await getChartState(page)).active).toEqual(GERMANYLEGEND_THAWED_ACTIVESTATE);
+                    });
+                    test('popStates', async ({ page }) => {
+                        await tabIntoChart(page);
+                        expect(await popChartEvents(page)).toEqual([SPAIN2010_THAWED_UI_ACTIVECHANGE]);
+
+                        await tabToGermanyLegend(page);
+                        expect(await popChartEvents(page)).toEqual([
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            UKLEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
+                        ]);
+                    });
+                });
+
+                test.describe('with mousemove', () => {
+                    test('screenshots', async ({ page }) => {
+                        await tabIntoChart(page);
+                        await tabToSpainLegend(page);
+                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-Legend.png');
+
+                        await hoverNearGermany2015(page);
+                        await expect(canvas).toHaveScreenshot(
+                            'line-example-canvas-focus-Spain-Legend-active-Germany-2015.png'
+                        );
+
+                        await arrowRightToGermanyLegend(page);
+                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
+                    });
+
+                    test('states', async ({ page }) => {
+                        await tabIntoChart(page);
+                        await tabToSpainLegend(page);
+                        expect((await getChartState(page)).active).toEqual(SPAINLEGEND_THAWED_ACTIVESTATE);
+
+                        await hoverNearGermany2015(page);
+                        expect((await getChartState(page)).active).toEqual(GERMANY2015_THAWED_ACTIVESTATE);
+
+                        await arrowRightToGermanyLegend(page);
+                        expect((await getChartState(page)).active).toEqual(GERMANYLEGEND_THAWED_ACTIVESTATE);
+                    });
+                    test('popStates', async ({ page }) => {
+                        await tabIntoChart(page);
+                        await tabToSpainLegend(page);
+                        expect(await popChartEvents(page)).toEqual([
+                            SPAIN2010_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
+                        ]);
+
+                        await hoverNearGermany2015(page);
+                        expect(await popChartEvents(page)).toEqual([GERMANY2015_THAWED_UI_ACTIVECHANGE]);
+
+                        await arrowRightToGermanyLegend(page);
+                        expect(await popChartEvents(page)).toEqual([
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            UKLEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
+                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME
+                            GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
+                        ]);
+                    });
                 });
             });
         });
