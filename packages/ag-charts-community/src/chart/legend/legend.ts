@@ -1226,7 +1226,6 @@ export class Legend extends BaseProperties {
         if (this.checkInteractionState()) return;
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
-        this.ctx.eventsHub.emit('legend:item-hover', null);
         this.pagination.setPage(node.pageIndex);
 
         const datum: CategoryLegendDatum | undefined = node.datum;
@@ -1241,6 +1240,7 @@ export class Legend extends BaseProperties {
         }
 
         this.updateHighlight(datum?.enabled, datum, series);
+        this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
     onLeave() {
