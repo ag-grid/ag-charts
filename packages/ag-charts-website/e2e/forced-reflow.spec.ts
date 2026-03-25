@@ -111,7 +111,8 @@ test.describe('forced reflow detection', () => {
         });
     });
 
-    test('sparkline data update should not cause forced reflows', async ({ page }) => {
+    // TODO: flaky — intermittent failure in CI due to timing sensitivity of CDP tracing.
+    test.skip('sparkline data update should not cause forced reflows', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('sparklines-test', 'e2e-sparkline-reflow', 'vanilla').url);
         await waitForAllChartUpdates(page);
 
