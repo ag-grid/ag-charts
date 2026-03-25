@@ -63,8 +63,7 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-position-bottom-right.png');
     });
 
-    // Skip flaky tests
-    test.skip('actions', async ({ page }) => {
+    test('actions', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
         await gotoExample(page, url);
 
@@ -93,8 +92,7 @@ test.describe('range buttons', () => {
         await expect(canvas).toHaveScreenshot('range-buttons-actions-visible-window-function.png');
     });
 
-    // Skip flaky tests
-    test.skip('dropdown', async ({ page }) => {
+    test('dropdown', async ({ page }) => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-dropdown', 'vanilla');
         await gotoExample(page, url);
 
@@ -111,10 +109,9 @@ test.describe('range buttons', () => {
         await page.locator('.ag-charts-menu').getByText('Young Adults').click();
         await expect(canvas).toHaveScreenshot('range-buttons-dropdown-3.png');
 
-        // TODO: skipping flaky test
         // Resets on zoom
-        // await page.mouse.dblclick(200, 400);
-        // await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
+        await page.mouse.dblclick(200, 400);
+        await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
     });
 
     // CRT-705: Disabling and re-enabling ranges should correctly restore the button toolbar.
