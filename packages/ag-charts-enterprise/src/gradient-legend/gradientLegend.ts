@@ -9,6 +9,7 @@ import {
     BaseProperties,
     Border,
     CleanupRegistry,
+    type GradientColorStop,
     Property,
     ProxyProperty,
     ZIndexMap,
@@ -155,7 +156,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         this.legendGroup.translationY = top;
     }
 
-    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorStops: _ModuleSupport.GradientColorStop[]) {
+    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorStops: GradientColorStop[]) {
         const { gradientRect, gradient } = this;
         const { preferredLength, thickness } = gradient;
         const gradientRectBBox = new BBox(0, 0, 0, 0);

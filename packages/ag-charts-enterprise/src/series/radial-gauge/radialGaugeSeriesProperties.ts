@@ -2,6 +2,7 @@ import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
 import {
     BaseProperties,
+    type GradientColorStop,
     PropertiesArray,
     Property,
     normalizeAngle360,
@@ -448,7 +449,7 @@ export function createConicGradient(
     const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
     const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
-        ({ color, stop }): _ModuleSupport.GradientColorStop => {
+        ({ color, stop }): GradientColorStop => {
             stop = Math.min(Math.max(stop, 0), 1);
             const angle = startAngle + sweepAngle * stop;
             stop = (angle - conicAngle) / (2 * Math.PI);

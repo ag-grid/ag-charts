@@ -328,14 +328,7 @@ export { BandScale } from './scale/bandScale';
 export { CategoryScale } from './scale/categoryScale';
 export { TimeScale } from './scale/timeScale';
 export { ColorScale } from './scale/colorScale';
-export {
-    type ColorScaleBin,
-    type GradientColorStop,
-    computeColorBins,
-    configureColorScale,
-    deriveNormalizedStops,
-    formatColorScaleBinLabel,
-} from './scale/colorScaleUtil';
+export { configureColorScale } from './scale/colorScaleUtil';
 export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
@@ -345,7 +338,7 @@ export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
-export { ColorScaleProperties, discreteColorStops, getColorStops, StopProperties } from './scene/gradient/stops';
+export { ColorScaleProperties, getColorStops, StopProperties } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';

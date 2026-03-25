@@ -52,7 +52,7 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /**
      * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated Use `colorScale.fills` instead.
+     * @deprecated v13.3.0 Use `colorScale.fills` instead.
      */
     colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */

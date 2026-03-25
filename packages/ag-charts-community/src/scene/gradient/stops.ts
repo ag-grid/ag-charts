@@ -1,10 +1,18 @@
-import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
-import type { AgGradientColorMode, AgGradientColorStop } from 'ag-charts-types';
+import {
+    BaseProperties,
+    type ColorScaleMode,
+    type GradientColorStop,
+    PropertiesArray,
+    Property,
+    discreteColorStops,
+    resolveStopPositions,
+} from 'ag-charts-core';
+import type { AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
-import { type GradientColorStop, resolveStopPositions } from '../../scale/colorScaleUtil';
 
-export type { GradientColorStop } from '../../scale/colorScaleUtil';
+export type { GradientColorStop } from 'ag-charts-core';
+export { discreteColorStops } from 'ag-charts-core';
 
 export class StopProperties extends BaseProperties implements AgGradientColorStop {
     @Property
@@ -25,18 +33,10 @@ export class ColorScaleProperties extends BaseProperties {
     domain?: [number, number];
 
     @Property
-    mode: AgGradientColorMode = 'continuous';
+    mode: ColorScaleMode = 'continuous';
 }
 
-export function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[] {
-    return colorStops.flatMap((colorStop, i) => {
-        const { stop } = colorStop;
-        const nextColor = colorStops.at(i + 1)?.color;
-        return nextColor == null ? [colorStop] : [colorStop, { stop, color: nextColor }];
-    });
-}
-
-function getDefaultColorStops(defaultColorStops: string[], fillMode: AgGradientColorMode) {
+function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleMode) {
     const stopOffset = fillMode === 'discrete' ? 1 : 0;
 
     const colorStops = defaultColorStops.map(
@@ -53,7 +53,7 @@ export function getColorStops(
     baseFills: Array<AgGradientColorStop | string>,
     defaultColorStops: string[],
     domain: number[],
-    fillMode: AgGradientColorMode = 'continuous'
+    fillMode: ColorScaleMode = 'continuous'
 ): GradientColorStop[] {
     const fills = baseFills.map<AgGradientColorStop>((fill) => (typeof fill === 'string' ? { color: fill } : fill));
     if (fills.length === 0) {

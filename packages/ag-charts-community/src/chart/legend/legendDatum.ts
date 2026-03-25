@@ -1,7 +1,7 @@
 import type { PluginModuleInstance } from 'ag-charts-core';
+import { type ColorScaleState, type GradientColorStop, deriveNormalizedStops } from 'ag-charts-core';
 import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
 
-import { type ColorScaleState, type GradientColorStop, deriveNormalizedStops } from '../../scale/colorScaleUtil';
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 

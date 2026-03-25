@@ -73,7 +73,7 @@ export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = Contex
     type: 'heatmap';
     /**
      * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'.
-     * @deprecated Use `colorScale.fills` instead.
+     * @deprecated v13.3.0 Use `colorScale.fills` instead.
      */
     colorRange?: string[];
     /** Configuration for colour scale with fills, domain, and mode. */

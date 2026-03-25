@@ -81,7 +81,14 @@ const colorScaleColorStop = optionsDefs<AgColorScaleColorStop>(
 export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
     {
         fills: and(arrayLength(2), arrayOf(colorScaleColorStop), colorStopsOrderValidator),
-        domain: and(arrayLength(2), arrayOf(number)),
+        domain: and(
+            arrayLength(2),
+            arrayOf(number),
+            attachDescription(
+                (value) => (value as number[])[0] <= (value as number[])[1],
+                'domain to be in ascending order'
+            )
+        ),
         mode: union('continuous', 'discrete'),
     },
     'a colour scale configuration'

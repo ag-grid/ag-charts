@@ -130,7 +130,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     strokes?: CssColor[];
     /**
      * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
-     * @deprecated Use `colorScale.fills` instead.
+     * @deprecated v13.3.0 Use `colorScale.fills` instead.
      */
     colorRange?: CssColor[];
     /** Configuration for colour scale with fills, domain, and mode. */
