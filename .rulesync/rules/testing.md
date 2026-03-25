@@ -62,6 +62,34 @@ If a regression test requires real canvas hit-testing (e.g., verifying that hove
 
 **Note:** Headless Chromium may behave differently from headed mode for canvas path operations. When writing E2E tests that depend on canvas picking, verify the test works in the CI configuration (typically headless).
 
+## E2E Test Example Patterns
+
+E2E tests load standalone examples from `_examples/` directories. When an E2E test needs to trigger chart mutations (option updates, enable/disable toggles, data changes):
+
+-   **Add buttons to the example HTML** for every operation the test exercises. This makes the example a self-contained reproducer that human operators can use to manually verify the issue.
+-   **Wire buttons in `main.ts`** using `chart.updateDelta()` or `chart.update()` to apply the change.
+-   **Click the buttons from the test** via `page.getByText('Button Label').click()` rather than using `page.evaluate()` to call chart APIs directly.
+-   **Avoid exposing chart internals on `window`** — no `(window as any).chart = chart`. The example should be operable entirely through its own UI controls.
+
+Example structure:
+
+```html
+<!-- index.html -->
+<div id="controls">
+    <button id="disable">Disable Feature</button>
+    <button id="enable">Enable Feature</button>
+</div>
+<div id="myChart"></div>
+```
+
+```typescript
+// main.ts — wire buttons to chart updates
+const chart = AgCharts.create(options);
+document.getElementById('disable')!.addEventListener('click', () => {
+    chart.updateDelta({ feature: { enabled: false } });
+});
+```
+
 ## Code Quality Tools
 
 -   **ESLint**: Comprehensive setup with TypeScript rules, SonarJS, and custom AG Charts rules
