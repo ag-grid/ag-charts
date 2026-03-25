@@ -11,9 +11,6 @@ import type { AgGradientColorStop } from 'ag-charts-types';
 
 import { ColorScale } from '../../scale/colorScale';
 
-export type { GradientColorStop } from 'ag-charts-core';
-export { discreteColorStops } from 'ag-charts-core';
-
 export class StopProperties extends BaseProperties implements AgGradientColorStop {
     @Property
     stop?: number;

@@ -1,9 +1,11 @@
 import { describe, expect, test } from '@jest/globals';
 
+import { discreteColorStops, resolveStopPositions } from 'ag-charts-core';
+
 import { buildGradientLegendDatum } from '../../chart/legend/legendDatum';
 import { ColorScale } from '../../scale/colorScale';
-import { configureColorScale, resolveStopPositions } from '../../scale/colorScaleUtil';
-import { discreteColorStops, getColorStops } from './stops';
+import { configureColorScale } from '../../scale/colorScaleUtil';
+import { getColorStops } from './stops';
 
 describe('stops', () => {
     describe('resolveStopPositions', () => {

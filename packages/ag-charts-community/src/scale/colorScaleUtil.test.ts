@@ -1,12 +1,9 @@
 import { describe, expect, test } from '@jest/globals';
 
+import { computeColorBins, deriveNormalizedStops, formatColorScaleBinLabel } from 'ag-charts-core';
+
 import { ColorScale } from './colorScale';
-import {
-    computeColorBins,
-    configureColorScale,
-    deriveNormalizedStops,
-    formatColorScaleBinLabel,
-} from './colorScaleUtil';
+import { configureColorScale } from './colorScaleUtil';
 
 describe('computeColorBins', () => {
     describe('discrete mode', () => {

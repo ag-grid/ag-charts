@@ -2,15 +2,6 @@ import { type ColorScaleColorStop, type ColorScaleMode, computeColorBins } from 
 
 import type { ColorScale } from './colorScale';
 
-// Re-export core types/functions for internal community consumers.
-export type { ColorScaleBin, ColorScaleMode, ColorScaleState, GradientColorStop } from 'ag-charts-core';
-export {
-    computeColorBins,
-    deriveNormalizedStops,
-    formatColorScaleBinLabel,
-    resolveStopPositions,
-} from 'ag-charts-core';
-
 /**
  * Configures a ColorScale from either explicit fills (via computeColorBins)
  * or a fallback continuous range. Extracts the pattern shared by all
