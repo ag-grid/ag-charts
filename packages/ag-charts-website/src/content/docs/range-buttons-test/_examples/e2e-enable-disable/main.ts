@@ -29,4 +29,11 @@ const options: AgChartOptions = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+document.getElementById('disable')!.addEventListener('click', () => {
+    chart.updateDelta({ ranges: { enabled: false } });
+});
+document.getElementById('enable')!.addEventListener('click', () => {
+    chart.updateDelta({ ranges: { enabled: true } });
+});
