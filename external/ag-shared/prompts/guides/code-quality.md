@@ -37,6 +37,16 @@ This guide covers code quality practices, including avoiding code bloat, comment
     -   Ensure examples are framework-compatible
     -   Verify technical accuracy against TypeScript definitions
 
+## Design and Modularity
+
+-   **Single responsibility**: Each function, class, and file should have one clear purpose. If you struggle to name it, it's doing too much.
+-   **Small, focused functions**: Prefer short functions (under ~30 lines) that do one thing well. Extract named helpers rather than adding branches to an existing function.
+-   **Composition over inheritance**: Build behaviour by composing small pieces, not deep class hierarchies.
+-   **Dependency direction**: Lower-level modules must not import from higher-level modules. Follow the build dependency chain; never create circular imports.
+-   **File organisation**: Group by feature or domain, not by type. A new feature's implementation, types, and tests should be co-located.
+-   **Minimal public surface**: Export only what consumers need. Keep helpers and internal state private.
+-   **Prefer pure functions**: Where practical, write functions that take inputs and return outputs without mutating shared state. This makes code easier to test and reason about.
+
 ## Self-Review Before Committing
 
 -   Read through your changes as if you were the reviewer

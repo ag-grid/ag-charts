@@ -21,7 +21,15 @@ Build dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-lo
 
 ## Pre-Commit Requirements
 
-Before proposing commits, always run from the repo root:
+Before proposing commits, re-read your changes as if reviewing someone else's PR and verify:
+
+-   Each new function/class has a single clear responsibility
+-   Names are meaningful — would a reader unfamiliar with the task understand the intent?
+-   No unnecessary complexity: three similar lines are better than a premature abstraction
+-   No copy-pasted logic that should be extracted into a shared helper
+-   New code follows the patterns of the surrounding codebase
+
+Then run from the repo root:
 
 -   `yarn nx format` – format
 -   `yarn nx build:types <package>` – type-check
