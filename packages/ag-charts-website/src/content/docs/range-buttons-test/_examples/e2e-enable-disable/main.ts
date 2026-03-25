@@ -1,5 +1,6 @@
+// @ag-skip-fws
 import {
-    AgChartOptions,
+    AgCartesianChartOptions,
     AgCharts,
     CategoryAxisModule,
     LineSeriesModule,
@@ -11,19 +12,15 @@ import {
 
 ModuleRegistry.registerModules([CategoryAxisModule, LineSeriesModule, NumberAxisModule, RangesModule, ZoomModule]);
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: Array.from({ length: 20 }, (_, i) => ({ x: `Cat ${i}`, y: i * 10 })),
+    data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i * 10 })),
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
-    axes: {
-        x: { type: 'category', position: 'bottom' },
-        y: { type: 'number', position: 'left' },
-    },
     zoom: { enabled: true },
     ranges: {
         enabled: true,
         buttons: [
-            { label: 'Half', value: ['Cat 0', 'Cat 9'] },
+            { label: 'Half', value: [0, 9] },
             { label: 'All', value: undefined },
         ],
     },
