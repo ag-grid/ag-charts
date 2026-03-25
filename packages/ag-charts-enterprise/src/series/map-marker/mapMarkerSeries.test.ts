@@ -12,6 +12,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    computeLegendBBox,
     deproxy,
     extractImageData,
     hoverAction,
@@ -97,6 +98,28 @@ describe('MapMarkerSeries', () => {
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
             await compare();
+        });
+    });
+
+    // CRT-1078: Hovering a legend item in a map marker chart produces a highlight with
+    // datum == null. Without the fix, getHighlightedDatum() passes this through and the
+    // render cycle crashes accessing point.x on the undefined datum.
+    describe('legend hover with null datum (CRT-1078)', () => {
+        it('should not crash when hovering the legend item', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                legend: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Hover over the legend item — triggers a highlight with datum == null.
+            // Without the fix this crashes the render cycle.
+            const { x, y } = computeLegendBBox(chart);
+            await hoverAction(x + 10, y + 10)(chart);
+            await waitForChartStability(chart);
         });
     });
 

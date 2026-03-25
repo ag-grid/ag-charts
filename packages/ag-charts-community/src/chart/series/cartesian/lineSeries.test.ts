@@ -2136,6 +2136,47 @@ describe('LineSeries', () => {
         }
     });
 
+    // CRT-1083: When a series is hidden while animations are skipped (e.g. JSDOM, or AG Grid's
+    // setLegendState path), _contextNodeData.visible must be synced to false. Without this,
+    // stale visible:true causes a spurious animation on the next non-skipped update.
+    // NB: bar series has animationAlwaysUpdateSelections:true so never enters this path —
+    // line series uses the default (false), matching the real-world trigger.
+    describe('stale visibility on skipped animation (CRT-1083)', () => {
+        it('should sync _contextNodeData.visible when series hidden during animation skip', async () => {
+            // No spyOnAnimationManager — animations are skipped by default in JSDOM,
+            // which is the condition required to enter the early-return path in updateSelections().
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, v1: 10, v2: 20 },
+                    { x: 1, v1: 30, v2: 40 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'v1' },
+                    { type: 'line', xKey: 'x', yKey: 'v2' },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const series1 = chartInstance.series[1] as any;
+
+            // Confirm contextNodeData exists and is not marked invisible
+            expect(series1.contextNodeData).toBeDefined();
+            expect(series1.contextNodeData?.visible).not.toBe(false);
+
+            // Hide second series (simulates legend click / setLegendState)
+            (options.series![1] as AgLineSeriesOptions).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            // Core assertion: _contextNodeData.visible must be synced to false
+            expect(series1.contextNodeData?.visible).toBe(false);
+        });
+    });
+
     describe('crossfiltering', () => {
         it('selectedKey with one selected item sets crossFiltering on contextNodeData', async () => {
             const data = [

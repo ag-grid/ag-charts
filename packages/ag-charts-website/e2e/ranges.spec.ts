@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('range buttons', () => {
     setupIntrinsicAssertions(test);
@@ -115,6 +115,25 @@ test.describe('range buttons', () => {
         // Resets on zoom
         // await page.mouse.dblclick(200, 400);
         // await expect(canvas).toHaveScreenshot('range-buttons-dropdown-4.png');
+    });
+
+    // CRT-705: Disabling and re-enabling ranges should correctly restore the button toolbar.
+    test('enable/disable toggle restores buttons', async ({ page }) => {
+        const { url } = toExamplePageUrl('range-buttons-test', 'e2e-enable-disable', 'vanilla');
+        await gotoExample(page, url);
+
+        const buttons = page.locator('.ag-charts-range-buttons--buttons');
+        await expect(buttons).toBeVisible();
+
+        // Disable ranges — buttons should disappear.
+        await page.getByText('Disable Ranges').click();
+        await waitForAllChartUpdates(page);
+        await expect(buttons).not.toBeVisible();
+
+        // Re-enable ranges — buttons should reappear.
+        await page.getByText('Enable Ranges').click();
+        await waitForAllChartUpdates(page);
+        await expect(buttons).toBeVisible();
     });
 
     test('styles', async ({ page }) => {
