@@ -38,10 +38,13 @@ const LOCATOR_FACTORIES = new Set([
 ]);
 
 async function waitForCharts(page: Page) {
-    // Yield to the macrotask queue so that any deferred DOM flushes
-    // (scheduled via setTimeout(0) in DOMElementProxy) have executed
-    // before we inspect data-update-pending / data-animating attributes.
-    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    // Wait for a rAF-then-setTimeout chain so that:
+    // 1. rAF-scheduled chart updates (zoom animations, scene renders) begin
+    // 2. Deferred DOM flushes (setTimeout(0) in DOMElementProxy) execute
+    // Only after both have had a chance to fire do we inspect the stability
+    // attributes, ensuring we don't read a stale "false" before an animation
+    // has even been scheduled.
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0))));
     for (const locator of await page.locator('.ag-charts-wrapper').all()) {
         await waitForChartUpdate(locator);
     }
