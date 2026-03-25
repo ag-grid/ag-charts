@@ -70,6 +70,7 @@ E2E tests load standalone examples from `_examples/` directories. When an E2E te
 -   **Wire buttons in `main.ts`** using `chart.updateDelta()` or `chart.update()` to apply the change.
 -   **Click the buttons from the test** via `page.getByText('Button Label').click()` rather than using `page.evaluate()` to call chart APIs directly.
 -   **Avoid exposing chart internals on `window`** — no `(window as any).chart = chart`. The example should be operable entirely through its own UI controls.
+-   **Add `// @ag-skip-fws`** to the top of `main.ts` — direct DOM manipulation (`getElementById`, `addEventListener`) is incompatible with framework generation and will fail CI without this directive.
 
 Example structure:
 
