@@ -269,6 +269,12 @@ main() {
             log_info "Cloud environment detected, running preinstall setup"
             create_yarnrc
 
+            # Cloud mode may also be a worktree (e.g. AG_CLOUD_INSTALL=1 set
+            # by claude-worktree-create.sh). Fix symlinks if so.
+            if [[ -f "$REPO_ROOT/.git" ]]; then
+                fix_prompts_symlink || log_error "Failed to fix prompts symlink, continuing"
+            fi
+
             local source
             source=$(get_cow_source)
             if [[ -n "$source" ]]; then

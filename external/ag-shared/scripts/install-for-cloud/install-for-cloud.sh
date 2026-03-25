@@ -52,8 +52,15 @@ fi
 # ---------------------------------------------------------------------------
 
 if command -v yarn &>/dev/null && [[ -d node_modules ]]; then
-    log_info "yarn and node_modules present, skipping bootstrap"
-    exit 0
+    # Verify lockfile hasn't changed since last install — Yarn 1 writes
+    # node_modules/.yarn-integrity which embeds a lockfile hash.
+    if yarn check --integrity &>/dev/null; then
+        log_info "yarn and node_modules present and valid, skipping bootstrap"
+        exit 0
+    fi
+    log_info "node_modules present but integrity check failed, running yarn install"
+    yarn install --prefer-offline
+    exit $?
 fi
 
 # ---------------------------------------------------------------------------
