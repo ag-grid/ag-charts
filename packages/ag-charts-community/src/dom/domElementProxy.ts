@@ -34,6 +34,10 @@ export type DeferredMode = { scheduleFlush: () => void };
 
 const SAFE_PROPERTIES_FOR_IMMEDIATE: StyleProperty[] = ['translate'];
 
+// Data attributes that the E2E test harness polls for stability must be written
+// to the DOM immediately so that tests never read a stale value from a pending flush.
+const IMMEDIATE_DATA_ATTRIBUTES = new Set(['updatePending', 'animating', 'sceneRenders', 'animationTimeMs']);
+
 /**
  * Proxies all DOM access to a single HTMLElement.
  *
@@ -177,6 +181,10 @@ export class DOMElementProxy {
     setData(name: string, value: string): void {
         const cacheKey: CacheKey = `d:${name}`;
         if (this.changed(cacheKey, value)) {
+            if (IMMEDIATE_DATA_ATTRIBUTES.has(name)) {
+                this.element.dataset[name] = value;
+                return;
+            }
             this.pendingWrites.set(cacheKey, () => {
                 this.element.dataset[name] = value;
             });
