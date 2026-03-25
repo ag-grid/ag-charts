@@ -48,5 +48,20 @@ export function isSegmentTruncated(segment: TextSegment | undefined) {
     return toTextString(segment?.text).endsWith(EllipsisChar);
 }
 
+// Segment a string into grapheme clusters, ensuring surrogate pairs,
+// combining marks, and ZWJ sequences are never split.
+const graphemeSegmenter =
+    typeof Intl !== 'undefined' && typeof Intl.Segmenter === 'function'
+        ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+        : undefined;
+
+export function graphemeSegments(text: string): string[] {
+    if (graphemeSegmenter) {
+        return Array.from(graphemeSegmenter.segment(text), (s) => s.segment);
+    }
+    // Fallback: codepoint-level iteration (handles surrogate pairs, not combining marks)
+    return Array.from(text);
+}
+
 export { EllipsisChar, LineSplitter, TrimEdgeGuard, TrimCharsRegex } from '../../types/text';
 export type { FontOptions } from '../../types/text';

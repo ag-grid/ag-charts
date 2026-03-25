@@ -9,6 +9,7 @@ import {
     LineSplitter,
     TrimEdgeGuard,
     appendEllipsis,
+    graphemeSegments,
     guardTextEdges,
     isTextTruncated,
     toTextString,
@@ -47,19 +48,26 @@ export function wrapLines(text: string, options: WrapOptions) {
 
 export function truncateLine(text: string, measurer: ITextMeasurer, maxWidth: number, ellipsisForce?: boolean) {
     const ellipsisWidth = measurer.textWidth(EllipsisChar);
+    const graphemes = graphemeSegments(text);
     let estimatedWidth = 0;
-    let i = 0;
-    for (; i < text.length; i++) {
-        const charWidth = measurer.textWidth(text.charAt(i));
+    let charOffset = 0;
+    for (const grapheme of graphemes) {
+        const charWidth = measurer.textWidth(grapheme);
         if (estimatedWidth + charWidth > maxWidth) break;
         estimatedWidth += charWidth;
+        charOffset += grapheme.length;
     }
-    if (text.length === i && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
+    if (charOffset === text.length && (!ellipsisForce || estimatedWidth + ellipsisWidth <= maxWidth)) {
         return ellipsisForce ? appendEllipsis(text) : text;
     }
-    text = text.slice(0, i).trimEnd();
-    while (text.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
-        text = text.slice(0, -1).trimEnd();
+    text = text.slice(0, charOffset).trimEnd();
+    const g = graphemeSegments(text);
+    while (g.length && measurer.textWidth(text) + ellipsisWidth > maxWidth) {
+        g.pop();
+        while (g.length && g.at(-1)!.trim() === '') {
+            g.pop();
+        }
+        text = g.join('');
     }
     return appendEllipsis(text);
 }
@@ -90,7 +98,9 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
             continue;
         }
 
+        let graphemes = graphemeSegments(line);
         let i = 0;
+        let charOffset = 0;
         let estimatedWidth = 0;
         let lastSpaceIndex = 0;
 
@@ -98,11 +108,11 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
             estimatedWidth = widthOffset;
         }
 
-        while (i < line.length) {
-            const char = line.charAt(i);
+        while (i < graphemes.length) {
+            const char = graphemes[i];
 
             if (char === ' ') {
-                lastSpaceIndex = i;
+                lastSpaceIndex = charOffset;
             }
 
             estimatedWidth += measurer.textWidth(char);
@@ -115,12 +125,13 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 }
 
                 // check actual width in case estimation is off
-                let actualWidth = measurer.textWidth(line.slice(0, i + 1));
+                let actualWidth = measurer.textWidth(line.slice(0, charOffset + char.length));
                 if (!result.length) {
                     actualWidth += widthOffset;
                 }
                 if (actualWidth <= options.maxWidth) {
                     estimatedWidth = actualWidth;
+                    charOffset += char.length;
                     i++;
                     continue;
                 }
@@ -132,8 +143,10 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                     if (textWidth <= options.maxWidth) {
                         result.push(line.slice(0, lastSpaceIndex).trimEnd());
                         line = line.slice(lastSpaceIndex).trimStart();
+                        graphemes = graphemeSegments(line);
 
                         i = 0; // reset the index after cutting the line
+                        charOffset = 0;
                         estimatedWidth = 0; // reset the width
                         lastSpaceIndex = 0; // reset last space index
                         continue;
@@ -156,9 +169,14 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 }
 
                 const postfix = wrapHyphenate ? '-' : '';
-                let newLine = line.slice(0, i).trim();
-                while (newLine.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
-                    newLine = newLine.slice(0, -1).trimEnd();
+                let newLine = line.slice(0, charOffset).trim();
+                const g = graphemeSegments(newLine);
+                while (g.length && measurer.textWidth(newLine + postfix) > options.maxWidth) {
+                    g.pop();
+                    while (g.length && g.at(-1)!.trim() === '') {
+                        g.pop();
+                    }
+                    newLine = g.join('');
                 }
 
                 if (newLine && newLine !== TrimEdgeGuard) {
@@ -169,12 +187,16 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 }
 
                 line = line.slice(newLine.length).trimStart();
+                graphemes = graphemeSegments(line);
 
-                i = -1; // reset the index after cutting the line
+                i = 0; // reset the index after cutting the line
+                charOffset = 0;
                 estimatedWidth = 0; // reset the width
                 lastSpaceIndex = 0; // reset last space index
+                continue;
             }
 
+            charOffset += char.length;
             i++;
         }
 
@@ -226,7 +248,7 @@ function avoidOrphans(lines: string[], measurer: ITextMeasurer, options: WrapOpt
     const lastLine = lines[length - 1];
     const beforeLast = lines[length - 2];
 
-    if (beforeLast.length < lastLine.length) return;
+    if (graphemeSegments(beforeLast).length < graphemeSegments(lastLine).length) return;
 
     const lastSpaceIndex = beforeLast.lastIndexOf(' ');
     // If the last line has an orphan, and the previous line has more than one space
