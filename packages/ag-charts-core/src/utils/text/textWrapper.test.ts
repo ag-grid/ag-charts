@@ -80,6 +80,7 @@ function hasOrphanedCombiningMark(str: string): boolean {
 }
 
 const E = EllipsisChar; // shorthand for assertions
+const ZWJ = '\u200D'; // zero-width joiner
 
 describe('truncateLine', () => {
     const measurer = createMockMeasurer(10);
@@ -172,6 +173,35 @@ describe('truncateLine', () => {
             const result = truncateLine(text, measurer, 80);
             expect(hasLoneSurrogates(result)).toBe(false);
             expect(result.endsWith(E)).toBe(true);
+        });
+
+        it('should add ZWJ before ellipsis when truncating Arabic mid-word to preserve letter form', () => {
+            // 'مرحبا' = 5 chars = 50px, truncate at 40px → cuts mid-word
+            // Last Arabic letter before ellipsis should be followed by ZWJ to keep medial form
+            const result = truncateLine('مرحبا', measurer, 40);
+            expect(result.endsWith(E)).toBe(true);
+            const beforeEllipsis = result.slice(0, -E.length);
+            expect(beforeEllipsis.endsWith(ZWJ)).toBe(true);
+        });
+
+        it('should not add ZWJ when truncating non-Arabic text', () => {
+            const result = truncateLine('Hello World', measurer, 80);
+            expect(result).not.toContain(ZWJ);
+        });
+
+        it('should not add ZWJ when Arabic text fits without truncation', () => {
+            const result = truncateLine('مرحبا', measurer, 200);
+            expect(result).not.toContain(ZWJ);
+        });
+
+        it('should not add ZWJ when last Arabic char is right-join-only (e.g. Alef, Dal, Ra)', () => {
+            // ا (Alef U+0627), د (Dal U+062F), ر (Ra U+0631) are right-join-only
+            // Their final form is the same as isolated, so no ZWJ needed
+            // 'ادر' = 3 chars, truncate at 30px (fits 2 chars + ellipsis)
+            const result = truncateLine('ادرس', measurer, 30);
+            expect(result.endsWith(E)).toBe(true);
+            const beforeEllipsis = result.slice(0, -E.length);
+            expect(beforeEllipsis.endsWith(ZWJ)).toBe(false);
         });
     });
 
@@ -306,6 +336,35 @@ describe('wrapLines', () => {
             const result = wrapLines('😀😀😀😀😀', { font, maxWidth: 35, textWrap: 'hyphenate' });
             for (const line of result) {
                 expect(hasLoneSurrogates(line)).toBe(false);
+            }
+        });
+    });
+
+    describe('Arabic text wrapping', () => {
+        it('should add ZWJ at end of line when textWrap always breaks Arabic word mid-way', () => {
+            // 'مرحبا' = 5 chars = 50px, maxWidth = 30px → breaks after 3 chars
+            const result = wrapLines('مرحبا', { font, maxWidth: 30, textWrap: 'always' });
+            expect(result.length).toBeGreaterThanOrEqual(2);
+            // First line should end with ZWJ to preserve medial letter form
+            expect(result[0].endsWith(ZWJ)).toBe(true);
+        });
+
+        it('should add ZWJ before hyphen when hyphenating Arabic word', () => {
+            // 'مرحبا' = 5 chars = 50px, maxWidth = 40px → breaks with hyphen
+            const result = wrapLines('مرحبا', { font, maxWidth: 40, textWrap: 'hyphenate' });
+            expect(result.length).toBeGreaterThanOrEqual(2);
+            // First line should have ZWJ before the hyphen
+            const firstLine = result[0];
+            expect(firstLine.endsWith('-')).toBe(true);
+            const beforeHyphen = firstLine.slice(0, -1);
+            expect(beforeHyphen.endsWith(ZWJ)).toBe(true);
+        });
+
+        it('should not add ZWJ when wrapping at space boundary in Arabic text', () => {
+            // 'مرحبا بالعالم' wraps at the space — no mid-word break
+            const result = wrapLines('مرحبا بالعالم', { font, maxWidth: 60 });
+            for (const line of result) {
+                expect(line).not.toContain(ZWJ);
             }
         });
     });

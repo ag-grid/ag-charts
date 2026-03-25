@@ -12,6 +12,7 @@ import {
     graphemeSegments,
     guardTextEdges,
     isTextTruncated,
+    preserveArabicJoining,
     toTextString,
     unguardTextEdges,
 } from './textUtils';
@@ -180,7 +181,7 @@ function textWrap(text: string, options: WrapOptions, widthOffset = 0) {
                 }
 
                 if (newLine && newLine !== TrimEdgeGuard) {
-                    result.push(newLine + postfix);
+                    result.push(preserveArabicJoining(newLine) + postfix);
                 } else {
                     line = '';
                     break;
