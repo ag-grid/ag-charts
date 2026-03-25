@@ -2401,6 +2401,64 @@ describe('BarSeries', () => {
         });
     });
 
+    describe.only('min width', () => {
+        const data = [
+            { quarter: "Q1'18", iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: "Q2'18", iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: "Q3'18", iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: "Q4'18", iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
+
+        const zeroPadding = { paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 };
+
+        const cases: [string, any, any][] = [
+            ['single series', [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', minWidth: 100 }], zeroPadding],
+            [
+                'grouped series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', minWidth: 100 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
+                ],
+                zeroPadding,
+            ],
+            [
+                'stacked series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', minWidth: 20, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', minWidth: 40, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', minWidth: 30, stackGroup: 'two' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', minWidth: 20, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'horizontal',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', minWidth: 20, direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', minWidth: 30, direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', direction: 'horizontal' },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+        ];
+
+        it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+            const options: AgCartesianChartOptions = {
+                data: data,
+                series: seriesOptions,
+                axes: {
+                    x: axisOptions,
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('null category key', () => {
         it('should reject null category key with warning', async () => {
             const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_EXAMPLE;

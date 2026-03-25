@@ -774,6 +774,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $applyCycle: applyCycleOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
+    $applyPadding: applyPaddingOperation,
     $clone: cloneOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
@@ -913,6 +914,12 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     }
 
     return RESOLVED_TO_BRANCH;
+}
+
+function applyPaddingOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [defaultsVertex] = values;
+
+    const children = graph.neighboursWithEdgeValue(vertex, PATH_EDGE);
 }
 
 function cloneOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {

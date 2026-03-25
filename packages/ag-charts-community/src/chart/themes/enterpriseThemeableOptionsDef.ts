@@ -554,6 +554,8 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
+    minWidth: positiveNumberNonZero,
+    maxWidth: positiveNumberNonZero,
 };
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {
@@ -719,5 +721,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
     tooltip: tooltipOptionsDefs,
     width: positiveNumberNonZero,
     widthRatio: ratio,
+    minWidth: positiveNumberNonZero,
+    maxWidth: positiveNumberNonZero,
     ...commonSeriesThemeableOptionsDefs,
 };

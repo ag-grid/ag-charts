@@ -330,8 +330,8 @@ export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a tim
 export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOptions, 'navigator'>> = {
     width: positiveNumber,
     height: positiveNumber,
-    minWidth: positiveNumber,
-    minHeight: positiveNumber,
+    minWidth: positiveNumberNonZero,
+    minHeight: positiveNumberNonZero,
     suppressFieldDotNotation: boolean,
     title: chartCaptionOptionsDefs,
     subtitle: chartCaptionOptionsDefs,

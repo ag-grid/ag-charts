@@ -21,52 +21,21 @@ ModuleRegistry.registerModules([
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
-    title: {
-        text: 'Quarterly Revenue by Product Line',
-    },
     scrollbar: { enabled: true },
+    data: [
+        { quarter: new Date(2026, 0, 1), iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+        { quarter: new Date(2026, 3, 1), iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+        { quarter: new Date(2026, 6, 1), iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+        { quarter: new Date(2026, 9, 1), iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+    ],
     series: [
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'software',
-            yName: 'Software',
-            width: 30,
-        },
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'hardware',
-            yName: 'Hardware',
-            width: 30,
-        },
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'services',
-            yName: 'Services',
-            width: 30,
-        },
+        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 150 },
+        // { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+        // { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+        // { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
     ],
     axes: {
-        x: {
-            type: 'ordinal-time',
-            label: {
-                formatter: ({ value }) => {
-                    const date = new Date(value);
-                    const q = Math.floor(date.getMonth() / 3) + 1;
-                    const year = String(date.getFullYear()).slice(2);
-                    return `Q${q} '${year}`;
-                },
-            },
-        },
-        y: {
-            type: 'number',
-            label: {
-                formatter: ({ value }) => `$${(value / 1000).toFixed(1)}B`,
-            },
-        },
+        x: { paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 },
     },
 };
 

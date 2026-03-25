@@ -51,47 +51,23 @@ const options: AgChartOptions = {
         toolbar: {
             buttons: [
                 {
+                    icon: 'trend-line-drawing',
+                    value: 'line-menu',
+                },
+                {
+                    icon: 'trend-line-drawing',
+                    value: 'line',
+                },
+                {
+                    icon: 'parallel-channel-drawing',
+                    value: 'parallel-channel',
+                },
+                {
                     icon: 'delete',
                     value: 'clear',
                 },
-                {
-                    icon: 'text-annotation',
-                    value: 'text-menu',
-                },
             ],
         },
-    },
-    initialState: {
-        annotations: [
-            {
-                type: 'comment',
-                x: { value: 'Feb', groupPercentage: -0.2 },
-                y: 46,
-                text: '$45,000',
-                fontSize: 12,
-            },
-            {
-                type: 'text',
-                x: { value: 'Jun', groupPercentage: -0.2 },
-                y: 81,
-                text: '$80,000',
-                fontSize: 12,
-            },
-            {
-                type: 'note',
-                x: 'Sep',
-                y: 75,
-                text: 'End of summer dip recovered',
-                fontSize: 12,
-            },
-            {
-                type: 'callout',
-                start: { x: { value: 'Dec', groupPercentage: -0.1 }, y: 107 },
-                end: { x: 'Oct', y: 110 },
-                text: '$95,000',
-                fontSize: 12,
-            },
-        ],
     },
 };
 

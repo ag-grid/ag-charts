@@ -5,7 +5,6 @@ import {
     commonSeriesOptionsDefs,
     constant,
     number,
-    positiveNumber,
     positiveNumberNonZero,
     ratio,
     required,
@@ -33,8 +32,8 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     segmentation: shapeSegmentation,
     width: positiveNumberNonZero,
     widthRatio: ratio,
-    minWidth: positiveNumber,
-    maxWidth: positiveNumber,
+    minWidth: positiveNumberNonZero,
+    maxWidth: positiveNumberNonZero,
 };
 
 // @ts-expect-error undocumented option
