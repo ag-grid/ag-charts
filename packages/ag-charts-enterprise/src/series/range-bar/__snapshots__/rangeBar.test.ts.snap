@@ -40,6 +40,11 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yLowKey": "loss_low",
     },
   ],
+]
+`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 2`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -97,6 +102,13 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yLowKey": "loss_low",
     },
   ],
+]
+`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 4`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -192,6 +204,13 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yLowKey": "loss_low",
     },
   ],
+]
+`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 6`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -306,6 +325,13 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yLowKey": "loss_low",
     },
   ],
+]
+`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 8`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -382,6 +408,11 @@ exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yLowKey": "loss_low",
     },
   ],
+]
+`;
+
+exports[`RangeBarSeries AG-15782 styler highlights sequenced 1 9`] = `
+[
   [
     {
       "cornerRadius": 0,

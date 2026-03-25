@@ -640,19 +640,40 @@ describe('RadialBarSeries', () => {
                     await hoverAction(p.x, p.y)(chart);
                     await waitForChartStability(chart);
                 }
+                function popCalls() {
+                    const result = [...styler.mock.mock.calls];
+                    styler.mock.mockClear();
+                    return result;
+                }
                 test('1', async () => {
                     await hover(miss);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(series0datum0);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(miss);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(series0datum2);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(miss);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(series1datum0);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(miss);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(legendItem0);
+                    expect(popCalls()).toMatchSnapshot();
+
                     await hover(legendItem1);
                     // Wait for delayed unhighlights to complete
                     await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
-                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                    expect(popCalls()).toMatchSnapshot();
                 });
             });
         });
