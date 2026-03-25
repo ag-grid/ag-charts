@@ -8,7 +8,8 @@ test.describe('fonts', () => {
 
     for (const { framework, url } of testUrls) {
         test.describe(`for ${framework}`, () => {
-            test('google fonts', async ({ page }) => {
+            // TODO: flaky — Google Font downloads intermittently timeout in CI.
+            test.skip('google fonts', async ({ page }) => {
                 await gotoExample(page, url);
 
                 // Poll individual FontFace.status for each Google Font. Unlike
