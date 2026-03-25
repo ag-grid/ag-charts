@@ -25,12 +25,11 @@ Check whether the export can live in `ag-charts-core` instead. Only add to `modu
 ```typescript
 // GOOD: pure function in ag-charts-core, imported directly by enterprise
 import { computeColorBins } from 'ag-charts-core';
+// GOOD: type-only import from core
+import type { GradientColorStop } from 'ag-charts-core';
 
 // GOOD: community-dependent function, accessed via _ModuleSupport
 const { configureColorScale } = _ModuleSupport;
-
-// GOOD: type-only import from core
-import type { GradientColorStop } from 'ag-charts-core';
 
 // AVOID: adding pure functions to module-support.ts
 export { myPureHelper } from './utils/myHelper'; // should be in ag-charts-core
