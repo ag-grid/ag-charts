@@ -127,16 +127,18 @@ test.describe('range buttons', () => {
 
         // Disable ranges — buttons should disappear.
         await page.evaluate(() => {
-            const { chart, AgCharts, chartOptions } = window as any;
-            AgCharts.update(chart, { ...chartOptions, ranges: { ...chartOptions.ranges, enabled: false } });
+            const { AgCharts } = (window as any).agCharts;
+            const chart = AgCharts.getInstance(document.getElementById('myChart')!);
+            chart.updateDelta({ ranges: { enabled: false } });
         });
         await waitForAllChartUpdates(page);
         await expect(buttons).not.toBeVisible();
 
         // Re-enable ranges — buttons should reappear.
         await page.evaluate(() => {
-            const { chart, AgCharts, chartOptions } = window as any;
-            AgCharts.update(chart, { ...chartOptions, ranges: { ...chartOptions.ranges, enabled: true } });
+            const { AgCharts } = (window as any).agCharts;
+            const chart = AgCharts.getInstance(document.getElementById('myChart')!);
+            chart.updateDelta({ ranges: { enabled: true } });
         });
         await waitForAllChartUpdates(page);
         await expect(buttons).toBeVisible();

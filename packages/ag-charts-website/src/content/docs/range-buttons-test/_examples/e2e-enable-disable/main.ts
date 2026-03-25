@@ -29,7 +29,4 @@ const options: AgChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
-(window as any).chart = chart;
-(window as any).AgCharts = AgCharts;
-(window as any).chartOptions = options;
+AgCharts.create(options);
