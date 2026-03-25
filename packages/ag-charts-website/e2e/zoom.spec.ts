@@ -29,8 +29,8 @@ test.describe('zoom', () => {
         const withNavigatorYAxisTop = { x: width - 30, y: height / 4 };
         const withNavigatorYAxisBottom = { x: width - 30, y: (height * 3) / 4 };
 
-        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 70 };
-        const withNavigatorXAxisRight = { x: width / 4, y: height - 70 };
+        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 80 };
+        const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
         // 1. Click the zoom-in button the floating zoom buttons
         await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: height - 100 } });
