@@ -483,6 +483,104 @@ describe('TreemapSeries', () => {
         });
     });
 
+    describe('colorScale', () => {
+        const TREEMAP_BASE = {
+            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+            animation: { enabled: false },
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [-10, 10] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: -2, name: 'Loss' },
+                                { color: 'yellow', stop: 2, name: 'Flat' },
+                                { color: 'green', name: 'Gain' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     test('AG-8290 label boxing', async () => {
         const options = prepareEnterpriseTestOptions({
             ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,

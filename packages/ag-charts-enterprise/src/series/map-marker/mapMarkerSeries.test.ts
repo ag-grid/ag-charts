@@ -282,6 +282,104 @@ describe('MapMarkerSeries', () => {
         });
     });
 
+    describe('colorScale', () => {
+        const COLOR_EXAMPLE: AgChartOptions = {
+            ...SIMPLIFIED_EXAMPLE,
+            series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', colorKey: 'population' }],
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 100_000_000] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 1_000_000, name: 'Low' },
+                                { color: 'yellow', stop: 5_000_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render map marker series with a default gradient fill', async () => {
             const options: AgChartOptions = {

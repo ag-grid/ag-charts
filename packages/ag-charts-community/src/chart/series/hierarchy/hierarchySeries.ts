@@ -5,12 +5,13 @@ import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-ty
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
+import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
-import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
+import { type ChartLegendType, type GradientLegendDatum, buildGradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
 import {
@@ -245,9 +246,8 @@ export abstract class HierarchySeries<
 
         const colorDomain = [minColor, maxColor];
 
-        this.colorScale.domain = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        this.colorScale.range = colorRange ?? ['black'];
-        this.colorScale.update();
+        const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
+        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, colorRange ?? ['black']);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
@@ -329,25 +329,26 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        const { colorKey, colorRange } = this.properties;
+        const { colorKey, colorRange, colorScale: colorScaleProps } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
         const {
             id: seriesId,
             ctx: { legendManager },
             visible,
         } = this;
 
-        return legendType === 'gradient' && colorKey != null && colorRange != null
-            ? [
-                  {
-                      legendType: 'gradient',
-                      enabled: visible && legendManager.getItemEnabled({ seriesId }),
-                      seriesId,
-                      series: this.getFormatterContext('color'),
-                      colorRange,
-                      colorDomain: this.colorDomain,
-                  },
-              ]
-            : [];
+        if (legendType !== 'gradient' || colorKey == null || (colorRange == null && !hasColorScale)) {
+            return [];
+        }
+
+        return [
+            buildGradientLegendDatum(
+                this.colorScale,
+                seriesId,
+                visible && legendManager.getItemEnabled({ seriesId }),
+                this.getFormatterContext('color')
+            ),
+        ];
     }
 
     protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {

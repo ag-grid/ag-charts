@@ -7,6 +7,7 @@ import {
     boolean,
     callbackDefs,
     color,
+    colorScaleOptionsDef,
     colorUnion,
     commonSeriesThemeableOptionsDefs,
     fillOptionsDef,
@@ -304,6 +305,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
 };
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
+    colorScale: colorScaleOptionsDef,
     maxStrokeWidth: positiveNumber,
     itemStyler: callbackDefs<AgMapLineSeriesStyle>({
         ...strokeOptionsDef,
@@ -325,6 +327,7 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),
     label: {
@@ -339,6 +342,7 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
         ...fillOptionsDef,
@@ -599,6 +603,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
     padding: positiveNumber,
@@ -627,6 +632,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     itemStyler: callbackDefs<AgTreemapSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,

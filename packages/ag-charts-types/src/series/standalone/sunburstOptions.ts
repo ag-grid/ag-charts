@@ -7,7 +7,7 @@ import type {
 import type { AgChartAutoSizedLabelOptions, AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, Opacity, PixelSize } from '../../chart/types';
-import type { AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, AgColorType, FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgSunburstHighlightState = HierarchyHighlightState;
@@ -63,8 +63,13 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
     strokeOpacity?: Opacity;
     /** The width in pixels of the stroke for the sectors. */
     strokeWidth?: PixelSize;
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
+     * @deprecated v13.3.0 Use `colorScale.fills` instead.
+     */
     colorRange?: CssColor[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgSunburstSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Sunburst sector based on the input parameters. */
@@ -91,7 +96,7 @@ export interface AgSunburstSeriesOptionsKeys {
     childrenKey?: string;
     /** The name of the node key containing the size value. */
     sizeKey?: string;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the segment colour. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the segment colour. */
     colorKey?: string;
 }
 

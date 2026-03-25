@@ -36,6 +36,8 @@ import {
 const {
     fromToMotion,
     getMissCount,
+    buildGradientLegendDatum,
+    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
@@ -282,11 +284,10 @@ export class MapMarkerSeries
             sizeScale.domain = sizeDomain ?? processedSize;
         }
 
-        if (colorRange != null && this.isColorScaleValid()) {
+        if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            colorScale.domain = processedData.domain.values[colorKeyIdx];
-            colorScale.range = colorRange;
-            colorScale.update();
+            const domain = processedData.domain.values[colorKeyIdx];
+            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
         }
 
         this.animationState.transition('updateData');
@@ -927,20 +928,20 @@ export class MapMarkerSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idName, idKey, colorKey, colorRange, showInLegend } = this.properties;
+        const {
+            title,
+            legendItemName,
+            idName,
+            idKey,
+            colorKey,
+            colorRange,
+            colorScale: colorScaleProps,
+            showInLegend,
+        } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
-            const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
-            const legendDatum: _ModuleSupport.GradientLegendDatum = {
-                legendType: 'gradient',
-                enabled: visible,
-                seriesId,
-                series: this.getFormatterContext('color'),
-                colorRange,
-                colorDomain,
-            };
-            return [legendDatum];
+        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
