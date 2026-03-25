@@ -2843,7 +2843,7 @@ test.describe('state', () => {
                 canvas = page.locator(SELECTORS.canvasCenter);
             });
 
-            test.afterEach(async () => {
+            test.afterEach(() => {
                 consoleTracker.teardown();
             });
 
