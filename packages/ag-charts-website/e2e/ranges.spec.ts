@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('range buttons', () => {
     setupIntrinsicAssertions(test);
