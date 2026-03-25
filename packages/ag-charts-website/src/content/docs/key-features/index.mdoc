@@ -308,6 +308,18 @@ Use the `width`/`minWidth` and `height`/`minHeight` options if a fixed size is r
 }
 ```
 
+### RTL Text & Layout
+
+AG Charts supports [right-to-left (RTL)](./rtl/) text direction for languages such as Arabic, Persian, and Hebrew.
+
+Set `enableRtl` to enable RTL layout, or use the `dir="rtl"` attribute on the chart container for automatic detection.
+
+```js format="snippet"
+{
+    enableRtl: true,
+}
+```
+
 ## Interactivity
 
 {% chartExampleRunner title="User Interactions Example" name="user-interactions-example" type="generated" /%}
@@ -430,6 +442,18 @@ You can also use the `initialState` property to set the [initial state](./api-st
 }
 ```
 
+### Flash on Update {% enterpriseIcon /%}
+
+[Flash on Update](./flash-on-update/) signals that chart data has changed by briefly overlaying a flash animation, drawing the user's attention whenever data is updated.
+
+```js format="snippet"
+{
+    flashOnUpdate: {
+        enabled: true,
+    },
+}
+```
+
 ## Enterprise Features {% enterpriseIcon /%}
 
 AG Charts comes in two forms:
@@ -490,6 +514,18 @@ A [Mini Chart](./navigator/#mini-chart) can also be displayed within the Navigat
 }
 ```
 
+### Scrollbar {% enterpriseIcon /%}
+
+The [Scrollbar](./scrollbar/) provides panning navigation when bars use fixed widths or when zoom is applied.
+
+```js format="snippet"
+{
+    scrollbar: {
+        enabled: true,
+    },
+}
+```
+
 ### Context Menu {% enterpriseIcon /%}
 
 The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./api-download/) functionality, as well as allowing element specific [custom actions](./context-menu/#custom-actions).
@@ -522,6 +558,14 @@ The [Context Menu](./context-menu/) provides [Zoom](./zoom/) and [Download](./ap
 [Annotations](./annotations/) allow end users to add trend-lines and text annotations to aid in data analysis and markup.
 
 These are available in all Cartesian charts and can be enabled with `annotations.enabled = true`.
+
+### Range Buttons {% enterpriseIcon /%}
+
+[Range Buttons](./range-buttons/) allow users to quickly navigate to specific time periods along the chart timeline, such as 1 month, 6 months, or 1 year.
+
+### Server-Side Rendering {% enterpriseIcon /%}
+
+The [Server-Side Rendering](./server-side-rendering/) package renders AG Charts to PNG and JPEG image buffers in Node.js, without a browser. Use it to generate chart images for email reports, PDF documents, or API endpoints.
 
 ## Specialized Charts {% enterpriseIcon /%}
 
@@ -731,3 +775,21 @@ data() {
 ```
 
 {% /if %}
+
+### Funnel, Cone Funnel & Pyramid {% enterpriseIcon /%}
+
+[Funnel](./funnel-series/), [Cone Funnel](./cone-funnel-series/) and [Pyramid](./pyramid-series/) series visualise how values change through stages of a process, or show proportional breakdowns.
+
+To create a funnel chart, use the `funnel`, `cone-funnel`, or `pyramid` series type:
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'funnel', // or 'cone-funnel' or 'pyramid'
+            stageKey: 'stage',
+            valueKey: 'value',
+        },
+    ],
+}
+```
