@@ -1,4 +1,4 @@
-import { type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, getIconClassNames, hasNoModifiers, setAttribute } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -11,6 +11,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
+import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import { ButtonWidget } from '../../widget/buttonWidget';
 
 type ButtonValue =
@@ -81,6 +82,10 @@ function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-
     return ARIA_HASPOPUP[value];
 }
 
+function isArrowRightPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
+    return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowRight';
+}
+
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
     private lastInnerHTML?: string;
@@ -88,6 +93,7 @@ export class ToolbarButtonWidget extends ButtonWidget {
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
+        this.addKeyboardClickBinding(isArrowRightPredicate);
     }
 
     public update(options: ToolbarButtonWidgetOptions) {

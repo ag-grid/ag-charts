@@ -7,6 +7,12 @@ import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEv
 
 type R = ReturnType<Widget['addListener']>;
 
+type KeyboardClickBindingPredicate = (widgetEvent: KeyboardWidgetEvent) => boolean;
+
+function isButtonClickEventPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
+    return isButtonClickEvent(widgetEvent.sourceEvent);
+}
+
 export class AbstractButtonWidget<TElement extends HTMLElement>
     extends Widget<TElement>
     implements ExpansionControllerWidget<TElement>
@@ -21,16 +27,21 @@ export class AbstractButtonWidget<TElement extends HTMLElement>
         super(element);
         setAttribute(this.elem, 'role', role);
         this.setEnabled(true);
-        this.addListener('keydown', ({ sourceEvent }: KeyboardWidgetEvent) => {
-            if (isButtonClickEvent(sourceEvent)) {
-                sourceEvent.preventDefault();
-                this.htmlListener?.dispatch('click', this, { type: 'click', device: 'keyboard', sourceEvent });
-            }
-        });
+        this.addKeyboardClickBinding(isButtonClickEventPredicate);
     }
 
     protected override destructor() {
         this.controllerImpl?.destroy();
+    }
+
+    addKeyboardClickBinding(predicate: KeyboardClickBindingPredicate) {
+        this.addListener('keydown', (widgetEvent: KeyboardWidgetEvent) => {
+            const { sourceEvent } = widgetEvent;
+            if (predicate(widgetEvent)) {
+                sourceEvent.preventDefault();
+                this.htmlListener?.dispatch('click', this, { type: 'click', device: 'keyboard', sourceEvent });
+            }
+        });
     }
 
     setEnabled(enabled: boolean) {
