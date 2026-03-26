@@ -899,7 +899,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(datumColor) });
+            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                datumColor,
+                formatValue
+            );
+            data.push({
+                label: colorName,
+                fallbackLabel: colorKey!,
+                value: binLabel ?? content ?? formatValue(datumColor),
+            });
         }
 
         const format: Required<ItemStyle> = this.getItemStyle(

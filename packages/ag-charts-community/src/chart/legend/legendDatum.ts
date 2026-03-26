@@ -1,6 +1,11 @@
-import type { PluginModuleInstance } from 'ag-charts-core';
-import { type ColorScaleState, type GradientColorStop, deriveNormalizedStops } from 'ag-charts-core';
-import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
+import {
+    type ColorScaleState,
+    type GradientColorStop,
+    type PluginModuleInstance,
+    deriveNormalizedStops,
+    formatColorBinLabel,
+} from 'ag-charts-core';
+import type { AgChartLegendListeners, AgColorScaleColorStop, TextOrSegments } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
@@ -83,4 +88,46 @@ export function buildGradientLegendDatum(
         colorStops: deriveNormalizedStops(colorScale),
         axisDomain: [domain[0], domain.at(-1)!] as [number, number],
     };
+}
+
+/**
+ * Builds category legend data for a discrete colour scale, deriving bin
+ * boundaries on the fly from the ColorScale's domain/range state.
+ */
+export function buildCategoryColorLegendData(
+    colorScale: ColorScaleState,
+    fills: AgColorScaleColorStop[],
+    seriesId: string,
+    enabled: boolean,
+    formatValue: (value: number, maximumFractionDigits?: number) => string
+): CategoryLegendDatum[] {
+    const { domain, range } = colorScale;
+    if (range.length === 0) return [];
+
+    return range.map((color, i): CategoryLegendDatum => {
+        const start = domain[i];
+        const end = domain[i + 1];
+        const name = fills[i]?.name;
+
+        return {
+            legendType: 'category',
+            id: seriesId,
+            itemId: i,
+            seriesId,
+            enabled,
+            symbol: {
+                marker: {
+                    shape: 'square',
+                    fill: color,
+                    fillOpacity: 1,
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    strokeOpacity: 1,
+                },
+            },
+            label: { text: name ?? formatColorBinLabel(start, end, i, range.length, formatValue) },
+            isFixed: true,
+            hideToggleOtherSeries: true,
+        };
+    });
 }

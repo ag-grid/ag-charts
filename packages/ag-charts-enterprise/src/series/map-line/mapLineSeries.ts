@@ -1,6 +1,6 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, formatValue, mergeDefaults } from 'ag-charts-core';
 import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -16,6 +16,7 @@ import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesPropert
 const {
     getMissCount,
     getLabelStyles,
+    buildCategoryColorLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -685,6 +686,9 @@ export class MapLineSeries
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
             return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildCategoryColorLegendData(this.colorScale, colorScaleProps.fills, seriesId, visible, formatValue);
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -792,7 +796,13 @@ export class MapLineSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
+            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey, value: binLabel ?? content ?? String(colorValue) });
         }
 
         const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);

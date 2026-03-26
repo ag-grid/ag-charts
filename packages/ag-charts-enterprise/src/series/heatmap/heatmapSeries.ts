@@ -29,8 +29,10 @@ import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 const {
     SeriesNodePickMode,
     computeBarFocusBounds,
+    buildCategoryColorLegendData,
     buildGradientLegendDatum,
     configureColorScale,
+    findDiscreteColorBinLabel,
     getMissCount,
     valueProperty,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
@@ -763,7 +765,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(colorValue) });
+            const binLabel = findDiscreteColorBinLabel(
+                colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({
+                label: colorName,
+                fallbackLabel: colorKey!,
+                value: binLabel ?? content ?? formatValue(colorValue),
+            });
         }
 
         data.push(
@@ -818,12 +830,32 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         );
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
-        if (legendType !== 'gradient' || !this.isColorScaleValid() || !this.dataModel) {
+    getLegendData(
+        legendType: _ModuleSupport.ChartLegendType
+    ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
+        if (!this.isColorScaleValid() || !this.dataModel) {
             return [];
         }
 
-        return [buildGradientLegendDatum(this.colorScale, this.id, this.visible, this.getFormatterContext('color'))];
+        const { colorScale: colorScaleProps } = this.properties;
+
+        if (legendType === 'category' && colorScaleProps.mode === 'discrete' && colorScaleProps.fills.length > 0) {
+            return buildCategoryColorLegendData(
+                this.colorScale,
+                colorScaleProps.fills,
+                this.id,
+                this.visible,
+                formatValue
+            );
+        }
+
+        if (legendType === 'gradient') {
+            return [
+                buildGradientLegendDatum(this.colorScale, this.id, this.visible, this.getFormatterContext('color')),
+            ];
+        }
+
+        return [];
     }
 
     protected isLabelEnabled() {

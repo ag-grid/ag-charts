@@ -11,6 +11,7 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
+    formatValue,
     mergeDefaults,
 } from 'ag-charts-core';
 import {
@@ -36,6 +37,7 @@ import {
 const {
     fromToMotion,
     getMissCount,
+    buildCategoryColorLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -943,6 +945,9 @@ export class MapMarkerSeries
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
             return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildCategoryColorLegendData(this.colorScale, colorScaleProps.fills, seriesId, visible, formatValue);
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -1049,7 +1054,13 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
+            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey, value: binLabel ?? content ?? String(colorValue) });
         }
 
         let heading: string | undefined;

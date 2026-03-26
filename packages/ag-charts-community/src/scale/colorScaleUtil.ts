@@ -3,9 +3,8 @@ import { type ColorScaleColorStop, type ColorScaleMode, computeColorBins } from 
 import type { ColorScale } from './colorScale';
 
 /**
- * Configures a ColorScale from either explicit fills (via computeColorBins)
- * or a fallback continuous range. Extracts the pattern shared by all
- * colour-scale-aware series.
+ * Configures a ColorScale from either explicit fills or a fallback continuous
+ * range. Extracts the pattern shared by all colour-scale-aware series.
  */
 export function configureColorScale(
     colorScale: ColorScale,
