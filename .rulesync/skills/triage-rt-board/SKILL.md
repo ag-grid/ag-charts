@@ -186,7 +186,8 @@ must explicitly invoke the `/triage-rt` skill via the `Skill` tool.
     `run_in_background: true` so you can report progress as each completes.
 
 3. As agents complete, report progress:
-   > Triaged CRT-XXXX (3/M complete)...
+
+    > Triaged CRT-XXXX (3/M complete)...
 
 4. When the batch is done, launch the next wave. Repeat until all uncached
    tickets are triaged.
@@ -330,50 +331,50 @@ _Generated: <date>_
 
 ## Overview
 
-| Category                           | Count |
-| ---------------------------------- | ----- |
-| Total active tickets               | N     |
-| **Cat A** — Library regressions    | X     |
-| **Cat B** — Library core non-reg   | Y     |
-| **Cat C** — Library non-core       | Z     |
-| **Cat D** — Docs & examples        | D     |
-| **Cat E** — Website                | W     |
-| Needs investigation                | I     |
-| Duplicates                         | U     |
+| Category                         | Count |
+| -------------------------------- | ----- |
+| Total active tickets             | N     |
+| **Cat A** — Library regressions  | X     |
+| **Cat B** — Library core non-reg | Y     |
+| **Cat C** — Library non-core     | Z     |
+| **Cat D** — Docs & examples      | D     |
+| **Cat E** — Website              | W     |
+| Needs investigation              | I     |
+| Duplicates                       | U     |
 
-| Action               | Count |
-| -------------------- | ----- |
-| → Fix in release     | F     |
-| → Fix with caution   | C     |
-| → Defer              | R     |
+| Action             | Count |
+| ------------------ | ----- |
+| → Fix in release   | F     |
+| → Fix with caution | C     |
+| → Defer            | R     |
 
 ## Priority Order
 
 ### Cat A — Library Regressions
 
-| #   | Ticket   | Title | Prominence  | Risk | Scope  | Recommendation     | Assignee |
-| --- | -------- | ----- | ----------- | ---- | ------ | ------------------ | -------- |
-| 1   | CRT-XXXX | ...   | Core        | Low  | Narrow | Fix in release     | Name     |
+| #   | Ticket   | Title | Prominence | Risk | Scope  | Recommendation | Assignee |
+| --- | -------- | ----- | ---------- | ---- | ------ | -------------- | -------- |
+| 1   | CRT-XXXX | ...   | Core       | Low  | Narrow | Fix in release | Name     |
 
 ### Cat B — Library Core Non-Regressions
 
-| #   | Ticket | Title | Risk | Scope  | Recommendation     | Assignee |
-| --- | ------ | ----- | ---- | ------ | ------------------ | -------- |
+| #   | Ticket | Title | Risk | Scope | Recommendation | Assignee |
+| --- | ------ | ----- | ---- | ----- | -------------- | -------- |
 
 ### Cat C — Library Non-Core Non-Regressions
 
-| #   | Ticket | Title | Prominence  | Risk | Scope  | Recommendation     | Assignee |
-| --- | ------ | ----- | ----------- | ---- | ------ | ------------------ | -------- |
+| #   | Ticket | Title | Prominence | Risk | Scope | Recommendation | Assignee |
+| --- | ------ | ----- | ---------- | ---- | ----- | -------------- | -------- |
 
 ### Cat D — Docs & Examples
 
-| #   | Ticket | Title | Recommendation     | Assignee |
-| --- | ------ | ----- | ------------------ | -------- |
+| #   | Ticket | Title | Recommendation | Assignee |
+| --- | ------ | ----- | -------------- | -------- |
 
 ### Cat E — Website
 
-| #   | Ticket | Title | Recommendation     | Assignee |
-| --- | ------ | ----- | ------------------ | -------- |
+| #   | Ticket | Title | Recommendation | Assignee |
+| --- | ------ | ----- | -------------- | -------- |
 
 ### Needs Investigation
 
@@ -391,8 +392,8 @@ _Generated: <date>_
 
 ## Assignee Workload
 
-| Assignee | Tickets       | Cat A | Cat B | Cat C | Cat D/E |
-| -------- | ------------- | ----- | ----- | ----- | ------- |
+| Assignee | Tickets      | Cat A | Cat B | Cat C | Cat D/E |
+| -------- | ------------ | ----- | ----- | ----- | ------- |
 | Name     | CRT-X, CRT-Y | 1     | 1     | 0     | 0       |
 
 ## Failures
@@ -431,6 +432,7 @@ If it returns 401 or the env vars are missing, inform the user:
 > Generate a token at: https://id.atlassian.com/manage-profile/security/api-tokens
 >
 > Then add to `~/.zshrc`:
+>
 > ```
 > export JIRA_URL="https://ag-grid.atlassian.net"
 > export JIRA_USERNAME="your.email@ag-grid.com"
