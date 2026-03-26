@@ -1,8 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    HistogramSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 // Calculate statistics for reference lines
+
+ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
 const data = getData();
 const engineSizes = data.map((d) => d['engine-size']);
 const mean = engineSizes.reduce((a, b) => a + b, 0) / engineSizes.length;
@@ -43,9 +52,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             title: {
@@ -66,8 +74,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Number of Vehicles',
@@ -84,7 +91,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

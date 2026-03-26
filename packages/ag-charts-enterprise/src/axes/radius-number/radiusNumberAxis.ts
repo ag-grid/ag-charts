@@ -1,9 +1,10 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { DomainWithMetadata } from 'ag-charts-core';
+import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { Property, normalisedExtentWithMetadata, LinearScale } = _ModuleSupport;
-
+const { LinearScale } = _ModuleSupport;
 interface TickDatum {
     tick: any;
     tickId: string;
@@ -22,6 +23,12 @@ export class RadiusNumberAxis extends RadiusAxis {
 
     @Property
     max?: number;
+
+    @Property
+    preferredMin?: number;
+
+    @Property
+    preferredMax?: number;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, new LinearScale());
@@ -47,11 +54,23 @@ export class RadiusNumberAxis extends RadiusAxis {
         return maxRadius - tickDatum.translation + minRadius;
     }
 
-    override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+    override normaliseDataDomain(d: DomainWithMetadata<number>) {
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(
+            d.domain,
+            min,
+            max,
+            preferredMin,
+            preferredMax,
+            undefined,
+            d.sortMetadata?.sortOrder
+        );
 
         return { domain: extent, clipped };
+    }
+
+    override getDomainExtentsNice(): [boolean, boolean] {
+        return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
     override tickFormatParams(
@@ -59,7 +78,7 @@ export class RadiusNumberAxis extends RadiusAxis {
         _ticks: number[],
         fractionDigits?: number
     ): _ModuleSupport.AxisTickFormatParams {
-        return { type: 'number', fractionDigits };
+        return { type: 'number', visibleDomain: undefined, fractionDigits };
     }
 
     override datumFormatParams(
@@ -80,6 +99,7 @@ export class RadiusNumberAxis extends RadiusAxis {
             domain,
             boundSeries,
             fractionDigits,
+            visibleDomain: undefined,
         };
     }
 }

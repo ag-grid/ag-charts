@@ -1,5 +1,5 @@
 import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
-import { type FontOptions, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
+import { type FontOptions, type Point, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
 
 const { BBox } = _ModuleSupport;
 
@@ -23,14 +23,14 @@ function measureAnnotationText(options: FontOptions, text: string) {
 export function getBBox(
     options: TextOptions & { width?: number },
     text: string,
-    coords: _ModuleSupport.Vec2,
+    coords: Point,
     bbox?: _ModuleSupport.BBox
 ) {
     let width = bbox?.width ?? 0;
     let height = bbox?.height ?? 0;
 
     if (!bbox) {
-        const wrappedText = options.width != null ? maybeWrapText(options, text, options.width) : text;
+        const wrappedText = options.width == null ? text : maybeWrapText(options, text, options.width);
         ({ width, height } = measureAnnotationText(options, wrappedText));
     }
 
@@ -42,7 +42,7 @@ export function updateTextNode(
     text: string,
     isPlaceholder: boolean,
     config: TextOptions & { visible?: boolean; color?: string; getPlaceholderColor: () => string | undefined },
-    { x, y }: _ModuleSupport.Vec2,
+    { x, y }: Point,
     textBaseline?: CanvasTextBaseline
 ) {
     const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;

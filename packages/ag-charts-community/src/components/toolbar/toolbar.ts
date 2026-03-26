@@ -1,11 +1,11 @@
 import type { BoxBounds } from 'ag-charts-core';
+import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
-import { BaseProperties } from '../../util/properties';
 import { CollapseMode } from '../../widget/collapseMode';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
@@ -131,6 +131,10 @@ export abstract class BaseToolbar<
         return this.buttonWidgets.map((buttonWidget) => this.getButtonWidgetBounds(buttonWidget));
     }
 
+    public getButtonWidget(index: number) {
+        return this.buttonWidgets.at(index);
+    }
+
     public setButtonHiddenByIndex(index: number, hidden: boolean) {
         // This method should be usually be avoided as it breaks keyboard navigation if a single
         // button in a toolbar is hidden.
@@ -140,7 +144,18 @@ export abstract class BaseToolbar<
     protected getButtonWidgetBounds(buttonWidget: ButtonWidget) {
         const parent = this.getBounds();
         const bounds = buttonWidget.getBounds();
-        return new BBox(bounds.x + parent.x, bounds.y + parent.y, bounds.width, bounds.height);
+
+        // Adjust the relative position by the fractional part of the absolute position for a more precise placement.
+        const preciseBounds = buttonWidget.getBoundingClientRect();
+        const floatingPositionAdjustX = preciseBounds.x - Math.floor(preciseBounds.x);
+        const floatingPositionAdjustY = preciseBounds.y - Math.floor(preciseBounds.y);
+
+        return new BBox(
+            bounds.x + parent.x + floatingPositionAdjustX,
+            bounds.y + parent.y + floatingPositionAdjustY,
+            preciseBounds.width,
+            preciseBounds.height
+        );
     }
 
     private refreshButtonClasses() {
@@ -156,7 +171,7 @@ export abstract class BaseToolbar<
 
             buttonWidget.toggleClass('ag-charts-toolbar__button--first', first);
             buttonWidget.toggleClass('ag-charts-toolbar__button--last', last);
-            buttonWidget.toggleClass('ag-charts-toolbar__button--gap', index > 0 && first);
+            buttonWidget.toggleClass('ag-charts-toolbar__button--group-first', index > 0 && first);
 
             section = buttonWidget.section;
         }

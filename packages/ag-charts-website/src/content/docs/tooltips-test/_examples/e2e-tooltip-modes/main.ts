@@ -40,16 +40,15 @@ const options: AgCartesianChartOptions = {
             yName: 'Landfill Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
         },
-        {
-            position: 'right',
+        y: {
             type: 'number',
+            position: 'right',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

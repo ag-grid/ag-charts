@@ -10,6 +10,21 @@ import type {
     Ratio,
 } from '../../chart/types';
 
+export interface AgBaseCartesianSeriesAxisOptions {
+    /**
+     * The key of the x-axis to which this series is bound.
+     *
+     * Default: `'x'`
+     */
+    xKeyAxis?: string;
+    /**
+     * The key of the y-axis to which this series is bound.
+     *
+     * Default: `'y'`
+     */
+    yKeyAxis?: string;
+}
+
 /**
  * Represents configuration options for X and Y axes in a chart.
  */
@@ -34,6 +49,13 @@ export interface FillOptions {
     fillOpacity?: Opacity;
 }
 
+export interface FillCssOptions {
+    /** The colour for filling shapes. */
+    fill?: CssColor;
+    /** The opacity of the fill colour. */
+    fillOpacity?: Opacity;
+}
+
 export type AgColorType = CssColor | AgGradientColor | AgPatternColor | AgImageFill;
 export type AgColorTypeStrict = CssColor | AgGradientColorStrict;
 
@@ -44,6 +66,28 @@ export interface AgGradientColorStop {
     color?: CssColor;
     /** Stop value of this category. Defaults the maximum value if unset. */
     stop?: Ratio;
+}
+
+export interface AgColorScaleColorStop {
+    /** Colour of this bin. */
+    color: CssColor;
+    /** Stop value of this bin. The stop is the first value of the next bin. */
+    stop?: number;
+    /** Display name for this bin, used in legend and tooltip labels. */
+    name?: string;
+}
+
+export interface AgColorScale {
+    /** Configuration for two or more colours, and the values they are rendered at. */
+    fills?: AgColorScaleColorStop[];
+    /** Fixed domain for the colour scale. If unset, the domain is derived from the data extent. */
+    domain?: [number, number];
+    /**
+     * Whether the fills should be rendered as a continuous gradient or discrete bins.
+     *
+     * Default: `continuous`
+     */
+    mode?: AgGradientColorMode;
 }
 
 export interface AgGradientColor {
@@ -162,19 +206,25 @@ export interface LineDashOptions {
 }
 
 /**
- * Represents font styling options for text elements in a chart.
+ * Represents font styling options.
  */
 export interface FontOptions {
-    /** The colour for text elements. */
-    color?: CssColor;
-    /** The style to use for text elements. */
-    fontStyle?: FontStyle;
-    /** The font weight to use for text elements. */
-    fontWeight?: FontWeight;
     /** The size of the font in pixels for text elements. */
     fontSize?: FontSize;
     /** The font family for text elements. */
     fontFamily?: FontFamily;
+    /** The style to use for text elements. */
+    fontStyle?: FontStyle;
+    /** The font weight to use for text elements. */
+    fontWeight?: FontWeight;
+}
+
+/**
+ * Represents styling options for text elements in a chart.
+ */
+export interface TextOptions extends FontOptions {
+    /** The colour for text elements. */
+    color?: CssColor;
 }
 
 export type Padding = PixelSize | PaddingOptions;
@@ -205,9 +255,11 @@ export interface Visible {
     visible?: boolean;
 }
 
-export interface TextSegment extends FontOptions {
+export type TextValue = string | number | Date;
+
+export interface TextSegment extends TextOptions {
     /** A segment of text. */
-    text: string;
+    text: TextValue;
 }
 
-export type TextOrSegments = string | TextSegment[];
+export type TextOrSegments = TextValue | TextSegment[];

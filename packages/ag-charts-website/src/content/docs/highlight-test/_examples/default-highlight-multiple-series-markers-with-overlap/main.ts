@@ -1,5 +1,5 @@
 // @ag-skip-fws
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { femaleHeightWeight, maleHeightWeight } from './data';
 
@@ -32,10 +32,9 @@ const options: AgChartOptions = {
             sizeName: 'Age',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -45,9 +44,8 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },
@@ -57,7 +55,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -1,12 +1,31 @@
 import {
-    AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
     AgCharts,
-    AgSeriesTooltip,
+    AnimationModule,
+    AreaSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -43,24 +62,22 @@ const options: AgChartOptions = {
             stroke: '#5a7088',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 maxSpacing: 200,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
                 },
             },
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

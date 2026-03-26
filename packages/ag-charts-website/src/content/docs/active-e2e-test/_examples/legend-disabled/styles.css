@@ -1,0 +1,30 @@
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: sans-serif;
+    color: var(--main-fg);
+    border: 1px solid transparent;
+    transition: background-color 0.15s;
+}
+.legend-item:hover {
+    background-color: var(--button-hover-bg);
+    border-color: var(--button-border);
+}
+.legend-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+#myPointerPos {
+    pointer-events: none;
+    font-family: Monospace;
+    background: white;
+    foreground: black;
+}

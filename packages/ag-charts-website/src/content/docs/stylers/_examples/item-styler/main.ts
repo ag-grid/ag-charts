@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { DataType, data } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 function lerpColor(t: number, color1: string, color2: string): string {
     const tt = Math.max(0, Math.min(1.5, t)) / 1.5;
 
@@ -51,7 +59,8 @@ const options: AgChartOptions<DataType> = {
                 itemStyler: ({ datum: { coal, nuclear } }) => {
                     if (coal > nuclear) {
                         return { fontSize: 12, border: { stroke: '#f44' }, padding: 2 };
-                    } else return { fontSize: 8 };
+                    }
+                    return { fontSize: 8 };
                 },
             },
         },
@@ -66,9 +75,9 @@ const options: AgChartOptions<DataType> = {
             xKey: 'month',
             yKey: 'imported',
             yName: 'Imported',
-            itemStyler: ({ datum, fill, highlighted }) => {
+            itemStyler: ({ datum, fill, highlightState }) => {
                 return {
-                    fill: datum.month === 'Jul' ? (highlighted ? 'lime' : '#f44') : fill,
+                    fill: datum.month === 'Jul' ? (highlightState === 'highlighted-item' ? 'lime' : '#f44') : fill,
                 };
             },
             label: {
@@ -78,14 +87,9 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             interval: { step: 0.2 },
             gridLine: {
                 enabled: false,
@@ -104,7 +108,7 @@ const options: AgChartOptions<DataType> = {
                 text: 'Normalized Percentage Energy',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

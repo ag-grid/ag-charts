@@ -1,7 +1,9 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -37,8 +39,8 @@ const options: AgChartOptions = {
             yName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'top',
             line: {
@@ -48,13 +50,12 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             reverse: true,
             interval: { step: 40 },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -1,5 +1,20 @@
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -22,6 +37,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'month',
             yKey: 'volume',
             yName: 'Trading Volume',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 2,
             marker: { enabled: true },
         },
@@ -34,24 +50,18 @@ const options: AgCartesianChartOptions = {
             marker: { enabled: false },
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['price'],
             title: { text: 'Closing Price' },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['volume'],
             title: { enabled: true, text: 'Trading Volume' },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: true,

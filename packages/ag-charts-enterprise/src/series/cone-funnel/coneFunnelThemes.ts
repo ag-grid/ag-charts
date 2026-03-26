@@ -1,10 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import {
+    CARTESIAN_AXIS_TYPE,
+    FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_SINGLE_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_FILLS_OPERATION,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
-} = _ModuleSupport;
-
-export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'>['themeTemplate'] = {
+export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
     series: {
         direction: 'vertical',
         fills: {
@@ -14,16 +18,16 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                         { $palette: 'secondSequentialColors' },
-                        _ModuleSupport.SAFE_RANGE2_OPERATION,
+                        SAFE_FILLS_OPERATION,
                     ],
                 },
                 {
                     $applySwitch: [
                         { $path: ['/type', undefined, { $value: '$1' }] },
                         { $value: '$1' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_SINGLE_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                        ['gradient', FILL_GRADIENT_LINEAR_SINGLE_DEFAULTS],
+                        ['pattern', FILL_PATTERN_SINGLE_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
                     ],
                 },
             ],
@@ -35,14 +39,14 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
                     $if: [
                         { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                         { $palette: 'secondSequentialColors' },
-                        _ModuleSupport.SAFE_RANGE2_OPERATION,
+                        { $palette: 'strokes' },
                     ],
                 },
             ],
         },
         strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -54,7 +58,13 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: _ModuleSupport.singleSeriesHighlightStyle(false),
+        highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
+            highlightedItem: {
+                stroke: `rgba(0, 0, 0, 0.4)`,
+                strokeWidth: 2,
+            },
+        },
     },
     seriesArea: {
         padding: {

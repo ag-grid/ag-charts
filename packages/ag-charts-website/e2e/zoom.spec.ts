@@ -1,22 +1,24 @@
 import { expect, test } from './fixture';
-import { SELECTORS, dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    delay,
+    dragCanvas,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForAllChartUpdates,
+} from './util';
 
 test.describe('zoom', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test('navigator', async ({ page }) => {
         const { url } = toExamplePageUrl('financial-charts-test', 'e2e-zoom-navigator', 'vanilla');
 
         await gotoExample(page, url);
 
-        const { width } = await locateCanvas(page);
-        let height = 0;
-        const updateCanvasSize = async () => {
-            const { height: newHeight } = await locateCanvas(page);
-            height = newHeight;
-        };
-
-        await updateCanvasSize();
+        const { width, height } = await locateCanvas(page);
 
         const withoutNavigatorYAxisTop = { x: width - 30, y: height / 4 };
         const withoutNavigatorYAxisBottom = { x: width - 30, y: (height * 3) / 4 };
@@ -27,8 +29,8 @@ test.describe('zoom', () => {
         const withNavigatorYAxisTop = { x: width - 30, y: height / 4 };
         const withNavigatorYAxisBottom = { x: width - 30, y: (height * 3) / 4 };
 
-        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 70 };
-        const withNavigatorXAxisRight = { x: width / 4, y: height - 70 };
+        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 80 };
+        const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
         // 1. Click the zoom-in button the floating zoom buttons
         await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: height - 100 } });
@@ -47,7 +49,6 @@ test.describe('zoom', () => {
 
         // Show navigator with minichart
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
-        await updateCanvasSize();
 
         // 3. Drag the y-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorYAxisBottom, withNavigatorYAxisTop);
@@ -59,7 +60,6 @@ test.describe('zoom', () => {
 
         // Hide navigator
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
-        await updateCanvasSize();
 
         // 5. Drag the y-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);
@@ -69,11 +69,12 @@ test.describe('zoom', () => {
         // 6. Drag the x-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
         await dragCanvas(page, withoutNavigatorXAxisLeft, withoutNavigatorXAxisRight);
+        await delay(300); // Delay due to debounce in ZoomToolbar (ZOOM_VALID_CHECK_DEBOUNCE)
         await expect(page).toHaveScreenshot('zoom-6-after-navigator-drag-x-axis.png', { animations: 'disabled' });
     });
 
     test('crosshairs', async ({ page }) => {
-        const xAxisLabel = '.ag-charts-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]';
+        const xAxisLabel = '.ag-charts-crosshair-label[data-key="pointer"][data-axis-id="x"]';
         const yAxisLabel = '.ag-charts-crosshair-label[data-key="yKey"]';
         const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-crosshairs', 'vanilla');
 
@@ -103,6 +104,44 @@ test.describe('zoom', () => {
         await dragCanvas(page, midPoint, { x: midPoint.x + 50, y: midPoint.y });
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
+    });
+
+    test('axis overlap hover keeps highlighting active', async ({ page }) => {
+        const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-axis-overlap', 'vanilla');
+
+        await gotoExample(page, url);
+
+        const { canvas, width, height } = await locateCanvas(page);
+
+        const axisCentre = { x: Math.round(width / 2) + 10, y: Math.round(height / 2) + 45 };
+        await canvas.hover({ position: axisCentre });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-highlight.png', { animations: 'disabled' });
+
+        await dragCanvas(page, axisCentre, { x: 10, y: axisCentre.y });
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-not-drag-with-highlight.png', {
+            animations: 'disabled',
+        });
+
+        const axisHoverNoHighlight = {
+            x: Math.round(width / 2) - 25,
+            y: Math.round(height / 2) + 45,
+        };
+        await canvas.hover({ position: axisHoverNoHighlight });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-hover-no-highlight.png', {
+            animations: 'disabled',
+        });
+
+        await canvas.hover({ position: axisHoverNoHighlight });
+        await dragCanvas(page, axisHoverNoHighlight, {
+            x: axisHoverNoHighlight.x - 50,
+            y: axisHoverNoHighlight.y + 10,
+        });
+        await waitForAllChartUpdates(page);
+        await expect(page).toHaveScreenshot('zoom-axis-overlap-axis-does-drag-without-highlight.png', {
+            animations: 'disabled',
+        });
     });
 
     test('AG-13166 zoom keynav focus-visible', async ({ page }) => {

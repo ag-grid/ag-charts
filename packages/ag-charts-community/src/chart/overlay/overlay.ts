@@ -1,10 +1,17 @@
-import { createElement, isArray } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Property,
+    callWithContext,
+    createElement,
+    isArray,
+    isHTMLElement,
+    toPlainText,
+    toTextString,
+} from 'ag-charts-core';
 import type { AgChartOverlayRendererParams, DatumDefault, TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
-import { callWithContext } from '../../util/callbackCache';
-import { BaseProperties, Property } from '../../util/properties';
 import type { AnimationManager } from '../interaction/animationManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
@@ -21,6 +28,7 @@ export class Overlay extends BaseProperties {
     renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;
 
     private content?: HTMLElement;
+    private rendererAsText?: string;
     public focusBox?: BBox;
 
     constructor(
@@ -30,11 +38,14 @@ export class Overlay extends BaseProperties {
         super();
     }
 
-    getText(localeManager: LocaleManager) {
+    getText(localeManager: LocaleManager): string {
         if (isArray(this.text)) {
-            return this.text.map((s) => s.text).join('');
+            return toPlainText(this.text);
         }
-        return localeManager.t(this.text ?? this.defaultMessageId);
+        if (this.rendererAsText) {
+            return this.rendererAsText;
+        }
+        return localeManager.t(toTextString(this.text) || this.defaultMessageId);
     }
 
     getElement(
@@ -44,23 +55,26 @@ export class Overlay extends BaseProperties {
         rect: BBox
     ) {
         this.content?.remove();
+        this.rendererAsText = undefined;
         this.focusBox = rect;
 
         if (this.renderer) {
             const params: AgChartOverlayRendererParams<DatumDefault> = {};
             const htmlContent = callWithContext(callers, this.renderer, params);
-            if (htmlContent instanceof HTMLElement) {
+
+            if (isHTMLElement(htmlContent)) {
                 this.content = htmlContent;
             } else {
                 const tempDiv = createElement('div');
                 tempDiv.innerHTML = htmlContent;
                 const { firstElementChild } = tempDiv;
-                if (firstElementChild instanceof HTMLElement && tempDiv.childElementCount === 1) {
+                if (isHTMLElement(firstElementChild) && tempDiv.childElementCount === 1) {
                     this.content = firstElementChild;
                 } else {
                     this.content = tempDiv;
                 }
             }
+            this.rendererAsText = this.content?.textContent?.trim();
         } else {
             const content = createElement('div', {
                 display: 'flex',
@@ -83,7 +97,7 @@ export class Overlay extends BaseProperties {
                         fontWeight: String(segment.fontWeight),
                         fontStyle: segment.fontStyle,
                     });
-                    el.innerText = segment.text;
+                    el.innerText = toTextString(segment.text);
                     container.appendChild(el);
                 }
                 content.appendChild(container);
@@ -91,6 +105,7 @@ export class Overlay extends BaseProperties {
                 content.innerText = this.getText(localeManager);
             }
             this.content = content;
+            this.content.classList.add(this.className);
 
             animationManager?.animate({
                 from: 0,

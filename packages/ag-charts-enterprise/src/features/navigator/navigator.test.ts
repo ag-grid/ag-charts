@@ -33,7 +33,94 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                 miniChart: {},
             },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    BAR_SERIES: {
+        options: {
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    HORIZONTAL_BAR_SERIES: {
+        options: {
+            series: [
+                {
+                    type: 'bar',
+                    direction: 'horizontal',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'category' }, seriesTypes: ['bar'] }),
+    },
+    MINI_CHART_WITH_CROSSLINES: {
+        options: {
+            series: [
+                {
+                    type: 'line',
+                    xKey: 'x',
+                    yKey: 'y',
+                    data: xyData([5, 7, 8, 3, 0, 2, 6, 8, 10, 9, 6]),
+                },
+            ],
+            navigator: {
+                miniChart: {},
+            },
+            axes: {
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crossLines: [
+                        {
+                            type: 'range',
+                            range: [3, 7],
+                            fill: 'blue',
+                            fillOpacity: 0.2,
+                        },
+                        {
+                            type: 'line',
+                            value: 5,
+                            stroke: 'green',
+                            strokeWidth: 2,
+                        },
+                    ],
+                },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crossLines: [
+                        {
+                            type: 'line',
+                            value: 5,
+                            stroke: 'red',
+                            strokeWidth: 2,
+                        },
+                        {
+                            type: 'range',
+                            range: [3, 7],
+                            fill: 'yellow',
+                            fillOpacity: 0.2,
+                        },
+                    ],
+                },
+            },
+        },
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
     },
     LINE_AREA_SERIES: {
         options: {
@@ -55,7 +142,10 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                 miniChart: {},
             },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'area'] }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: ['line', 'area'],
+        }),
     },
     MINI_CHART_SERIES_OVERRIDE: {
         options: {
@@ -81,7 +171,10 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                 },
             },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: ['line', 'line'],
+        }),
     },
     MINI_CHART_NAVIGATOR_HANDLES: {
         options: {
@@ -111,7 +204,10 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
                 },
             },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'area'] }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: ['line', 'area'],
+        }),
     },
 };
 
@@ -124,7 +220,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_NO_CROSSLINES: {
         options: {
@@ -132,15 +231,21 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0, end: 0.05 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_NO_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
             navigator: { enabled: true },
-            initialState: { zoom: { ratioX: { start: 0.95, end: 1.0 } } },
+            initialState: { zoom: { ratioX: { start: 0.95, end: 1 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_CLIPPED_CROSSLINES_1: {
         options: {
@@ -148,15 +253,21 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0, end: 0.5 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_CLIPPED_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
             navigator: { enabled: true },
-            initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
+            initialState: { zoom: { ratioX: { start: 0.5, end: 1 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_INSIDE_CROSSLINES_1: {
         options: {
@@ -164,7 +275,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_INSIDE_CROSSLINES_2: {
         options: {
@@ -172,7 +286,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.51, end: 0.55 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_1: {
         options: {
@@ -180,7 +297,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.14661198412976173, end: 0.3286788694841538 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_2: {
         options: {
@@ -188,7 +308,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 0.15, end: 0.3286788694841538 + 0.001 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_3: {
         options: {
@@ -196,7 +319,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 1 - 0.3286788694841538, end: 1 - 0.14661198412976173 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_4: {
         options: {
@@ -204,7 +330,10 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
             navigator: { enabled: true },
             initialState: { zoom: { ratioX: { start: 1 - 0.3286788694841538 - 0.006, end: 0.85 } } },
         },
-        assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: repeat('line', 2) }),
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'unit-time', y: 'number' },
+            seriesTypes: repeat('line', 2),
+        }),
     },
 };
 

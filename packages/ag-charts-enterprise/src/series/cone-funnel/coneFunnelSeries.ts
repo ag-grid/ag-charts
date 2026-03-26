@@ -5,9 +5,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
+    type BaseFunnelSeriesTypes,
     type Bounds,
     type FunnelNodeDatum,
     type FunnelNodeLabelDatum,
@@ -15,13 +17,27 @@ import {
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { Line, ChartAxisDirection } = _ModuleSupport;
+const { Line } = _ModuleSupport;
 
+<<<<<<< HEAD
 export class ConeFunnelSeries extends BaseFunnelSeries<
     _ModuleSupport.Line<FunnelNodeDatum>,
     AgConeFunnelSeriesOptions
 > {
     static readonly className = 'ConeFunnelSeries';
+=======
+/**
+ * Consolidated type interface for ConeFunnelSeries.
+ */
+interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
+    readonly node: _ModuleSupport.Line;
+    readonly options: AgConeFunnelSeriesOptions;
+    readonly properties: ConeFunnelProperties;
+}
+
+export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
+    static override readonly className = 'ConeFunnelSeries';
+>>>>>>> latest
     static readonly type = 'cone-funnel' as const;
 
     override properties = new ConeFunnelProperties();
@@ -40,7 +56,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<
             id: seriesId,
             ctx: { legendManager },
         } = this;
-        const visibleItems = this.data?.reduce(
+        const visibleItems = this.data?.data.reduce(
             (accum, _, datumIndex) => accum + (legendManager.getItemEnabled({ seriesId, itemId: datumIndex }) ? 1 : 0),
             0
         );
@@ -130,7 +146,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<
             }
         }
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
         const text = this.getLabelText<AgConeFunnelSeriesLabelFormatterParams>(
             yDatum,
             datum,

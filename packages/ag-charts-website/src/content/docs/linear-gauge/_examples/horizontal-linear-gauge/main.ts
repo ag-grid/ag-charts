@@ -1,5 +1,15 @@
-import { AgCharts, AgLinearGaugeOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgLinearGaugeOptions,
+    AllGaugeModule,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AllGaugeModule, AnimationModule, CrosshairModule, LegendModule, ContextMenuModule]);
 const options: AgLinearGaugeOptions = {
     type: 'linear-gauge',
     direction: 'horizontal',

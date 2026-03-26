@@ -2,13 +2,10 @@ import {
     type OptionsDefs,
     arrayOfDefs,
     boolean,
-    callback,
     constant,
-    fontOptionsDef,
     number,
-    positiveNumber,
+    numberFormatValidator,
     ratio,
-    required,
     union,
 } from 'ag-charts-core';
 import type {
@@ -26,6 +23,7 @@ import {
     cartesianAxisOptionsDefs,
     cartesianTimeAxisLabel,
     cartesianTimeAxisParentLevel,
+    commonAxisCaptionOptionsDefs,
     commonAxisLabelOptionsDefs,
     commonAxisOptionsDefs,
     commonCrossLineLabelOptionsDefs,
@@ -33,11 +31,10 @@ import {
     continuousAxisOptions,
     discreteTimeAxisIntervalOptionsDefs,
 } from './axesOptionsDefs';
-import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
 
 export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> = {
     ...cartesianAxisOptionsDefs,
-    type: required(constant('ordinal-time')),
+    type: constant('ordinal-time'),
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
@@ -46,12 +43,14 @@ export const ordinalTimeAxisOptionsDefs: OptionsDefs<AgOrdinalTimeAxisOptions> =
     interval: discreteTimeAxisIntervalOptionsDefs,
     crosshair: cartesianAxisCrosshairOptions(true, true),
     bandHighlight: cartesianAxisBandHighlightOptions,
+    bandAlignment: union('justify', 'start', 'center', 'end'),
+    skipNullBars: boolean,
 };
 
 export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('angle-number')),
+    type: constant('angle-number'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
     startAngle: number,
     endAngle: number,
@@ -64,7 +63,7 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
 
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
-    type: required(constant('angle-category')),
+    type: constant('angle-category'),
     shape: union('polygon', 'circle'),
     crossLines: arrayOfDefs(commonCrossLineOptionsDefs),
     startAngle: number,
@@ -83,10 +82,11 @@ angleCategoryAxisOptionsDefs.innerRadiusRatio = ratio;
 export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions> = {
     ...commonAxisOptionsDefs,
     ...continuousAxisOptions(number),
-    type: required(constant('radius-number')),
+    type: constant('radius-number'),
     shape: union('polygon', 'circle'),
     positionAngle: number,
     innerRadiusRatio: ratio,
+    title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
         {
             ...commonCrossLineOptionsDefs,
@@ -97,13 +97,6 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
         },
         'cross-line options'
     ),
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callback,
-        ...fontOptionsDef,
-    },
     label: {
         ...commonAxisLabelOptionsDefs,
         format: numberFormatValidator,
@@ -112,13 +105,14 @@ export const radiusNumberAxisOptionsDefs: OptionsDefs<AgRadiusNumberAxisOptions>
 
 export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
-    type: required(constant('radius-category')),
+    type: constant('radius-category'),
     positionAngle: number,
     innerRadiusRatio: ratio,
     paddingInner: ratio,
     paddingOuter: ratio,
     groupPaddingInner: ratio,
     label: commonAxisLabelOptionsDefs,
+    title: commonAxisCaptionOptionsDefs,
     crossLines: arrayOfDefs<AgRadiusCrossLineOptions>(
         {
             ...commonCrossLineOptionsDefs,
@@ -129,11 +123,4 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
         },
         'cross-line options'
     ),
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callback,
-        ...fontOptionsDef,
-    },
 };

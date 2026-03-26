@@ -1,7 +1,28 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -86,9 +107,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Landfill Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             interval: {
                 step: { unit: 'year', step: 5 },
@@ -113,7 +133,7 @@ const options: AgCartesianChartOptions = {
                 strokeWidth: 0,
             },
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -131,7 +151,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => `${(params.value as number) / 1000}K`,
     },

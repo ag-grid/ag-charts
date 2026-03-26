@@ -124,8 +124,9 @@ fi
 cleanup() {
     log_info "Cleaning up"
     run_silent git add ${data_file}
-    run_silent git restore --source HEAD -- ${included_files[@]}
-    run_silent git clean -fd
+    run_silent git checkout HEAD -- ${included_files[@]}
+    run_silent git reset HEAD -- ${included_files[@]}
+    run_silent git clean -fd -- ${included_files[@]}
 }
 
 prebuild() {
@@ -163,7 +164,7 @@ benchmark() {
 
             log_info "Benchmarking $version ($count of $repeat_count)"
             export AG_LIBRARY_VERSION=$(echo "$1" | sed 's/^origin\///')
-            if [[ $latest_version == "true" && $AG_LIBRARY_VERSION == versions[0] ]] ; then
+            if [[ $latest_version == "true" && $AG_LIBRARY_VERSION == ${versions[0]} ]] ; then
                 export AG_BENCHMARK_LATEST_VERSION=1
             else
                 export AG_BENCHMARK_LATEST_VERSION=0
@@ -210,14 +211,16 @@ trap 'cleanup' ERR EXIT
 prebuild
 for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
-    run_silent git restore --source "$version" -- ${included_files[@]}
+    # Note: Using git checkout instead of git restore to handle case-sensitive filename changes on macOS
+    run_silent git checkout "$version" -- ${included_files[@]}
     build ${version}
     # Benchmark
     benchmark ${version}
-    # Remove any untracked files created during this benchmark run
-    run_silent git clean -fd
-    # Reset the working tree state
-    run_silent git restore --source HEAD -- ${included_files[@]}
+    # Reset the working tree and staging area to HEAD state
+    run_silent git checkout HEAD -- ${included_files[@]}
+    run_silent git reset HEAD -- ${included_files[@]}
+    # Remove any files that don't exist in HEAD (e.g., files only in old versions)
+    run_silent git clean -fd -- ${included_files[@]}
 done
 
 if $($failed) ; then 

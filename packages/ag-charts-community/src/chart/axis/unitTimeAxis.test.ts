@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -8,9 +9,9 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import { ChartAxis } from '../chartAxis';
+import type { ChartAxis } from '../chartAxis';
 import {
-    ChartOrProxy,
+    type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
@@ -102,10 +103,10 @@ const DATA = [
 
 const BASIC_TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA,
-    axes: [
-        { type: 'unit-time', position: 'bottom', unit: 'day' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom', unit: 'day' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             xKey: 'date',
@@ -216,17 +217,17 @@ const TIME_AXIS_TIME_STAMP_DATA: AgCartesianChartOptions = {
             open: 177.84,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             unit: 'day',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             xKey: 'date',
@@ -254,17 +255,17 @@ const TIME_AXIS_YEARLY_DATA: AgCartesianChartOptions = {
             y: 10,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             unit: 'year',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -317,17 +318,17 @@ const TIME_AXIS_MONTHLY_DATA: AgCartesianChartOptions = {
             services: 36,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             unit: 'month',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -385,7 +386,7 @@ const TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA: AgCartesianChartOptions = {
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -407,7 +408,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -422,13 +423,13 @@ const EXAMPLES: Record<string, TestCase> = {
         BASIC_TIME_AXIS_EXAMPLE: {
             options: BASIC_TIME_AXIS_EXAMPLE,
             compare: ['unit-time'],
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         TIME_AXIS_TIME_STAMP_DATA: {
             options: TIME_AXIS_TIME_STAMP_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar'],
             }),
         },
@@ -436,7 +437,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_YEARLY_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -444,7 +445,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_MONTHLY_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -452,7 +453,7 @@ const EXAMPLES: Record<string, TestCase> = {
             options: TIME_AXIS_IRREGULAR_TIME_INTERVAL_DATA,
             compare: ['unit-time'],
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['bar', 'bar'],
             }),
         },
@@ -464,7 +465,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
 ): Record<string, TestCase<T>> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -481,7 +482,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -570,10 +571,10 @@ describe('Time Axis Examples', () => {
                     yKey: 'sales',
                 },
             ],
-            axes: [
-                { type: 'unit-time', position: 'bottom' },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'unit-time', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
         };
         chart = await createChart(options);
         await compare();
@@ -606,10 +607,10 @@ describe('Time Axis Examples', () => {
                     data: [{ date: new Date(2022, 0, 1), value: 3 }],
                 },
             ],
-            axes: [
-                { type: 'unit-time', position: 'bottom' },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'unit-time', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
         };
         chart = await createChart(options);
         await compare();
@@ -630,8 +631,8 @@ describe('Time Axis Examples', () => {
                     { date: new Date(2024, 11, 1), value: 2 },
                 ],
                 series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'time',
                         position: 'bottom',
                         title: { text: 'Continuous Time Axis' },
@@ -642,8 +643,8 @@ describe('Time Axis Examples', () => {
                             padding: 8,
                         },
                     },
-                    { type: 'number', position: 'left' },
-                ],
+                    y: { type: 'number', position: 'left' },
+                },
             };
             chart = await createChart(options);
             await compare();

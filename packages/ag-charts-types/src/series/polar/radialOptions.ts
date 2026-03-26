@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -12,6 +18,8 @@ export interface AgBaseRadialSeriesThemeableOptions<TDatum = DatumDefault, TCont
     label?: AgChartLabelOptions<TDatum, AgRadialSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRadialSeriesTooltipRendererParams<TDatum, TContext>>;
+    /** Function used to return formatting for entire series, based on the given parameters.*/
+    styler?: Styler<AgRadialSeriesStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** A styler function for adjusting the styling of the radial columns. */
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<TDatum, TContext>, AgRadialSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
@@ -35,6 +43,8 @@ export interface AgRadialSeriesOptionsNames {
     angleName?: string;
     /** A human-readable description of the radius values. If supplied, this will be passed to the tooltip renderer as one of the parameters. */
     radiusName?: string;
+    /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export type AgRadialSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRadialSeriesOptionsKeys<TDatum> &
@@ -46,10 +56,19 @@ export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextD
         AgRadialSeriesOptionsNames,
         AgRadialSeriesStyle {}
 
-export type AgRadialSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export interface AgRadialSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams<HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgRadialSeriesOptionsKeys<TDatum>,
+        Required<AgRadialSeriesStyle> {
+    /** An ID to be used to group stacked items. */
+    stackGroup?: string;
+}
+
+export type AgRadialSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<AgRadialSeriesStyle>;

@@ -1,9 +1,15 @@
-import { normalizeAngle360 } from '../util/angle';
-import { lineDistanceSquared } from '../util/distance';
+import {
+    bezier2DDistance,
+    bezier2DExtrema,
+    evaluateBezier,
+    getPath2D,
+    lineDistanceSquared,
+    normalizeAngle360,
+} from 'ag-charts-core';
+
 import { parseSvg } from '../util/svg';
 import { BBox } from './bbox';
 import { cubicSegmentIntersections, segmentIntersection } from './intersection';
-import { bezier2DDistance, bezier2DExtrema, evaluateBezier } from './util/bezier';
 
 enum Command {
     Move,
@@ -17,32 +23,39 @@ export class ExtendedPath2D {
     // and any allocation can trigger a GC cycle during animation, so we attempt
     // to minimize the number of allocations.
 
-    private path2d = new Path2D();
+    private path2d: Path2D;
+
+    constructor() {
+        const Path2DCtor = getPath2D();
+        this.path2d = new Path2DCtor();
+    }
 
     private previousCommands: Command[] = [];
     private previousParams: number[] = [];
     private previousClosedPath: boolean = false;
     commands: Command[] = [];
     params: number[] = [];
+    private commandsLength: number = 0;
+    private paramsLength: number = 0;
 
-    cx = NaN;
-    cy = NaN;
-    sx = NaN;
-    sy = NaN;
+    cx = Number.NaN;
+    cy = Number.NaN;
+    sx = Number.NaN;
+    sy = Number.NaN;
     openedPath: boolean = false;
     closedPath: boolean = false;
 
     isEmpty() {
-        return this.commands.length === 0;
+        return this.commandsLength === 0;
     }
 
     isDirty() {
         return (
             this.closedPath !== this.previousClosedPath ||
-            this.previousCommands.length !== this.commands.length ||
-            this.previousParams.length !== this.params.length ||
-            this.previousCommands.toString() !== this.commands.toString() ||
-            this.previousParams.toString() !== this.params.toString()
+            this.previousCommands.length !== this.commandsLength ||
+            this.previousParams.length !== this.paramsLength ||
+            this.previousCommands.toString() !== this.commands.slice(0, this.commandsLength).toString() ||
+            this.previousParams.toString() !== this.params.slice(0, this.paramsLength).toString()
         );
     }
 
@@ -57,8 +70,9 @@ export class ExtendedPath2D {
         this.cx = x;
         this.cy = y;
         this.path2d.moveTo(x, y);
-        this.commands.push(Command.Move);
-        this.params.push(x, y);
+        this.commands[this.commandsLength++] = Command.Move;
+        this.params[this.paramsLength++] = x;
+        this.params[this.paramsLength++] = y;
     }
 
     lineTo(x: number, y: number) {
@@ -66,8 +80,9 @@ export class ExtendedPath2D {
             this.cx = x;
             this.cy = y;
             this.path2d.lineTo(x, y);
-            this.commands.push(Command.Line);
-            this.params.push(x, y);
+            this.commands[this.commandsLength++] = Command.Line;
+            this.params[this.paramsLength++] = x;
+            this.params[this.paramsLength++] = y;
         } else {
             this.moveTo(x, y);
         }
@@ -78,18 +93,23 @@ export class ExtendedPath2D {
             this.moveTo(cx1, cy1);
         }
         this.path2d.bezierCurveTo(cx1, cy1, cx2, cy2, x, y);
-        this.commands.push(Command.Curve);
-        this.params.push(cx1, cy1, cx2, cy2, x, y);
+        this.commands[this.commandsLength++] = Command.Curve;
+        this.params[this.paramsLength++] = cx1;
+        this.params[this.paramsLength++] = cy1;
+        this.params[this.paramsLength++] = cx2;
+        this.params[this.paramsLength++] = cy2;
+        this.params[this.paramsLength++] = x;
+        this.params[this.paramsLength++] = y;
     }
 
     closePath() {
         if (this.openedPath) {
             this.cx = this.sx;
             this.cy = this.sy;
-            this.sx = NaN;
-            this.sy = NaN;
+            this.sx = Number.NaN;
+            this.sy = Number.NaN;
             this.path2d.closePath();
-            this.commands.push(Command.ClosePath);
+            this.commands[this.commandsLength++] = Command.ClosePath;
             this.openedPath = false;
             this.closedPath = true;
         }
@@ -418,21 +438,29 @@ export class ExtendedPath2D {
 
     clear(trackChanges?: boolean) {
         if (trackChanges) {
-            this.previousCommands = this.commands;
-            this.previousParams = this.params;
+            this.previousCommands = this.commands.slice(0, this.commandsLength);
+            this.previousParams = this.params.slice(0, this.paramsLength);
             this.previousClosedPath = this.closedPath;
+            // Create new arrays since previous now holds references to the old ones
+            this.commands = [];
+            this.params = [];
+            this.commandsLength = 0;
+            this.paramsLength = 0;
+        } else {
+            // Reset length fields instead of clearing arrays
+            this.commandsLength = 0;
+            this.paramsLength = 0;
         }
-        this.path2d = new Path2D();
+        const Path2DCtor = getPath2D();
+        this.path2d = new Path2DCtor();
         this.openedPath = false;
         this.closedPath = false;
-        this.commands = [];
-        this.params = [];
     }
 
     isPointInPath(x: number, y: number): boolean {
         const commands = this.commands;
         const params = this.params;
-        const cn = commands.length;
+        const cn = this.commandsLength;
         // Hit testing using ray casting method, where the ray's origin is some point
         // outside the path. In this case, an offscreen point that is remote enough, so that
         // even if the path itself is large and is partially offscreen, the ray's origin
@@ -448,8 +476,8 @@ export class ExtendedPath2D {
         const ox = -10000;
         const oy = -10000;
         // the starting point of the  current path
-        let sx: number = NaN;
-        let sy: number = NaN;
+        let sx: number = Number.NaN;
+        let sy: number = Number.NaN;
         // the previous point of the current path
         let px = 0;
         let py = 0;
@@ -500,10 +528,10 @@ export class ExtendedPath2D {
         let best = Infinity;
         const commands = this.commands;
         const params = this.params;
-        const cn = commands.length;
+        const cn = this.commandsLength;
         // the starting point of the  current path
-        let sx: number = NaN;
-        let sy: number = NaN;
+        let sx: number = Number.NaN;
+        let sy: number = Number.NaN;
         // the previous point of the current path
         let cx = 0;
         let cy = 0;
@@ -557,7 +585,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (const command of commands) {
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            const command = commands[ci];
             switch (command) {
                 case Command.Move:
                     addCommand('M', 2);
@@ -580,8 +609,8 @@ export class ExtendedPath2D {
     computeBBox(): BBox {
         const { commands, params } = this;
         let [top, left, right, bot] = [Infinity, Infinity, -Infinity, -Infinity];
-        let [cx, cy] = [NaN, NaN]; // the starting point of the current path
-        let [sx, sy] = [NaN, NaN]; // the end point for a ClosePath command.
+        let [cx, cy] = [Number.NaN, Number.NaN]; // the starting point of the current path
+        let [sx, sy] = [Number.NaN, Number.NaN]; // the end point for a ClosePath command.
 
         const joinPoint = (x: number, y: number) => {
             top = Math.min(y, top);
@@ -594,7 +623,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (const command of commands) {
+        for (let ci = 0; ci < this.commandsLength; ci++) {
+            const command = commands[ci];
             switch (command) {
                 case Command.Move:
                     joinPoint(params[pi++], params[pi++]);
@@ -617,19 +647,19 @@ export class ExtendedPath2D {
                     const ts = bezier2DExtrema(cp0x, cp0y, cp1x, cp1y, cp2x, cp2y, cp3x, cp3y);
 
                     // Check points where the derivative is zero
-                    ts.forEach((t: number) => {
+                    for (const t of ts) {
                         const px = evaluateBezier(cp0x, cp1x, cp2x, cp3x, t);
                         const py = evaluateBezier(cp0y, cp1y, cp2y, cp3y, t);
                         joinPoint(px, py);
-                    });
+                    }
 
                     joinPoint(cp3x, cp3y);
                     break;
                 }
                 case Command.ClosePath:
                     joinPoint(sx, sy);
-                    sx = NaN;
-                    sy = NaN;
+                    sx = Number.NaN;
+                    sy = Number.NaN;
                     break;
             }
         }

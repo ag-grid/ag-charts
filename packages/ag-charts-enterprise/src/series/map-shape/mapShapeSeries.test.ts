@@ -12,12 +12,16 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningMessages,
     extractImageData,
     hoverAction,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -106,6 +110,43 @@ describe('MapShapeSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('Missing color values', () => {
+        it('renders only data with color and suppresses tooltips', async () => {
+            const missingStates = new Set(['California', 'Colorado']);
+            const data = usData.map((datum) =>
+                missingStates.has(datum.name) ? { name: datum.name, code: datum.code } : datum
+            );
+            const options: AgChartOptions = {
+                data,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        colorKey: 'gdp',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapShapeSeries;
+            const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
+            expect(nodeIds).not.toContain('California');
+            expect(nodeIds).not.toContain('Colorado');
+            expect(nodeIds).toHaveLength(data.length - missingStates.size);
+
+            const missingIndex = data.findIndex((datum) => datum.name === 'California');
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+
+            await compare({
+                failureThreshold: 1,
+            });
         });
     });
 
@@ -275,7 +316,7 @@ describe('MapShapeSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -332,7 +373,141 @@ describe('MapShapeSeries', () => {
             },
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
+        });
+    });
+
+    describe('AG-16858 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                topology: ukTopology,
+                legend: { enabled: true },
+                series: [
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'England' }] },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Scotland' }] },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }] },
+                ],
+            },
+        });
+    });
+
+    describe('AG-16858 shared legend highlight', () => {
+        it('should highlight series with matching legendItemName on legend hover', async () => {
+            const options: AgChartOptions = {
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'England' }], legendItemName: 'Group A' },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Scotland' }], legendItemName: 'Group A' },
+                    { type: 'map-shape', idKey: 'name', data: [{ name: 'Wales' }], legendItemName: 'Group B' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            resetMockConsole();
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            expectWarningMessages([
+                `AG Charts - legend item 'Group A' has multiple fill colours, this may cause unexpected behaviour.`,
+            ]);
+
+            const series0 = (chart as Chart).series[0];
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, {
+                series: series0,
+                itemId: series0.id,
+                datum: undefined,
+                datumIndex: undefined,
+                legendItemName: 'Group A',
+            } as any);
+
+            const activeHighlight = highlightManager.getActiveHighlight();
+            expect((chart as Chart).series[0].isSeriesHighlighted(activeHighlight)).toBe(true);
+            expect((chart as Chart).series[1].isSeriesHighlighted(activeHighlight)).toBe(true);
+            expect((chart as Chart).series[2].isSeriesHighlighted(activeHighlight)).toBe(false);
+
+            await compare();
+        });
+    });
+
+    describe('colorScale', () => {
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 100_000_000] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 1_000_000, name: 'Low' },
+                                { color: 'yellow', stop: 5_000_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
         });
     });
 

@@ -1,4 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { backgroundTopologyNI } from './backgroundTopologyNI';
@@ -7,6 +18,15 @@ import { routeTopology } from './routeTopology';
 import { stationData } from './stationData';
 import { stationTopology } from './stationTopology';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     series: [

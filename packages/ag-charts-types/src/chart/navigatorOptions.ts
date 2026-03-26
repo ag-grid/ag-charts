@@ -16,7 +16,7 @@ import type { AgRangeBarSeriesOptions, AgRangeBarSeriesThemeableOptions } from '
 import type { AgScatterSeriesOptions, AgScatterSeriesThemeableOptions } from '../series/cartesian/scatterOptions';
 import type { AgWaterfallSeriesOptions, AgWaterfallSeriesThemeableOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
-import type { Formatter } from './callbackOptions';
+import type { RichFormatter } from './callbackOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -66,7 +66,7 @@ export interface AgNavigatorMiniChartLabelOptions<TContext = ContextDefault> {
     /** Format string used when rendering labels. */
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a tick step of `0.0005` would have `fractionDigits` set to `4`. */
-    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
 export interface AgNavigatorMiniChartPadding {

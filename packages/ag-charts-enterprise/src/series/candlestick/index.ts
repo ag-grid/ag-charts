@@ -1,1 +1,0 @@
-export { CandlestickSeriesModule } from './candlestickModule';

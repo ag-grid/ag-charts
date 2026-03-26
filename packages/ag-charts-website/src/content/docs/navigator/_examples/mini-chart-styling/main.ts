@@ -1,12 +1,31 @@
 import {
     AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCharts,
-    AgSeriesTooltip,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
     day: 'numeric',
     month: 'short',
@@ -53,10 +72,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 maxSpacing: 200,
             },
@@ -68,14 +86,13 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => numberFormatter.format(+params.value),
             },
         },
-    ],
+    },
     legend: {
         enabled: true,
     },

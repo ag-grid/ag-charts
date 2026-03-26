@@ -1,6 +1,8 @@
-import { findMinMax } from '../util/number';
+import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
+import { findMinMax } from 'ag-charts-core';
+
 import { AbstractScale } from './abstractScale';
-import type { NormalizedDomain } from './scale';
+import { unpackDomainMinMax } from './scaleUtil';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -15,16 +17,48 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     protected transform?(x: number): number;
     protected transformInvert?(x: number): D;
 
+    // Domain caching to avoid repeated valueOf() calls in hot paths
+    private _domain: D[] = [];
+    private domainNeedsValueOf = true; // Safe default
+    private d0Cache: number = Number.NaN;
+    private d1Cache: number = Number.NaN;
+
+    get domain(): D[] {
+        return this._domain;
+    }
+
+    set domain(values: D[]) {
+        this._domain = values;
+
+        // Auto-detect if domain values need valueOf() and cache numeric values
+        if (values && values.length >= 2) {
+            const sample = values[0];
+            this.domainNeedsValueOf = sample != null && typeof sample === 'object';
+
+            if (this.domainNeedsValueOf) {
+                this.d0Cache = (values[0] as Date).valueOf();
+                this.d1Cache = (values[1] as Date).valueOf();
+            } else {
+                this.d0Cache = values[0] as unknown as number;
+                this.d1Cache = values[1] as unknown as number;
+            }
+        } else {
+            this.d0Cache = Number.NaN;
+            this.d1Cache = Number.NaN;
+        }
+    }
+
     protected constructor(
-        public domain: D[] = [],
+        domain: D[] = [],
         public range: number[] = []
     ) {
         super();
+        this.domain = domain;
     }
 
     abstract override toDomain(value: number): D;
 
-    normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+    normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D> {
         return normalizeContinuousDomains(...domains);
     }
 
@@ -34,7 +68,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const rangeDistance = this.getPixelRange();
         if (domain.length === 0) return rangeDistance;
 
-        const intervals = Math.abs(domain[1].valueOf() - domain[0].valueOf()) / smallestInterval + 1;
+        // Use cached domain values to avoid valueOf() calls
+        const intervals = Math.abs(this.d1Cache - this.d0Cache) / smallestInterval + 1;
 
         // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
         let bands = intervals;
@@ -52,15 +87,17 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
     convert(value: D | number, options?: { clamp?: boolean }) {
         const { domain } = this;
         if (!domain || domain.length < 2 || value == null) {
-            return NaN;
+            return Number.NaN;
         }
 
         const { range } = this;
         const clamp = options?.clamp ?? this.defaultClamp;
 
-        let d0: number = domain[0].valueOf();
-        let d1: number = domain[1].valueOf();
-        let x = value.valueOf();
+        // Use cached domain values to avoid valueOf() calls
+        let d0: number = this.d0Cache;
+        let d1: number = this.d1Cache;
+        // Conditional valueOf() for input value based on domain type detection
+        let x = typeof value === 'number' ? value : value.valueOf();
         if (this.transform) {
             d0 = this.transform(d0);
             d1 = this.transform(d1);
@@ -92,8 +129,9 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         const { domain } = this;
         if (domain.length < 2) return;
 
-        let d0: number = domain[0].valueOf();
-        let d1: number = domain[1].valueOf();
+        // Use cached domain values to avoid valueOf() calls
+        let d0: number = this.d0Cache;
+        let d1: number = this.d1Cache;
         if (this.transform) {
             d0 = this.transform(d0);
             d1 = this.transform(d1);
@@ -112,19 +150,26 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return this.transformInvert ? this.transformInvert(d) : d;
     }
 
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
+    }
+
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
 }
 
-export function normalizeContinuousDomains<D extends number | Date>(...domains: D[][]): NormalizedDomain<D> {
+export function normalizeContinuousDomains<D extends number | Date>(
+    ...domains: DomainWithMetadata<D>[]
+): NormalizedDomain<D> {
     let min: D | undefined;
     let minValue = Infinity;
     let max: D | undefined;
     let maxValue = -Infinity;
 
-    for (const domain of domains) {
+    for (const input of domains) {
+        const domain = input.domain;
         for (const d of domain) {
             const value = d.valueOf();
             if (value < minValue) {

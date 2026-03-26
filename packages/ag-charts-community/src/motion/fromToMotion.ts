@@ -1,10 +1,11 @@
+import { easeOut } from 'ag-charts-core';
+
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import type { Interpolating } from '../util/interpolating';
 import type { AnimationPhase, AnimationValue } from './animation';
 import { deconstructSelectionsOrNodes } from './animation';
-import * as easing from './easing';
 
 export type NodeUpdateState = 'unknown' | 'added' | 'removed' | 'updated' | 'no-op';
 
@@ -145,7 +146,7 @@ export function fromToMotion<
                 delay: delay ?? toDelay,
                 from: from as unknown as T,
                 to: to as unknown as T,
-                ease: easing.easeOut,
+                ease: easeOut,
                 collapsable,
                 onPlay: () => {
                     const startProps = { ...start, ...toStart, ...from } as unknown as T;
@@ -188,7 +189,7 @@ export function fromToMotion<
             phase: 'end',
             from: 0,
             to: 1,
-            ease: easing.easeOut,
+            ease: easeOut,
             onStop() {
                 selection.cleanup();
             },
@@ -238,7 +239,7 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
         phase: phase ?? 'update',
         from,
         to,
-        ease: easing.easeOut,
+        ease: easeOut,
         onPlay: () => {
             if (!start) return;
 
@@ -246,9 +247,12 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
                 node.setProperties(start);
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties(start);
-                }
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionPlay() {
+                    for (const node of selectionNodes) {
+                        node.setProperties(start);
+                    }
+                });
             }
         },
         onUpdate(props) {
@@ -256,9 +260,12 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
                 node.setProperties(props);
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties(props);
-                }
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionUpdate() {
+                    for (const node of selectionNodes) {
+                        node.setProperties(props);
+                    }
+                });
             }
         },
         onStop: () => {
@@ -266,10 +273,13 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
                 node.setProperties({ ...to, ...finish });
             }
             for (const selection of selections) {
-                for (const node of selection.nodes()) {
-                    node.setProperties({ ...to, ...finish });
-                }
-                selection.cleanup();
+                const selectionNodes = selection.nodes();
+                selection.batchedUpdate(function staticMotionStop() {
+                    for (const node of selectionNodes) {
+                        node.setProperties({ ...to, ...finish });
+                    }
+                    selection.cleanup();
+                });
             }
         },
     });

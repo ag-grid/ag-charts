@@ -4,7 +4,7 @@ import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export class Range<D = any> extends Shape<D> {
-    static readonly className = 'Range';
+    static override readonly className = 'Range';
 
     constructor(opts: NodeOptions = {}) {
         super(opts);

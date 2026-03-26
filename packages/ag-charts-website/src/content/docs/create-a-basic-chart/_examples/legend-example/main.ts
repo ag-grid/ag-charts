@@ -5,12 +5,20 @@ import {
     AgChartLegendOptions,
     AgChartOptions,
     AgChartSubtitleOptions,
-    AgChartThemeName,
     AgCharts,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
 } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 interface IData {
     // Chart Data Interface
     month: 'Jan' | 'Feb' | 'Mar' | 'Apr' | 'May' | 'Jun' | 'Jul' | 'Aug' | 'Sep' | 'Oct' | 'Nov' | 'Dec';
@@ -35,30 +43,36 @@ const options: AgChartOptions = {
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
     ] as IData[],
     // Series: Defines which chart type and data to use
+    // Series: Defines which chart type and data to use
     series: [
-        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' } as AgBarSeriesOptions,
-        { type: 'line', xKey: 'month', yKey: 'avgTemp' } as AgLineSeriesOptions,
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Optional Y Axis Key, to link series to an axis, with better code readability
+            yKeyAxis: 'priceAxis',
+        } as AgBarSeriesOptions,
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Optional Y Axis Key, to link series to an axis, with better code readability
+            yKeyAxis: 'temperatureAxis',
+        } as AgLineSeriesOptions,
     ],
     // Axes: Configure the axes for the chart
-    axes: [
-        // Display category (xKey) as the bottom axis
-        {
-            type: 'category',
-            position: 'bottom',
-        } as AgCategoryAxisOptions,
+    axes: {
         // Use left axis for 'iceCreamSales' series
-        {
+        priceAxis: {
             type: 'number',
             position: 'left',
-            keys: ['iceCreamSales'],
         } as AgNumberAxisOptions,
         // Use right axis for 'avgTemp' series
-        {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
         } as AgNumberAxisOptions,
-    ],
+    },
     // Legend: Matches visual elements to their corresponding series or data categories.
     legend: {
         position: 'right',

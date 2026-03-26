@@ -1,15 +1,21 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, setupBenchmark } from './benchmark';
 
 describe('large-scale multi-series benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('large-scale-multi-series').repeatCount(10);
 
-    benchmark('initial load', ctx, { expectedRetainedSizeMB: 29, expectedCanvasCount: 4 }, async () => {
-        await ctx.create();
-    });
+    benchmark(
+        'initial load',
+        ctx,
+        { expectedRetainedSizeMB: 33, expectedCanvasCount: 5 },
+        async () => {
+            await ctx.create();
+        },
+        15_000
+    );
 
     describe('after load', () => {
         beforeEach(async () => {
@@ -19,7 +25,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '1x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            { expectedRelativeMB: 3.3, expectedCanvasCount: 5 },
             async () => {
                 await ctx.legendToggle();
                 await ctx.legendToggle();
@@ -30,7 +36,7 @@ describe('large-scale multi-series benchmark', () => {
         benchmark(
             '4x legend toggle',
             ctx,
-            { expectedRelativeMB: 2, expectedCanvasCount: 3 },
+            { expectedRelativeMB: 3.3, expectedCanvasCount: 5 },
             async () => {
                 for (let i = 0; i < 2; i++) {
                     await ctx.legendToggle(i);

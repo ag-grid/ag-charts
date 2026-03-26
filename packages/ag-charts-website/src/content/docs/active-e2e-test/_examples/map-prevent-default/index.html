@@ -1,0 +1,14 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="onPopEvents()"><code>popEvents()</code></button>
+        <input
+            id="myPreventDefault"
+            type="checkbox"
+            checked="true"
+            onchange="onPreventDefaultChange(event.target.checked)"
+        />
+        <code>preventDefault</code>
+        <span id="myPointerPos">not assigned</span>
+    </div>
+</div>
+<div id="myChart"></div>

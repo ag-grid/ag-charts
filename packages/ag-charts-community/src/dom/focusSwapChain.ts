@@ -102,7 +102,9 @@ export class FocusSwapChain {
     private dispatch<T extends keyof SwapChainEventMap>(type: T, param: SwapChainEventMap[T]) {
         if (type === 'focus') this.hasFocus = true;
         else if (type === 'blur') this.hasFocus = false;
-        this.listeners[type].forEach((fn) => fn(param));
+        for (const fn of this.listeners[type]) {
+            fn(param);
+        }
     }
 
     private swap(newLabel: string) {

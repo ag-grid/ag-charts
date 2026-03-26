@@ -1,7 +1,31 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(800),
@@ -15,14 +39,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             label: {
                 spacing: 8,
                 format: {
@@ -45,7 +64,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     zoom: {
         enabled: true,
     },

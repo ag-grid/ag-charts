@@ -1,12 +1,20 @@
 import { type AgCandlestickSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { InternalAgGradientColor } from 'ag-charts-core';
+import { type InternalAgGradientColor, isGradientFill, isImageFill, isPatternFill } from 'ag-charts-core';
 
-import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { isGradientFill, isPatternFill, isImageFill, applyShapeStyle } = _ModuleSupport;
+/**
+ * Consolidated type interface for CandlestickSeries.
+ */
+interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
+    readonly node: CandlestickNode;
+    readonly options: AgCandlestickSeriesOptions;
+    readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
+}
 
+<<<<<<< HEAD
 export class CandlestickSeries extends OhlcSeriesBase<
     OhlcNodeDatum,
     CandlestickNode<OhlcNodeDatum>,
@@ -14,6 +22,10 @@ export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickSeriesProperties<AgCandlestickSeriesOptions>
 > {
     static readonly className = 'CandleStickSeries';
+=======
+export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
+    static override readonly className = 'CandleStickSeries';
+>>>>>>> latest
     static readonly type = 'candlestick' as const;
 
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
@@ -28,11 +40,15 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
+=======
+        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
+>>>>>>> latest
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -40,39 +56,43 @@ export class CandlestickSeries extends OhlcSeriesBase<
         datumSelection,
         isHighlight,
     }: {
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
+=======
+        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
+>>>>>>> latest
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const { up, down } = properties.item;
 
-        datumSelection.each((node, datum) => {
+        const fillBBox = this.getShapeFillBBox();
+
+        const series = this;
+        datumSelection.each(function updateCandlestickNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
-            const style =
-                datum.style ??
-                contextNodeData.styles[datum.itemId][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
-                ];
+            const baseStyle = datum.isRising ? up : down;
+            const highlightState = series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[datum.itemType][highlightState];
 
-            node.centerX = centerX;
-            node.width = width;
-            node.y = y;
-            node.height = height;
-            node.yOpen = yOpen;
-            node.yClose = yClose;
-            node.crisp = crisp;
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
-            applyShapeStyle(node, style, this.getShapeFillBBox());
+            node.setStyleProperties(style, fillBBox);
 
             const styleWick = style?.wick;
-            node.wickStroke = styleWick?.stroke;
-            node.wickStrokeWidth = styleWick?.strokeWidth;
-            node.wickStrokeOpacity = styleWick?.strokeOpacity;
-            node.wickLineDash = styleWick?.lineDash;
-            node.wickLineDashOffset = styleWick?.lineDashOffset;
+            node.setWickProperties(
+                styleWick?.stroke,
+                styleWick?.strokeWidth,
+                styleWick?.strokeOpacity,
+                styleWick?.lineDash,
+                styleWick?.lineDashOffset
+            );
+
+            node.wickStrokeAlignment = baseStyle.wick.strokeWidth ?? baseStyle.strokeWidth;
         });
     }
 
@@ -81,7 +101,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         const upColorStops = isGradientFill(up.fill)
             ? up.fill.colorStops!.map((c) =>
-                  typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
+                  typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
             : [
                   { color: isPatternFill(up.fill) || isImageFill(up.fill) ? up.stroke : up.fill, stop: 0 },
@@ -90,7 +110,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
 
         const downColorStops = isGradientFill(down.fill)
             ? down.fill.colorStops!.map((c) =>
-                  typeof c === 'string' ? c : { color: c.color, stop: c.stop != null ? c.stop * 0.5 : undefined }
+                  typeof c === 'string' ? c : { color: c.color, stop: c.stop == null ? undefined : c.stop * 0.5 }
               )
             : [{ color: isPatternFill(down.fill) || isImageFill(down.fill) ? down.stroke : down.fill, stop: 0.5 }];
 
@@ -136,7 +156,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         } = this;
         const { xKey, yName, showInLegend, legendItemName } = this.properties;
 
-        if (!data?.length || !xKey || legendType !== 'category') {
+        if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
         }
 

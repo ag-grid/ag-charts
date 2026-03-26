@@ -1,10 +1,13 @@
 import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import type { FeatureCollection } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import {
     type MapShapeBackgroundNodeDatum,
     MapShapeBackgroundSeriesProperties,
@@ -23,18 +26,18 @@ export class MapShapeBackgroundSeries
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundNodeDataContext
     >
-    implements _ModuleSupport.ITopology
+    implements ITopology
 {
-    static readonly className = 'MapShapeBackgroundSeries';
+    static override readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapShapeBackgroundSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     private get topology() {
         return this.properties.topology ?? this._chartTopology;
@@ -109,7 +112,7 @@ export class MapShapeBackgroundSeries
     override processData() {
         const { topology } = this;
 
-        this.topologyBounds = topology?.features.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        this.topologyBounds = topology?.features.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -129,22 +132,21 @@ export class MapShapeBackgroundSeries
 
         const nodeData: MapShapeBackgroundNodeDatum[] = [];
         const labelData: never[] = [];
-        topology.features.forEach((feature, index) => {
+        for (const [index, feature] of topology.features.entries()) {
             const { geometry } = feature;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
 
-            if (projectedGeometry == null) return;
+            if (projectedGeometry == null) continue;
 
             nodeData.push({
                 series: this,
-                itemId: index,
                 datum: feature,
                 datumIndex: 0,
                 index,
                 projectedGeometry,
                 style: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset },
             });
-        });
+        }
 
         return {
             itemId: seriesId,

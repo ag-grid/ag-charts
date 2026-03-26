@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, jest } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
-import { type AnyFn, getDocument } from 'ag-charts-core';
+import { type AnyFn, fromPairs, getDocument, mapValues } from 'ag-charts-core';
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
@@ -18,7 +18,6 @@ import {
     mouseLeaveEvent,
     mouseMoveEvent,
     mouseUpEvent,
-    toMatchImage,
     touchAverage,
     touchEvent,
     wheelEvent,
@@ -37,7 +36,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
@@ -231,24 +229,30 @@ export async function waitForChartStability<
     }
 
     if (activeAnimateCb) {
-        await activeAnimateCb(0, 1);
+        activeAnimateCb(0, 1);
         if (animationAdvanceMs > 0) {
-            await activeAnimateCb(animationAdvanceMs, 1);
+            activeAnimateCb(animationAdvanceMs, 1);
         }
         await chart.waitForUpdate(timeoutMs, true);
     } else if (animationAdvanceMs > 0) {
-        throw new Error(`animationAdvancedMs is non-zero, but no animation mocks are present.`);
+        // No animation mocks present - treat as real-time delay
+        await delay(animationAdvanceMs);
+        await chart.waitForUpdate(timeoutMs, true);
     }
 }
 
-export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
-    const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
+export function cartesianChartAssertions(params?: {
+    type?: string;
+    axisTypes?: Record<string, string>;
+    seriesTypes?: string[];
+}) {
+    const { axisTypes = { x: 'category', y: 'number' }, seriesTypes = ['bar', 'bar'] } = params ?? {};
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
-        expect(chart.axes).toHaveLength(axisTypes.length);
-        expect(chart.axes.map((a) => a.type)).toEqual(axisTypes);
+        expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
+        expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
 }
@@ -326,7 +330,7 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
         checkTargetValid(testTarget);
 
         // Implement 'mouseenter' and 'mouseleave' events on this chart.
-        // TODO: the testLastMouseMoveBubbleChain property should be correct setup & teared out by test fixtures.
+        // TODO: the testLastMouseMoveBubbleChain property should be correctly set up & torn down by test fixtures.
         const testChart = chartOrProxy as unknown as { testLastMouseMoveBubbleChain: MockEvent['bubbleChain'] };
         const enterChain: MockEvent['bubbleChain'] = [];
         const leaveChain: MockEvent['bubbleChain'] = [];
@@ -619,8 +623,6 @@ export function twoFingerEnd(
     ]);
 }
 
-export { setupMockCanvas, toMatchImage, CANVAS_TO_BUFFER_DEFAULTS, extractImageData };
-
 export async function createChart(options: AgChartOptions<any, any>) {
     options = prepareTestOptions({ ...options });
     const chart = deproxy(AgCharts.create(options) as AgChartProxy);
@@ -628,7 +630,11 @@ export async function createChart(options: AgChartOptions<any, any>) {
     return chart;
 }
 
-let activeAnimateCb: ((totalDuration: number, ratio: number) => Promise<void>) | undefined;
+// Minimum delays for delayed removal features (100ms delay + 50ms buffer)
+export const MIN_UNHIGHLIGHT_DELAY = 150;
+export const MIN_TOOLTIP_HIDE_DELAY = 150;
+
+let activeAnimateCb: ((totalDuration: number, ratio: number) => void) | undefined;
 export function spyOnAnimationManager() {
     const mocks: jest.SpiedFunction<AnyFn>[] = [];
     const rafCbs: Map<number, Parameters<typeof requestAnimationFrame>[0]> = new Map();
@@ -636,13 +642,14 @@ export function spyOnAnimationManager() {
     const animateParameters = [0, 0];
 
     let time = Date.now();
-    const animateCb = async (totalDuration: number, ratio: number) => {
+    const animateCb = (totalDuration: number, ratio: number) => {
         time += totalDuration * ratio;
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
-        // eslint-disable-next-line sonarjs/array-callback-without-return
-        await Promise.all(cbs.map((cb) => cb(time)));
+        for (const cb of cbs) {
+            cb(time);
+        }
     };
 
     beforeEach(() => {
@@ -683,7 +690,9 @@ export function spyOnAnimationManager() {
 
     afterEach(() => {
         activeAnimateCb = undefined;
-        mocks.forEach((mock) => mock.mockRestore());
+        for (const mock of mocks) {
+            mock.mockRestore();
+        }
         rafCbs.clear();
     });
 
@@ -696,7 +705,7 @@ export function spyOnAnimationManager() {
 export function reverseAxes<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, reverse: boolean): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, reverse })),
+        axes: opts.axes ? mapValues(opts.axes, (axis) => ({ ...axis, reverse })) : undefined,
     };
 }
 
@@ -705,20 +714,20 @@ export function mixinReversedAxesCases(
 ): Record<string, CartesianOrPolarTestCase> {
     const result = { ...baseCases };
 
-    Object.keys(baseCases).forEach((name) => {
+    for (const name of Object.keys(baseCases)) {
         const baseCase = baseCases[name];
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
             warnings: baseCase.skipWarningsReversed === false ? baseCase.warnings : [],
         };
-    });
+    }
 
     return result;
 }
 
 export function computeLegendBBox(chart: Chart): BBox {
-    const legendModule = chart.modulesManager.getModule<any>('legend');
+    const legendModule: any = chart.modulesManager.getModule('legend');
     const { x = 0, y = 0, width = 0, height = 0 } = legendModule?.group.getBBox() ?? {};
     return new BBox(x, y, width, height);
 }
@@ -727,3 +736,6 @@ export function getCursor(chart: Chart | AgChartProxy): string {
     const ctx = deproxy(chart).getModuleContext();
     return ctx.domManager.getCursor();
 }
+
+export { toMatchImage } from 'ag-charts-test';
+export { CANVAS_TO_BUFFER_DEFAULTS, extractImageData, setupMockCanvas } from '../../util/test/mockCanvas';

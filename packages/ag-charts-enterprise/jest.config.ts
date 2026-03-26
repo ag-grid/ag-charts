@@ -1,5 +1,5 @@
-import { readFileSync } from 'fs';
 import * as glob from 'glob';
+import { existsSync, readFileSync } from 'node:fs';
 
 // Reading the SWC compilation config and remove the "exclude"
 // for the test files to be compiled by SWC
@@ -16,15 +16,28 @@ if (swcJestConfig.swcrc === undefined) {
 // jest needs EsModule Interop to find the default exported setup/teardown functions
 // swcJestConfig.module.noInterop = false;
 
+// Check if we're running historic benchmarks (before skia-canvas was introduced)
+// Historic benchmarks restore old files that import from 'canvas' instead of 'skia-canvas'
+function isHistoricBenchmark(): boolean {
+    // Check if mockCanvas.ts imports from 'canvas' (historic) vs 'skia-canvas' (current)
+    // Enterprise uses community's mockCanvas, so check that path
+    const mockCanvasPath = `${__dirname}/../ag-charts-community/src/util/test/mockCanvas.ts`;
+    if (!existsSync(mockCanvasPath)) {
+        return false;
+    }
+    const mockCanvasContent = readFileSync(mockCanvasPath, 'utf-8');
+    return mockCanvasContent.includes("from 'canvas'") || mockCanvasContent.includes('from "canvas"');
+}
+
 const pathToGlob = ({ path }: { path: string }) => path.replace('./', '**/');
 
 const tests = glob.sync('packages/ag-charts-enterprise/src/**/*.test.ts').map((path) => {
     const fileContents = readFileSync(path).toString();
 
     let type = 'unit';
-    if (fileContents.indexOf('jest.retryTimes') >= 0) {
+    if (fileContents.includes('jest.retryTimes')) {
         type = 'flaky';
-    } else if (fileContents.indexOf('setupMockCanvas()') >= 0) {
+    } else if (fileContents.includes('setupMockCanvas()')) {
         // 'Heuristic' for finding e2e tests :-P
         type = 'e2e';
     }
@@ -98,6 +111,11 @@ export default {
             testMatch: benchmarks.map(pathFix),
             runner: 'jest-serial-runner',
             ...commonConfig,
+            // Only add canvas shim for historic benchmarks (when old code imports from 'canvas')
+            moduleNameMapper: {
+                ...commonConfig.moduleNameMapper,
+                ...(isHistoricBenchmark() ? { '^canvas$': '<rootDir>/../../tools/jest/canvas-shim.ts' } : {}),
+            },
         },
     ].filter((test) => test.testMatch.length > 0),
 };

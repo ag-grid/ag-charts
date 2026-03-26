@@ -1,112 +1,110 @@
 import type { SeriesModuleDefinition } from 'ag-charts-core';
-import type { AgAreaSeriesOptions } from 'ag-charts-types';
-
-import type { SeriesModule } from '../../../module/coreModules';
-import type { ModuleContext } from '../../../module/moduleContext';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    DEFAULT_SHADOW_COLOUR,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
-    multiSeriesHighlightStyle,
-} from '../../themes/util';
+} from 'ag-charts-core';
+import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+
+import type { ModuleContext } from '../../../module/moduleContext';
+import { VERSION } from '../../../version';
+import { CartesianChartModule } from '../../cartesianChartModule';
 import { AreaSeries } from './areaSeries';
 import { areaSeriesOptionsDef } from './areaSeriesOptionsDef';
-import { predictCartesianTimeAxis } from './util';
+import { predictCartesianNonPrimitiveAxis } from './util';
 
-export const AreaSeriesModule: SeriesModule<'area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'community',
-    chartTypes: ['cartesian'],
-
-    identifier: 'area',
-    moduleFactory: (ctx) => new AreaSeries(ctx),
-    stackable: true,
-    predictAxis: predictCartesianTimeAxis,
-    defaultAxes: [
-        {
-            type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: CARTESIAN_POSITION.LEFT,
+const themeTemplate: ExtensibleTheme<'area'> = {
+    series: {
+        nodeClickRange: 'nearest',
+        fill: {
+            $applySwitch: [
+                { $path: 'type' },
+                { $palette: 'fill' },
+                ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                ['image', FILL_IMAGE_DEFAULTS],
+                ['pattern', FILL_PATTERN_DEFAULTS],
+            ],
         },
-        {
-            type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: CARTESIAN_POSITION.BOTTOM,
+        stroke: { $palette: 'stroke' },
+        fillOpacity: 0.8,
+        strokeOpacity: 1,
+        strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
+        lineDash: [0],
+        lineDashOffset: 0,
+        shadow: {
+            enabled: false,
+            color: DEFAULT_SHADOW_COLOUR,
+            xOffset: 3,
+            yOffset: 3,
+            blur: 5,
         },
-    ],
-    themeTemplate: {
-        series: {
-            nodeClickRange: 'nearest',
+        interpolation: {
+            type: 'linear',
+        },
+        marker: {
+            enabled: false,
+            shape: 'circle',
+            size: 7,
+            strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
             fill: {
                 $applySwitch: [
                     { $path: 'type' },
                     { $palette: 'fill' },
-                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
                     ['pattern', FILL_PATTERN_DEFAULTS],
                 ],
             },
             stroke: { $palette: 'stroke' },
-            fillOpacity: 0.8,
-            strokeOpacity: 1,
-            strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
-            lineDash: [0],
-            lineDashOffset: 0,
-            shadow: {
-                enabled: false,
-                color: DEFAULT_SHADOW_COLOUR,
-                xOffset: 3,
-                yOffset: 3,
-                blur: 5,
-            },
-            interpolation: {
-                type: 'linear',
-            },
-            marker: {
-                enabled: false,
-                shape: 'circle',
-                size: 7,
-                strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                        ['pattern', FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                stroke: { $palette: 'stroke' },
-            },
-            label: {
-                ...LABEL_BOXING_DEFAULTS,
-                enabled: false,
-                fontSize: { $ref: 'fontSize' },
-                fontFamily: { $ref: 'fontFamily' },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'textColor' },
-            },
-            tooltip: {
-                range: { $path: ['/tooltip/range', 'nearest'] },
-                position: {
-                    anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
-                },
-            },
-            highlight: multiSeriesHighlightStyle(),
-            segmentation: SEGMENTATION_DEFAULTS,
         },
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: false,
+            fontSize: { $ref: 'fontSize' },
+            fontFamily: { $ref: 'fontFamily' },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'textColor' },
+        },
+        tooltip: {
+            range: { $path: ['/tooltip/range', 'nearest'] },
+            position: {
+                anchorTo: { $path: ['/tooltip/position/anchorTo', 'node'] },
+            },
+        },
+        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        segmentation: SEGMENTATION_DEFAULTS,
     },
 };
 
-export const NewAreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
+export const AreaSeriesModule: SeriesModuleDefinition<AgAreaSeriesOptions> = {
     type: 'series',
     name: 'area',
     chartType: 'cartesian',
+    stackable: true,
+    version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: areaSeriesOptionsDef,
+    predictAxis: predictCartesianNonPrimitiveAxis,
+    defaultAxes: {
+        y: {
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: CARTESIAN_POSITION.LEFT,
+        },
+        x: {
+            type: CARTESIAN_AXIS_TYPE.CATEGORY,
+            position: CARTESIAN_POSITION.BOTTOM,
+        },
+    },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    themeTemplate,
 
     create: (ctx: ModuleContext) => new AreaSeries(ctx),
 };

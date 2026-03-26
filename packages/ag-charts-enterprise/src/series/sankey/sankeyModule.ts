@@ -1,19 +1,27 @@
-import { type AgSankeySeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgSankeySeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_FILLS_OPERATION,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SankeySeries } from './sankeySeries';
 import { sankeySeriesOptionsDef } from './sankeySeriesOptionsDef';
 
-export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
+export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'sankey',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
+    version: VERSION,
+    dependencies: [StandaloneChartModule],
 
-    identifier: 'sankey',
-    moduleFactory: (ctx) => new SankeySeries(ctx),
-
+    options: sankeySeriesOptionsDef,
     themeTemplate: {
         seriesArea: {
             padding: {
@@ -24,22 +32,20 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
+            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
             defaultColorRange: { $palette: 'gradients' },
-            defaultPatternFills: _ModuleSupport.SAFE_FILLS_OPERATION,
-            highlightStyle: {
-                series: {
-                    dimOpacity: 0.2,
+            defaultPatternFills: SAFE_FILLS_OPERATION,
+            highlight: {
+                enabled: { $path: ['/highlight/enabled', true] },
+                unhighlightedItem: {
+                    opacity: 0.5,
                 },
             },
-            highlight: {
-                ..._ModuleSupport.singleSeriesHighlightStyle(),
-            },
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
+                enabled: true,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
@@ -47,7 +53,8 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 spacing: 10,
             },
             node: {
-                spacing: 20,
+                spacing: { $if: [{ $greaterThan: [{ $path: './minSpacing' }, 20] }, { $path: './minSpacing' }, 20] },
+                minSpacing: 0,
                 width: 10,
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
             },
@@ -61,15 +68,6 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
             toggleSeries: false,
         },
     },
-};
 
-export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> = {
-    type: 'series',
-    name: 'sankey',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: sankeySeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new SankeySeries(ctx),
+    create: (ctx) => new SankeySeries(ctx),
 };

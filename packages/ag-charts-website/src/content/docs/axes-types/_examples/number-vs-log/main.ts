@@ -1,5 +1,13 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LineSeriesModule,
+    LogAxisModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, LogAxisModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -14,85 +22,51 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
 };
 
 const chart = AgCharts.create(options);
 
 function setNumberAxis() {
-    options.axes = [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    options.axes = {
+        y: {
             type: 'number',
-            position: 'left',
-            min: 1,
             label: {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setLogAxis() {
-    options.axes = [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    options.axes = {
+        y: {
             type: 'log',
-            position: 'left',
-            min: 10,
             label: {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setBaseTwoLogAxis() {
-    options.axes = [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    options.axes = {
+        y: {
             type: 'log',
-            position: 'left',
-            min: 10,
             label: {
                 format: '.0f',
             },
             base: 2,
         },
-    ];
+    };
     chart.update(options);
 }
 
 function setLogAxisWithFewerTicks() {
-    options.axes = [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    options.axes = {
+        y: {
             type: 'log',
-            position: 'left',
-            min: 10,
             interval: {
                 minSpacing: 200,
             },
@@ -100,6 +74,6 @@ function setLogAxisWithFewerTicks() {
                 format: '.0f',
             },
         },
-    ];
+    };
     chart.update(options);
 }

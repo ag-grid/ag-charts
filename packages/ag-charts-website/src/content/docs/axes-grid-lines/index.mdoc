@@ -17,19 +17,21 @@ Grid lines can be styled via the `gridLine.style` property on each axis.
 
 {% chartExampleRunner title="Axis Grid Lines" name="axis-grid-lines" type="generated" /%}
 
-```js
-gridLine: {
-    style: [
-        {
-            stroke: 'gray',
-            lineDash: [10, 5],
-        },
-        {
-            stroke: 'lightgray',
-            lineDash: [5, 5],
-        },
-    ],
-},
+```js format="snippet"
+{
+    gridLine: {
+        style: [
+            {
+                stroke: 'gray',
+                lineDash: [10, 5],
+            },
+            {
+                stroke: 'lightgray',
+                lineDash: [5, 5],
+            },
+        ],
+    },
+}
 ```
 
 The `gridLine.style` property takes an array of objects containing styling properties:
@@ -48,17 +50,19 @@ Alternating band shading can be achieved using the `fill` and `fillOpacity` prop
 
 {% chartExampleRunner title="Axis Grid Fills" name="axis-grid-fills" type="generated" /%}
 
-```js
-gridLine: {
-    style: [
-        {
-            fill: '#999',
-            fillOpacity: 0.1,
-            strokeWidth: 0, //don't show lines around the bands
-        },
-        {}, //empty object for an unshaded band
-    ],
-},
+```js format="snippet"
+{
+    gridLine: {
+        style: [
+            {
+                fill: '#999',
+                fillOpacity: 0.1,
+                strokeWidth: 0, //don't show lines around the bands
+            },
+            {}, //empty object for an unshaded band
+        ],
+    },
+}
 ```
 
 {% note %}
@@ -74,7 +78,3 @@ The interval and position of grid lines is controlled by the [Axis Interval](./a
 {% /tabItem %}
 
 {% /tabs %}
-
-## Next Up
-
-Continue to the next section to learn about [Secondary Axes](./axes-secondary/).

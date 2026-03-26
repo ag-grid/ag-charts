@@ -1,13 +1,15 @@
 import {
+    AgDocument,
     type StrictHTMLElement,
     attachListener,
     createElement,
     createId,
     entries,
-    getDocument,
-    getWindow,
+    isDirectionRtl,
+    isDocumentFragment,
     kebabCase,
     setAttribute,
+    stopPageScrolling,
 } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
@@ -16,14 +18,15 @@ import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { BaseManager } from '../util/baseManager';
 import { GuardedElement } from '../util/guardedElement';
-import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 import { StateTracker } from '../util/stateTracker';
+import { DOMElementProxy, type DeferredMode } from './domElementProxy';
 import NORMAL_DOM from './domLayout.html';
 
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
+    'canvas-background',
     'canvas-center',
     'canvas-container',
     'canvas-overlay',
@@ -50,11 +53,9 @@ const domElementConfig: Map<DOMElementClass, DOMElementConfig> = new Map([
     ['tooltip-container', { childElementType: 'div' }],
 ]);
 
-function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => void) {
+function setupObserver(agDocument: AgDocument, element: HTMLElement, cb: (intersectionRatio: number) => void) {
     // Detect when the chart becomes invisible and hide the tooltip as well.
-    if (typeof IntersectionObserver === 'undefined') return;
-
-    const observer = new IntersectionObserver(
+    const observer = agDocument.createIntersectionObserver(
         (observedEntries) => {
             for (const entry of observedEntries) {
                 if (entry.target === element) {
@@ -64,7 +65,7 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
         },
         { root: element }
     );
-    observer.observe(element);
+    observer?.observe(element);
     return observer;
 }
 
@@ -96,6 +97,7 @@ function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 
 }
 
 export class DOMManager extends BaseManager {
+    static readonly className = 'DOMManager';
     private static readonly batchedUpdateContainer: DOMManager[] = [];
     private static readonly headStyles = new Set<string>();
 
@@ -112,28 +114,51 @@ export class DOMManager extends BaseManager {
     private readonly tabGuards?: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
-    private readonly sizeMonitor = new SizeMonitor();
+    private readonly sizeMonitor: SizeMonitor;
     private readonly cursorState = new StateTracker('default');
+    private _lastCursor: string | undefined = undefined;
+    private _lastCenterSize: { visibility: string; width: string; height: string } | undefined = undefined;
+
+    private readonly deferredProxies = new Map<string, DOMElementProxy>();
+    private readonly elementProxy: DOMElementProxy;
+    private readonly deferredMode: DeferredMode = { scheduleFlush: this.scheduleFlush.bind(this) };
 
     private minWidth: number = 0;
     private minHeight: number = 0;
+    private enableRtl?: boolean;
+    private _isRtl: boolean = false;
+
+    private _cachedCanvasRect: DOMRect | undefined;
+    private _cachedRawOverlayRect: BBox | undefined;
+    private _cachedScrollableContainer: HTMLElement | null | undefined;
+    private _pendingFlush?: ReturnType<typeof setTimeout>;
+    private _deferring: boolean = false;
 
     constructor(
         private readonly eventsHub: EventsHub,
         private readonly chart: { styleNonce?: string },
+        private readonly agDocument: AgDocument,
         initialContainer?: HTMLElement,
         private readonly styleContainer?: HTMLElement,
+        private readonly skipCss?: boolean,
         readonly mode: 'normal' | 'minimal' = 'normal'
     ) {
         super();
 
+        this.sizeMonitor = new SizeMonitor(agDocument);
+
         this.element = this.initDOM();
+        this.elementProxy = new DOMElementProxy(this.element, { deferredMode: this.deferredMode });
         this.rootElements = this.initRootElements();
 
         this.rootElements['canvas'].element.style.setProperty('anchor-name', this.anchorName);
 
+        this.sizeMonitor.observe(this.rootElements['canvas'].element, () => this.invalidateRectCaches(), {
+            skipInitialRead: this.mode === 'minimal',
+        });
+
         let hidden = false;
-        this.observer = setupObserver(this.element, (intersectionRatio) => {
+        this.observer = setupObserver(agDocument, this.element, (intersectionRatio) => {
             if (intersectionRatio === 0 && !hidden) {
                 this.eventsHub.emit('dom:hidden', null);
             }
@@ -148,6 +173,7 @@ export class DOMManager extends BaseManager {
         this.setContainer(initialContainer);
 
         this.cleanup.register(stopPageScrolling(this.element));
+        this.setupGlobalListeners();
 
         if (this.mode === 'normal') {
             const guardedElement = this.rootElements['canvas-center'].element;
@@ -215,25 +241,50 @@ export class DOMManager extends BaseManager {
         super.destroy();
 
         this.observer?.unobserve(this.element);
+        this.sizeMonitor.unobserve(this.rootElements['canvas'].element);
         if (this.container) {
             this.sizeMonitor.unobserve(this.container);
         }
         this.pendingContainer = undefined;
 
-        Object.values(this.rootElements).forEach((el) => {
-            el.children.forEach((c) => c.remove());
+        for (const el of Object.values(this.rootElements)) {
+            for (const c of el.children.values()) {
+                c.remove();
+            }
             el.element.remove();
-        });
+        }
 
         this.element.remove();
     }
 
-    public postRenderUpdate() {
+    private scheduleFlush() {
+        if (this._deferring) return;
+        if (this._pendingFlush != null) return;
+        this._pendingFlush = setTimeout(() => {
+            this._pendingFlush = undefined;
+            if (this._deferring) return; // Abort if re-entered deferring state; next setDeferring(false) will reschedule
+            this.flushDeferredProxies();
+        });
+    }
+
+    private flushDeferredProxies() {
+        if (this._pendingFlush != null) {
+            clearTimeout(this._pendingFlush);
+            this._pendingFlush = undefined;
+        }
+
+        this.elementProxy.flush();
+        for (const proxy of this.deferredProxies.values()) {
+            proxy.flush();
+        }
+
+        this.updateStylesLocation();
+
         if (this.mode === 'minimal') return;
         if (this.pendingContainer == null || this.pendingContainer === this.container) return;
 
         if (DOMManager.batchedUpdateContainer.length === 0) {
-            getWindow().setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
+            setTimeout(this.applyBatchedUpdateContainer.bind(this), 0);
         }
         DOMManager.batchedUpdateContainer.push(this);
     }
@@ -247,28 +298,46 @@ export class DOMManager extends BaseManager {
         DOMManager.batchedUpdateContainer.splice(0);
     }
 
+    private updateStylesLocation() {
+        // Check if we transitioned from disconnected to connected
+        if (this.initiallyConnected === true || this.container?.isConnected === false) return;
+
+        this.documentRoot = this.getShadowDocumentRoot(this.container);
+        this.initiallyConnected = true;
+        // Remove styles from our DOM tree before re-adding to correct location
+        for (const id of this.rootElements['styles'].children.keys()) {
+            this.removeChild('styles', id);
+        }
+        // Re-add styles to correct location (shadow DOM vs head)
+        for (const [id, styles] of this.styles) {
+            this.addStyles(id, styles);
+        }
+    }
+
     setSizeOptions(minWidth: number = 300, minHeight: number = 300, optionsWidth?: number, optionsHeight?: number) {
         const { style } = this.element;
 
-        style.width = `${optionsWidth ?? minWidth}px`;
-        style.height = `${optionsHeight ?? minHeight}px`;
-
         this.minWidth = optionsWidth ?? minWidth;
         this.minHeight = optionsHeight ?? minHeight;
+
+        style.minWidth = `${this.minWidth}px`;
+        style.minHeight = `${this.minHeight}px`;
 
         this.updateContainerClassName();
     }
 
     private updateContainerSize() {
-        const { style: centerStyle } = this.rootElements['canvas-center'].element;
+        const visibility = this.containerSize == null ? 'hidden' : '';
+        const width = this.containerSize ? `${this.containerSize.width ?? 0}px` : '';
+        const height = this.containerSize ? `${this.containerSize.height ?? 0}px` : '';
 
-        centerStyle.visibility = this.containerSize == null ? 'hidden' : '';
-        if (this.containerSize) {
-            centerStyle.width = `${this.containerSize.width ?? 0}px`;
-            centerStyle.height = `${this.containerSize.height ?? 0}px`;
-        } else {
-            centerStyle.width = '';
-            centerStyle.height = '';
+        const last = this._lastCenterSize;
+        if (last == null || last.visibility !== visibility || last.width !== width || last.height !== height) {
+            this._lastCenterSize = { visibility, width, height };
+            const { style: centerStyle } = this.rootElements['canvas-center'].element;
+            centerStyle.visibility = visibility;
+            centerStyle.width = width;
+            centerStyle.height = height;
         }
 
         this.updateContainerClassName();
@@ -297,7 +366,7 @@ export class DOMManager extends BaseManager {
         if (pendingContainer == null || pendingContainer === this.container) return;
 
         if (this.container) {
-            this.container.removeChild(this.element);
+            this.element.remove();
             this.sizeMonitor.unobserve(this.container);
         }
 
@@ -319,6 +388,7 @@ export class DOMManager extends BaseManager {
 
         this.container = pendingContainer;
         this.pendingContainer = undefined;
+        this.agDocument.setContainer(pendingContainer);
         this.documentRoot = this.getShadowDocumentRoot(pendingContainer);
         this.initiallyConnected = pendingContainer.isConnected;
 
@@ -330,36 +400,67 @@ export class DOMManager extends BaseManager {
         }
 
         pendingContainer.appendChild(this.element);
-        this.sizeMonitor.observe(pendingContainer, (size) => {
-            this.containerSize = size;
-            this.updateContainerSize();
-            this.eventsHub.emit('dom:resize', null);
-        });
+        this.sizeMonitor.observe(
+            pendingContainer,
+            (size) => {
+                this.containerSize = size;
+                this.updateContainerSize();
+                this.invalidateRectCaches();
+                this.eventsHub.emit('dom:resize', null);
+            },
+            { skipInitialRead: this.mode === 'minimal' }
+        );
 
+        this.invalidateAllCaches();
+        this.updateRtl();
         this.eventsHub.emit('dom:container-change', null);
     }
 
     setThemeClass(themeClassName: string) {
         const themeClassNamePrefix = 'ag-charts-theme-';
 
-        this.element.classList.forEach((className) => {
+        for (const className of Array.from(this.element.classList)) {
             if (className.startsWith(themeClassNamePrefix) && className !== themeClassName) {
                 this.element.classList.remove(className);
             }
-        });
+        }
 
         this.element.classList.add(themeClassName);
     }
 
     setThemeParameters(params: AgChartThemeParams) {
-        for (const [key, value] of entries(params) as Array<[keyof AgChartThemeParams, string | number]>) {
+        this.setCSSVariables('--ag-charts', undefined, undefined, params as any);
+    }
+
+    setModuleCSSVariables(
+        module: string,
+        component: string | undefined,
+        modifier: string | undefined,
+        variables: Record<string, string | number>,
+        numericKeys?: string[]
+    ) {
+        this.setCSSVariables(`--ag-charts-${module}`, component, modifier, variables, numericKeys);
+    }
+
+    private setCSSVariables(
+        prefix: string,
+        component: string | undefined,
+        modifier: string | undefined,
+        variables: Record<string, string | number>,
+        numericKeys?: string[]
+    ) {
+        for (const [key, value] of entries(variables)) {
+            let formattedKey = key;
             let formattedValue = `${value}`;
-            if (key.endsWith('Size') || key.endsWith('Radius')) {
+            if (key.endsWith('Size') || key.endsWith('Radius') || numericKeys?.includes(key)) {
                 formattedValue = `${value}px`;
             } else if (key.endsWith('Border') && typeof value === 'boolean') {
-                formattedValue = value ? 'var(--ag-charts-border)' : 'none';
+                formattedKey = `${key}Width`;
+                formattedValue = value ? 'var(--ag-charts-border-width)' : '0';
             }
-            this.element.style.setProperty(`--ag-charts-${kebabCase(key)}`, formattedValue);
+
+            formattedKey = `${prefix}${component ? '__' : ''}${component ?? ''}-${kebabCase(formattedKey)}${modifier ? '--' : ''}${modifier ?? ''}`;
+            this.element.style.setProperty(formattedKey, formattedValue);
         }
     }
 
@@ -392,7 +493,8 @@ export class DOMManager extends BaseManager {
 
     /** Get the main chart area client bound rect. */
     getBoundingClientRect() {
-        return this.rootElements['canvas'].element.getBoundingClientRect();
+        this._cachedCanvasRect ??= this.rootElements['canvas'].element.getBoundingClientRect();
+        return this._cachedCanvasRect;
     }
 
     /**
@@ -400,13 +502,17 @@ export class DOMManager extends BaseManager {
      * main chart area.
      */
     getOverlayClientRect() {
-        const window = getWindow();
-        const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
+        const { innerWidth, innerHeight } = this.agDocument;
+        const windowBBox = new BBox(0, 0, innerWidth, innerHeight);
         const containerBBox = this.getRawOverlayClientRect();
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
-    private getRawOverlayClientRect(): BBox {
+    private findScrollableContainer(): HTMLElement | null {
+        if (this._cachedScrollableContainer !== undefined) {
+            return this._cachedScrollableContainer;
+        }
+
         let element: HTMLElement | null = this.element;
         const fullScreenElement = (this.element.getRootNode() as any as DocumentOrShadowRoot | undefined)
             ?.fullscreenElement;
@@ -425,22 +531,44 @@ export class DOMManager extends BaseManager {
             }
 
             if (isContainer) {
-                return BBox.fromObject(element.getBoundingClientRect());
+                this._cachedScrollableContainer = element;
+                return element;
             }
 
             element = element.parentElement;
         }
 
+        this._cachedScrollableContainer = null;
+        return null;
+    }
+
+    private getRawOverlayClientRect(): BBox {
+        if (this._cachedRawOverlayRect != null) {
+            return this._cachedRawOverlayRect;
+        }
+
+        const scrollableContainer = this.findScrollableContainer();
+
+        if (scrollableContainer != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(scrollableContainer.getBoundingClientRect());
+            return this._cachedRawOverlayRect;
+        }
+
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        if (this.documentRoot != null) return BBox.fromObject(this.documentRoot.getBoundingClientRect());
+        if (this.documentRoot != null) {
+            this._cachedRawOverlayRect = BBox.fromObject(this.documentRoot.getBoundingClientRect());
+            return this._cachedRawOverlayRect;
+        }
 
-        const { innerWidth, innerHeight } = getWindow();
-        return new BBox(0, 0, innerWidth, innerHeight);
+        // No scrollable container — cache window dimensions; invalidated on resize.
+        const { innerWidth, innerHeight } = this.agDocument;
+        this._cachedRawOverlayRect = new BBox(0, 0, innerWidth, innerHeight);
+        return this._cachedRawOverlayRect;
     }
 
     private getShadowDocumentRoot(current = this.container) {
-        const docRoot = current?.ownerDocument?.body ?? getDocument('body');
+        const docRoot = current?.ownerDocument?.body ?? this.agDocument.body;
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
         // to attach listeners etc.. to that node, not the document body.
@@ -448,7 +576,7 @@ export class DOMManager extends BaseManager {
             if (current === docRoot) {
                 return undefined;
             }
-            if (current.parentNode instanceof DocumentFragment) {
+            if (isDocumentFragment(current.parentNode)) {
                 // parentNode is a Shadow DOM.
                 return current;
             }
@@ -490,6 +618,10 @@ export class DOMManager extends BaseManager {
         this.styles.set(id, styles);
 
         if (this.container == null) return;
+
+        // Skip CSS injection in SSR - CSS is not needed for canvas-based image rendering
+        // and jsdom cannot parse modern CSS features like :has(), causing console errors.
+        if (this.skipCss) return;
 
         const checkId = (el: Element) => {
             return el.getAttribute(dataAttribute) === id;
@@ -536,7 +668,7 @@ export class DOMManager extends BaseManager {
             styleElement = this.addChild('styles', id);
         } else if (this.documentRoot == null && !DOMManager.headStyles.has(id)) {
             // Add to document head as failsafe fallback.
-            styleElement = addStyleElement(getDocument('head'));
+            styleElement = addStyleElement(this.agDocument.head);
             DOMManager.headStyles.add(id);
         } else if (this.documentRoot != null) {
             // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
@@ -556,11 +688,36 @@ export class DOMManager extends BaseManager {
 
     updateCursor(callerId: string, style?: string) {
         this.cursorState.set(callerId, style);
-        this.element.style.cursor = this.cursorState.stateValue()!;
+        const cursor = this.cursorState.stateValue()!;
+        if (cursor !== this._lastCursor) {
+            this._lastCursor = cursor;
+            this.element.style.cursor = cursor;
+        }
     }
 
     getCursor() {
         return this.element.style.cursor;
+    }
+
+    get isRtl(): boolean {
+        return this._isRtl;
+    }
+
+    setEnableRtl(enableRtl?: boolean) {
+        this.enableRtl = enableRtl;
+        this.updateRtl();
+    }
+
+    private updateRtl() {
+        // Skip getComputedStyle for minimal mode (sparklines) to avoid forced style recalculation.
+        // If RTL is needed, it should be set explicitly via enableRtl in the chart options.
+        const isRtl =
+            this.enableRtl ??
+            (this.mode === 'minimal' ? false : isDirectionRtl(this.container ?? this.pendingContainer));
+        if (isRtl === this._isRtl) return;
+        this._isRtl = isRtl;
+        this.element.dir = isRtl ? 'rtl' : 'ltr';
+        this.eventsHub.emit('rtl:change', null);
     }
 
     addChild(domElementClass: DOMElementClass, id: string, child?: HTMLElement, insert?: DOMInsertOption) {
@@ -599,26 +756,87 @@ export class DOMManager extends BaseManager {
         return newChild;
     }
 
+    addProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
+        const element = this.addChild(domElementClass, id);
+        const skipInitialRead = this.mode === 'minimal';
+        return new DOMElementProxy(element, { sizeMonitor: this.sizeMonitor, skipInitialRead });
+    }
+
+    addDeferredProxyChild(domElementClass: DOMElementClass, id: string): DOMElementProxy {
+        const element = this.addChild(domElementClass, id);
+        const skipInitialRead = this.mode === 'minimal';
+        const proxy = new DOMElementProxy(element, {
+            deferredMode: this.deferredMode,
+            sizeMonitor: this.sizeMonitor,
+            skipInitialRead,
+        });
+        this.deferredProxies.set(`${domElementClass}:${id}`, proxy);
+        return proxy;
+    }
+
+    public setDeferring(active: boolean): void {
+        if (this.mode === 'minimal') return; // Sparklines: skip deferring to avoid concentrated flush
+        this._deferring = active;
+        if (!active) {
+            this.flushDeferredProxies();
+        }
+    }
+
     removeChild(domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
         if (!children) return;
 
         children.get(id)?.remove();
         children.delete(id);
+        this.deferredProxies.delete(`${domElementClass}:${id}`);
     }
 
     incrementDataCounter(name: string) {
-        const { dataset } = this.element;
-        dataset[name] ??= '0';
-        dataset[name] = String(Number(dataset[name]) + 1);
+        const current = this.elementProxy.getData(name) ?? '0';
+        this.elementProxy.setData(name, String(Number(current) + 1));
     }
 
     setDataBoolean(name: string, value: boolean) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
     }
 
     setDataNumber(name: string, value: number) {
-        this.element.dataset[name] = String(value);
+        this.elementProxy.setData(name, String(value));
+    }
+
+    getDocument() {
+        return this.agDocument;
+    }
+
+    private invalidateRectCaches() {
+        this._cachedCanvasRect = undefined;
+        this._cachedRawOverlayRect = undefined;
+    }
+
+    private invalidateAllCaches() {
+        this.invalidateRectCaches();
+        this._cachedScrollableContainer = undefined;
+    }
+
+    private setupGlobalListeners() {
+        const win = this.element.ownerDocument.defaultView;
+        if (win == null) return;
+
+        const invalidateRects = () => this.invalidateRectCaches();
+        const invalidateAll = () => this.invalidateAllCaches();
+
+        // capture: true — the scroll event doesn't bubble, but capture-phase listeners
+        // fire for scroll events on any descendant, including nested scrollable containers.
+        win.addEventListener('scroll', invalidateRects, { capture: true, passive: true });
+        // resize only fires on window itself; capture: true kept for consistency with scroll.
+        win.addEventListener('resize', invalidateRects, { capture: true, passive: true });
+        this.element.ownerDocument.addEventListener('fullscreenchange', invalidateAll);
+
+        this.cleanup.register(() => {
+            win.removeEventListener('scroll', invalidateRects, { capture: true });
+            win.removeEventListener('resize', invalidateRects, { capture: true });
+            this.element.ownerDocument.removeEventListener('fullscreenchange', invalidateAll);
+        });
     }
 
     private updateContainerClassName() {

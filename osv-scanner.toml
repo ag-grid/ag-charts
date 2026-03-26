@@ -1,0 +1,442 @@
+# we ignore all octokit packages because we don't have any incoming/user driven requests to it and only
+# use to create and upload releases
+[[PackageOverrides]]
+name = "octokit"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/endpoint"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/app"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/core"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/oauth-app"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-paginate-graphql"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-paginate-rest"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-rest-endpoint-methods"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-retry"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/plugin-throttling"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/request-error"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/request"
+ignore = true
+
+[[PackageOverrides]]
+name = "@octokit/types"
+ignore = true
+
+# We don't use vite to serve files outside of development
+[[PackageOverrides]]
+name = "vite"
+ignore = true
+
+# We don't use http-proxy-middleware to serve files outside of development
+[[PackageOverrides]]
+name = "http-proxy-middleware"
+ignore = true
+
+# We don't use webpack-dev-* to serve files outside of development
+[[PackageOverrides]]
+name = "webpack-dev-server"
+ignore = true
+
+[[PackageOverrides]]
+name = "webpack-dev-middleware"
+ignore = true
+
+# node-forge is only used for angular dev server
+[[PackageOverrides]]
+name = "node-forge"
+ignore = true
+
+[[IgnoredVulns]]
+id = "GHSA-3p6v-hrg8-8qj7"
+reason = "Used for MCP server, not exposed to end users"
+
+[[IgnoredVulns]]
+id = "GHSA-4hjh-wcwx-xvwj"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
+id = "GHSA-jr5f-v2jv-69x6"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
+id = "GHSA-qwcr-r2fm-qrc7"
+reason = "We only use body-parser for the dev server"
+
+[[IgnoredVulns]]
+id = "GHSA-v6h2-p8h4-qcjw"
+reason = "Low risk and determined to not be exploitable in our use case"
+
+[[IgnoredVulns]]
+id = "GHSA-grv7-fg5c-xmjg"
+reason = "braces is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-pxg6-pf52-xh8x"
+reason = "cookie is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-3xgq-45jj-v275"
+reason = "cross-spawn is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-ghr5-ch3p-vcr6"
+reason = "ejs is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-qw6h-vgh9-j6wx"
+reason = "express is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-rv95-896h-c2vc"
+reason = "express is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-cxjh-pqwp-8mfp"
+reason = "follow-redirects is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-fjxv-7rqg-78g4"
+reason = "We do not use form-data directly and where it is used is only for testing or dev environments"
+
+[[IgnoredVulns]]
+id = "GHSA-mwcw-c2x4-8c55"
+reason = "nanoid is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-76c9-3jph-rj3q"
+reason = "We do not use on-headers directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-9wv6-86v2-598j"
+reason = "We do not use path-to-regexp directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-rhx6-c78j-4q9w"
+reason = "We do not use path-to-regexp directly and where it is used is only for development"
+
+[[IgnoredVulns]]
+id = "GHSA-7mvr-c777-76hp"
+reason = "playwright is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-x7hr-w5r2-h6wg"
+reason = "prismjs is only used during the build - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-p8p7-x288-28g6"
+reason = "request calls are only used in our build"
+
+[[IgnoredVulns]]
+id = "GHSA-m6fv-jmcg-4jfg"
+reason = "send is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-76p7-773f-r4q5"
+reason = "serialize-javascript is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-cm22-4g7w-348p"
+reason = "serialize-javascript is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-f5x3-32g6-xq36"
+reason = "tar is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-vj76-c3g6-qr5v"
+reason = "tar-fs is only used for testing"
+
+[[IgnoredVulns]]
+id = "GHSA-52f5-9888-hmc6"
+reason = "Low risk and determined to not be exploitable in our use case"
+
+[[IgnoredVulns]]
+id = "GHSA-72xf-g2v4-qvf3"
+reason = "tough-cookie is only used for testing and development"
+
+[[IgnoredVulns]]
+id = "GHSA-c76h-2ccp-4975"
+reason = "undici is only used for development"
+
+[[IgnoredVulns]]
+id = "GHSA-cxrh-j4jr-qwg3"
+reason = "undici is only used for development"
+
+[[IgnoredVulns]]
+id = "GHSA-3h5v-q93c-6h6q"
+reason = "ws is only used for development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-67mh-4wv8-2f99"
+reason = "esbuild dev server is only used for development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-968p-4wvh-cqc8"
+reason = "babel is only used for development, so inefficiencies only impact dev experience"
+
+[[IgnoredVulns]]
+id = "GHSA-gcx4-mw62-g8wm"
+reason = "rollup is only used for development, so does not impact production code"
+
+[[IgnoredVulns]]
+id = "GHSA-5j98-mcp5-4vw2"
+reason = "glob not accessible to end user/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-58c5-g7wp-6w37"
+reason = "@angular/common is only used for dev/testing, or for libraries, it is not using angular http client"
+
+[[IgnoredVulns]]
+id = "GHSA-v4hv-rgfq-gp49"
+reason = "@angular/common is only used for dev/testing, or for libraries, it is not used for SVG or MathML attributes"
+
+[[IgnoredVulns]]
+id = "GHSA-mh29-5h37-fv8m"
+reason = "js-yaml is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-4fh9-h7wg-q85m"
+reason = "mdast-util-to-hast is only used in dev files we control"
+
+[[IgnoredVulns]]
+id = "GHSA-6rw7-vpxm-498p"
+reason = "qs is not used on the server"
+
+[[IgnoredVulns]]
+id = "GHSA-jrmj-c5cx-3cw6"
+reason = "Angular version used determined by end user"
+
+[[IgnoredVulns]]
+id = "GHSA-xxjr-mmjv-4gpg"
+reason = "Lodash not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-8qq5-rm4j-mr97"
+reason = "tar not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-r6q2-hw4h-h46w"
+reason = "tar not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-wqch-xfxh-vrr4"
+reason = "used by expressjs which is only used for dev purposes"
+
+[[IgnoredVulns]]
+id = "GHSA-34x7-hfp2-rc4v"
+reason = "tar not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-prjf-86w9-mfqv"
+reason = "@angular/core is not used for SVG elements"
+
+[[IgnoredVulns]]
+id = "GHSA-7h2j-956f-4vf2"
+reason = "braces is only used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-43fc-jf86-j433"
+reason = "axios is only used during development - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-23c5-xmqv-rm74"
+reason = "Glob/minimatch is only used for testing and we control what files are passed in"
+
+[[IgnoredVulns]]
+id = "GHSA-3ppc-4f35-3m26"
+reason = "Glob/minimatch is only used for testing and we control what files are passed in"
+
+[[IgnoredVulns]]
+id = "GHSA-7r86-cg39-jmmj"
+reason = "Glob/minimatch is only used for testing and we control what files are passed in"
+
+[[IgnoredVulns]]
+id = "GHSA-w7fw-mjwx-w883"
+reason = "qs is only used during development so an attack would only affect developer machines"
+
+[[IgnoredVulns]]
+id = "GHSA-mw96-cpmx-2vgc"
+reason = "rollup is only used for development, so does not impact production code"
+
+[[IgnoredVulns]]
+id = "GHSA-5c6j-r48x-rmvq"
+reason = "serialize-javascript is only used in development"
+
+[[IgnoredVulns]]
+id = "GHSA-83g3-92jg-28cx"
+reason = "tar not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-38r7-794h-5758"
+reason = "We don't use webpack-dev-server to serve files outside of development"
+
+[[IgnoredVulns]]
+id = "GHSA-8fgc-7cc6-rx7x"
+reason = "We don't use webpack-dev-server to serve files outside of development"
+
+[[IgnoredVulns]]
+id = "GHSA-wc8c-qw6v-h7f6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-vpq2-c234-7xj6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-5rq4-664w-9x2c"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-33hq-fvwr-56pm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-8qm3-746x-r74r"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-73rr-hh4g-fpgx"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-v2wj-7wpq-c8vv"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-v8jm-5vwx-cfxm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-5pq2-9x2x-5p6w"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-gq3j-xvxp-8hrf"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-p6xx-57qc-3wxr"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-q5qw-h33p-qvwr"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-wf6x-7x77-mvgw"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-7gcc-r8m5-44qm"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-xpqw-6gx7-v673"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-qffp-2rhf-9h96"
+reason = "Dev dependencies that dont form part of the distributable library"
+
+[[IgnoredVulns]]
+id = "GHSA-46wh-pxpv-q5gq"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-5v7r-6r5c-r473"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-j47w-4g3g-c36v"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-25h7-pfq9-p65f"
+reason = "Test dependency - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-2mjp-6q6p-2qxm"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-4992-7rv2-5pvq"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-f269-vfmq-vjvj"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-phc3-fgpg-7m6h"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-v9p9-hfj2-hcw8"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-vrm6-8vpv-qv8q"
+reason = "Used in build & dev - not included in final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-g93w-mfhg-p222"
+reason = "downstream dep and not part of the final built artefacts"
+
+[[IgnoredVulns]]
+id = "GHSA-9ppj-qmqm-q256"
+reason = "downstream dep and not part of the final built artefacts"
+
+[[IgnoredVulns]]
+id = "GHSA-22cc-p3c6-wpvm"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-4hxc-9384-m385"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-72gr-qfp7-vwhw"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-wr4h-v87w-p3r7"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-rf6f-7fwh-wjgh"
+reason = "used by dev/test - not used in final prod build"
+

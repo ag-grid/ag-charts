@@ -1,12 +1,21 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type AgRadiusCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import type { AxisModuleDefinition } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
 
-export const RadiusCategoryAxisModule: _ModuleSupport.AxisModule = {
+export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions> = {
     type: 'axis',
-    optionsKey: 'axes[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-    identifier: 'radius-category',
-    moduleFactory: (ctx) => new RadiusCategoryAxis(ctx),
+    name: 'radius-category',
+    chartType: 'polar',
+    enterprise: true,
+    version: VERSION,
+
+    options: _ModuleSupport.radiusCategoryAxisOptionsDefs,
+    themeTemplate: {
+        positionAngle: 0,
+        line: { enabled: false },
+        label: { minSpacing: 5 },
+    },
+
+    create: (ctx) => new RadiusCategoryAxis(ctx),
 };

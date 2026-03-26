@@ -1,18 +1,22 @@
-import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
+import type { BoxBounds, DefinedZoomState, Point } from 'ag-charts-core';
+import { definedZoomState } from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     UNIT_SIZE,
+    canResetZoom,
     constrainZoom,
-    definedZoomState,
     dx,
     dy,
-    isZoomEqual,
+    isMaxZoom,
     pointToRatio,
     scaleZoomCenter,
     translateZoom,
-    unitZoomState,
 } from './zoomUtils';
+
+const { userInteraction } = _ModuleSupport;
 
 export class ZoomContextMenu {
     constructor(
@@ -20,23 +24,20 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly canResetZoom: () => boolean,
-        private readonly getRect: () => _ModuleSupport.BBox | undefined,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly getRect: () => BoxBounds | undefined,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {}
 
     public registerActions(enabled: boolean | undefined) {
         const { contextMenuRegistry } = this;
 
-        if (enabled) {
-            contextMenuRegistry.setVisible('zoom-to-cursor', true);
-            contextMenuRegistry.setVisible('pan-to-cursor', true);
-            contextMenuRegistry.setVisible('reset-zoom', true);
-        } else {
-            contextMenuRegistry.setVisible('zoom-to-cursor', false);
-            contextMenuRegistry.setVisible('pan-to-cursor', false);
-            contextMenuRegistry.setVisible('reset-zoom', false);
+        const action = enabled ? 'show' : 'hide';
+        contextMenuRegistry.toggle('zoom-to-cursor', action);
+        contextMenuRegistry.toggle('pan-to-cursor', action);
+        contextMenuRegistry.toggle('reset-zoom', action);
+
+        if (!enabled) {
             return;
         }
 
@@ -51,19 +52,19 @@ export class ZoomContextMenu {
             return this.iterateFindNextZoomAtPoint(origin) != null;
         };
         const shouldEnablePanToHere = () => {
-            return !isZoomEqual(definedZoomState(this.zoomManager.getZoom()), unitZoomState());
+            return !isMaxZoom(definedZoomState(this.zoomManager.getZoom()));
         };
         const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
-            contextMenuRegistry.builtins.items['reset-zoom'].enabled = this.canResetZoom();
+            contextMenuRegistry.builtins.items['reset-zoom'].enabled = canResetZoom(this.zoomManager);
         });
 
         return () => {
             removeListener();
-            contextMenuRegistry.setVisible('zoom-to-cursor', false);
-            contextMenuRegistry.setVisible('pan-to-cursor', false);
-            contextMenuRegistry.setVisible('reset-zoom', false);
+            contextMenuRegistry.toggle('zoom-to-cursor', 'hide');
+            contextMenuRegistry.toggle('pan-to-cursor', 'hide');
+            contextMenuRegistry.toggle('reset-zoom', 'hide');
         };
     }
 
@@ -84,7 +85,7 @@ export class ZoomContextMenu {
         const zoom = this.iterateFindNextZoomAtPoint(origin);
         if (zoom == null) return;
 
-        this.updateZoom(zoom);
+        this.updateZoom(userInteraction('contextmenu-zoom-to-cursor'), zoom);
     }
 
     private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
@@ -109,14 +110,14 @@ export class ZoomContextMenu {
         newZoom = scaleZoomCenter(newZoom, scaleX, scaleY);
         newZoom = translateZoom(newZoom, zoom.x.min - origin.x + scaledOriginX, zoom.y.min - origin.y + scaledOriginY);
 
-        this.updateZoom(constrainZoom(newZoom));
+        this.updateZoom(userInteraction('contextmenu-pan-to-cursor'), constrainZoom(newZoom));
     }
 
     private onResetZoom(_actionEvent: AgSeriesAreaContextMenuActionEvent) {
-        this.zoomManager.resetZoom('zoom');
+        this.zoomManager.resetZoom(userInteraction('contextmenu-reset'));
     }
 
-    private iterateFindNextZoomAtPoint(origin: _ModuleSupport.Vec2) {
+    private iterateFindNextZoomAtPoint(origin: Point) {
         const { scrollingStep } = this.getModuleProperties();
 
         for (let i = scrollingStep; i <= 1 - scrollingStep; i += scrollingStep) {
@@ -127,7 +128,7 @@ export class ZoomContextMenu {
         }
     }
 
-    private getNextZoomAtPoint(origin: _ModuleSupport.Vec2, step: number) {
+    private getNextZoomAtPoint(origin: Point, step: number) {
         const { isScalingX, isScalingY } = this.getModuleProperties();
 
         const zoom = definedZoomState(this.zoomManager.getZoom());

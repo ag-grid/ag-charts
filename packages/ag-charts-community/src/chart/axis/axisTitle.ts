@@ -1,15 +1,14 @@
+import { BaseProperties, FONT_SIZE, Property } from 'ag-charts-core';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisCaptionOptions,
     FontStyle,
     FontWeight,
-    Formatter,
+    RichFormatter,
     TextWrap,
 } from 'ag-charts-types';
 
-import { BaseProperties, Property } from '../../util/properties';
 import { Caption } from '../caption';
-import { FONT_SIZE } from '../themes/constants';
 
 export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     readonly caption = new Caption();
@@ -21,7 +20,7 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     text?: string;
 
     @Property
-    spacing?: number = Caption.SMALL_PADDING;
+    spacing!: number;
 
     @Property
     fontStyle?: FontStyle;
@@ -39,8 +38,17 @@ export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
     color?: string;
 
     @Property
+    maxWidth?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
     wrapping: TextWrap = 'always';
 
     @Property
-    formatter?: Formatter<AgAxisCaptionFormatterParams>;
+    truncate: boolean = true;
+
+    @Property
+    formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }

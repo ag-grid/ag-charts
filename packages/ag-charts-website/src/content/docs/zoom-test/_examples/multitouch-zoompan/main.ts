@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -34,9 +34,8 @@ const options1: AgCartesianChartOptions = {
     ],
     legend: { enabled: false },
     background: { fill: 'rgb(0, 255, 0)' },
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
             title: { enabled: false },
             crossLines: [
@@ -54,8 +53,7 @@ const options1: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: { enabled: false },
             crossLines: [
@@ -73,7 +71,7 @@ const options1: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const options2 = {

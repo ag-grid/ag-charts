@@ -1,0 +1,90 @@
+---
+title: 'Axis Position'
+description: 'Control where each axis is rendered in an AG Charts cartesian chart and how axes cross with crossAt.'
+---
+
+Cartesian axes can be positioned on the `top`, `bottom`, `left`, or `right` edge of the chart.
+
+## Axis Placement
+
+The axis `position` property controls where the axis is rendered. By default, horizontal axes appear at the bottom of the chart and vertical axes appear on the left.
+
+{% chartExampleRunner title="Axis Positions" name="axis-position-basic" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            position: 'bottom',
+            title: { text: 'Quarter' },
+        },
+        y: {
+            type: 'number',
+            position: 'left',
+            title: { text: 'Revenue ($M)' },
+        },
+        ySecondary: {
+            type: 'number',
+            position: 'right',
+            title: { text: 'Profit Margin (%)' },
+        },
+    },
+}
+```
+
+[Secondary Axes](./axes-secondary/) default to the opposite edge from the primary axis, but it is possible to
+have multiple axes on the same edge. These are displayed alongside each other.
+
+## Axis Crossing Point
+
+The `crossAt` option allows an axis to intersect a perpendicular axis at a specific axis value instead of the chart edge.
+This is useful for centring the chart origin or aligning axes to highlight particular thresholds.
+
+{% chartExampleRunner title="CrossAt" name="axis-cross-at" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'number',
+            // place the bottom axis at '0' on the left axis scale
+            crossAt: { value: 0 },
+        },
+        y: {
+            type: 'number',
+            // place the left axis at '0' on the bottom axis scale
+            crossAt: { value: 0 },
+        },
+    },
+}
+```
+
+In this example:
+
+-   Both axes have a `crossAt.value` set. It is also possible to set it on a single axis only.
+-   The `crossAt.value` must be of the same type as the perpendicular axis domain, such as `Number` or `Date`.
+-   The `crossAt` target value should be within the domain of the perpendicular axis.
+
+When the target value leaves the visible range, such as by [Zooming](./zoom/), the axis will stick to the edge of the chart and remain in view.
+
+Set `sticky: false` to allow the axis to be moved out of view in this scenario.
+
+## Band Alignment
+
+The `bandAlignment` option controls the band layout when using [fixed width bars](./bars/#fixed-width).
+
+{% chartExampleRunner title="Band Alignment" name="band-alignment" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            bandAlignment: 'start',
+        },
+    },
+}
+```
+
+See the [Series Bars](./bars/#band-alignment) documentation for more details.

@@ -1,3 +1,4 @@
+import type { NonNullablePath } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import type {
     AgAreaSeriesThemeableOptions,
@@ -5,8 +6,10 @@ import type {
     AgBarSeriesThemeableOptions,
     AgBaseChartListeners,
     AgBaseChartOptions,
+    AgBaseRadialSeriesThemeableOptions,
     AgBaseSeriesOptions,
     AgBaseThemeableChartOptions,
+    AgBoxPlotSeriesThemeableOptions,
     AgBubbleSeriesThemeableOptions,
     AgCartesianAxisOptions,
     AgChartLabelOptions,
@@ -14,13 +17,21 @@ import type {
     AgContextMenuItem,
     AgDonutSeriesCalloutOptions,
     AgLineSeriesThemeableOptions,
+    AgNightingaleSeriesThemeableOptions,
     AgPieSeriesCalloutOptions,
+    AgRadarAreaSeriesOptions,
+    AgRadarLineSeriesOptions,
+    AgRadialColumnSeriesThemeableOptions,
+    AgRangeAreaSeriesOptions,
+    AgRangeBarSeriesOptions,
     AgScatterSeriesThemeableOptions,
 } from 'ag-charts-types';
 
 export type MockAreaStyler<TDatum, TContext> = NonNullable<AgAreaSeriesThemeableOptions<TDatum, TContext>['styler']>;
-export type MockAreaItemStyler<TDatum, TContext> = NonNullable<
-    NonNullable<AgAreaSeriesThemeableOptions<TDatum, TContext>['marker']>['itemStyler']
+export type MockAreaItemStyler<TDatum, TContext> = NonNullablePath<
+    AgAreaSeriesThemeableOptions<TDatum, TContext>,
+    'marker',
+    'itemStyler'
 >;
 export type MockBarStyler<TDatum, TContext> = NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['styler']>;
 export type MockBarItemStyler<TDatum, TContext> = NonNullable<
@@ -39,8 +50,10 @@ export type MockScatterItemStyler<TDatum, TContext> = NonNullable<
     AgScatterSeriesThemeableOptions<TDatum, TContext>['itemStyler']
 >;
 export type MockLineStyler<TDatum, TContext> = NonNullable<AgLineSeriesThemeableOptions<TDatum, TContext>['styler']>;
-export type MockLineMarkerItemStyler<TDatum, TContext> = NonNullable<
-    NonNullable<AgLineSeriesThemeableOptions<TDatum, TContext>['marker']>['itemStyler']
+export type MockLineMarkerItemStyler<TDatum, TContext> = NonNullablePath<
+    AgLineSeriesThemeableOptions<TDatum, TContext>,
+    'marker',
+    'itemStyler'
 >;
 export type MockPieCalloutLineItemStyler<TDatum, TContext> = NonNullable<
     AgPieSeriesCalloutOptions<TDatum, TContext>['itemStyler']
@@ -48,20 +61,62 @@ export type MockPieCalloutLineItemStyler<TDatum, TContext> = NonNullable<
 export type MockDonutCalloutLineItemStyler<TDatum, TContext> = NonNullable<
     AgDonutSeriesCalloutOptions<TDatum, TContext>['itemStyler']
 >;
-export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullable<
-    NonNullable<AgCartesianAxisOptions<TContext>['label']>['formatter']
+export type MockBoxPlotStyler<TDatum, TContext> = NonNullable<
+    AgBoxPlotSeriesThemeableOptions<TDatum, TContext>['styler']
 >;
-export type MockSeriesLabelFormatter<TDatum, TContext> = NonNullable<
-    NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['label']>['formatter']
+export type MockBoxPlotItemStyler<TDatum, TContext> = NonNullable<
+    AgBoxPlotSeriesThemeableOptions<TDatum, TContext>['itemStyler']
 >;
-export type MockTooltipRenderer<TDatum, TContext> = NonNullable<
-    NonNullable<AgBarSeriesThemeableOptions<TDatum, TContext>['tooltip']>['renderer']
+type MockBaseRadialStyler<TDatum, TContext> = NonNullable<
+    AgBaseRadialSeriesThemeableOptions<TDatum, TContext>['styler']
 >;
-export type MockErrorBarStyler<TDatum, TContext> = NonNullable<
-    NonNullable<AgBarSeriesOptions<TDatum, TContext>['errorBar']>['itemStyler']
+type MockBaseRadialItemStyler<TDatum, TContext> = NonNullable<
+    AgBaseRadialSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+export type MockRadialColumnStyler<TDatum, TContext> = NonNullable<
+    AgRadialColumnSeriesThemeableOptions<TDatum, TContext>['styler']
+>;
+export type MockRadialColumnItemStyler<TDatum, TContext> = NonNullable<
+    AgRadialColumnSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+export type MockNightingaleStyler<TDatum, TContext> = NonNullable<
+    AgNightingaleSeriesThemeableOptions<TDatum, TContext>['styler']
+>;
+export type MockNightingaleItemStyler<TDatum, TContext> = NonNullable<
+    AgNightingaleSeriesThemeableOptions<TDatum, TContext>['itemStyler']
+>;
+export type MockRadarLineStyler<TDatum, TContext> = NonNullable<AgRadarLineSeriesOptions<TDatum, TContext>['styler']>;
+export type MockRadarAreaStyler<TDatum, TContext> = NonNullable<AgRadarAreaSeriesOptions<TDatum, TContext>['styler']>;
+export type MockRangeBarStyler<TDatum, TContext> = NonNullable<AgRangeBarSeriesOptions<TDatum, TContext>['styler']>;
+export type MockRangeAreaStyler<TDatum, TContext> = NonNullable<AgRangeAreaSeriesOptions<TDatum, TContext>['styler']>;
+export type MockAxisLabelFormatter<_TDatum, TContext> = NonNullablePath<
+    AgCartesianAxisOptions<TContext>,
+    'label',
+    'formatter'
+>;
+export type MockSeriesLabelFormatter<TDatum, TContext> = NonNullablePath<
+    AgBarSeriesThemeableOptions<TDatum, TContext>,
+    'label',
+    'formatter'
+>;
+export type MockTooltipRenderer<TDatum, TContext> = NonNullablePath<
+    AgBarSeriesThemeableOptions<TDatum, TContext>,
+    'tooltip',
+    'renderer'
+>;
+export type MockErrorBarStyler<TDatum, TContext> = NonNullablePath<
+    AgBarSeriesOptions<TDatum, TContext>,
+    'errorBar',
+    'itemStyler'
 >;
 export type MockChartLabelFormatter<TDatum, TContext> = NonNullable<
     NonNullable<AgChartLabelOptions<TDatum, TContext>['formatter']>
+>;
+export type MockChartLabelItemStyler<TDatum, TContext> = NonNullable<
+    NonNullable<AgChartLabelOptions<TDatum, TContext>['itemStyler']>
+>;
+export type MockActiveChangeListener<TDatum, TContext> = NonNullable<
+    AgBaseChartListeners<TDatum, TContext>['activeChange']
 >;
 export type MockAnnotationsListener<TDatum, TContext> = NonNullable<
     AgBaseChartListeners<TDatum, TContext>['annotations']
@@ -77,23 +132,36 @@ export type MockChartDblClickListener<TDatum, TContext> = NonNullable<
 export type MockChartSeriesVisibilityChangeListener<TDatum, TContext> = NonNullable<
     AgBaseChartListeners<TDatum, TContext>['seriesVisibilityChange']
 >;
-export type MockSeriesNodeClickListener<TDatum, TContext> = NonNullable<
-    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeClick']
+export type MockSeriesNodeClickListener<TDatum, TContext> = NonNullablePath<
+    AgBaseSeriesOptions<TDatum, TContext>,
+    'listeners',
+    'seriesNodeClick'
 >;
-export type MockSeriesNodeDblClickListener<TDatum, TContext> = NonNullable<
-    NonNullable<AgBaseSeriesOptions<TDatum, TContext>['listeners']>['seriesNodeDoubleClick']
+export type MockSeriesNodeDblClickListener<TDatum, TContext> = NonNullablePath<
+    AgBaseSeriesOptions<TDatum, TContext>,
+    'listeners',
+    'seriesNodeDoubleClick'
 >;
-export type MockLegendItemClickListener<TDatum, TContext> = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemClick']
+export type MockLegendItemClickListener<TDatum, TContext> = NonNullablePath<
+    AgBaseChartOptions<TDatum, TContext>,
+    'legend',
+    'listeners',
+    'legendItemClick'
 >;
-export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullable<
-    NonNullable<NonNullable<AgBaseChartOptions<TDatum, TContext>['legend']>['listeners']>['legendItemDoubleClick']
+export type MockLegendItemDblClickListener<TDatum, TContext> = NonNullablePath<
+    AgBaseChartOptions<TDatum, TContext>,
+    'legend',
+    'listeners',
+    'legendItemDoubleClick'
 >;
 export type MockContextMenuAction<TDatum, TContext> = NonNullable<
     Extract<AgContextMenuItem<TDatum, TContext>, object>['action']
 >;
-export type MockOverlayRenderer<TDatum, TContext> = NonNullable<
-    NonNullable<NonNullable<AgChartOptions<TDatum, TContext>['overlays']>['noData']>['renderer']
+export type MockOverlayRenderer<TDatum, TContext> = NonNullablePath<
+    AgChartOptions<TDatum, TContext>,
+    'overlays',
+    'noData',
+    'renderer'
 >;
 
 export type MockAPICallback<TDatum, TContext> =
@@ -109,11 +177,21 @@ export type MockAPICallback<TDatum, TContext> =
     | MockLineMarkerItemStyler<TDatum, TContext>
     | MockPieCalloutLineItemStyler<TDatum, TContext>
     | MockDonutCalloutLineItemStyler<TDatum, TContext>
+    | MockBoxPlotStyler<TDatum, TContext>
+    | MockBoxPlotItemStyler<TDatum, TContext>
+    | MockBaseRadialStyler<TDatum, TContext>
+    | MockBaseRadialItemStyler<TDatum, TContext>
+    | MockRadarLineStyler<TDatum, TContext>
+    | MockRadarAreaStyler<TDatum, TContext>
+    | MockRangeBarStyler<TDatum, TContext>
+    | MockRangeAreaStyler<TDatum, TContext>
     | MockAxisLabelFormatter<TDatum, TContext>
     | MockSeriesLabelFormatter<TDatum, TContext>
     | MockTooltipRenderer<TDatum, TContext>
     | MockErrorBarStyler<TDatum, TContext>
     | MockChartLabelFormatter<TDatum, TContext>
+    | MockChartLabelItemStyler<TDatum, TContext>
+    | MockActiveChangeListener<TDatum, TContext>
     | MockAnnotationsListener<TDatum, TContext>
     | MockZoomListener<TDatum, TContext>
     | MockGetDataCallback<TDatum, TContext>
@@ -181,4 +259,10 @@ export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?
             };
         },
     };
+}
+
+export function newFreezableMockInferred<F extends MockAPICallback<any, any>>(mockImp?: F) {
+    type D = F extends MockAPICallback<infer Di, unknown> ? Di : never;
+    type C = F extends MockAPICallback<unknown, infer Ci> ? Ci : never;
+    return newFreezableMock<D, C, F>(mockImp);
 }

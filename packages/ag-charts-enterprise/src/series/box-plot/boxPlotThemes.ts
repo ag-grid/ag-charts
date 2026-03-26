@@ -1,16 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
-    multiSeriesHighlightStyle,
+import {
+    CARTESIAN_AXIS_TYPE,
     FILL_GRADIENT_LINEAR_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
-} = _ModuleSupport;
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['themeTemplate'] = {
+export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
     series: {
         direction: 'vertical',
         fill: {
@@ -40,7 +38,15 @@ export const BOX_PLOT_SERIES_THEME: _ModuleSupport.SeriesModule<'box-plot'>['the
         strokeOpacity: 1,
         lineDash: undefined,
         lineDashOffset: 0,
-        highlight: multiSeriesHighlightStyle(),
+        highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
+            unhighlightedItem: {
+                opacity: 0.5,
+            },
+            unhighlightedSeries: {
+                opacity: 0.1,
+            },
+        },
         segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {

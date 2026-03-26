@@ -1,4 +1,4 @@
-// https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/countries
+// https://ec.europa.eu/eurostat/web/gisco/geodata/administrative-units/countries
 export const backgroundTopology = {
     type: 'FeatureCollection',
     features: [

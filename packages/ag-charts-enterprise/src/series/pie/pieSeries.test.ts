@@ -63,13 +63,13 @@ describe('PieSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - legend item 'a' has multiple fill colors, this may cause unexpected behaviour.",
+    "AG Charts - legend item 'a' has multiple fill colours, this may cause unexpected behaviour.",
   ],
   [
-    "AG Charts - legend item 'b' has multiple fill colors, this may cause unexpected behaviour.",
+    "AG Charts - legend item 'b' has multiple fill colours, this may cause unexpected behaviour.",
   ],
   [
-    "AG Charts - legend item 'c' has multiple fill colors, this may cause unexpected behaviour.",
+    "AG Charts - legend item 'c' has multiple fill colours, this may cause unexpected behaviour.",
   ],
 ]
 `);

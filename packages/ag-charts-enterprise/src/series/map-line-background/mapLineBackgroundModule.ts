@@ -1,18 +1,20 @@
-import type { AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineBackgroundOptions, VERSION } from 'ag-charts-community';
 import type { SeriesModuleDefinition } from 'ag-charts-core';
 
+import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineBackgroundSeries } from './mapLineBackgroundSeries';
 import { mapLineBackgroundSeriesOptionsDef } from './mapLineBackgroundSeriesOptionsDef';
 
-export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-background'> = {
+export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBackgroundOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-line-background',
+    chartType: 'topology',
+    enterprise: true,
+    version: VERSION,
+    dependencies: [TopologyChartModule],
 
-    identifier: 'map-line-background',
-    moduleFactory: (ctx) => new MapLineBackgroundSeries(ctx),
+    options: mapLineBackgroundSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -22,15 +24,6 @@ export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-back
             lineDashOffset: 0,
         },
     },
-};
 
-export const MapLineBackgroundSeriesModule: SeriesModuleDefinition<AgMapLineBackgroundOptions> = {
-    type: 'series',
-    name: 'map-line-background',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapLineBackgroundSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapLineBackgroundSeries(ctx),
+    create: (ctx) => new MapLineBackgroundSeries(ctx),
 };

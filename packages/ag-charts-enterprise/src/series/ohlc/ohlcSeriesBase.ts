@@ -1,6 +1,5 @@
 import {
     type AgCandlestickSeriesItemOptions,
-    type AgOhlcSeriesBaseOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesItemType,
     type FillOptions,
@@ -8,26 +7,43 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import type { AgOhlcSeriesBaseOptions } from 'ag-charts-community';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    ChartAxisDirection,
+    DebugMetrics,
+    Logger,
+    type Mutable,
+    type Point,
+    type Scale,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import {
-    CLOSE,
-    HIGH,
-    LOW,
-    OPEN,
     type OhlcSeriesDataAggregationFilter,
-    SPAN,
-    aggregateOhlcData,
+    aggregateOhlcDataFromDataModel,
+    aggregateOhlcDataFromDataModelPartial,
 } from './ohlcAggregation';
-import type { OhlcBaseNode } from './ohlcNode';
+import { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 
+// Semantic constants for OHLC data access
+const OPEN = AGGREGATION_INDEX_X_MIN;
+const HIGH = AGGREGATION_INDEX_Y_MAX;
+const LOW = AGGREGATION_INDEX_Y_MIN;
+const CLOSE = AGGREGATION_INDEX_X_MAX;
+const SPAN = AGGREGATION_SPAN;
+
 const {
+    AggregationManager,
     fixNumericExtent,
     keyProperty,
     createDatumId,
     SeriesNodePickMode,
-    ChartAxisDirection,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
     diff,
@@ -36,16 +52,14 @@ const {
     visibleRangeIndices,
     BandScale,
     processedDataIsAnimatable,
-    mergeDefaults,
-    simpleMemorize2,
     getItemStylesPerItemId,
 } = _ModuleSupport;
 
-const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 interface OhlcCandleStickSeriesStyle extends AgCandlestickSeriesItemOptions, AgOhlcSeriesItemOptions {}
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
-    readonly itemId: AgOhlcSeriesItemType;
+    readonly itemId?: never;
+    readonly itemType: AgOhlcSeriesItemType;
 
     readonly openValue: number;
     readonly closeValue: number;
@@ -76,12 +90,7 @@ class OhlcSeriesNodeEvent<
     readonly highKey?: string;
     readonly lowKey?: string;
 
-    constructor(
-        type: TEvent,
-        nativeEvent: Event,
-        datum: OhlcNodeDatum,
-        series: OhlcSeriesBase<OhlcBaseNode, AgOhlcSeriesBaseOptions, any>
-    ) {
+    constructor(type: TEvent, nativeEvent: Event, datum: OhlcNodeDatum, series: OhlcSeriesBase<OhlcSeriesBaseTypes>) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
@@ -91,19 +100,136 @@ class OhlcSeriesNodeEvent<
     }
 }
 
+/**
+ * Pre-validated and computed state for a single OHLC datum.
+ * Used as a scratch object to minimize allocations in the main data loop.
+ */
+interface PreparedOhlcNodeDatumState {
+    datum: any;
+    xValue: any;
+    openValue: number;
+    closeValue: number;
+    highValue: number;
+    lowValue: number;
+    isRising: boolean;
+    itemType: 'up' | 'down';
+}
+
+/**
+ * Shared context for creating/updating OhlcNodeDatum instances.
+ * Instantiated once per createNodeData() call and reused across all datum operations
+ * to minimize memory allocations. Only contains values that are expensive to compute
+ * or resolve - cheap property lookups use `this` directly in methods.
+ */
+interface OhlcSeriesNodeDatumContext {
+    // Data arrays (resolved from dataModel - worth caching)
+    readonly rawData: any[];
+    readonly xValues: any[];
+    readonly openValues: any[];
+    readonly closeValues: any[];
+    readonly highValues: any[];
+    readonly lowValues: any[];
+
+    // Scales (axis lookups - worth caching)
+    readonly xScale: Scale<any, any>;
+    readonly yScale: Scale<any, any>;
+
+    // Axes (for range calculations and other operations)
+    readonly xAxis: _ModuleSupport.ChartAxis;
+    readonly yAxis: _ModuleSupport.ChartAxis;
+
+    // Pre-computed positioning values
+    readonly barWidth: number;
+    readonly groupOffset: number;
+    readonly barOffset: number;
+    readonly applyWidthOffset: boolean;
+    readonly crisp: boolean;
+
+    // Property lookups (constant across all datums - worth caching)
+    readonly xKey: string;
+    readonly openKey: string;
+    readonly closeKey: string;
+    readonly highKey: string;
+    readonly lowKey: string;
+
+    // Aggregation state
+    readonly dataAggregationFilter: OhlcSeriesDataAggregationFilter | undefined;
+    readonly range: number;
+
+    // Scratch object for reuse (mutated in loops)
+    readonly nodeDatumStateScratch: PreparedOhlcNodeDatumState;
+
+    // Incremental update tracking
+    readonly canIncrementallyUpdate: boolean;
+    nodeIndex: number; // mutable - tracks current position
+
+    // Working state (mutable)
+    nodeData: OhlcNodeDatum[];
+}
+
 interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<OhlcNodeDatum> {
     styles: Record<'up' | 'down', _ModuleSupport.SeriesNodeStyleContext<OhlcCandleStickSeriesStyle>>;
 }
 
+/**
+ * Base type interface for OHLC series types.
+ * Template parameter TNode allows subclasses to specify their node type.
+ */
+export interface OhlcSeriesBaseTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: OhlcBaseNode<any>;
+    readonly options: AgOhlcSeriesBaseOptions;
+    readonly properties: OhlcSeriesBaseProperties<this['options']>;
+    readonly datum: OhlcNodeDatum;
+    readonly label: OhlcNodeDatum;
+    readonly context: OhlcSeriesBaseNodeDataContext;
+}
+
+/**
+ * High-performance direct reset for OHLC selections.
+ * Bypasses resetMotion callback pattern and decorator system entirely.
+ * Uses batchedUpdate to consolidate markDirty calls per selection.
+ */
+function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
+    selections: { nodes(): Iterable<OhlcBaseNode<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetOhlcNodes() {
+            for (const node of nodes) {
+                const datum = node.datum;
+                if (datum == null) continue;
+
+                // Direct method bypasses decorators - writes to __centerX, __y, etc.
+                node.setStaticProperties(
+                    datum.centerX,
+                    datum.width,
+                    datum.y,
+                    datum.height,
+                    datum.yOpen,
+                    datum.yClose,
+                    datum.crisp
+                );
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
+}
+
 export abstract class OhlcSeriesBase<
+<<<<<<< HEAD
     TDatum extends OhlcNodeDatum,
     TNode extends OhlcBaseNode<TDatum>,
     TOpts extends AgOhlcSeriesBaseOptions,
     TProps extends OhlcSeriesBaseProperties<TOpts>,
 > extends _ModuleSupport.AbstractBarSeries<TDatum, TNode, TOpts, TProps, OhlcNodeDatum, OhlcSeriesBaseNodeDataContext> {
+=======
+    TTypes extends OhlcSeriesBaseTypes,
+> extends _ModuleSupport.AbstractBarSeries<TTypes> {
+>>>>>>> latest
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
-    private dataAggregationFilters: OhlcSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -133,10 +259,10 @@ export abstract class OhlcSeriesBase<
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
+        if (this.needsDataModelDiff() && this.processedData) {
+            extraProps.push(diff(this.id, this.processedData));
+        }
         if (animationEnabled) {
-            if (this.processedData) {
-                extraProps.push(diff(this.id, this.processedData));
-            }
             extraProps.push(animationValidation());
         }
         if (openKey) {
@@ -149,9 +275,10 @@ export abstract class OhlcSeriesBase<
             );
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
+                keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
                 valueProperty(closeKey, yScaleType, { id: `closeValue` }),
                 valueProperty(highKey, yScaleType, { id: `highValue` }),
                 valueProperty(lowKey, yScaleType, { id: `lowValue` }),
@@ -162,10 +289,7 @@ export abstract class OhlcSeriesBase<
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
 
-        this.dataAggregationFilters = this.aggregateData(
-            dataModel,
-            processedData as any as _ModuleSupport.UngroupedData<any>
-        );
+        this.aggregateData(dataModel, processedData as any as _ModuleSupport.UngroupedData<any>);
 
         this.animationState.transition('updateData');
     }
@@ -174,47 +298,65 @@ export abstract class OhlcSeriesBase<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
+        this.aggregationManager.markStale(processedData.input.count);
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
-        const lowValues = dataModel.resolveColumnById(this, `lowValue`, processedData);
+        const targetRange = this.estimateTargetRange();
 
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateOhlcDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+            targetRange,
+        });
 
-        return memoizedAggregateOhlcData(
-            xAxis.scale.type,
-            xValues,
-            highValues,
-            lowValues,
-            domain,
-            processedData.reduced?.smallestKeyInterval
-        );
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (!xAxis) return -1;
+        const [r0, r1] = xAxis.scale.range;
+        return Math.abs(r1 - r0);
+    }
+
+    override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
-        if (!(processedData && dataModel)) return [];
+        if (!(processedData && dataModel)) return { domain: [] };
 
         if (direction !== this.getBarDirection()) {
-            const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-            const keys = processedData.domain.keys[index];
+            const { def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
             if (def.type === 'key' && def.valueType === 'category') {
                 return keys;
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys.domain) };
         }
 
         const yExtent = this.domainForClippedRange(direction, ['highValue', 'lowValue'], 'xValue');
-        return fixNumericExtent(yExtent);
+        return { domain: fixNumericExtent(yExtent) };
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', visibleRange);
     }
 
@@ -246,157 +388,330 @@ export abstract class OhlcSeriesBase<
         );
     }
 
+    /**
+     * Creates shared context for node datum creation/update operations.
+     * This context is instantiated once and reused across all datum operations
+     * to minimize memory allocations. Only caches values that are expensive to
+     * compute - cheap property lookups use `this` directly.
+     */
+    private buildDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
+    ): OhlcSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
+
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+        if (rawData.length === 0) return undefined;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
+        const applyWidthOffset = BandScale.is(xScale);
+
+        const [r0, r1] = xScale.range;
+        const range = Math.abs(r1 - r0);
+
+        // Ensure we have the aggregation level needed for the current range
+        // This will force-compute deferred levels if necessary
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        const crisp = dataAggregationFilter == null;
+        const canIncrementallyUpdate =
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
+
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
+
+        return {
+            rawData,
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            openValues: dataModel.resolveColumnById(this, 'openValue', processedData),
+            closeValues: dataModel.resolveColumnById(this, 'closeValue', processedData),
+            highValues: dataModel.resolveColumnById(this, 'highValue', processedData),
+            lowValues: dataModel.resolveColumnById(this, 'lowValue', processedData),
+            xScale,
+            yScale,
+            xAxis,
+            yAxis,
+            groupOffset,
+            barOffset,
+            barWidth,
+            applyWidthOffset,
+            crisp,
+            xKey: this.properties.xKey,
+            openKey: this.properties.openKey,
+            closeKey: this.properties.closeKey,
+            highKey: this.properties.highKey,
+            lowKey: this.properties.lowKey,
+            dataAggregationFilter,
+            range,
+            nodeDatumStateScratch: {
+                datum: undefined,
+                xValue: undefined,
+                openValue: 0,
+                closeValue: 0,
+                highValue: 0,
+                lowValue: 0,
+                isRising: true,
+                itemType: 'up',
+            },
+            canIncrementallyUpdate,
+            nodeIndex: 0,
+            nodeData: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+        };
+    }
+
+    /**
+     * Validates and prepares state for a single OHLC datum.
+     * Mutates ctx.nodeDatumStateScratch with computed values.
+     * Returns the scratch object if valid, undefined if invalid.
+     */
+    private prepareOhlcNodeDatumState(
+        ctx: OhlcSeriesNodeDatumContext,
+        datumIndex: number
+    ): PreparedOhlcNodeDatumState | undefined {
+        const xValue = ctx.xValues[datumIndex];
+        if (xValue === undefined && !this.properties.allowNullKeys) {
+            return undefined;
+        }
+
+        const openValue = ctx.openValues[datumIndex];
+        const closeValue = ctx.closeValues[datumIndex];
+        const highValue = ctx.highValues[datumIndex];
+        const lowValue = ctx.lowValues[datumIndex];
+
+        // Validate that low value is less than or equal to open and close
+        const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
+        // Validate that high value is greater than or equal to open and close
+        const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
+
+        if (!validLowValue) {
+            Logger.warnOnce(
+                `invalid low value for key [${ctx.lowKey}] in data element, low value cannot be higher than datum open or close values`
+            );
+            return undefined;
+        }
+
+        if (!validHighValue) {
+            Logger.warnOnce(
+                `invalid high value for key [${ctx.highKey}] in data element, high value cannot be lower than datum open or close values.`
+            );
+            return undefined;
+        }
+
+        const datum = ctx.rawData[datumIndex];
+        const isRising = closeValue > openValue;
+        const itemType = isRising ? 'up' : 'down';
+
+        // Mutate scratch object
+        const scratch = ctx.nodeDatumStateScratch;
+        scratch.datum = datum;
+        scratch.xValue = xValue;
+        scratch.openValue = openValue;
+        scratch.closeValue = closeValue;
+        scratch.highValue = highValue;
+        scratch.lowValue = lowValue;
+        scratch.isRising = isRising;
+        scratch.itemType = itemType;
+
+        return scratch;
+    }
+
+    /**
+     * Creates a skeleton OhlcNodeDatum from prepared state.
+     * Takes pre-computed positioning and state from scratch object.
+     */
+    private createSkeletonNodeDatum(
+        ctx: OhlcSeriesNodeDatumContext,
+        scratch: PreparedOhlcNodeDatumState,
+        datumIndex: number,
+        centerX: number,
+        width: number,
+        crisp: boolean
+    ): OhlcNodeDatum {
+        const xOffset = ctx.applyWidthOffset ? width / 2 : 0;
+        const adjustedCenterX = centerX + xOffset;
+
+        const yOpen = ctx.yScale.convert(scratch.openValue);
+        const yClose = ctx.yScale.convert(scratch.closeValue);
+        const yHigh = ctx.yScale.convert(scratch.highValue);
+        const yLow = ctx.yScale.convert(scratch.lowValue);
+
+        const y = Math.min(yHigh, yLow);
+        const height = Math.max(yHigh, yLow) - y;
+
+        return {
+            series: this,
+            itemType: scratch.itemType,
+            datum: scratch.datum,
+            datumIndex,
+            xKey: ctx.xKey,
+            xValue: scratch.xValue,
+            openValue: scratch.openValue,
+            closeValue: scratch.closeValue,
+            highValue: scratch.highValue,
+            lowValue: scratch.lowValue,
+            midPoint: {
+                x: adjustedCenterX,
+                y: y + height / 2,
+            },
+            aggregatedValue: scratch.closeValue,
+            isRising: scratch.isRising,
+            centerX: adjustedCenterX,
+            width,
+            y,
+            height,
+            yOpen,
+            yClose,
+            crisp,
+        };
+    }
+
+    /**
+     * Updates an existing OhlcNodeDatum in-place for value-only changes.
+     * This is more efficient than recreating the entire node when only data values change
+     * but the structure (insertions/removals) remains the same.
+     */
+    private updateNodeDatum(
+        ctx: OhlcSeriesNodeDatumContext,
+        node: OhlcNodeDatum,
+        prepared: PreparedOhlcNodeDatumState,
+        datumIndex: number,
+        centerX: number,
+        width: number,
+        crisp: boolean
+    ): void {
+        const mutableNode = node as Mutable<OhlcNodeDatum>;
+
+        // Compute positioning
+        const xOffset = ctx.applyWidthOffset ? width / 2 : 0;
+        const adjustedCenterX = centerX + xOffset;
+
+        const yOpen = ctx.yScale.convert(prepared.openValue);
+        const yClose = ctx.yScale.convert(prepared.closeValue);
+        const yHigh = ctx.yScale.convert(prepared.highValue);
+        const yLow = ctx.yScale.convert(prepared.lowValue);
+
+        const y = Math.min(yHigh, yLow);
+        const height = Math.max(yHigh, yLow) - y;
+
+        // Update all properties in-place
+        mutableNode.datum = prepared.datum;
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.itemType = prepared.itemType;
+        mutableNode.xValue = prepared.xValue;
+        mutableNode.openValue = prepared.openValue;
+        mutableNode.closeValue = prepared.closeValue;
+        mutableNode.highValue = prepared.highValue;
+        mutableNode.lowValue = prepared.lowValue;
+        mutableNode.aggregatedValue = prepared.closeValue;
+        mutableNode.isRising = prepared.isRising;
+        mutableNode.centerX = adjustedCenterX;
+        mutableNode.width = width;
+        mutableNode.y = y;
+        mutableNode.height = height;
+        mutableNode.yOpen = yOpen;
+        mutableNode.yClose = yClose;
+        mutableNode.crisp = crisp;
+
+        // Update midPoint in place to avoid allocation
+        const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
+        mutableMidPoint.x = adjustedCenterX;
+        mutableMidPoint.y = y + height / 2;
+    }
+
+    /**
+     * Handles node creation/update - reuses existing nodes when possible for incremental updates.
+     * This method decides whether to update existing nodes in-place or create new ones.
+     */
+    private upsertNodeDatum(
+        ctx: OhlcSeriesNodeDatumContext,
+        datumIndex: number,
+        centerX: number,
+        width: number,
+        crisp: boolean
+    ): void {
+        const prepared = this.prepareOhlcNodeDatumState(ctx, datumIndex);
+        if (!prepared) return;
+
+        const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
+
+        if (canReuse) {
+            // Update existing node in-place
+            this.updateNodeDatum(ctx, ctx.nodeData[ctx.nodeIndex], prepared, datumIndex, centerX, width, crisp);
+        } else {
+            // Create new node
+            const newNode = this.createSkeletonNodeDatum(ctx, prepared, datumIndex, centerX, width, crisp);
+            ctx.nodeData.push(newNode);
+        }
+        ctx.nodeIndex++;
+    }
+
     override createNodeData() {
-        const { visible, dataModel, processedData } = this;
+        const { visible } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && processedData && xAxis && yAxis)) return;
+        if (!xAxis || !yAxis) return;
 
-        const nodeData: OhlcNodeDatum[] = [];
-        const { xKey, highKey, lowKey } = this.properties;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const openValues = dataModel.resolveColumnById(this, 'openValue', processedData);
-        const closeValues = dataModel.resolveColumnById(this, 'closeValue', processedData);
-        const highValues = dataModel.resolveColumnById(this, 'highValue', processedData);
-        const lowValues = dataModel.resolveColumnById(this, 'lowValue', processedData);
+        // Create shared context for datum creation (instantiated once, reused for all datums)
+        const ctx = this.buildDatumContext(xAxis, yAxis);
 
-        const { groupScale } = this;
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const groupOffset = groupScale.convert(String(groupIndex));
-        // CRT-340 Use atleast 1px width to prevent nothing being drawn.
-        const effectiveBarWidth = barWidth >= 1 ? barWidth : groupScale.rawBandwidth;
-
-        const applyWidthOffset = BandScale.is(xAxis.scale);
-
-        const context = {
-            itemId: xKey,
-            nodeData,
+        const resultContext = {
+            itemId: this.properties.xKey,
+            nodeData: ctx?.nodeData ?? [],
             labelData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
             styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'up', 'down'),
         };
-        if (!visible) return context;
 
-        const handleDatum = (
-            datumIndex: number,
-            xValue: any,
-            openValue: any,
-            closeValue: any,
-            highValue: any,
-            lowValue: any,
-            width: number,
-            crisp: boolean
-        ) => {
-            const datum = rawData[datumIndex];
+        if (!visible || !ctx) return resultContext;
 
-            const xOffset = applyWidthOffset ? width / 2 : 0;
-            const centerX = xAxis.scale.convert(xValue) + groupOffset + xOffset;
-            const yOpen = yAxis.scale.convert(openValue);
-            const yClose = yAxis.scale.convert(closeValue);
-            const yHigh = yAxis.scale.convert(highValue);
-            const yLow = yAxis.scale.convert(lowValue);
-
-            const isRising = closeValue > openValue;
-            const itemId = isRising ? 'up' : 'down';
-
-            const y = Math.min(yHigh, yLow);
-            const height = Math.max(yHigh, yLow) - y;
-
-            const midPoint = {
-                x: centerX,
-                y: y + height / 2,
-            };
-
-            nodeData.push({
-                series: this,
-                itemId,
-                datum,
-                datumIndex,
-                xKey,
-                xValue,
-                openValue,
-                closeValue,
-                highValue,
-                lowValue,
-                midPoint,
-                aggregatedValue: closeValue,
-                isRising,
-                centerX,
-                width,
-                y,
-                height,
-                yOpen,
-                yClose,
-                crisp,
-            });
+        const xPosition = (index: number) => {
+            const x = ctx.xScale.convert(ctx.xValues[index]);
+            if (!Number.isFinite(x)) return Number.NaN;
+            return x + ctx.groupOffset + (ctx.applyWidthOffset ? ctx.barOffset : 0);
         };
 
-        const { dataAggregationFilters } = this;
-        const xScale = xAxis.scale;
-        const [r0, r1] = xScale.range;
-        const range = Math.abs(r1 - r0);
-
-        const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset;
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
-
-        if (dataAggregationFilter == null) {
-            const invalidData = processedData.invalidData?.get(this.id);
-            let [start, end] = visibleRangeIndices(1, rawData.length, xAxis.range, (index) => {
-                const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
+        if (ctx.dataAggregationFilter == null) {
+            const invalidData = this.processedData!.invalidData?.get(this.id);
+            let [start, end] = visibleRangeIndices(1, ctx.rawData.length, ctx.xAxis.range, (index) => {
+                const xOffset = ctx.applyWidthOffset ? 0 : -ctx.barWidth / 2;
                 const x = xPosition(index) + xOffset;
-                return [x, x + effectiveBarWidth];
+                return [x, x + ctx.barWidth];
             });
             // @todo(AG-13575) Remove this if block
-            if (processedData.input.count < 1e3) {
+            if (this.processedData!.input.count < 1e3) {
                 start = 0;
-                end = processedData.input.count;
+                end = this.processedData!.input.count;
             }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 if (invalidData?.[datumIndex] === true) continue;
 
-                const xValue = xValues[datumIndex];
-                if (xValue == null) continue;
+                const centerX = xPosition(datumIndex);
+                this.upsertNodeDatum(ctx, datumIndex, centerX, ctx.barWidth, ctx.crisp);
+            }
 
-                const openValue = openValues[datumIndex];
-                const closeValue = closeValues[datumIndex];
-                const highValue = highValues[datumIndex];
-                const lowValue = lowValues[datumIndex];
-
-                // compare unscaled values
-                const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
-                const validHighValue = highValue != null && highValue >= openValue && highValue >= closeValue;
-
-                if (!validLowValue) {
-                    Logger.warnOnce(
-                        `invalid low value for key [${lowKey}] in data element, low value cannot be higher than datum open or close values`
-                    );
-                    continue;
-                }
-
-                if (!validHighValue) {
-                    Logger.warnOnce(
-                        `invalid high value for key [${highKey}] in data element, high value cannot be lower than datum open or close values.`
-                    );
-                    continue;
-                }
-
-                handleDatum(datumIndex, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
+            // Trim excess nodes if data shrunk
+            if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
+                ctx.nodeData.length = ctx.nodeIndex;
             }
         } else {
-            const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
+            const { maxRange, indexData, midpointIndices } = ctx.dataAggregationFilter;
+            const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
-                const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
-                if (openIndex === -1) return;
-                const xOffset = applyWidthOffset ? 0 : -effectiveBarWidth / 2;
-                return [xPosition(openIndex) + xOffset, xPosition(closeIndex) + xOffset + effectiveBarWidth];
+                const midDatumIndex = midpointIndices[index];
+                if (midDatumIndex === -1) return;
+                const xOffset = ctx.applyWidthOffset ? 0 : -ctx.barWidth / 2;
+                return [xPosition(midDatumIndex) + xOffset, xPosition(closeIndex) + xOffset + ctx.barWidth];
             });
 
             for (let i = start; i < end; i += 1) {
@@ -406,25 +721,52 @@ export abstract class OhlcSeriesBase<
                 const highIndex = indexData[aggIndex + HIGH];
                 const lowIndex = indexData[aggIndex + LOW];
 
-                if (openIndex === -1) continue;
+                const midDatumIndex = midpointIndices[i];
+                if (midDatumIndex === -1) continue;
 
-                const midDatumIndex = ((openIndex + closeIndex) / 2) | 0;
+                // Use prepareOhlcNodeDatumState to validate and prepare scratch state
+                const prepared = this.prepareOhlcNodeDatumState(ctx, midDatumIndex);
+                if (!prepared) continue;
 
-                const xValue = xValues[midDatumIndex];
-                if (xValue == null) continue;
+                // Override values from aggregated indices
+                prepared.openValue = ctx.openValues[openIndex];
+                prepared.closeValue = ctx.closeValues[closeIndex];
+                prepared.highValue = ctx.highValues[highIndex];
+                prepared.lowValue = ctx.lowValues[lowIndex];
+                prepared.isRising = prepared.closeValue > prepared.openValue;
+                prepared.itemType = prepared.isRising ? 'up' : 'down';
 
-                const openValue = openValues[openIndex];
-                const closeValue = closeValues[closeIndex];
-                const highValue = highValues[highIndex];
-                const lowValue = lowValues[lowIndex];
+                const centerX = xPosition(midDatumIndex);
+                const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + ctx.barWidth;
 
-                const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + effectiveBarWidth;
+                const canReuse = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length;
 
-                handleDatum(midDatumIndex, xValue, openValue, closeValue, highValue, lowValue, width, false);
+                if (canReuse) {
+                    // Update existing node in-place
+                    this.updateNodeDatum(
+                        ctx,
+                        ctx.nodeData[ctx.nodeIndex],
+                        prepared,
+                        midDatumIndex,
+                        centerX,
+                        width,
+                        false
+                    );
+                } else {
+                    // Create new node
+                    const nodeDatum = this.createSkeletonNodeDatum(ctx, prepared, midDatumIndex, centerX, width, false);
+                    ctx.nodeData.push(nodeDatum);
+                }
+                ctx.nodeIndex++;
+            }
+
+            // Trim excess nodes if data shrunk
+            if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodeData.length) {
+                ctx.nodeData.length = ctx.nodeIndex;
             }
         }
 
-        return context;
+        return resultContext;
     }
 
     protected override isVertical(): boolean {
@@ -435,13 +777,33 @@ export abstract class OhlcSeriesBase<
         return false;
     }
 
+    protected override resetDatumAnimation(
+        data: _ModuleSupport.CartesianAnimationData<
+            TTypes['node'],
+            OhlcNodeDatum,
+            OhlcNodeDatum,
+            OhlcSeriesBaseNodeDataContext
+        >
+    ) {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetOhlcSelectionsDirect([data.datumSelection]);
+    }
+
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, TNode>;
+=======
+        datumSelection: _ModuleSupport.Selection<TTypes['node'], OhlcNodeDatum>;
+>>>>>>> latest
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
-        return opts.datumSelection.update(data);
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to ensure we match up nodes by id.
+            return opts.datumSelection.update(data);
+        }
+        return opts.datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
     protected updateLabelNodes(_opts: {
@@ -464,14 +826,14 @@ export abstract class OhlcSeriesBase<
         datumIndex: number | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
-        itemId: 'up' | 'down' = 'up'
+        itemType: 'up' | 'down' = 'up'
     ) {
         const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
 
         let style = baseStyle;
 
@@ -480,9 +842,9 @@ export abstract class OhlcSeriesBase<
             const overrides = this.cachedDatumCallback(
                 createDatumId(createDatumId(xValue), isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(itemId, datumIndex, isHighlight, style);
+                    const params = this.makeItemStylerParams(itemType, datumIndex, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`, 'item', itemId],
+                        ['series', `${this.declarationOrder}`, 'item', itemType],
                         this.callWithContext(itemStyler, params)
                     );
                 }
@@ -497,7 +859,7 @@ export abstract class OhlcSeriesBase<
     }
 
     private makeItemStylerParams(
-        itemId: 'up' | 'down',
+        itemType: 'up' | 'down',
         datumIndex: number,
         isHighlight: boolean,
         style:
@@ -507,20 +869,19 @@ export abstract class OhlcSeriesBase<
         const { id: seriesId, properties, processedData } = this;
         const { xKey, openKey, closeKey, highKey, lowKey } = properties;
 
-        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
         const params = {
             seriesId,
             datum,
-            itemId,
+            itemType,
             xKey,
             openKey,
             closeKey,
             highKey,
             lowKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
         };
@@ -554,17 +915,19 @@ export abstract class OhlcSeriesBase<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
         const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
         const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData)[datumIndex];
         const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const itemId = closeValue >= openValue ? 'up' : 'down';
-        const item = this.properties.item[itemId];
+        const itemType = closeValue >= openValue ? 'up' : 'down';
+        const item = this.properties.item[itemType];
 
         const format = this.getItemStyle(datumIndex, false);
 
@@ -591,21 +954,25 @@ export abstract class OhlcSeriesBase<
                         label: openName,
                         fallbackLabel: openKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', openValue, datum, openKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(openValue),
                     },
                     {
                         label: highName,
                         fallbackLabel: highKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', highValue, datum, highKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(highValue),
                     },
                     {
                         label: lowName,
                         fallbackLabel: lowKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', lowValue, datum, lowKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(lowValue),
                     },
                     {
                         label: closeName,
                         fallbackLabel: closeKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', closeValue, datum, closeKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(closeValue),
                     },
                 ],
             },
@@ -613,7 +980,7 @@ export abstract class OhlcSeriesBase<
                 seriesId,
                 datum,
                 title: yName,
-                itemId,
+                itemType,
                 xKey,
                 xName,
                 yName,

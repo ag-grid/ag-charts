@@ -1,18 +1,35 @@
+import type { BoxBounds, ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
 import {
-    type AnyFn,
+    ActionOnSet,
+    type Callback,
+    type CallbackParam,
+    ChartAxisDirection,
     CleanupRegistry,
+    type DistantObject,
     EventEmitter,
+    type InternalAgColorType,
     LRUCache,
     Logger,
     type Point,
     type RequireOptional,
+    SeriesContentZIndexMap,
+    type SeriesPluginModuleInstance,
+    SeriesZIndexMap,
+    callWithContext,
     createId,
     isEmptyObject,
-    toPlainText,
+    isGradientFill,
+    isPatternFill,
+    jsonDiff,
+    mergeDefaults,
+    nearestSquared,
+    without,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLabelFormatterParams,
     AgColorType,
+    AgDrawingMode,
     AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesTooltipRendererParams,
@@ -20,6 +37,8 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
+    SeriesType,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type {
@@ -31,30 +50,22 @@ import type {
 import type { AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
-import type { SeriesOptionInstance, SeriesOptionModule } from '../../module/optionsModuleTypes';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
-import type { Node } from '../../scene/node';
+import { type Node, PointerEvents } from '../../scene/node';
 import type { Path } from '../../scene/shape/path';
-import { isGradientFill, isPatternFill } from '../../scene/util/fill';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
-import { callWithContext } from '../../util/callbackCache';
-import { jsonDiff } from '../../util/json';
-import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults, without } from '../../util/object';
+import { Transformable } from '../../scene/transformable';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
-import { ActionOnSet } from '../../util/proxy';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
 import type { DataModel, ProcessedData } from '../data/dataModel';
+import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { SeriesType } from '../mapping/types';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
+import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -67,8 +78,8 @@ import type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './seriesTypes';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
-import { type ShapeFillBBox, applyShapeStyle } from './shapeUtil';
+import { type ShapeFillBBox } from './shapeUtil';
+import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
 
 export interface SeriesDataEvent {
     readonly dataModel: DataModel<any, any, any>;
@@ -102,6 +113,12 @@ export type PickFocusInputs = {
     readonly seriesRect?: BBox;
 };
 
+export type PickViewportFocusInputs = {
+    readonly otherIndex: number;
+    readonly where: 'data-start' | 'data-end' | 'viewport-start' | 'viewport-end';
+    readonly hoverRect: Readonly<BoxBounds>;
+};
+
 export type PickFocusOutputs = {
     datumIndex: number;
     datum: SeriesNodeDatum<DatumIndexType>;
@@ -133,6 +150,8 @@ export class SeriesNodeEvent<
 {
     readonly datum: unknown;
     readonly seriesId: string;
+    readonly itemId: string | number;
+    readonly dataIdKey: string | undefined;
     defaultPrevented = false;
 
     constructor(
@@ -143,6 +162,8 @@ export class SeriesNodeEvent<
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
+        this.dataIdKey = series.data?.dataIdKey;
+        this.itemId = getItemId(nodeDatum, this.dataIdKey);
     }
 
     public preventDefault() {
@@ -164,8 +185,6 @@ export type SeriesNodeStyleContext<TStyle> = {
     [HighlightState.OtherItem]: TStyle;
 };
 
-export type SeriesModuleMap = ModuleMap<SeriesOptionModule, SeriesOptionInstance, SeriesContext>;
-
 export type SeriesDirectionKeysMapping<P extends SeriesProperties<any>> = {
     [key in ChartAxisDirection | FormatterPropertyType]?: (keyof P & string)[];
 };
@@ -186,6 +205,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     propertyNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
+    alwaysClip?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -213,6 +233,8 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
             return 'angle';
         case ChartAxisDirection.Radius:
             return 'radius';
+        default:
+            return 'x';
     }
 }
 
@@ -233,11 +255,13 @@ export abstract class Series<
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
+    static readonly className: string = 'Series';
     protected cleanup = new CleanupRegistry();
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
+    readonly alwaysClip: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
 
@@ -280,6 +304,17 @@ export abstract class Series<
         zIndex: SeriesZIndexMap.ANY_CONTENT,
     });
 
+    readonly highlightNodeGroup = this.highlightGroup.appendChild(
+        new Group({ name: `${this.internalId}-highlight-node` })
+    );
+
+    readonly highlightLabelGroup = this.highlightGroup.appendChild(
+        new Group({
+            name: `${this.internalId}-highlight-label`,
+            zIndex: SeriesContentZIndexMap.LABEL,
+        })
+    );
+
     // Error bars etc.
     readonly annotationGroup = new TranslatableGroup({
         name: `${this.internalId}-annotation`,
@@ -294,6 +329,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
+        flashOnUpdateEnabled: boolean;
         seriesRect?: BBox;
     };
 
@@ -305,11 +341,12 @@ export abstract class Series<
 
     // Flag to determine if we should recalculate node data.
     protected nodeDataRefresh = true;
+    protected processedDataUpdated = true;
 
-    protected readonly moduleMap: SeriesModuleMap = new ModuleMap();
+    protected readonly moduleMap = new ModuleMap<SeriesPluginModuleInstance>();
 
-    protected _data?: any[];
-    protected _chartData?: any[];
+    protected _data?: DataSet<any>;
+    protected _chartData?: DataSet<any>;
 
     private readonly datumCallbackCache = new Map<any, any>();
 
@@ -337,7 +374,9 @@ export abstract class Series<
     }
 
     get hasData() {
-        return this.data != null && this.data.length > 0;
+        const dataSet = this.data;
+        if (dataSet == null) return false;
+        return dataSet.netSize() > 0;
     }
 
     get tooltipEnabled() {
@@ -346,15 +385,20 @@ export abstract class Series<
 
     protected onDataChange() {
         this.nodeDataRefresh = true;
+        this.processedDataUpdated = true;
         this._pickNodeCache.clear();
     }
 
-    setOptionsData(input: unknown[]) {
+    setOptionsData(input: DataSet | undefined) {
         this._data = input;
         this.onDataChange();
     }
 
-    setChartData(input: unknown[]) {
+    public isHighlightEnabled(): boolean {
+        return this.properties.highlight.enabled;
+    }
+
+    setChartData(input: DataSet | undefined) {
         this._chartData = input;
         if (this.data === input) {
             this.onDataChange();
@@ -368,7 +412,14 @@ export abstract class Series<
             this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({
+                internalId,
+                type,
+                visible,
+                seriesGrouping: next,
+                // TODO: is there a better way to pass width through here?
+                width: 'width' in this.properties ? (this.properties.width as number) : 0,
+            });
         }
 
         this.fireEvent(new SeriesGroupingChangedEvent(this, next));
@@ -390,6 +441,7 @@ export abstract class Series<
             propertyNames = {},
             canHaveAxes = false,
             usesPlacedLabels = false,
+            alwaysClip = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -398,8 +450,13 @@ export abstract class Series<
         this.canHaveAxes = canHaveAxes;
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
+        this.alwaysClip = alwaysClip;
+        this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
-        this.cleanup.register(this.ctx?.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)));
+        this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+        );
     }
 
     attachSeries(seriesContentNode: Group, seriesNode: Group, annotationNode: Group | undefined) {
@@ -409,11 +466,11 @@ export abstract class Series<
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesContentNode: Group | undefined, seriesNode: Group, annotationNode: Group | undefined) {
-        seriesContentNode?.removeChild(this.contentGroup);
-        seriesNode.removeChild(this.highlightGroup);
-        seriesNode.removeChild(this.labelGroup);
-        annotationNode?.removeChild(this.annotationGroup);
+    detachSeries(_seriesContentNode: Group | undefined, _seriesNode: Group, _annotationNode: Group | undefined) {
+        this.contentGroup.remove();
+        this.highlightGroup.remove();
+        this.labelGroup.remove();
+        this.annotationGroup.remove();
     }
 
     declarationOrder: number = -1;
@@ -442,6 +499,31 @@ export abstract class Series<
         return false;
     }
 
+    protected hasHighlightOpacity() {
+        if (!this.properties.highlight.enabled) return false;
+        const activeHighlight = this.ctx.highlightManager.getActiveHighlight();
+        if (activeHighlight == null) return false;
+        if (activeHighlight.series?.isHighlightEnabled() === false) return false;
+
+        const { unhighlightedItem, unhighlightedSeries } = this.properties.highlight;
+        return hasDimmedOpacity(unhighlightedItem) || hasDimmedOpacity(unhighlightedSeries);
+    }
+
+    protected getDrawingMode(isHighlight?: boolean, highlightDrawingMode: AgDrawingMode = 'cutout'): AgDrawingMode {
+        if (isHighlight) {
+            return highlightDrawingMode;
+        }
+        return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
+    }
+
+    protected getAnimationDrawingModes() {
+        const drawingMode = this.getDrawingMode(false);
+        return {
+            start: { drawingMode: 'overlay' as AgDrawingMode },
+            finish: { drawingMode },
+        };
+    }
+
     readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
@@ -468,10 +550,6 @@ export abstract class Series<
         return super.hasEventListener(type);
     }
 
-    addChartEventListeners(): void {
-        return;
-    }
-
     updatedDomains() {
         // For override by subclasses.
     }
@@ -490,7 +568,7 @@ export abstract class Series<
     ): string[] {
         const direction = propertyAxisDirection(property);
         const resolvedProperty =
-            direction != null ? axisDirectionProperty(this.resolveKeyDirection(direction)) : property;
+            direction == null ? property : axisDirectionProperty(this.resolveKeyDirection(direction));
         const keys = properties?.[resolvedProperty];
         const values: string[] = [];
 
@@ -513,6 +591,10 @@ export abstract class Series<
         addValues(...keys.map((key) => (this.properties as any)[key]));
 
         return values;
+    }
+
+    getKeyAxis(_direction: ChartAxisDirection): string | undefined {
+        return undefined;
     }
 
     getKeys(direction: ChartAxisDirection): string[] {
@@ -540,20 +622,34 @@ export abstract class Series<
         return out;
     }
 
-    protected resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
+    public resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection {
         return direction;
     }
 
     // The union of the series domain ('community') and series-option domains ('enterprise').
-    getDomain(direction: ChartAxisDirection): any[] {
-        const seriesDomain: any[] = this.getSeriesDomain(direction);
+    getDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
+        const seriesDomain = this.getSeriesDomain(direction);
         const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
-        // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
+
+        if (moduleDomains.length === 0) {
+            // No module domains - preserve metadata from series domain
+            return seriesDomain;
+        }
+
+        // When merging with module domains, metadata is invalidated
+        return { domain: seriesDomain.domain.concat(moduleDomains) };
     }
 
-    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [] {
         return this.getSeriesRange(direction, visibleRange);
+    }
+
+    getMinimumRangeSeries(_range: number[]) {
+        // Not implemented here.
+    }
+
+    getMinimumRangeChart(_ranges: number[]): number {
+        return 0;
     }
 
     getZoomRangeFittingItems(
@@ -575,16 +671,24 @@ export abstract class Series<
     abstract dataCount(): number;
 
     // Get the 'community' domain (excluding any additional data from series-option modules).
-    abstract getSeriesDomain(direction: ChartAxisDirection): any[];
+    // Returns DomainWithMetadata which may include sort metadata for optimization.
+    abstract getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
 
     // Needed for auto-scaling zoom
-    abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
+    abstract getSeriesRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;
 
     // Using processed data, create data that backs visible nodes.
     abstract createNodeData(): TContext | undefined;
+
+    abstract findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
+
+    toCanvasFromMidPoint(nodeDatum: { midPoint?: Point }): Point {
+        const { x = 0, y = 0 } = nodeDatum.midPoint ?? {};
+        return Transformable.toCanvasPoint(this.contentGroup, x, y);
+    }
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
@@ -594,7 +698,16 @@ export abstract class Series<
     }
 
     private visibleMaybeChanged() {
-        this.ctx.seriesStateManager.updateSeries(this);
+        const { internalId, seriesGrouping, type, visible } = this;
+
+        this.ctx.seriesStateManager.updateSeries({
+            internalId,
+            type,
+            visible,
+            seriesGrouping,
+            // TODO: is there a better way to pass width through here?
+            width: 'width' in this.properties ? (this.properties.width as number) : 0,
+        });
     }
 
     // Produce data joins and update selection's nodes using node data.
@@ -611,12 +724,16 @@ export abstract class Series<
         return opacity;
     }
 
-    protected getHighlightState(
+    public getHighlightState(
         highlightedDatum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         legendItemValues?: string[]
     ): HighlightState {
+        if (!this.properties.highlight.enabled) {
+            return HighlightState.None;
+        }
+
         if (isHighlight) {
             return HighlightState.Item;
         }
@@ -625,13 +742,14 @@ export abstract class Series<
             return HighlightState.None;
         }
 
+        if (highlightedDatum.series.isHighlightEnabled() === false) {
+            return HighlightState.None;
+        }
+
         if (this.isSeriesHighlighted(highlightedDatum, legendItemValues)) {
             const itemHighlighted = this.isItemHighlighted(highlightedDatum, datumIndex);
             if (itemHighlighted == null) {
                 return HighlightState.Series;
-            }
-            if (itemHighlighted) {
-                return HighlightState.Series; // TODO: should be HighlightState.Item but we do that in the highlight layer
             }
             return HighlightState.OtherItem;
         }
@@ -677,12 +795,17 @@ export abstract class Series<
 
     public bringToFront() {
         return (
+            this.properties.highlight.enabled &&
             this.properties.highlight.bringToFront &&
             this.isSeriesHighlighted(this.ctx.highlightManager.getActiveHighlight())
         );
     }
 
     public isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, _legendItemValues?: string[]) {
+        if (!this.properties.highlight.enabled) {
+            return false;
+        }
+
         return highlightedDatum?.series === this;
     }
 
@@ -692,7 +815,7 @@ export abstract class Series<
         return highlightedDatum.datumIndex === datumIndex;
     }
 
-    protected getHighlightStyle(
+    public getHighlightStyle(
         isHighlight?: boolean,
         datumIndex?: TDatumIndex,
         highlightState?: HighlightState,
@@ -703,8 +826,12 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
+    protected resolveMarkerDrawingModeForState(drawingMode: AgDrawingMode, style?: AgSeriesMarkerStyle): AgDrawingMode {
+        return resolveMarkerDrawingMode(drawingMode, style);
+    }
+
     protected abstract hasItemStylers(): boolean;
-    protected filterItemStylerFillParams(fill: AgColorType | undefined) {
+    public filterItemStylerFillParams(fill: AgColorType | undefined): InternalAgColorType | undefined {
         if (isGradientFill(fill)) {
             return without(fill, ['bounds', 'colorSpace', 'gradient', 'reverse']);
         } else if (isPatternFill(fill)) {
@@ -730,8 +857,6 @@ export abstract class Series<
         const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
         if (!visible || !contentGroup.visible) return;
-        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
-        if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
@@ -779,10 +904,10 @@ export abstract class Series<
 
                 case SeriesNodePickMode.AXIS_ALIGNED: {
                     const closest =
-                        pickModeAxis != null
-                            ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
-                            : undefined;
-                    result = closest != null ? { datums: [closest.datum], distance: closest.distance } : undefined;
+                        pickModeAxis == null
+                            ? undefined
+                            : this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category');
+                    result = closest == null ? undefined : { datums: [closest.datum], distance: closest.distance };
                     break;
                 }
             }
@@ -798,8 +923,13 @@ export abstract class Series<
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
+<<<<<<< HEAD
             const datum = node.unsafeClosestDatum();
             if (datum != null && datum.missing !== true) {
+=======
+            const datum = node.closestDatum();
+            if (typeof datum === 'object' && datum != null && datum.missing !== true) {
+>>>>>>> latest
                 datums.push(datum);
             }
         }
@@ -817,8 +947,13 @@ export abstract class Series<
         items: Iterable<T>
     ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
+<<<<<<< HEAD
         const datum = match.nearest?.unsafeClosestDatum();
         if (datum != null && datum.missing !== true) {
+=======
+        const datum = match.nearest?.closestDatum();
+        if (typeof datum === 'object' && datum != null && datum.missing !== true) {
+>>>>>>> latest
             return { datum, distance: Math.sqrt(match.distanceSquared) };
         }
     }
@@ -828,6 +963,8 @@ export abstract class Series<
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
+
+    isPointInArea?(x: number, y: number): boolean;
 
     public getLabelData(): (TLabel & PointLabelDatum)[] {
         return [];
@@ -927,7 +1064,7 @@ export abstract class Series<
         return this.visible;
     }
 
-    getModuleMap(): SeriesModuleMap {
+    getModuleMap() {
         return this.moduleMap;
     }
 
@@ -941,11 +1078,24 @@ export abstract class Series<
         value: any,
         datum: any,
         key: string,
-        legendItemName: string | undefined
+        legendItemName: string | undefined,
+        allowNull?: boolean
     ) {
         const { id: seriesId, properties } = this;
 
-        return axis.formatDatum(properties, value, source, seriesId, legendItemName, datum, key);
+        return axis.formatDatum(
+            properties,
+            value,
+            source,
+            seriesId,
+            legendItemName,
+            datum,
+            key,
+            undefined,
+            undefined,
+            undefined,
+            allowNull
+        );
     }
 
     protected getLabelText<TParams extends object>(
@@ -955,9 +1105,10 @@ export abstract class Series<
         property: FormatterPropertyType,
         domain: any[],
         label: AxisFormattableLabel<AgChartLabelFormatterParams<any> & RequireOptional<TParams>>,
-        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>
-    ): string {
-        if (value == null) return '';
+        baseParams: RequireOptional<TParams> & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
+        allowNullValue: boolean = false
+    ): TextOrSegments {
+        if (value == null && !allowNullValue) return '';
 
         const { axes, canHaveAxes, ctx, id: seriesId, properties } = this;
         const source = 'series-label';
@@ -968,7 +1119,7 @@ export abstract class Series<
         };
 
         const direction = canHaveAxes ? propertyAxisDirection(property) : undefined;
-        const axis = direction != null ? axes[this.resolveKeyDirection(direction)] : undefined;
+        const axis = direction == null ? undefined : axes[this.resolveKeyDirection(direction)];
         if (axis != null) {
             return axis.formatDatum(
                 properties,
@@ -980,7 +1131,8 @@ export abstract class Series<
                 key,
                 domain,
                 label,
-                params
+                params,
+                allowNullValue
             );
         }
 
@@ -988,11 +1140,9 @@ export abstract class Series<
         const formatInContext = this.callWithContext.bind(this);
 
         const format = (formatParams: FormatterParams<any>) =>
-            toPlainText(
-                label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
-                    formatManager.format(formatInContext, formatParams) ??
-                    String(value)
-            );
+            label.formatValue(formatInContext, formatParams.type, formatParams.value, params) ??
+            formatManager.format(formatInContext, formatParams) ??
+            (value == null ? '' : String(value));
 
         const boundSeries = this.getFormatterContext(property);
         switch (property) {
@@ -1012,6 +1162,7 @@ export abstract class Series<
                     domain,
                     boundSeries,
                     fractionDigits,
+                    visibleDomain: undefined,
                 });
             }
 
@@ -1046,8 +1197,8 @@ export abstract class Series<
             highlightState?: HighlightState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
-            resolveItemStylerMarkerPath?: boolean;
-            resolveStylerMarkerPath?: 'marker' | 'marker-only';
+            resolveMarkerSubPath?: string[];
+            resolveStyler?: boolean;
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1057,15 +1208,12 @@ export abstract class Series<
             highlightState,
             isHighlight = false,
             checkForHighlight = true,
-            resolveItemStylerMarkerPath = true,
-            resolveStylerMarkerPath,
+            resolveMarkerSubPath = ['marker'],
+            resolveStyler = false,
         } = opts ?? {};
+        const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
 
-        if (resolveStylerMarkerPath) {
-            const resolvePath =
-                resolveStylerMarkerPath === 'marker'
-                    ? ['series', `${this.declarationOrder}`, 'marker']
-                    : ['series', `${this.declarationOrder}`];
+        if (resolveStyler) {
             const resolveOpt = { permissivePath: true };
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle, resolveOpt);
             if (resolved) {
@@ -1090,13 +1238,9 @@ export abstract class Series<
                 ...markerStyle,
                 fill,
                 ...params,
-                highlighted: isHighlight,
                 highlightState: highlightStateString,
                 datum,
             });
-            const resolvePath = resolveItemStylerMarkerPath
-                ? ['series', `${this.declarationOrder}`, 'marker']
-                : ['series', `${this.declarationOrder}`];
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
 
             markerStyle = mergeDefaults(resolved, markerStyle);
@@ -1113,9 +1257,9 @@ export abstract class Series<
         { applyTranslation = true, selected = true } = {}
     ) {
         const { shape, size = 0 } = style;
-        const visible = this.visible && size > 0 && point && !isNaN(point.x) && !isNaN(point.y);
+        const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
-        applyShapeStyle(markerNode, style, fillBBox);
+        markerNode.setStyleProperties(style, fillBBox);
 
         if (applyTranslation) {
             markerNode.setProperties({
@@ -1157,11 +1301,14 @@ export abstract class Series<
     protected _nodeDataDependencies?: NodeDataDependencies;
 
     public get nodeDataDependencies(): NodeDataDependencies {
-        return this._nodeDataDependencies ?? { seriesRectWidth: NaN, seriesRectHeight: NaN };
+        return this._nodeDataDependencies ?? { seriesRectWidth: Number.NaN, seriesRectHeight: Number.NaN };
     }
 
     protected checkResize(newSeriesRect?: BBox) {
-        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? { width: NaN, height: NaN };
+        const { width: seriesRectWidth, height: seriesRectHeight } = newSeriesRect ?? {
+            width: Number.NaN,
+            height: Number.NaN,
+        };
         const newNodeDataDependencies = newSeriesRect ? { seriesRectWidth, seriesRectHeight } : undefined;
         const resize = jsonDiff(this.nodeDataDependencies, newNodeDataDependencies) != null;
         if (resize) {
@@ -1173,6 +1320,10 @@ export abstract class Series<
     }
 
     public pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
+        return undefined;
+    }
+
+    public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
     }
 
@@ -1194,12 +1345,12 @@ export abstract class Series<
         }
     }
 
-    public cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
-        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, ...params);
+    public cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
+        return this.ctx.callbackCache.call([this.properties, this.ctx.chartService], fn, params);
     }
 
-    public callWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> {
-        return callWithContext([this.properties, this.ctx.chartService], fn, ...params);
+    public callWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> {
+        return callWithContext([this.properties, this.ctx.chartService], fn, params);
     }
 
     protected formatTooltipWithContext<P extends AgSeriesTooltipRendererParams<any>, Tooltip extends SeriesTooltip<P>>(
@@ -1217,5 +1368,9 @@ export abstract class Series<
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined {
         return;
+    }
+
+    needsDataModelDiff(): boolean {
+        return !this.ctx.animationManager.isSkipped() || !!this.chart?.flashOnUpdateEnabled;
     }
 }

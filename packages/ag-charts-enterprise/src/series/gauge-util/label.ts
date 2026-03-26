@@ -1,11 +1,12 @@
-import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport } from 'ag-charts-community';
+import type { AgChartLabelFormatterParams, RichFormatter, TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { isArray } from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 
 interface GaugeLabelDatum {
     value: number;
-    text?: string;
-    formatter?: Formatter<AgChartLabelFormatterParams<any>>;
+    text?: TextOrSegments;
+    formatter?: RichFormatter<AgChartLabelFormatterParams<any>>;
 }
 
 interface Ctx {
@@ -21,8 +22,8 @@ export function formatLabel(value: number | undefined, scale: { min: number; max
     if (value == null) return '';
 
     const { min, max } = scale;
-    const minLog10 = min !== 0 ? Math.ceil(Math.log10(Math.abs(min))) : 0;
-    const maxLog10 = max !== 0 ? Math.ceil(Math.log10(Math.abs(max))) : 0;
+    const minLog10 = min === 0 ? 0 : Math.ceil(Math.log10(Math.abs(min)));
+    const maxLog10 = max === 0 ? 0 : Math.ceil(Math.log10(Math.abs(max)));
     const dp = Math.max(2 - Math.max(minLog10, maxLog10), 0);
     return value.toFixed(dp);
 }
@@ -31,9 +32,9 @@ export function getLabelText(seriesId: string, ctx: Ctx, datum: GaugeLabelDatum,
     if (datum.text != null) return datum.text;
 
     const value = valueOverride ?? datum.value;
-    let labelFormat: string | undefined;
+    let labelFormat: TextOrSegments | undefined;
     if (datum?.formatter != null) {
         labelFormat = formatWithContext(ctx, datum.formatter, { seriesId, datum: undefined, value });
     }
-    if (labelFormat != null) return String(labelFormat);
+    return labelFormat == null || isArray(labelFormat) ? labelFormat : String(labelFormat);
 }

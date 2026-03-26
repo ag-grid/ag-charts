@@ -18,4 +18,12 @@ export class LicenseManager {
     public getWatermarkMessage() {
         return '';
     }
+
+    public getWatermarkForegroundConfig() {
+        return undefined;
+    }
+
+    public getWatermarkForegroundConfigForBrowser() {
+        return undefined;
+    }
 }

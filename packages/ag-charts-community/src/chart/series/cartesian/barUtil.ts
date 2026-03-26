@@ -1,15 +1,14 @@
-import { isNegative } from 'ag-charts-core';
+import type { Scale } from 'ag-charts-core';
+import { ChartAxisDirection, isNegative } from 'ag-charts-core';
 
 import type { ApplyFn, FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
-import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DatumIndexType, ISeries } from '../seriesTypes';
 
 export function checkCrisp(
@@ -63,7 +62,7 @@ export function collapsedStartingBarPosition(
         let height = isVertical ? 0 : datum.height;
         const { opacity = 1 } = datum;
 
-        if (prevDatum && (isNaN(x) || isNaN(y))) {
+        if (prevDatum && (Number.isNaN(x) || Number.isNaN(y))) {
             // Fallback
             ({ x, y } = prevDatum);
             width = isVertical ? prevDatum.width : 0;
@@ -96,15 +95,20 @@ export function midpointStartingBarPosition(
 ): InitialPosition<AnimatableBarDatum> {
     return {
         isVertical,
-        calculate: (datum) => {
-            return {
-                x: isVertical ? datum.x : datum.x + datum.width / 2,
-                y: isVertical ? datum.y + datum.height / 2 : datum.y,
-                width: isVertical ? datum.width : 0,
-                height: isVertical ? 0 : datum.height,
-                clipBBox: datum.clipBBox,
-                opacity: datum.opacity ?? 1,
-            };
+        calculate: (datum, prevDatum?) => {
+            let x = isVertical ? datum.x : datum.x + datum.width / 2;
+            let y = isVertical ? datum.y + datum.height / 2 : datum.y;
+            let width = isVertical ? datum.width : 0;
+            let height = isVertical ? 0 : datum.height;
+
+            if (prevDatum && (Number.isNaN(x) || Number.isNaN(y))) {
+                x = isVertical ? prevDatum.x : prevDatum.x + prevDatum.width / 2;
+                y = isVertical ? prevDatum.y + prevDatum.height / 2 : prevDatum.y;
+                width = isVertical ? prevDatum.width : 0;
+                height = isVertical ? 0 : prevDatum.height;
+            }
+
+            return { x, y, width, height, clipBBox: datum.clipBBox, opacity: datum.opacity ?? 1 };
         },
         mode,
     };
@@ -122,11 +126,20 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
+<<<<<<< HEAD
 export function prepareBarAnimationFunctions(
     initPos: InitialPosition<AnimatableBarDatum>,
     unknownStatus: NodeUpdateState
 ) {
     const isRemoved = (datum?: AnimatableBarDatum) => datum == null || isNaN(datum.x) || isNaN(datum.y);
+=======
+
+export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
+    initPos: InitialPosition<T>,
+    unknownStatus: NodeUpdateState
+) {
+    const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
+>>>>>>> latest
 
     const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
@@ -183,7 +196,8 @@ export function prepareBarAnimationFunctions(
         }
     };
     const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
-        rect.setProperties(datum);
+        // Use aggressive bypass method that writes directly to backing fields
+        rect.resetAnimationProperties(datum.x, datum.y, datum.width, datum.height, datum.opacity ?? 1, datum.clipBBox);
         rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);
     };
 
@@ -214,6 +228,38 @@ export function resetBarSelectionsFn(
     { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum
 ) {
     return { x, y, width, height, clipBBox, opacity, crisp: rect.datum?.crisp ?? false };
+}
+
+/**
+ * High-performance direct reset for bar selections.
+ * Bypasses resetMotion callback pattern and decorator system entirely.
+ * Uses batchedUpdate to consolidate markDirty calls per selection.
+ */
+export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?: boolean }>(
+    selections: { nodes(): Iterable<Rect<D>>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetBarNodes() {
+            for (const node of nodes) {
+                const datum = node.datum;
+                if (datum == null) continue;
+
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                node.resetAnimationProperties(
+                    datum.x,
+                    datum.y,
+                    datum.width,
+                    datum.height,
+                    datum.opacity ?? 1,
+                    datum.clipBBox
+                );
+                node.crisp = datum.crisp ?? false;
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
 }
 
 export function computeBarFocusBounds(

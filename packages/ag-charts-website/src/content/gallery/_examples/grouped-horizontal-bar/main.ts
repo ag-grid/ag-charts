@@ -1,7 +1,24 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -50,10 +67,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },
@@ -100,7 +116,6 @@ const options: AgChartOptions = {
                     range: ['Oct', 'Oct'],
                     strokeWidth: 0,
                     fillOpacity: 0,
-
                     label: {
                         text: '→ OCT',
                         position: 'inside-right',
@@ -128,9 +143,8 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             min: -300,
             max: 500,
@@ -153,7 +167,7 @@ const options: AgChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

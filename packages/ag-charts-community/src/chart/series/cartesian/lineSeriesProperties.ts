@@ -1,3 +1,4 @@
+import { InterpolationProperties, Property } from 'ag-charts-core';
 import type {
     AgLineSeriesLabelFormatterParams,
     AgLineSeriesMarkerItemStylerParams,
@@ -8,12 +9,10 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { InterpolationProperties } from './interpolationProperties';
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Property
@@ -29,7 +28,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     yName?: string;
 
     @Property
-    yFilterKey: string | undefined;
+    selectedKey: string | undefined;
 
     @Property
     stackGroup?: string;

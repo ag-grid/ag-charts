@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, BandHighlightModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -45,10 +55,9 @@ const options: AgChartOptions = {
             strokeWidth: 2,
         },
     })),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             line: {
                 enabled: false,
             },
@@ -56,9 +65,8 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Time',
             },
@@ -93,7 +101,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         y(params) {
             const value = params.value as number;

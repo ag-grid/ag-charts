@@ -1,20 +1,24 @@
-import { Logger, type Point, arraysEqual, clamp } from 'ag-charts-core';
-import type { FillOptions, StrokeOptions } from 'ag-charts-types';
+import type { ChartAnimationPhase } from 'ag-charts-core';
+import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
+import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
+import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import { StateMachine } from '../../../util/stateMachine';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import type { ChartAxisDirection } from '../../chartAxisDirection';
-import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
+import { createDatumId } from '../../data/processors';
+import { type ChartLegendType, type GradientLegendDatum, buildGradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
-import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
+import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
+import {
+    HierarchyHighlightState,
+    type HierarchySeriesProperties,
+    toHierarchyHighlightString,
+} from './hierarchySeriesProperties';
 
 type Mutable<T> = {
     -readonly [k in keyof T]: T[k];
@@ -47,6 +51,7 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
 
     constructor(
         public readonly series: ISeries<any, any, any>,
+        public readonly itemId: ItemId,
         public readonly datumIndex: number[],
         public readonly datum: TDatum | undefined,
         public readonly sizeValue: number,
@@ -64,18 +69,31 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
         return this.children.length > 0;
     }
 
-    walk(callback: (node: This) => void, order = HierarchyNode.Walk.PreOrder) {
+    walk(callback: (node: This | typeof this) => void, order = HierarchyNode.Walk.PreOrder) {
         if (order === HierarchyNode.Walk.PreOrder) {
-            callback(this as any as This);
+            callback(this);
         }
 
-        this.children.forEach((child) => {
+        for (const child of this.children) {
             child.walk(callback, order);
-        });
+        }
 
         if (order === HierarchyNode.Walk.PostOrder) {
-            callback(this as any as This);
+            callback(this);
         }
+    }
+
+    find(predicate: (node: This | typeof this) => boolean): This | typeof this | undefined {
+        if (predicate(this)) {
+            return this;
+        }
+        for (const child of this.children) {
+            const childResult = child.find(predicate);
+            if (childResult != undefined) {
+                return childResult;
+            }
+        }
+        return undefined;
     }
 
     *[Symbol.iterator](): Iterator<This> {
@@ -158,6 +176,10 @@ export abstract class HierarchySeries<
     }
 
     override processData() {
+        // Commit pending transactions before reading data. The HierarchyDataSet subclass
+        // handles nested item lookups via childrenKey.
+        this.data?.commitPendingTransactions();
+
         const { NodeClass } = this;
         const { childrenKey, sizeKey, colorKey, colorRange } = this.properties;
 
@@ -166,11 +188,11 @@ export abstract class HierarchySeries<
         let maxColor = -Infinity;
 
         const createNode = (datum: any, indexPath: number[], parent: TNodeClass): TNodeClass => {
-            const depth = parent.depth != null ? parent.depth + 1 : 0;
-            const children = childrenKey != null ? datum[childrenKey] : undefined;
+            const depth = parent.depth == null ? 0 : parent.depth + 1;
+            const children = childrenKey == null ? undefined : datum[childrenKey];
             const isLeaf = children == null || children.length === 0;
 
-            let sizeValue = sizeKey != null ? datum[sizeKey] : undefined;
+            let sizeValue = sizeKey == null ? undefined : datum[sizeKey];
             if (Number.isFinite(sizeValue)) {
                 sizeValue = Math.max(sizeValue, 0);
             } else {
@@ -180,7 +202,7 @@ export abstract class HierarchySeries<
             const sumSize = sizeValue;
             maxDepth = Math.max(maxDepth, depth);
 
-            const colorValue = colorKey != null ? datum[colorKey] : undefined;
+            const colorValue = colorKey == null ? undefined : datum[colorKey];
             if (typeof colorValue === 'number') {
                 minColor = Math.min(minColor, colorValue);
                 maxColor = Math.max(maxColor, colorValue);
@@ -188,31 +210,44 @@ export abstract class HierarchySeries<
 
             const style = this.getItemStyle({ datumIndex: indexPath, datum, depth, colorValue }, isLeaf, false);
             return appendChildren(
-                new NodeClass(this, indexPath, datum, sizeValue, colorValue, sumSize, depth, parent, [], style),
+                new NodeClass(
+                    this,
+                    createDatumId(indexPath.join(';')),
+                    indexPath,
+                    datum,
+                    sizeValue,
+                    colorValue,
+                    sumSize,
+                    depth,
+                    parent,
+                    [],
+                    style
+                ),
                 children
             );
         };
 
         const appendChildren = (node: Mutable<TNodeClass>, data: any[] | undefined): TNodeClass => {
             const { datumIndex } = node;
-            data?.forEach((datum: any, childIndex: number) => {
-                const child = createNode(datum, datumIndex.concat(childIndex), node);
-                node.children.push(child);
-                node.sumSize += child.sumSize;
-            });
+            if (data) {
+                for (const [childIndex, datum] of data.entries()) {
+                    const child = createNode(datum, datumIndex.concat(childIndex), node);
+                    node.children.push(child);
+                    node.sumSize += child.sumSize;
+                }
+            }
             return node;
         };
 
         const rootNode = appendChildren(
-            new NodeClass(this, [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
-            this.data
+            new NodeClass(this, 'root', [], undefined, 0, undefined, 0, undefined, undefined, [], {}),
+            this.data?.data
         );
 
         const colorDomain = [minColor, maxColor];
 
-        this.colorScale.domain = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        this.colorScale.range = colorRange ?? ['black'];
-        this.colorScale.update();
+        const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
+        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, colorRange ?? ['black']);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
@@ -277,38 +312,43 @@ export abstract class HierarchySeries<
         }
     }
 
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TNodeClass | undefined {
+        return this.rootNode?.find((n) => n.itemId === itemId);
+    }
+
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        const { colorKey, colorRange } = this.properties;
+        const { colorKey, colorRange, colorScale: colorScaleProps } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
         const {
             id: seriesId,
             ctx: { legendManager },
             visible,
         } = this;
 
-        return legendType === 'gradient' && colorKey != null && colorRange != null
-            ? [
-                  {
-                      legendType: 'gradient',
-                      enabled: visible && legendManager.getItemEnabled({ seriesId }),
-                      seriesId,
-                      series: this.getFormatterContext('color'),
-                      colorRange,
-                      colorDomain: this.colorDomain,
-                  },
-              ]
-            : [];
+        if (legendType !== 'gradient' || colorKey == null || (colorRange == null && !hasColorScale)) {
+            return [];
+        }
+
+        return [
+            buildGradientLegendDatum(
+                this.colorScale,
+                seriesId,
+                visible && legendManager.getItemEnabled({ seriesId }),
+                this.getFormatterContext('color')
+            ),
+        ];
     }
 
     protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {
@@ -351,7 +391,7 @@ export abstract class HierarchySeries<
         } else if (depthDelta === 0 && childDelta !== 0) {
             const maxIndex = currentNode.parent!.children.length - 1;
             path = path.slice();
-            path[path.length - 1] = clamp(0, path[path.length - 1] + childDelta, maxIndex);
+            path[path.length - 1] = clamp(0, path.at(-1)! + childDelta, maxIndex);
         }
 
         const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);
@@ -386,6 +426,85 @@ export abstract class HierarchySeries<
 
     datumIndexForCategoryValue(_categoryValue: any): number[] | undefined {
         return;
+    }
+
+    protected getActiveHighlightNode(): TNodeClass | undefined {
+        if (!this.properties.highlight.enabled) {
+            return undefined;
+        }
+
+        const highlightedNode = this.ctx.highlightManager?.getActiveHighlight() as TNodeClass | undefined;
+        if (highlightedNode?.series !== this) {
+            return undefined;
+        }
+        return highlightedNode;
+    }
+
+    protected getHierarchyHighlightState(
+        isHighlight: boolean,
+        highlightedNode: TNodeClass | undefined,
+        nodeDatum: Pick<TNodeClass, 'datumIndex'>
+    ): HierarchyHighlightState {
+        if (isHighlight) {
+            return HierarchyHighlightState.Item;
+        }
+
+        if (highlightedNode == null) {
+            return HierarchyHighlightState.None;
+        }
+
+        const nodeRoot = nodeDatum.datumIndex?.[0];
+        const highlightRoot = highlightedNode.datumIndex?.[0];
+
+        if (nodeRoot == null || highlightRoot == null) {
+            return HierarchyHighlightState.None;
+        }
+
+        return nodeRoot === highlightRoot ? HierarchyHighlightState.Branch : HierarchyHighlightState.OtherBranch;
+    }
+
+    protected getHierarchyHighlightStyles<TStyle extends Partial<FillOptions & StrokeOptions & { opacity?: number }>>(
+        highlightState: HierarchyHighlightState,
+        highlight: {
+            highlightedItem?: TStyle;
+            unhighlightedItem?: TStyle;
+            highlightedBranch?: TStyle;
+            unhighlightedBranch?: TStyle;
+        }
+    ): TStyle | undefined {
+        switch (highlightState) {
+            case HierarchyHighlightState.Item:
+                return mergeDefaults<TStyle>(highlight.highlightedItem, highlight.highlightedBranch);
+            case HierarchyHighlightState.Branch:
+                return mergeDefaults<TStyle>(highlight.unhighlightedItem, highlight.highlightedBranch);
+            case HierarchyHighlightState.OtherBranch:
+                return highlight.unhighlightedBranch;
+            default:
+                return undefined;
+        }
+    }
+
+    public override getHighlightStateString(
+        _datum: HighlightNodeDatum | undefined,
+        isHighlight?: boolean,
+        datumIndex?: number[],
+        _legendItemValues?: string[]
+    ): ReturnType<typeof toHierarchyHighlightString> {
+        if (!this.properties.highlight.enabled) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+        if (datumIndex == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+
+        const nodeDatum = datumIndex.reduce((node, idx) => node?.children[idx], this.rootNode);
+        const highlightedNode = this.getActiveHighlightNode();
+        if (nodeDatum == null) {
+            return toHierarchyHighlightString(HierarchyHighlightState.None);
+        }
+
+        const state = this.getHierarchyHighlightState(isHighlight ?? false, highlightedNode, nodeDatum);
+        return toHierarchyHighlightString(state);
     }
 
     protected abstract getItemStyle(

@@ -48,10 +48,12 @@ This event contains:
 
 {% chartExampleRunner title="Series Visibility Changed" name="series-visibility-change" type="generated" /%}
 
-```js
-listeners: {
-    seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
-        console.log(`seriesId: ${seriesId}, visible: ${visible}`);
+```js format="snippet"
+{
+    listeners: {
+        seriesVisibilityChange: ({ seriesId, visible }) => {
+            console.log(`seriesId: ${seriesId}, visible: ${visible}`);
+        },
     },
 }
 ```
@@ -61,7 +63,42 @@ In this example:
 -   When a legend item is clicked, the visibility change is prevented and a counter decreases.
     This is done by using `preventDefault` on the [legendItemClick](#legenditemclick-and-legenditemdoubleclick) event.
 -   When the counter hits zero, the series toggle is allowed to occur.
--   The series visibility change is fired, and with the relevant information shown in the console.
+-   The series visibility change is fired, with the relevant information shown in the console.
+
+### activeChange
+
+This event is fired when the [active](./api-state/#active) state is changed.
+This occurs when a user interaction (mouse, touch, keyboard) on a series node or legend causes a highlight or tooltip change.
+
+The event contains:
+
+-   `activeItem` - the item that is now active, or `undefined` if no item is active.
+-   The `activeItem` contains:
+    -   `type` - the type of the active item, either `'series-node'` or `'legend'`.
+    -   `seriesId` and `itemId` identifying the active item.
+-   `datum` - the data from the chart data array for the active item.
+-   `source` - the source of the event, either `'user-interaction'` or `'state-change'`.
+
+{% chartExampleRunner title="Active Change Event" name="active-change-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        activeChange: (ev) => {
+            if (ev.activeItem === undefined) {
+                console.log(`[inactive], event:`, ev);
+            } else {
+                const { type: t, seriesId: s, itemId: i } = ev.activeItem;
+                console.log(`[${t}], seriesId: ${s}, itemId: ${i}, event:`, ev);
+            }
+        },
+    },
+}
+```
+
+In this example:
+
+-   Whenever a user interaction (mouse, touch, keyboard) on the series-area or legend changes the highlight state, a message is shown in the console.
 
 ### annotations
 
@@ -133,11 +170,13 @@ These events contain:
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
 
-```js
-legend: {
-    listeners: {
-        legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
-            console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
+```js format="snippet"
+{
+    legend: {
+        listeners: {
+            legendItemClick: ({ seriesId, itemId }) => {
+                console.log(`seriesId: ${seriesId}, itemId: ${itemId}`);
+            },
         },
     },
 }

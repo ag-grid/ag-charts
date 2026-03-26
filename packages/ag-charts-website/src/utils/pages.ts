@@ -140,7 +140,7 @@ export const getDebugPageUrls = async ({
         })
         .flat();
 
-    return Promise.all(pagePathPromises);
+    return pagePathPromises;
 };
 
 // TODO: Figure out published packages

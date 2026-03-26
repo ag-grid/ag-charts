@@ -1,13 +1,16 @@
-import { CleanupRegistry, createElementId, getDocument, setAttribute } from 'ag-charts-core';
-
 import {
+    CleanupRegistry,
     addEscapeEventListener,
     addMouseCloseListener,
     addOverrideFocusVisibleEventListener,
     addTouchCloseListener,
+    createElementId,
     getLastFocus,
     hasNoModifiers,
-} from '../util/keynavUtil';
+    isDirectionRtl,
+    setAttribute,
+} from 'ag-charts-core';
+
 import { CollapseMode } from './collapseMode';
 import type { CollapseOpts, ExpandOpts, ExpandableWidget } from './expandableWidget';
 import { MenuItemWidget } from './menuItemWidget';
@@ -23,8 +26,6 @@ interface ExpansionScope {
     close: () => void;
 }
 
-const closeKeys = ['Escape', 'ArrowLeft'] as const;
-
 export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> implements ExpandableWidget<HTMLDivElement> {
     private expansionScope?: ExpansionScope;
 
@@ -37,10 +38,14 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
     }
 
     public addSeparator(): Element {
-        const sep = getDocument().createElement('div');
+        const sep = this.elem.ownerDocument.createElement('div');
         setAttribute(sep, 'role', 'separator');
         this.elem.appendChild(sep);
         return sep;
+    }
+
+    public toggleChildEnabledByIndex(index: number, enabled: boolean): void {
+        this.children.at(index)?.setEnabled(enabled);
     }
 
     protected override onChildAdded(child: MenuItemWidget): void {
@@ -75,8 +80,9 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
             subMenuButton.expandControlled();
         };
 
-        const arrowRightOpener = (ev: KeyboardWidgetEvent) => {
-            if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === 'ArrowRight') {
+        const arrowOpener = (ev: KeyboardWidgetEvent) => {
+            const openKey = isDirectionRtl(this.elem) ? 'ArrowLeft' : 'ArrowRight';
+            if (hasNoModifiers(ev.sourceEvent) && ev.sourceEvent.code === openKey) {
                 this.collapseExpandedSubMenu(subMenu);
                 subMenuButton.expandControlled();
             }
@@ -86,7 +92,7 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         subMenuButton.setAriaHasPopup('menu');
         subMenuButton.addListener('click', expand);
         subMenuButton.addListener('mouseenter', expand);
-        subMenuButton.addListener('keydown', arrowRightOpener);
+        subMenuButton.addListener('keydown', arrowOpener);
         this.addChild(subMenuButton);
         return { subMenuButton, subMenu };
     }
@@ -107,6 +113,10 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         expansionScope.expandedSubMenu = newSubMenu;
     }
 
+    private getCloseKeys(): readonly string[] {
+        return isDirectionRtl(this.elem) ? ['Escape', 'ArrowRight'] : ['Escape', 'ArrowLeft'];
+    }
+
     expand(opts: ExpandOpts): void {
         if (this.expansionScope != null) return; // already open
 
@@ -124,7 +134,9 @@ export class MenuWidget extends RovingTabContainerWidget<MenuItemWidget> impleme
         scope.removers.register(
             addMouseCloseListener(this.elem, scope.abort),
             addTouchCloseListener(this.elem, scope.abort),
-            ...this.children.map((child) => addEscapeEventListener(child.getElement(), scope.close, closeKeys)),
+            ...this.children.map((child) =>
+                addEscapeEventListener(child.getElement(), scope.close, () => this.getCloseKeys())
+            ),
             opts?.overrideFocusVisible &&
                 addOverrideFocusVisibleEventListener(this.elem, buttons, opts.overrideFocusVisible)
         );

@@ -1,11 +1,19 @@
-import { Logger, isArray } from 'ag-charts-core';
-import type { AgInitialStateLegendOptions } from 'ag-charts-types';
+import type { MementoOriginator } from 'ag-charts-core';
+import { type AreExact, Logger, isArray } from 'ag-charts-core';
+import type { AgInitialStateLegendOptions as DefectAgInitialStateLegendOptions } from 'ag-charts-types';
 
-import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
 import type { CategoryLegendDatum } from './legendDatum';
 
+// FIXME: AG-16068 locally patch API AgInitialStateLegendOptions, but force compilation error if&when
+// AgInitialStateLegendOptions is publicly patched.
+type AgInitialStateLegendOptions =
+    AreExact<DefectAgInitialStateLegendOptions['itemId'], string | undefined> extends false
+        ? never
+        : Omit<DefectAgInitialStateLegendOptions, 'itemId'> & { itemId?: string | number };
+
 type LegendDataMap = Map<string, CategoryLegendDatum[]>;
+
 type LegendDataMemento = AgInitialStateLegendOptions[];
 
 export class LegendManager implements MementoOriginator<LegendDataMemento> {
@@ -31,15 +39,17 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: LegendDataMemento | undefined) {
-        memento?.forEach((datum) => {
-            const { seriesId, data } = this.getRestoredData(datum) ?? {};
+        if (memento) {
+            for (const datum of memento) {
+                const { seriesId, data } = this.getRestoredData(datum) ?? {};
 
-            if (!seriesId || !data) {
-                return;
+                if (!seriesId || !data) {
+                    continue;
+                }
+
+                this.updateData(seriesId, data);
             }
-
-            this.updateData(seriesId, data);
-        });
+        }
 
         this.update();
     }
@@ -102,6 +112,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public updateData(seriesId: string, data: CategoryLegendDatum[] = []) {
+        this.eventsHub.emit('legend:change-partial', { seriesId, legendData: data });
         this.legendDataMap.set(seriesId, data);
     }
 
@@ -111,13 +122,13 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
 
     public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
         if (legendItemName) {
-            this.getData().forEach((datum) => {
+            for (const datum of this.getData()) {
                 const newData = (this.legendDataMap.get(datum.seriesId) ?? []).map((d) =>
                     d.legendItemName === legendItemName ? { ...d, enabled } : d
                 );
 
                 this.updateData(datum.seriesId, newData);
-            });
+            }
             return;
         }
 
@@ -154,7 +165,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         }
     }
 
-    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {
+    public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: string | number } = {}) {
         return this.getDatum({ seriesId, itemId })?.enabled ?? true;
     }
 }

@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Vec2 } from 'ag-charts-core';
 import type { StrokeOptions } from 'ag-charts-types';
-
-const { Vec2 } = _ModuleSupport;
 
 export abstract class CapScene extends _ModuleSupport.Group {
     abstract type: string;

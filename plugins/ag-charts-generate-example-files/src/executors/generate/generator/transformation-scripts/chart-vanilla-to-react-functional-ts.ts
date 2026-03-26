@@ -49,11 +49,14 @@ function getImports(componentFilenames: string[], bindings: any, styleFileNames:
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
     if (bindings.usesChartApi) {
-        chartImports.push({
-            module: bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'",
-            isNamespaced: false,
-            imports: ['AgChartsInstance'],
-        });
+        const packageName = bindings.chartSettings.enterprise ? "'ag-charts-enterprise'" : "'ag-charts-community'";
+        const existingImport = chartImports.find((i) => i.module === packageName);
+
+        if (existingImport) {
+            existingImport.imports = Array.from(new Set(existingImport.imports).add('AgChartsInstance'));
+        } else {
+            chartImports.push({ module: packageName, isNamespaced: false, imports: ['AgChartsInstance'] });
+        }
     }
 
     if (chartImports.length > 0) {
@@ -233,6 +236,13 @@ export async function vanillaToReactFunctionalTs(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current!$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current!.$1(');
         indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current!');
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace `chart` references but not in variable declarations or strings
+        indexFile = indexFile.replace(
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
+            (match) => (match === 'chart' ? 'chartRef.current!' : match)
+        );
     }
 
     return indexFile;

@@ -1,18 +1,25 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    BaseProperties,
+    ChartAxisDirection,
+    Property,
+    ZIndexMap,
+    cachedTextMeasurer,
+    calcLineHeight,
+} from 'ag-charts-core';
 
-const { ZIndexMap, LayoutElement, Property, BaseProperties, valueProperty, Group, Label, Rect, Text } = _ModuleSupport;
-
+const { LayoutElement, Group, Label, Rect, Text } = _ModuleSupport;
 enum LabelConfiguration {
-    Open = 1 << 1,
-    Close = 1 << 2,
-    Low = 1 << 3,
-    High = 1 << 4,
-    Volume = 1 << 5,
-    UnlabelledClose = 1 << 6,
-    NeutralClose = 1 << 7,
-    NeutralHigh = 1 << 8,
-    NeutralLow = 1 << 9,
+    Open = 2, // 1 << 1
+    Close = 4, // 1 << 2
+    Low = 8, // 1 << 3
+    High = 16, // 1 << 4
+    Volume = 32, // 1 << 5
+    UnlabelledClose = 64, // 1 << 6
+    NeutralClose = 128, // 1 << 7
+    NeutralHigh = 256, // 1 << 8
+    NeutralLow = 512, // 1 << 9
 }
 
 const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = {
@@ -57,10 +64,7 @@ class StatusBarBackground extends BaseProperties {
     fillOpacity: number = 1;
 }
 
-export class StatusBar
-    extends _ModuleSupport.BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance, _ModuleSupport.ScopeProvider
-{
+export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.ScopeProvider {
     @Property
     enabled: boolean = false;
 
@@ -101,9 +105,9 @@ export class StatusBar
     layoutStyle: 'block' | 'overlay' = 'block';
 
     readonly id = 'status-bar';
-    data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
+    private chartData?: _ModuleSupport.DataSet<any>;
     private readonly layer = new Group({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
@@ -247,46 +251,65 @@ export class StatusBar
             ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('highlight:change', () => this.updateHighlight())
+            ctx.eventsHub.on('highlight:change', () => this.updateHighlight()),
+            ctx.eventsHub.on('data:update', (data) => {
+                this.chartData = data;
+            })
         );
     }
 
-    async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.enabled || this.data == null) return;
+    private updateDomainsFromSeries() {
+        if (!this.enabled) return;
 
-        const props: _ModuleSupport.DatumPropertyDefinition<string>[] = [];
-        for (const label of this.labels) {
-            const { id, key } = label;
-            const datumKey = this[key];
-            if (datumKey == null) {
-                label.domain = undefined;
+        const series = this.ctx.chartService.series;
+        if (series.length === 0) return;
+
+        // Find the main price series (candlestick, ohlc, etc.) and volume series (bar).
+        // The price series provides domains for OHLC values, the volume series for volume.
+        let priceDomain: number[] | undefined;
+        let volumeDomain: number[] | undefined;
+
+        for (const s of series) {
+            // getDomain returns { domain: [...] } with DomainWithMetadata wrapper
+            const domainResult = s.getDomain(ChartAxisDirection.Y);
+            const yDomain = domainResult?.domain;
+            if (!Array.isArray(yDomain) || yDomain.length < 2) continue;
+
+            // Volume series (bar) is identified by its type
+            if (s.type === 'bar') {
+                volumeDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             } else {
-                props.push(valueProperty(datumKey, 'number', { id }));
+                // Price series (candlestick, ohlc, range-area, range-bar, line)
+                priceDomain = [yDomain[0] as number, yDomain.at(-1) as number];
             }
         }
 
-        if (props.length === 0) return;
-
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
-            props,
-        });
-
+        // Apply domains to labels based on their key type
         for (const label of this.labels) {
-            const { id, key } = label;
-            const datumKey = this[key];
-            if (datumKey != null) {
-                label.domain = dataModel.getDomain(this, id, 'value', processedData);
+            const key = this[label.key];
+            if (key == null) {
+                label.domain = undefined;
+                continue;
             }
+
+            // Volume label uses volume domain, all others use price domain
+            label.domain = label.key === 'volumeKey' ? volumeDomain : priceDomain;
         }
     }
 
-    private startPerformLayout(opts: _ModuleSupport.LayoutContext) {
+    private startPerformLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         this.labelGroup.translationX = 0;
         this.labelGroup.translationY = 0;
 
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            this.labelGroup.visible = false;
+            return;
+        }
 
-        const { layoutBox } = opts;
+        // Update domains from series - at layout time, series have already processed
+        // their data and computed domains, so we can reuse them without re-scanning data.
+        this.updateDomainsFromSeries();
+
         const innerSpacing = 4;
         const outerSpacing = 12;
         const spacingAbove = 0;
@@ -337,16 +360,18 @@ export class StatusBar
             title.visible = true;
             value.visible = true;
 
-            const titleMetrics = cachedTextMeasurer(this.title).measureText(label);
+            const titleMetrics = cachedTextMeasurer(this.title).measureLines(label);
             title.setFont(this.title);
             title.fill = this.title.color;
             title.text = label;
+            title.textAlign = 'left';
             title.textBaseline = textVAlign;
             title.y = offsetTop;
             title.x = left;
 
             left += titleMetrics.width + innerSpacing;
 
+            value.textAlign = 'left';
             value.textBaseline = textVAlign;
             value.y = offsetTop;
             value.x = left;
@@ -372,7 +397,8 @@ export class StatusBar
         if (!this.enabled) return;
 
         const activeHighlight = this.highlightManager.getActiveHighlight();
-        const datum = activeHighlight?.datum ?? this.data?.at(-1);
+        // Get fallback from chart data when nothing is highlighted
+        const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
 
         if (datum == null) {
             this.labelGroup.visible = false;
@@ -383,7 +409,7 @@ export class StatusBar
 
         const itemId = activeHighlight?.itemId;
 
-        let baseStyle = itemId != null ? itemIdMap[itemId] : undefined;
+        let baseStyle = itemId == null ? undefined : itemIdMap[itemId];
         if (baseStyle == null && this.openKey != null && this.closeKey != null) {
             // Fallback for series without distinct positive/negative items.
             if (datum[this.openKey] < datum[this.closeKey]) {
@@ -402,7 +428,7 @@ export class StatusBar
             }
 
             const datumKey = this[key];
-            const datumValue = datumKey != null ? datum?.[datumKey] : undefined;
+            const datumValue = datumKey == null ? undefined : datum?.[datumKey];
 
             value.setFont(this[labelStyle]);
             value.fill = this[labelStyle].color;

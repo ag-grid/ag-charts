@@ -1,9 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { attachListener, clamp, createElement, getWindow } from 'ag-charts-core';
+import { Color, clamp } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
-
-const { Color } = _ModuleSupport;
 
 export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;
@@ -55,7 +53,8 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
-        const colorPicker = createElement('div', 'ag-charts-color-picker__content');
+        const doc = this.ctx.agDocument;
+        const colorPicker = doc.createElement('div', 'ag-charts-color-picker__content');
         colorPicker.innerHTML = colorPickerTemplate;
         colorPicker.ariaLabel = this.ctx.localeManager.t('ariaLabelColorPicker');
 
@@ -129,6 +128,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
         update(false);
 
         const preventDefault = (event: Event) => event.preventDefault();
+        // eslint-disable-next-line no-restricted-properties
         const stopPropagation = (event: Event) => event.stopPropagation();
         const beginPaletteInteraction = (e: PointerEvent) => {
             e.preventDefault();
@@ -145,14 +145,15 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             };
             pointerMove(e);
 
-            const pointerUp = attachListener(getWindow(), 'pointermove', pointerMove);
-            getWindow().addEventListener('pointerup', pointerUp, { once: true });
+            const removeListener = doc.attachListener('pointermove', pointerMove);
+            doc.attachListener('pointerup', () => removeListener(), { once: true });
         };
 
         colorPicker.addEventListener('mousedown', stopPropagation);
         colorPicker.addEventListener('touchstart', stopPropagation);
         colorPicker.addEventListener('touchmove', stopPropagation);
         colorPicker.addEventListener('keydown', (e) => {
+            // eslint-disable-next-line no-restricted-properties
             e.stopPropagation();
             switch (e.key) {
                 case 'Enter':

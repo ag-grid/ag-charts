@@ -4,7 +4,7 @@ import sharp from 'sharp';
 import { Canvas, type CanvasRenderingContext2D } from 'skia-canvas';
 
 import { type AgChartThemeName, AgCharts } from 'ag-charts-community';
-import 'ag-charts-enterprise';
+import { AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import { type GeneratedContents, transformPlainEntryFile } from 'ag-charts-generate-example-files';
 import { mockCanvas } from 'ag-charts-test';
 
@@ -19,6 +19,8 @@ import {
 } from './constants';
 import { getChartLayout } from './getChartLayout';
 import { patchOptions } from './patchOptions';
+
+ModuleRegistry.registerModules(AllEnterpriseModule);
 
 interface Params {
     example: GeneratedContents;
@@ -48,7 +50,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
     let output: { multiple: true; canvas: Canvas; ctx: CanvasRenderingContext2D } | { multiple: false; buffer: Buffer };
     if (charts.length > 1) {
         const canvas = new mockCanvas.ConfiguredCanvas(DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
         ctx.fillStyle = BACKGROUND_COLORS[theme];
         ctx.fillRect(0, 0, DEFAULT_THUMBNAIL_WIDTH * dpi, DEFAULT_THUMBNAIL_HEIGHT * dpi);

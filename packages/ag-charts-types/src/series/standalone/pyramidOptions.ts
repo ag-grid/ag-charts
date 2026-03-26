@@ -1,10 +1,10 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgBaseSeriesOptions } from '../seriesOptions';
+import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export type AgPyramidSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> = AgChartLabelOptions<
     TDatum,
@@ -21,7 +21,7 @@ export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams, TContext = Co
 }
 
 export interface AgPyramidSeriesItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         Required<AgPyramidSeriesStyle> {}
@@ -38,7 +38,8 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends LineDashOptions {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
+        LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the stages. */
@@ -65,7 +66,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgPyramidSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Function used to return formatting for individual bars, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual bars, based on the given parameters.*/
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<TDatum, TContext>, AgPyramidSeriesStyle>;
 }
 

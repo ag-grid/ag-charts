@@ -1,0 +1,18 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button onclick="toggleFixedWidth()">Toggle Fixed Width</button>
+        <label for="fixedWidthSliderInput">Fixed Width:</label>
+        <input
+            type="range"
+            id="fixedWidthSliderInput"
+            min="5"
+            max="60"
+            value="30"
+            step="1"
+            oninput="updateFixedWidth(event)"
+            onchange="updateFixedWidth(event)"
+        />
+        <span id="fixedWidthSliderValue">30</span>
+    </div>
+</div>
+<div id="myChart"></div>

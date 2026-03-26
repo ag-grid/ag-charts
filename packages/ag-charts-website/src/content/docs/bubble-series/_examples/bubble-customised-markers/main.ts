@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -40,10 +42,9 @@ const options: AgChartOptions = {
             stroke: '#56659b',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -53,9 +54,8 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },
@@ -65,7 +65,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

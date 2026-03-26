@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ErrorBarsModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ErrorBarsModule,
+    NumberAxisModule,
+]);
 const data = getData();
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -41,10 +58,9 @@ const options: AgCartesianChartOptions<DataType> = {
             }),
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             title: {
                 text: 'Profession',
             },
@@ -63,9 +79,8 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 enabled: true,
                 text: 'Weekly Earnings (£)',
@@ -85,7 +100,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'pointer',

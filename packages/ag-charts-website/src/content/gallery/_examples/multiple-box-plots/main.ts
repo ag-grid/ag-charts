@@ -1,7 +1,18 @@
-import { AgBoxPlotSeriesTooltipRendererParams, AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgBoxPlotSeriesTooltipRendererParams,
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BoxPlotSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const shared = {
     xKey: 'countryOfArrival',
     xName: 'Country Of Arrival',
@@ -71,9 +82,8 @@ const options: AgCartesianChartOptions = {
             ...shared,
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
             paddingInner: 0.5,
             paddingOuter: 0.2,
@@ -98,8 +108,7 @@ const options: AgCartesianChartOptions = {
                 spacing: 10,
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             nice: false,
             title: {
@@ -126,7 +135,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

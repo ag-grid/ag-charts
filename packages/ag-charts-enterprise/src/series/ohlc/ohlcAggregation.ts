@@ -1,54 +1,119 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
-const {
-    AGGREGATION_SPAN,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
+import type {
+    DomainWithMetadata,
+    ExtremesAggregationFilter,
+    ExtremesPartialAggregationResult,
+    ScaleType,
+} from 'ag-charts-core';
+import {
     aggregationDomain,
-    aggregationRangeFittingPoints,
-    compactAggregationIndices,
-    createAggregationIndices,
-} = _ModuleSupport;
+    computeExtremesAggregation,
+    computeExtremesAggregationPartial,
+    simpleMemorize2,
+} from 'ag-charts-core';
 
-const AGGREGATION_THRESHOLD = 1e3;
+type ScopeProvider = _ModuleSupport.ScopeProvider;
+type ProcessedData = _ModuleSupport.ProcessedData<any>;
+type DataModel = _ModuleSupport.DataModel<any, any, any>;
 
-export const OPEN = AGGREGATION_INDEX_X_MIN;
-export const HIGH = AGGREGATION_INDEX_Y_MAX;
-export const LOW = AGGREGATION_INDEX_Y_MIN;
-export const CLOSE = AGGREGATION_INDEX_X_MAX;
-export { AGGREGATION_SPAN as SPAN };
+// Type aliases for OHLC-specific usage
+export type OhlcSeriesDataAggregationFilter = ExtremesAggregationFilter;
+export type OhlcPartialAggregationResult = ExtremesPartialAggregationResult;
 
-export interface OhlcSeriesDataAggregationFilter {
-    indexData: Int32Array;
-    maxRange: number;
-}
+// ============================================================================
+// ADAPTER LAYER: Scale integration
+// ============================================================================
 
-export function aggregateOhlcData(
-    scale: _ModuleSupport.ScaleType,
+function aggregateOhlcData(
+    scale: ScaleType,
     xValues: any[],
     highValues: any[],
     lowValues: any[],
-    domain: number[],
-    smallestKeyInterval: number | undefined
+    domainInput: DomainWithMetadata<number>,
+    smallestKeyInterval: number | undefined,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
 ): OhlcSeriesDataAggregationFilter[] | undefined {
-    if (xValues.length < AGGREGATION_THRESHOLD) return;
+    const [d0, d1] = aggregationDomain(scale, domainInput);
+    return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
+        smallestKeyInterval,
+        xNeedsValueOf,
+        yNeedsValueOf,
+    });
+}
 
-    const [d0, d1] = aggregationDomain(scale, domain);
+// ============================================================================
+// INTEGRATION LAYER: Memoization and DataModel integration
+// ============================================================================
 
-    let maxRange = aggregationRangeFittingPoints(xValues, d0, d1, { smallestKeyInterval });
-    let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
+const memoizedAggregateOhlcData = simpleMemorize2(aggregateOhlcData);
 
-    const filters: OhlcSeriesDataAggregationFilter[] = [{ maxRange, indexData }];
+export function aggregateOhlcDataFromDataModel(
+    scale: ScaleType,
+    dataModel: DataModel,
+    processedData: ProcessedData,
+    series: ScopeProvider,
+    existingFilters?: OhlcSeriesDataAggregationFilter[]
+): OhlcSeriesDataAggregationFilter[] | undefined {
+    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
+    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
 
-    while (maxRange > 64) {
-        ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
 
-        filters.push({ maxRange, indexData });
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf =
+        dataModel.resolveColumnNeedsValueOf(series, 'highValue', processedData) ??
+        dataModel.resolveColumnNeedsValueOf(series, 'lowValue', processedData);
+
+    // When existingFilters provided, bypass memoization to enable array reuse
+    if (existingFilters) {
+        const [d0, d1] = aggregationDomain(scale, domainInput);
+        return computeExtremesAggregation([d0, d1], xValues, highValues, lowValues, {
+            smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
+            xNeedsValueOf,
+            yNeedsValueOf,
+            existingFilters,
+        });
     }
 
-    filters.reverse();
+    return memoizedAggregateOhlcData(
+        scale,
+        xValues,
+        highValues,
+        lowValues,
+        domainInput,
+        processedData.reduced?.smallestKeyInterval,
+        xNeedsValueOf,
+        yNeedsValueOf
+    );
+}
 
-    return filters;
+export function aggregateOhlcDataFromDataModelPartial(
+    scale: ScaleType,
+    dataModel: DataModel,
+    processedData: ProcessedData,
+    series: ScopeProvider,
+    targetRange: number,
+    existingFilters?: OhlcSeriesDataAggregationFilter[]
+): OhlcPartialAggregationResult | undefined {
+    const xValues = dataModel.resolveKeysById(series, 'xValue', processedData);
+    const highValues = dataModel.resolveColumnById(series, 'highValue', processedData);
+    const lowValues = dataModel.resolveColumnById(series, 'lowValue', processedData);
+
+    const domainInput = dataModel.getDomain(series, 'xValue', 'key', processedData);
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf =
+        dataModel.resolveColumnNeedsValueOf(series, 'highValue', processedData) ??
+        dataModel.resolveColumnNeedsValueOf(series, 'lowValue', processedData);
+
+    const [d0, d1] = aggregationDomain(scale, domainInput);
+    return computeExtremesAggregationPartial([d0, d1], xValues, highValues, lowValues, {
+        smallestKeyInterval: processedData.reduced?.smallestKeyInterval,
+        targetRange,
+        xNeedsValueOf,
+        yNeedsValueOf,
+        existingFilters,
+    });
 }

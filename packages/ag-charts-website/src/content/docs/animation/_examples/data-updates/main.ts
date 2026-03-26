@@ -1,8 +1,39 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AgPolarChartOptions,
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DonutSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    PieSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData, random } from './data';
 
 // Series type data options
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    DonutSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    PieSeriesModule,
+    ContextMenuModule,
+]);
 let start = [120, 150, 130, 140, 80];
 let variance = 20;
 let offset = 0;
@@ -47,19 +78,14 @@ const barOptions: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const lineOptions: AgCartesianChartOptions = {
@@ -95,20 +121,15 @@ const lineOptions: AgCartesianChartOptions = {
             yName: 'Five',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'number',
-            position: 'bottom',
             nice: false,
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const areaOptions: AgCartesianChartOptions = {
@@ -149,20 +170,15 @@ const areaOptions: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'number',
-            position: 'bottom',
             nice: false,
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
 };
 
 const donutOptions: AgPolarChartOptions = {

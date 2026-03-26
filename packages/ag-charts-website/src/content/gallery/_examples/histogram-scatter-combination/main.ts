@@ -1,7 +1,16 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    HistogramSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -33,9 +42,8 @@ const options: AgCartesianChartOptions = {
             fillOpacity: 1,
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             gridLine: {
@@ -54,8 +62,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Engine Size',
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             nice: false,
             gridLine: {
@@ -74,7 +81,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

@@ -1,7 +1,25 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    ContextMenuModule,
+    LegendModule,
+    RangeBarSeriesModule,
+    UnitTimeAxisModule,
+    NumberAxisModule,
+]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {
@@ -52,12 +70,10 @@ const options: AgCartesianChartOptions = {
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
-        delay: 100,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             paddingInner: 0.5,
             groupPaddingInner: 0.05,
             bandHighlight: {
@@ -87,9 +103,8 @@ const options: AgCartesianChartOptions = {
                 size: 6,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: true,
                 style: [
@@ -147,7 +162,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         spacing: 40,
         item: {

@@ -2,7 +2,7 @@
 import { DocsExampleRunner } from './DocsExampleRunner';
 import type { ExampleType } from '@components/example-generator/types';
 import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
-import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
+import { DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
 import type { ExampleOptions } from '@components/example-runner/types';
 import { getGeneratedContents } from '@components/example-generator';
 
@@ -21,7 +21,6 @@ interface Props {
 const { title, name, type, options, isInline, initialLoadDeferred } = Astro.props as Props;
 
 const pathSegments = Astro.url.pathname.split('/');
-[DOCS_FRAMEWORK_PATH_INDEX];
 const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
 
 const generatedExampleParams = {

@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, HighlightState, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from '../../chart/errorBarOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -17,7 +17,7 @@ import type {
     AgCartesianSeriesTooltipRendererParams,
     AgErrorBoundSeriesTooltipRendererParams,
 } from './cartesianSeriesTooltipOptions';
-import type { LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
@@ -31,7 +31,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
     extends StrokeOptions,
         LineDashOptions,
         Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgLineSeriesStylerParams<TDatum, TContext>, AgLineSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
@@ -67,7 +67,7 @@ export interface AgLineSeriesOptionsKeys<TDatum = DatumDefault> {
 
 export interface AgLineSeriesStylerParams<TDatum, TContext>
     extends AgLineSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams,
+        SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
         Required<LineDashOptions> {
@@ -109,6 +109,7 @@ export interface AgLineSeriesOptionsNames {
 
 export interface AgLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,
         AgLineSeriesThemeableOptions<TDatum, TContext> {

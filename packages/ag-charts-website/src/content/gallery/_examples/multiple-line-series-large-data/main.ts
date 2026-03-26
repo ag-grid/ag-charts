@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -85,9 +93,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             min: -3,
             max: 3,
@@ -108,8 +115,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'number',
             nice: false,
             interval: { step: Math.PI },
@@ -125,7 +131,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         x(params) {
             const value = params.value as number;

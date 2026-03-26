@@ -1,20 +1,25 @@
-import { Logger } from 'ag-charts-core';
+import type { ChartAxisDirection, DomainWithMetadata } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Logger,
+    Property,
+    ProxyPropertyOnWrite,
+    dateTruncationForDomain,
+    intervalEpoch,
+    intervalFloor,
+    intervalMilliseconds,
+    intervalStep,
+    intervalUnit,
+    lowestGranularityForInterval,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+    normalisedTimeExtentWithMetadata,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
-import { extent } from '../../util/extent';
-import { BaseProperties, Property } from '../../util/properties';
-import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { intervalEpoch, intervalFloor, intervalMilliseconds, intervalStep, intervalUnit } from '../../util/time';
-import {
-    dateTruncationForDomain,
-    lowestGranularityForInterval,
-    lowestGranularityUnitForTicks,
-    lowestGranularityUnitForValue,
-} from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
-import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
@@ -44,6 +49,12 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     @Property
     max?: Date | number = undefined;
+
+    @Property
+    preferredMin?: Date | number = undefined;
+
+    @Property
+    preferredMax?: Date | number = undefined;
 
     // eslint-disable-next-line sonarjs/use-type-alias
     get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
@@ -78,8 +89,15 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    override normaliseDataDomain(d: Date[]) {
-        return normaliseTimeDataDomain(d, this.min, this.max);
+    override normaliseDataDomain(d: DomainWithMetadata<Date>) {
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            d,
+            this.min,
+            this.max,
+            this.preferredMin,
+            this.preferredMax
+        );
+        return { domain: extent, clipped };
     }
 
     override processData(): void {
@@ -110,7 +128,9 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        if (typeof value === 'number') value = new Date(value);
+        if (typeof value === 'number') {
+            value = new Date(value);
+        }
 
         if (timeInterval == null) {
             const { minimumTimeGranularity } = this;
@@ -180,11 +200,11 @@ export function calculateDefaultUnit(
     for (const series of boundSeries) {
         if (!series.visible) continue;
 
-        const { domain } = normaliseTimeDataDomain(series.getDomain(direction), undefined, undefined);
+        const { extent: domain } = normalisedTimeExtentWithMetadata(series.getDomain(direction));
         if (domain.length === 0) continue;
 
         const d0 = domain[0].valueOf();
-        const d1 = domain[domain.length - 1].valueOf();
+        const d1 = domain.at(-1)!.valueOf();
 
         domainValues.push(d0, d1);
 
@@ -238,39 +258,4 @@ function minNonZeroDifference(values: number[]): number {
     }
 
     return minDiff;
-}
-
-export function normaliseTimeDataDomain(d: Date[], min: Date | number | undefined, max: Date | number | undefined) {
-    let clipped = false;
-
-    if (typeof min === 'number') {
-        min = new Date(min);
-    }
-    if (typeof max === 'number') {
-        max = new Date(max);
-    }
-
-    const de = extent(d)?.map((x) => new Date(x));
-    if (de == null) {
-        return {
-            domain: min != null && max != null && min.valueOf() <= max.valueOf() ? [min, max] : [],
-            clipped: false,
-        };
-    }
-
-    let [d0, d1] = de;
-
-    if (min instanceof Date) {
-        clipped ||= min > d0;
-        d0 = min;
-    }
-    if (max instanceof Date) {
-        clipped ||= max < d1;
-        d1 = max;
-    }
-    if (d0 > d1) {
-        return { domain: [], clipped: false };
-    }
-
-    return { domain: [d0, d1], clipped };
 }

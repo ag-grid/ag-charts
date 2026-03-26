@@ -1,6 +1,12 @@
-import { createElement, getAttribute, setAttribute } from 'ag-charts-core';
+import {
+    createElement,
+    getAttribute,
+    getPrevNextKeys,
+    hasNoModifiers,
+    isDirectionRtl,
+    setAttribute,
+} from 'ag-charts-core';
 
-import { PREV_NEXT_KEYS, hasNoModifiers } from '../util/keynavUtil';
 import type { ButtonWidget } from './buttonWidget';
 import type { MenuItemWidget } from './menuItemWidget';
 import type { NativeWidget } from './nativeWidget';
@@ -10,7 +16,7 @@ import { Widget } from './widget';
 import type { FocusWidgetEvent, KeyboardWidgetEvent } from './widgetEvents';
 
 type RovingChildWidgets = SliderWidget | ButtonWidget | MenuItemWidget | NativeWidget;
-type RovingKeys = (typeof PREV_NEXT_KEYS)[keyof typeof PREV_NEXT_KEYS];
+type RovingKeys = { readonly nextKey: string; readonly prevKey: string };
 
 export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildWidgets> extends Widget<
     HTMLDivElement,
@@ -22,7 +28,7 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
         return getAttribute(this.elem, 'aria-orientation') ?? 'both';
     }
     public set orientation(orientation: RovingDirection) {
-        setAttribute(this.elem, 'aria-orientation', orientation !== 'both' ? orientation : undefined);
+        setAttribute(this.elem, 'aria-orientation', orientation === 'both' ? undefined : orientation);
     }
 
     constructor(initialOrientation: RovingDirection, role: 'toolbar' | 'list' | 'menu') {
@@ -96,10 +102,16 @@ export abstract class RovingTabContainerWidget<TChildWidget extends RovingChildW
 
     private readonly onChildKeyDown = (event: KeyboardWidgetEvent, child: RovingChildWidgets): void => {
         const rovingOrientation = this.orientation;
-        const [primaryKeys, secondaryKeys]: [RovingKeys, RovingKeys | undefined] =
-            rovingOrientation === 'both'
-                ? [PREV_NEXT_KEYS['horizontal'], PREV_NEXT_KEYS['vertical']]
-                : [PREV_NEXT_KEYS[rovingOrientation], undefined];
+        const isRtl = isDirectionRtl(this.elem);
+        let primaryKeys: RovingKeys;
+        let secondaryKeys: RovingKeys | undefined;
+        if (rovingOrientation === 'both') {
+            primaryKeys = getPrevNextKeys('horizontal', isRtl);
+            secondaryKeys = getPrevNextKeys('vertical');
+        } else {
+            primaryKeys = getPrevNextKeys(rovingOrientation, isRtl);
+            secondaryKeys = undefined;
+        }
 
         let targetIndex = -1;
         if (hasNoModifiers(event.sourceEvent)) {

@@ -1,16 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, type Point, StateMachine, StateMachineProperty, Vec2 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from './stateTypes';
 
-const { StateMachine, StateMachineProperty, Vec2, Debug } = _ModuleSupport;
-
 export class DragStateMachine<
     Datum extends AnnotationProperties,
     Node extends {
-        dragStart: (datum: Datum, offset: _ModuleSupport.Vec2, context: AnnotationContext) => void;
-        drag: (datum: Datum, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
+        dragStart: (datum: Datum, offset: Point, context: AnnotationContext) => void;
+        drag: (datum: Datum, offset: Point, context: AnnotationContext, snapping: boolean) => void;
         stopDragging: () => void;
     },
 > extends StateMachine<
@@ -20,7 +18,7 @@ export class DragStateMachine<
     override debug = Debug.create(true, 'annotations');
 
     protected hasMoved = false;
-    protected dragStart?: _ModuleSupport.Vec2;
+    protected dragStart?: Point;
 
     @StateMachineProperty()
     protected snapping: boolean = false;
@@ -31,7 +29,7 @@ export class DragStateMachine<
     @StateMachineProperty()
     protected node?: Node;
 
-    private offset?: _ModuleSupport.Vec2;
+    private offset?: Point;
 
     constructor(ctx: AnnotationsStateMachineContext) {
         const actionKeyChange = ({ context }: { context: AnnotationContext }) => {

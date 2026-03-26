@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    ChartOrProxy,
+    type ChartOrProxy,
     DOCS_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -11,6 +11,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 import type { AgBaseChartOptions, AgCartesianAxisType, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { createEnterpriseChart } from '../test/utils';
@@ -31,8 +32,8 @@ function applyIntervalOn<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
-                axesToTest.includes(axis.type)
+            mapValues(opts.axes ?? {}, (axis) =>
+                axis.type && axesToTest.includes(axis.type)
                     ? {
                           ...axis,
                           interval: { ...(axis.interval ?? {}), placement: 'on' },
@@ -48,8 +49,8 @@ function applyIntervalBetween<T extends AgCartesianChartOptions>(opts: T): T {
     return {
         ...opts,
         axes:
-            opts.axes?.map((axis) =>
-                axesToTest.includes(axis.type)
+            mapValues(opts.axes ?? {}, (axis) =>
+                axis.type && axesToTest.includes(axis.type)
                     ? {
                           ...axis,
                           interval: { ...(axis.interval ?? {}), placement: 'between' },
@@ -80,14 +81,14 @@ const EXAMPLES: Record<string, TestCase> = {
     CATEGORY_AXIS_INTERVAL_ON_ZOOMED: {
         options: applyZoom(applyIntervalOn(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },
     CATEGORY_AXIS_INTERVAL_BETWEEN_ZOOMED: {
         options: applyZoom(applyIntervalBetween(DOCS_EXAMPLES['grouped-column'])),
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('bar', 7),
         }),
     },

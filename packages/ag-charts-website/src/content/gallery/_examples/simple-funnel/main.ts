@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    FunnelSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, FunnelSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -31,7 +40,7 @@ const options: AgChartOptions = {
         },
     ],
     formatter: {
-        x: '#{,.0f}',
+        y: '#{,.0f}',
     },
 };
 

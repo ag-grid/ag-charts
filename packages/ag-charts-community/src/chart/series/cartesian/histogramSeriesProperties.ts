@@ -1,17 +1,19 @@
 import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 import type {
     AgHistogramSeriesLabelFormatterParams,
     AgHistogramSeriesOptions,
     AgHistogramSeriesStyle,
     AgHistogramSeriesTooltipRendererParams,
+    TextOrSegments,
 } from 'ag-charts-types';
 
 import type { BBox } from '../../../scene/bbox';
 import { DropShadow } from '../../../scene/dropShadow';
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { makeSeriesTooltip } from '../seriesTooltip';
-import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { CartesianSeriesProperties } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly x: number;
@@ -27,7 +29,7 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly frequency: number;
     readonly domain: [number, number];
     readonly label?: {
-        readonly text: string;
+        readonly text: TextOrSegments;
         readonly x: number;
         readonly y: number;
     };

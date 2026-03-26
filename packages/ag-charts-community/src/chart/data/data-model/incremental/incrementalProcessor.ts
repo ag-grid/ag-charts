@@ -1,0 +1,1153 @@
+import { first } from 'ag-charts-core';
+
+import {
+    hasNoRemovals,
+    hasOnlyRemovals,
+    isAppendOnly,
+    isPrependOnly,
+    isRollingWindow,
+    isUpdateOnly,
+} from '../../dataChangeDescription';
+import {
+    COLUMN_SORT_ORDERS,
+    DOMAIN_BANDS,
+    DOMAIN_RANGES,
+    type DataGroup,
+    type GroupedData,
+    type InsertionCache,
+    type InsertionCacheValue,
+    type InternalDatumPropertyDefinition,
+    KEY_SORT_ORDERS,
+    type ProcessedData,
+    type ProcessedOutputDiff,
+    type ProcessedValueEntry,
+    SHARED_ZERO_INDICES,
+    type ScopeId,
+    type SortOrderEntry,
+} from '../../dataModelTypes';
+import type { DataChangeDescription, DataSet } from '../../dataSet';
+import type { RangeLookup } from '../../rangeLookup';
+import type { DataModelContext } from '../dataModelContext';
+import type { SpecializedProcessValueFn } from '../domain/processValueFactory';
+import { ReducerManager } from '../reducers/reducerManager';
+import { createArray, toKeyString, uniqueChangeDescriptions } from '../utils/helpers';
+
+type DefinitionProcessorEntry<K extends string> = {
+    def: InternalDatumPropertyDefinition<K>;
+    index: number;
+    processValue: SpecializedProcessValueFn;
+};
+
+/**
+ * Handles incremental reprocessing of data when DataSets change.
+ *
+ * INCREMENTAL REPROCESSING OPTIMIZATION:
+ * Instead of reprocessing all data, we:
+ * 1. Apply change descriptions to transform existing arrays
+ * 2. Process only new insertions
+ * 3. Update only affected domain bands
+ * 4. Reuse existing group structures when possible
+ * This can reduce processing time by 90%+ for small updates to large datasets
+ */
+export class IncrementalProcessor<D extends object, K extends keyof D & string> {
+    constructor(
+        private readonly ctx: DataModelContext<D, K>,
+        private readonly reducerManager: ReducerManager
+    ) {}
+
+    /**
+     * Checks if incremental reprocessing is supported for the given data configuration.
+     */
+    isReprocessingSupported(processedData: ProcessedData<D>): boolean {
+        // Grouped data has additional constraints for incremental updates
+        if (processedData.type === 'grouped') {
+            // Require unique groups - each datum must have distinct keys
+            if (!processedData.groupsUnique) return false;
+
+            // Require single data source - all scopes must share same DataSet
+            const uniqueDataSets = this.getUniqueDataSets(processedData);
+            if (uniqueDataSets.size !== 1) return false;
+
+            // Key constraint: grouped data requires groupsUnique=true because
+            // incremental updates can't handle aggregation recalculation yet
+            // Cannot have invalid keys - would break groups.length === columns.length invariant
+            const scope = first(processedData.scopes);
+            const invalidKeys = processedData.invalidKeys?.get(scope);
+            if (invalidKeys?.some((invalid) => invalid)) return false;
+        }
+
+        // Don't support these features yet (existing constraints)
+        if (this.ctx.aggregates.length > 0) return false;
+        const hasUnsupportedReducers = this.ctx.reducers.some(
+            (reducer) => reducer.supportsBanding !== true || typeof reducer.combineResults !== 'function'
+        );
+        if (hasUnsupportedReducers) return false;
+
+        const hasUnsupportedProcessors = this.ctx.processors.some(
+            (processor) => processor.incrementalCalculate === undefined
+        );
+        if (hasUnsupportedProcessors) return false;
+        if (this.ctx.propertyProcessors.length > 0) return false;
+
+        // Check if all group processors support reprocessing
+        return this.ctx.groupProcessors.every((p) => p.supportsReprocessing ?? false);
+    }
+
+    /**
+     * Performs incremental reprocessing of data based on change descriptions.
+     */
+    reprocessData(
+        processedData: ProcessedData<D>,
+        dataSets: Map<DataSet<any>, DataChangeDescription | undefined> | undefined,
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn,
+        reprocessGroupProcessorsFn: (
+            processedData: GroupedData<D>,
+            scopeChanges: Map<ScopeId, DataChangeDescription>
+        ) => void,
+        recomputeDomainsFn: (processedData: ProcessedData<D>) => void,
+        collectOptimizationMetadataFn: (processedData: ProcessedData<D>, mode: 'reprocess') => void
+    ): ProcessedData<D> {
+        const start = performance.now();
+
+        const scopeChanges = this.collectScopeChanges(processedData, dataSets);
+        if (scopeChanges.size === 0) {
+            return processedData;
+        }
+
+        this.commitPendingTransactions(processedData);
+        const keyProcessors = this.buildDefinitionProcessors(this.ctx.keys, getProcessValue);
+        const valueProcessors = this.buildDefinitionProcessors(this.ctx.values, getProcessValue);
+
+        const insertionCaches = this.processAllInsertions(processedData, scopeChanges, keyProcessors, valueProcessors);
+        this.processAllUpdates(processedData, scopeChanges, keyProcessors, valueProcessors, insertionCaches);
+
+        this.updateBandsForChanges(processedData, scopeChanges);
+        const removedKeys = this.transformKeysArrays(processedData, scopeChanges, insertionCaches);
+        this.transformColumnsArrays(processedData, scopeChanges, insertionCaches);
+        this.transformInvalidityArrays(processedData, scopeChanges, insertionCaches);
+
+        this.reprocessBandedReducers(processedData, scopeChanges);
+
+        // Transform groups array for grouped data (when groupsUnique=true)
+        if (processedData.type === 'grouped') {
+            this.transformGroupsArray(processedData, scopeChanges, insertionCaches);
+
+            // Reapply group processors to new data if they support reprocessing
+            if (this.ctx.groupProcessors.length > 0) {
+                reprocessGroupProcessorsFn(processedData, scopeChanges);
+            }
+        }
+
+        this.invalidateSortOrdersForChanges(processedData, scopeChanges);
+
+        recomputeDomainsFn(processedData);
+
+        this.reprocessProcessors(processedData);
+
+        if (processedData.reduced?.diff != null && scopeChanges.size > 0) {
+            this.generateDiffMetadata(processedData, scopeChanges, removedKeys);
+        }
+
+        this.updateProcessedDataMetadata(processedData);
+
+        const end = performance.now();
+        processedData.time = end - start;
+        processedData.version += 1;
+
+        // Collect optimization metadata for testing
+        collectOptimizationMetadataFn(processedData, 'reprocess');
+
+        // Store the change description on processedData for series to use
+        // for incremental nodeData updates. For single-scope cases (most common),
+        // this provides direct access. For multi-scope, series can check their scope.
+        const uniqueChanges = uniqueChangeDescriptions(scopeChanges);
+        processedData.changeDescription = uniqueChanges.size === 1 ? uniqueChanges.values().next().value : undefined;
+
+        return processedData;
+    }
+
+    /**
+     * Updates banded domains based on pending changes.
+     *
+     * BANDING OPTIMIZATION:
+     * - Divides large datasets into bands (default ~100 bands)
+     * - Tracks which bands are "dirty" and need recalculation
+     * - During updates, only dirty bands are reprocessed
+     * - Significantly reduces domain calculation overhead for large datasets
+     *
+     * Example: 1M data points → 100 bands of 10K points each
+     * Adding 1000 points only dirties 1-2 bands instead of scanning all 1M points
+     *
+     * This optimizes domain recalculation by only marking affected bands as dirty.
+     * Deduplicates change descriptions to avoid processing the same changes multiple times
+     * when multiple scopes share the same DataSet.
+     */
+    private updateBandsForChanges(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const bandedDomains = processedData[DOMAIN_BANDS];
+        if (bandedDomains.size === 0) return;
+
+        const processedChangeDescs = uniqueChangeDescriptions(scopeChanges);
+
+        for (const changeDesc of processedChangeDescs) {
+            const { indexMap } = changeDesc;
+
+            for (const domain of bandedDomains.values()) {
+                domain.applyIndexMap(indexMap);
+            }
+
+            // Note: No need for special append-only or prepend-only handling here.
+            // handleInsertion() now properly marks the last band dirty when appending,
+            // and handleRemoval() marks the first band dirty when removing from start.
+        }
+    }
+
+    private reprocessBandedReducers(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        if (processedData.type !== 'ungrouped') return;
+
+        const bandedReducers = this.ctx.reducers.filter(
+            (reducer) => reducer.supportsBanding && typeof reducer.combineResults === 'function'
+        );
+        if (bandedReducers.length === 0) return;
+
+        processedData.reduced ??= {};
+
+        for (const def of bandedReducers) {
+            const result = this.reducerManager.evaluate(def, processedData, {
+                reuseCleanBands: true,
+                beforeEvaluate: (bandManager, context) => {
+                    if (!context.scopeId) return;
+                    const changeDesc = scopeChanges.get(context.scopeId);
+                    if (changeDesc) {
+                        bandManager.applyIndexMap(changeDesc.indexMap);
+                    }
+                },
+            });
+
+            if (result !== undefined) {
+                (processedData.reduced as Record<string, unknown>)[def.property] = result;
+            }
+        }
+    }
+
+    /**
+     * Collects change descriptions from all DataSets before committing.
+     */
+    private collectScopeChanges(
+        processedData: ProcessedData<D>,
+        dataSets?: Map<DataSet<any>, DataChangeDescription | undefined>
+    ): Map<ScopeId, DataChangeDescription> {
+        const scopeChanges = new Map<ScopeId, DataChangeDescription>();
+        for (const [scopeId, dataSet] of processedData.dataSources) {
+            const changeDesc = dataSets?.get(dataSet) ?? dataSet.getChangeDescription();
+            if (changeDesc) {
+                scopeChanges.set(scopeId, changeDesc);
+            }
+        }
+        return scopeChanges;
+    }
+
+    /**
+     * Commits all pending transactions to the data arrays.
+     * Deduplicates DataSets to avoid committing the same DataSet multiple times
+     * when multiple scopes share the same DataSet.
+     */
+    private commitPendingTransactions(processedData: ProcessedData<D>): void {
+        // Deduplicate DataSets before committing (multiple scopes can share same DataSet)
+        const uniqueDataSets = this.getUniqueDataSets(processedData);
+        for (const dataSet of uniqueDataSets) {
+            dataSet.commitPendingTransactions();
+        }
+    }
+
+    private buildDefinitionProcessors(
+        defs: InternalDatumPropertyDefinition<K>[],
+        getProcessValue: (def: InternalDatumPropertyDefinition<K>) => SpecializedProcessValueFn
+    ): DefinitionProcessorEntry<K>[] {
+        return defs.map((def, index) => ({
+            def,
+            index,
+            processValue: getProcessValue(def),
+        }));
+    }
+
+    /**
+     * Pre-processes all insertions once per scope to avoid redundant computation.
+     */
+    private processAllInsertions(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
+    ): Map<ScopeId, InsertionCache> {
+        const insertionCaches = new Map<ScopeId, InsertionCache>();
+        for (const [scope, changeDesc] of scopeChanges) {
+            const dataSet = processedData.dataSources.get(scope);
+            if (!dataSet) continue;
+
+            const cache = this.processInsertionsOnce(scope, changeDesc, dataSet, keyProcessors, valueProcessors);
+            insertionCaches.set(scope, cache);
+        }
+        return insertionCaches;
+    }
+
+    /**
+     * Processes all updated items once per scope, adding them to the insertion cache.
+     * This ensures updated values are available when transforming columns/keys arrays.
+     */
+    private processAllUpdates(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[],
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        for (const [scope, changeDesc] of scopeChanges) {
+            const dataSet = processedData.dataSources.get(scope);
+            if (!dataSet) continue;
+
+            const updatedIndices = changeDesc.getUpdatedIndices();
+            if (updatedIndices.length === 0) continue;
+
+            // Get or create cache for this scope
+            let cache = insertionCaches.get(scope);
+            if (!cache) {
+                cache = new Map();
+                insertionCaches.set(scope, cache);
+            }
+
+            // Process each updated index
+            for (const destIndex of updatedIndices) {
+                if (destIndex < 0 || destIndex >= dataSet.data.length) {
+                    continue; // Skip invalid indices
+                }
+
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
+                if (processed) {
+                    // Store in cache (overwrites any existing insertion at this index)
+                    cache.set(destIndex, processed);
+                }
+            }
+        }
+    }
+
+    /**
+     * Processes all insertions for a given scope once, caching the results.
+     * Returns a map from ADJUSTED destIndex to processed values for all keys and values.
+     * The adjusted destIndex accounts for out-of-bounds insertions that need to be shifted.
+     */
+    private processInsertionsOnce(
+        scope: ScopeId,
+        changeDesc: DataChangeDescription,
+        dataSet: DataSet<unknown>,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
+    ): InsertionCache {
+        const cache = new Map<number, InsertionCacheValue>();
+
+        const { finalLength } = changeDesc.indexMap;
+
+        // Extract insertions from splice operations
+        for (const op of changeDesc.indexMap.spliceOps) {
+            if (op.insertCount <= 0) continue;
+
+            for (let i = 0; i < op.insertCount; i++) {
+                const destIndex = op.index + i;
+                if (destIndex < 0 || destIndex >= finalLength) {
+                    continue; // Skip invalid indices
+                }
+
+                const processed = this.processDatum(dataSet, destIndex, scope, keyProcessors, valueProcessors);
+                if (processed) {
+                    cache.set(destIndex, processed);
+                }
+            }
+        }
+
+        return cache;
+    }
+
+    /**
+     * Processes a single datum for the given scope, returning cached key/value results.
+     * Shared between insert and update paths to keep behaviour consistent.
+     */
+    private processDatum(
+        dataSet: DataSet<unknown>,
+        destIndex: number,
+        scope: ScopeId,
+        keyProcessors: DefinitionProcessorEntry<K>[],
+        valueProcessors: DefinitionProcessorEntry<K>[]
+    ): InsertionCacheValue | undefined {
+        const datum = dataSet.data[destIndex];
+
+        const keys = new Map<number, ProcessedValueEntry>();
+        const values = new Map<number, ProcessedValueEntry>();
+        let hasInvalidKey = false;
+        let hasInvalidValue = false;
+        let hasMissingValue = false;
+
+        if (datum == null || typeof datum !== 'object') {
+            hasInvalidKey = true;
+            hasInvalidValue = true;
+        } else {
+            for (const { index: keyDefIndex, def: keyDef, processValue: processKeyValue } of keyProcessors) {
+                if (!keyDef.scopes?.includes(scope)) continue;
+
+                const result = processKeyValue(datum, destIndex, scope);
+                keys.set(keyDefIndex, { value: result.value, valid: result.valid });
+
+                if (!result.valid) {
+                    hasInvalidKey = true;
+                }
+            }
+
+            for (const { index: valueDefIndex, def: valueDef, processValue: processValueForDef } of valueProcessors) {
+                if (!valueDef.scopes?.includes(scope)) continue;
+
+                const result = processValueForDef(datum, destIndex, valueDef.scopes);
+                values.set(valueDefIndex, { value: result.value, valid: result.valid });
+
+                if (!result.valid) {
+                    hasInvalidValue = true;
+                }
+
+                if (result.missing) {
+                    hasMissingValue = true;
+                }
+            }
+        }
+
+        return { keys, values, hasInvalidKey, hasInvalidValue, hasMissingValue };
+    }
+
+    /**
+     * Generic utility to transform arrays using cached insertion results.
+     * This reduces duplication across transformKeysArrays, transformColumnsArrays, and transformInvalidityArrays.
+     */
+    private transformArraysWithCache<T>(
+        definitions: InternalDatumPropertyDefinition<K>[],
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        getArray: (defIndex: number, scope: ScopeId) => T[] | undefined,
+        getScopes: (def: InternalDatumPropertyDefinition<K>) => string[],
+        extractValue: (
+            cached: InsertionCacheValue | undefined,
+            def: InternalDatumPropertyDefinition<K>,
+            defIndex: number
+        ) => T
+    ): void {
+        for (const [defIndex, def] of definitions.entries()) {
+            for (const scope of getScopes(def)) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const array = getArray(defIndex, scope);
+                if (!array) continue;
+
+                const insertionCache = insertionCaches.get(scope);
+                this.applyChangeDescWithCache(changeDesc, array, insertionCache, (cached, _destIndex) =>
+                    extractValue(cached, def, defIndex)
+                );
+            }
+        }
+    }
+
+    /**
+     * Transforms keys arrays using cached insertion results.
+     */
+    private transformKeysArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): Map<ScopeId, Set<string>> {
+        type RemovedMetadata = { tuples: any[][] };
+        const removedByScope = new Map<ScopeId, RemovedMetadata>();
+
+        const ensureRemovedMetadata = (scope: ScopeId): RemovedMetadata => {
+            let metadata = removedByScope.get(scope);
+            if (!metadata) {
+                metadata = { tuples: [] };
+                removedByScope.set(scope, metadata);
+            }
+            return metadata;
+        };
+
+        // Track which arrays have already been processed to avoid double-processing
+        // when multiple scopes share the same array reference.
+        const processedArrays = new WeakSet<unknown[]>();
+
+        for (const [defIndex, def] of this.ctx.keys.entries()) {
+            for (const scope of def.scopes ?? []) {
+                const changeDesc = scopeChanges.get(scope);
+                if (!changeDesc) continue;
+
+                const keysArray = processedData.keys[defIndex]?.get(scope);
+                if (!keysArray) continue;
+
+                // Skip if this array has already been processed (shared between scopes)
+                if (processedArrays.has(keysArray)) {
+                    // Still need to track removed metadata for this scope
+                    const sourceScope = Array.from(processedData.keys[defIndex].entries()).find(
+                        ([_, arr]) => arr === keysArray
+                    )?.[0];
+                    if (sourceScope && sourceScope !== scope && removedByScope.has(sourceScope)) {
+                        // Copy removed metadata from the scope that processed this array
+                        removedByScope.set(scope, removedByScope.get(sourceScope)!);
+                    }
+                    continue;
+                }
+                processedArrays.add(keysArray);
+
+                const insertionCache = insertionCaches.get(scope);
+                const removedMetadata = ensureRemovedMetadata(scope);
+                let removalCursor = 0;
+
+                this.applyChangeDescWithCache(
+                    changeDesc,
+                    keysArray,
+                    insertionCache,
+                    (cached) => {
+                        const keyResult = cached?.keys.get(defIndex);
+                        return keyResult?.valid ? keyResult.value : def.invalidValue;
+                    },
+                    (removedValues) => {
+                        for (const value of removedValues) {
+                            if (!removedMetadata.tuples[removalCursor]) {
+                                removedMetadata.tuples[removalCursor] = new Array(this.ctx.keys.length);
+                            }
+
+                            removedMetadata.tuples[removalCursor][defIndex] = value;
+                            removalCursor += 1;
+                        }
+                    }
+                );
+            }
+        }
+
+        const removedKeyStrings = new Map<ScopeId, Set<string>>();
+        for (const [scope, { tuples }] of removedByScope) {
+            if (tuples.length === 0) continue;
+
+            const scopeSet = new Set<string>();
+            for (const tuple of tuples) {
+                const keyValues: any[] = [];
+                for (const [defIndex, value] of tuple.entries()) {
+                    const keyDef = this.ctx.keys[defIndex];
+                    if (!keyDef.scopes?.includes(scope)) continue;
+                    keyValues.push(value);
+                }
+
+                if (keyValues.length > 0) {
+                    scopeSet.add(toKeyString(keyValues));
+                }
+            }
+
+            removedKeyStrings.set(scope, scopeSet);
+        }
+
+        return removedKeyStrings;
+    }
+
+    /**
+     * Transforms columns arrays using cached insertion results.
+     */
+    private transformColumnsArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        this.transformArraysWithCache(
+            this.ctx.values,
+            scopeChanges,
+            insertionCaches,
+            (defIndex) => processedData.columns[defIndex],
+            (def) => [first(def.scopes)],
+            (cached, def, defIndex) => {
+                if (cached) {
+                    // When key is invalid, value must also be invalidValue (matches full reprocessing)
+                    if (cached.hasInvalidKey) {
+                        return def.invalidValue;
+                    }
+                    const valueResult = cached.values.get(defIndex);
+                    return valueResult?.valid ? valueResult.value : def.invalidValue;
+                }
+                return def.invalidValue;
+            }
+        );
+    }
+
+    /**
+     * Helper to transform a scope-based invalidity map.
+     */
+    private transformInvalidityMap(
+        invalidityMap: Map<ScopeId, boolean[]>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>,
+        extractValue: (cached: InsertionCacheValue | undefined) => boolean
+    ): void {
+        // Track which arrays have already been processed to avoid double-processing
+        // when multiple scopes share the same array reference
+        const processedArrays = new Set<boolean[]>();
+
+        for (const [scope, changeDesc] of scopeChanges) {
+            let array = invalidityMap.get(scope);
+
+            // If no array exists (all initial data was valid), check if we need to create one
+            // for new insertions that have invalid values
+            if (!array) {
+                const insertionCache = insertionCaches.get(scope);
+                const hasAnyInvalid = insertionCache && Array.from(insertionCache.values()).some(extractValue);
+                if (hasAnyInvalid) {
+                    // Create array sized to match the ORIGINAL data length before changes are applied.
+                    // applyToArray will transform this array to the final size via splice operations.
+                    array = createArray(changeDesc.indexMap.originalLength, false);
+                    invalidityMap.set(scope, array);
+                } else {
+                    continue;
+                }
+            }
+
+            // Skip if this array has already been processed (shared between scopes)
+            if (processedArrays.has(array)) continue;
+            processedArrays.add(array);
+
+            const insertionCache = insertionCaches.get(scope);
+
+            this.applyChangeDescWithCache(changeDesc, array, insertionCache, (cached, _destIndex) =>
+                extractValue(cached)
+            );
+        }
+    }
+
+    /**
+     * Transforms invalidity arrays using cached insertion results.
+     */
+    private transformInvalidityArrays(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        if (processedData.invalidKeys) {
+            this.transformInvalidityMap(
+                processedData.invalidKeys,
+                scopeChanges,
+                insertionCaches,
+                (cached) => cached?.hasInvalidKey ?? false
+            );
+        }
+
+        if (processedData.invalidData) {
+            this.transformInvalidityMap(processedData.invalidData, scopeChanges, insertionCaches, (cached) =>
+                cached ? cached.hasInvalidKey || cached.hasInvalidValue : false
+            );
+        }
+
+        if (processedData.missingData) {
+            this.transformInvalidityMap(
+                processedData.missingData,
+                scopeChanges,
+                insertionCaches,
+                (cached) => cached?.hasMissingValue ?? false
+            );
+        }
+    }
+
+    /**
+     * Applies a change description to an array using the provided cache-aware extractor.
+     * Shared by array transformation helpers to keep update logic consistent.
+     */
+    private applyChangeDescWithCache<T>(
+        changeDesc: DataChangeDescription,
+        target: T[],
+        insertionCache: InsertionCache | undefined,
+        extractValue: (cached: InsertionCacheValue | undefined, destIndex: number) => T,
+        onRemove?: (removedValues: T[]) => void
+    ): void {
+        changeDesc.applyToArray(
+            target,
+            (destIndex) => {
+                const cached = insertionCache?.get(destIndex);
+                return extractValue(cached, destIndex);
+            },
+            onRemove
+        );
+
+        const updatedIndices = changeDesc.getUpdatedIndices();
+        if (updatedIndices.length === 0) return;
+
+        for (const destIndex of updatedIndices) {
+            if (destIndex < 0 || destIndex >= target.length) {
+                continue;
+            }
+            const cached = insertionCache?.get(destIndex);
+            target[destIndex] = extractValue(cached, destIndex);
+        }
+    }
+
+    /**
+     * Transforms the groups array for grouped data during reprocessing.
+     * Only called when groupsUnique=true and no invalid keys exist.
+     *
+     * This maintains the invariant: groups[i] corresponds to datum at columns[i].
+     */
+    private transformGroupsArray(
+        processedData: GroupedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        insertionCaches: Map<ScopeId, InsertionCache>
+    ): void {
+        // With our constraints, there should be exactly one data-set
+        const scope = first(processedData.scopes);
+        const changeDesc = scopeChanges.get(scope);
+        if (!changeDesc) return;
+
+        const insertionCache = insertionCaches.get(scope);
+
+        // Validate: no new invalid keys in insertions (maintains our invariant)
+        for (const [, cached] of insertionCache ?? []) {
+            if (cached.hasInvalidKey) {
+                throw new Error(
+                    'AG Charts - reprocessing grouped data with invalid keys not supported. ' +
+                        'This typically indicates a data quality issue that requires full reprocessing.'
+                );
+            }
+        }
+
+        // Critical invariant: After this transformation, groups[i] must
+        // still correspond to datum at columns[j][i] for all columns.
+        // This is why we require no invalid keys - they would break this mapping.
+
+        // Apply the same transformation to groups array as we did to columns/keys
+        // For each insertion, create a new DataGroup; for deletions, groups are removed
+        changeDesc.applyToArray(processedData.groups, (destIndex) => {
+            return this.createDataGroupForInsertion(destIndex, processedData, scope, insertionCache);
+        });
+
+        const updatedIndices = changeDesc.getUpdatedIndices();
+        if (updatedIndices.length > 0) {
+            for (const destIndex of updatedIndices) {
+                if (destIndex < 0 || destIndex >= processedData.groups.length) {
+                    continue;
+                }
+
+                processedData.groups[destIndex] = this.createDataGroupForInsertion(
+                    destIndex,
+                    processedData,
+                    scope,
+                    insertionCache
+                );
+            }
+        }
+    }
+
+    /**
+     * Creates a new DataGroup for an inserted datum during reprocessing.
+     *
+     * When groupsUnique=true and no invalid keys exist, each datum has:
+     * - A unique set of keys
+     * - datumIndices[columnIdx] = [0] (relative offset is always 0)
+     * - All scopes are valid initially (unless invalid value detected)
+     */
+    private createDataGroupForInsertion(
+        datumIndex: number,
+        processedData: GroupedData<D>,
+        scope: ScopeId,
+        insertionCache: InsertionCache | undefined
+    ): DataGroup {
+        // 1. Extract keys from the keys arrays at datumIndex
+        const keys: any[] = [];
+        for (const keysMap of processedData.keys) {
+            const scopeKeys = keysMap.get(scope);
+            if (scopeKeys) {
+                keys.push(scopeKeys[datumIndex]);
+            }
+        }
+
+        // 2. Re-use shared datumIndices array when groupsUnique=true with no invalid keys
+        const firstGroup = processedData.groups[0];
+        const allZeroDatumIndices = () =>
+            Object.freeze(createArray(processedData.columnScopes.length, SHARED_ZERO_INDICES));
+        const datumIndices = firstGroup?.datumIndices ?? allZeroDatumIndices();
+
+        // 3. Determine validScopes
+        // With our constraints (no invalid keys), check only for invalid values
+        const cached = insertionCache?.get(datumIndex);
+        const hasInvalidValue = cached?.hasInvalidValue ?? false;
+
+        let validScopes: Set<ScopeId>;
+        if (hasInvalidValue) {
+            // Create new Set excluding the invalid scope
+            validScopes = new Set(processedData.scopes);
+            validScopes.delete(scope);
+        } else {
+            // Reuse existing Set (all scopes valid)
+            validScopes = processedData.scopes;
+        }
+
+        return {
+            keys,
+            datumIndices,
+            aggregation: [], // Empty - we don't support aggregates in reprocessing yet
+            validScopes,
+        };
+    }
+
+    /**
+     * Generates diff metadata for animations and incremental rendering.
+     * This is an opt-in feature - only runs if diff tracking is already initialized.
+     */
+    private generateDiffMetadata(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>,
+        removedKeys: Map<ScopeId, Set<string>>
+    ): void {
+        // Helper to get key string for a datum at a given index (in post-transformed arrays)
+        const getKeyString = (scope: ScopeId, datumIndex: number): string | undefined => {
+            const keys: any[] = [];
+            for (const keysMap of processedData.keys) {
+                const scopeKeys = keysMap.get(scope);
+                if (!scopeKeys) return undefined;
+                keys.push(scopeKeys[datumIndex]);
+            }
+            return keys.length > 0 ? toKeyString(keys) : undefined;
+        };
+
+        // Process each scope's changes
+        for (const [scope, changeDesc] of scopeChanges) {
+            const diff: ProcessedOutputDiff = {
+                changed: true,
+                added: new Set<string>(),
+                removed: removedKeys.get(scope) ?? new Set<string>(),
+                updated: new Set<string>(),
+                moved: new Set<string>(),
+            };
+
+            // Get insertions and add to 'added' set
+            for (const op of changeDesc.indexMap.spliceOps) {
+                if (op.insertCount > 0) {
+                    for (let i = 0; i < op.insertCount; i++) {
+                        const datumIndex = op.index + i;
+                        const keyStr = getKeyString(scope, datumIndex);
+                        if (keyStr) {
+                            diff.added.add(keyStr);
+                        }
+                    }
+                }
+            }
+
+            const { originalLength, totalPrependCount } = changeDesc.indexMap;
+
+            if (isAppendOnly(changeDesc.indexMap)) {
+                // Nothing moved
+            } else if (isPrependOnly(changeDesc.indexMap) && originalLength > 0) {
+                for (let destIndex = totalPrependCount; destIndex < totalPrependCount + originalLength; destIndex++) {
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) diff.moved.add(keyStr);
+                }
+            } else if (hasNoRemovals(changeDesc.indexMap) && totalPrependCount > 0) {
+                for (let sourceIndex = 0; sourceIndex < originalLength; sourceIndex++) {
+                    const destIndex = sourceIndex + totalPrependCount;
+                    const keyStr = getKeyString(scope, destIndex);
+                    if (keyStr) diff.moved.add(keyStr);
+                }
+            } else {
+                changeDesc.forEachPreservedIndex((sourceIndex, destIndex) => {
+                    if (sourceIndex !== destIndex) {
+                        const keyStr = getKeyString(scope, destIndex);
+                        if (keyStr) diff.moved.add(keyStr);
+                    }
+                });
+            }
+
+            processedData.reduced!.diff![scope] = diff;
+        }
+    }
+
+    /**
+     * Updates metadata after array transformations.
+     * Uses intelligent cache management based on change patterns.
+     */
+    private updateProcessedDataMetadata(processedData: ProcessedData<D>): void {
+        let maxDataLength = 0;
+        for (const dataSet of processedData.dataSources.values()) {
+            maxDataLength = Math.max(maxDataLength, dataSet.data.length);
+        }
+        processedData.input.count = maxDataLength;
+
+        // Recompute partialValidDataCount (datums with valid keys but invalid values)
+        let partialValidDataCount = 0;
+        for (const [scope, invalidData] of processedData.invalidData ?? new Map()) {
+            const invalidKeys = processedData.invalidKeys?.get(scope);
+            for (let i = 0; i < invalidData.length; i++) {
+                if (invalidData[i] && !invalidKeys?.[i]) {
+                    partialValidDataCount += 1;
+                }
+            }
+        }
+        processedData.partialValidDataCount = partialValidDataCount;
+
+        // Recompute invalidKeyCount
+        this.recountInvalid(processedData.invalidKeys, processedData.invalidKeyCount);
+
+        // Recompute invalidDataCount
+        this.recountInvalid(processedData.invalidData, processedData.invalidDataCount);
+
+        if (processedData.missingData) {
+            for (const [scope, missingArray] of processedData.missingData) {
+                if (!missingArray.includes(false)) {
+                    // Clean up entries with no missings to match full reprocessing behaviour
+                    processedData.missingData.delete(scope);
+                }
+            }
+        }
+
+        // Intelligent cache invalidation based on change patterns
+        this.invalidateCachesForChanges(processedData);
+    }
+
+    /**
+     * Updates sort order entry incrementally for appended values.
+     * Checks if new values maintain the existing ordering/uniqueness.
+     */
+    private updateSortOrderForAppend(
+        entry: SortOrderEntry,
+        lastExistingValue: unknown,
+        appendedValues: unknown[]
+    ): void {
+        if (appendedValues.length === 0) return;
+
+        // Convert to numeric for comparison
+        const toNumeric = (v: unknown): number | undefined => {
+            if (typeof v === 'number') return v;
+            if (v instanceof Date) return v.valueOf();
+            return undefined;
+        };
+
+        let lastValue = toNumeric(lastExistingValue);
+        const existingSortOrder = entry.sortOrder;
+
+        for (const value of appendedValues) {
+            const numericValue = toNumeric(value);
+            if (numericValue === undefined) continue;
+
+            if (lastValue === undefined) {
+                lastValue = numericValue;
+                continue;
+            }
+
+            const diff = numericValue - lastValue;
+
+            // Check uniqueness
+            if (diff === 0) {
+                entry.isUnique = false;
+            }
+
+            // Check ordering (only if still considered ordered)
+            if (entry.sortOrder !== undefined) {
+                let direction = 0;
+                if (diff > 0) {
+                    direction = 1;
+                } else if (diff < 0) {
+                    direction = -1;
+                }
+                if (direction !== 0 && direction !== existingSortOrder) {
+                    entry.sortOrder = undefined;
+                }
+            }
+
+            lastValue = numericValue;
+        }
+    }
+
+    /**
+     * Updates KEY_SORT_ORDERS incrementally after an append operation.
+     */
+    private updateKeySortOrdersForAppend(processedData: ProcessedData<D>, originalLength: number): void {
+        for (const [keyDefIndex, keysMap] of processedData.keys.entries()) {
+            const sortOrderEntry = processedData[KEY_SORT_ORDERS].get(keyDefIndex);
+            if (!sortOrderEntry) continue;
+
+            // Get any scope's keys array (they share the same data)
+            const keysArray = first(keysMap.values());
+            if (!keysArray || keysArray.length <= originalLength) continue;
+
+            // Get last existing value and appended values
+            const lastExistingValue = originalLength > 0 ? keysArray[originalLength - 1] : undefined;
+            const appendedValues = keysArray.slice(originalLength);
+
+            this.updateSortOrderForAppend(sortOrderEntry, lastExistingValue, appendedValues);
+        }
+    }
+
+    /**
+     * Invalidates sort order metadata BEFORE domain recomputation.
+     *
+     * This must be called BEFORE recomputeDomains() so that BandedDomain.setSortOrderMetadata()
+     * receives the correct (possibly cleared) metadata. Without this, rolling window operations
+     * would see stale sort order data and incorrectly configure sub-domains for sorted mode.
+     *
+     * @param anyKeyChanged - Whether any key values changed during update processing
+     */
+    private invalidateSortOrdersForChanges(
+        processedData: ProcessedData<D>,
+        scopeChanges: Map<ScopeId, DataChangeDescription>
+    ): void {
+        const changeDescs = uniqueChangeDescriptions(scopeChanges);
+
+        // Determine the most conservative strategy across all changes
+        let preserveSortOrders = true;
+        let hasAppendOnly = false;
+        let hasRollingWindow = false;
+        let appendOriginalLength: number | undefined;
+        let rollingWindowInfo: { originalLength: number; removedCount: number } | undefined;
+
+        for (const changeDesc of changeDescs) {
+            const { indexMap } = changeDesc;
+
+            if (isUpdateOnly(indexMap)) {
+                // Update-only: Values changed but indices stable
+                // DOMAIN_RANGES must be cleared (values changed)
+                // Sort orders can be preserved if only values changed, not keys
+            } else if (isAppendOnly(indexMap)) {
+                // Append-only: New items at end, no index shifts
+                // DOMAIN_RANGES must be rebuilt to include new values
+                // Sort orders need incremental update for new values
+                hasAppendOnly = true;
+                appendOriginalLength = indexMap.originalLength;
+            } else if (hasOnlyRemovals(indexMap)) {
+                // Removal-only: Sort orders preserved (removals can't create duplicates or change order)
+            } else if (isRollingWindow(indexMap)) {
+                // Rolling window: Removals from start + appends at end
+                // Sort orders can be preserved if appended values maintain continuity
+                hasRollingWindow = true;
+                rollingWindowInfo = {
+                    originalLength: indexMap.originalLength,
+                    removedCount: indexMap.removedIndices.size,
+                };
+            } else {
+                // Complex pattern: Full invalidation for safety
+                preserveSortOrders = false;
+            }
+        }
+
+        // Apply sort order invalidation strategy
+        if (!preserveSortOrders) {
+            processedData[KEY_SORT_ORDERS].clear();
+            processedData[COLUMN_SORT_ORDERS].clear();
+        } else if (hasAppendOnly && appendOriginalLength !== undefined) {
+            this.updateKeySortOrdersForAppend(processedData, appendOriginalLength);
+        } else if (hasRollingWindow && rollingWindowInfo) {
+            // Rolling window: Update sort orders for the appended values
+            // The "last existing value" is the last value that remains after removals
+            this.updateKeySortOrdersForRollingWindow(processedData, rollingWindowInfo);
+        }
+        // When preserveSortOrders is true and not append-only: sort orders stay valid
+    }
+
+    /**
+     * Updates KEY_SORT_ORDERS incrementally after a rolling window operation.
+     * Rolling window = contiguous removals at start + appends at end.
+     */
+    private updateKeySortOrdersForRollingWindow(
+        processedData: ProcessedData<D>,
+        info: { originalLength: number; removedCount: number }
+    ): void {
+        const { originalLength, removedCount } = info;
+
+        for (const [keyDefIndex, keysMap] of processedData.keys.entries()) {
+            const sortOrderEntry = processedData[KEY_SORT_ORDERS].get(keyDefIndex);
+            if (!sortOrderEntry) continue;
+
+            // Get any scope's keys array (they share the same data)
+            const keysArray = first(keysMap.values());
+            if (!keysArray || keysArray.length === 0) continue;
+
+            // After rolling window, the keys array has been transformed:
+            // - Removed `removedCount` items from start
+            // - Appended new items at the end
+            // The new array length is: originalLength - removedCount + appendCount
+            // The appended items start at: originalLength - removedCount
+            const appendStartIndex = originalLength - removedCount;
+
+            // Get the last remaining value (just before append point)
+            const lastRemainingValue = appendStartIndex > 0 ? keysArray[appendStartIndex - 1] : undefined;
+            const appendedValues = keysArray.slice(appendStartIndex);
+
+            this.updateSortOrderForAppend(sortOrderEntry, lastRemainingValue, appendedValues);
+        }
+    }
+
+    /**
+     * Invalidates domain range caches after domain recomputation.
+     *
+     * Called AFTER recomputeDomains() to mark domain ranges as dirty for lazy rebuild.
+     * Sort order invalidation is handled separately by invalidateSortOrdersForChanges().
+     */
+    private invalidateCachesForChanges(processedData: ProcessedData<D>): void {
+        // Domain ranges are always invalidated for all change types
+        // Sort orders are handled by invalidateSortOrdersForChanges() before domain recomputation
+        this.markDomainRangesDirty(processedData[DOMAIN_RANGES]);
+
+        // Note: We intentionally don't clear DOMAIN_BANDS here as they maintain state across updates
+    }
+
+    /**
+     * Marks all RangeLookup entries as dirty for lazy rebuild.
+     */
+    private markDomainRangesDirty(domainRanges: Map<string, RangeLookup>): void {
+        for (const rangeLookup of domainRanges.values()) {
+            rangeLookup.isDirty = true;
+        }
+    }
+
+    /**
+     * Recounts invalid entries for the given map into the provided counts map.
+     */
+    private recountInvalid(
+        invalidMap: Map<ScopeId, boolean[]> | undefined,
+        counts: Map<ScopeId, number> | undefined
+    ): void {
+        if (!invalidMap || !counts) return;
+
+        for (const [scope, invalidArray] of invalidMap) {
+            const invalidCount = invalidArray.filter(Boolean).length;
+            if (invalidCount === 0) {
+                // Clean up entries with no invalids to match full reprocessing behaviour
+                invalidMap.delete(scope);
+                counts.delete(scope);
+            } else {
+                counts.set(scope, invalidCount);
+            }
+        }
+    }
+
+    /**
+     * Recomputes processor outputs using their incrementalCalculate hook when available.
+     * Falls back to calculate to avoid stale reducer outputs if a processor lacks the hook.
+     */
+    private reprocessProcessors(processedData: ProcessedData<D>): void {
+        if (this.ctx.processors.length === 0) return;
+
+        processedData.reduced ??= {};
+
+        for (const def of this.ctx.processors) {
+            const previousValue = (processedData.reduced as Record<string, unknown>)[def.property];
+            const nextValue =
+                def.incrementalCalculate?.(processedData, previousValue as any) ??
+                def.calculate(processedData, previousValue as any);
+            (processedData.reduced as Record<string, unknown>)[def.property] = nextValue as any;
+        }
+    }
+
+    /**
+     * Helper to get unique DataSets from processed data.
+     */
+    private getUniqueDataSets(processedData: ProcessedData<D>): Set<DataSet<any>> {
+        // Deduplicate DataSets (multiple scopes can share same DataSet)
+        return new Set(processedData.dataSources.values());
+    }
+}

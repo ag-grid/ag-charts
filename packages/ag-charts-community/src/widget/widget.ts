@@ -1,17 +1,13 @@
+import type { BaseAttributeTypeMap, BaseStyleTypeMap, BoxBounds, ElementID } from 'ag-charts-core';
 import {
-    type BaseAttributeTypeMap,
-    type BaseStyleTypeMap,
-    type BoxBounds,
-    type ElementID,
-    attachListener,
     getAttribute,
-    getWindow,
+    getElementBBox,
     setAttribute,
+    setElementBBox,
     setElementStyle,
     setElementStyles,
 } from 'ag-charts-core';
 
-import { getElementBBox, setElementBBox } from '../util/dom';
 import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
@@ -58,7 +54,7 @@ export abstract class Widget<
     extends WidgetBounds<TElement>
     implements IWidget<TElement>
 {
-    public index: number = NaN;
+    public index: number = Number.NaN;
     // WARNING (not implemented): setting domIndex will not move it in the DOM. This property is currently only used
     // when adding child widgets.
     public domIndex?: number;
@@ -98,11 +94,11 @@ export abstract class Widget<
     destroy(): void {
         this.destroyListener?.();
         this.destroyListener = undefined;
-        this.parent?.removeChild(this);
-        this.children.forEach((child) => {
+        this.remove();
+        for (const child of this.children) {
             child.parent = undefined;
             child.destroy();
-        });
+        }
         this.children.length = 0;
         this.destructor();
         this.remove();
@@ -120,7 +116,8 @@ export abstract class Widget<
     }
 
     isHidden(): boolean {
-        return getWindow()?.getComputedStyle?.(this.elem).display === 'none';
+        const { defaultView } = this.elem.ownerDocument;
+        return defaultView?.getComputedStyle(this.elem).display === 'none';
     }
 
     setCursor(cursor: BaseStyleTypeMap['cursor'] | undefined) {
@@ -177,7 +174,7 @@ export abstract class Widget<
     }
 
     private parseFloat(s: string) {
-        return s === '' ? 0 : parseFloat(s);
+        return s === '' ? 0 : Number.parseFloat(s);
     }
     cssLeft(): number {
         return this.parseFloat(this.elem.style.left);
@@ -217,7 +214,7 @@ export abstract class Widget<
     }
 
     removeChild(child: TChildWidget) {
-        const i = this.children.findIndex((value) => value === child);
+        const i = this.children.indexOf(child);
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
         this.onChildRemoved(child);
@@ -256,7 +253,7 @@ export abstract class Widget<
     }
 
     protected removeChildFromDOM(child: TChildWidget): void {
-        this.elem.removeChild(child.getElement());
+        child.getElement().remove();
     }
 
     protected onChildAdded(_child: TChildWidget): void {}
@@ -309,15 +306,5 @@ export abstract class Widget<
             }
             parent = parent.parent;
         }
-    }
-
-    static addWindowEvent(_type: 'page-left', listener: () => unknown): () => void {
-        const pagehideHandler = (event: PageTransitionEvent) => {
-            if (event.persisted) {
-                return; // Don't fire the page-left event since the page maybe revisited.
-            }
-            listener();
-        };
-        return attachListener(getWindow(), 'pagehide', pagehideHandler);
     }
 }

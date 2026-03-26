@@ -3,7 +3,7 @@ title: 'Pyramid Series'
 description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
 ---
 
-A Pyramid Series is a triangular shaped visualization that uses the height of each segment to represent its value as a proportion of the whole.
+A Pyramid Series is a triangular shaped visualisation that uses the height of each segment to represent its value as a proportion of the whole.
 
 ## Simple Pyramid
 
@@ -11,14 +11,16 @@ A Pyramid Series is a triangular shaped visualization that uses the height of ea
 
 To create a Pyramid Series, use the `pyramid` series type.
 
-```js
-series: [
-    {
-        type: 'pyramid',
-        stageKey: 'group',
-        valueKey: 'value'
-    },
-],
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'pyramid',
+            stageKey: 'group',
+            valueKey: 'value',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -32,7 +34,7 @@ In this configuration:
 
 To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
 
-```js
+```js format="snippet"
 {
     direction: 'horizontal',
 }
@@ -44,7 +46,7 @@ To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
 
 To reverse a Pyramid Series, set `reverse` to `true`.
 
-```js
+```js format="snippet"
 {
     reverse: true,
 }
@@ -58,7 +60,7 @@ To reverse a Pyramid Series, set `reverse` to `true`.
 
 The colours in a Pyramid Series can be customised with the `fills` property.
 
-```js
+```js format="snippet"
 {
     fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
 }
@@ -70,7 +72,7 @@ The colours in a Pyramid Series can be customised with the `fills` property.
 
 The shape of the triangle can be set using the `aspectRatio` property.
 
-```js
+```js format="snippet"
 {
     aspectRatio: 3 / 2,
 }

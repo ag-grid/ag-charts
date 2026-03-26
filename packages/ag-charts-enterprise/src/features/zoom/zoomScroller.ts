@@ -1,26 +1,17 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { entries } from 'ag-charts-core';
+import { ChartAxisDirection, definedZoomState, entries } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState } from 'ag-charts-core';
 
-import type { AxisZoomStates, DefinedZoomState, ZoomProperties } from './zoomTypes';
-import {
-    constrainAxis,
-    constrainZoom,
-    definedZoomState,
-    dx,
-    dy,
-    pointToRatio,
-    scaleZoomAxisWithAnchor,
-} from './zoomUtils';
+import type { ZoomProperties } from './zoomTypes';
+import { constrainAxis, constrainZoom, dx, dy, pointToRatio, scaleZoomAxisWithAnchor } from './zoomUtils';
+
+type State = _ModuleSupport.CoreZoomState;
+type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 
 export class ZoomScroller {
-    updateAxes(
-        event: _Widget.WheelWidgetEvent,
-        props: ZoomProperties,
-        bbox: _ModuleSupport.BBox,
-        zooms: AxisZoomStates
-    ): AxisZoomStates {
+    updateAxes(event: _Widget.WheelWidgetEvent, props: ZoomProperties, bbox: BoxBounds, zooms: StateRetrieval): State {
         const sourceEvent = event.sourceEvent;
-        const newZooms: AxisZoomStates = {};
+        const newZooms: State = {};
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         // Convert the cursor position to coordinates as a ratio of 0 to 1
@@ -30,19 +21,20 @@ export class ZoomScroller {
             sourceEvent.offsetY ?? sourceEvent.clientY
         );
 
-        for (const [axisId, { direction, zoom }] of entries(zooms)) {
-            if (zoom == null) continue;
+        for (const [axisId, value] of entries(zooms)) {
+            if (value == null) continue;
+            const { direction, min, max } = value;
 
-            let newZoom = { ...zoom };
+            let newZoom = { min, max };
 
-            const delta = scrollingStep * event.deltaY * (zoom.max - zoom.min);
+            const delta = scrollingStep * event.deltaY * (max - min);
 
-            if (direction === _ModuleSupport.ChartAxisDirection.X && isScalingX) {
+            if (direction === ChartAxisDirection.X && isScalingX) {
                 newZoom.max += delta;
-                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, anchorPointX, origin.x);
-            } else if (direction === _ModuleSupport.ChartAxisDirection.Y && isScalingY) {
+                newZoom = scaleZoomAxisWithAnchor(newZoom, value, anchorPointX, origin.x);
+            } else if (direction === ChartAxisDirection.Y && isScalingY) {
                 newZoom.max += delta;
-                newZoom = scaleZoomAxisWithAnchor(newZoom, zoom, anchorPointY, origin.y);
+                newZoom = scaleZoomAxisWithAnchor(newZoom, value, anchorPointY, origin.y);
             } else {
                 continue;
             }
@@ -50,7 +42,8 @@ export class ZoomScroller {
             // @todo(AG-15397) - We don't have a way to normalize this zoom yet, so we'll just discard the zoom event
             if (newZoom.max < newZoom.min) continue;
 
-            newZooms[axisId] = { direction, zoom: constrainAxis(newZoom) };
+            const constrained = constrainAxis(newZoom);
+            newZooms[axisId] = { direction, min: constrained.min, max: constrained.max };
         }
 
         return newZooms;
@@ -59,7 +52,7 @@ export class ZoomScroller {
     update(
         event: _Widget.WheelWidgetEvent,
         props: ZoomProperties,
-        bbox: _ModuleSupport.BBox,
+        bbox: BoxBounds,
         oldZoom: DefinedZoomState
     ): DefinedZoomState | undefined {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;

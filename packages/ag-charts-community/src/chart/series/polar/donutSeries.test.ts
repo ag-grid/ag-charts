@@ -1,11 +1,15 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
-import { MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
+import * as examples from '../../test/examples';
+import { type MockDonutCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -16,12 +20,14 @@ import {
     doubleTapAction,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
+import { DonutSeries } from './donutSeries';
 
 function* iterLegendMarkerLabels(myChart: Chart) {
     for (const { legend } of deproxy(myChart).modulesManager.legends()) {
@@ -156,6 +162,166 @@ describe('DonutSeries', () => {
                     { type: 'donut', angleKey: 'b', outerRadiusRatio: 0.4, innerRadiusRatio: 0.1 },
                 ],
             });
+            await compare();
+        });
+    });
+
+    describe('#validation', () => {
+        test('null callout label key warning', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'A', value: 10 },
+                    { label: null, value: 20 },
+                    { label: 'B', value: 15 },
+                ],
+                series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label', innerRadiusRatio: 0.5 }],
+            });
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_ANGLE_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should reject undefined category key with warning', async () => {
+            const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [DonutSeries-1 / calloutLabelValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item '' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
+            const calloutLabelFormatter = jest.fn((params: any) =>
+                params.value === null ? 'Unknown' : String(params.value)
+            );
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: { formatter: calloutLabelFormatter },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expect(calloutLabelFormatter).toHaveBeenCalled();
+            const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+            expect(callWithNull).toBeDefined();
+        });
+
+        it('should render formatted callout label for null category when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: {
+                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                        },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
             await compare();
         });
     });
@@ -517,6 +683,10 @@ describe('DonutSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - invalid value of type [undefined] for [DonutSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
     "AG Charts - no value was found for the key 'dog' on 3 data elements",
   ],
   [
@@ -570,6 +740,83 @@ describe('DonutSeries', () => {
                     await compare(`donut-series-test-ts-pie-series-legend-All`);
                 }
             });
+        });
+    });
+
+    describe('applyTransaction', () => {
+        let chartProxy: AgChartProxy;
+        let donutSeries: DonutSeries;
+
+        beforeEach(async () => {
+            OptionsGraph.clearValueCache();
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { city: 'Berlin', value: 5 },
+                    { city: 'Munich', value: 3 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'city',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
+            });
+            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            donutSeries = chart.series[0] as DonutSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            donutSeries = undefined!;
+        });
+
+        test('reprocesses palette entries for new data', async () => {
+            expect(donutSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { city: 'Hamburg', value: 4 },
+                    { city: 'Cologne', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            expect(donutSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            const nodeData = donutSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
+        });
+
+        test('removes data items correctly', async () => {
+            const initialData = chartProxy.getOptions().data!;
+            expect(initialData).toHaveLength(2);
+            const initialNodeData = donutSeries.getNodeData() ?? [];
+            expect(initialNodeData).toHaveLength(2);
+
+            const itemToRemove = initialData[0];
+            await chartProxy.applyTransaction({
+                remove: [itemToRemove],
+            });
+            await waitForChartStability(chart);
+
+            const updatedOptions = chartProxy.getOptions();
+            expect(updatedOptions.data).toBeDefined();
+            expect(updatedOptions.data!).toHaveLength(1);
+            expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+
+            const nodeData = donutSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(1);
         });
     });
 
@@ -755,6 +1002,165 @@ describe('DonutSeries', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
         });
         test('image', async () => {
+            await compare();
+        });
+    });
+
+    describe('AG-16492 calloutLabel.itemStyler', () => {
+        type D = { name: string; size: number };
+        type C = undefined;
+        type M = MockDonutCalloutLineItemStyler<D, C>;
+        let itemStyler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        beforeEach(async () => {
+            itemStyler = newFreezableMock<D, C, M>((p) => {
+                if (p.datum.name === 'Abu Dhabi') {
+                    return { border: { enabled: true, stroke: '#6E6E6E', strokeWidth: 1.25 } };
+                }
+                return { color: 'blue' };
+            });
+            const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
+                data: [
+                    { name: 'Abu Dhabi', size: 1 },
+                    { name: 'Amsterdam', size: 1 },
+                    { name: 'Barcelona', size: 1 },
+                    { name: 'Berlin', size: 1 },
+                    { name: 'Brussels', size: 1 },
+                    { name: 'Cairo', size: 1 },
+                    { name: 'Dublin', size: 1 },
+                    { name: 'Hanoi', size: 1 },
+                    { name: 'Kyiv', size: 1 },
+                    { name: 'London', size: 1 },
+                    { name: 'Madrid', size: 1 },
+                    { name: 'New York', size: 1 },
+                    { name: 'Paris', size: 1 },
+                    { name: 'Rome', size: 1 },
+                    { name: 'San Francisco', size: 1 },
+                    { name: 'Tokyo', size: 1 },
+                    { name: 'Zurich', size: 1 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'size',
+                        calloutLabelKey: 'name',
+                        calloutLabel: {
+                            itemStyler: itemStyler.frozen,
+                        },
+                    },
+                ],
+            };
+            chart = await createChart(opts);
+        });
+        test('calls', () => {
+            expect(itemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+        test('image', async () => {
+            await compare();
+        });
+    });
+
+    describe('AG-16492 sectorLabel.itemStyler', () => {
+        type D = { name: string; size: number };
+        type C = undefined;
+        type M = MockDonutCalloutLineItemStyler<D, C>;
+        let itemStyler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        beforeEach(async () => {
+            itemStyler = newFreezableMock<D, C, M>((p) => {
+                if (p.datum.name === 'Abu Dhabi') {
+                    return { border: { enabled: true, stroke: '#6E6E6E', strokeWidth: 1.25 } };
+                }
+                return { color: 'blue' };
+            });
+            const opts: AgChartOptions<{ name: string; size: number }, undefined> = {
+                data: [
+                    { name: 'Abu Dhabi', size: 1 },
+                    { name: 'Amsterdam', size: 1 },
+                    { name: 'Barcelona', size: 1 },
+                    { name: 'Berlin', size: 1 },
+                    { name: 'Brussels', size: 1 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'size',
+                        sectorLabelKey: 'name',
+                        calloutLabelKey: 'name',
+                        sectorLabel: {
+                            itemStyler: itemStyler.frozen,
+                        },
+                    },
+                ],
+            };
+            chart = await createChart(opts);
+        });
+        test('calls', () => {
+            expect(itemStyler.mock.mock.calls).toMatchSnapshot();
+        });
+        test('image', async () => {
+            await compare();
+        });
+    });
+
+    describe('cutout drawing mode', () => {
+        it('should render donut series with cutout highlight drawing mode', async () => {
+            const cutoutOptions: AgChartOptions = {
+                data: [
+                    { category: 'Q1', value: 25 },
+                    { category: 'Q2', value: 30 },
+                    { category: 'Q3', value: 20 },
+                    { category: 'Q4', value: 25 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'category',
+                        innerRadiusRatio: 0.5,
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.1,
+                                stroke: 'black',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+            };
+
+            chart = await createChart(cutoutOptions);
+
+            await hoverAction(250, 200)(chart);
+            await compare();
+        });
+
+        it('should render pie series with default highlight style cutout highlight drawing mode', async () => {
+            const pieOptions: AgChartOptions = {
+                data: [
+                    { category: 'Q1', value: 25 },
+                    { category: 'Q2', value: 30 },
+                    { category: 'Q3', value: 20 },
+                    { category: 'Q4', value: 25 },
+                ],
+                series: [
+                    {
+                        type: 'donut',
+                        angleKey: 'value',
+                        calloutLabelKey: 'category',
+                        innerRadiusRatio: 0.5,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+            };
+
+            chart = await createChart(pieOptions);
+
+            await hoverAction(250, 200)(chart);
             await compare();
         });
     });

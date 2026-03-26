@@ -1,19 +1,13 @@
 ---
-import { getCollection, getEntry, type CollectionEntry } from 'astro:content';
+import { getEntry, type CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
-import { getDocsPages } from '../components/docs/utils/pageData';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { SideNavigation } from '@components/pages-navigation/components/SideNavigation';
 import MajorTable from '@ag-website-shared/components/major-table/MajorTable.astro';
 import docsStyles from '@ag-website-shared/components/page-styles/docs.module.scss';
 
 import type { Framework } from '@ag-grid-types';
-
-export async function getStaticPaths() {
-    const pages = await getCollection('docs');
-    return getDocsPages(pages);
-}
 
 const pageName = Astro.params.pageName as Framework;
 

@@ -1,25 +1,32 @@
+import type { DomainWithMetadata } from 'ag-charts-core';
+import {
+    Property,
+    dateTruncationForDomain,
+    intervalEpoch,
+    intervalFloor,
+    intervalStep,
+    intervalUnit,
+    lowestGranularityUnitForTicks,
+    lowestGranularityUnitForValue,
+    normalisedTimeExtentWithMetadata,
+    objectsEqual,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { objectsEqual } from '../../util/object';
-import { Property } from '../../util/properties';
-import { intervalEpoch, intervalFloor, intervalStep, intervalUnit } from '../../util/time';
-import {
-    dateTruncationForDomain,
-    lowestGranularityUnitForTicks,
-    lowestGranularityUnitForValue,
-} from '../../util/timeFormatDefaults';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
-import { TimeAxisParentLevel, calculateDefaultUnit, normaliseTimeDataDomain } from './timeAxis';
+import { TimeAxisParentLevel, calculateDefaultUnit } from './timeAxis';
 
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
+
+    override defaultTickMinSpacing = 20;
 
     @Property
     readonly parentLevel = new TimeAxisParentLevel();
@@ -29,6 +36,12 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
 
     @Property
     max?: Date | number = undefined;
+
+    @Property
+    preferredMin?: Date | number = undefined;
+
+    @Property
+    preferredMax?: Date | number = undefined;
 
     @Property
     // eslint-disable-next-line sonarjs/use-type-alias
@@ -81,8 +94,15 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         this.scale.interval = this.unit ?? this.defaultUnit;
     }
 
-    override normaliseDataDomain(domain: Date[]) {
-        return normaliseTimeDataDomain(domain, this.min, this.max);
+    override normaliseDataDomain(d: DomainWithMetadata<Date>) {
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(
+            d,
+            this.min,
+            this.max,
+            this.preferredMin,
+            this.preferredMax
+        );
+        return { domain: extent, clipped };
     }
 
     override tickFormatParams(

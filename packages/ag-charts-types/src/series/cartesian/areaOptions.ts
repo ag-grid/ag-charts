@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, HighlightState, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -14,7 +14,7 @@ import type {
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgAreaSeriesOptionsKeys<TDatum> &
     AgAreaSeriesOptionsNames;
@@ -29,7 +29,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         FillOptions,
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgAreaSeriesStylerParams<TDatum, TContext>, AgAreaSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams<TDatum, TContext>, TContext>;
@@ -58,7 +58,7 @@ export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {
 
 export interface AgAreaSeriesStylerParams<TDatum, TContext>
     extends AgAreaSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams,
+        SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
         Required<FillOptions>,
@@ -95,10 +95,13 @@ export interface AgAreaSeriesOptionsNames {
     xName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgAreaSeriesOptionsKeys<TDatum>,
         AgAreaSeriesOptionsNames,
         AgAreaSeriesThemeableOptions<TDatum, TContext> {

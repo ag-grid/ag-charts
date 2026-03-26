@@ -1,7 +1,6 @@
-import { createElement } from 'ag-charts-core';
+import type { LabelIcon } from 'ag-charts-core';
+import { createElement, getIconClassNames } from 'ag-charts-core';
 
-import type { LabelIcon } from '../../dom/elements';
-import { getIconClassNames } from '../../util/dom';
 import type { ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { MenuItemRadioWidget, MenuItemWidget } from '../../widget/menuItemWidget';
 import { MenuWidget } from '../../widget/menuWidget';
@@ -17,6 +16,7 @@ export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
 
 export type MenuItem<Value = any> = LabelIcon & {
     value: Value;
+    enabled?: boolean;
     strokeWidth?: number;
 };
 
@@ -49,8 +49,14 @@ export class Menu extends AnchoredPopover {
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>, menu: MenuWidget): MenuRow {
         const active = item.value === options.value;
         const row = this.allocRow(options, item);
+
+        if (item.enabled != null) {
+            row.setEnabled(item.enabled);
+        }
+
         row.addClass('ag-charts-menu__row');
         row.toggleClass(`ag-charts-menu__row--active`, active);
+
         if (typeof item.value === 'string') {
             row.getElement().dataset.popoverId = item.value;
         }
@@ -79,6 +85,7 @@ export class Menu extends AnchoredPopover {
         row.addListener('click', ({ sourceEvent }: MouseWidgetEvent<'click'>) => {
             options.onPress?.(item);
             sourceEvent.preventDefault();
+            // eslint-disable-next-line no-restricted-properties
             sourceEvent.stopPropagation();
             menu.collapse();
         });

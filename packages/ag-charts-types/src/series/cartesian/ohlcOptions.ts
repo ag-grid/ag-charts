@@ -6,7 +6,7 @@ import type {
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
-import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
     AgOhlcSeriesBaseItemStylerParams,
     AgOhlcSeriesBaseOptions,
@@ -42,7 +42,7 @@ export interface AgOhlcSeriesThemeableOptions<TDatum = DatumDefault, TContext = 
         AgOhlcSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOhlcSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Function used to return formatting for individual items, based on the given parameters. If the current datum is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual items, based on the given parameters.*/
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<TDatum, TContext>, AgOhlcSeriesItemOptions>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgOhlcHighlightStyleOptions, AgOhlcHighlightStyleOptions>;
@@ -55,6 +55,7 @@ export interface AgOhlcHighlightStyleOptions extends AgOhlcSeriesItemOptions {
 export interface AgOhlcSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOhlcSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgOhlcSeriesBaseOptions<TDatum>,
         Omit<AxisOptions<TDatum>, 'yKey'> {
     /** Configuration for the OHLC Series. */

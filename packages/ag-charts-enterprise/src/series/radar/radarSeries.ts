@@ -1,35 +1,47 @@
 import {
     type AgBaseRadarSeriesOptions,
+    type AgDrawingMode,
     type AgRadarSeriesLabelFormatterParams,
+    type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
+    type ContextDefault,
+    type DatumDefault,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, type RequireOptional, isFiniteNumber, isNumberEqual } from 'ag-charts-core';
+import {
+    type CallbackParam,
+    ChartAxisDirection,
+    type DomainWithMetadata,
+    type Point,
+    type RequireOptional,
+    extent,
+    isFiniteNumber,
+    isNumberEqual,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
 const {
     DEFAULT_POLAR_DIRECTION_KEYS,
     DEFAULT_POLAR_DIRECTION_NAMES,
-    ChartAxisDirection,
     PolarAxis,
     SeriesNodePickMode,
+    keyProperty,
     valueProperty,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     markerFadeInAnimation,
     resetMarkerFn,
+    resetLabelFn,
     animationValidation,
     computeMarkerFocusBounds,
-    extent,
     BBox,
     Group,
     Path,
-    PointerEvents,
     Selection,
     Text,
     Marker,
-    mergeDefaults,
     updateLabelNode,
     getMarkerStyles,
 } = _ModuleSupport;
@@ -48,27 +60,41 @@ interface RadarSeriesNodeDataContext extends _ModuleSupport.SeriesNodeDataContex
     styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
+type StylerResult<TStyle extends AgRadarSeriesStyle> = TStyle & { marker?: { enabled?: boolean } };
+
+type BaseRadarSeries = RadarSeries<
+    AgRadarSeriesStyle,
+    AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>,
+    RadarSeriesProperties<
+        AgRadarSeriesStyle,
+        AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, AgRadarSeriesStyle>
+    >
+>;
+
+export type ResolvedRadarStyle<TStyle extends AgRadarSeriesStyle> = {
+    [K in keyof TStyle]-?: Exclude<TStyle[K], undefined>;
+} & {
+    marker: Required<AgSeriesMarkerStyle> & { enabled: boolean };
+};
+
 class RadarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: RadarSeries) {
+    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: BaseRadarSeries) {
         super(type, nativeEvent, datum, series);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
 }
 
-export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
-    RadarNodeDatum,
-    AgBaseRadarSeriesOptions,
-    RadarSeriesProperties<AgBaseRadarSeriesOptions>,
-    _ModuleSupport.Marker
-> {
-    static readonly className: string = 'RadarSeries';
-
-    override properties = new RadarSeriesProperties();
+export abstract class RadarSeries<
+    TStyle extends AgRadarSeriesStyle,
+    TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
+    TProps extends RadarSeriesProperties<TStyle, TOpts>,
+> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker> {
+    static override readonly className: string = 'RadarSeries';
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
@@ -92,6 +118,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             canHaveAxes: true,
             animationResetFns: {
                 item: resetMarkerFn,
+                label: resetLabelFn,
             },
             clipFocusBox: false,
         });
@@ -100,24 +127,27 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.itemGroup.zIndex = 1;
     }
 
-    override get hasData(): boolean {
-        return this.getHasData('angleValue');
+    override renderToOffscreenCanvas(): boolean {
+        const hasMarkers = (this.nodeData?.length ?? 0) > 0;
+        return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
     }
 
     protected override nodeFactory(): _ModuleSupport.Marker {
         return new Marker();
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         if (direction === ChartAxisDirection.Angle) {
-            return dataModel.getDomain(this, `angleValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `angleValue`, 'key', processedData).domain;
+            const sortMetadata = dataModel.getKeySortMetadata(this, 'angleValue', processedData);
+            return { domain, sortMetadata };
         } else {
-            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `radiusValue`, 'value', processedData).domain;
             const ext = extent(domain.length === 0 ? domain : [0].concat(domain));
-            return fixNumericExtent(ext);
+            return { domain: fixNumericExtent(ext) };
         }
     }
 
@@ -131,10 +161,11 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const radiusScaleType = this.axes[ChartAxisDirection.Radius]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.Angle]?.scale.type;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
 
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(angleKey, angleScaleType, { id: 'angleValue' }),
+                keyProperty(angleKey, angleScaleType, { id: 'angleValue', allowNullKey }),
                 valueProperty(radiusKey, radiusScaleType, { id: 'radiusValue', invalidValue: undefined }),
                 ...extraProps,
             ],
@@ -175,8 +206,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (!processedData || !dataModel) return;
 
-        const { angleKey, radiusKey, angleName, radiusName, marker, label, stroke, strokeWidth, strokeOpacity } =
-            this.properties;
+        const { angleKey, radiusKey, angleName, radiusName, legendItemName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.Angle]?.scale;
         const radiusScale = this.axes[ChartAxisDirection.Radius]?.scale;
 
@@ -184,15 +214,25 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return;
         }
 
-        const angleValues = dataModel.resolveColumnById<number | string>(this, `angleValue`, processedData);
+        const angleValues = dataModel.resolveKeysById(this, `angleValue`, processedData);
         const radiusValues = dataModel.resolveColumnById<number>(this, `radiusValue`, processedData);
         const axisInnerRadius = this.getAxisInnerRadius();
 
-        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius);
+        const radiusDomain = this.getSeriesDomain(ChartAxisDirection.Radius).domain;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        const nodeData = rawData.map((datum, datumIndex): RadarNodeDatum => {
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        const nodeData: RadarNodeDatum[] = [];
+
+        for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
+            const datum = rawData[datumIndex];
             const angleDatum = angleValues[datumIndex];
+
+            // eslint-disable-next-line sonarjs/different-types-comparison
+            if (angleDatum === undefined && !allowNullKeys) {
+                continue;
+            }
+
             const radiusDatum = radiusValues[datumIndex];
 
             const angle = angleScale.convert(angleDatum);
@@ -213,7 +253,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                     'radius',
                     radiusDomain,
                     label,
-                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName }
+                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName, legendItemName }
                 );
 
                 if (labelText) {
@@ -241,7 +281,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 }
             }
 
-            return {
+            nodeData.push({
                 series: this,
                 datum,
                 datumIndex,
@@ -252,14 +292,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
                 missing: !isFiniteNumber(angle) || !isFiniteNumber(radius),
-            };
-        });
+            });
+        }
 
         return {
             itemId: radiusKey,
             nodeData,
             labelData: nodeData,
-            styles: getMarkerStyles(this, marker, { stroke, strokeWidth, strokeOpacity }),
+            styles: getMarkerStyles(this, this.properties, marker),
         };
     }
 
@@ -292,8 +332,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             this.updateDatumStyles(this.highlightSelection, true);
         }
 
-        this.updateMarkers(this.itemSelection, false);
-        this.updateMarkers(this.highlightSelection, true);
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
+
+        this.updateMarkers(this.itemSelection, false, 'overlay');
+        this.updateMarkers(this.highlightSelection, true, drawingMode);
         this.updateLabels();
 
         if (resize) {
@@ -308,35 +350,37 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateMarkerSelection() {
-        const { marker } = this.properties;
+        const { marker, styler } = this.properties;
         if (marker.isDirty()) {
             this.itemSelection.clear();
             this.itemSelection.cleanup();
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
         }
 
-        const data = this.visible && marker.shape && marker.enabled ? this.nodeData : [];
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle().marker.enabled;
+        const data = this.visible && marker.shape && markersEnabled ? this.nodeData : [];
         this.itemSelection.update(data);
     }
 
     protected updateHighlightSelection() {
-        const { marker } = this.properties;
+        const { marker, styler } = this.properties;
         if (marker.isDirty()) {
             this.highlightSelection.clear();
             this.highlightSelection.cleanup();
             this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
         }
 
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle().marker.enabled;
         const highlighted = this.ctx.highlightManager?.getActiveHighlight();
         const data =
-            this.visible && marker.shape && marker.enabled && highlighted?.datum
+            this.visible && marker.shape && markersEnabled && highlighted?.datum
                 ? [{ ...highlighted } as RadarNodeDatum]
                 : [];
         this.highlightSelection.update(data);
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.properties.marker.fill;
+        return highlightedStyle?.fill ?? this.getStyle().marker.fill;
     }
 
     protected getDatumStylerProperties(datum: any) {
@@ -355,15 +399,18 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
         isHighlight: boolean
     ) {
-        const { marker, stroke, strokeWidth, strokeOpacity } = this.properties;
-
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         selection.each((_, datum) => {
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const stylerStyle = this.getStyle(highlightState);
+            const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+
             datum.style = this.getMarkerStyle(
-                marker,
+                this.properties.marker,
                 datum,
                 this.getDatumStylerProperties(datum.datum),
-                { isHighlight },
-                undefined,
+                { isHighlight, highlightState },
+                stylerStyle.marker,
                 {
                     stroke,
                     strokeWidth,
@@ -374,8 +421,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateMarkers(
+<<<<<<< HEAD
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
         isHighlight: boolean
+=======
+        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        isHighlight: boolean,
+        drawingMode: AgDrawingMode
+>>>>>>> latest
     ) {
         const fillBBox = this.getShapeFillBBox();
         const { contextNodeData } = this;
@@ -385,43 +438,57 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        drawingMode = this.getDrawingMode(isHighlight, drawingMode);
+
         selection.each((node, datum) => {
             const style =
                 datum.style ??
                 contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             this.applyMarkerStyle(style, node, datum.point, fillBBox);
+
+            node.drawingMode = drawingMode;
         });
     }
 
     protected updateLabels() {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightData =
+            activeHighlight?.series === this && activeHighlight?.datum
+                ? [{ ...(activeHighlight as RadarNodeDatum) }]
+                : [];
+
         this.labelSelection.update(this.nodeData).each((node, datum) => {
             if (datum.label) {
-                const isHighlight = false; // Labels are not highlighted in radar series
+                const isHighlight = false;
+                node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
+                updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
+            }
+        });
+
+        this.highlightLabelSelection.update(highlightData).each((node, datum) => {
+            if (datum.label) {
+                const isHighlight = true;
                 node.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 updateLabelNode(this, node, properties, properties.label, datum.label, isHighlight, activeHighlight);
             }
         });
     }
 
-    makeStylerParams(_highlighted: boolean, _highlightStateEnum?: _ModuleSupport.HighlightState): never {
-        throw new Error('not implemented');
-    }
-
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName, radiusKey, radiusName, tooltip, marker } = properties;
+        const { angleKey, angleName, radiusKey, radiusName, legendItemName, tooltip, marker } = properties;
         const angleAxis = axes[ChartAxisDirection.Angle];
         const radiusAxis = axes[ChartAxisDirection.Radius];
 
         if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
-        const angleValue = dataModel.resolveColumnById(this, `angleValue`, processedData)[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
+        const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
         const radiusValue = dataModel.resolveColumnById(this, `radiusValue`, processedData)[datumIndex];
 
-        if (angleValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (angleValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const activeStyle = this.getMarkerStyle(marker, { datum, datumIndex }, this.getDatumStylerProperties(datum), {
             isHighlight: false,
@@ -430,13 +497,22 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(angleAxis, 'tooltip', angleValue, datum, angleKey, undefined),
+                heading: this.getAxisValueText(
+                    angleAxis,
+                    'tooltip',
+                    angleValue,
+                    datum,
+                    angleKey,
+                    undefined,
+                    allowNullKeys
+                ),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: radiusName,
                         fallbackLabel: radiusKey,
                         value: this.getAxisValueText(radiusAxis, 'tooltip', radiusValue, datum, radiusKey, undefined),
+                        missing: _ModuleSupport.isTooltipValueMissing(radiusValue),
                     },
                 ],
             },
@@ -448,13 +524,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 angleName,
                 radiusName,
+                legendItemName,
                 ...(activeStyle as RequireOptional<AgSeriesMarkerStyle>),
             }
         );
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle();
 
         const markerStyle = {
             shape: marker.shape,
@@ -471,6 +548,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return {
             marker: markerStyle,
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,
@@ -490,7 +568,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             visible,
         } = this;
 
-        const { radiusKey, radiusName, showInLegend } = this.properties;
+        const { radiusKey, radiusName, legendItemName, showInLegend } = this.properties;
 
         return [
             {
@@ -500,9 +578,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: radiusKey }),
                 label: {
-                    text: radiusName ?? radiusKey,
+                    text: legendItemName ?? radiusName ?? radiusKey,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
@@ -513,8 +592,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { x, y } = hitPoint;
         const radius = this.radius;
 
-        const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-        if (distanceFromCenter > radius + this.properties.marker.size) {
+        const distanceFromCenter = Math.hypot(x - cx, y - cy);
+        if (distanceFromCenter > radius + this.maxChartMarkerSize) {
             return;
         }
 
@@ -522,12 +601,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         let closestDatum: RadarNodeDatum | undefined;
 
         for (const datum of nodeData) {
-            const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
-            if (isNaN(datumX) || isNaN(datumY)) {
+            const { point: { x: datumX = Number.NaN, y: datumY = Number.NaN } = {} } = datum;
+            if (Number.isNaN(datumX) || Number.isNaN(datumY)) {
                 continue;
             }
 
-            const distance = Math.sqrt((hitPoint.x - datumX - cx) ** 2 + (hitPoint.y - datumY - cy) ** 2);
+            const distance = Math.hypot(hitPoint.x - datumX - cx, hitPoint.y - datumY - cy);
             if (distance < minDistance) {
                 minDistance = distance;
                 closestDatum = datum;
@@ -535,7 +614,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         }
 
         if (closestDatum) {
-            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0), 0);
+            const distance = Math.max(minDistance - (closestDatum.point?.size ?? 0) / 2, 0);
             return { datum: closestDatum, distance };
         }
     }
@@ -547,9 +626,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const textBoxes: _ModuleSupport.BBox[] = [];
         const tempText = new Text();
-        this.nodeData.forEach((nodeDatum) => {
+        for (const nodeDatum of this.nodeData) {
             if (!label.enabled || !nodeDatum.label) {
-                return;
+                continue;
             }
             tempText.text = nodeDatum.label.text;
             tempText.x = nodeDatum.label.x;
@@ -558,7 +637,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             tempText.setAlign(nodeDatum.label);
             const box = tempText.getBBox();
             textBoxes.push(box);
-        });
+        }
         if (textBoxes.length === 0) {
             return null;
         }
@@ -573,28 +652,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.updatePathNodes();
     }
 
-    protected updatePathNodes() {
-        const lineNode = this.getLineNode();
-        if (!lineNode) return;
-
-        const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, opacity } = mergeDefaults(
-            this.getHighlightStyle(),
-            this.properties
-        );
-
-        lineNode.setProperties({
-            fill: undefined,
-            lineJoin: 'round',
-            lineCap: 'round',
-            pointerEvents: PointerEvents.None,
-            opacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        });
+    protected getPathNodesStyle() {
+        const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightState = this.getHighlightState(highlightDatum);
+        const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
+        const stylerStyle = this.getStyle(highlightState);
+        return mergeDefaults(highlightStyle, stylerStyle);
     }
+
+    protected abstract updatePathNodes(): void;
 
     protected getLinePoints(): RadarPathPoint[] {
         const { nodeData, resetInvalidToZero } = this;
@@ -615,10 +681,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         let prevPointInvalid = false;
         let firstValid: RadarNodeDatum | undefined;
 
-        data.forEach((datum, index) => {
+        for (const [index, datum] of data.entries()) {
             let { x, y } = datum.point;
 
-            const isPointInvalid = isNaN(x) || isNaN(y);
+            const isPointInvalid = Number.isNaN(x) || Number.isNaN(y);
 
             if (!isPointInvalid) {
                 firstValid ??= datum;
@@ -635,7 +701,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             points.push({ x, y, moveTo });
 
             prevPointInvalid = isPointInvalid;
-        });
+        }
 
         if (firstValid !== undefined) {
             points.push({ x: firstValid.point.x, y: firstValid.point.y, moveTo: false });
@@ -656,7 +722,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             ? this.radius + axisInnerRadius - radiusAxis?.scale.convert(0)
             : axisInnerRadius;
 
-        points.forEach((point) => {
+        for (const point of points) {
             const { x: x1, y: y1, arc, radius = 0, startAngle = 0, endAngle = 0, moveTo } = point;
             const angle = Math.atan2(y1, x1);
             const x0 = radiusZero * Math.cos(angle);
@@ -672,7 +738,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
 
         pathNode.checkPathDirty();
     }
@@ -701,8 +767,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             onStop: () => this.animatePaths(1),
         });
 
-        markerFadeInAnimation(this, animationManager, 'added', itemSelection);
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), itemSelection);
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection, this.highlightLabelSelection);
     }
 
     override animateWaitingUpdateReady(data: _ModuleSupport.PolarAnimationData) {
@@ -715,20 +781,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.resetPaths();
     }
 
-    protected resetPaths() {
+    protected resetPaths(): ResolvedRadarStyle<TStyle> | undefined {
         const lineNode = this.getLineNode();
 
         if (lineNode) {
             const { path: linePath } = lineNode;
             const linePoints = this.getLinePoints();
+            const stylerStyle = this.getStyle();
 
             lineNode.fill = undefined;
-            lineNode.stroke = this.properties.stroke;
-            lineNode.strokeWidth = this.properties.strokeWidth;
-            lineNode.strokeOpacity = this.properties.strokeOpacity;
+            lineNode.stroke = stylerStyle.stroke;
+            lineNode.strokeWidth = stylerStyle.strokeWidth;
+            lineNode.strokeOpacity = stylerStyle.strokeOpacity;
 
-            lineNode.lineDash = this.properties.lineDash;
-            lineNode.lineDashOffset = this.properties.lineDashOffset;
+            lineNode.lineDash = stylerStyle.lineDash;
+            lineNode.lineDashOffset = stylerStyle.lineDashOffset;
 
             linePath.clear(true);
 
@@ -741,8 +808,39 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             }
 
             lineNode.checkPathDirty();
+            // return `getStyle` return so that RadarLineSeries does not need to call `getStyle` twice (once for the
+            // lineNode, and once of the areaNode).
+            return stylerStyle;
         }
     }
+
+    protected abstract makeStylerParams(
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): CallbackParam<NonNullable<TOpts['styler']>>;
+
+    protected getStylerResult(
+        stylerResult: StylerResult<TStyle>,
+        highlightState?: _ModuleSupport.HighlightState
+    ): StylerResult<TStyle> {
+        const { styler } = this.properties;
+        if (styler) {
+            const stylerParams = this.makeStylerParams(highlightState);
+            const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                ['series', `${this.declarationOrder}`],
+                cbResult,
+                { pick: false }
+            );
+            if (resolved) {
+                // The return-type of resolvePartial can stealthily introduce `any` (e.g. stylerResult.marker becomes of
+                // type `any`). So convert back to TStyle to avoid this.
+                stylerResult = resolved as StylerResult<TStyle>;
+            }
+        }
+        return stylerResult;
+    }
+
+    abstract getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<TStyle>;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;
@@ -751,5 +849,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
+    }
+
+    protected override hasItemStylers(): boolean {
+        return (
+            this.properties.styler != null ||
+            this.properties.marker.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

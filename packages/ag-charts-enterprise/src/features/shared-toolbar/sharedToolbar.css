@@ -1,8 +1,12 @@
 .ag-charts-shared-toolbar {
-    gap: var(--toolbar-gap);
+    --toolbar-button-gap: calc(var(--ag-charts-spacing) * 2);
 
     .ag-charts-toolbar__button {
         border-radius: var(--ag-charts-border-radius);
         margin: 0;
+    }
+
+    .ag-charts-toolbar__button--active + .ag-charts-toolbar__button {
+        border-inline-start-color: var(--ag-charts-border-color);
     }
 }

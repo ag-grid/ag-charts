@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData().filter(function (d) {
@@ -26,24 +34,22 @@ const options: AgChartOptions<DataType> = {
             maxSize: 100,
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             title: {
                 text: 'Depth (m)',
             },
             nice: false,
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Magnitude',
             },
             nice: false,
         },
-    ],
+    },
     seriesArea: {
         padding: {
             left: 40,

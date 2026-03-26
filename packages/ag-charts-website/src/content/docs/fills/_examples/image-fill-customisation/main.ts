@@ -1,7 +1,25 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BubbleSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -44,9 +62,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             title: {
@@ -74,7 +91,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             gridLine: {
@@ -89,7 +106,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 values: [0, 10],
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

@@ -1,8 +1,8 @@
 import type { InternalAgColorType, Point } from 'ag-charts-core';
+import { isBetweenAngles, toRadians } from 'ag-charts-core';
 
 import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Sector } from '../../../scene/shape/sector';
-import { isBetweenAngles, toRadians } from '../../../util/angle';
 import type { Marker } from '../../marker/marker';
 import type { SeriesNodePickMatch } from '../series';
 
@@ -76,7 +76,9 @@ export function preparePieSeriesAnimationFunctions(
             stroke = (typeof sect.stroke === 'string' ? sect.stroke : undefined) ?? stroke;
         }
 
-        return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase };
+        const animatableFill = typeof fill === 'string' ? { fill } : {};
+
+        return { startAngle, endAngle, innerRadius, outerRadius, stroke, phase, ...animatableFill };
     };
     const toFn: FromToMotionPropFn<AnimatableSectorDatum, Sector, any> = (
         _sect: Sector,
@@ -102,7 +104,9 @@ export function preparePieSeriesAnimationFunctions(
             outerRadius = radii.outerRadius;
         }
 
-        return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
+        const animatableFill = typeof fill === 'string' ? { fill } : {};
+
+        return { startAngle, endAngle, outerRadius, innerRadius, stroke, ...animatableFill };
     };
 
     const innerCircleFromFn: FromToMotionPropFn<{ radius: number }, Marker, any> = (node, _) => {
@@ -147,7 +151,7 @@ export function pickByMatchingAngle(series: SectorSeries, point: Point): SeriesN
         if (sector.datum.missing === true) continue;
 
         if (isBetweenAngles(angle, sector.startAngle, sector.endAngle)) {
-            const radius = Math.sqrt(dx * dx + dy * dy);
+            const radius = Math.hypot(dx, dy);
             let distance = 0;
             if (radius < sector.innerRadius) {
                 distance = sector.innerRadius - radius;

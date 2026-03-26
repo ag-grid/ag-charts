@@ -1,34 +1,15 @@
+/** A key in a grouped category axis — an array of nullable labels representing the path through the hierarchy. */
+export type GroupedCategoryKey = (string | null)[];
+
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
  */
 
-class Dimensions {
-    top: number = Infinity;
-    right: number = -Infinity;
-    bottom: number = -Infinity;
-    left: number = Infinity;
-
-    update(x: number, y: number) {
-        if (x > this.right) {
-            this.right = x;
-        }
-        if (x < this.left) {
-            this.left = x;
-        }
-        if (y > this.bottom) {
-            this.bottom = y;
-        }
-        if (y < this.top) {
-            this.top = y;
-        }
-    }
-}
-
 class TreeNode {
     position: number = 0;
-    subtreeLeft: number = NaN;
-    subtreeRight: number = NaN;
+    subtreeLeft: number = Number.NaN;
+    subtreeRight: number = Number.NaN;
     children: TreeNode[] = [];
     leafCount: number = 0;
     depth: number;
@@ -38,35 +19,37 @@ class TreeNode {
     change: number = 0;
     shift: number = 0;
     index: number = 0;
+    separatorDepth: number = 0;
+    leftmostLeaf: TreeNode = this;
     // screen is meant to be recomputed from (layout) when the tree is resized (without performing another layout)
     screen: number = 0;
 
     constructor(
-        public label: string = '',
+        public label: string | null = '',
         public parent?: TreeNode,
         public refId?: number
     ) {
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    insertTick(tick: string[], index: number) {
-        let root: TreeNode = this;
+    insertTick(tick: GroupedCategoryKey, index: number) {
+        let current: TreeNode = this;
         let endNode: TreeNode | undefined;
         for (let i = 0; i < tick.length; i++) {
             const pathPart = tick[i];
             const isNotLeaf = i !== tick.length - 1;
-            const { children } = root;
+            const { children } = current;
             const existingNode = children.find((child) => child.label === pathPart);
             if (existingNode && isNotLeaf) {
                 // the isNotLeaf check is to allow duplicate leafs
-                root = existingNode;
+                current = existingNode;
                 endNode = existingNode;
             } else {
-                const node = new TreeNode(pathPart, root, index);
+                const node = new TreeNode(pathPart, current, index);
                 node.index = children.length;
                 children.push(node);
                 if (isNotLeaf) {
-                    root = node;
+                    current = node;
                 }
                 endNode = node;
             }
@@ -100,10 +83,10 @@ class TreeNode {
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-function ticksToTree(ticks: string[][]): { root: TreeNode; tickNodes: Map<string[], TreeNode> } {
-    const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
+function ticksToTree(ticks: GroupedCategoryKey[]): { root: TreeNode; tickNodes: Map<GroupedCategoryKey, TreeNode> } {
+    const maxDepth = ticks.reduce((depth, tick) => Math.max(depth, tick.length), 0);
     const root = new TreeNode();
-    const tickNodes = new Map<string[], TreeNode>();
+    const tickNodes = new Map<GroupedCategoryKey, TreeNode>();
     for (let i = 0; i < ticks.length; i++) {
         const tick = ticks[i];
         while (tick.length < maxDepth) {
@@ -129,7 +112,7 @@ function moveSubtree(wm: TreeNode, wp: TreeNode, shift: number) {
 }
 
 function ancestor(vim: TreeNode, v: TreeNode, defaultAncestor: TreeNode): TreeNode {
-    return v.getSiblings().indexOf(vim.ancestor) >= 0 ? vim.ancestor : defaultAncestor;
+    return v.getSiblings().includes(vim.ancestor) ? vim.ancestor : defaultAncestor;
 }
 
 // Spaces out the children.
@@ -219,14 +202,15 @@ function firstWalk(node: TreeNode) {
 
 function secondWalk(v: TreeNode, m: number, layout: TreeLayout) {
     v.position = v.prelim + m;
+    v.separatorDepth = v.index === 0 ? 1 + (v.parent?.separatorDepth ?? 0) : 0;
     layout.insertNode(v);
     for (const w of v.children) {
         secondWalk(w, m + v.mod, layout);
     }
 }
 
-// After the second walk the parent nodes are positioned at the center of their immediate children.
-// If we want the parent nodes to be positioned at the center of the subtree for which they are roots,
+// After the second walk the parent nodes are positioned at the centre of their immediate children.
+// If we want the parent nodes to be positioned at the centre of the subtree for which they are roots,
 // we need a third walk to adjust the positions.
 function thirdWalk(v: TreeNode) {
     const { children } = v;
@@ -242,15 +226,19 @@ function thirdWalk(v: TreeNode) {
     v.leafCount = leafCount;
     if (children.length) {
         v.subtreeLeft = children[0].subtreeLeft;
-        v.subtreeRight = children[children.length - 1].subtreeRight;
+        v.subtreeRight = children.at(-1)!.subtreeRight;
         v.position = (v.subtreeLeft + v.subtreeRight) / 2;
+        v.leftmostLeaf = children[0].leftmostLeaf;
     } else {
         v.subtreeLeft = v.position;
         v.subtreeRight = v.position;
     }
 }
 
-export function treeLayout(ticks: string[][]): { layout: TreeLayout; tickNodes: Map<string[], TreeNode> } {
+export function treeLayout(ticks: GroupedCategoryKey[]): {
+    layout: TreeLayout;
+    tickNodes: Map<GroupedCategoryKey, TreeNode>;
+} {
     const layout = new TreeLayout();
 
     const { root, tickNodes } = ticksToTree(ticks);
@@ -263,7 +251,8 @@ export function treeLayout(ticks: string[][]): { layout: TreeLayout; tickNodes: 
 }
 
 export class TreeLayout {
-    private readonly dimensions = new Dimensions();
+    private minPosition = Infinity;
+    private maxPosition = -Infinity;
 
     public nodes: TreeNode[] = [];
     public depth: number = 0;
@@ -272,21 +261,43 @@ export class TreeLayout {
         if (this.depth < node.depth) {
             this.depth = node.depth;
         }
-        this.dimensions.update(node.position, node.depth);
+        if (node.position < this.minPosition) {
+            this.minPosition = node.position;
+        }
+        if (node.position > this.maxPosition) {
+            this.maxPosition = node.position;
+        }
         this.nodes.push(node);
     }
 
-    scaling(extent: number, flip?: boolean) {
+    private scaling(extent: number, flip?: boolean) {
         let scaling = 1;
-        if (extent > 0) {
-            const { left, right } = this.dimensions;
-            if (right !== left) {
-                scaling = extent / (right - left);
-            }
+        if (extent > 0 && this.maxPosition !== this.minPosition) {
+            scaling = extent / (this.maxPosition - this.minPosition);
         }
         if (flip) {
             scaling *= -1;
         }
         return scaling;
+    }
+
+    resize(range: number[], step: number, inset: number, bandwidth: number) {
+        const width = Math.abs(range[1] - range[0]) - step;
+        const scaling = this.scaling(width, range[0] > range[1]);
+        const shift = inset + bandwidth / 2;
+
+        let offset = 0;
+        for (const node of this.nodes) {
+            const screen = node.position * scaling;
+            if (offset > screen) {
+                offset = screen;
+            }
+            node.screen = screen + shift;
+        }
+
+        // Normalize so that root top and leftmost leaf starts at zero.
+        for (const node of this.nodes) {
+            node.screen -= offset;
+        }
     }
 }

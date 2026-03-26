@@ -1,5 +1,5 @@
-import { toPlainText } from 'ag-charts-core';
-import type { AgTooltipMode, TextOrSegments } from 'ag-charts-types';
+import { Logger, getDocument, toPlainText, toTextString } from 'ag-charts-core';
+import type { AgTooltipMode, TextOrSegments, TextValue } from 'ag-charts-types';
 
 import { sanitizeHtml } from '../../util/sanitize';
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
@@ -12,8 +12,8 @@ interface LocaleManager {
 }
 
 export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value: string }
-    | { label: undefined; fallbackLabel: string; value: string };
+    | { label: string; fallbackLabel?: string; value: TextValue; missing?: boolean }
+    | { label: undefined; fallbackLabel: string; value: TextValue; missing?: boolean };
 
 export type TooltipStructuredContent = {
     heading?: TextOrSegments;
@@ -40,13 +40,46 @@ type GroupedTooltipContent =
     | ({ type: 'structured' } & GroupedStructuredContent)
     | { type: 'raw'; rawHtmlString: string };
 
+function textOrSegmentsIsDefined(value: TextOrSegments | undefined): value is TextOrSegments {
+    if (value == null) {
+        return false;
+    } else if (Array.isArray(value)) {
+        return value.some((segment) => textOrSegmentsIsDefined(segment.text));
+    } else {
+        return toTextString(value).trim() !== '';
+    }
+}
+
+/**
+ * Determines if a value should be treated as missing in tooltips.
+ * Only null, undefined, NaN, and Infinity are considered missing.
+ * Strings, Dates, and other non-numeric values are valid for category/time axes.
+ */
+export function isTooltipValueMissing(value: any, allowNull: boolean = false): boolean {
+    if (value == null) return !allowNull;
+    return typeof value === 'number' && !Number.isFinite(value);
+}
+
+/**
+ * Check if tooltip content has all data marked as missing.
+ * Used to filter out series with no valid data in shared tooltips.
+ */
+export function hasAllMissingData(content: TooltipContent): boolean {
+    if (content.type === 'raw') return false;
+    if (!content.data || content.data.length === 0) return false;
+    return content.data.every((datum) => datum.missing === true);
+}
+
 function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipContent[] {
     const out: GroupedTooltipContent[] = [];
     const groupedContents = new Map<TextOrSegments, GroupedStructuredContent>();
     for (const item of content) {
+        // Filter out items with all missing data
+        if (hasAllMissingData(item)) continue;
+
         if (item.type === 'structured') {
             const { heading } = item;
-            const insertionTarget = heading != null ? groupedContents.get(heading) : undefined;
+            const insertionTarget = textOrSegmentsIsDefined(heading) ? groupedContents.get(heading) : undefined;
             const groupedItem: GroupedTooltipContent = { type: 'structured', heading, items: [item] };
             if (insertionTarget == null) {
                 groupedContents.set(heading!, groupedItem);
@@ -61,41 +94,57 @@ function aggregateTooltipContent(content: TooltipContent[]): GroupedTooltipConte
     return out;
 }
 
-export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]) {
+function readTextContent(html: string): string {
+    const tempDiv = getDocument().createElement('div');
+    tempDiv.innerHTML = html;
+    const result: string | undefined = tempDiv.textContent?.trim();
+
+    if (result == null) {
+        Logger.warnOnce('cannot retrieve tooltip textContent (required for aria-label)');
+        return '';
+    } else {
+        return result;
+    }
+}
+
+export function tooltipContentAriaLabel(ungroupedContent: TooltipContent[]): string {
     const content = aggregateTooltipContent(ungroupedContent);
     const ariaLabel: string[] = [];
 
-    content.forEach((c) => {
-        if (c.type === 'raw') return '';
-        if (c.heading != null) {
+    for (const c of content) {
+        if (c.type === 'raw') {
+            ariaLabel.push(readTextContent(c.rawHtmlString));
+            continue;
+        }
+        if (textOrSegmentsIsDefined(c.heading)) {
             ariaLabel.push(toPlainText(c.heading));
         }
-        c.items.forEach((i) => {
-            if (i.title != null) {
+        for (const i of c.items) {
+            if (textOrSegmentsIsDefined(i.title)) {
                 ariaLabel.push(toPlainText(i.title));
             }
-            i.data?.forEach((datum) => {
-                ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
-            });
-        });
-    });
+            if (i.data) {
+                for (const datum of i.data) {
+                    // Skip data rows that are marked as missing
+                    if (datum.missing === true) continue;
+                    ariaLabel.push(datum.label ?? datum.fallbackLabel, toPlainText(datum.value));
+                }
+            }
+        }
+    }
 
-    return ariaLabel.join('; ');
+    return ariaLabel.filter((s) => s !== '').join('; ');
 }
 
 function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
-    if (label == null && !value) {
-        return '';
-    }
-
-    if (label == null) {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
-    } else {
+    if (textOrSegmentsIsDefined(label)) {
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
         rowHtml += ' ';
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${sanitizeHtml(value)}</span>`;
+    } else {
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
     }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
@@ -108,27 +157,33 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
 function tooltipRowContentHtml(content: GroupedStructuredContent['items'][0]) {
     let html = '';
 
-    if (content.data?.length && content.data.every((datum) => datum.value == null || datum.value === '')) {
+    // Skip the row if all data is missing (not just empty strings)
+    if (content.data?.length && content.data.every((datum) => datum.missing === true)) {
         return html;
     }
 
-    const dataInline = content.title == null && content.data?.length === 1;
+    const titleDefined = textOrSegmentsIsDefined(content.title);
+
+    const dataInline = !titleDefined && content.data?.length === 1;
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (content.title != null || content.data?.length)) {
+    if (symbol != null && (titleDefined || content.data?.length)) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
     }
 
-    if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(toPlainText(content.title))}</span>`;
+    if (titleDefined) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title!)}</span>`;
         html += ' ';
     }
 
-    content.data?.forEach((datum) => {
-        html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
-        html += ' ';
-    });
-
+    if (content.data) {
+        for (const datum of content.data) {
+            // Skip data rows that are marked as missing
+            if (datum.missing === true) continue;
+            html += dataHtml(datum.label ?? datum.fallbackLabel, toPlainText(datum.value), dataInline);
+            html += ' ';
+        }
+    }
     return html;
 }
 
@@ -159,13 +214,14 @@ function tooltipContentHtml(
             compactTitle = toPlainText(singleItem?.title);
             break;
         case 'single':
+            const headingDefined = textOrSegmentsIsDefined(content.heading);
             compact =
                 singleItem != null &&
-                (content.heading == null || singleItem.title == null) &&
+                (!headingDefined || singleItem.title == null) &&
                 singleItem.data?.length === 1 &&
                 singleItem.data[0].label == null &&
                 singleItem.data[0].value != null;
-            compactFallbackLabel = toPlainText(content.heading ?? singleItem?.title);
+            compactFallbackLabel = toPlainText(headingDefined ? content.heading : singleItem?.title);
             break;
         case 'shared':
             compact = false;
@@ -173,24 +229,28 @@ function tooltipContentHtml(
 
     let html = '';
     if (compact && singleItem != null) {
-        if (compactTitle != null) {
-            html += dataHtml(undefined, compactTitle, false);
+        if (textOrSegmentsIsDefined(compactTitle)) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(compactTitle)}</span>`;
         }
 
-        singleItem.data?.forEach((datum) => {
-            html += dataHtml(datum.label ?? compactFallbackLabel, datum.value, false);
-            html += ' ';
-        });
+        if (singleItem.data) {
+            for (const datum of singleItem.data) {
+                // Skip data rows that are marked as missing
+                if (datum.missing === true) continue;
+                html += dataHtml(datum.label ?? compactFallbackLabel, toPlainText(datum.value), false);
+                html += ' ';
+            }
+        }
     } else {
         // Full rendering
-        if (content.heading != null) {
+        if (textOrSegmentsIsDefined(content.heading)) {
             html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(toPlainText(content.heading))}</span>`;
             html += ' ';
         }
 
-        content.items.forEach((item) => {
+        for (const item of content.items) {
             html += tooltipRowContentHtml(item);
-        });
+        }
     }
 
     if (html.length === 0) return;

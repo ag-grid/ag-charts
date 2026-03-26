@@ -1,19 +1,29 @@
-import { Logger, type Size, entries, groupBy } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    ChartAxisDirection,
+    Logger,
+    type ModuleInstance,
+    type Size,
+    clampArray,
+    entries,
+    fromPairs,
+    groupBy,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
-import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import type { BBox } from '../scene/bbox';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
+import { CartesianAxis } from './axis/cartesianAxis';
 import { NumberAxis } from './axis/numberAxis';
 import { stackCartesianSeries } from './cartesianUtil';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
+import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
-import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
-import type { SeriesArea } from './series-area/seriesArea';
+import type { LayoutContext, ScrollbarLayoutMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
 
@@ -37,7 +47,7 @@ interface SyncModule extends ModuleInstance {
 }
 
 export class CartesianChart extends Chart {
-    static readonly className = 'CartesianChart';
+    static override readonly className = 'CartesianChart';
     static readonly type = 'cartesian';
 
     private static readonly AxesPadding = 15; // TODO should come from theme
@@ -45,27 +55,37 @@ export class CartesianChart extends Chart {
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
 
+    @ActionOnSet<CartesianChart>({
+        changeValue(newValue, oldValue) {
+            this.onAxisChange(newValue, oldValue);
+        },
+    })
+    override axes = this.createChartAxes();
+    override createChartAxes() {
+        return new CartesianChartAxes();
+    }
+
     private lastAreaWidths?: AreaWidthMap;
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
     }
 
-    override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
+    override onAxisChange(newValue: CartesianAxis[], oldValue?: CartesianAxis[]) {
         super.onAxisChange(newValue, oldValue);
 
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
-            this.ctx.zoomManager.updateAxes(newValue);
+            this.ctx.zoomManager.setAxes(newValue);
         }
     }
 
     override destroySeries(series: UnknownSeries[]) {
         super.destroySeries(series);
 
-        this.lastLayoutWidth = NaN;
-        this.lastLayoutHeight = NaN;
+        this.lastLayoutWidth = Number.NaN;
+        this.lastLayoutHeight = Number.NaN;
     }
 
     override getChartType() {
@@ -97,16 +117,16 @@ export class CartesianChart extends Chart {
             const syncedDomain = await this.getSyncedDomain(axis);
 
             if (syncedDomain != null) {
-                axis.setDomains(syncedDomain);
+                axis.setDomains({ domain: syncedDomain });
             }
         }
     }
 
-    private lastLayoutWidth = NaN;
-    private lastLayoutHeight = NaN;
+    private lastLayoutWidth = Number.NaN;
+    private lastLayoutHeight = Number.NaN;
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
+        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx);
 
         this.seriesRoot.visible = visible;
         this.seriesRect = seriesRect;
@@ -136,10 +156,11 @@ export class CartesianChart extends Chart {
         this.lastLayoutWidth = ctx.width;
         this.lastLayoutHeight = ctx.height;
 
-        const seriesArea = this.modulesManager.getModule<SeriesArea>('seriesArea')!;
-        const seriesPaddedRect = seriesRect.clone().grow(seriesArea.getPadding());
+        const seriesPaddedRect = seriesRect.clone().grow(this.seriesArea.getPadding());
 
-        const clipRect = seriesArea.clip || clipSeries ? seriesPaddedRect : undefined;
+        const alwaysClip = this.series.some((s) => s.alwaysClip);
+        const enableClip = alwaysClip || (this.seriesArea.clip ?? false) || clipSeries;
+        const clipRect = enableClip ? seriesPaddedRect : undefined;
         const { lastUpdateClipRect } = this;
         this.lastUpdateClipRect = clipRect;
 
@@ -151,6 +172,7 @@ export class CartesianChart extends Chart {
                 from: lastUpdateClipRect,
                 to: seriesPaddedRect,
                 onUpdate: (interpolatedClipRect) => this.setRootClipRects(interpolatedClipRect),
+                onStop: () => this.setRootClipRects(clipRect),
                 onComplete: () => this.setRootClipRects(clipRect),
             });
         } else {
@@ -158,20 +180,22 @@ export class CartesianChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            axes: this.axes.map((axis) => axis.getLayoutState()),
+            axes: fromPairs(this.axes.map((axis) => [axis.id, axis.getLayoutState()])),
             series: {
                 visible,
                 rect: seriesRect,
                 paddedRect: seriesPaddedRect,
             },
             clipSeries,
+            layoutBox: ctx.layoutBox,
         });
 
         stackCartesianSeries(this.series);
     }
 
-    updateAxes(layoutBox: BBox) {
-        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox);
+    updateAxes(layoutContext: LayoutContext) {
+        const { layoutBox, scrollbars } = layoutContext;
+        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox, scrollbars);
 
         for (const axis of this.axes) {
             axis.update();
@@ -186,17 +210,25 @@ export class CartesianChart extends Chart {
     // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
     // and vice-versa, we need to iteratively try and find a fit for the axes and their
     // ticks/labels.
-    private resolveAxesLayout(layoutBox: BBox) {
+    private resolveAxesLayout(layoutBox: BBox, scrollbars: ScrollbarLayoutMap) {
         let newState;
         let prevState;
         let iterations = 0;
         const maxIterations = 10;
 
+        // Axes that have `crossAt` configured
+        const crossAtAxes = this.axes.filter((axis) => axis.crossAt?.value != null);
+
         do {
             // Start with a good approximation from the last update.
             // This should mean that in many resize cases that only a single pass is needed.
             prevState = newState ?? this.getDefaultState();
-            newState = this.updateAxesPass(new Map(prevState.axisAreaWidths), layoutBox.clone());
+            newState = this.updateAxesPass(
+                new Map(prevState.axisAreaWidths),
+                layoutBox.clone(),
+                crossAtAxes,
+                scrollbars
+            );
 
             if (iterations++ > maxIterations) {
                 Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
@@ -209,15 +241,21 @@ export class CartesianChart extends Chart {
         return newState;
     }
 
-    private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox) {
+    private updateAxesPass(
+        axisAreaWidths: AreaWidthMap,
+        axisAreaBound: BBox,
+        crossAtAxes: CartesianAxis[],
+        scrollbars: ScrollbarLayoutMap
+    ) {
         const axisWidths: Map<string, number> = new Map();
         const primaryTickCounts: Partial<Record<ChartAxisDirection, AxisPrimaryTickCount>> = {};
 
         let overflows = false;
         let clipSeries = false;
+        const seriesAreaPadding = this.seriesArea.getPadding();
 
         for (const dir of directions) {
-            const padding = this.modulesManager.getModule<SeriesArea>('seriesArea')!.getPadding()[dir];
+            const padding = seriesAreaPadding[dir] ?? 0;
             const axis = this.axes.findLast((a) => a.position === dir);
 
             if (axis) {
@@ -262,9 +300,15 @@ export class CartesianChart extends Chart {
                 axisWidth = axis.thickness;
             }
 
+            const chartLayout = {
+                sizeLimit: axisWidth - axis.label.spacing,
+                padding: this.padding,
+                scrollbars,
+            };
+
             const { primaryTickCount, bbox } = axis.calculateLayout(
                 axis.nice ? primaryTickCounts[direction] : undefined,
-                { sizeLimit: axisWidth, padding: this.padding }
+                chartLayout
             );
 
             primaryTickCounts[direction] ??= primaryTickCount;
@@ -274,6 +318,12 @@ export class CartesianChart extends Chart {
                 axisWidth = Math.min(getSize(isVertical, bbox) ?? 0, axisWidth);
             }
             axisWidths.set(axis.id, Math.ceil(axisWidth));
+        }
+
+        // adjust axis widths for crossAt axes and calculate cross positions
+        let crossPositions: Map<string, number> | undefined;
+        if (crossAtAxes.length > 0) {
+            crossPositions = this.calculateAxesCrossPositions(axisWidths, seriesRect, crossAtAxes);
         }
 
         const axisGroups = groupBy(this.axes, (axis) => axis.position ?? 'left');
@@ -314,23 +364,138 @@ export class CartesianChart extends Chart {
             });
         }
 
+        if (crossPositions != null) {
+            this.applyAxisCrossing(seriesRect, crossPositions);
+        }
+
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
+    }
+
+    private calculateAxesCrossPositions(
+        axisWidths: Map<string, number>,
+        seriesRect: BBox,
+        crossAtAxes: CartesianAxis[]
+    ): Map<string, number> {
+        const crossPositions = new Map<string, number>();
+
+        for (const axis of crossAtAxes) {
+            const { crossPosition, visible } = this.calculateAxisCrossPosition(axis);
+
+            axis.setAxisVisible(visible);
+
+            this.adjustAxisWidth(axis, axisWidths, crossPosition, seriesRect, visible);
+
+            if (crossPosition == undefined) continue;
+
+            crossPositions.set(axis.id, crossPosition);
+        }
+
+        return crossPositions;
+    }
+
+    private calculateAxisCrossPosition(axis: CartesianAxis): { crossPosition: number | undefined; visible: boolean } {
+        const perpendicularAxis = this.axes.perpendicular(axis);
+        const {
+            scale: { domain, bandwidth },
+            range,
+        } = perpendicularAxis;
+        const halfBandwidth = (bandwidth ?? 0) / 2;
+
+        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
+
+        if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
+
+        if (axis.crossAt?.sticky === false) {
+            return { crossPosition: undefined, visible: false };
+        }
+
+        const clampedPosition = Number.isNaN(crossPosition) ? range[domain[0]] : clampArray(crossPosition, range);
+
+        return { crossPosition: clampedPosition, visible: true };
+    }
+
+    private adjustAxisWidth(
+        axis: CartesianAxis,
+        axisWidths: Map<string, number>,
+        crossPosition: number | undefined,
+        seriesRect: BBox,
+        visible: boolean
+    ): void {
+        const crosshairModule = axis.getModuleMap().getModule('crosshair') as { enabled: boolean } | undefined;
+        if (crosshairModule?.enabled) return;
+
+        const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined;
+        const hasAnnotations =
+            annotationsModule?.enabled === true ||
+            this.ctx.annotationManager.createMemento().some((annotation) => {
+                switch (annotation.type) {
+                    case 'vertical-line':
+                        return axis.direction === ChartAxisDirection.X;
+                    case 'horizontal-line':
+                        return axis.direction === ChartAxisDirection.Y;
+                }
+            });
+        if (hasAnnotations) return;
+
+        const currentWidth = axisWidths.get(axis.id) ?? 0;
+        const adjustedWidth = visible
+            ? this.calculateAxisBleedingWidth(axis, currentWidth, crossPosition, seriesRect)
+            : 0;
+        axisWidths.set(axis.id, adjustedWidth);
+    }
+
+    private calculateAxisBleedingWidth(
+        axis: CartesianAxis,
+        actualWidth: number,
+        crossPosition: number | undefined,
+        seriesRect: BBox
+    ): number {
+        if (crossPosition == null) return actualWidth;
+
+        switch (axis.position) {
+            case 'left':
+            case 'top':
+                return Math.max(0, actualWidth - crossPosition);
+            case 'right':
+                return Math.max(0, crossPosition + actualWidth - seriesRect.width);
+            case 'bottom':
+                return Math.max(0, crossPosition + actualWidth - seriesRect.height);
+            default:
+                return actualWidth;
+        }
+    }
+
+    private applyAxisCrossing(seriesRect: BBox, crossPositions: Map<string, number>) {
+        for (const axis of this.axes) {
+            const crossPosition = crossPositions.get(axis.id);
+            if (crossPosition == null) {
+                axis.crossAxisTranslation.x = 0;
+                axis.crossAxisTranslation.y = 0;
+                continue;
+            }
+
+            const isXDirection = axis.direction === ChartAxisDirection.X;
+            axis.crossAxisTranslation.x = isXDirection ? 0 : seriesRect.x + crossPosition - axis.translation.x;
+            axis.crossAxisTranslation.y = isXDirection ? seriesRect.y + crossPosition - axis.translation.y : 0;
+        }
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
         const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             const { position, label } = axis;
-            axis.crossLines?.forEach((crossLine) => {
-                if (crossLine instanceof CartesianCrossLine) {
-                    crossLine.position = position ?? 'top';
-                    crossLine.label.parallel ??= label.parallel;
-                }
+            if (axis.crossLines) {
+                for (const crossLine of axis.crossLines) {
+                    if (crossLine instanceof CartesianCrossLine) {
+                        crossLine.position = position ?? 'top';
+                        crossLine.label.parallel ??= label.parallel;
+                    }
 
-                crossLine.calculatePadding?.(crossLinePadding);
-            });
-        });
+                    crossLine.calculatePadding?.(crossLinePadding);
+                }
+            }
+        }
         // Reduce cross-line padding to account for overlap with axes.
         for (const [side, padding = 0] of entries(crossLinePadding)) {
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side as AgCartesianAxisPosition) ?? 0), 0);
@@ -346,14 +511,14 @@ export class CartesianChart extends Chart {
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
     }
 
-    private async getSyncedDomain(axis: ChartAxis) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+    private async getSyncedDomain(axis: CartesianAxis) {
+        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
         if (!syncModule?.enabled) return;
         return await syncModule.getSyncedDomain(axis);
     }
 
-    private syncAxisChanges(newValue: ChartAxis[], oldValue: ChartAxis[] | undefined) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+    private syncAxisChanges(newValue: CartesianAxis[], oldValue: CartesianAxis[] | undefined) {
+        const syncModule = this.modulesManager.getModule('sync') as SyncModule;
         if (!syncModule?.enabled) return;
 
         const removed = new Set(oldValue ?? []);
@@ -365,7 +530,7 @@ export class CartesianChart extends Chart {
         }
     }
 
-    private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
+    private sizeAxis(axis: CartesianAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
         const isNumberAxis = axis instanceof NumberAxis; // Number, log axis
         const isLeftRight = position === 'left' || position === 'right';
 
@@ -384,8 +549,15 @@ export class CartesianChart extends Chart {
             end = (end * axisWidth) / 100;
         }
 
+        const size = end - start;
         if (align === 'end') {
-            start = maxEnd - (end - start);
+            start = maxEnd - size;
+            end = maxEnd;
+        } else if (align === 'center') {
+            const center = start + (maxEnd - start) / 2;
+            start = center - size / 2;
+            end = center + size / 2;
+        } else if (align === 'justify') {
             end = maxEnd;
         }
 
@@ -400,10 +572,11 @@ export class CartesianChart extends Chart {
         axis.range = [start, end];
         axis.visibleRange = [min, max];
         axis.gridLength = isLeftRight ? width : height;
+        axis.lineRange = isLeftRight ? [height, 0] : [0, width];
     }
 
     private positionAxes(opts: {
-        axes: ChartAxis[];
+        axes: CartesianAxis[];
         position: AgCartesianAxisPosition;
         axisBound: BBox;
         axisWidths: Map<string, number>;
@@ -488,7 +661,7 @@ export class CartesianChart extends Chart {
         return true;
     }
 
-    private clipAxis(axis: ChartAxis, seriesRect: BBox, layoutBBox: BBox) {
+    private clipAxis(axis: CartesianAxis, seriesRect: BBox, layoutBBox: BBox) {
         const gridLinePadding = Math.ceil(axis.gridLine?.width ?? 0);
         const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
 

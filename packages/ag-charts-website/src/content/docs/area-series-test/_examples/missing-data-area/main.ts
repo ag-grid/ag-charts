@@ -39,16 +39,9 @@ const options: AgCartesianChartOptions = {
     },
     data: getData(),
     series,
-    axes: [
-        {
-            position: 'left',
-            type: 'number',
-        },
-        {
-            position: 'bottom',
-            type: 'time',
-        },
-    ],
+    axes: {
+        x: { type: 'time' },
+    },
 };
 
 const chart = AgCharts.create(options);

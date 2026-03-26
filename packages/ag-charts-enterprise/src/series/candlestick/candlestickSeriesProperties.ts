@@ -7,11 +7,11 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 import { OhlcSeriesBaseProperties } from '../ohlc/ohlcSeriesProperties';
 
-const { BaseProperties, makeSeriesTooltip, Property } = _ModuleSupport;
-
+const { makeSeriesTooltip } = _ModuleSupport;
 class CandlestickSeriesWick extends BaseProperties {
     @Property
     stroke?: string;
@@ -76,14 +76,9 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
     @Property
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 
-    constructor() {
-        super();
-        this.highlightStyle.deprecated = false;
-    }
-
-    getStyle(itemId: 'up' | 'down'): Required<AgCandlestickSeriesItemOptions> & { opacity: number } {
+    getStyle(itemType: 'up' | 'down'): Required<AgCandlestickSeriesItemOptions> & { opacity: number } {
         const { fill, fillOpacity, strokeWidth, strokeOpacity, stroke, lineDash, lineDashOffset, cornerRadius, wick } =
-            this.item[itemId];
+            this.item[itemType];
         return {
             fill,
             fillOpacity,

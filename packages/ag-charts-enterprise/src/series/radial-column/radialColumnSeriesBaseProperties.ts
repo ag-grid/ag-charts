@@ -3,14 +3,15 @@ import type {
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    AgRadialSeriesStylerParams,
     AgRadialSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
-const { SeriesProperties, makeSeriesTooltip, Property, Label } = _ModuleSupport;
-
+const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {
     @Property
     angleKey!: string;
@@ -23,6 +24,15 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
 
     @Property
     radiusName?: string;
+
+    @Property
+    angleKeyAxis: string = 'angle';
+
+    @Property
+    radiusKeyAxis: string = 'radius';
+
+    @Property
+    legendItemName?: string;
 
     @Property
     fill: InternalAgColorType = 'black';
@@ -47,6 +57,9 @@ export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeries
 
     @Property
     cornerRadius: number = 0;
+
+    @Property
+    styler?: Styler<AgRadialSeriesStylerParams<unknown, unknown>, AgRadialSeriesStyle>;
 
     @Property
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;

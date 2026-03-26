@@ -13,5 +13,5 @@ export function downloadUrl(dataUrl: string, fileName: string) {
     element.download = fileName;
     body.appendChild(element);
     element.click();
-    setTimeout(() => body.removeChild(element));
+    setTimeout(() => element.remove());
 }

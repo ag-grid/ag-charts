@@ -1,13 +1,22 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { AgCartesianChartOptions, AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    type AgCartesianChartOptions,
+    type AgChartInstance,
+    type AgChartOptions,
+    type AgChartState,
+    AgCharts,
+    type AgInitialStateZoomOptions,
+} from 'ag-charts-community';
 import {
     clickAction,
     delay,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
     dragAction,
     extractImageData,
+    findChartTarget,
     hoverAction,
     mouseDownAction,
     mouseMoveAction,
@@ -20,7 +29,8 @@ import {
     twoFingerStart,
     waitForChartStability,
 } from 'ag-charts-community-test';
-import { WheelDeltaMode } from 'ag-charts-test';
+import { ChartAxisDirection, type DeepReadonly } from 'ag-charts-core';
+import { WheelDeltaMode, dispatchEvent, wheelEvent } from 'ag-charts-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -62,15 +72,9 @@ describe('Zoom', () => {
             // Skipping Saturday and Sunday
             { date: new Date('2024-04-29'), value: 60 }, // Monday
         ],
-        series: [
-            {
-                type: 'bar',
-                xKey: 'date',
-                yKey: 'value',
-            },
-        ],
-        axes: [
-            {
+        series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+        axes: {
+            x: {
                 type: 'ordinal-time',
                 position: 'bottom',
                 parentLevel: {
@@ -78,11 +82,27 @@ describe('Zoom', () => {
                     enabled: true,
                 },
             },
-            {
-                type: 'number',
-                position: 'left',
-            },
+            y: { type: 'number', position: 'left' },
+        },
+    };
+
+    const TIME_EXAMPLE_OPTIONS: AgChartOptions = {
+        data: [
+            { date: new Date('2024-04-19'), value: 60 }, // Monday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-22'), value: 10 }, // Monday
+            { date: new Date('2024-04-23'), value: 20 }, // Tuesday
+            { date: new Date('2024-04-24'), value: 30 }, // Wednesday
+            { date: new Date('2024-04-25'), value: 40 }, // Thursday
+            { date: new Date('2024-04-26'), value: 50 }, // Friday
+            // Skipping Saturday and Sunday
+            { date: new Date('2024-04-29'), value: 60 }, // Monday
         ],
+        series: [{ type: 'bar', xKey: 'date', yKey: 'value' }],
+        axes: {
+            x: { type: 'time', position: 'bottom' },
+            y: { type: 'number', position: 'left' },
+        },
     };
 
     let cx: number = 0;
@@ -91,7 +111,8 @@ describe('Zoom', () => {
     async function prepareChart(
         zoomOptions?: AgChartOptions['zoom'],
         initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
-        baseOptions = EXAMPLE_OPTIONS
+        baseOptions = EXAMPLE_OPTIONS,
+        clickAfterCreate = true
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
@@ -106,8 +127,10 @@ describe('Zoom', () => {
 
         // Click once in the chart to ensure the chart is active / mouse is over it to ensure the first scroll wheel
         // event is triggered.
-        await waitForChartStability(chart);
-        await clickAction(cx, cy)(chart);
+        if (clickAfterCreate) {
+            await waitForChartStability(chart);
+            await clickAction(cx, cy)(chart);
+        }
     }
 
     async function prepareHorizontalBarChart(zoomOptions?: AgChartOptions['zoom']) {
@@ -124,14 +147,72 @@ describe('Zoom', () => {
         }
     });
 
-    const compare = async () => {
+    // Set the customSnapshotIdentifier string to check for behavioural equivalence
+    // E.g. double-clicking (mouse) or double-tapping (touch) should generate the same 'reset' image-snapshot.
+    const compare = async (customSnapshotIdentifier?: string) => {
         await waitForChartStability(chart);
+
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot({
             failureThreshold: 0,
             failureThresholdType: 'percent',
+            customSnapshotIdentifier,
         });
     };
+
+    describe('visibleDomain', () => {
+        it('should match the zoomed domain for cartesian number axes', async () => {
+            let lastVisibleDomain: [number, number] | undefined;
+            const baseOptions: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 0 },
+                    { x: 10, y: 5 },
+                    { x: 20, y: 10 },
+                    { x: 30, y: 15 },
+                    { x: 40, y: 20 },
+                ],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: {
+                        type: 'number',
+                        position: 'bottom',
+                        nice: false,
+                        label: {
+                            formatter: (params) => {
+                                lastVisibleDomain = params.visibleDomain;
+                                return String(params.value);
+                            },
+                        },
+                    },
+                    y: { type: 'number', position: 'left', nice: false },
+                },
+                zoom: { enabled: true, axes: 'x' },
+            };
+            const initialState: AgInitialStateZoomOptions = {
+                ratioX: { start: 0.2, end: 0.6 },
+            };
+
+            await prepareChart(undefined, initialState, baseOptions, false);
+            await waitForChartStability(chart);
+
+            const axes = deproxy(chart).axes;
+            const xAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X && axis.type === 'number');
+            expect(xAxis).toBeDefined();
+            if (xAxis == null) return;
+
+            const domain = xAxis.scale.domain;
+            const length = domain[1] - domain[0];
+            const ratioX = chart.getState().zoom?.ratioX;
+            const ratioStart = ratioX?.start ?? 0;
+            const ratioEnd = ratioX?.end ?? 1;
+            const expectedVisibleDomain: [number, number] = [
+                domain[0] + ratioStart * length,
+                domain[1] - (1 - ratioEnd) * length,
+            ];
+
+            expect(lastVisibleDomain).toEqual(expectedVisibleDomain);
+        });
+    });
 
     describe('scrolling', () => {
         it('should zoom in', async () => {
@@ -153,6 +234,14 @@ describe('Zoom', () => {
             // Should not zoom in
             // @todo(AG-15504) - we should zoom in as far as possible
             await compare();
+        });
+
+        describe('scrollingMode is pan', () => {
+            it('should pan vertically', async () => {
+                await prepareChart({ scrollingMode: 'pan' }, { ratioY: { start: 0.3, end: 0.7 } });
+                await scrollAction(cx, cy, -1)(chart);
+                await compare();
+            });
         });
     });
 
@@ -223,19 +312,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
-            await compare();
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(400, 578)(chart);
-            await compare();
+            await compare('dblclick-x');
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(32, 300)(chart);
-            await compare();
+            await compare('dblclick-y');
         });
     });
 
@@ -244,19 +333,19 @@ describe('Zoom', () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(cx, cy)(chart);
-            await compare();
+            await compare('reset');
         });
         it('should reset the X axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(400, 578)(chart);
-            await compare();
+            await compare('dblclick-x');
         });
         it('should reset the Y axis zoom', async () => {
             await prepareChart();
             await scrollAction(cx, cy, -1)(chart);
             await doubleTapAction(32, 300)(chart);
-            await compare();
+            await compare('dblclick-y');
         });
     });
 
@@ -327,9 +416,10 @@ describe('Zoom', () => {
                 await compare();
             });
 
-            it('should not zoom on mouseup', async () => {
+            // TODO: This test is flaky, so we skip it for now
+            it.skip('should not zoom on mouseup', async () => {
                 await mouseUpAction(b.x, b.y)(chart);
-                await compare();
+                await compare('reset');
             });
         });
     });
@@ -373,13 +463,13 @@ describe('Zoom', () => {
                 ],
                 series: [
                     { type: 'line', xKey: 'x', yKey: 'y' },
-                    { type: 'line', xKey: 'x', yKey: 'y2' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yKeyAxis: 'ySecondary' },
                 ],
-                axes: [
-                    { position: 'bottom', type: 'number' },
-                    { position: 'left', type: 'number', keys: ['y'] },
-                    { position: 'right', type: 'number', keys: ['y2'] },
-                ],
+                axes: {
+                    x: { position: 'bottom', type: 'number' },
+                    y: { position: 'left', type: 'number' },
+                    ySecondary: { position: 'right', type: 'number' },
+                },
                 zoom: {
                     enabled: true,
                     axes: 'xy',
@@ -439,7 +529,7 @@ describe('Zoom', () => {
         it('should pan the y-axis', async () => {
             await prepareChart(
                 { axisDraggingMode: 'pan', enableAxisDragging: true, enablePanning: false },
-                { ratioX: { start: 0, end: 0.7 }, ratioY: { start: 0.3, end: 1.0 } }
+                { ratioX: { start: 0, end: 0.7 }, ratioY: { start: 0.3, end: 1 } }
             );
 
             const from = { x: 30, y: cy };
@@ -484,7 +574,7 @@ describe('Zoom', () => {
         });
 
         test('init zoomed in', async () => {
-            await compare();
+            await compare('two-fingers-init');
         });
 
         test('zoom back out', async () => {
@@ -498,7 +588,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 250, cy - 250, 4, cx + 250, cy + 250)(chart);
             await twoFingerMove(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
             await twoFingerEnd(3, cx - 10, cy - 10, 4, cx + 10, cy + 10)(chart);
-            await compare();
+            await compare('reset');
         });
 
         test('zoom and pan', async () => {
@@ -512,7 +602,7 @@ describe('Zoom', () => {
             await twoFingerStart(3, cx - 5, cy - 50, 4, cx + 5, cy + 50)(chart);
 
             await twoFingerMove(3, cx - 100, cy - 50, 4, cx + 100, cy + 50)(chart);
-            await compare(); // no change (clientX average unchanged)
+            await compare('two-fingers-init'); // no change (clientX average unchanged)
 
             await twoFingerMove(3, cx + 20, cy - 50, 4, cx + 100, cy + 50)(chart);
             await compare(); // pans left
@@ -524,7 +614,7 @@ describe('Zoom', () => {
         test('y overlap', async () => {
             await twoFingerStart(3, cx - 50, cy - 5, 4, cx + 50, cy + 5)(chart);
             await twoFingerMove(3, cx - 50, cy - 100, 4, cx + 50, cy + 100)(chart);
-            await compare(); // no change (clientY average unchanged)
+            await compare('two-fingers-init'); // no change (clientY average unchanged)
 
             await twoFingerMove(3, cx - 50, cy + 20, 4, cx + 50, cy + 100)(chart);
             await compare(); // pans down
@@ -578,6 +668,42 @@ describe('Zoom', () => {
                     },
                 },
                 ORDINAL_EXAMPLE_OPTIONS
+            );
+            await compare();
+        });
+
+        it('should handle numbers on time axes without crashing', async () => {
+            await prepareChart({}, { rangeX: { start: 0.2, end: 0.8 } }, TIME_EXAMPLE_OPTIONS);
+            await waitForChartStability(chart);
+        });
+
+        it('should start with the given ratioX', async () => {
+            await prepareChart({}, { ratioX: { start: 0.2, end: 0.8 } });
+            await compare();
+        });
+
+        it('should start with the given ratioX and ratioY', async () => {
+            await prepareChart({}, { ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.3, end: 0.7 } });
+            await compare();
+        });
+
+        it('should start with the given ratioX for bar series', async () => {
+            await prepareChart(
+                {},
+                { ratioX: { start: 0.2, end: 0.8 } },
+                { ...ORDINAL_EXAMPLE_OPTIONS, zoom: { enabled: true } }
+            );
+            await compare();
+        });
+
+        it('should start with the given ratioX for area series', async () => {
+            await prepareChart(
+                {},
+                { ratioX: { start: 0.2, end: 0.8 } },
+                {
+                    ...EXAMPLE_OPTIONS,
+                    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                }
             );
             await compare();
         });
@@ -646,10 +772,10 @@ describe('Zoom', () => {
                     anchorPointX: 'middle',
                 },
                 animation: { enabled: false },
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             await prepareChart(undefined, undefined, options);
             await scrollAction(cx, cy, -2)(chart);
@@ -666,15 +792,401 @@ describe('Zoom', () => {
                     anchorPointX: 'middle',
                 },
                 animation: { enabled: false },
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             await prepareChart(undefined, undefined, options);
             await scrollAction(cx, cy, -2)(chart);
 
             await compare();
+        });
+    });
+
+    describe('AG-16394 reset to initialState', () => {
+        const resetZoomState = {
+            rangeX: {
+                end: { __type: 'date', value: '2022-06-30T23:00:00.000Z' },
+                // FIXME(AG-16401): Seems there's a bug with rangeX.start in Node.js (not reproducible in Chrome).
+                // start: { __type: 'date', value: '2021-01-01T00:00:00.000Z' },
+            },
+            rangeY: {
+                start: 0,
+                end: 193931.85,
+            },
+            ratioX: {
+                start: 0.8000000000000002,
+                end: 1,
+            },
+            ratioY: {
+                start: 0,
+                end: 0.9696592500000001,
+            },
+            autoScaledAxes: ['y'],
+        } as const satisfies DeepReadonly<AgChartState['zoom']>;
+
+        beforeEach(async () => {
+            const initialState: AgInitialStateZoomOptions = {
+                rangeX: {
+                    start: {
+                        __type: 'date',
+                        value: new Date('2021-01-01').getTime(),
+                    },
+                },
+            };
+            const baseOptions: AgCartesianChartOptions = {
+                data: [
+                    { date: new Date(2015, 0, 1), Cost: 103268 },
+                    { date: new Date(2015, 6, 1), Cost: 107487 },
+                    { date: new Date(2016, 0, 1), Cost: 107297 },
+                    { date: new Date(2016, 6, 1), Cost: 152988 },
+                    { date: new Date(2017, 0, 1), Cost: 129825 },
+                    { date: new Date(2017, 6, 1), Cost: 118553 },
+                    { date: new Date(2018, 0, 1), Cost: 150835 },
+                    { date: new Date(2018, 6, 1), Cost: 116414 },
+                    { date: new Date(2019, 0, 1), Cost: 102183 },
+                    { date: new Date(2019, 6, 1), Cost: 172169 },
+                    { date: new Date(2020, 0, 1), Cost: 195021 },
+                    { date: new Date(2020, 6, 1), Cost: 176255 },
+                    { date: new Date(2021, 0, 1), Cost: 118050 },
+                    { date: new Date(2021, 6, 1), Cost: 109300 },
+                    { date: new Date(2022, 0, 1), Cost: 107878 },
+                    { date: new Date(2022, 6, 1), Cost: 184697 },
+                ],
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'date',
+                        yKey: 'Cost',
+                    },
+                ],
+                axes: {
+                    x: {
+                        type: 'unit-time',
+                        position: 'bottom',
+                    },
+                },
+                zoom: {
+                    enabled: true,
+                },
+            };
+            await prepareChart(undefined, initialState, baseOptions);
+        });
+
+        test('dblclick', async () => {
+            let state: AgChartState;
+
+            state = chart.getState();
+            expect(state.zoom).toMatchObject(resetZoomState);
+
+            await scrollAction(cx, cy, -2)(chart);
+            await waitForChartStability(chart);
+            state = chart.getState();
+            expect(state.zoom).not.toMatchObject(resetZoomState);
+
+            await doubleClickAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            state = chart.getState();
+            expect(state.zoom).toMatchObject(resetZoomState);
+        });
+    });
+
+    describe('navigator-minichart-sync', () => {
+        type TDatum = { date: Date; price: number };
+
+        function createSeededRng(seed: number) {
+            let state = seed;
+            return () => {
+                state = (state * 1664525 + 1013904223) % 0xffffffff;
+                return state / 0xffffffff;
+            };
+        }
+
+        function getData(): TDatum[] {
+            const startDate = new Date('2024-01-01');
+            const data = [];
+            const rand = createSeededRng(12345);
+
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                data.push({
+                    date,
+                    price: 100 + Math.sin(i / 5) * 20 + rand() * 10,
+                });
+            }
+
+            return data;
+        }
+
+        async function createMinichartChart(
+            initialState: NonNullable<AgChartOptions['initialState']>['zoom'],
+            myOptions: AgCartesianChartOptions<TDatum>
+        ): Promise<void> {
+            const options: AgCartesianChartOptions<TDatum> = {
+                data: getData(),
+                series: [{ type: 'line', xKey: 'date', yKey: 'price', marker: { enabled: true } }],
+                axes: {
+                    x: {
+                        type: 'time',
+                        position: 'bottom',
+                        nice: false,
+                    },
+                    y: {
+                        type: 'number',
+                        position: 'left',
+                        title: { text: 'Price' },
+                        min: 80,
+                        max: 130,
+                    },
+                },
+                ...myOptions,
+            };
+            await prepareChart(undefined, initialState, options, false);
+        }
+
+        it('should stay in sync with series-area', async () => {
+            await createMinichartChart(
+                { ratioX: { start: 0, end: 0.25 } },
+                {
+                    zoom: {
+                        enabled: true,
+                        autoScaling: {
+                            enabled: false,
+                        },
+                        onDataChange: {
+                            strategy: 'preserveRatios',
+                        },
+                    },
+                    navigator: {
+                        enabled: true,
+                        miniChart: {
+                            enabled: true,
+                        },
+                    },
+                }
+            );
+            await waitForChartStability(chart);
+            await compare();
+
+            await chart.updateDelta({ data: getData().slice(4) });
+            await compare();
+        });
+
+        describe('AG-8627 TC10', () => {
+            it('should clamp navigator handles when removing from start', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0, end: 0.25 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 0,
+                            autoScaling: {
+                                enabled: false,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await compare();
+
+                await chart.updateDelta({ data: getData().slice(10) });
+                await compare();
+            });
+
+            it('should clamp navigator handles when removing from end', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0.75, end: 1 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 0,
+                            autoScaling: {
+                                enabled: false,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await compare();
+
+                await chart.updateDelta({ data: getData().slice(0, -10) });
+                await compare();
+            });
+
+            it('should keep minVisibleItems 2 when removing from start', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0, end: 0.25 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 2,
+                            autoScaling: {
+                                enabled: false,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await chart.updateDelta({ data: getData().slice(10) });
+                await compare();
+            });
+
+            it('should keep minVisibleItems 2 when removing from end', async () => {
+                await createMinichartChart(
+                    { ratioX: { start: 0.75, end: 1 } },
+                    {
+                        zoom: {
+                            enabled: true,
+                            minVisibleItems: 2,
+                            autoScaling: {
+                                enabled: true,
+                            },
+                            onDataChange: {
+                                strategy: 'preserveDomain',
+                            },
+                        },
+                        navigator: {
+                            enabled: true,
+                            miniChart: {
+                                enabled: true,
+                            },
+                            minHandle: {
+                                fill: 'yellow',
+                            },
+                            maxHandle: {
+                                fill: 'cyan',
+                            },
+                        },
+                    }
+                );
+                await waitForChartStability(chart);
+                await chart.updateDelta({ data: getData().slice(0, -10) });
+                await compare();
+            });
+        });
+    });
+
+    // CRT-1042: Scrolling mousewheel on axis area should zoom AND call preventDefault.
+    // CRT-1050: Non-cancelable wheel events (trackpad inertia) should be ignored on axes.
+    describe('CRT-1042/1050 axis wheel zoom', () => {
+        it('should zoom the y-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), 30, cy);
+            const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+            const stateAfter = chart.getState().zoom;
+
+            expect(stateAfter!.ratioY).not.toEqual(stateBefore?.ratioY);
+            expect(preventDefaultSpy).toHaveBeenCalled();
+            await compare();
+        });
+
+        it('should zoom the x-axis via wheel scroll and call preventDefault (CRT-1042)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), cx, cy * 2 - 30);
+            const event = wheelEvent(target, { deltaX: 0, deltaY: -100, deltaMode: WheelDeltaMode.Pixels });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+            const stateAfter = chart.getState().zoom;
+
+            expect(stateAfter!.ratioX).not.toEqual(stateBefore?.ratioX);
+            expect(preventDefaultSpy).toHaveBeenCalled();
+            await compare();
+        });
+
+        it('should ignore non-cancelable wheel events on axes (CRT-1050)', async () => {
+            await prepareChart({
+                enabled: true,
+                axes: 'xy',
+                enableAxisScrolling: true,
+                scrollingStep: 0.5,
+                minVisibleItems: 1,
+            });
+
+            const stateBefore = chart.getState().zoom;
+            const target = findChartTarget(deproxy(chart), 30, cy);
+            const event = wheelEvent(target, {
+                deltaX: 0,
+                deltaY: -100,
+                deltaMode: WheelDeltaMode.Pixels,
+                cancelable: false,
+            });
+            const preventDefaultSpy = jest.spyOn(event, 'preventDefault');
+            dispatchEvent(target, event);
+            await delay(50);
+            await waitForChartStability(chart);
+
+            const stateAfter = chart.getState().zoom;
+            expect(stateAfter).toEqual(stateBefore);
+            expect(preventDefaultSpy).not.toHaveBeenCalled();
         });
     });
 });

@@ -1,22 +1,25 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
-import type { BorderOptions, Padding, PaddingOptions, TextOrSegments } from '../series/cartesian/commonOptions';
+import type { BorderOptions, Padding, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
 import type { Renderer } from './callbackOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
+import type { AgFlashOnUpdateOptions } from './flashOnUpdateOptions';
 import type { FormatterConfiguration } from './formatterOptions';
 import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
+import type { AgScrollbarOptions } from './scrollbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type {
     ContextDefault,
     CssColor,
     DatumDefault,
+    DatumKey,
     FontFamilyFull,
     FontSize,
     FontStyle,
@@ -37,9 +40,6 @@ export interface AgChartPaddingOptions {
     /** The number of pixels of padding at the left of the chart area. */
     left?: PixelSize;
 }
-
-/** @deprecated v12.1.0 Use `Padding` or `PaddingOptions` instead. */
-export interface AgSeriesAreaPaddingOptions extends PaddingOptions {}
 
 export interface AgSeriesAreaOptions {
     /** The border around the series area. */
@@ -132,7 +132,17 @@ export type AgChartHighlightRange = 'tooltip' | 'node';
 export interface AgChartHighlightOptions {
     /** By default, nodes will be highlighted when the cursor is within the `tooltip.range`. Set this to `'node'` to highlight nodes when within the `series[].nodeClickRange`. */
     range?: AgChartHighlightRange;
+    /**
+     * Determines the rendering behaviour of the highlight relative to existing chart content.
+     * - `'overlay'` renders the highlight above existing content, both layers remain visible where they overlap.
+     * - `'cutout'` removes existing content in overlapping areas, showing only the highlight.
+     *
+     * Default: `'cutout'`
+     */
+    drawingMode?: AgDrawingMode;
 }
+
+export type AgDrawingMode = 'overlay' | 'cutout';
 
 export interface AgChartSyncOptions {
     /** Toggles the synchronization feature. It is implicitly enabled when configuration options are provided; otherwise, it defaults to `false`. */
@@ -159,6 +169,8 @@ export interface AgChartSyncOptions {
     zoom?: boolean;
 }
 
+export type AgInitialFocus = 'data-start' | 'data-end' | 'viewport-start' | 'viewport-end';
+
 export interface AgKeyboardOptions {
     /** Toggles the keyboard navigation feature.
      *
@@ -170,12 +182,21 @@ export interface AgKeyboardOptions {
      * Default: `0`
      */
     tabIndex?: number;
+    /**
+     * Determines which datum receives focus when keyboard navigation first enters the chart.
+     *
+     * - `'data-start'` and `'data-end'` reference the full dataset
+     * - `'viewport-start'` and `'viewport-end'` reference the initial visible zoom viewport
+     *
+     * Default: `'data-start'`
+     */
+    initialFocus?: AgInitialFocus;
 }
 
 export interface AgTouchOptions {
-    /** Sets the input handling behavior for single-finger touch drag events.
+    /** Sets the input handling behaviour for single-finger touch drag events.
      *
-     * - `'none'` - ignores these events, typically causing the default page-scrolling behavior.
+     * - `'none'` - ignores these events, typically causing the default page-scrolling behaviour.
      * - `'hover'` - makes these behave like mouse hover events, showing tooltip and crosshairs.
      * - `'drag'` - makes these behave like mouse drag events (moving while holding left-button).
      *
@@ -225,6 +246,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     gradientLegend?: AgGradientLegendOptions<TContext>;
     /** Configuration for chart animations. */
     animation?: AgAnimationOptions;
+    /** Configuration for the flash on update effect. */
+    flashOnUpdate?: AgFlashOnUpdateOptions;
     /** Configuration for asynchronously loaded data. */
     dataSource?: AgDataSourceOptions<TDatum, TContext>;
     /** Configuration for the context menu. */
@@ -266,12 +289,16 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
     navigator?: AgNavigatorOptions<TDatum, TContext>;
+    /** Configuration for the Scrollbars. */
+    scrollbar?: AgScrollbarOptions;
     /** Configuration for synchronizing multiple charts. */
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
     /** Global formatter configuration. */
     formatter?: FormatterConfiguration<TDatum, TContext>;
+    /** Set to `true` to render the chart in right-to-left mode. If not specified, the chart will detect the `dir` attribute on the container or its ancestors. */
+    enableRtl?: boolean;
 }
 
 /** Configuration common to all charts.  */
@@ -279,8 +306,12 @@ export interface AgBaseChartOptions<TDatum = DatumDefault, TContext = ContextDef
     extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** The data to render the chart from. If this is not specified, it must be set on individual series instead. */
     data?: TDatum[];
+    /** The key of the property on each datum that contains its unique identifier.
+     * When specified, transactions will match items by this field instead of by object reference.
+     * The values of this field must be unique across the dataset. */
+    dataIdKey?: DatumKey<TDatum>;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
-    /** The initial state of the chart. This must be a serializable value. */
+    /** The initial state of the chart. This must be a serialisable value. */
     initialState?: AgInitialStateOptions;
 }

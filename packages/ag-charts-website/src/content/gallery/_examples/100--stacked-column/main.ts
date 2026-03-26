@@ -1,7 +1,24 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -64,22 +81,20 @@ const options: AgChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '#{.0f}%',
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
     },

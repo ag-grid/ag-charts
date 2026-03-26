@@ -3,7 +3,9 @@ import type { AgCartesianAxisPosition } from 'ag-charts-types';
 import { CartesianAxis } from '../axis/cartesianAxis';
 import type { ChartAxis } from '../chartAxis';
 
-const CartesianAxisPositions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
+// The order of these keys matches the expected order of the axes, i.e. x then y. The positions are popped, so 'bottom'
+// is the first position compared.
+const CartesianAxisPositions: AgCartesianAxisPosition[] = ['right', 'top', 'left', 'bottom'];
 
 function isAxisPosition(position: unknown): position is AgCartesianAxisPosition {
     return typeof position === 'string' && CartesianAxisPositions.includes(position as AgCartesianAxisPosition);

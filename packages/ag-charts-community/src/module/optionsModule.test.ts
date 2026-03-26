@@ -1,21 +1,21 @@
-import { describe } from '@jest/globals';
+import { describe, jest } from '@jest/globals';
 
-import { Logger } from 'ag-charts-core';
+import { Logger, ModuleRegistry } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianChartOptions,
     AgChartOptions,
+    AgChartTheme,
     AgLineSeriesOptions,
     AgNumberAxisOptions,
+    SeriesType,
 } from 'ag-charts-types';
 
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
-import { setupModules } from '../chart/factory/setupModules';
-import { SeriesType } from '../chart/mapping/types';
+import { sanitizeThemeModules } from '../chart/factory/processModuleOptions';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
+import { VERSION } from '../version';
 import { ChartOptions } from './optionsModule';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
@@ -248,12 +248,12 @@ const COMPLEX_THEME_SCENARIO: AgCartesianChartOptions = {
         { type: 'area', xKey: 'abc', yKey: 'test3' },
         { type: 'area', xKey: 'abc', yKey: 'test4', label: {} },
     ],
-    axes: [
-        { type: 'time', position: 'bottom' },
-        { type: 'time', position: 'bottom', title: { text: 'Time' } },
-        { type: 'number', position: 'left', title: { text: 'Velocity' } },
-        { type: 'number', position: 'right', title: { text: 'G', enabled: true } },
-    ],
+    axes: {
+        x: { type: 'time', position: 'bottom' },
+        xSecondary: { type: 'time', position: 'bottom', title: { text: 'Time' } },
+        y: { type: 'number', position: 'left', title: { text: 'Velocity' } },
+        ySecondary: { type: 'number', position: 'right', title: { text: 'G', enabled: true } },
+    },
     theme: {
         baseTheme: {
             baseTheme: 'ag-default',
@@ -291,8 +291,8 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
         fontSize: 30,
         spacing: 150,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
             interval: {
@@ -324,7 +324,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -334,7 +334,7 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
                 autoRotate: true,
             },
         },
-    ],
+    },
     series: [
         {
             ...examples.SIMPLE_LINE_CHART_EXAMPLE.series?.[0],
@@ -393,8 +393,8 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
 
 const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
     ...examples.SIMPLE_LINE_CHART_EXAMPLE,
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'time',
             crossLines: [
@@ -406,22 +406,89 @@ const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
         },
-    ],
+    },
 };
 
 describe('ChartOptions', () => {
-    beforeAll(() => {
-        registerInbuiltModules();
-        setupModules();
-    });
-
     beforeEach(() => {
         console.warn = jest.fn();
+        console.error = jest.fn();
         Logger.reset();
+    });
+
+    describe('type warnings', () => {
+        it('warns when a series type is missing', () => {
+            prepareOptions({
+                series: [{ xKey: 'x', yKey: 'y' } as any],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Option `series[0].type` is required and has not been provided');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when a series type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'lien' as any, xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `lien` at `series[0].type`');
+            expect(message).toContain("'line'");
+        });
+
+        it('warns when an axis type is unknown and suggests valid types', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'nmuber' as any, position: 'left' },
+                },
+            });
+
+            expect(console.warn).toHaveBeenCalledTimes(1);
+            const [message] = (console.warn as jest.Mock).mock.calls[0];
+            expect(message).toContain('Unknown type `nmuber` at `axes.y.type`');
+            expect(message).toContain("'number'");
+            expect(message).toContain('ignoring.');
+        });
+    });
+
+    describe('tooltip range warnings', () => {
+        it('warns when tooltip.range is set to area for non-area series', () => {
+            prepareOptions({
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', tooltip: { range: 'area' } }],
+            });
+
+            const messages = (console.warn as jest.Mock).mock.calls.map(([message]) => String(message));
+            expect(messages.some((message) => message.includes('series[0].tooltip.range'))).toBe(true);
+            expect(messages.some((message) => /["'`]?area["'`]?/.test(message))).toBe(true);
+        });
+
+        it('allows tooltip.range to be set to area for area series', () => {
+            const options = prepareOptions({
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', tooltip: { range: 'area' } }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(options.series?.[0]?.tooltip?.range).toBe('area');
+        });
+
+        it('falls back to the default range when chart tooltip range is area for bar series', () => {
+            const options = prepareOptions<AgCartesianChartOptions>({
+                tooltip: { range: 'area' },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            });
+
+            expect(console.warn).not.toHaveBeenCalled();
+            expect(options.series?.[0]?.tooltip?.range).toBe('exact');
+        });
     });
 
     describe('#processSeriesOptions', () => {
@@ -436,11 +503,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -503,11 +570,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -570,11 +637,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -637,11 +704,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -701,11 +768,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -760,11 +824,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -833,11 +894,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -900,11 +961,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -967,11 +1028,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1034,11 +1095,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1098,11 +1159,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1157,11 +1215,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1230,11 +1285,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1297,11 +1352,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1364,11 +1419,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1431,11 +1486,11 @@ describe('ChartOptions', () => {
     "fillOpacity": 1,
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedItem": {
+        "opacity": 0.6,
+      },
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "label": {
@@ -1495,11 +1550,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1554,11 +1606,8 @@ describe('ChartOptions', () => {
   {
     "highlight": {
       "enabled": true,
-      "highlightedItem": {
-        "fill": "rgba(255,255,255, 0.33)",
-        "opacity": 1,
-        "stroke": "rgba(0, 0, 0, 0.4)",
-        "strokeWidth": 2,
+      "unhighlightedSeries": {
+        "opacity": 0.2,
       },
     },
     "interpolation": {
@@ -1626,15 +1675,15 @@ describe('ChartOptions', () => {
             };
 
             for (const [seriesType, { stackable, groupable, stackedByDefault }] of Object.entries(seriesTypes)) {
-                seriesRegistry.register(
-                    seriesType as SeriesType,
-                    {
-                        chartTypes: ['cartesian'],
-                        stackable,
-                        groupable,
-                        stackedByDefault,
-                    } as any
-                );
+                ModuleRegistry.register({
+                    type: 'series',
+                    name: seriesType,
+                    chartType: 'cartesian',
+                    version: VERSION,
+                    stackable,
+                    groupable,
+                    stackedByDefault,
+                } as any);
             }
 
             it.each(Object.keys(seriesTypes))(
@@ -1642,9 +1691,9 @@ describe('ChartOptions', () => {
                 (seriesType) => {
                     const testOptions = getSeriesOptions(seriesType, (s) => ({ ...s, stacked: true }));
                     const options = prepareOptions({ series: testOptions });
-                    const { stackable } = seriesTypes[seriesType as SeriesType]!;
+                    const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1660,9 +1709,18 @@ describe('ChartOptions', () => {
                             expect(console.warn).toHaveBeenCalledWith(
                                 `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
-                            expect(series.seriesGrouping).toBe(undefined);
+                            if (groupable) {
+                                expect(series.seriesGrouping).toMatchSnapshot({
+                                    groupIndex: expect.any(Number),
+                                    groupCount: expect.any(Number),
+                                    stackIndex: expect.any(Number),
+                                    stackCount: expect.any(Number),
+                                });
+                            } else {
+                                expect(series.seriesGrouping).toBe(undefined);
+                            }
                         }
-                    });
+                    }
                 }
             );
 
@@ -1673,7 +1731,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1688,7 +1746,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1699,7 +1757,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1721,7 +1779,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1732,7 +1790,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1750,7 +1808,7 @@ describe('ChartOptions', () => {
                             );
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1761,7 +1819,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable, stackable, stackedByDefault } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1783,7 +1841,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1794,7 +1852,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1809,7 +1867,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1820,13 +1878,13 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
                         if (!stackable) {
                             expect(console.warn).toHaveBeenCalledWith(
-                                expect.stringMatching(/AG Charts - Unknown option `series\[\d+].stacked`, ignoring./)
+                                `AG Charts - unsupported stacking of series type "${seriesType}".`
                             );
                         }
                         if (!groupable) {
@@ -1855,7 +1913,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1870,7 +1928,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(series.seriesGrouping).toBe(undefined);
@@ -1882,7 +1940,7 @@ describe('ChartOptions', () => {
                                 expect.stringMatching(/AG Charts - Unknown option `series\[\d+].grouped`, ignoring./)
                             );
                         }
-                    });
+                    }
                 }
             );
 
@@ -1897,7 +1955,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1919,7 +1977,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
 
@@ -1934,7 +1992,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { groupable, stackable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
 
@@ -1952,9 +2010,7 @@ describe('ChartOptions', () => {
                         } else {
                             if (!stackable) {
                                 expect(console.warn).toHaveBeenCalledWith(
-                                    expect.stringMatching(
-                                        /AG Charts - Unknown option `series\[\d+].stacked`, ignoring./
-                                    )
+                                    `AG Charts - unsupported stacking of series type "${seriesType}".`
                                 );
                             }
                             if (!groupable) {
@@ -1965,7 +2021,7 @@ describe('ChartOptions', () => {
                                 );
                             }
                         }
-                    });
+                    }
                 }
             );
 
@@ -1980,7 +2036,7 @@ describe('ChartOptions', () => {
                     const options = prepareOptions({ series: testOptions });
                     const { stackable, stackedByDefault, groupable } = seriesTypes[seriesType as SeriesType]!;
 
-                    options.series.forEach((series) => {
+                    for (const series of options.series) {
                         expect(series.stacked).toBe(undefined);
                         expect(series.grouped).toBe(undefined);
                         expect(console.warn).not.toHaveBeenCalled();
@@ -1995,7 +2051,7 @@ describe('ChartOptions', () => {
                         } else {
                             expect(series.seriesGrouping).toBe(undefined);
                         }
-                    });
+                    }
                 }
             );
         });
@@ -2045,9 +2101,13 @@ describe('ChartOptions', () => {
 
             const preparedOptions = prepareOptions(options);
 
-            expect(preparedOptions.axes?.length).toEqual(4);
-            expect(preparedOptions.axes?.map((a) => a.type)).toEqual(['time', 'time', 'number', 'number']);
-            expect(preparedOptions.axes?.map((a) => a.title?.enabled)).toEqual([false, true, false, true]);
+            expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(4);
+            expect(preparedOptions.axes).toMatchObject({
+                x: { type: 'time', title: { enabled: false } },
+                y: { type: 'number', title: { enabled: false } },
+                __AXIS_ID_2: { type: 'time', title: { enabled: true } },
+                __AXIS_ID_3: { type: 'number', title: { enabled: true } },
+            });
             expect(preparedOptions.series?.length).toEqual(4);
             expect(preparedOptions.series?.map((s) => s.type)).toEqual(['line', 'bar', 'area', 'area']);
             expect(preparedOptions.series?.map((s) => 'label' in s && s.label?.enabled)).toEqual([
@@ -2056,6 +2116,91 @@ describe('ChartOptions', () => {
                 false,
                 true,
             ]);
+        });
+
+        it('should drop unregistered theme overrides before processing', () => {
+            const warnSpy = jest.spyOn(console, 'warn');
+            const theme: AgChartTheme = {
+                overrides: {
+                    common: {
+                        annotations: { enabled: true } as any,
+                        navigator: { enabled: true } as any,
+                        axes: {
+                            // @ts-expect-error Testing unregistered axis plugins
+                            'angle-number': { crosshair: { enabled: true } },
+                        },
+                    },
+                    'radial-bar': { series: { strokeWidth: 5, errorBar: { visible: true } } } as any,
+                },
+            };
+
+            const chartOptions = new ChartOptions(
+                {
+                    data: [{ x: 1, y: 2 }],
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    theme,
+                },
+                {} as AgCartesianChartOptions,
+                {},
+                {},
+                {}
+            );
+
+            try {
+                expect(chartOptions.activeTheme.overrides?.common?.navigator?.enabled).toBe(true);
+                expect(chartOptions.activeTheme.overrides?.common?.annotations?.enabled).toBe(true);
+                expect(chartOptions.activeTheme.overrides?.common?.axes?.['angle-number']).toBeUndefined();
+                expect((chartOptions.activeTheme.overrides as any)?.['radial-bar']).toBeUndefined();
+                expect(warnSpy).toHaveBeenCalledTimes(2);
+                expect(warnSpy.mock.calls[0]?.[0]).toContain('theme.overrides.common.axes.angle-number.crosshair');
+                expect(warnSpy.mock.calls[1]?.[0]).toContain('theme.overrides.radial-bar.series.errorBar');
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
+
+        it('sanitizes theme defaults when modules are missing', () => {
+            const baseTheme = new ChartTheme();
+            const themeWithExtras = Object.create(baseTheme, {
+                config: {
+                    value: { ...baseTheme.config, 'radial-bar': { series: { strokeWidth: 2 } } },
+                    enumerable: true,
+                },
+                overrides: {
+                    value: {
+                        ...(baseTheme.overrides ?? {}),
+                        common: {
+                            ...(baseTheme.overrides?.common ?? {}),
+                            navigator: { enabled: true },
+                            axes: {
+                                ...(baseTheme.overrides?.common?.axes ?? {}),
+                                number: {
+                                    ...(baseTheme.overrides?.common?.axes?.number ?? {}),
+                                    crosshair: { enabled: true },
+                                    bandHighlight: { enabled: false },
+                                },
+                            },
+                        },
+                        'radial-bar': { series: { strokeWidth: 5 } },
+                        line: { series: { errorBar: { enabled: true } } },
+                    },
+                    enumerable: true,
+                },
+                presets: {
+                    value: { ...(baseTheme.presets ?? {}), 'linear-gauge': { enabled: true } },
+                    enumerable: true,
+                },
+            }) as ChartTheme;
+
+            const sanitizedTheme = sanitizeThemeModules(themeWithExtras);
+
+            expect(sanitizedTheme.config['radial-bar']).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.['radial-bar']).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.common?.navigator?.enabled).toBe(true);
+            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.crosshair?.enabled).toBe(true);
+            expect((sanitizedTheme.overrides as any)?.common?.axes?.number?.bandHighlight).toBeUndefined();
+            expect((sanitizedTheme.overrides as any)?.line?.series?.errorBar).toBeUndefined();
+            expect((sanitizedTheme.presets as any)?.['linear-gauge']).toBeUndefined();
         });
 
         it('should use default theme options when `enabled` is set to `false` on an options object', () => {
@@ -2080,7 +2225,7 @@ describe('ChartOptions', () => {
             expect(preparedOptions.footnote?.fontSize).toBe(13);
             expect(preparedOptions.footnote?.spacing).toBe(theme.config.line.footnote.spacing);
 
-            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            const numberAxis = preparedOptions.axes?.x as AgNumberAxisOptions;
             expect(numberAxis?.tick?.enabled).toBe(false);
             expect(numberAxis?.tick?.width).toBe(theme.config.line.axes.time.tick.width);
             expect(numberAxis?.tick?.size).toBe(theme.config.line.axes.time.tick.size);
@@ -2093,8 +2238,8 @@ describe('ChartOptions', () => {
             expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
 
-            expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
-            expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');
+            expect(preparedOptions.axes!.y?.title?.enabled).toBe(true);
+            expect(preparedOptions.axes!.y?.title?.text).toBe('Custom Left Axis Title');
 
             const series0 = preparedOptions.series?.[0] as AgLineSeriesOptions | undefined;
             expect(series0?.marker?.enabled).toBe(false);
@@ -2108,8 +2253,8 @@ describe('ChartOptions', () => {
             expect(preparedOptions.tooltip?.enabled).toBe(false);
             expect(preparedOptions.tooltip?.range).toBe(theme.config.line.tooltip.range);
 
-            // AG-13304 - Disabled modules should not have any options object.
-            expect(preparedOptions.legend).toBeUndefined();
+            // Disabled modules now keep their options object.
+            expect(preparedOptions.legend).not.toBeUndefined();
         });
 
         it('should intrinsically enable nested crossline options', () => {
@@ -2118,9 +2263,750 @@ describe('ChartOptions', () => {
 
             const preparedOptions = prepareOptions(options);
 
-            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            const numberAxis = preparedOptions.axes?.x as AgNumberAxisOptions;
             expect(numberAxis.crossLines?.[0].enabled).toBe(true);
             expect(numberAxis.crossLines?.[0].label?.enabled).toBe(undefined);
+        });
+
+        describe('axes', () => {
+            it('should persist valid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                        myAxis: { type: 'number', position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should remap axes to the primary axis ids', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis0: { type: 'category', position: 'bottom' },
+                        myAxis1: { type: 'number', position: 'top' },
+                        myAxis2: { type: 'number', position: 'left' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'top' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should remap axes to the primary axis ids when given incorrect directional ids', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        y: { type: 'category', position: 'bottom' },
+                        x: { type: 'number', position: 'left' },
+                        myAxis: { type: 'number', position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should append an axis when only referenced by a series axis key', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myAxis', yKeyAxis: 'y' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        y: { type: 'number', position: 'left' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'category', position: 'top' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: '__AXIS_ID_2',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should append a primary axis when only one series references a secondary axis', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        myAxis: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                });
+            });
+
+            it('should append a primary axis when only one series references an undefined secondary axis', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        y: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number' },
+                    __AXIS_ID_2: { type: 'number' }, // myAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis
+                });
+            });
+
+            it('should append a secondary axis when all series reference axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myOtherAxis' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        myAxis: { type: 'number' },
+                        x: { type: 'category', position: 'bottom' },
+                        myOtherAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number' },
+                    __AXIS_ID_2: { type: 'number' }, // myOtherAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // myOtherAxis
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y', // myAxis
+                });
+            });
+
+            it('should provide default axes where a direction is missing', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                        myAxis: { type: 'number', position: 'top' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    y: { type: 'number', position: 'left' },
+                    x: { type: 'category', position: 'bottom' },
+                    __AXIS_ID_1: { type: 'number', position: 'top' }, // myAxis
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should persist axes when no position is provided and keys are standard', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        y: { type: 'number' },
+                        x: { type: 'time' },
+                        myAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'time' }, // matched by key
+                    y: { type: 'number' }, // matched by key
+                    __AXIS_ID_2: { type: 'number' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should remap axes when no position is provided and keys are non-standard', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis0: { type: 'time' },
+                        myAxis1: { type: 'number' },
+                        myAxis2: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'time' }, // matched by index, myAxis0
+                    y: { type: 'number' }, // matched by index, myAxis1
+                    __AXIS_ID_2: { type: 'number' }, // myAxis2
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should remap axes when a mixture of position and no position', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'category' },
+                        y: { type: 'number', position: 'left' },
+                        myAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category' },
+                    y: { type: 'number' },
+                    __AXIS_ID_2: { type: 'number' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            // TODO: predict the axes based on their types?
+            it.failing(
+                'should remap axes when no position is provided and keys are non-standard and axes are in wrong order',
+                () => {
+                    const options: AgCartesianChartOptions = {
+                        series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                        axes: {
+                            myAxis0: { type: 'number' },
+                            myAxis1: { type: 'time' },
+                        },
+                    };
+
+                    const preparedOptions = prepareOptions(options);
+
+                    expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                    expect(preparedOptions.axes).toMatchObject({
+                        x: { type: 'time' },
+                        y: { type: 'number' },
+                    });
+                    expect(preparedOptions.series?.[0]).toMatchObject({
+                        xKeyAxis: 'x',
+                        yKeyAxis: 'y',
+                    });
+                }
+            );
+
+            it('should create default axes by series type', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should create default axes when series have axis keys but no axes are provided', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myXAxis', yKeyAxis: 'myYAxis' }],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should create new axes when series have axis keys that do not match provided axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myXAxis', yKeyAxis: 'myYAxis' }],
+                    axes: {
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    __AXIS_ID_2: { type: 'category', position: 'top' },
+                    y: { type: 'number', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: '__AXIS_ID_2', // user's myXAxis
+                    yKeyAxis: 'y', // user's myYAxis, since no axes.y provided
+                });
+            });
+
+            it('should create default and secondary axes when series have axis keys but no axes are provided', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myYAxis' },
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                    ],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y', // user's myYAxis becomes the primary y-axis
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: '__AXIS_ID_2', // the implicit `yKeyAxis: 'y'` axis becomes a secondary axis
+                });
+            });
+
+            it('should remap and create default axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        y: { type: 'category', position: 'bottom' },
+                        myAxis: { type: 'number', position: 'top' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_1: { type: 'number', position: 'top' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'x',
+                    yKeyAxis: 'y',
+                });
+            });
+
+            it('should predict missing types and positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: {},
+                        y: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing types and positions for secondary axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+            });
+
+            it('should should predict missing types when given positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: { position: 'left' },
+                        myAxis2: { position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should predict missing positions for primary axes when secondary axes have positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: {},
+                        myAxis: { position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+            });
+
+            it('should predict missing positions when primary and secondary axes given types', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis' },
+                    ],
+                    axes: {
+                        x: {},
+                        y: { type: 'number' },
+                        myAxis: { type: 'number' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                });
+            });
+
+            it('should discard secondary axes that are not referenced and have no position or type', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        myAxis1: {},
+                        myAxis2: {},
+                        myAxis3: {},
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+            });
+
+            it('should discard invalid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'invalid' } as any,
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(2);
+                const [[message1], [message2]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+                expect(message2).toContain('Unknown type `invalid` at `axes.y.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                });
+            });
+
+            it('should discard invalid axes and keep valid axes', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+                    axes: {
+                        x: { type: 'invalid' } as any,
+                        y: { type: 'category', position: 'right' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                const [[message1]] = (console.warn as jest.Mock).mock.calls;
+                expect(message1).toContain('Unknown type `invalid` at `axes.x.type`');
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'category', position: 'right' },
+                });
+            });
+
+            it('should flip axes when a series is horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal' }],
+                    axes: {
+                        x: { type: 'category', position: 'left' },
+                        y: { type: 'number', position: 'bottom' },
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(2);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x',
+                });
+            });
+
+            it('should flip axes when a series is horizontal and no axes are provided', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal', yKeyAxis: 'myAxis1' },
+                        { type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal', yKeyAxis: 'myAxis2' },
+                    ],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' }, // myAxis1
+                    y: { type: 'category', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'top' }, // myAxis2
+                });
+                expect(preparedOptions.series?.[0]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: 'x', // myAxis1
+                });
+                expect(preparedOptions.series?.[1]).toMatchObject({
+                    xKeyAxis: 'y',
+                    yKeyAxis: '__AXIS_ID_2', // myAxis2
+                });
+            });
+
+            it('should flip and position axes when a series is horizontal', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            direction: 'horizontal',
+                            xKeyAxis: 'myAxis1', // should be left
+                            yKeyAxis: 'myAxis2', // should be bottom
+                        },
+                        {
+                            type: 'bar',
+                            xKey: 'x',
+                            yKey: 'y',
+                            direction: 'horizontal',
+                            xKeyAxis: 'myAxis1', // should be left
+                            yKeyAxis: 'myAxis3', // should be top
+                        },
+                    ],
+                    axes: {
+                        myAxis1: { type: 'category' }, // should be left
+                        myAxis2: { type: 'number' }, // should be bottom
+                        myAxis3: { type: 'number' }, // should be top
+                    },
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(3);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'number', position: 'bottom' }, // myAxis2
+                    y: { type: 'category', position: 'left' }, // myAxis1
+                    __AXIS_ID_2: { type: 'number', position: 'top' }, // myAxis3
+                });
+            });
+
+            it('should alternate secondary x-axis positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myAxis1' },
+                        { type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myAxis2' },
+                        { type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myAxis3' },
+                        { type: 'line', xKey: 'x', yKey: 'y', xKeyAxis: 'myAxis4' },
+                    ],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(5);
+                expect(preparedOptions.axes).toMatchObject({
+                    x: { type: 'category', position: 'bottom' },
+                    __AXIS_ID_2: { type: 'category', position: 'top' },
+                    __AXIS_ID_3: { type: 'category', position: 'bottom' },
+                    __AXIS_ID_4: { type: 'category', position: 'bottom' },
+                });
+            });
+
+            it('should alternate secondary y-axis positions', () => {
+                const options: AgCartesianChartOptions = {
+                    series: [
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis1' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis2' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis3' },
+                        { type: 'line', xKey: 'x', yKey: 'y', yKeyAxis: 'myAxis4' },
+                    ],
+                };
+
+                const preparedOptions = prepareOptions(options);
+
+                expect(Object.keys(preparedOptions.axes ?? {})).toHaveLength(5);
+                expect(preparedOptions.axes).toMatchObject({
+                    y: { type: 'number', position: 'left' },
+                    __AXIS_ID_2: { type: 'number', position: 'right' },
+                    __AXIS_ID_3: { type: 'number', position: 'left' },
+                    __AXIS_ID_4: { type: 'number', position: 'left' },
+                });
+            });
+        });
+    });
+
+    describe('displayNullData propagation', () => {
+        it('should propagate displayNullData to series allowNullKeys', () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 1 },
+                    { x: 'a', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                displayNullData: true,
+            } as any;
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBe(true);
+        });
+
+        it('should not propagate displayNullData when series has explicit allowNullKeys', () => {
+            const options: AgCartesianChartOptions = {
+                data: [{ x: null, y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: false } as any],
+                displayNullData: true,
+            } as any;
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBe(false);
+        });
+
+        it('should not set allowNullKeys when displayNullData is not provided', () => {
+            const options: AgCartesianChartOptions = {
+                data: [{ x: 'a', y: 1 }],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+
+            const processed = prepareOptions(options);
+            expect((processed.series![0] as any).allowNullKeys).toBeUndefined();
         });
     });
 });

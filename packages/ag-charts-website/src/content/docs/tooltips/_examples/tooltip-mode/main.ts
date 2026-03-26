@@ -1,7 +1,9 @@
-import { AgCartesianChartOptions, AgCharts, AgTooltipMode } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgTooltipMode, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -40,16 +42,15 @@ const options: AgCartesianChartOptions = {
             yName: 'Landfill Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

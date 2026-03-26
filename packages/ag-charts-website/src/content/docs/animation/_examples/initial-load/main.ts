@@ -5,10 +5,35 @@ import {
     AgCharts,
     AgPolarChartOptions,
     AgTooltipRendererResult,
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DonutSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    PieSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    DonutSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    PieSeriesModule,
+    ContextMenuModule,
+]);
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
     renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams<DataType>): AgTooltipRendererResult => {
@@ -59,25 +84,23 @@ const barOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 wrapping: 'on-space',
                 autoRotate: false,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
                 },
             },
         },
-    ],
+    },
 };
 
 const lineOptions: AgCartesianChartOptions<DataType> = {
@@ -118,25 +141,23 @@ const lineOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 wrapping: 'on-space',
                 autoRotate: false,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
                 },
             },
         },
-    ],
+    },
 };
 
 const areaOptions: AgCartesianChartOptions<DataType> = {
@@ -182,25 +203,23 @@ const areaOptions: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 wrapping: 'on-space',
                 autoRotate: false,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     return params.value / 1000 + 'k';
                 },
             },
         },
-    ],
+    },
 };
 
 const donutOptions: AgPolarChartOptions<DataType> = {

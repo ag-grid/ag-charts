@@ -1,8 +1,29 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    ContextMenuModule,
+]);
+
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -25,9 +46,9 @@ const options: AgChartOptions = {
                 size: 7,
             },
             label: {
-                padding: 17,
-                formatter: ({ itemId, value }) => {
-                    return `${itemId === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
+                spacing: 17,
+                formatter: ({ itemType, value }) => {
+                    return `${itemType === 'low' ? 'L' : 'H'}: ${value.toFixed(0)}`;
                 },
             },
         },

@@ -9,7 +9,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>, TContext>, 'yKey'>,
@@ -49,6 +49,22 @@ export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TConte
     tooltip?: AgSeriesTooltip<AgHistogramSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    /**
+     * If `true`, the aggregated `yKey` values will be represented using the area of the bar, instead of just the height.
+     */
+    areaPlot?: boolean;
+    /** Set the bin sizes explicitly.
+     *
+     * __Note:__ `bins` is ignored if `binCount` is also supplied.
+     */
+    bins?: [number, number][];
+    /** The number of bins to try to split the x-axis into.  */
+    binCount?: number;
+    /** Dictates how the `yKey` values are aggregated within each bin.
+     *
+     * Default: `sum`
+     */
+    aggregation?: 'count' | 'sum' | 'mean';
 }
 
 export interface AgHistogramSeriesOptionsKeys<TDatum = DatumDefault> {
@@ -67,25 +83,10 @@ export interface AgHistogramSeriesOptionsNames {
 
 export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,
         AgHistogramSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for Histogram Series. */
     type: 'histogram';
-    /**
-     * If `true`, the aggregated `yKey` values will be represented using the area of the bar, instead of just the height.
-     */
-    areaPlot?: boolean;
-    /** Set the bin sizes explicitly.
-     *
-     * __Note:__ `bins` is ignored if `binCount` is also supplied.
-     */
-    bins?: [number, number][];
-    /** The number of bins to try to split the x-axis into.  */
-    binCount?: number;
-    /** Dictates how the `yKey` values are aggregated within each bin.
-     *
-     * Default: `sum`
-     */
-    aggregation?: 'count' | 'sum' | 'mean';
 }

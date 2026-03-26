@@ -1,32 +1,31 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type RequireOptional, cachedTextMeasurer, calcLineHeight, wrapText } from 'ag-charts-core';
+import {
+    Logger,
+    type RequireOptional,
+    angleBetween,
+    cachedTextMeasurer,
+    calcLineHeight,
+    evaluateBezier,
+    isBetweenAngles,
+    mergeDefaults,
+    normalizeAngle360,
+    toPlainText,
+    wrapText,
+} from 'ag-charts-core';
 import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
 
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
+import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import {
-    FlowProportionDatumType,
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
-    type FlowProportionNodeDatumIndex,
     FlowProportionSeries,
     type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const {
-    SeriesNodePickMode,
-    createDatumId,
-    angleBetween,
-    normalizeAngle360,
-    isBetweenAngles,
-    Sector,
-    evaluateBezier,
-    applyShapeStyle,
-    getShapeStyle,
-    getLabelStyles,
-    BBox,
-    mergeDefaults,
-} = _ModuleSupport;
+const { SeriesNodePickMode, createDatumId, Sector, getShapeStyle, getLabelStyles, BBox } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
@@ -56,6 +55,8 @@ interface ChordNodeLabelDatum {
     angle: number;
     radius: number;
     size: number;
+    nodeDatum: ChordNodeDatum;
+    datumIndex: FlowProportionNodeDatumIndex;
 }
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
@@ -74,7 +75,7 @@ export class ChordSeries extends FlowProportionSeries<
     _ModuleSupport.Sector<ChordNodeDatum>,
     ChordLink<ChordLinkDatum>
 > {
-    static readonly className = 'ChordSeries';
+    static override readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
 
     override properties = new ChordSeriesProperties();
@@ -122,26 +123,26 @@ export class ChordSeries extends FlowProportionSeries<
                 ...node,
                 centerX,
                 centerY,
-                innerRadius: NaN,
-                outerRadius: NaN,
-                startAngle: NaN,
-                endAngle: NaN,
+                innerRadius: Number.NaN,
+                outerRadius: Number.NaN,
+                startAngle: Number.NaN,
+                endAngle: Number.NaN,
             }),
             (link) => ({
                 ...link,
                 centerX,
                 centerY,
-                radius: NaN,
-                startAngle1: NaN,
-                endAngle1: NaN,
-                startAngle2: NaN,
-                endAngle2: NaN,
+                radius: Number.NaN,
+                startAngle1: Number.NaN,
+                endAngle1: Number.NaN,
+                startAngle2: Number.NaN,
+                endAngle2: Number.NaN,
             }),
             { includeCircularReferences: true }
         );
 
         let totalSize = 0;
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
+        for (const [id, { datum: node, linksBefore, linksAfter }] of nodeGraph.entries()) {
             const size =
                 linksBefore.reduce((acc, { link }) => acc + link.size, 0) +
                 linksAfter.reduce((acc, { link }) => acc + link.size, 0);
@@ -152,7 +153,7 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                node.label = label.enabled
+                const labelText = label.enabled
                     ? this.getLabelText<AgChordSeriesLabelFormatterParams>(
                           node.label,
                           node.datum,
@@ -163,23 +164,24 @@ export class ChordSeries extends FlowProportionSeries<
                           { datum: node.datum, value: node.label, fromKey, toKey, sizeKey, size: node.size }
                       )
                     : undefined;
+                node.label = toPlainText(labelText);
             }
-        });
+        }
 
         let labelInset = 0;
         if (this.isLabelEnabled()) {
             const measurer = cachedTextMeasurer(this.properties.label);
             let maxMeasuredLabelWidth = 0;
-            nodeGraph.forEach(({ datum: node }) => {
+            for (const { datum: node } of nodeGraph.values()) {
                 const { id, label } = node;
-                if (label == null) return;
+                if (label == null) continue;
 
                 const text = wrapText(label, {
                     maxWidth: labelMaxWidth,
                     font: this.properties.label,
                     textWrap: 'never',
                 });
-                const { width } = measurer.measureText(text);
+                const { width } = measurer.measureLines(text);
                 maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
 
                 labelData.push({
@@ -187,11 +189,13 @@ export class ChordSeries extends FlowProportionSeries<
                     text,
                     centerX,
                     centerY,
-                    angle: NaN,
-                    radius: NaN,
+                    angle: Number.NaN,
+                    radius: Number.NaN,
                     size: node.size,
+                    datumIndex: node.datumIndex,
+                    nodeDatum: node,
                 });
-            });
+            }
 
             labelInset = maxMeasuredLabelWidth + labelSpacing;
         }
@@ -217,7 +221,7 @@ export class ChordSeries extends FlowProportionSeries<
 
         const sizeScale = Math.max((2 * Math.PI - nodeCount * spacingSweep) / totalSize, 0);
         let nodeAngle = 0;
-        nodeGraph.forEach(({ datum: node }) => {
+        for (const { datum: node } of nodeGraph.values()) {
             node.innerRadius = innerRadius;
             node.outerRadius = outerRadius;
             node.startAngle = nodeAngle;
@@ -230,10 +234,10 @@ export class ChordSeries extends FlowProportionSeries<
                 x: node.centerX + midR * Math.cos(midAngle),
                 y: node.centerY + midR * Math.sin(midAngle),
             };
-        });
+        }
 
         const nodeData: ChordDatum[] = [];
-        nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+        for (const { datum: node, linksBefore, linksAfter } of nodeGraph.values()) {
             const midAngle = nodeMidAngle(node);
             const combinedLinks = [
                 ...linksBefore.map((l) => ({
@@ -249,24 +253,22 @@ export class ChordSeries extends FlowProportionSeries<
             ];
 
             let linkAngle = node.startAngle;
-            combinedLinks
-                .toSorted((a, b) => a.distance - b.distance)
-                .forEach(({ link, after }) => {
-                    const linkSweep = link.size * sizeScale;
-                    if (after) {
-                        link.startAngle1 = linkAngle;
-                        link.endAngle1 = linkAngle + linkSweep;
-                    } else {
-                        link.startAngle2 = linkAngle;
-                        link.endAngle2 = linkAngle + linkSweep;
-                    }
-                    linkAngle += link.size * sizeScale;
-                });
+            for (const { link, after } of combinedLinks.toSorted((a, b) => a.distance - b.distance)) {
+                const linkSweep = link.size * sizeScale;
+                if (after) {
+                    link.startAngle1 = linkAngle;
+                    link.endAngle1 = linkAngle + linkSweep;
+                } else {
+                    link.startAngle2 = linkAngle;
+                    link.endAngle2 = linkAngle + linkSweep;
+                }
+                linkAngle += link.size * sizeScale;
+            }
 
             nodeData.push(node);
-        });
+        }
         const { tension } = this.properties.link;
-        links.forEach((link) => {
+        for (const link of links) {
             link.radius = radius;
 
             const outer = bezierControlPoints({
@@ -293,14 +295,16 @@ export class ChordSeries extends FlowProportionSeries<
             };
 
             nodeData.push(link);
-        });
+        }
 
-        labelData.forEach((label) => {
+        for (const label of labelData) {
             const node = nodeGraph.get(label.id)?.datum;
-            if (node == null) return;
+            if (node == null) continue;
             label.radius = outerRadius + labelSpacing;
             label.angle = normalizeAngle360(node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2);
-        });
+            label.datumIndex = node.datumIndex;
+            label.nodeDatum = node;
+        }
         labelData.sort((a, b) => a.angle - b.angle);
 
         let minAngle = Infinity;
@@ -349,13 +353,23 @@ export class ChordSeries extends FlowProportionSeries<
             toKey: this.properties.toKey,
             fromKey: this.properties.fromKey,
             sizeKey: this.properties.sizeKey,
-            size: NaN,
+            size: Number.NaN,
         } satisfies RequireOptional<AgChordSeriesLabelFormatterParams>;
 
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { size, text, centerX, centerY, radius, angle }) => {
+        const activeHighlightDatum = this.getHighlightedDatum();
+        opts.labelSelection.each((label, labelNodeDatum) => {
+            const { size, text, centerX, centerY, radius, angle, datumIndex, nodeDatum } = labelNodeDatum;
             params.size = size;
-            const style = getLabelStyles(this, undefined, params, this.properties.label, false, activeHighlight);
+            const isHighlight = this.isLabelHighlighted(nodeDatum, activeHighlightDatum);
+            const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+            const style = getLabelStyles(
+                this,
+                undefined,
+                params,
+                this.properties.label,
+                isHighlight,
+                activeHighlightDatum
+            );
             const { fontStyle, fontWeight, fontSize, fontFamily, color: fill } = style;
             label.visible = true;
             label.translationX = centerX + radius * Math.cos(angle);
@@ -374,6 +388,9 @@ export class ChordSeries extends FlowProportionSeries<
                 label.textAlign = 'right';
                 label.rotation = angle - Math.PI;
             }
+            const opacity = highlightStyle.opacity ?? 1;
+            label.opacity = opacity;
+            label.fillOpacity = opacity;
             label.setBoxing(style);
         });
     }
@@ -436,7 +453,6 @@ export class ChordSeries extends FlowProportionSeries<
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             size,
@@ -457,7 +473,7 @@ export class ChordSeries extends FlowProportionSeries<
             const { datumIndex } = datum;
             const style = this.getNodeStyle(datum, datumIndex.index, isHighlight);
 
-            applyShapeStyle(sector, style, fillBBox);
+            sector.setStyleProperties(style, fillBBox);
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -508,7 +524,6 @@ export class ChordSeries extends FlowProportionSeries<
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted: isHighlight,
                         highlightState,
                         ...style,
                     });
@@ -551,7 +566,7 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle2 = datum.endAngle2;
 
             link.tension = style.tension;
-            applyShapeStyle(link, style, fillBBox);
+            link.setStyleProperties(style, fillBBox);
         });
     }
 
@@ -589,8 +604,8 @@ export class ChordSeries extends FlowProportionSeries<
                 : seriesDatum.label;
         const datum =
             datumIndex.type === FlowProportionDatumType.Link
-                ? linksProcessedData?.dataSources.get(this.id)?.[datumIndex.index]
-                : nodesProcessedData?.dataSources.get(this.id)?.[datumIndex.index];
+                ? linksProcessedData?.dataSources.get(this.id)?.data[datumIndex.index]
+                : nodesProcessedData?.dataSources.get(this.id)?.data[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;
@@ -616,6 +631,7 @@ export class ChordSeries extends FlowProportionSeries<
                 domain: [],
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(size) });
         }

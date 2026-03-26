@@ -1,31 +1,28 @@
-import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgBoxPlotSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection, DIRECTION_SWAP_AXES, type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { BoxPlotSeries } from './boxPlotSeries';
 import { boxPlotSeriesOptionsDef } from './boxPlotSeriesOptionsDef';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'box-plot',
-    moduleFactory: (ctx) => new BoxPlotSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: _ModuleSupport.DIRECTION_SWAP_AXES,
-    themeTemplate: BOX_PLOT_SERIES_THEME,
-    groupable: true,
-};
+const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
 
 export const BoxPlotSeriesModule: SeriesModuleDefinition<AgBoxPlotSeriesOptions> = {
     type: 'series',
     name: 'box-plot',
     chartType: 'cartesian',
     enterprise: true,
+    groupable: true,
+    version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: boxPlotSeriesOptionsDef,
+    matchingKeys: ['xKey', 'lowKey', 'q1Key', 'medianKey', 'q3Key', 'highKey', 'outlierKey', 'normalizedTo'],
+    predictAxis: predictCartesianNonPrimitiveAxis,
+    defaultAxes: DIRECTION_SWAP_AXES,
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
+    themeTemplate: BOX_PLOT_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new BoxPlotSeries(ctx),
+    create: (ctx) => new BoxPlotSeries(ctx),
 };

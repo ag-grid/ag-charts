@@ -1,21 +1,22 @@
-import { iterate } from 'ag-charts-core';
+import type { Scale } from 'ag-charts-core';
+import { ChartAxisDirection, Padding, ZIndexMap, iterate } from 'ag-charts-core';
 
-import type { LayoutContext } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
-import type { Scale } from '../scale/scale';
 import { BBox } from '../scene/bbox';
-import { Padding } from '../util/padding';
-import { PolarAxis } from './axis/polarAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
-import { ChartAxisDirection } from './chartAxisDirection';
-import type { SeriesArea } from './series-area/seriesArea';
+import { PolarChartAxes } from './chartAxes';
+import type { LayoutContext } from './layout/layoutManager';
 import { PolarSeries, type UnknownPolarSeries } from './series/polar/polarSeries';
-import { ZIndexMap } from './zIndexMap';
 
 export class PolarChart extends Chart {
-    static readonly className = 'PolarChart';
+    static override readonly className = 'PolarChart';
     static readonly type = 'polar' as const;
+
+    override axes = this.createChartAxes();
+    override createChartAxes() {
+        return new PolarChartAxes();
+    }
 
     override padding = new Padding(40);
 
@@ -28,12 +29,12 @@ export class PolarChart extends Chart {
         return 'polar' as const;
     }
 
-    protected async performLayout(ctx: LayoutContext) {
-        const { layoutBox } = ctx;
+    override isDataTransactionSupported() {
+        return !this.series.some((s) => s.type === 'pie' || s.type === 'donut');
+    }
 
-        const seriesRect = layoutBox
-            .clone()
-            .shrink(this.modulesManager.getModule<SeriesArea>('seriesArea')!.getPadding());
+    protected async performLayout(ctx: LayoutContext) {
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -41,17 +42,30 @@ export class PolarChart extends Chart {
         this.seriesRoot.translationX = seriesRect.x;
         this.seriesRoot.translationY = seriesRect.y;
         await this.computeCircle(seriesRect);
-        this.axes.forEach((axis) => axis.update());
+        for (const axis of this.axes) {
+            axis.update();
+        }
+
+        let maxMarkerSize = 0;
+        for (const series of this.series) {
+            maxMarkerSize = Math.max(maxMarkerSize, series.properties.marker?.size ?? 0);
+        }
+        for (const series of this.series.filter(isPolarSeries)) {
+            series.maxChartMarkerSize = maxMarkerSize;
+        }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
+            layoutBox: ctx.layoutBox,
         });
     }
 
     protected updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
-        const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Angle);
-        const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Radius);
-        if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
+        // pie & donut series do not have axes
+        if (this.axes.length === 0) return;
+
+        const angleAxis = this.axes[ChartAxisDirection.Angle];
+        const radiusAxis = this.axes[ChartAxisDirection.Radius];
 
         const angleScale: Scale<number, number> = angleAxis.scale;
         const innerRadiusRatio = radiusAxis.innerRadiusRatio;
@@ -62,7 +76,7 @@ export class PolarChart extends Chart {
 
         radiusAxis.gridAngles = angleScale
             .ticks({
-                nice: angleAxis.nice,
+                nice: [angleAxis.nice, angleAxis.nice],
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -72,24 +86,23 @@ export class PolarChart extends Chart {
         radiusAxis.gridRange = angleAxis.range;
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 
-        [angleAxis, radiusAxis].forEach((axis) => {
+        for (const axis of [angleAxis, radiusAxis]) {
             axis.translation.x = seriesBox.x + cx;
             axis.translation.y = seriesBox.y + cy;
             axis.calculateLayout();
-        });
+        }
     }
 
     private async computeCircle(seriesBox: BBox) {
         const polarSeries = this.series.filter(isPolarSeries);
-        const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
             this.updateAxes(seriesBox, cx, cy, r);
-            polarSeries.forEach((series) => {
+            for (const series of polarSeries) {
                 series.centerX = cx;
                 series.centerY = cy;
                 series.radius = r;
-            });
+            }
 
             const pieSeries = polarSeries.filter((s) => s.type === 'donut' || s.type === 'pie');
             if (pieSeries.length > 1) {
@@ -114,7 +127,7 @@ export class PolarChart extends Chart {
 
         const shake = async ({ hideWhenNecessary = false } = {}) => {
             const labelBoxes = [];
-            for (const series of iterate(polarAxes, polarSeries)) {
+            for (const series of iterate(this.axes, polarSeries)) {
                 const box = await series.computeLabelsBBox({ hideWhenNecessary }, seriesBox);
                 if (box) {
                     labelBoxes.push(box);
@@ -140,7 +153,7 @@ export class PolarChart extends Chart {
         await shake({ hideWhenNecessary: true }); // Final result
 
         // Must compute labels again in case last shake changed niceDomain
-        for (const series of iterate(polarAxes, polarSeries)) {
+        for (const series of iterate(this.axes, polarSeries)) {
             await series.computeLabelsBBox({ hideWhenNecessary: true }, seriesBox);
         }
 
@@ -215,8 +228,4 @@ export class PolarChart extends Chart {
 
 function isPolarSeries(series: unknown): series is UnknownPolarSeries {
     return series instanceof PolarSeries;
-}
-
-function isPolarAxis(axis: unknown): axis is PolarAxis {
-    return axis instanceof PolarAxis;
 }

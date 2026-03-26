@@ -1,11 +1,19 @@
-import { CleanupRegistry, clamp, getWindow } from 'ag-charts-core';
+import {
+    AgDocument,
+    BaseProperties,
+    type Bounds,
+    CleanupRegistry,
+    type Placement,
+    Property,
+    calculatePlacement,
+    clamp,
+    isNode,
+} from 'ag-charts-core';
 import type { AgTooltipAnchorTo, AgTooltipMode, AgTooltipPlacement, InteractionRange, TextWrap } from 'ag-charts-types';
 
+import type { DOMElementProxy } from '../../dom/domElementProxy';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import { type Bounds, type Placement, calculatePlacement } from '../../util/placement';
-import { BaseProperties, Property } from '../../util/properties';
-import { SizeMonitor } from '../../util/sizeMonitor';
 import { SpringAnimation } from './springAnimation';
 import {
     DEFAULT_TOOLTIP_CLASS,
@@ -20,6 +28,7 @@ export {
     DEFAULT_TOOLTIP_DARK_CLASS,
     tooltipHtml,
     tooltipContentAriaLabel,
+    isTooltipValueMissing,
     type TooltipContent,
     type TooltipPaginationState,
     type TooltipContentDataRow,
@@ -162,13 +171,10 @@ export class Tooltip extends BaseProperties {
     bounds: 'extended' | 'canvas' = 'extended';
 
     private readonly cleanup = new CleanupRegistry();
-    private readonly springAnimation = new SpringAnimation();
+    private readonly springAnimation = new SpringAnimation(this.agDocument);
 
     private enableInteraction: boolean = false;
     private readonly wrapTypes = ['always', 'hyphenate', 'on-space', 'never'];
-
-    private element?: HTMLElement;
-    private readonly sizeMonitor = new SizeMonitor();
 
     private interactiveLeave?: {
         callback: () => void;
@@ -180,6 +186,8 @@ export class Tooltip extends BaseProperties {
     private _showTimeout: NodeJS.Timeout | undefined = undefined;
     private arrowPosition: ArrowPosition | undefined = undefined;
     private _visible = false;
+
+    private elementProxy?: DOMElementProxy;
 
     private positionParams:
         | {
@@ -193,35 +201,33 @@ export class Tooltip extends BaseProperties {
         return this.enableInteraction;
     }
 
-    constructor() {
+    constructor(private readonly agDocument: AgDocument) {
         super();
 
-        this.cleanup.register(this.springAnimation.events.on('update', this.updateTooltipPosition.bind(this)));
+        this.cleanup.register(
+            this.springAnimation.events.on('update', () => {
+                this.updateTooltipPosition();
+            })
+        );
     }
 
     private localeManager: LocaleManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
-        if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
-            this.element = domManager.addChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
-            this.element.setAttribute('popover', 'manual');
-            this.element.className = DEFAULT_TOOLTIP_CLASS;
-            // @ts-expect-error Typings need updating
-            this.element.style.positionAnchor = domManager.anchorName;
+        this.elementProxy = domManager.addDeferredProxyChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
+        this.elementProxy.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
+        this.elementProxy.setProperty('position-anchor', domManager.anchorName);
+        this.elementProxy.setAttr('popover', 'manual');
 
-            this.sizeMonitor.observe(this.element, (size) => {
-                this._elementSize = size;
-                this.updateTooltipPosition();
-            });
-        }
+        const removeResizeListener = this.elementProxy.addResizeListener((size) => {
+            this._elementSize = size;
+            this.updateTooltipPosition();
+        });
         this.localeManager = localeManager;
 
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
             this.cleanup.flush();
-
-            if (this.element) {
-                this.sizeMonitor.unobserve(this.element);
-            }
+            removeResizeListener();
         };
     }
 
@@ -230,12 +236,12 @@ export class Tooltip extends BaseProperties {
     }
 
     contains(node: Node | null): boolean {
-        return this.element?.contains(node) ?? false;
+        return this.elementProxy?.contains(node) ?? false;
     }
 
     private updateTooltipPosition() {
-        const { element, _elementSize: elementSize, positionParams } = this;
-        if (element == null || elementSize == null || positionParams == null) return;
+        const { elementProxy, _elementSize: elementSize, positionParams } = this;
+        if (elementProxy == null || elementSize == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
         const { x: canvasX, y: canvasY } = this.springAnimation;
@@ -291,7 +297,7 @@ export class Tooltip extends BaseProperties {
         this.arrowPosition = showArrow ? arrowPositions[placement] : undefined;
         this.updateClassModifiers();
 
-        element.style.translate = `${left}px ${top}px`;
+        elementProxy.setProperty('translate', `${left}px ${top}px`);
     }
 
     /**
@@ -306,17 +312,18 @@ export class Tooltip extends BaseProperties {
         pagination?: TooltipPaginationState,
         instantly = false
     ) {
-        const { element } = this;
+        const { elementProxy } = this;
 
-        if (element != null && content != null && content.length !== 0) {
+        if (elementProxy != null && content != null && content.length !== 0) {
             const html = tooltipHtml(this.localeManager, content, this.mode, this.pagination ? pagination : undefined);
             if (html == null) {
+                elementProxy.setInnerHTML('');
                 this.toggle(false);
                 return;
             }
 
-            element.innerHTML = html;
-        } else if (element == null || element.innerHTML === '') {
+            elementProxy.setInnerHTML(html);
+        } else if (elementProxy == null || elementProxy.innerHTML === '') {
             this.toggle(false);
             return;
         }
@@ -346,20 +353,14 @@ export class Tooltip extends BaseProperties {
                 this.springAnimation.reset();
         }
 
-        if (meta.enableInteraction) {
-            this.enableInteraction = true;
-            element.style.pointerEvents = 'auto';
-            element.removeAttribute('aria-hidden');
-            element.tabIndex = -1; // AG-14347 Allow interactive tooltips to receive focus
-        } else {
-            this.enableInteraction = false;
-            element.style.pointerEvents = 'none';
-            element.setAttribute('aria-hidden', 'true');
-            element.removeAttribute('tabindex');
-        }
+        this.enableInteraction = meta.enableInteraction ?? false;
 
-        element.style.setProperty('--top', `${canvasRect.top}px`);
-        element.style.setProperty('--left', `${canvasRect.left}px`);
+        elementProxy.setProperty('pointer-events', this.enableInteraction ? 'auto' : 'none');
+        elementProxy.setAttr('aria-hidden', this.enableInteraction ? null : 'true');
+        elementProxy.setAttr('tabindex', this.enableInteraction ? '-1' : null); // AG-14347
+
+        elementProxy.setProperty('--top', `${canvasRect.top}px`);
+        elementProxy.setProperty('--left', `${canvasRect.left}px`);
         this.updateClassModifiers();
 
         this.toggle(true, instantly);
@@ -370,12 +371,12 @@ export class Tooltip extends BaseProperties {
     }
 
     maybeEnterInteractiveTooltip({ relatedTarget }: FocusEvent | MouseEvent, callback: () => void): boolean {
-        const { interactive, interactiveLeave, enabled, element } = this;
-        if (element == null) return false;
+        const { interactive, interactiveLeave, enabled, elementProxy } = this;
+        if (elementProxy == null) return false;
         if (interactiveLeave) return true;
 
         const isEntering =
-            interactive && enabled && this.isVisible() && relatedTarget instanceof Node && this.contains(relatedTarget);
+            interactive && enabled && this.isVisible() && isNode(relatedTarget) && this.contains(relatedTarget);
 
         // AG-14990 Add a custom listener to dismiss the tooltip when the user is done interacting with it.
         if (isEntering) {
@@ -384,26 +385,26 @@ export class Tooltip extends BaseProperties {
                 listener: (popoverEvent: FocusEvent | MouseEvent): void => {
                     const isLeaving =
                         popoverEvent.relatedTarget == null ||
-                        (popoverEvent.relatedTarget instanceof Node && !this.contains(popoverEvent.relatedTarget));
+                        (isNode(popoverEvent.relatedTarget) && !this.contains(popoverEvent.relatedTarget));
                     if (isLeaving) {
                         this.popInteractiveLeaveCallback();
                     }
                 },
             };
-            element.addEventListener('focusout', this.interactiveLeave.listener);
-            element.addEventListener('mouseout', this.interactiveLeave.listener);
+            elementProxy.addEventListener('focusout', this.interactiveLeave.listener);
+            elementProxy.addEventListener('mouseout', this.interactiveLeave.listener);
         }
 
         return isEntering;
     }
 
     private popInteractiveLeaveCallback() {
-        const { interactiveLeave, element } = this;
+        const { interactiveLeave, elementProxy } = this;
         this.interactiveLeave = undefined; // prevent re-entrancy.
         if (interactiveLeave) {
-            if (element) {
-                element.removeEventListener('focusout', interactiveLeave.listener);
-                element.removeEventListener('mouseout', interactiveLeave.listener);
+            if (elementProxy) {
+                elementProxy.removeEventListener('focusout', interactiveLeave.listener);
+                elementProxy.removeEventListener('mouseout', interactiveLeave.listener);
             }
             interactiveLeave.callback();
         }
@@ -425,43 +426,43 @@ export class Tooltip extends BaseProperties {
     }
 
     private toggleCallback(visible: boolean) {
-        if (!this.element?.isConnected) return;
+        if (!this.elementProxy?.isConnected) return;
 
         // Avoid touching the DOM if invisible and visibility status hasn't changed.
         if (this._visible === visible) return;
         this._visible = visible;
 
-        this.element.togglePopover(visible);
+        this.elementProxy.togglePopover(visible);
 
         if (visible) {
-            // We can only measure the element when it's actually visible
-            // This removes a possible jump for the tooltip
             this.updateTooltipPosition();
         } else {
             this.springAnimation.reset();
             this.popInteractiveLeaveCallback();
+            this.elementProxy.reset();
         }
     }
 
     private updateClassModifiers() {
-        if (!this.element?.isConnected) return;
+        if (!this.elementProxy?.isConnected) return;
 
-        const { classList } = this.element;
+        const { elementProxy } = this;
+        const { enableInteraction, arrowPosition, mode, darkTheme, wrapping } = this;
 
-        const toggleClass = (name: string, include: boolean) =>
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
+        const toggle = (name: string, force: boolean) =>
+            elementProxy.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--${name}`, force);
 
-        toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
-        toggleClass('arrow-top', this.arrowPosition === ArrowPosition.Top);
-        toggleClass('arrow-right', this.arrowPosition === ArrowPosition.Right);
-        toggleClass('arrow-bottom', this.arrowPosition === ArrowPosition.Bottom);
-        toggleClass('arrow-left', this.arrowPosition === ArrowPosition.Left);
-        toggleClass('compact', this.mode === 'compact');
+        toggle('no-interaction', !enableInteraction);
+        toggle('arrow-top', arrowPosition === ArrowPosition.Top);
+        toggle('arrow-right', arrowPosition === ArrowPosition.Right);
+        toggle('arrow-bottom', arrowPosition === ArrowPosition.Bottom);
+        toggle('arrow-left', arrowPosition === ArrowPosition.Left);
+        toggle('compact', mode === 'compact');
 
-        classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
+        elementProxy.toggleClass(DEFAULT_TOOLTIP_DARK_CLASS, darkTheme);
 
         for (const wrapType of this.wrapTypes) {
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === this.wrapping);
+            elementProxy.toggleClass(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === wrapping);
         }
     }
 

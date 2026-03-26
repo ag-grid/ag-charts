@@ -66,7 +66,9 @@ export interface AgSparklineBaseThemeableOptions<TDatum = DatumDefault> {
 }
 
 export interface AgSparklineDataKeysOptions {
+    /** The key used to retrieve x-values from the data. */
     xKey?: string;
+    /** The key used to retrieve y-values from the data. */
     yKey?: string;
 }
 
@@ -97,6 +99,7 @@ export interface AgLineSparklinePreset<TDatum = DatumDefault>
     extends AgSparklineBaseThemeableOptions<TDatum>,
         AgSparklineDataKeysOptions,
         Omit<AgLineSeriesOptions<TDatum, any>, AgSparklineSeriesOmit> {
+    /** The type of sparkline series. */
     type: 'line';
 }
 

@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -15,9 +15,9 @@ import type {
 import type {
     AgColorType,
     FillOptions,
-    FontOptions,
     LineDashOptions,
     StrokeOptions,
+    TextOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -45,10 +45,10 @@ export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = Conte
     positionRatio?: Ratio;
 }
 
-export type AgPieSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgPieSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgPieSeriesOptionsKeys<TDatum> &
     Required<AgPieSeriesStyle>;
@@ -58,7 +58,7 @@ export interface AgPieSeriesStyle extends FillOptions, StrokeOptions, LineDashOp
     cornerRadius?: PixelSize;
 }
 
-export interface AgPieTitleOptions extends Toggleable, FontOptions {
+export interface AgPieTitleOptions extends Toggleable, TextOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
@@ -68,7 +68,7 @@ export interface AgPieTitleOptions extends Toggleable, FontOptions {
 }
 
 export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPieSeriesLabelFormatterParams<TDatum> {}
 

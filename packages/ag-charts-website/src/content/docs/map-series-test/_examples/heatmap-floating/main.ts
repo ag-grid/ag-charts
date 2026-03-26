@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { data } from './data';
 import { topology } from './topology';

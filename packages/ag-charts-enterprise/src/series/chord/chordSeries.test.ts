@@ -11,6 +11,7 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
     extractImageData,
@@ -21,7 +22,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-import { FlowProportionDatumType } from '../flow-proportion/flowProportionSeries';
+import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 
 describe('ChordSeries', () => {
     setupMockConsole();
@@ -142,8 +143,9 @@ describe('ChordSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            item: {
+                        highlight: {
+                            enabled: true,
+                            highlightedItem: {
                                 fill: 'lime',
                             },
                         },
@@ -224,7 +226,7 @@ describe('ChordSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -280,7 +282,7 @@ describe('ChordSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -302,7 +304,7 @@ describe('ChordSeries', () => {
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
-                return datum != null ? [datum[params.fromKey], datum[params.toKey], 1] : ['(node)'];
+                return datum == null ? ['(node)'] : [datum[params.fromKey], datum[params.toKey], 1];
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();

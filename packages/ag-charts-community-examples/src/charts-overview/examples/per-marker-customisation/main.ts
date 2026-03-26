@@ -53,26 +53,26 @@ const options: AgChartOptions = {
             fillOpacity: 0.7,
             strokeOpacity: 0.7,
             itemStyler(params) {
-                return { fill: params.highlighted ? params.fill : calculateColour(params.size) };
+                return { fill: params.highlightState === 'highlighted-item' ? params.fill : calculateColour(params.size) };
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Depth (m)',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Minimum distance (km)',
             },
         },
-    ],
+    },
     seriesArea: {
         padding: {
             left: 20,
@@ -81,4 +81,4 @@ const options: AgChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

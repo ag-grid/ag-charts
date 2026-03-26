@@ -1,7 +1,32 @@
-import { AgCartesianChartOptions, AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgCharts,
+    AnimationModule,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 // @ts-expect-error Undocumented option
 window.agChartsDebug = 'scene:stats';
 

@@ -1,16 +1,30 @@
 import {
     type ColorSpace,
+    DeclaredSceneChangeDetection,
+    DeclaredSceneObjectChangeDetection,
     type InternalAgGradientColor,
+    SceneArrayChangeDetection,
+    SceneObjectChangeDetection,
+    TRIPLE_EQ,
     boxesEqual,
     clamp,
     generateUUID,
+    isGradientFill,
+    isImageFill,
+    isPatternFill,
     isString,
+    objectsEqual,
 } from 'ag-charts-core';
-import type { AgImageFill, AgPatternColor, CssColor, LineDashOptions, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgDrawingMode,
+    AgImageFill,
+    AgPatternColor,
+    CssColor,
+    LineDashOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
-import { objectsEqual } from '../../util/object';
 import type { BBox } from '../bbox';
-import { SceneArrayChangeDetection, SceneObjectChangeDetection, TRIPLE_EQ } from '../changeDetectable';
 import type { DropShadow } from '../dropShadow';
 import { ConicGradient } from '../gradient/conicGradient';
 import { Gradient, type GradientParams } from '../gradient/gradient';
@@ -18,9 +32,8 @@ import { LinearGradient } from '../gradient/linearGradient';
 import { RadialGradient } from '../gradient/radialGradient';
 import { getColorStops } from '../gradient/stops';
 import { Image } from '../image/image';
-import { Node, SceneChangeDetection } from '../node';
+import { Node } from '../node';
 import { Pattern } from '../pattern/pattern';
-import { isGradientFill, isImageFill, isPatternFill } from '../util/fill';
 import { align } from '../util/pixel';
 import { setSvgLineDashAttributes, setSvgStrokeAttributes } from './svgUtils';
 
@@ -43,14 +56,24 @@ export type ShapeColor = CssColor | ShapeGradientColor | AgPatternColor | AgImag
 type SvgAttributes = StrokeOptions & LineDashOptions;
 
 export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
+    drawingMode: AgDrawingMode = 'overlay';
+    declare __drawingMode: AgDrawingMode; // optimised field accessor
+
+    @DeclaredSceneChangeDetection()
     fillOpacity: number = 1;
+    declare __fillOpacity: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     strokeOpacity: number = 1;
+    declare __strokeOpacity: number; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @DeclaredSceneObjectChangeDetection({
+        equals: objectsEqual,
+        changeCb: Shape.handleFillChange,
+    })
     fill: ShapeColor | undefined = 'black';
+    declare __fill: ShapeColor | undefined; // optimised field accessor
 
     private getGradient(fill: ShapeColor | undefined) {
         if (isGradientFill(fill)) return this.createGradient(fill);
@@ -119,8 +142,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onStrokeChange() })
+    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: Shape.handleStrokeChange })
     stroke?: ShapeColor;
+    declare __stroke: ShapeColor | undefined; // optimised field accessor
 
     protected onStrokeChange() {
         this.strokeGradient = this.getGradient(this.stroke);
@@ -128,8 +152,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     protected strokeGradient?: Gradient;
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     strokeWidth: number = 0;
+    declare __strokeWidth: number; // optimised field accessor
 
     /**
      * Returns a device-pixel aligned coordinate (or length if length is supplied).
@@ -143,30 +168,39 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
 
     @SceneArrayChangeDetection()
     lineDash?: readonly number[];
+    declare __lineDash: readonly number[] | undefined; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     lineDashOffset: number = 0;
+    declare __lineDashOffset: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     lineCap?: ShapeLineCap;
+    declare __lineCap: ShapeLineCap | undefined; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     lineJoin?: ShapeLineJoin;
+    declare __lineJoin: ShapeLineJoin | undefined; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     miterLimit?: number;
+    declare __miterLimit: number | undefined; // optimised field accessor
 
-    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? 1, 1) })
+    @DeclaredSceneChangeDetection({ convertor: (v: number) => clamp(0, v ?? 1, 1) })
     opacity: number = 1;
+    declare __opacity: number; // optimised field accessor
 
     @SceneObjectChangeDetection({ equals: TRIPLE_EQ, checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined;
+    declare __fillShadow: DropShadow | undefined; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @DeclaredSceneObjectChangeDetection({ equals: boxesEqual, changeCb: (s) => s.onFillChange() })
     fillBBox?: BBox;
+    declare __fillBBox: BBox | undefined; // optimised field accessor
 
-    @SceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s: Shape) => s.onFillChange() })
+    @DeclaredSceneObjectChangeDetection({ equals: objectsEqual, changeCb: (s) => s.onFillChange() })
     fillParams?: GradientParams;
+    declare __fillParams: GradientParams | undefined; // optimised field accessor
 
     private cachedDefaultGradientFillBBox?: BBox;
 
@@ -176,14 +210,20 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {
+        if (this.__drawingMode === 'cutout') {
+            ctx.globalCompositeOperation = 'destination-out';
+            this.executeFill(ctx, path);
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
         this.renderFill(ctx, path);
         this.renderStroke(ctx, path);
     }
 
     protected renderFill(ctx: CanvasContext, path?: Path2D) {
-        const { fill, fillOpacity, fillImage } = this;
+        const { __fill: fill, __fillOpacity: fillOpacity = 1, fillImage } = this;
         if (fill != null && fill !== 'none' && fillOpacity > 0) {
-            const { globalAlpha } = ctx;
+            const globalAlpha = ctx.globalAlpha;
             if (fillImage) {
                 // image pattern background fill
                 ctx.globalAlpha = fillImage.backgroundFillOpacity;
@@ -196,7 +236,9 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
             this.applyShadow(ctx);
             this.executeFill(ctx, path);
             ctx.globalAlpha = globalAlpha;
-            ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            if (this.fillShadow?.enabled) {
+                ctx.shadowColor = 'rgba(0, 0, 0, 0)';
+            }
         }
     }
 
@@ -209,9 +251,19 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected applyFillAndAlpha(ctx: CanvasContext) {
-        const { fill, fillGradient, fillPattern, fillImage, fillOpacity = 1, opacity = 1 } = this;
+        const {
+            __fill: fill,
+            fillGradient,
+            fillPattern,
+            fillImage,
+            __fillOpacity: fillOpacity = 1,
+            __opacity: opacity = 1,
+        } = this;
 
-        ctx.globalAlpha *= opacity * fillOpacity;
+        const combinedOpacity = opacity * fillOpacity;
+        if (combinedOpacity !== 1) {
+            ctx.globalAlpha *= combinedOpacity;
+        }
 
         if (fillGradient) {
             const { fillBBox = this.getDefaultGradientFillBBox() ?? this.getBBox(), fillParams } = this;
@@ -238,14 +290,17 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected applyStrokeAndAlpha(ctx: CanvasContext) {
-        const { stroke, strokeOpacity = 1, strokeGradient, opacity = 1 } = this;
+        const { __stroke: stroke, __strokeOpacity: strokeOpacity = 1, strokeGradient, __opacity: opacity = 1 } = this;
 
         ctx.strokeStyle =
             strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
             (typeof stroke === 'string' ? stroke : undefined) ??
             'black';
 
-        ctx.globalAlpha *= opacity * strokeOpacity;
+        const combinedOpacity = opacity * strokeOpacity;
+        if (combinedOpacity !== 1) {
+            ctx.globalAlpha *= combinedOpacity;
+        }
     }
 
     protected applyShadow(ctx: CanvasContext) {
@@ -253,7 +308,7 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         // has no effect on shadows, so we have to account for the pixel ratio
         // manually here.
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
-        const fillShadow = this.fillShadow;
+        const { __fillShadow: fillShadow } = this;
         if (fillShadow?.enabled) {
             ctx.shadowColor = fillShadow.color;
             ctx.shadowOffsetX = fillShadow.xOffset * pixelRatio;
@@ -263,7 +318,16 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
     }
 
     protected renderStroke(ctx: CanvasContext & { setLineDash(lineDash: readonly number[]): void }, path?: Path2D) {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin, miterLimit } = this;
+        const {
+            __stroke: stroke,
+            __strokeWidth: strokeWidth = 0,
+            __strokeOpacity: strokeOpacity = 1,
+            __lineDash: lineDash,
+            __lineDashOffset: lineDashOffset,
+            __lineCap: lineCap,
+            __lineJoin: lineJoin,
+            __miterLimit: miterLimit,
+        } = this;
         if (stroke != null && stroke !== 'none' && strokeWidth > 0 && strokeOpacity > 0) {
             const { globalAlpha } = ctx;
             this.applyStrokeAndAlpha(ctx);
@@ -365,5 +429,113 @@ export abstract class Shape<TDatum = unknown> extends Node<TDatum> {
         const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this as SvgAttributes;
         setSvgStrokeAttributes(element, { stroke: isString(stroke) ? stroke : undefined, strokeOpacity, strokeWidth });
         setSvgLineDashAttributes(element, { lineDash, lineDashOffset });
+    }
+
+    private static handleFillChange(this: void, shape: Shape): void {
+        shape.onFillChange();
+    }
+
+    private static handleStrokeChange(this: void, shape: Shape): void {
+        shape.onStrokeChange();
+    }
+
+    /**
+     * Sets style properties on the shape, optimizing by writing directly to __ prefix fields
+     * where possible to avoid setter overhead.
+     */
+    setStyleProperties(
+        style?: Partial<
+            Pick<
+                Shape,
+                | 'fill'
+                | 'fillOpacity'
+                | 'stroke'
+                | 'strokeOpacity'
+                | 'strokeWidth'
+                | 'lineDash'
+                | 'lineDashOffset'
+                | 'opacity'
+            >
+        >,
+        fillBBox?: { series: BBox; axis: BBox },
+        fillParams?: GradientParams
+    ): void {
+        // Opacity is managed by animation - so don't set it on the shape
+        const opacity = style?.opacity ?? 1;
+        const fill = style?.fill;
+
+        // Write directly to __ prefix fields for fields with @DeclaredSceneChangeDetection/@SceneArrayChangeDetection
+        // to avoid setter overhead. Fields with change callbacks (fill, stroke, fillBBox, fillParams) must use setters.
+        const computedFillOpacity = (style?.fillOpacity ?? 1) * opacity;
+        const computedStrokeOpacity = (style?.strokeOpacity ?? 1) * opacity;
+        const computedStrokeWidth = style?.strokeWidth ?? 0;
+        const computedLineDashOffset = style?.lineDashOffset ?? 0;
+
+        let hasDirectChanges = false;
+        if (this.__fillOpacity !== computedFillOpacity) {
+            this.__fillOpacity = computedFillOpacity;
+            hasDirectChanges = true;
+        }
+        if (this.__strokeOpacity !== computedStrokeOpacity) {
+            this.__strokeOpacity = computedStrokeOpacity;
+            hasDirectChanges = true;
+        }
+        if (this.__strokeWidth !== computedStrokeWidth) {
+            this.__strokeWidth = computedStrokeWidth;
+            hasDirectChanges = true;
+        }
+        if (this.__lineDashOffset !== computedLineDashOffset) {
+            this.__lineDashOffset = computedLineDashOffset;
+            hasDirectChanges = true;
+        }
+        if (this.__lineDash !== style?.lineDash) {
+            this.__lineDash = style?.lineDash;
+            hasDirectChanges = true;
+        }
+
+        // fillBBox and fillParams are decorated (@SceneObjectChangeDetection), so we need to use setters
+        // to trigger their change callbacks (onFillChange)
+        this.setFillProperties(fill, fillBBox, fillParams);
+        if (fill !== this.fill) {
+            this.fill = fill;
+        }
+        if (style?.stroke !== this.stroke) {
+            this.stroke = style?.stroke;
+        }
+
+        // Ensure node is marked dirty if direct field writes changed values
+        if (hasDirectChanges) {
+            this.markDirty();
+        }
+    }
+
+    /**
+     * Sets fill-related properties (fillBBox and fillParams) on the shape.
+     * Used for gradient fills that need bounding box information.
+     */
+    setFillProperties(
+        fill: ShapeColor | undefined,
+        fillBBox?: { series: BBox; axis: BBox },
+        fillParams?: GradientParams
+    ): void {
+        const computedFillBBox =
+            fillBBox == null || !isGradientFill(fill) || fill.bounds == null || fill.bounds === 'item'
+                ? undefined
+                : fillBBox[fill.bounds];
+
+        let hasDirectChanges = false;
+        if (this.__fillBBox !== computedFillBBox) {
+            this.__fillBBox = computedFillBBox;
+            hasDirectChanges = true;
+        }
+        if (this.__fillParams !== fillParams) {
+            this.__fillParams = fillParams;
+            hasDirectChanges = true;
+        }
+
+        if (hasDirectChanges) {
+            this.onFillChange();
+            this.markDirty();
+        }
     }
 }

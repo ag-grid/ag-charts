@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    AgPath,
+    BandHighlightModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    LegendModule,
+    NumberAxisModule,
+    ScatterSeriesModule,
+    UnitTimeAxisModule,
+]);
 function agChartsLogo({ path, size, x, y }: AgMarkerShapeFnParams) {
     const pathData = [
         'M0.480769 0.846154V0.692308H0.211538L0.134615 0.769423V0.846154H0.480769Z',
@@ -49,17 +68,17 @@ const options: AgCartesianChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
+            yKeyAxis: 'ySecondary',
             title: 'NPM Downloads',
             shape: npmLogo,
             size: 20,
             fillOpacity: 1,
         },
     ],
-    axes: [
-        {
-            position: 'right',
+    axes: {
+        y: {
             type: 'number',
-            keys: ['numberOfVisits'],
+            position: 'right',
             gridLine: {
                 style: [
                     {
@@ -78,10 +97,9 @@ const options: AgCartesianChartOptions = {
                 text: 'Website Visits',
             },
         },
-        {
-            position: 'left',
+        ySecondary: {
             type: 'number',
-            keys: ['npmDownloads'],
+            position: 'left',
             title: {
                 text: 'NPM Downloads',
             },
@@ -100,8 +118,7 @@ const options: AgCartesianChartOptions = {
                 spacing: 15,
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'unit-time',
             gridLine: {
                 enabled: true,
@@ -122,7 +139,7 @@ const options: AgCartesianChartOptions = {
                 size: 30,
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
         spacing: 20,

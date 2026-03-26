@@ -1,9 +1,7 @@
-import { Logger, throttle } from 'ag-charts-core';
+import { ActionOnSet, Debug, Logger, throttle } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
-import { Debug } from '../../util/debug';
-import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 
 type DataSourceCallback = (params: AgDataSourceCallbackParams<unknown>) => Promise<unknown>;
@@ -72,8 +70,9 @@ export class DataService<D extends object> {
 
         if (
             pendingData != null &&
-            pendingData.params.windowStart?.valueOf() === params.windowStart?.valueOf() &&
-            pendingData.params.windowEnd?.valueOf() === params.windowEnd?.valueOf()
+            ((pendingData.params.windowStart == null && pendingData.params.windowEnd == null) ||
+                (pendingData.params.windowStart?.valueOf() === params.windowStart?.valueOf() &&
+                    pendingData.params.windowEnd?.valueOf() === params.windowEnd?.valueOf()))
         ) {
             const id = this.requestCounter++;
 

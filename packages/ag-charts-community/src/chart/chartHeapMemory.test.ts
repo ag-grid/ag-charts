@@ -52,36 +52,36 @@ describe('Chart Heap Memory', () => {
     const options1 = {
         mode: 'integrated',
         data: genData(),
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 position: 'bottom',
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
             },
-        ],
+        },
         series: genSeries('bar'),
     };
     const options2 = {
         mode: 'integrated',
         data: genData(),
-        axes: [
-            {
+        axes: {
+            x: {
                 type: 'category',
                 position: 'bottom',
             },
-            {
+            y: {
                 type: 'number',
                 position: 'left',
             },
-        ],
+        },
         series: genSeries('area'),
     };
 
     beforeEach(() => {
-        global.gc?.();
+        globalThis.gc?.();
     });
 
     afterEach(() => {
@@ -109,7 +109,7 @@ describe('Chart Heap Memory', () => {
         }
 
         it('should not leak memory after many updates', async () => {
-            global.gc?.();
+            globalThis.gc?.();
             const startingHeap = memoryUsage().heapUsed;
 
             const options = [options1, options2, options1, options2];
@@ -122,7 +122,7 @@ describe('Chart Heap Memory', () => {
             }
 
             chartProxy.destroy();
-            global.gc?.();
+            globalThis.gc?.();
             const endingHeap = memoryUsage().heapUsed;
             const heapProportionChange = Math.abs(endingHeap - startingHeap) / startingHeap;
 
@@ -147,7 +147,7 @@ describe('Chart Heap Memory', () => {
 
             chartProxy = null;
 
-            global.gc?.();
+            globalThis.gc?.();
 
             expect(instantiatedSeries).toEqual(new Set());
         });

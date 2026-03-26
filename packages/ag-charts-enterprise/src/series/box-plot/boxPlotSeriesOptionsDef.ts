@@ -1,7 +1,17 @@
 import { type AgBoxPlotSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, required, shapeSegmentation, string } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    commonSeriesOptionsDefs,
+    constant,
+    positiveNumberNonZero,
+    ratio,
+    required,
+    shapeSegmentation,
+    string,
+} from 'ag-charts-core';
 
-const { boxPlotSeriesThemeableOptionsDef, commonSeriesOptionsDefs } = _ModuleSupport;
+const { boxPlotSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -13,6 +23,8 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     medianKey: required(string),
     q3Key: required(string),
     maxKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     minName: string,
@@ -23,4 +35,6 @@ export const boxPlotSeriesOptionsDef: OptionsDefs<AgBoxPlotSeriesOptions> = {
     grouped: boolean,
     legendItemName: string,
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };

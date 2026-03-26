@@ -1,14 +1,18 @@
-import { createSvgElement } from 'ag-charts-core';
+import type { DistantObject } from 'ag-charts-core';
+import { SceneChangeDetection, createSvgElement } from 'ag-charts-core';
 
-import type { DistantObject } from '../../util/nearest';
 import type { BBox } from '../bbox';
-import { SceneChangeDetection } from '../changeDetectable';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
 import { Shape } from './shape';
 
+<<<<<<< HEAD
 export class Path<D = unknown> extends Shape<D> implements DistantObject {
     static readonly className: string = 'Path';
+=======
+export class Path<D = any> extends Shape<D> implements DistantObject {
+    static override readonly className: string = 'Path';
+>>>>>>> latest
 
     /**
      * Declare a path to retain for later rendering and hit testing
@@ -17,8 +21,8 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
      */
     path = new ExtendedPath2D();
 
-    protected _clipX: number = NaN;
-    protected _clipY: number = NaN;
+    protected _clipX: number = Number.NaN;
+    protected _clipY: number = Number.NaN;
     protected _clipPath?: ExtendedPath2D;
 
     @SceneChangeDetection()
@@ -123,10 +127,10 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
         }
     }
 
-    private lastPixelRatio = NaN;
+    private lastPixelRatio = Number.NaN;
     override preRender(renderCtx: RenderContext): ChildNodeCounts {
         if (renderCtx.devicePixelRatio !== this.lastPixelRatio) {
-            // Some shapes algin the paths to pixels
+            // Some shapes align the paths to pixels
             // In almost every case, when the pixel ratio changes, the chart will be resized and all paths would be invalidated
             // The only time this wouldn't happen is dragging the browser between monitors with different scaling
             // Since this case is rare, it's easier to just assume any path will align to pixels rather than doing this opt-in
@@ -140,7 +144,7 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
     override render(renderCtx: RenderContext) {
         const { ctx } = renderCtx;
 
-        if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
+        if (this.clip && !Number.isNaN(this._clipX) && !Number.isNaN(this._clipY)) {
             ctx.save();
 
             try {

@@ -10,17 +10,10 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
-const {
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    BaseProperties,
-    makeSeriesTooltip,
-    SeriesProperties,
-    Property,
-    Label,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
+    _ModuleSupport;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Property
@@ -176,9 +169,4 @@ export class ChordSeriesProperties extends SeriesProperties<AgChordSeriesOptions
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgChordSeriesTooltipRendererParams<any>>();
-
-    constructor() {
-        super();
-        this.highlightStyle.deprecated = false;
-    }
 }

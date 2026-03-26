@@ -1,19 +1,17 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { Point } from 'ag-charts-core';
-import type { AgPolarChartOptions } from 'ag-charts-types';
-import type { InteractionRange } from 'ag-charts-types';
+import { ChartUpdateType, type Point } from 'ag-charts-core';
+import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Selection } from '../../../scene/selection';
 import { Sector } from '../../../scene/shape/sector';
 import { Transformable } from '../../../scene/transformable';
-import { ChartUpdateType } from '../../chartUpdateType';
-import type { ChartOrProxy } from '../../test/utils';
-import type { PolarTestCase } from '../../test/utils';
+import type { ChartOrProxy, PolarTestCase } from '../../test/utils';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
     extractImageData,
@@ -245,17 +243,21 @@ describe('PolarSeries', () => {
             const deproxied = deproxy(chart);
             const reference = await snapshot();
 
-            options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
-            });
+            if (options.data) {
+                for (const [idx] of options.data.entries()) {
+                    (deproxied.series[0] as any).toggleSeriesItem(false, 'category', idx, undefined);
+                }
+            }
             deproxied.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
-            options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
-            });
+            if (options.data) {
+                for (const [idx] of options.data.entries()) {
+                    (deproxied.series[0] as any).toggleSeriesItem(true, 'category', idx, undefined);
+                }
+            }
             deproxied.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();
@@ -407,9 +409,9 @@ describe('PolarSeries', () => {
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden (hover over top-left corner)
+            // Check the tooltip is hidden (hover over top-left corner, wait for delayed removal)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -464,7 +466,7 @@ describe('PolarSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -492,7 +494,7 @@ describe('PolarSeries', () => {
             },
             getHighlightNode: (_chartInstance, series) =>
                 Selection.selectAll(
-                    series.highlightGroup,
+                    series.highlightNodeGroup,
                     (node): node is Sector => node instanceof Sector && node.visible
                 )[0],
         });

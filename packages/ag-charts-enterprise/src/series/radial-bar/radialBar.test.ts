@@ -1,12 +1,26 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts, AgRadialBarSeriesOptions } from 'ag-charts-community';
+import {
+    type AgChartOptions,
+    AgCharts,
+    type AgPolarChartOptions,
+    type AgRadialBarSeriesOptions,
+    type AgRadialSeriesItemStylerParams,
+    type AgRadialSeriesStyle,
+    type AgRadialSeriesStylerParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
+    type MockRadialColumnStyler,
+    expectWarningsCalls,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -77,16 +91,16 @@ describe('RadialBarSeries', () => {
     it(`should render radial bar chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-number',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -118,16 +132,16 @@ describe('RadialBarSeries', () => {
                     stacked: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                angle: {
                     type: 'angle-number',
                     reverse: true,
                 },
-                {
+                radius: {
                     type: 'radius-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -163,7 +177,7 @@ describe('RadialBarSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [{ type: 'angle-number', nice: false }, { type: 'radius-category' }],
+            axes: { angle: { type: 'angle-number', nice: false }, radius: { type: 'radius-category' } },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -181,10 +195,10 @@ describe('RadialBarSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                { type: 'angle-number', nice: false, reverse: true },
-                { type: 'radius-category', reverse: true },
-            ],
+            axes: {
+                angle: { type: 'angle-number', nice: false, reverse: true },
+                radius: { type: 'radius-category', reverse: true },
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -406,6 +420,244 @@ describe('RadialBarSeries', () => {
         await compare();
     });
 
+    describe('AG-15782 styler', () => {
+        type D = { quarter: string; sw: number; hw: number };
+        type C = unknown;
+        type O = AgPolarChartOptions<D, C>;
+        type M = MockRadialColumnStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        let data: D[];
+
+        beforeEach(() => {
+            data = [
+                { quarter: `Q1'22`, sw: 4.35, hw: 2.14 },
+                { quarter: `Q2'22`, sw: 4.28, hw: 3.13 },
+                { quarter: `Q3'22`, sw: 4.14, hw: 3.34 },
+                { quarter: `Q4'22`, sw: 3.48, hw: 3.56 },
+                { quarter: `Q1'23`, sw: 3.35, hw: 3.14 },
+                { quarter: `Q2'23`, sw: 3.28, hw: 3.13 },
+                { quarter: `Q3'23`, sw: 3.14, hw: 2.84 },
+                { quarter: `Q4'23`, sw: 2.48, hw: 2.46 },
+            ];
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRadialSeriesStylerParams<D, C>): AgRadialSeriesStyle | undefined => {
+                    if (params.angleKey === 'sw') {
+                        return {
+                            fill: 'cyan',
+                            lineDash: [7, 2],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 3,
+                            strokeOpacity: 0.5,
+                        };
+                    }
+                    if (params.angleKey === 'hw')
+                        return {
+                            fill: 'hotpink',
+                            stroke: 'darkmagenta',
+                            strokeWidth: 4,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'software context 1' };
+                c2 = { name: 'hardware context 2' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                context: c1,
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                context: c2,
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgRadialSeriesItemStylerParams<D, C>): AgRadialSeriesStyle => {
+                    if (params.angleKey === 'sw' && params.datum.quarter === `Q1'22`) {
+                        return { fill: 'lightskyblue', stroke: 'deepskyblue' };
+                    }
+                    if (params.angleKey === 'hw' && params.datum.quarter === `Q3'23`) {
+                        return { fill: 'darkkhaki', strokeWidth: 1, strokeOpacity: 1 };
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('highlights', () => {
+            // Manual-test version available at radial-bar-series-test#styler-highlight-state
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        legend: { position: 'left' },
+                        series: [
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'sw',
+                                angleName: 'Software',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'radial-bar',
+                                radiusKey: 'quarter',
+                                angleKey: 'hw',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 100, y: 100 } as const;
+            const series0datum0 = { x: 508, y: 300 } as const;
+            const series0datum2 = { x: 559, y: 300 } as const;
+            const series1datum0 = { x: 515, y: 275 } as const;
+            const legendItem0 = { x: 50, y: 290 } as const;
+            const legendItem1 = { x: 50, y: 311 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+    });
+
     describe('AG-15448', () => {
         const DATA1 = [
             { quarter: `Q1'22`, revenue: 4.35, status: 1 },
@@ -448,6 +700,170 @@ describe('RadialBarSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
             await chart.updateDelta({ data: DATA2 });
+            await compare();
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's1', angleName: 'series 1' },
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's2', angleName: 'series 2' },
+                    { type: 'radial-bar', radiusKey: 'x', angleKey: 's3', angleName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('null category key', () => {
+        const RADIAL_BAR_NULL_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RadialBarSeries-1 / radiusValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const RADIAL_BAR_UNDEFINED_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: undefined, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: undefined, value: 25 },
+            { category: 'B', value: 15 },
+        ];
+
+        const RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        const RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'radial-bar',
+                    radiusKey: 'category',
+                    angleKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RadialBarSeries-1 / radiusValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RADIAL_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
     });

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { ChartAxisDirection, deepClone } from 'ag-charts-core';
 import type {
     AgAreaSeriesMarkerItemStylerParams,
     AgAreaSeriesOptions,
@@ -17,7 +18,6 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
-import { deepClone } from '../../../util/json';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import { CUSTOM_SVG_PATHS, INVALID_CUSTOM_SVG_PATHS } from '../../test/customSvgPaths';
 import {
@@ -28,7 +28,8 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockAreaStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase, ChartTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -38,7 +39,9 @@ import {
     deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectWarningsCalls,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -56,7 +59,7 @@ const buildLogAxisTestCase = (
 ): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'area'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['area'] }),
         ...extra,
     };
 };
@@ -68,12 +71,12 @@ const EXAMPLES: Record<
     ...mixinReversedAxesCases({
         AREA_MISSING_Y_DATA_EXAMPLE: {
             options: examples.AREA_MISSING_Y_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         },
         STACKED_AREA_MISSING_Y_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('area', 4),
             }),
         },
@@ -86,20 +89,20 @@ const EXAMPLES: Record<
                 })),
             },
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('area', 4),
             }),
         },
         STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('area', 4),
             }),
         },
         AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['area'] }),
             warnings: [
                 ['AG Charts - invalid value of type [undefined] for [AreaSeries-1 / xValue] ignored:', '[undefined]'],
             ],
@@ -107,14 +110,14 @@ const EXAMPLES: Record<
         },
         AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['area'] }),
             warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
             skipWarningsReversed: false,
         },
         STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
             warnings: [
@@ -128,7 +131,7 @@ const EXAMPLES: Record<
         STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
             warnings: [
@@ -142,14 +145,14 @@ const EXAMPLES: Record<
         AREA__TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.AREA_TIME_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
         },
         AREA_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.AREA_NUMBER_X_AXIS_TIME_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'unit-time'],
+                axisTypes: { x: 'number', y: 'unit-time' },
                 seriesTypes: repeat('area', 2),
             }),
             skip: true,
@@ -157,14 +160,14 @@ const EXAMPLES: Record<
         AREA_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.AREA_NUMBER_AXES_0_X_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
         },
         AREA_NUMBER_AXES_0_Y_DOMAIN: {
             options: examples.AREA_NUMBER_AXES_0_Y_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
         },
@@ -179,14 +182,14 @@ const EXAMPLES: Record<
                 })),
             },
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('area', 4),
             }),
         },
         STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('area', 2),
             }),
         },
@@ -201,93 +204,130 @@ const EXAMPLES: Record<
         }),
         NORMALISED_AREA_STACKED: {
             options: examples.NORMALISED_STACKED_AREA,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('area', 4),
+            }),
         },
         AREA_SERIES_VERTICAL_GRADIENT_FILL: {
             options: examples.AREA_SERIES_VERTICAL_GRADIENT_FILL,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         },
         AREA_SERIES_HORIZONTAL_GRADIENT_FILL: {
             options: examples.AREA_SERIES_HORIZONTAL_GRADIENT_FILL,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         },
         AREA_SERIES_DEFAULT_GRADIENT_FILL: {
             options: examples.AREA_SERIES_DEFAULT_GRADIENT_FILL,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         },
         AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: {
             options: examples.AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('area', 2),
+            }),
         },
     }),
     AREA_SERIES_DEFAULT_PATTERN_FILL: {
         options: examples.AREA_SERIES_DEFAULT_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_VERTICAL_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_VERTICAL_LINES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_HORIZONTAL_LINES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
     },
     AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_FORWARD_SLANTED_LINES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL: {
         options: examples.AREA_SERIES_BACKWARD_SLANTED_LINES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CIRCLES_PATTERN_FILL: {
         options: examples.AREA_SERIES_CIRCLES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_SQUARES_PATTERN_FILL: {
         options: examples.AREA_SERIES_SQUARES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_TRIANGLES_PATTERN_FILL: {
         options: examples.AREA_SERIES_TRIANGLES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_DIAMONDS_PATTERN_FILL: {
         options: examples.AREA_SERIES_DIAMONDS_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_STARS_PATTERN_FILL: {
         options: examples.AREA_SERIES_STARS_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_HEARTS_PATTERN_FILL: {
         options: examples.AREA_SERIES_HEARTS_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CROSSES_PATTERN_FILL: {
         options: examples.AREA_SERIES_CROSSES_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOM_SVG_PATH_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
     },
     AREA_SERIES_CUSTOMISED_PATTERN_FILL: {
         options: examples.AREA_SERIES_CUSTOMISED_PATTERN_FILL,
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['area'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
         imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
+    },
+    AREA_NULL_CATEGORY_KEY: {
+        options: examples.AREA_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:', '[null]']],
+    },
+    AREA_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    AREA_UNDEFINED_CATEGORY_KEY: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [AreaSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    AREA_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    AREA_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['area'] }),
+    },
+    STACKED_AREA_SERIES_STACK_GROUPS: {
+        options: examples.STACKED_AREA_SERIES_STACK_GROUPS,
+        assertions: cartesianChartAssertions({
+            axisTypes: { x: 'category', y: 'number' },
+            seriesTypes: repeat('area', 4),
+        }),
     },
 };
 
@@ -341,12 +381,12 @@ describe('AreaSeries', () => {
                     await waitForChartStability(chart);
                     await assertions(chart);
 
-                    warnings.forEach((message, index) => {
+                    for (const [index, message] of warnings.entries()) {
                         expect(console.warn).toHaveBeenNthCalledWith(
                             index + 1,
                             ...(Array.isArray(message) ? message : [message])
                         );
-                    });
+                    }
                     if (warnings.length === 0) {
                         expect(console.warn).not.toHaveBeenCalled();
                     }
@@ -392,7 +432,7 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        (EXAMPLE.axes![0] as AgUnitTimeAxisOptions).label!.format = '%b %Y';
+        (EXAMPLE.axes!.x as AgUnitTimeAxisOptions).label!.format = '%b %Y';
 
         const mutateData = (count: number) => {
             return ({ date: inputDate, ...d }: any) => {
@@ -449,9 +489,11 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        EXAMPLE.series?.forEach((series: any) => {
-            series.interpolation = { type: 'smooth' };
-        });
+        if (EXAMPLE.series) {
+            for (const series of EXAMPLE.series) {
+                (series as any).interpolation = { type: 'smooth' };
+            }
+        }
 
         const updatedData = deepClone(EXAMPLE.data)!;
         updatedData[4]['Science Museum'] = undefined;
@@ -499,9 +541,10 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        EXAMPLE.series?.forEach((s) => {
-            (s as AgAreaSeriesOptions).strokeWidth = 2;
-        });
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).strokeWidth = 2;
+            }
 
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
@@ -623,7 +666,7 @@ describe('AreaSeries', () => {
     describe('nodeClick', () => {
         const clicks: string[] = [];
         const doubleClicks: string[] = [];
-        const legendClicks: string[] = [];
+        const legendClicks: (string | number)[] = [];
 
         const nodeClickOptions: AgCartesianChartOptions = {
             data: [
@@ -760,9 +803,10 @@ describe('AreaSeries', () => {
     describe('pattern fill', () => {
         const EXAMPLE = deepClone(examples.SIMPLE_AREA_GRAPH_EXAMPLE);
 
-        EXAMPLE.series?.forEach((s) => {
-            (s as AgAreaSeriesOptions).normalizedTo = 100;
-        });
+        if (EXAMPLE.series)
+            for (const s of EXAMPLE.series) {
+                (s as AgAreaSeriesOptions).normalizedTo = 100;
+            }
 
         it.each([
             'vertical-lines',
@@ -1028,7 +1072,7 @@ describe('AreaSeries', () => {
             { month: 'Jul', subscriptions: 300, services: 255, products: 100 },
             { month: 'Aug', subscriptions: 270, services: 305, products: 210 },
             { month: 'Sep', subscriptions: 260, services: 280, products: 250 },
-            { month: 'Oct', subscriptions: 385, services: 250, products: NaN },
+            { month: 'Oct', subscriptions: 385, services: 250, products: Number.NaN },
             { month: 'Nov', subscriptions: 320, services: 265, products: 215 },
             { month: 'Dec', subscriptions: 330, services: 255, products: 220 },
         ];
@@ -1336,10 +1380,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1390,10 +1434,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1439,10 +1483,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1501,10 +1545,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1560,10 +1604,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1614,15 +1658,60 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await compare(PATTERN_SNAPSHOT_DEFAULTS);
+        });
+
+        it('should use cutout on dimmed non-highlight markers to mask the line for area', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                series: [
+                    {
+                        type: 'area',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            unhighlightedItem: {
+                                fillOpacity: 0.4,
+                                strokeOpacity: 0.4,
+                            },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
+            await waitForChartStability(chart);
+            await compare();
         });
 
         it('should render area series with positive/negative segmentation', async () => {
@@ -1791,10 +1880,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1831,10 +1920,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1872,10 +1961,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1923,10 +2012,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1989,10 +2078,10 @@ describe('AreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -2086,6 +2175,146 @@ describe('AreaSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [
+                    { x: 'Start', s1: 0, s2: 0, s3: 0 },
+                    { x: 'End', s1: 100, s2: 200, s3: 300 },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 's1', yName: 'series 1' },
+                    { type: 'area', xKey: 'x', yKey: 's2', yName: 'series 2' },
+                    { type: 'area', xKey: 'x', yKey: 's3', yName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [AreaSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('axis min/max clipping', () => {
+        it('should clip area series when x-axis min/max is set', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 5 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 10 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 15 },
+                    { x: 5, y: 35 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom', min: 1, max: 4 },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+
+            // Verify Y-domain is computed from all visible data within X range [1..4]
+            // (visible y values: 30, 10, 25, 15; area baseline at 0),
+            // not from a single point (the pre-fix bug).
+            const { axes } = deproxy(chart);
+            const yAxis = axes.find((a: any) => a.direction === ChartAxisDirection.Y);
+            expect(yAxis!.dataDomain.domain).toEqual([0, 30]);
+        });
+
+        it('should clip area series when y-axis min/max is set', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 0, y: 5 },
+                    { x: 1, y: 30 },
+                    { x: 2, y: 10 },
+                    { x: 3, y: 25 },
+                    { x: 4, y: 15 },
+                    { x: 5, y: 35 },
+                ],
+                series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left', nice: false, min: 10, max: 25 },
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('crossfiltering', () => {
+        it('selectedKey with one selected item sets crossFiltering on contextNodeData', async () => {
+            const data = [
+                { x: 'Jan', y: 10, selected: true },
+                { x: 'Feb', y: 20, selected: false },
+                { x: 'Mar', y: 15, selected: false },
+            ];
+            const options = prepareTestOptions({
+                data,
+                series: [{ type: 'area', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
             await compare();
         });
     });

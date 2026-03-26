@@ -1,7 +1,7 @@
 const startPrice = 100;
 const maxDailyPriceChange = 5;
 const maxRangeDelta = 1;
-const days = 1_000_000;
+const days = 100_000;
 
 function sfc32(a: number, b: number, c: number, d: number) {
     return function () {

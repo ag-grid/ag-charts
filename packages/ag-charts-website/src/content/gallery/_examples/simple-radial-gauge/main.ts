@@ -1,5 +1,6 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgGaugeOptions, AllGaugeModule, ContextMenuModule, ModuleRegistry } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AllGaugeModule]);
 const performanceStages = ['VERY POOR', 'POOR', 'AVERAGE', 'GOOD', 'VERY GOOD', 'EXCELLENT'].flatMap((item) => [
     '',
     item,

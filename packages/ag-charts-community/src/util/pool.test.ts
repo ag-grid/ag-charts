@@ -81,9 +81,9 @@ describe('Pool', () => {
 
             await new Promise((r) => setTimeout(r, 150));
 
-            results.forEach((r) => {
+            for (const r of results) {
                 expect(destroy).toHaveBeenCalledWith(r.item);
-            });
+            }
         });
     });
 
@@ -123,9 +123,9 @@ describe('Pool', () => {
 
             await new Promise((r) => setTimeout(r, 150));
 
-            results.forEach((r) => {
+            for (const r of results) {
                 expect(destroy).toHaveBeenCalledWith(r.item);
-            });
+            }
         });
     });
 });

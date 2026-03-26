@@ -1,12 +1,20 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type AgAngleNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import type { AxisModuleDefinition } from 'ag-charts-core';
 
 import { AngleNumberAxis } from './angleNumberAxis';
 
-export const AngleNumberAxisModule: _ModuleSupport.AxisModule = {
+export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions> = {
     type: 'axis',
-    optionsKey: 'axes[]',
-    packageType: 'enterprise',
-    chartTypes: ['polar'],
-    identifier: 'angle-number',
-    moduleFactory: (ctx) => new AngleNumberAxis(ctx),
+    name: 'angle-number',
+    chartType: 'polar',
+    enterprise: true,
+    version: VERSION,
+
+    options: _ModuleSupport.angleNumberAxisOptionsDefs,
+    themeTemplate: {
+        label: { spacing: 5 },
+        gridLine: { enabled: false },
+    },
+
+    create: (ctx) => new AngleNumberAxis(ctx),
 };

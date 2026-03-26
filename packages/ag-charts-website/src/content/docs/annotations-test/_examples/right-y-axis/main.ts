@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -19,9 +19,8 @@ const options: AgChartOptions = {
             yHighKey: 'detachedHouses',
         },
     ],
-    axes: [
-        {
-            position: 'right',
+    axes: {
+        y: {
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -30,11 +29,7 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
-        {
-            position: 'bottom',
-            type: 'time',
-        },
-    ],
+    },
     annotations: {
         enabled: true,
     },

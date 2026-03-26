@@ -9,12 +9,11 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType, RequireOptional } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const { Label, DropShadow, AbstractBarSeriesProperties, BaseProperties, makeSeriesTooltip, AxisLabel, Property } =
-    _ModuleSupport;
-
+const { Label, DropShadow, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel } = _ModuleSupport;
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
 
 class FunnelSeriesStageLabel extends AxisLabel {

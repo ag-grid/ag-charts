@@ -1,7 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleCategoryAxisModule,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -15,8 +35,8 @@ const options: AgChartOptions = {
             radiusKey: 'value',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             shape: 'circle',
             crossLines: [
@@ -29,7 +49,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             crossLines: [
@@ -44,7 +64,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

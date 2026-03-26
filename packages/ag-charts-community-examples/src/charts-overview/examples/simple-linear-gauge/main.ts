@@ -1,4 +1,4 @@
-import { AgCharts, AgGaugeOptions } from 'ag-charts-community';
+import { AgCharts, type AgGaugeOptions } from 'ag-charts-community';
 
 const options: AgGaugeOptions = {
     type: 'linear-gauge',

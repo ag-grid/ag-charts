@@ -1,6 +1,14 @@
-import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgFinancialChartOptions,
+    ContextMenuModule,
+    FinancialChartModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([FinancialChartModule]);
 
 const MONTH = 30 * 24 * 60 * 60 * 1000;
 

@@ -20,8 +20,7 @@ export default async function (options: ExecutorOptions) {
 
         return { success: true, terminalOutput: `Generating example [${options.examplePath}]` };
     } catch (e) {
-        console.error(e);
-        return { success: false };
+        return { success: false, terminalOutput: `${e}` };
     }
 }
 

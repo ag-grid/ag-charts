@@ -1,13 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, Logger, clamp } from 'ag-charts-core';
+import { AbstractModuleInstance, type BoxBounds, Logger, ObserveChanges, Property, clamp } from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
-
-const { BaseModuleInstance, ObserveChanges, Property } = _ModuleSupport;
 
 interface BBoxProvider {
     id: string;
@@ -17,7 +15,7 @@ interface BBoxProvider {
     getBBox(): _ModuleSupport.BBox;
 }
 
-export class Navigator extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Navigator extends AbstractModuleInstance {
     // @TempValidate
     @ObserveChanges<Navigator, MiniChart>((target, value, oldValue) => {
         target.updateBackground(oldValue?.root, value?.root);
@@ -70,7 +68,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
             ctx.eventsHub.on('locale:change', () => this.updateZoom()),
             ctx.layoutManager.registerElement(_ModuleSupport.LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event))
+            ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChange(event))
         );
 
         this.domProxy = new NavigatorDOMProxy(ctx, this);
@@ -92,14 +90,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         if (enabled) {
             this.updateZoom();
-        } else {
-            this.ctx.zoomManager.updateZoom('navigator');
         }
     }
 
-    protected onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
+    protected onLayoutStart({ layoutBox }: _ModuleSupport.LayoutContext) {
         if (this.enabled) {
-            const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
             layoutBox.shrink(navigatorTotalHeight, 'bottom');
             this.y = layoutBox.y + layoutBox.height + this.spacing;
@@ -109,7 +104,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         if (this.enabled && this.miniChart) {
             const { top, bottom } = this.miniChart.computeAxisPadding();
-            ctx.layoutBox.shrink(top + bottom, 'bottom');
+            layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
 
             this.miniChart.inset = this.mask.strokeWidth / 2;
@@ -173,7 +168,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         this.updateZoom();
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
+    private onZoomChange(event: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { x: xZoom } = event;
         if (!xZoom) return;
 
@@ -200,11 +195,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
             maxHandle.zIndex = 3;
         }
 
-        [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
+        for (const [index, node] of [minHandle, this.maskVisibleRange, maxHandle].entries()) {
             const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             this.domProxy.updateSliderBounds(index, tbox);
-        });
+        }
     }
 
     private updateZoom() {
@@ -212,13 +207,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         this.domProxy.updateZoom();
     }
 
-    updateData(data: any) {
-        return this.miniChart?.updateData(data);
-    }
-
     async processData(dataController: _ModuleSupport.DataController) {
-        if (this.miniChart) {
-            return this.miniChart?.processData(dataController);
-        }
+        return this.miniChart?.processData(dataController);
     }
 }

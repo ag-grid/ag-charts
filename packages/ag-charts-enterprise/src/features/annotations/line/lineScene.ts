@@ -1,4 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { Bounds4, BoxBounds, Point } from 'ag-charts-core';
+import { Vec2, Vec4 } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -11,7 +13,7 @@ import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
-const { Vec2, Vec4 } = _ModuleSupport;
+const { Transformable } = _ModuleSupport;
 
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
@@ -50,7 +52,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private updateLine(datum: LineTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
+    private updateLine(datum: LineTypeProperties, coords: Bounds4, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const linePoints = this.extendLine(coords, datum, context);
@@ -67,19 +69,24 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         });
     }
 
+<<<<<<< HEAD
     private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
+=======
+    private updateText(datum: LineTypeProperties, coords: Bounds4) {
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+>>>>>>> latest
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 
-    private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
+    private updateCaps(datum: LineTypeProperties, coords: Bounds4) {
         if (!datum.startCap && this.startCap) {
-            this.removeChild(this.startCap);
+            this.startCap.remove();
             this.startCap = undefined;
         }
 
         if (!datum.endCap && this.endCap) {
-            this.removeChild(this.endCap);
+            this.endCap.remove();
             this.endCap = undefined;
         }
 
@@ -91,7 +98,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         if (datum.startCap) {
             if (this.startCap && this.startCap.type !== datum.startCap) {
-                this.removeChild(this.startCap);
+                this.startCap.remove();
                 this.startCap = undefined;
             }
 
@@ -112,7 +119,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         if (datum.endCap) {
             if (this.endCap && this.endCap.type !== datum.endCap) {
-                this.removeChild(this.endCap);
+                this.endCap.remove();
                 this.endCap = undefined;
             }
 
@@ -132,14 +139,9 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         }
     }
 
-    override updateAnchor(
-        _datum: LineTypeProperties,
-        coords: _ModuleSupport.Vec4,
-        _context: AnnotationContext,
-        _bbox?: _ModuleSupport.BBox
-    ) {
+    override updateAnchor(_datum: LineTypeProperties, coords: Bounds4, _context: AnnotationContext, _bbox?: BoxBounds) {
         const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.line, point.x, point.y));
+        Vec2.apply(this.anchor, Transformable.toCanvasPoint(this.line, point.x, point.y));
     }
 
     override containsPoint(x: number, y: number) {
@@ -157,10 +159,10 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     protected override getHandleCoords(
         _datum: LineTypeProperties,
-        coords: _ModuleSupport.Vec4,
+        coords: Bounds4,
         handle: 'start' | 'end',
-        _bbox?: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+        _bbox?: BoxBounds
+    ): Point {
         const { startCap, endCap } = this;
 
         let [startPoint, endPoint] = Vec2.from(coords);

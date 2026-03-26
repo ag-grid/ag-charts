@@ -60,12 +60,12 @@ const options: AgCartesianChartOptions = {
             bar: { series: highlightTheme },
         },
     },
-    axes: [
-        { type: 'number', position: 'left', min: 0, max: 10_000 },
-        { type: 'unit-time', position: 'bottom' },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left', min: 0, max: 10_000 },
+        x: { type: 'unit-time', position: 'bottom' },
+    },
     series,
 };
 
 const chart = AgCharts.create(options);
-(window as any).chart = chart;
+(globalThis as any).chart = chart;

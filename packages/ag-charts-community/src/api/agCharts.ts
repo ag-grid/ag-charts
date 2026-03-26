@@ -1,4 +1,15 @@
-import { type DeepPartial, ModuleRegistry } from 'ag-charts-core';
+import {
+    Debug,
+    type DeepPartial,
+    type LicenseManager,
+    MementoCaretaker,
+    ModuleRegistry,
+    deepClone,
+    deepFreeze,
+    enterpriseRegistry,
+    jsonWalk,
+    strictObjectKeys,
+} from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -11,22 +22,10 @@ import type {
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import type { DataServiceRestoredData } from '../chart/data/dataService';
-import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
-import { setupModules } from '../chart/factory/setupModules';
-import { AllCommunityModules } from '../main-modules';
-import type { LicenseManager } from '../module/enterpriseModule';
-import { enterpriseModule } from '../module/enterpriseModule';
+import { detectChartType } from '../chart/mapping/types';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
-import { Debug } from '../util/debug';
-import { deepClone, jsonWalk } from '../util/json';
-import { deepFreeze } from '../util/object';
 import { Pool } from '../util/pool';
 import { VERSION } from '../version';
-import { MementoCaretaker } from './state/memento';
-
-// Temporarily set here, in the future users will register modules manually
-// Remember to remove dep-cruiser exception for main-modules imports when removed
-ModuleRegistry.registerMany(AllCommunityModules, VERSION);
 
 const debug = Debug.create(true, 'opts');
 
@@ -39,19 +38,25 @@ export abstract class AgCharts {
     private static licenseManager?: LicenseManager;
     private static licenseChecked = false;
 
-    private static licenseCheck(options: AgChartOptions) {
-        if (this.licenseChecked) return;
-
-        this.licenseManager = enterpriseModule.licenseManager?.(options);
-        this.licenseManager?.validateLicense();
-        this.licenseChecked = true;
+    private static licenseCheck(options: AgChartOptions): LicenseManager | undefined {
+        if ((options as { withinStudio?: boolean }).withinStudio) {
+            return undefined;
+        }
+        let licenseManager = this.licenseManager;
+        if (!this.licenseChecked) {
+            licenseManager = enterpriseRegistry.licenseManager?.(options);
+            this.licenseManager = licenseManager;
+            licenseManager?.validateLicense();
+            this.licenseChecked = true;
+        }
+        return licenseManager;
     }
 
     /** @private - for use by Charts website dark-mode support. */
     static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static getLicenseDetails(licenseKey: string) {
-        return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);
+        return enterpriseRegistry.licenseManager?.({}).getLicenseDetails(licenseKey);
     }
 
     /**
@@ -73,18 +78,16 @@ export abstract class AgCharts {
             // deepClone should clone EVERYTHING here, so we can detect mutations in development mode.
             userOptions = Debug.inDevelopmentMode(() => deepFreeze(deepClone(userOptions))) ?? userOptions;
             this.licenseCheck(userOptions);
+            const licenseManager = this.licenseCheck(userOptions);
             const chart = AgChartsInternal.createOrUpdate({
                 userOptions,
-                licenseManager: this.licenseManager,
+                licenseManager,
                 optionsMetadata,
                 apiStartTime,
             });
 
-            if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
-                enterpriseModule.injectWatermark?.(
-                    chart.chart!.ctx.domManager,
-                    this.licenseManager.getWatermarkMessage()
-                );
+            if (licenseManager?.isDisplayWatermark()) {
+                enterpriseRegistry.injectWatermark?.(chart.chart!.ctx.domManager, licenseManager.getWatermarkMessage());
             }
             return chart as unknown as AgChartInstance<O>;
         });
@@ -121,16 +124,6 @@ class AgChartsInternal {
     static getInstance(element: HTMLElement): AgChartInstanceProxy | undefined {
         const chart = Chart.getInstance(element);
         return chart ? AgChartInstanceProxy.chartInstances.get(chart) : undefined;
-    }
-
-    private static initialised = false;
-    static initialiseModules() {
-        if (AgChartsInternal.initialised) return;
-
-        registerInbuiltModules();
-        setupModules();
-
-        AgChartsInternal.initialised = true;
     }
 
     private static readonly callbackApi: FactoryApi = {
@@ -181,9 +174,19 @@ class AgChartsInternal {
             stripSymbols = false,
             apiStartTime,
         } = opts;
-        const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
+        const styles = enterpriseRegistry.styles == null ? [] : [['ag-charts-enterprise', enterpriseRegistry.styles]];
 
-        AgChartsInternal.initialiseModules();
+        if (ModuleRegistry.listModules().next().done) {
+            throw new Error(
+                [
+                    'AG Charts - No modules have been registered.',
+                    '',
+                    'Call ModuleRegistry.registerModules(...) with the modules you need before using AgCharts.create().',
+                    '',
+                    'See https://www.ag-grid.com/charts/r/module-registry/ for more details.',
+                ].join('\n')
+            );
+        }
 
         debug(() => ['>>> AgCharts.createOrUpdate() user options', deepClone(userOptions)]);
 
@@ -208,7 +211,7 @@ class AgChartsInternal {
             chart = poolResult.item;
         }
 
-        const { document, window: userWindow, styleContainer, ...options } = mutableOptions ?? {};
+        const { document, window: userWindow, styleContainer, skipCss, ...options } = mutableOptions ?? {};
         const baseOptions = chart?.getChartOptions();
         const chartOptions = new ChartOptions(
             baseOptions,
@@ -219,6 +222,7 @@ class AgChartsInternal {
                 document,
                 window: userWindow,
                 styleContainer,
+                skipCss,
             },
             optionsMetadata,
             deltaOptions,
@@ -228,8 +232,7 @@ class AgChartsInternal {
 
         if (
             chart == null ||
-            ModuleRegistry.detectChartDefinition(chartOptions.processedOptions) !==
-                ModuleRegistry.detectChartDefinition(chart.chartOptions.processedOptions)
+            detectChartType(chartOptions.processedOptions) !== detectChartType(chart.chartOptions.processedOptions)
         ) {
             poolResult?.release(); // Undo previous obtain(), we need to use a different pool!
             poolResult = this.getPool(chartOptions.optionMetadata)?.obtain(chartOptions);
@@ -247,9 +250,9 @@ class AgChartsInternal {
             });
         }
 
-        styles.forEach(([id, css]) => {
+        for (const [id, css] of styles) {
             chart.ctx.domManager.addStyles(id, css);
-        });
+        }
 
         chart.ctx.fontManager.updateFonts(chartOptions.googleFonts);
 
@@ -266,9 +269,9 @@ class AgChartsInternal {
             proxy.releaseChart = poolResult?.release;
         }
 
-        if (debug.check() && typeof window !== 'undefined') {
-            (window as any).agChartInstances ??= {};
-            (window as any).agChartInstances[chart.id] = chart;
+        if (debug.check() && typeof globalThis.window !== 'undefined') {
+            (globalThis as any).agChartInstances ??= {};
+            (globalThis as any).agChartInstances[chart.id] = chart;
         }
 
         chart.queuedUserOptions.push(chartOptions.userOptions);
@@ -287,18 +290,27 @@ class AgChartsInternal {
         return proxy;
     }
 
-    private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
-        if (typeof node !== 'object') return modified;
-        for (const key of Object.keys(node)) {
+    // CRT-1018 Use `Parameters` and `unknown` to strictly enforce type-safety
+    private static readonly markRemovedProperties: Parameters<
+        typeof jsonWalk<DeepPartial<AgChartOptions>, unknown, boolean>
+    >[1] = (
+        node: DeepPartial<AgChartOptions>,
+        _parallelNode: DeepPartial<AgChartOptions> | undefined,
+        _ctx: unknown,
+        previousModified: boolean | undefined
+    ): boolean => {
+        let modified = previousModified ?? false;
+        if (typeof node !== 'object' || node == null) return modified;
+        for (const key of strictObjectKeys(node)) {
             const value = node[key];
-            if (typeof value === 'undefined') {
+            if (value === undefined) {
                 Object.assign(node, { [key]: Symbol('UNSET') });
                 modified ||= true;
             }
         }
 
         return modified;
-    }
+    };
 
     static updateUserDelta(
         proxy: AgChartInstanceProxy,
@@ -327,7 +339,8 @@ class AgChartsInternal {
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
-        const chartDef = ModuleRegistry.detectChartDefinition(options.processedOptions);
+        const chartType = detectChartType(options.processedOptions);
+        const chartDef = ModuleRegistry.getChartModule(chartType);
         return chartDef.create(options, transferableResource) as Chart;
     }
 

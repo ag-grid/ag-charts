@@ -1,7 +1,16 @@
-import { AgCharts, AgDonutSeriesOptions, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgDonutSeriesOptions,
+    AgPolarChartOptions,
+    AnimationModule,
+    ContextMenuModule,
+    DonutSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, DonutSeriesModule]);
 const data = getData();
 
 const options: AgPolarChartOptions = {

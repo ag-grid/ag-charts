@@ -230,6 +230,13 @@ export async function vanillaToReactFunctional(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(chartRef.current$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'chartRef.current.$1(');
         indexFile = indexFile.replace(/this.chartRef.current/g, 'chartRef.current');
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace `chart` references but not in variable declarations or strings
+        indexFile = indexFile.replace(
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
+            (match) => (match === 'chart' ? 'chartRef.current' : match)
+        );
     }
 
     return indexFile;

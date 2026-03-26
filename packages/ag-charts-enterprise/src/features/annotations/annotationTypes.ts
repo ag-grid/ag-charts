@@ -87,14 +87,7 @@ export function stringToAnnotationType(value: unknown) {
     }
 }
 
-export interface Bounds {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-}
-
-export interface Point {
+export interface DataPoint {
     x?: PointType;
     y?: PointType;
 }
@@ -126,20 +119,25 @@ export interface AnnotationAxisContext
     snapToGroup: boolean;
 }
 
-export type AnnotationContext = {
+export interface AnnotationContext {
     seriesRect: _ModuleSupport.BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
-};
+    isRtl: boolean;
+}
 
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
 
-export type FibonacciAnnotationToolbarOptionsType = { bands?: FibonacciBands; reverse?: boolean; showFill?: boolean };
+export interface FibonacciAnnotationToolbarOptionsType {
+    bands?: FibonacciBands;
+    reverse?: boolean;
+    showFill?: boolean;
+}
 
-export type AnnotationLineStyle = {
+export interface AnnotationLineStyle {
     type?: AgAnnotationLineStyleType;
     strokeWidth?: number;
-};
+}
 
 export type LineTextAlignment = 'left' | 'center' | 'right';
 export type LineTextPosition = 'top' | 'center' | 'bottom';

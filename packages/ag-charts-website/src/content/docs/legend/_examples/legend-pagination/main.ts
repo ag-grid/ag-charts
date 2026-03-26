@@ -1,7 +1,15 @@
 import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts } from 'ag-charts-community';
+import {
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -70,13 +78,11 @@ const options: AgCartesianChartOptions = {
             yName: 'Sewage Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
@@ -85,7 +91,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

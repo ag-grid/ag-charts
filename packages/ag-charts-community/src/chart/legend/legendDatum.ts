@@ -1,9 +1,11 @@
-import type { AgChartLegendListeners } from 'ag-charts-types';
+import type { PluginModuleInstance } from 'ag-charts-core';
+import { type ColorScaleState, type GradientColorStop, deriveNormalizedStops } from 'ag-charts-core';
+import type { AgChartLegendListeners, TextOrSegments } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 
-export interface ChartLegend {
+export interface ChartLegend extends PluginModuleInstance {
     attachLegend(scene: Scene): void;
     destroy(): void;
     data: any;
@@ -31,13 +33,13 @@ export interface BaseChartLegendDatum {
 export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
-    itemId: any; // sub-component ID
+    itemId: string | number; // sub-component ID
     datum?: any; // series datum
     symbol: LegendSymbolOptions;
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {
-        text: string; // display name for the sub-component
+        text: TextOrSegments; // display name for the sub-component
     };
     skipAnimations?: boolean;
     isFixed?: boolean;
@@ -58,6 +60,27 @@ export interface GradientLegendDatum extends BaseChartLegendDatum {
     enabled: boolean;
     seriesId: string;
     series: FormatterBoundSeries[];
-    colorDomain: number[];
-    colorRange: string[];
+    colorStops: GradientColorStop[];
+    axisDomain: [number, number];
+}
+
+/**
+ * Builds a gradient legend datum from a configured ColorScale, deriving
+ * normalised colour stops from its domain/range/mode.
+ */
+export function buildGradientLegendDatum(
+    colorScale: ColorScaleState,
+    seriesId: string,
+    enabled: boolean,
+    series: FormatterBoundSeries[]
+): GradientLegendDatum {
+    const { domain } = colorScale;
+    return {
+        legendType: 'gradient',
+        enabled,
+        seriesId,
+        series,
+        colorStops: deriveNormalizedStops(colorScale),
+        axisDomain: [domain[0], domain.at(-1)!] as [number, number],
+    };
 }

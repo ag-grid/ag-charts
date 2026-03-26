@@ -26,17 +26,15 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total Visitors',
             },
@@ -44,7 +42,7 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => formatNumber(value),
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

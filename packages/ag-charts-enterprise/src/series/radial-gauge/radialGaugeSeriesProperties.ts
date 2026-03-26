@@ -1,5 +1,14 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type RichFormatter, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type GradientColorStop,
+    PropertiesArray,
+    Property,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toDegrees,
+} from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
@@ -11,17 +20,13 @@ import type {
     AgRadialGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
-    Formatter,
 } from 'ag-charts-types';
 
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { getColorStops, normalizeAngle360, normalizeAngle360Inclusive, toDegrees } = _ModuleSupport;
-
-const { BaseProperties, makeSeriesTooltip, SeriesProperties, PropertiesArray, AxisLabel, Property, Label } =
-    _ModuleSupport;
-
+const { getColorStops } = _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, AxisLabel, Label } = _ModuleSupport;
 export enum NodeDataType {
     Node,
     Target,
@@ -36,6 +41,7 @@ export type RadialGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: No
 
 export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
+    readonly itemId: 'value' | 'scale' | `value-${number}` | `scale-${number}`;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -64,6 +70,7 @@ export interface RadialGaugeTargetDatumLabel {
 
 export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
+    readonly itemId: `target-${number}`;
     value: number;
     text: string | undefined;
     centerX: number;
@@ -91,7 +98,7 @@ export type RadialGaugeLabelDatum = {
     fontFamily: string;
     lineHeight: number | undefined;
     formatter:
-        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeLabelFormatterParams>>
+        | RichFormatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeLabelFormatterParams>>
         | undefined;
 };
 
@@ -442,7 +449,7 @@ export function createConicGradient(
     const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
     const colorStops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
-        ({ color, stop }): _ModuleSupport.GradientColorStop => {
+        ({ color, stop }): GradientColorStop => {
             stop = Math.min(Math.max(stop, 0), 1);
             const angle = startAngle + sweepAngle * stop;
             stop = (angle - conicAngle) / (2 * Math.PI);

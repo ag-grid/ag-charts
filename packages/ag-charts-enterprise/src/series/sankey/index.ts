@@ -1,1 +1,0 @@
-export { SankeySeriesModule } from './sankeyModule';

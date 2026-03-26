@@ -1,4 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
+import { InterpolationProperties, Property } from 'ag-charts-core';
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
@@ -10,12 +11,10 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { Property } from '../../../util/properties';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
 import { CartesianSeriesProperties } from './cartesianSeries';
-import { InterpolationProperties } from './interpolationProperties';
 
 export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeriesOptions> {
     @Property
@@ -31,7 +30,10 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgAreaSeries
     yName?: string;
 
     @Property
-    yFilterKey: string | undefined;
+    selectedKey: string | undefined;
+
+    @Property
+    stackGroup?: string;
 
     @Property
     normalizedTo?: number;

@@ -1,9 +1,10 @@
+import type { AxisID, ChartAxisDirection } from 'ag-charts-core';
+import { ZIndexMap } from 'ag-charts-core';
+
 import type { EventsHub } from '../../core/eventsHub';
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
 import { Node } from '../../scene/node';
-import type { ChartAxisDirection } from '../chartAxisDirection';
-import { ZIndexMap } from '../zIndexMap';
 
 interface AxisNodes {
     axisNode: Node;
@@ -87,13 +88,21 @@ export class AxisManager {
         this.eventsHub.emit('axis:change', null);
     }
 
+    getAxisIdContext(id: AxisID): AxisContext | undefined {
+        for (const [, contextsInThisDir] of this.axes) {
+            for (const ctx of contextsInThisDir) {
+                if (ctx.axisId === id) return ctx;
+            }
+        }
+    }
+
     getAxisContext(direction: ChartAxisDirection) {
         return this.axes.get(direction) ?? [];
     }
 
     destroy() {
         this.axes.clear();
-        this.sceneRoot.removeChild(this.axisGroup);
-        this.sceneRoot.removeChild(this.axisGridGroup);
+        this.axisGroup.remove();
+        this.axisGridGroup.remove();
     }
 }

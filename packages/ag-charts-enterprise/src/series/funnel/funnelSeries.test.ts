@@ -8,10 +8,12 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -244,7 +246,7 @@ describe('FunnelSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -301,7 +303,7 @@ describe('FunnelSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             // Returns a highlighted node
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -326,7 +328,7 @@ describe('FunnelSeries', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightGroup.children()].find(
+                return [...series.highlightNodeGroup.children()].find(
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },
@@ -513,5 +515,154 @@ describe('FunnelSeries', () => {
         });
         chart = deproxy(AgCharts.create(options));
         await compare();
+    });
+
+    describe('null category key', () => {
+        const FUNNEL_NULL_CATEGORY_KEY_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: null, value: 8170 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: FUNNEL_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [FunnelSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const FUNNEL_UNDEFINED_CATEGORY_KEY_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: undefined, value: 8170 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { group: 'Qualify', value: 7910 },
+            { group: null, value: 7500 },
+            { group: undefined, value: 670 },
+            { group: 'Close', value: 4460 },
+        ];
+
+        const FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: FUNNEL_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        const FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: FUNNEL_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'funnel',
+                    stageKey: 'group',
+                    valueKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [FunnelSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...FUNNEL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
     });
 });

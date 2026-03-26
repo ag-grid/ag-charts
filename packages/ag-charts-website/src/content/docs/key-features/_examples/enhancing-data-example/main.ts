@@ -1,8 +1,16 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { DataType } from './data';
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const customItems = ['Jun', 'Jul', 'Aug', 'Sep'];
 
 const options: AgChartOptions<DataType> = {
@@ -18,9 +26,13 @@ const options: AgChartOptions<DataType> = {
                 shape: 'diamond',
                 size: 12,
                 fill: 'green',
-                itemStyler: ({ datum, fill, highlighted }) => {
+                itemStyler: ({ datum, fill, highlightState }) => {
                     return {
-                        fill: customItems.includes(datum.month) ? (highlighted ? 'yellow' : 'red') : fill,
+                        fill: customItems.includes(datum.month)
+                            ? highlightState === 'highlighted-item'
+                                ? 'yellow'
+                                : 'red'
+                            : fill,
                     };
                 },
             },
@@ -31,9 +43,8 @@ const options: AgChartOptions<DataType> = {
         position: 'top',
         toggleSeries: false,
     },
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
             title: {
                 text: 'Month',
@@ -45,8 +56,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Temperature (°C)',
@@ -58,7 +68,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

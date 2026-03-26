@@ -1,6 +1,7 @@
 import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    commonSeriesOptionsDefs,
     constant,
     fillGradientDefaults,
     fillImageDefaults,
@@ -10,7 +11,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, chordSeriesThemeableOptionsDef } = _ModuleSupport;
+const { chordSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const chordSeriesOptionsDef: OptionsDefs<AgChordSeriesOptions> = {
     ...chordSeriesThemeableOptionsDef,

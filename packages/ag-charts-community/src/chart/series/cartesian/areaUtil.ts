@@ -1,14 +1,13 @@
-import type { InternalAgColorType, Point } from 'ag-charts-core';
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { InternalAgColorType, Point, SizedPoint } from 'ag-charts-core';
+import { SpanJoin, isScaleValid, spanRange } from 'ag-charts-core';
+import type { AgSeriesMarkerStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
-import type { SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { Segment } from '../../../scene/shape/segmentedPath';
 import type { SeriesNodeStyleContext } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { SpanJoin, spanRange } from './lineInterpolation';
+import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 import { plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
 import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
 import {
@@ -18,17 +17,14 @@ import {
     prepareLinePathPropertyAnimation,
     prepareLinePathStrokeAnimationFns,
 } from './lineUtil';
-import { isScaleValid } from './scaling';
 
 export type AreaFillPathDatum = {
     readonly spans: LinePathSpan[];
     readonly phantomSpans: LinePathSpan[];
-    readonly itemId: string;
 };
 
 export type AreaStrokePathDatum = {
     readonly spans: LinePathSpan[];
-    readonly itemId: string;
 };
 
 export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
@@ -45,8 +41,8 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
 }
 
 export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
-    readonly itemId: any;
-    readonly labelText: string;
+    readonly itemId?: never;
+    readonly labelText: TextOrSegments;
 }
 
 export interface AreaSeriesNodeDataContext
@@ -61,8 +57,8 @@ export interface AreaSeriesNodeDataContext
 
 export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {
     let phantomSpanIndex = 0;
-    let sp = { x: NaN, y: NaN };
-    let pp = { x: NaN, y: NaN };
+    let sp = { x: Number.NaN, y: Number.NaN };
+    let pp = { x: Number.NaN, y: Number.NaN };
     for (let i = 0; i < spans.length; i += 1) {
         const { span } = spans[i];
         const { span: phantomSpan } = phantomSpans[i];

@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, type AgChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
+import {
+    type AgCartesianChartOptions,
+    type AgChartOptions,
+    AgCharts,
+    type AgNumberAxisOptions,
+} from 'ag-charts-community';
 import {
     clickAction,
     delay,
@@ -32,20 +37,20 @@ describe('DataSource', () => {
             updateThrottle: 0,
             updateDuringInteraction: true,
         },
-        axes: [
-            {
+        axes: {
+            y: {
                 type: 'number',
                 position: 'left',
                 crosshair: { enabled: false },
             },
-            {
+            x: {
                 type: 'time',
                 position: 'bottom',
                 min: new Date('2024-01-01 00:00:00'),
                 max: new Date('2024-01-07 00:00:00'),
                 crosshair: { enabled: false },
             },
-        ],
+        },
         series: [
             {
                 type: 'line',
@@ -135,15 +140,15 @@ describe('DataSource', () => {
             },
             {
                 ...EXAMPLE_OPTIONS,
-                axes: [
-                    {
-                        ...(EXAMPLE_OPTIONS.axes![0] as AgNumberAxisOptions),
+                axes: {
+                    ...EXAMPLE_OPTIONS.axes!,
+                    y: {
+                        ...(EXAMPLE_OPTIONS.axes!.y! as AgNumberAxisOptions),
                         type: 'number',
                         min: 40,
                         max: 100,
                     },
-                    EXAMPLE_OPTIONS.axes![1],
-                ],
+                },
             }
         );
         await response;
@@ -192,7 +197,7 @@ describe('DataSource', () => {
         it('should load a window at the end', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
+                initialState: { zoom: { ratioX: { start: 0.5, end: 1 } } },
             });
             await response;
             await compare();

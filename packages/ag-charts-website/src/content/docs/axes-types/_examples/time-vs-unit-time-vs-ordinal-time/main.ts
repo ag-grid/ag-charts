@@ -1,5 +1,29 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -23,65 +47,45 @@ const options: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             title: { text: 'Unit Time Axis' },
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setContinuousTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'time',
-            position: 'bottom',
             title: { text: 'Continuous Time Axis' },
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ];
+    };
     chart.update(options);
 }
 
 function setUnitTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             title: { text: 'Unit Time Axis' },
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ];
+    };
     chart.update(options);
 }
 
 function setOrdinalTimeAxis() {
-    options.axes = [
-        {
+    options.axes = {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: {
                 step: 'month',
             },
             title: { text: 'Ordinal Time Axis' },
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ];
+    };
     chart.update(options);
 }

@@ -70,15 +70,14 @@ const options: AgCartesianChartOptions = {
             yName: 'Sewage Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             gridLine: {
                 style: [],
             },
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -91,7 +90,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

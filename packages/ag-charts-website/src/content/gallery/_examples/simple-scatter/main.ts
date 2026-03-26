@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -34,15 +42,17 @@ const options: AgCartesianChartOptions<DataType> = {
                     const inches = Math.floor(height % 12);
                     return {
                         title: datum.team,
-                        content: `Height: ${feet}'${inches}"\nWeight: ${weight} lbs`,
+                        data: [
+                            { label: 'Height:', value: `${feet}' ${inches}` },
+                            { label: 'Weight:', value: `${weight} lbs` },
+                        ],
                     };
                 },
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             line: { enabled: false },
@@ -76,8 +86,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             nice: false,
             line: { enabled: false },
@@ -111,7 +120,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     formatter: {
         x: '#{.0f} lbs',
         y: (params) => {

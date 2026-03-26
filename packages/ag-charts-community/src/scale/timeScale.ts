@@ -1,11 +1,18 @@
-import { isPlainObject } from 'ag-charts-core';
+import type { ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import {
+    TickIntervals,
+    dateToNumber,
+    defaultEpoch,
+    getTickTimeInterval,
+    intervalRange,
+    intervalRangeStartIndex,
+    intervalStep,
+    isDenseInterval,
+    isPlainObject,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { TickIntervals, defaultEpoch, getTickTimeInterval, isDenseInterval } from '../util/ticks';
-import { intervalRange, intervalRangeStartIndex, intervalStep } from '../util/time';
-import { dateToNumber } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleTickParams, ScaleTickResult } from './scale';
 
 const sunday = new Date(1970, 0, 4);
 
@@ -26,7 +33,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
     }
 
     override convert(value: Date | number, options?: { clamp: boolean }): number {
-        return super.convert(value?.valueOf() ?? NaN, options);
+        return super.convert(typeof value === 'number' ? value : value?.valueOf() ?? Number.NaN, options);
     }
 
     override invert(value: number): Date {
@@ -64,7 +71,7 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
 
         const timestamps = domain.map(dateToNumber);
         const start = timestamps[0];
-        const stop = timestamps[timestamps.length - 1];
+        const stop = timestamps.at(-1);
 
         if (interval != null) {
             const availableRange = this.getPixelRange();
@@ -74,9 +81,9 @@ export class TimeScale extends ContinuousScale<Date, AgTimeInterval | AgTimeInte
                     getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange, extend }),
                 count: undefined,
             };
-        } else if (nice && tickCount === 2) {
+        } else if (nice.every(Boolean) && tickCount === 2) {
             return { ticks: domain, count: undefined };
-        } else if (nice && tickCount === 1) {
+        } else if (nice.every(Boolean) && tickCount === 1) {
             return { ticks: domain.slice(0, 1), count: undefined };
         }
 
@@ -209,6 +216,6 @@ function updateNiceDomainIteration(
     if (domain == null || domain.length < 2) return [d0, d1];
 
     const r0 = domain[0];
-    const r1 = domain[domain.length - 1];
+    const r1 = domain.at(-1)!;
     return d0 <= d1 ? [r0, r1] : [r1, r0];
 }

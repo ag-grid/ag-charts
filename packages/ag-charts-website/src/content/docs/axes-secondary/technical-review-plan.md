@@ -59,8 +59,6 @@
 -   Shows cattle holdings (bar series) and beef exports (line series) on different scales
 -   Primary axis (left) displays cattle numbers in millions with 'M' suffix
 -   Secondary axis (right) displays exports in thousands with 'k' suffix
--   Bar series uses `yKey: 'male'` and `yKey: 'female'` linked to left axis via `keys: ['male', 'female']`
--   Line series uses `yKey: 'exportedTonnes'` linked to right axis via `keys: ['exportedTonnes']`
 -   Title enabled explicitly on secondary axis with `enabled: true`
 
 **Expected behaviors to validate:**

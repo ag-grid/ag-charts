@@ -1,4 +1,5 @@
 import type { Size } from 'ag-charts-core';
+import { findMinMax } from 'ag-charts-core';
 import type { TextOrSegments } from 'ag-charts-types';
 
 import type { FromToFns } from '../../motion/fromToMotion';
@@ -7,7 +8,6 @@ import type { Group, TranslatableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import type { Rect } from '../../scene/shape/rect';
 import type { RotatableText } from '../../scene/shape/text';
-import { findMinMax } from '../../util/number';
 
 export enum NiceMode {
     TickAndDomain,

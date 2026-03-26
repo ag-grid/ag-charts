@@ -13,19 +13,13 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
+import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
 
-const {
-    BaseProperties,
-    FillGradientDefaults,
-    FillPatternDefaults,
-    FillImageDefaults,
-    makeSeriesTooltip,
-    SeriesProperties,
-    Property,
-    Label,
-} = _ModuleSupport;
+const { FillGradientDefaults, FillPatternDefaults, FillImageDefaults, makeSeriesTooltip, SeriesProperties, Label } =
+    _ModuleSupport;
 
 export interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
@@ -40,6 +34,7 @@ export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum
     y1: number;
     y2: number;
     height: number;
+    elbows: { x: number; y: number }[];
 }
 
 export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
@@ -47,14 +42,22 @@ export type SankeyDatum = SankeyLinkDatum | SankeyNodeDatum;
 export interface SankeyNodeLabelDatum {
     x: number;
     y: number;
-    leading: boolean;
+    textAlign: 'left' | 'right' | 'center';
     text: string;
     size: number;
+    nodeDatum: SankeyNodeDatum;
+    datumIndex: FlowProportionNodeDatumIndex;
 }
 
 class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
     @Property
     spacing: number = 1;
+
+    @Property
+    placement: 'left' | 'right' | 'center' | undefined = undefined;
+
+    @Property
+    edgePlacement: 'inside' | 'outside' | undefined = undefined;
 }
 
 class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
@@ -88,10 +91,19 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     spacing: number = 1;
 
     @Property
+    minSpacing: number = 0;
+
+    @Property
     width: number = 1;
 
     @Property
     alignment: 'left' | 'right' | 'center' | 'justify' = 'justify';
+
+    @Property
+    verticalAlignment: 'top' | 'bottom' | 'center' = 'center';
+
+    @Property
+    sort: 'data' | 'ascending' | 'descending' | 'auto' = 'auto';
 
     @Property
     fill: InternalAgColorType | undefined = undefined;
@@ -178,11 +190,6 @@ export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptio
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgSankeySeriesTooltipRendererParams<DatumDefault>>();
-
-    constructor() {
-        super();
-        this.highlightStyle.deprecated = false;
-    }
 
     getStyle(
         isLink: boolean,

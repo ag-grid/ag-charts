@@ -1,26 +1,16 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { clamp, isNumberEqual } from 'ag-charts-core';
+import { ChartAxisDirection, Property, clamp, isNumberEqual, normalizeAngle360FromDegrees } from 'ag-charts-core';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
-const {
-    ChartAxisDirection,
-    Property,
-    validateCrossLineValue,
-    normalizeAngle360FromDegrees,
-    Group,
-    Path,
-    Sector,
-    RotatableText,
-} = _ModuleSupport;
-
+const { validateCrossLineValue, Group, Path, Sector, RotatableText } = _ModuleSupport;
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
     @Property
     positionAngle?: number = undefined;
 }
 
 export class RadiusCrossLine extends PolarCrossLine {
-    static readonly className = 'RadiusCrossLine';
+    static override readonly className = 'RadiusCrossLine';
 
     override direction = ChartAxisDirection.Radius;
     gridAngles?: number[];
@@ -92,7 +82,7 @@ export class RadiusCrossLine extends PolarCrossLine {
     }
 
     private drawPolygon(radius: number, angles: number[], polygon: _ModuleSupport.Path) {
-        angles.forEach((angle, index) => {
+        for (const [index, angle] of angles.entries()) {
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
             if (index === 0) {
@@ -100,7 +90,7 @@ export class RadiusCrossLine extends PolarCrossLine {
             } else {
                 polygon.path.lineTo(x, y);
             }
-        });
+        }
         polygon.path.closePath();
     }
 

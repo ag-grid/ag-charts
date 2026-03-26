@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ErrorBarsModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ErrorBarsModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -62,6 +81,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Looks - Transparent',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Looks - Transparent',
             stackGroup: 'NOL',
         },
@@ -70,15 +90,14 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Looks - Yellow',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Looks - Yellow',
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
-            keys: ['dolphin'],
             title: {
                 text: 'Dolphin',
             },
@@ -98,14 +117,10 @@ const options: AgCartesianChartOptions = {
                     },
                 ],
             },
-            interval: {
-                placement: 'between',
-            },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
+            position: 'left',
             title: {
                 text: 'Duration of Interaction (seconds)',
             },
@@ -124,13 +139,12 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
             title: {
                 text: 'Number of Looks',
             },
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
             gridLine: {
                 style: [
                     {
@@ -143,7 +157,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

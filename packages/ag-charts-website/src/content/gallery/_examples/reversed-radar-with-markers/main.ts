@@ -1,13 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleNumberAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AngleNumberAxisModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'FRIENDS & ACQUAINTANCES',
     },
     animation: { enabled: false },
+    tooltip: { mode: 'single' },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
         type: 'radar-line',
@@ -24,14 +34,14 @@ const options: AgChartOptions = {
             fillOpacity: 0.1,
         },
     })),
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             line: {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             reverse: true,
@@ -42,7 +52,7 @@ const options: AgChartOptions = {
                 step: 0.4,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

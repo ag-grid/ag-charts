@@ -1,27 +1,23 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getBenchmark1Data, getBenchmark2Data } from './data';
 import { formatBytes, formatMillis, labelFormatter } from './utils';
 
 const commonOptions: AgCartesianChartOptions = {
     sync: { axes: 'xy' },
-    axes: [
-        {
-            type: 'category',
-        },
-        {
+    axes: {
+        x: {},
+        y: {
             type: 'number',
             position: 'left',
-            keys: [`timeMs`],
             label: { formatter: labelFormatter(formatMillis) },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: [`heapUsed`, `canvasBytes`],
             label: { formatter: labelFormatter(formatBytes) },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -35,6 +31,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `heapUsed`,
             yName: `Heap`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
         {
@@ -42,6 +39,7 @@ const commonOptions: AgCartesianChartOptions = {
             xKey: 'name',
             yKey: `canvasBytes`,
             yName: `Canvas`,
+            yKeyAxis: 'ySecondary',
             stackGroup: 'memory',
         },
     ],

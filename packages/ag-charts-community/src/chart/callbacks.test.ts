@@ -1,5 +1,5 @@
 import { getDocument } from 'ag-charts-core';
-import {
+import type {
     AgAxisLabelFormatterParams,
     AgBarSeriesItemStylerParams,
     AgCartesianChartOptions,
@@ -17,7 +17,7 @@ import type {
 } from './test/freezableMock';
 import { newFreezableMock } from './test/freezableMock';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
     expectWarningsCalls,
@@ -128,15 +128,15 @@ describe('AG-13024 API context', () => {
                 { type: 'bar', xKey: 'quarter', yKey: 'Ford', context: seriesContext1 },
                 { type: 'bar', xKey: 'quarter', yKey: 'BMW', context: seriesContext2 },
             ],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     label: { formatter: axisLabelFormatter.frozen },
                     context: axisContext,
                 },
-                { type: 'number', position: 'left' },
-            ],
+                y: { type: 'number', position: 'left' },
+            },
         };
     });
 
@@ -246,7 +246,7 @@ describe('AG-13024 API context', () => {
             delete options.series![0].context;
             delete options.series![1].context;
             delete options.series![2].context;
-            delete options.axes![0].context;
+            delete options.axes!.x!.context;
             chart = await createChart(options);
             itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
             seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
@@ -265,7 +265,7 @@ describe('AG-13024 API context', () => {
                 delete options.series![0].context;
                 delete options.series![1].context;
                 delete options.series![2].context;
-                delete options.axes![0].context;
+                delete options.axes!.x!.context;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
@@ -277,7 +277,7 @@ describe('AG-13024 API context', () => {
                 options.series![0].context = undefined;
                 options.series![1].context = undefined;
                 options.series![2].context = undefined;
-                options.axes![0].context = undefined;
+                options.axes!.x!.context = undefined;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withoutContext();
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withoutContext();
@@ -289,7 +289,7 @@ describe('AG-13024 API context', () => {
                 options.series![0].context = null as unknown as TContext;
                 options.series![1].context = null as unknown as TContext;
                 options.series![2].context = null as unknown as TContext;
-                options.axes![0].context = null as unknown as TContext;
+                options.axes!.x!.context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
@@ -306,7 +306,7 @@ describe('AG-13024 API context', () => {
                 options.series![0].context = undefined;
                 options.series![1].context = undefined;
                 options.series![2].context = undefined;
-                options.axes![0].context = undefined;
+                options.axes!.x!.context = undefined;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(rootContext);
@@ -318,7 +318,7 @@ describe('AG-13024 API context', () => {
                 options.series![0].context = null as unknown as TContext;
                 options.series![1].context = null as unknown as TContext;
                 options.series![2].context = null as unknown as TContext;
-                options.axes![0].context = null as unknown as TContext;
+                options.axes!.x!.context = null as unknown as TContext;
                 chart = await createChart(options);
                 itemStyler.expect().toHaveBeenCalledTimes(12).withContext(null);
                 seriesLabelFormatter.expect().toHaveBeenCalledTimes(12).withContext(null);
@@ -424,22 +424,22 @@ describe('AG-15283 context precedence', () => {
                     yKey: 'mac',
                 },
             ],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     context: {
                         source: 'axis-category',
                     },
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     context: {
                         source: 'axis-number',
                     },
                 },
-            ],
+            },
             context: {
                 source: 'root',
             },
@@ -464,6 +464,105 @@ describe('AG-15283 context precedence', () => {
             'mac', // (series name)
             'axis-number', // x value
         ]);
+    });
+});
+
+describe('AG-16613 null category callbacks', () => {
+    setupMockConsole();
+    setupMockCanvas();
+
+    let chart: Chart;
+
+    afterEach(() => {
+        if (chart) {
+            chart.destroy();
+            (chart as unknown) = undefined;
+        }
+    });
+
+    const nullCategoryData = [
+        { quarter: null, Toyota: 120000 },
+        { quarter: 'q2', Toyota: 150000 },
+        { quarter: 'q3', Toyota: 170000 },
+    ];
+
+    test('tooltipRenderer receives null xValue', async () => {
+        const tooltipRenderer = jest.fn(() => '');
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                    tooltip: { renderer: tooltipRenderer },
+                } as any,
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        // Hover over the first bar (null category)
+        await hoverAction(130, 300)(chart);
+        await waitForChartStability(chart);
+
+        expect(tooltipRenderer).toHaveBeenCalled();
+        const callWithNullDatum = tooltipRenderer.mock.calls.find((c: any[]) => c[0]?.datum?.quarter === null);
+        expect(callWithNullDatum).toBeDefined();
+    });
+
+    test('itemStyler receives null datum', async () => {
+        const itemStyler = jest.fn(() => undefined);
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                    itemStyler,
+                } as any,
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        expect(itemStyler).toHaveBeenCalled();
+        const callWithNullDatum = itemStyler.mock.calls.find((c: any[]) => c[0]?.datum?.quarter === null);
+        expect(callWithNullDatum).toBeDefined();
+    });
+
+    test('axisLabelFormatter called with value: null', async () => {
+        const axisLabelFormatter = jest.fn();
+        chart = await createChart({
+            data: nullCategoryData,
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'quarter',
+                    yKey: 'Toyota',
+                    allowNullKeys: true,
+                } as any,
+            ],
+            axes: {
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    label: { formatter: axisLabelFormatter },
+                },
+                y: { type: 'number', position: 'left' },
+            },
+        });
+
+        expect(axisLabelFormatter).toHaveBeenCalled();
+        const callWithNull = axisLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+        expect(callWithNull).toBeDefined();
     });
 });
 

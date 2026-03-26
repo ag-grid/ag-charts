@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { type ChartTestCase, COMMUNITY_AND_ENTERPRISE_EXAMPLES as GALLERY_EXAMPLES } from '../../test/examples-gallery';
+import type { ChartOrProxy } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -17,7 +19,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-import type { ChartOrProxy } from '../../test/utils';
 import type { SeriesNodeDataContext } from '../series';
 import {
     HISTOGRAM_DATE_BASED_BUCKETS,
@@ -32,7 +33,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     HISTOGRAM_DATE_BASED_BUCKETS: {
         options: HISTOGRAM_DATE_BASED_BUCKETS,
         enterprise: true,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'time'], seriesTypes: ['histogram'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'time', y: 'number' }, seriesTypes: ['histogram'] }),
     },
 };
 
@@ -92,7 +93,7 @@ describe('HistogramSeries', () => {
     describe('#reversed axes', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [
@@ -113,7 +114,7 @@ describe('HistogramSeries', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const axes = (example.options as AgCartesianChartOptions).axes?.map((a) => ({
+                const axes = mapValues((example.options as AgCartesianChartOptions).axes ?? {}, (a) => ({
                     ...a,
                     reverse: true,
                 })) ?? [
@@ -176,12 +177,15 @@ describe('HistogramSeries', () => {
         const examples = {
             HISTOGRAM_SERIES_LABELS: {
                 options: HISTOGRAM_SERIES_LABELS,
-                assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['histogram'] }),
+                assertions: cartesianChartAssertions({
+                    axisTypes: { x: 'number', y: 'number' },
+                    seriesTypes: ['histogram'],
+                }),
             },
             HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: {
                 options: HISTOGRAM_SCATTER_COMBO_SERIES_LABELS,
                 assertions: cartesianChartAssertions({
-                    axisTypes: ['number', 'number', 'number'],
+                    axisTypes: { x: 'number', y: 'number', __AXIS_ID_2: 'number' },
                     seriesTypes: ['histogram', 'scatter'],
                 }),
             },
@@ -352,6 +356,75 @@ describe('HistogramSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    // CRT-1043: Invisible histogram series must still populate nodeData so the remove animation
+    // has actual positions to animate from rather than empty data (which causes no animation).
+    describe('legend toggle nodeData (CRT-1043)', () => {
+        const animate = spyOnAnimationManager();
+
+        it('should populate nodeData for invisible histogram series after legend toggle', async () => {
+            animate(1200, 1);
+
+            // Use the histogram-with-specified-bins example — the original reproduction case.
+            const options: AgChartOptions = { ...GALLERY_EXAMPLES.HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE.options };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Toggle series invisible (simulates legend click)
+            animate(1200, 0.5);
+            (options.series![0] as any).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const invisibleSeries = chartInstance.series[0] as any;
+            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+
+            expect(nodeData!.length).toBeGreaterThan(0);
+            expect(nodeData!.some((d: any) => d.frequency > 0)).toBe(true);
+        });
+
+        // Verify that bar Rect nodes have intermediate heights during the remove animation,
+        // proving the animation system has real positional data to interpolate from (the CRT-1043
+        // fix). Visual snapshots are not used because axis domain collapse on a single-series chart
+        // makes intermediate frames visually blank despite the animation working internally.
+        it('should have bar rects at intermediate heights during legend toggle animation', async () => {
+            animate(1200, 1);
+
+            const options: AgChartOptions = { ...GALLERY_EXAMPLES.SIMPLE_HISTOGRAM_CHART_EXAMPLE.options };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Record initial bar heights from the fully-rendered chart.
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+            const getBarHeights = (): number[] =>
+                Array.from(series.datumSelection.nodes() as Iterable<any>, (rect: any) => rect.height as number);
+
+            const initialHeights = getBarHeights();
+            expect(initialHeights.length).toBeGreaterThan(0);
+            expect(initialHeights.some((h) => h > 1)).toBe(true);
+
+            // Animate at 10% of total (40% through the remove phase which spans 0-25%).
+            // Toggle invisible via options update matching the barSeries legend toggle pattern.
+            animate(1200, 0.1);
+            (options.series![0] as any).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const midHeights = getBarHeights();
+            // Bars should still exist and be shorter than their initial heights.
+            for (let i = 0; i < initialHeights.length; i++) {
+                if (initialHeights[i] > 1) {
+                    expect(midHeights[i]).toBeLessThan(initialHeights[i]);
+                }
+            }
         });
     });
 

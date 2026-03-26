@@ -1,13 +1,15 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-const {
-    ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
+import {
     FILL_GRADIENT_RADIAL_SERIES_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
-} = _ModuleSupport;
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+    POLAR_AXIS_SHAPE,
+    POLAR_AXIS_TYPE,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-column'>['themeTemplate'] = {
+export const RADIAL_COLUMN_SERIES_THEME: ExtensibleTheme<'radial-column'> = {
     series: {
         fill: {
             $applySwitch: [
@@ -23,14 +25,14 @@ export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-col
         maxColumnWidthRatio: 0.5,
         strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
             fontWeight: { $ref: 'fontWeight' },
             color: { $ref: 'textColor' },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

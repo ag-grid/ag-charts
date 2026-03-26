@@ -1,13 +1,12 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { Property, type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
-import { loopSymmetrically } from '../../utils/polar';
+import { walkPairsOutward } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { Property, CategoryScale } = _ModuleSupport;
-
+const { CategoryScale } = _ModuleSupport;
 export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
@@ -32,8 +31,8 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     protected generateAngleTicks(domain: string[]) {
         const { scale, gridLength: radius } = this;
         const { values, minSpacing } = this.interval;
-        const tickParams: _ModuleSupport.ScaleTickParams<number> = {
-            nice: this.nice,
+        const tickParams: ScaleTickParams<number> = {
+            nice: [this.nice, this.nice],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -60,11 +59,11 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
             }
             const nextX = radius * Math.cos(nextAngle);
             const nextY = radius * Math.sin(nextAngle);
-            const spacing = Math.sqrt((nextX - startX) ** 2 + (nextY - startY) ** 2);
+            const spacing = Math.hypot(nextX - startX, nextY - startY);
             if (spacing > minSpacing) {
                 // Filter ticks by step
                 const visibleTicks = new Set([startTick]);
-                loopSymmetrically(ticks, step, (_, next) => {
+                walkPairsOutward(ticks, step, (_, next) => {
                     visibleTicks.add(next);
                 });
                 return ticks.map((value) => {
@@ -102,20 +101,20 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
         const maxStep = Math.floor(labelData.length / 2);
         for (let step = 1; step <= maxStep; step++) {
             const labels = lastLabelIsOverFirst ? labelData.slice(0, -1) : labelData;
-            const collisionDetected = loopSymmetrically(labels, step, labelsCollide);
+            const collisionDetected = walkPairsOutward(labels, step, labelsCollide);
             if (!collisionDetected) {
-                loopSymmetrically(labels, step, (_, next) => {
+                walkPairsOutward(labels, step, (_, next) => {
                     visibleLabels.add(next);
                 });
                 break;
             }
         }
-        labelData.forEach((datum) => {
+        for (const datum of labelData) {
             if (!visibleLabels.has(datum)) {
                 datum.hidden = true;
                 datum.box = undefined;
             }
-        });
+        }
     }
 
     override tickFormatParams(): _ModuleSupport.AxisTickFormatParams {

@@ -1,12 +1,10 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import type { Point } from '../annotationTypes';
+import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { PointProperties } from '../properties/pointProperties';
 import type { PointScene } from '../scenes/pointScene';
 import type { AnnotationStateEvents } from './stateTypes';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface PointStateMachineContext<Datum extends PointProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -26,7 +24,7 @@ export abstract class PointStateMachine<
     protected node?: Node;
 
     constructor(ctx: PointStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
             ctx.create(datum);

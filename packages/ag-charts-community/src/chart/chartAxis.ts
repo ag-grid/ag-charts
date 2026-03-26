@@ -1,14 +1,23 @@
 import type {
+    AxisID,
+    ChartAnimationPhase,
+    ChartAxisDirection,
+    ChartUpdateType,
+    DomainWithMetadata,
+    Padding,
+    Scale,
+} from 'ag-charts-core';
+import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
     Padding as AgPadding,
     AgTimeIntervalUnit,
-    FontOptions,
-    Formatter,
     FormatterParams,
+    RichFormatter,
     Styler,
+    TextOptions,
     TextWrap,
 } from 'ag-charts-types';
 
@@ -16,17 +25,14 @@ import type { AxisLayout } from '../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
-import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
-import type { Padding } from '../util/padding';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
 import type { AxisTick, TickInterval } from './axis/axisTick';
-import type { ChartAnimationPhase } from './chartAnimationPhase';
-import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
+import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
@@ -40,7 +46,7 @@ interface AxisInterval {
 
 interface AxisLayoutConstraints {
     stacked: boolean;
-    align: 'start' | 'end';
+    align: 'justify' | 'start' | 'center' | 'end';
     width: number;
     unit: 'percent' | 'px';
 }
@@ -59,6 +65,7 @@ export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
 export interface ChartLayout {
     padding: Padding;
     sizeLimit: number;
+    scrollbars?: ScrollbarLayoutMap;
 }
 
 export interface ChartAxis {
@@ -72,7 +79,7 @@ export interface ChartAxis {
     createAxisContext(): AxisContext;
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
-    detachAxis(opts: AxisGroups): void;
+    detachAxis(): void;
     formatDatum(
         contextProvider: { context?: unknown },
         value: any,
@@ -80,7 +87,11 @@ export interface ChartAxis {
         seriesId: string,
         legendItemName: string | undefined,
         datum: any,
-        key: string
+        key: string,
+        domain?: undefined,
+        label?: undefined,
+        params?: undefined,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -92,7 +103,8 @@ export interface ChartAxis {
         key: undefined,
         domain: undefined,
         label: AxisFormattableLabel<Params>,
-        params: Params
+        params: Params,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -104,18 +116,20 @@ export interface ChartAxis {
         key: string,
         domain: any[],
         label: AxisFormattableLabel<Params>,
-        params: Params
+        params: Params,
+        allowNull?: boolean
     ): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
-    getModuleMap(): ModuleMap<any, any, any>;
+    getModuleMap(): ModuleMap;
+    getUpdateTypeOnResize(): ChartUpdateType;
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
-    setDomains(domain: unknown[]): void;
+    setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[];
     crossLines?: CrossLine[];
@@ -124,29 +138,30 @@ export interface ChartAxis {
     gridLength: number;
     gridLine: AxisGridLine;
     gridPadding: number;
-    id: string;
+    id: AxisID;
     interactionEnabled: boolean;
     interval: AxisInterval;
-    keys: string[];
     label: ChartAxisLabel;
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
+    requiredRange?: number;
     reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
+    skipNullBars?: boolean;
     thickness?: number;
     maxThicknessRatio?: number;
+    minimumTimeGranularity?: AgTimeIntervalUnit;
     tick: AxisTick;
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
-    minimumTimeGranularity?: AgTimeIntervalUnit;
 }
 
-export interface ChartAxisLabel extends FontOptions {
+export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
     getSideFlag(): ChartAxisLabelFlipFlag;
     set(props: object): void;
@@ -156,7 +171,7 @@ export interface ChartAxisLabel extends FontOptions {
     border: { enabled: boolean; stroke?: string };
     enabled: boolean;
     format?: string | Record<string, string>;
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;
     mirrored: boolean;

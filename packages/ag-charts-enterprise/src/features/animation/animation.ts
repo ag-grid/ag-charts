@@ -1,21 +1,22 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance, ObserveChanges, Property } from 'ag-charts-core';
 
-const { ObserveChanges, Property } = _ModuleSupport;
-
-export class Animation extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @ObserveChanges<Animation>((target, newValue) => {
+export class Animation extends AbstractModuleInstance {
+    @ObserveChanges<Animation>((target: Animation, newValue?: boolean) => {
         target.ctx.animationManager.skip(!newValue);
     })
     @Property
     public enabled: boolean = true;
 
-    @ObserveChanges<Animation>((target, newValue) => {
-        target.ctx.animationManager.defaultDuration = newValue;
+    @ObserveChanges<Animation>((target: Animation, newValue?: number) => {
+        if (newValue != null) {
+            target.ctx.animationManager.defaultDuration = newValue;
+        }
     })
     @Property
     public duration?: number;
 
-    @ObserveChanges<Animation>((target, newValue) => {
+    @ObserveChanges<Animation>((target: Animation, newValue?: number) => {
         target.ctx.animationManager.maxAnimatableItems = newValue ?? Infinity;
     })
     @Property
@@ -23,11 +24,7 @@ export class Animation extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     constructor(protected readonly ctx: _ModuleSupport.ModuleContext) {
         super();
-
         ctx.animationManager.skip(false);
-
-        this.cleanup.register(() => {
-            ctx.animationManager.skip(true);
-        });
+        this.cleanup.register(() => ctx.animationManager.skip(true));
     }
 }

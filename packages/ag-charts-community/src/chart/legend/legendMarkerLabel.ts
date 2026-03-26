@@ -1,12 +1,11 @@
+import { ObserveChanges, ProxyPropertyOnWrite, SceneChangeDetection } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import { BBox } from '../../scene/bbox';
-import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { ChildNodeCounts, RenderContext } from '../../scene/node';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
-import { ObserveChanges, ProxyPropertyOnWrite } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { Marker } from '../marker/marker';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -40,7 +39,7 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
 
     proxyButton?: SwitchWidget;
 
-    pageIndex: number = NaN;
+    pageIndex: number = Number.NaN;
 
     @ProxyPropertyOnWrite('label')
     text?: string;
@@ -68,6 +67,9 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
 
     @SceneChangeDetection()
     isCustomMarker: boolean = false;
+
+    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
+    isRtl: boolean = false;
 
     public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
     public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
@@ -128,9 +130,9 @@ export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGrou
     }
 
     private layoutLabel() {
-        const { length, spacing } = this;
-
-        this.label.x = length + spacing;
+        const { length, spacing, isRtl } = this;
+        this.label.x = isRtl ? -spacing : length + spacing;
+        this.label.textAlign = isRtl ? 'right' : 'left';
     }
 
     protected override computeBBox(): BBox | undefined {

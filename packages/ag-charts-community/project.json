@@ -16,19 +16,22 @@
     },
     "build:types": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts", "{projectRoot}/src/main-modules.ts"]
+        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"]
       }
     },
     "build:test": {},
     "build:package": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts", "{projectRoot}/src/main-modules.ts"],
+        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"],
         "external": ["ag-charts-core"]
       }
     },
     "build:umd": {
+      "dependsOn": [],
+      "inputs": ["production", "^production"],
       "options": {
-        "outputFileName": "ag-charts-community"
+        "outputFileName": "ag-charts-community",
+        "main": "{projectRoot}/src/main-umd.ts"
       }
     },
     "lint:eslint": {},
@@ -49,26 +52,12 @@
       "cache": true,
       "parallelism": false,
       "options": {
-        "commands": [
-          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
-        ]
+        "command": "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --testPathIgnorePatterns='benchmarks/.*'"
       },
       "configurations": {
-        "ci": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
-          ]
-        },
-        "watch": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' --watch"
-          ]
-        },
-        "update": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts  --testPathIgnorePatterns='benchmarks/.*' -u"
-          ]
-        }
+        "ci": { "args": "-u" },
+        "watch": { "args": "--watch" },
+        "update": { "args": "-u" }
       },
       "dependsOn": [
         "build:test",
@@ -87,13 +76,16 @@
         "ag-charts-website-benchmarks_large-dataset_main.ts:generate-example",
         "ag-charts-website-benchmarks_large-scale-multi-series_main.ts:generate-example",
         "ag-charts-website-benchmarks_multi-series_main.ts:generate-example",
-        "ag-charts-website-benchmarks_resize_main.ts:generate-example"
+        "ag-charts-website-benchmarks_resize_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-freq-line_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-freq-bar_main.ts:generate-example",
+        "ag-charts-website-benchmarks_high-freq-area_main.ts:generate-example"
       ]
     },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "inputs": ["allTransitiveOutputs"],
+      "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "{projectRoot}",
@@ -116,7 +108,7 @@
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
     },
-    "validate-size": {
+    "test:validate-size": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
       "options": {

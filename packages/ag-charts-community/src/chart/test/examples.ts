@@ -15,11 +15,16 @@ import {
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     DATA_MEAN_SEA_LEVEL,
     DATA_MISSING_X,
+    DATA_MULTIPLE_NULL_KEYS,
+    DATA_NULL_AND_UNDEFINED_KEYS,
+    DATA_NULL_CATEGORY_KEY,
+    DATA_NULL_VS_STRING_NULL,
     DATA_REVENUE,
     DATA_SINGLE_DATUM_TIME_SENSOR,
     DATA_TIME_MISSING_X,
     DATA_TIME_SENSOR,
     DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
+    DATA_UNDEFINED_CATEGORY_KEY,
     DATA_VISITORS,
 } from './data';
 import { loadExampleOptions } from './load-example';
@@ -112,10 +117,10 @@ export const CROSS_LINES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['cross
 
 export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
-    axes: [
-        { type: 'grouped-category', position: 'bottom' },
-        { type: 'number', position: 'left', label: { formatter: usdFormatter } },
-    ],
+    axes: {
+        x: { type: 'grouped-category', position: 'bottom' },
+        y: { type: 'number', position: 'left', label: { formatter: usdFormatter } },
+    },
     series: [
         {
             xKey: 'grouping',
@@ -212,16 +217,16 @@ export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOp
             bronze: 0,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -1750,17 +1755,17 @@ export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCart
             'ag-Grid-AutoColumn': [''],
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
             label: { avoidCollisions: false },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -1956,10 +1961,10 @@ export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCart
 
 export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -1981,10 +1986,10 @@ export const AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
 
 export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_BROWSER_MARKET_SHARE,
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2036,10 +2041,10 @@ export const STACKED_AREA_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
 };
 
 export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOptions = {
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2096,10 +2101,10 @@ export const STACKED_AREA_MISSING_Y_DATA_PER_SERIES_EXAMPLE: AgCartesianChartOpt
 
 export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2120,10 +2125,10 @@ export const STACKED_AREA_MISSING_FIRST_Y_DATA_EXAMPLE: AgCartesianChartOptions 
 
 export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
-    axes: [
-        { type: 'number', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2138,10 +2143,10 @@ export const AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
 
 export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
-    axes: [
-        { type: 'unit-time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2156,10 +2161,10 @@ export const AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = 
 
 export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
-    axes: [
-        { type: 'number', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2184,10 +2189,10 @@ export const STACKED_AREA_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChart
 
 export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
-    axes: [
-        { type: 'unit-time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'area',
@@ -2235,16 +2240,10 @@ export const AREA_SERIES_PATTERN_FILL: AgCartesianChartOptions = {
             strokeWidth: 1,
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 function setPattern(
@@ -2330,16 +2329,10 @@ export const AREA_SERIES_VERTICAL_GRADIENT_FILL: AgCartesianChartOptions = {
             yKey: 'iphone',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
@@ -2364,16 +2357,10 @@ export const AREA_SERIES_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
             yKey: 'iphone',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
@@ -2396,16 +2383,10 @@ export const AREA_SERIES_DEFAULT_GRADIENT_FILL: AgCartesianChartOptions = {
             yKey: 'iphone',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
@@ -2436,16 +2417,10 @@ export const AREA_SERIES_GRADIENT_FILL_AXES_BOUNDS: AgCartesianChartOptions = {
             yKey: 'wearables',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
@@ -2492,29 +2467,77 @@ export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+};
+
+export const STACKED_AREA_SERIES_STACK_GROUPS: AgCartesianChartOptions = {
+    data: DATA_BROWSER_MARKET_SHARE,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [
         {
-            type: 'category',
-            position: 'bottom',
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            yName: 'IE',
+            stacked: true,
+            stackGroup: 'group-one',
+            marker: {
+                enabled: true,
+            },
         },
         {
-            type: 'number',
-            position: 'left',
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            yName: 'Firefox',
+            stacked: true,
+            stackGroup: 'group-one',
+            marker: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            yName: 'Safari',
+            stacked: true,
+            stackGroup: 'group-two',
+            marker: {
+                enabled: true,
+            },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            yName: 'Chrome',
+            stacked: true,
+            stackGroup: 'group-two',
+            marker: {
+                enabled: true,
+            },
         },
     ],
+    title: {
+        text: 'Browser Wars',
+    },
+    subtitle: {
+        text: '2009-2019',
+    },
 };
 
 export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'unit-time',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2537,16 +2560,10 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
 };
 
 export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'unit-time',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'unit-time', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2570,10 +2587,10 @@ export const LINE_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
 
 export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2595,10 +2612,10 @@ export const LINE_MISSING_Y_DATA_EXAMPLE: AgCartesianChartOptions = {
 
 export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_MISSING_X,
-    axes: [
-        { type: 'number', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2613,10 +2630,10 @@ export const LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions 
 
 export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = {
     data: DATA_TIME_MISSING_X,
-    axes: [
-        { type: 'unit-time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2630,16 +2647,10 @@ export const LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOptions = 
 };
 
 export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2666,16 +2677,10 @@ export const LINE_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
 };
 
 export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'line',
@@ -2702,16 +2707,10 @@ export const LINE_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
 };
 
 export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'unit-time',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             data: DATA_TIME_SENSOR,
@@ -2740,16 +2739,10 @@ export const AREA_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
 };
 
 export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'unit-time',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'unit-time', position: 'left' },
+    },
     series: [
         {
             data: DATA_TIME_SENSOR,
@@ -2778,16 +2771,10 @@ export const AREA_NUMBER_X_AXIS_TIME_Y_AXIS: AgCartesianChartOptions = {
 };
 
 export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             data: DATA_TIME_SENSOR.map((datum) => {
@@ -2820,16 +2807,10 @@ export const AREA_NUMBER_AXES_0_X_DOMAIN: AgCartesianChartOptions = {
 };
 
 export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             data: DATA_TIME_SENSOR.map((datum) => {
@@ -2863,19 +2844,19 @@ export const AREA_NUMBER_AXES_0_Y_DOMAIN: AgCartesianChartOptions = {
 
 export const INVALID_AXIS_LABEL_FORMAT: AgCartesianChartOptions = {
     data: DATA_TIME_SENSOR,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             label: {
                 format: '%H:%M',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -2892,22 +2873,22 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: AgCartesianChartOptions = {
         right: 400,
         bottom: 200,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             label: {
                 format: '%Y',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             interval: {
                 maxSpacing: 20,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -2924,22 +2905,22 @@ export const LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: AgCartesianChar
         right: 400,
         bottom: 200,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'top',
             label: {
                 format: '%Y',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             interval: {
                 maxSpacing: 20,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -2956,22 +2937,22 @@ export const LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: AgCartesianCh
         right: 400,
         bottom: 200,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
             position: 'bottom',
             label: {
                 format: '%Y',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             interval: {
                 maxSpacing: 20,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -3048,7 +3029,7 @@ export const LINE_STACKED_MISSING_DATA: AgCartesianChartOptions = {
         { month: 'Jul', subscriptions: 300, services: 255, products: undefined },
         { month: 'Aug', subscriptions: 270, services: 305, products: 210 },
         { month: 'Sep', subscriptions: 260, services: 280, products: 250 },
-        { month: 'Oct', subscriptions: 385, services: 250, products: NaN },
+        { month: 'Oct', subscriptions: 385, services: 250, products: Number.NaN },
         { month: 'Nov', subscriptions: 320, services: 265, products: 215 },
         { month: 'Dec', subscriptions: 330, services: 255, products: 220 },
     ],
@@ -3090,17 +3071,17 @@ export const COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
             showInLegend: false,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -3118,16 +3099,10 @@ export const COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
-            type: 'unit-time',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -3168,16 +3143,10 @@ export const STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
@@ -3235,16 +3204,10 @@ export const STACKED_COLUMN_PATTERN_FILL: AgCartesianChartOptions = {
             stroke: 'black',
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'category', position: 'bottom' },
+    },
 };
 
 export const GROUPED_COLUMN_SMALL_PATTERN_FILL: AgCartesianChartOptions = {
@@ -3392,16 +3355,10 @@ export const STACKED_COLUMN_GRADIENT_FILL: AgCartesianChartOptions = {
             stroke: 'black',
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-    ],
+    axes: {
+        y: { type: 'number', position: 'left' },
+        x: { type: 'category', position: 'bottom' },
+    },
 };
 
 export const STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: AgCartesianChartOptions = {
@@ -3614,17 +3571,10 @@ export const GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions
             yName: 'Services',
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            nice: false,
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', nice: false, position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = {
@@ -3683,16 +3633,10 @@ export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
             })),
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: AgCartesianChartOptions = {
@@ -3853,16 +3797,10 @@ export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: AgCartesianChartOptions = 
             stackGroup: 'other',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartOptions = {
@@ -3926,16 +3864,10 @@ export const STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: AgCartesianChartO
             stackGroup: 'other',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -3952,16 +3884,10 @@ export const BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
             showInLegend: false,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -3980,16 +3906,10 @@ export const BAR_TIME_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
-            type: 'unit-time',
-            position: 'left',
-        },
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-    ],
+    axes: {
+        y: { type: 'unit-time', position: 'left' },
+        x: { type: 'number', position: 'bottom' },
+    },
 };
 
 export const BAR_STACKED_AND_GROUPED_NUMBER_CRT_950: AgCartesianChartOptions = {
@@ -4039,16 +3959,10 @@ export const BAR_STACKED_AND_GROUPED_NUMBER_CRT_950: AgCartesianChartOptions = {
 };
 
 export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'bar',
@@ -4077,16 +3991,10 @@ export const COLUMN_SINGLE_DATE_CATEGORY_AXIS: AgCartesianChartOptions = {
 };
 
 export const COLUMN_SINGLE_DATE_TIME_AXIS: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'unit-time',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'unit-time', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
     series: [
         {
             type: 'bar',
@@ -4156,17 +4064,10 @@ export const STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            nice: false,
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', nice: false, position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -4207,16 +4108,10 @@ export const STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: AgCartesianChartO
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = {
@@ -4257,16 +4152,10 @@ export const GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: AgCartesianChartOptions = 
             yName: 'Services',
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    axes: {
+        x: { type: 'number', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
 };
 
 export const TRUNCATED_LEGEND_ITEMS: AgCartesianChartOptions = {
@@ -4329,17 +4218,394 @@ export const CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS = (
                 yKey: 'share',
             },
         ],
-        axes: [
-            {
-                type: 'category',
-                position: 'bottom',
-            },
-            {
-                type: 'log',
-                position: 'left',
-            },
-        ],
+        axes: {
+            x: { type: 'category', position: 'bottom' },
+            y: { type: 'log', position: 'left' },
+        },
     };
+};
+
+// NULL CATEGORY KEY TEST EXAMPLES ================================================================
+
+export const BAR_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const LINE_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+export const AREA_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+};
+
+export const BUBBLE_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y' }],
+};
+
+export const SCATTER_NULL_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+};
+
+// NULL CATEGORY KEY ALLOWED TEST EXAMPLES (with allowNullKeys: true) =============================
+
+export const BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const LINE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const AREA_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const BUBBLE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
+};
+
+export const SCATTER_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const PIE_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: null, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const DONUT_NULL_ANGLE_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: null, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+// PIE/DONUT UNDEFINED CATEGORY KEY EXAMPLES ======================================================
+
+export const PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: undefined, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const DONUT_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { label: 'A', value: 10 },
+        { label: undefined, value: 20 },
+        { label: 'B', value: 15 },
+    ],
+    series: [{ type: 'donut', angleKey: 'value', calloutLabelKey: 'label' }],
+};
+
+export const PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: undefined, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: undefined, amount: 60000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+// PIE/DONUT MIXED NULL AND UNDEFINED KEY EXAMPLES ================================================
+
+export const PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: undefined, amount: 30000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const DONUT_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgPolarChartOptions = {
+    data: [
+        { asset: null, amount: 60000 },
+        { asset: undefined, amount: 30000 },
+        { asset: 'Bonds', amount: 40000 },
+    ],
+    series: [
+        {
+            type: 'donut',
+            angleKey: 'amount',
+            legendItemKey: 'asset',
+            calloutLabelKey: 'asset',
+            allowNullKeys: true,
+        } as any,
+    ],
+};
+
+export const BAR_MULTIPLE_NULL_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_MULTIPLE_NULL_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const BAR_NULL_VS_STRING_NULL_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_VS_STRING_NULL,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+// UNDEFINED CATEGORY KEY TEST EXAMPLES ===========================================================
+
+export const BAR_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+};
+
+export const BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// MIXED NULL AND UNDEFINED KEY TEST EXAMPLES (should be DISTINCT categories) ====================
+
+export const BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// STACKED BAR NULL CATEGORY KEY ALLOWED EXAMPLE ==================================================
+
+export const STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: [
+        { x: 'A', y1: 10, y2: 5 },
+        { x: null, y1: 20, y2: 10 },
+        { x: 'B', y1: 15, y2: 8 },
+    ],
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [
+        { type: 'bar', xKey: 'x', yKey: 'y1', stacked: true, allowNullKeys: true } as any,
+        { type: 'bar', xKey: 'x', yKey: 'y2', stacked: true, allowNullKeys: true } as any,
+    ],
+};
+
+// LINE UNDEFINED EXAMPLES
+export const LINE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+export const LINE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const LINE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// AREA UNDEFINED EXAMPLES
+export const AREA_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y' }],
+};
+
+export const AREA_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+export const AREA_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'area', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+};
+
+// BUBBLE UNDEFINED EXAMPLES
+export const BUBBLE_UNDEFINED_CATEGORY_KEY_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y' }],
+};
+
+export const BUBBLE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_UNDEFINED_CATEGORY_KEY,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
+};
+
+export const BUBBLE_NULL_AND_UNDEFINED_KEYS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_NULL_AND_UNDEFINED_KEYS,
+    axes: {
+        x: { type: 'category', position: 'bottom' },
+        y: { type: 'number', position: 'left' },
+    },
+    series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'y', allowNullKeys: true } as any],
 };
 
 // START ADVANCED EXAMPLES =========================================================================

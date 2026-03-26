@@ -93,8 +93,9 @@ export type OverflowStrategy = 'ellipsis' | 'hide';
  * A distance in pixels from a point within which the event can be triggered.
  * - `'exact'` triggers when the event occurs directly over a point.
  * - `'nearest'` always tracks the nearest point anywhere on the chart.
+ * - `'area'` (area series only) triggers only when inside the filled area boundary.
  */
-export type InteractionRange = PixelSize | 'exact' | 'nearest';
+export type InteractionRange = PixelSize | 'exact' | 'nearest' | 'area';
 
 export type VerticalAlign = 'top' | 'middle' | 'bottom';
 

@@ -12,14 +12,16 @@ and drop-offs denoting the change between them.
 
 To create a Funnel Series, use the `funnel` series type.
 
-```js
-series: [
-    {
-        type: 'funnel',
-        stageKey: 'group',
-        valueKey: 'value'
-    },
-],
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'funnel',
+            stageKey: 'group',
+            valueKey: 'value',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -33,7 +35,7 @@ In this configuration:
 
 To create a horizontal Funnel Series, set the `direction` to `horizontal`.
 
-```js
+```js format="snippet"
 {
     direction: 'horizontal',
 }
@@ -47,7 +49,7 @@ A segmented funnel does not draw the drop offs between the stages.
 
 To disable the drop offs, set `enabled` to `false` in the `dropOff` configuration.
 
-```js
+```js format="snippet"
 {
     dropOff: {
         enabled: false,
@@ -59,9 +61,9 @@ To disable the drop offs, set `enabled` to `false` in the `dropOff` configuratio
 
 {% chartExampleRunner title="Funnel Fills" name="funnel-fills" type="generated" /%}
 
-```js
+```js format="snippet"
 {
-    fills: ["#5090DC", "#FFA03A", "#459D55", "#34BFE1"],
+    fills: ['#5090DC', '#FFA03A', '#459D55', '#34BFE1'],
 }
 ```
 

@@ -31,22 +31,22 @@ const options: AgChartOptions = {
             strokeOpacity: 0.5,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
                 text: 'Depth (m)',
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Magnitude',
             },
         },
-    ],
+    },
     seriesArea: {
         padding: {
             left: 40,
@@ -57,4 +57,4 @@ const options: AgChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

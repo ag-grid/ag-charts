@@ -1,7 +1,3 @@
-import type { AgChartThemeOptions, AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
-
-import { ChartTheme } from './chartTheme';
-import type { DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -11,14 +7,17 @@ import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
     DEFAULT_TEXTBOX_FILL,
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     IS_DARK_THEME,
-} from './symbols';
-import { getSequentialColors } from './util';
+    getSequentialColors,
+} from 'ag-charts-core';
+import type { AgChartAllThemeParams, AgChartThemeOptions, WithThemeParams } from 'ag-charts-types';
+
+import { ChartTheme } from './chartTheme';
+import type { DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_DARK_BACKGROUND_FILL = '#192232';
@@ -79,17 +78,19 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
-    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
-            ...super.getPublicParameters(),
+            ...super.getThemeParameters(),
             axisColor: { $foregroundBackgroundMix: 0.737 },
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
             borderColor: { $foregroundBackgroundMix: 0.216 },
             chromeBackgroundColor: { $foregroundBackgroundMix: 0.07 },
+            focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.22] },
             foregroundColor: '#fff',
             gridLineColor: { $foregroundBackgroundMix: 0.257 },
             popupShadow: '0 0 16px rgba(0, 0, 0, 0.33)',
             subtleTextColor: { $mix: [{ $ref: 'textColor' }, { $ref: 'chartBackgroundColor' }, 0.57] },
+            separationLinesColor: { $foregroundBackgroundMix: 0.44 },
 
             crosshairLabelBackgroundColor: { $foregroundBackgroundMix: 0.65 },
         };
@@ -100,8 +101,6 @@ export class DarkTheme extends ChartTheme {
 
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
-
-        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
 
         params.set(DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');

@@ -1,8 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import {
+    ActionOnSet,
+    ChartUpdateType,
+    type Placement,
+    Property,
+    ProxyPropertyOnWrite,
+    ZIndexMap,
+} from 'ag-charts-core';
 
 import { Image } from '../image/image';
-
-const { ZIndexMap, ActionOnSet, Property, ProxyPropertyOnWrite } = _ModuleSupport;
 
 export class Foreground extends _ModuleSupport.Background<Image> {
     @Property
@@ -12,7 +18,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
             image.onLoad = () => this.onImageLoad();
         },
         oldValue(image: Image) {
-            this.node.removeChild(image.node);
+            image.node.remove();
             image.onLoad = undefined;
         },
     })
@@ -32,18 +38,9 @@ export class Foreground extends _ModuleSupport.Background<Image> {
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         super.onLayoutComplete(event);
+
         const { width, height } = event.chart;
-
-        let placement = {
-            x: 0,
-            y: 0,
-            width,
-            height,
-        };
-
-        if (this.image) {
-            placement = this.image.performLayout(width, height);
-        }
+        const placement = this.image.performLayout(width, height);
 
         if (this.text) {
             this.updateTextNode(placement);
@@ -51,10 +48,10 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     }
 
     protected onImageLoad() {
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
-    private updateTextNode(placement: _ModuleSupport.Placement) {
+    private updateTextNode(placement: Placement) {
         const { textNode } = this;
 
         // match watermark message styles
@@ -65,10 +62,10 @@ export class Foreground extends _ModuleSupport.Background<Image> {
         textNode.fill = '#9b9b9b';
         textNode.textBaseline = 'top';
 
-        const textBBox = this.textNode.getBBox();
+        const { width } = textNode.getBBox();
         const textPadding = 10;
 
-        textNode.x = placement.x + placement.width / 2 - textBBox.width / 2;
+        textNode.x = placement.x + placement.width / 2 - width / 2;
         textNode.y = placement.y + placement.height + textPadding;
     }
 }

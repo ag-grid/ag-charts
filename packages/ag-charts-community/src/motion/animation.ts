@@ -1,11 +1,9 @@
-import { clamp, isPlainObject } from 'ag-charts-core';
+import { clamp, isPlainObject, linear, objectsEqualWith } from 'ag-charts-core';
 
 import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
-import { objectsEqualWith } from '../util/object';
-import { linear } from './easing';
 
 export type AnimationMetadata = {
     animationDuration: number;
@@ -91,6 +89,8 @@ export interface AnimationOptions<T extends AnimationValue> {
 
 export interface AdditionalAnimationOptions {
     id?: string;
+    /** When true, the animation plays even when the current batch is skipped. */
+    forceAnimation?: boolean;
 }
 
 export interface IAnimation {

@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 const STATIONS = [
     'Finsbury\nPark',
@@ -29,17 +29,12 @@ const options: AgCartesianChartOptions = {
             marker: { size: 15, fill: 'red', shape: 'cross' },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             gridLine: { style: [{ stroke: 'gray', lineDash: [10, 5] }] },
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    },
 };
 
 let chart = AgCharts.create(options);

@@ -1,7 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -11,13 +31,10 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'heatmap',
-
             xKey: 'month',
             xName: 'Month',
-
             yKey: 'year',
             yName: 'Year',
-
             colorKey: 'temperature',
             colorName: 'Temperature',
         },

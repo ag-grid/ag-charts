@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -11,18 +11,13 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'left',
-        },
-        {
-            type: 'number',
-            position: 'bottom',
             nice: false,
             crosshair: { snap: false },
         },
-    ],
+    },
     data: getData(),
     series: [
         {

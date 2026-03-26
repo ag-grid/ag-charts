@@ -1,14 +1,21 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MARKER_SERIES_HIGHLIGHT_STYLE,
+    POLAR_AXIS_TYPE,
+    SAFE_STROKE_FILL_OPERATION,
+    mergeDefaults,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
-const {
-    ThemeConstants: { POLAR_AXIS_TYPE },
-} = _ModuleSupport;
-
-const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar-area'>['themeTemplate'] = {
+const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
     series: {
         stroke: { $palette: 'stroke' },
         label: {
-            ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+            ...LABEL_BOXING_DEFAULTS,
             enabled: false,
             fontSize: { $ref: 'fontSize' },
             fontFamily: { $ref: 'fontFamily' },
@@ -21,9 +28,9 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
                 $applySwitch: [
                     { $path: 'type' },
                     { $palette: 'fill' },
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_RADIAL_REVERSED_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
                 ],
             },
             stroke: { $palette: 'stroke' },
@@ -33,7 +40,7 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
             strokeOpacity: 1,
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
-        highlight: _ModuleSupport.multiSeriesHighlightStyle(),
+        highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
@@ -47,36 +54,34 @@ const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar
     },
 };
 
-export const RADAR_LINE_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line'>['themeTemplate'] =
-    _ModuleSupport.mergeDefaults(
-        {
-            series: {
-                stroke: _ModuleSupport.SAFE_STROKE_FILL_OPERATION,
-                strokeWidth: 2,
-            },
+export const RADAR_LINE_SERIES_THEME: ExtensibleTheme<'radar-line'> = mergeDefaults(
+    {
+        series: {
+            stroke: SAFE_STROKE_FILL_OPERATION,
+            strokeWidth: 2,
         },
-        BASE_RADAR_SERIES_THEME
-    );
+    },
+    BASE_RADAR_SERIES_THEME
+);
 
-export const RADAR_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-area'>['themeTemplate'] =
-    _ModuleSupport.mergeDefaults(
-        {
-            series: {
-                fill: {
-                    $applySwitch: [
-                        { $path: 'type' },
-                        { $palette: 'fill' },
-                        ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                        ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                        ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                    ],
-                },
-                fillOpacity: 0.8,
-                strokeWidth: 2,
-                marker: {
-                    enabled: false,
-                },
+export const RADAR_AREA_SERIES_THEME: ExtensibleTheme<'radar-area'> = mergeDefaults(
+    {
+        series: {
+            fill: {
+                $applySwitch: [
+                    { $path: 'type' },
+                    { $palette: 'fill' },
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
+                ],
+            },
+            fillOpacity: 0.8,
+            strokeWidth: 2,
+            marker: {
+                enabled: false,
             },
         },
-        BASE_RADAR_SERIES_THEME
-    );
+    },
+    BASE_RADAR_SERIES_THEME
+);

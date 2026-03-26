@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -22,9 +22,8 @@ const options: AgChartOptions = {
             yKey: 'height',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             crossLines: [
@@ -39,8 +38,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             nice: false,
             crossLines: [
@@ -55,7 +53,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     annotations: {
         enabled: true, // Do we need this if annotations in initial state?
     },

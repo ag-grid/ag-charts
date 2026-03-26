@@ -1,13 +1,31 @@
-import type { EventListener } from 'ag-charts-core';
+import type { AxisID, EventListener } from 'ag-charts-core';
+import type { AgScrollbarPlacement } from 'ag-charts-types';
 
 import type { AxisLayout, EventsHub } from '../../core/eventsHub';
-import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import { BBox } from '../../scene/bbox';
 
+export interface LayoutContext {
+    width: number;
+    height: number;
+    layoutBox: BBox;
+    scrollbars: ScrollbarLayoutMap;
+}
+
+export interface ScrollbarLayout {
+    enabled: boolean;
+    thickness: number;
+    spacing: number;
+    tickSpacing: number;
+    placement: AgScrollbarPlacement;
+}
+
+export type ScrollbarLayoutMap = Partial<Record<AxisID, ScrollbarLayout>>;
+
 export interface LayoutState {
-    axes?: AxisLayout[];
+    axes?: Record<string, AxisLayout>;
     clipSeries?: boolean;
     series: { rect: BBox; paddedRect: BBox; visible: boolean };
+    layoutBox: BBox;
 }
 
 export enum LayoutElement {
@@ -15,6 +33,7 @@ export enum LayoutElement {
     Legend,
     ToolbarLeft,
     ToolbarBottom,
+    Scrollbar,
     Navigator,
     Overlay,
 }
@@ -34,32 +53,26 @@ export class LayoutManager {
     }
 
     createContext(width: number, height: number): LayoutContext {
-        const context = new LayoutContext(width, height);
+        const context: LayoutContext = { width, height, layoutBox: new BBox(0, 0, width, height), scrollbars: {} };
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
-            this.elements.get(element)?.forEach((listener) => listener(context));
+            const listeners = this.elements.get(element);
+            if (listeners) {
+                for (const listener of listeners) {
+                    listener(context);
+                }
+            }
         }
         return context;
     }
 
-    emitLayoutComplete(context: LayoutContext, options: LayoutState) {
-        const { width, height } = context;
+    emitLayoutComplete({ width, height }: LayoutContext, options: LayoutState) {
         this.eventsHub.emit('layout:complete', {
-            axes: options.axes ?? [],
+            axes: options.axes ?? {},
             chart: { width, height },
             clipSeries: options.clipSeries ?? false,
             series: options.series,
+            layoutBox: options.layoutBox,
         });
-    }
-}
-
-class LayoutContext implements ILayoutContext {
-    readonly layoutBox: BBox;
-
-    constructor(
-        public readonly width: number,
-        public readonly height: number
-    ) {
-        this.layoutBox = new BBox(0, 0, width, height);
     }
 }

@@ -38,6 +38,21 @@ function tsGenerateWithOptionReferences(node, srcFile) {
     return tsGenerate(node, srcFile).replace(/chart[A-Za-z0-9]*\.update\(options\);?/g, '');
 }
 
+function addImport(bindings: any, moduleName: string, moduleImports: string[]) {
+    const existingImport = bindings.imports.find((i) => i.module === `'${moduleName}'`);
+
+    if (existingImport) {
+        existingImport.imports = Array.from(new Set(existingImport.imports.concat(moduleImports)));
+    } else {
+        bindings.imports.push({
+            module: `'${moduleName}'`,
+            isNamespaced: false,
+            namedImport: undefined,
+            imports: moduleImports,
+        });
+    }
+}
+
 export function parser({
     srcFile,
     html,
@@ -49,15 +64,40 @@ export function parser({
     dirPath: string;
     exampleSettings: ExampleSettings;
 }) {
-    const bindings = internalParser(readAsJsFile(srcFile, { includeImports: true }), html, exampleSettings, dirPath);
+    const jsFile = readAsJsFile(srcFile, { includeImports: true });
+    const bindings = internalParser(jsFile, html, exampleSettings, dirPath);
     const typedBindings = internalParser(srcFile, html, exampleSettings, dirPath);
     // Ensure options type percolates through for JS cases.
     Object.assign(bindings.optionsTypeInfo, typedBindings.optionsTypeInfo);
+
+    if (jsFile.includes('ModuleRegistry.registerModules(')) {
+        const match = jsFile.match(/ModuleRegistry\.registerModules\([\s\S]*?\);/);
+        if (match) {
+            bindings.globals.push(match[0]);
+            typedBindings.globals.push(match[0]);
+        }
+    } else {
+        const isEnterprise = exampleSettings.enterprise;
+        const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
+        const moduleBundle = isEnterprise ? 'AllEnterpriseModule' : 'AllCommunityModule';
+        const moduleImports = ['ModuleRegistry', moduleBundle];
+
+        addImport(bindings, packageName, moduleImports);
+        addImport(typedBindings, packageName, moduleImports);
+
+        bindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
+        typedBindings.globals.push(`ModuleRegistry.registerModules(${moduleBundle});`);
+    }
+
     return { bindings, typedBindings };
 }
 
 export function internalParser(js, html, exampleSettings: ExampleSettings, dirPath) {
-    const domTree = cheerio.load(html, null, false);
+    const HR_PLACEHOLDER = '__AG_EXAMPLE_HR__';
+    const hrPlaceholderRegex = new RegExp(HR_PLACEHOLDER, 'g');
+    const htmlWithPlaceholders = html.replace(/<hr\s*\/?\s*>/gi, HR_PLACEHOLDER);
+
+    const domTree = cheerio.load(htmlWithPlaceholders, null, false);
     domTree('style').remove();
 
     const domEventHandlers = extractEventHandlers(domTree, recognizedDomEvents);
@@ -249,7 +289,7 @@ export function internalParser(js, html, exampleSettings: ExampleSettings, dirPa
 
     tsBindings.placeholders = placeholders;
     tsBindings.chartAttributes = chartAttributes;
-    tsBindings.template = domTree.html();
+    tsBindings.template = domTree.html()?.replace(hrPlaceholderRegex, '<hr />');
     tsBindings.imports = extractImportStatements(tsTree);
     tsBindings.optionsTypeInfo = extractTypeInfoForVariable(tsTree, 'options');
     tsBindings.usesChartApi = usesChartApi(tsTree);

@@ -31,6 +31,7 @@ const Collapsible: FunctionComponent<Props> = ({
     };
 
     const handleVersionLabelClick = (event: React.MouseEvent<HTMLLabelElement>) => {
+        // eslint-disable-next-line no-restricted-properties
         event.stopPropagation();
     };
 
@@ -44,7 +45,7 @@ const Collapsible: FunctionComponent<Props> = ({
         <div className={showNotes && !isEmptyContent ? styles.isOpen : undefined}>
             <button
                 className={classNames(styles.showHideButton, isEmptyContent ? 'button-tertiary' : '')}
-                onClick={!isEmptyContent ? collapsibleHandler : undefined}
+                onClick={isEmptyContent ? undefined : collapsibleHandler}
                 {...buttonDisabledProps}
             >
                 <div>
@@ -63,6 +64,7 @@ const Collapsible: FunctionComponent<Props> = ({
                         value={fixVersion || versions[0]}
                         aria-label={'Select Release Version'}
                         onChange={(event) => onChange(event.target.value)}
+                        // eslint-disable-next-line no-restricted-properties
                         onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     >
                         {versions
@@ -82,7 +84,7 @@ const Collapsible: FunctionComponent<Props> = ({
                     } ${isEmptyContent ? styles.noContent : ''}`}
                 >
                     <div>{children}</div>
-                    {!hideExpander ? (
+                    {hideExpander ? null : (
                         <a
                             className={styles.showMoreLink}
                             href="#"
@@ -96,7 +98,7 @@ const Collapsible: FunctionComponent<Props> = ({
                                 <Icon name={showMore ? 'chevronUp' : 'chevronDown'} />
                             </span>
                         </a>
-                    ) : null}
+                    )}
                 </div>
             )}
         </div>

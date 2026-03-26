@@ -29,10 +29,10 @@ export class LocaleManager {
         const { localeText = AG_CHARTS_LOCALE_EN_US, getLocaleText } = this;
         const defaultValue: string | undefined = localeText[key];
 
-        return (
+        return String(
             getLocaleText?.({ key, defaultValue, variables }) ??
-            defaultMessageFormatter({ key, defaultValue, variables }) ??
-            key
+                defaultMessageFormatter({ key, defaultValue, variables }) ??
+                key
         );
     }
 }

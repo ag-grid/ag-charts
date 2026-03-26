@@ -1,6 +1,5 @@
-import { clamp, createElement, getAttribute, setAttribute } from 'ag-charts-core';
+import { clamp, createElement, formatPercent, getAttribute, setAttribute } from 'ag-charts-core';
 
-import { formatPercent } from '../util/format.util';
 import type { RovingDirection } from './rovingDirection';
 import { Widget } from './widget';
 import type { FocusWidgetEvent, KeyboardWidgetEvent } from './widgetEvents';
@@ -52,7 +51,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         return getAttribute(this.elem, 'aria-orientation') ?? 'both';
     }
     public set orientation(orientation: RovingDirection) {
-        setAttribute(this.elem, 'aria-orientation', orientation !== 'both' ? orientation : undefined);
+        setAttribute(this.elem, 'aria-orientation', orientation === 'both' ? undefined : orientation);
         SliderWidget.registerDefaultPreventers(this, orientation);
     }
 
@@ -81,6 +80,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         const elem = this.getElement();
         elem.value = `${value}`;
         elem.ariaValueText = ariaValueText;
+        elem.ariaValueNow = `${value}`;
     }
 
     getValueRatio() {

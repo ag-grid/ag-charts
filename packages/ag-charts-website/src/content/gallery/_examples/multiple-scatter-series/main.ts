@@ -1,8 +1,18 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 // Notable countries to label
+
+ModuleRegistry.registerModules([ScatterSeriesModule, LegendModule, NumberAxisModule]);
 const notableCountries = [
     'Singapore',
     'Luxembourg',
@@ -105,7 +115,7 @@ const options: AgChartOptions = {
 
                     return {
                         title: `${datum.country}`,
-                        content: [
+                        data: [
                             { label: 'GDP per Capita', value: gdpFormatted },
                             {
                                 label: 'Regional Avg',
@@ -122,9 +132,8 @@ const options: AgChartOptions = {
             },
         };
     }),
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             title: {
@@ -179,8 +188,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             nice: false,
             min: 2.5,
@@ -213,7 +221,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         spacing: 10,
         item: {

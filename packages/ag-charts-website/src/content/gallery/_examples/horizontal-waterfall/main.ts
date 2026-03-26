@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, NumberAxisModule, WaterfallSeriesModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -67,50 +77,17 @@ const options: AgCartesianChartOptions = {
                     },
                 },
             },
-            tooltip: {
-                renderer: (params) => {
-                    const value = params.datum.amount;
-                    const absValue = Math.abs(value);
-                    const category = params.datum.financials;
-
-                    let typeLabel = 'Change';
-                    if (params.itemId === 'total') {
-                        typeLabel = 'Total Income';
-                    } else if (params.itemId === 'subtotal') {
-                        typeLabel = 'Total Expenditure';
-                    } else if (value > 0) {
-                        typeLabel = 'Income';
-                    } else {
-                        typeLabel = 'Expenditure';
-                    }
-
-                    return {
-                        heading: category,
-                        title: typeLabel,
-                        data: !isNaN(value)
-                            ? [
-                                  {
-                                      label: 'Amount',
-                                      value: `${value < 0 ? '-' : ''}£${absValue} billion`,
-                                  },
-                              ]
-                            : [],
-                    };
-                },
-            },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             label: {
                 formatter: (params) => {
                     const value = params.value as number;
@@ -129,7 +106,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

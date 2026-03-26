@@ -2,6 +2,7 @@
 import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseCartesianChartOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
+import type { AgDataTransaction } from './chart/dataTransaction';
 import type { AgBasePolarChartOptions } from './chart/polarOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -88,6 +89,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'title'
     | 'initialState'
     | 'data'
+    | 'dataIdKey'
     | 'listeners'
     | 'formatter'
 >;
@@ -180,6 +182,13 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
      * should batch up and/or debounce changes to avoid unintended partial update renderings.
      */
     updateDelta(deltaOptions: DeepPartial<O>): Promise<void>;
+
+    /**
+     * Apply a transaction to incrementally update the chart data without replacing the entire dataset.
+     *
+     * @returns a `Promise` that resolves once the transaction has been applied and rendered
+     */
+    applyTransaction(transaction: AgDataTransaction<TDatum>): Promise<void>;
 
     /** Get the `AgChartOptions` representing the current chart configuration. */
     getOptions(): O;

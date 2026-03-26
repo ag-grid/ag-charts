@@ -1,3 +1,5 @@
+import type { ChartAxisDirection, Scale } from 'ag-charts-core';
+import { checkDatum } from 'ag-charts-core';
 import type {
     AgBaseCrossLineLabelOptions,
     AgCrossLineLabelPosition,
@@ -7,10 +9,7 @@ import type {
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
-import { checkDatum } from '../../util/value';
-import type { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineType = 'line' | 'range';
 
@@ -37,7 +36,8 @@ export function validateCrossLineValue(crossLine: ICrossLine, scale: Scale<any, 
     }
 
     const isContinuous = ContinuousScale.is(scale) || DiscreteTimeScale.is(scale);
-    const validValue = (val: unknown) => checkDatum(val, isContinuous) && !isNaN(scale.convert(val, { clamp: true }));
+    const validValue = (val: unknown) =>
+        checkDatum(val, isContinuous) && !Number.isNaN(scale.convert(val, { clamp: true }));
 
     if (crossLine.type === 'range') {
         const [start, end] = value as [unknown, unknown];
@@ -56,6 +56,7 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     fill?: string;
     fillOpacity?: number;
     gridLength: number;
+    gridPadding: number;
     lineGroup: Group;
     rangeGroup: Group;
     id: string;

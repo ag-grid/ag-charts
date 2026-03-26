@@ -1,0 +1,1 @@
+../../external/prompts/rules/cartesian-series-types.md

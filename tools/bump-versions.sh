@@ -7,6 +7,7 @@ set -eu
 
 NEW_VERSION="$1"
 TOOLS_DIR=$(dirname $0)
+SKIP_FORMAT="${2:-no}"
 
 PACKAGES=(
     ag-charts
@@ -18,6 +19,7 @@ PACKAGES=(
     ag-charts-angular
     ag-charts-react
     ag-charts-vue3
+    ag-charts-server-side
     ag-charts-test
     ag-charts-generate-example-files
     ag-charts-generate-code-reference-files
@@ -45,5 +47,11 @@ done
 GRID_VERSION=$(node ${TOOLS_DIR}/calculate-grid-version.js "$NEW_VERSION")
 node ${TOOLS_DIR}/update-grid-version.js "$GRID_VERSION"
 
-# Ensure consistent package.json formatting.
-npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+PACKAGE_FILES=$(git status -s | grep package.json | awk '{ print $2 }')
+
+if [ "$SKIP_FORMAT" != "yes" ] -a [ $PACKAGE_FILES != "" ]
+  then
+    # Ensure consistent package.json formatting.
+    npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+fi
+

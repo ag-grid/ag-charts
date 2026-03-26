@@ -1,7 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

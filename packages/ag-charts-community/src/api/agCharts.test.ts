@@ -23,7 +23,7 @@ describe('AgCharts', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        document.body.removeChild(container);
+        container.remove();
     });
 
     function expectCachedLogs() {
@@ -67,11 +67,11 @@ describe('AgCharts', () => {
     }
 
     beforeEach(() => {
-        (window as any).agChartsDebug = ['perf', 'pool', 'dev'];
+        (globalThis as any).agChartsDebug = ['perf', 'pool', 'dev'];
     });
 
     afterEach(() => {
-        delete (window as any).agChartsDebug;
+        delete (globalThis as any).agChartsDebug;
     });
 
     describe('sparkline optimisations', () => {
@@ -185,9 +185,9 @@ describe('AgCharts', () => {
             const options = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
-                    { month: 'February', max: 10.4, min: 3.0 },
+                    { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
-                    { month: 'April', max: 13.7, min: 5.0 },
+                    { month: 'April', max: 13.7, min: 5 },
                 ],
                 series: [
                     {
@@ -237,9 +237,9 @@ describe('AgCharts', () => {
             const options = {
                 data: [
                     { month: 'January', max: 8.5, min: 2.6 },
-                    { month: 'February', max: 10.4, min: 3.0 },
+                    { month: 'February', max: 10.4, min: 3 },
                     { month: 'March', max: 10.9, min: 4.7 },
-                    { month: 'April', max: 13.7, min: 5.0 },
+                    { month: 'April', max: 13.7, min: 5 },
                 ],
                 series: [
                     {

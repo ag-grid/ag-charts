@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -38,10 +48,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 style: [
                     {
@@ -77,9 +86,8 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             min: 4,
             max: 10,
             gridLine: {
@@ -97,7 +105,7 @@ const options: AgCartesianChartOptions = {
                 text: 'Magnitude (Richter Scale)',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

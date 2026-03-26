@@ -1,13 +1,11 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, type Point, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import type { AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationContext, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
 import { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface FibonacciRetracementTrendBasedStateMachineContext
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -33,7 +31,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point });
             ctx.create(datum);
@@ -45,7 +43,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             node?.toggleHandles({ start: true, end: false, endRetracement: false });
         };
 
-        const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
+        const actionEndUpdate = ({ offset, context }: { offset: Point; context: AnnotationContext }) => {
             const { datum, snapping } = this;
             if (!datum) return;
 
@@ -64,13 +62,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionEndRetracementUpdate = ({
-            offset,
-            context,
-        }: {
-            offset: _ModuleSupport.Vec2;
-            context: AnnotationContext;
-        }) => {
+        const actionEndRetracementUpdate = ({ offset, context }: { offset: Point; context: AnnotationContext }) => {
             const { datum, snapping } = this;
             if (!datum) return;
 

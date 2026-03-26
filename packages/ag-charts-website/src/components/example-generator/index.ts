@@ -94,7 +94,7 @@ const readContentJson = async (params: GeneratedExampleParams): Promise<Generate
 export const getGeneratedContentsFileList = async (params: GeneratedExampleParams) => {
     const contents = await readContentJson(params);
 
-    return contents != null ? Object.keys(contents.files) : [];
+    return contents == null ? [] : Object.keys(contents.files);
 };
 
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {

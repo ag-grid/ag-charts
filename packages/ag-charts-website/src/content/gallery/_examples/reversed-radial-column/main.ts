@@ -1,7 +1,22 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    RadialColumnSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { type RevenueData, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    LegendModule,
+    RadialColumnSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const options: AgPolarChartOptions<RevenueData> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -41,8 +56,8 @@ const options: AgPolarChartOptions<RevenueData> = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.4,
             reverse: true,
@@ -50,11 +65,11 @@ const options: AgPolarChartOptions<RevenueData> = {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.2,
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

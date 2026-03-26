@@ -19,17 +19,17 @@
 }
 
 .ag-charts-tab-guard {
-    width: 0%;
-    height: 0%;
+    width: 0;
+    height: 0;
     position: absolute;
     pointer-events: none;
 }
 
-.ag-charts-canvas-center {
-    /* Width/height overridden by styles (may not be needed) */
-    width: 100%;
-    height: 100%;
+.ag-charts-canvas-background {
+    position: absolute;
+}
 
+.ag-charts-canvas-center {
     position: absolute;
     touch-action: auto;
     pointer-events: auto;
@@ -79,9 +79,9 @@
 
 .ag-charts-canvas-proxy,
 .ag-charts-canvas-overlay {
+    position: absolute;
     inset: 0;
     pointer-events: none;
-    position: absolute;
     user-select: none;
     -webkit-user-select: none;
 }
@@ -89,4 +89,8 @@
 .ag-charts-canvas-overlay > * {
     position: absolute;
     pointer-events: auto;
+}
+
+.ag-charts-canvas-overlay > [role='presentation'] {
+    left: 0;
 }

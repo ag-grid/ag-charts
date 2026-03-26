@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -34,8 +42,7 @@ const options: AgCartesianChartOptions = {
             maxSize: 50,
             size: 15,
             strokeWidth: 2,
-            itemStyler: ({ datum, highlighted }) => {
-                if (highlighted) return;
+            itemStyler: ({ datum }) => {
                 return {
                     fill: {
                         type: 'image',
@@ -45,9 +52,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             title: {
                 text: 'Year Of Invention',
@@ -66,7 +72,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             gridLine: {
@@ -78,7 +84,7 @@ const options: AgCartesianChartOptions = {
                 values: [0, 10],
             },
         },
-    ],
+    },
     formatter: {
         x: (params) => {
             const value = params.value as number;

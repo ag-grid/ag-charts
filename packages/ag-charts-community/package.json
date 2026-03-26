@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community",
-  "version": "12.2.0-beta.20250914",
+  "version": "13.2.0",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -17,12 +17,6 @@
       "require": "./dist/package/integrated-charts-scene.cjs.js",
       "import": "./dist/package/integrated-charts-scene.esm.mjs",
       "default": "./dist/package/integrated-charts-scene.cjs.js"
-    },
-    "./modules": {
-      "types": "./dist/types/src/main-modules.d.ts",
-      "require": "./dist/package/main-modules.cjs.js",
-      "import": "./dist/package/main-modules.esm.mjs",
-      "default": "./dist/package/main-modules.cjs.js"
     }
   },
   "sideEffects": [
@@ -70,20 +64,20 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-core": "12.2.0-beta.20250914",
-    "ag-charts-types": "12.2.0-beta.20250914",
-    "ag-charts-locale": "12.2.0-beta.20250914"
+    "ag-charts-core": "13.2.0",
+    "ag-charts-types": "13.2.0",
+    "ag-charts-locale": "13.2.0"
   },
   "devDependencies": {
-    "@jest/globals": "29.6.1",
+    "@jest/globals": "29.7.0",
     "@types/jest": "^29.5.0",
     "@types/jest-image-snapshot": "^5.1.0",
     "@types/node": "^16.0.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "^6.0.1",
-    "ag-charts-test": "12.2.0-beta.20250914",
-    "skia-canvas": "^2.0.2",
-    "path2d": "^0.2.0",
+    "ag-charts-test": "13.2.0",
+    "skia-canvas": "^3.0.8",
+    "path2d": "^0.3.1",
     "timezone-mock": "^1.3.6"
   },
   "publishConfig": {

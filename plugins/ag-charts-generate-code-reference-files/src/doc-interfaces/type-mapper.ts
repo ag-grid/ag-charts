@@ -2,7 +2,7 @@ import { parseFileContents } from 'ag-shared/plugin-utils';
 import * as ts from 'typescript';
 
 import { formatNode } from './type-utils';
-import { NodeTypes } from './types';
+import type { NodeTypes } from './types';
 
 export class TypeMapper {
     protected nodeMap: Map<string, NodeTypes> = new Map();

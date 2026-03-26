@@ -1,10 +1,9 @@
-import { type AgColorType, type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgColorType, type AgRadarAreaSeriesOptions, type AgRadarAreaSeriesStyle } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
 import { RadarSeriesProperties } from '../radar/radarSeriesProperties';
 
-const { Property } = _ModuleSupport;
-
-export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesOptions> {
+export class RadarAreaSeriesProperties extends RadarSeriesProperties<AgRadarAreaSeriesStyle, AgRadarAreaSeriesOptions> {
     @Property
     fill: AgColorType = 'black';
 

@@ -1,4 +1,12 @@
-import { CleanupRegistry, EventEmitter, type StrictHTMLElement } from 'ag-charts-core';
+import {
+    AgDocument,
+    CallbackCache,
+    CleanupRegistry,
+    EventEmitter,
+    ModuleRegistry,
+    ModuleType,
+    type StrictHTMLElement,
+} from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
@@ -7,23 +15,19 @@ import type { EventsHubMap } from '../core/eventsHub';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
-import type { ModuleInstance } from '../module/baseModule';
-import type { ContextModule } from '../module/coreModules';
-import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
-import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
-import { ChartUpdateType } from './chartUpdateType';
 import { DataService } from './data/dataService';
-import type { ChartType } from './factory/chartTypes';
+import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
+import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
@@ -38,7 +42,7 @@ import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
-import { type UpdateCallback, UpdateService } from './updateService';
+import { UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
@@ -53,6 +57,7 @@ export class ChartContext implements ModuleContext {
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
     readonly cleanup = new CleanupRegistry();
 
+    readonly activeManager: ActiveManager;
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
@@ -61,6 +66,7 @@ export class ChartContext implements ModuleContext {
     chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
     dataService: DataService<any>;
+    agDocument: AgDocument;
     domManager: DOMManager;
     fontManager: FontManager;
     historyManager: HistoryManager;
@@ -74,8 +80,6 @@ export class ChartContext implements ModuleContext {
     widgets: WidgetSet;
     zoomManager: ZoomManager;
 
-    private readonly contextModules: ModuleInstance[] = [];
-
     constructor(
         chart: ChartService & { annotationRoot: Group; tooltip: Tooltip },
         vars: {
@@ -84,11 +88,12 @@ export class ChartContext implements ModuleContext {
             root: Group;
             syncManager: SyncManager;
             container?: HTMLElement;
+            agDocument: AgDocument;
             styleContainer?: HTMLElement;
+            skipCss?: boolean;
             domMode?: 'normal' | 'minimal';
             withDragInterpretation: boolean;
             fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
-            updateCallback: UpdateCallback;
             updateMutex: Mutex;
         }
     ) {
@@ -96,11 +101,12 @@ export class ChartContext implements ModuleContext {
             scene,
             root,
             syncManager,
+            agDocument,
             container,
             fireEvent,
-            updateCallback,
             updateMutex,
             styleContainer,
+            skipCss,
             chartType,
             domMode,
             withDragInterpretation,
@@ -108,8 +114,19 @@ export class ChartContext implements ModuleContext {
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(this.eventsHub, this.chartService, container, styleContainer, domMode);
+        this.agDocument = agDocument;
+        this.domManager = new DOMManager(
+            this.eventsHub,
+            this.chartService,
+            this.agDocument,
+            container,
+            styleContainer,
+            skipCss,
+            domMode
+        );
         this.widgets = new WidgetSet(this.domManager, { withDragInterpretation });
+
+        const localWindow = this.agDocument.window;
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
@@ -118,13 +135,8 @@ export class ChartContext implements ModuleContext {
             scene?.canvas.element
         ) as HTMLCanvasElement & StrictHTMLElement;
 
-        this.scene = scene ?? new Scene({ canvasElement });
+        this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
-        this.cleanup.register(
-            this.scene.on('scene-changed', () => {
-                this.updateService.update(ChartUpdateType.SCENE_RENDER);
-            })
-        );
 
         this.axisManager = new AxisManager(this.eventsHub, root);
         this.legendManager = new LegendManager(this.eventsHub);
@@ -133,21 +145,26 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
-        this.updateService = new UpdateService(updateCallback);
+        this.updateService = new UpdateService();
+        this.activeManager = new ActiveManager(
+            this.chartService,
+            this.eventsHub,
+            this.updateService,
+            this.interactionManager,
+            fireEvent
+        );
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
-        this.fontManager = new FontManager(this.domManager, this.updateService);
+        this.fontManager = new FontManager(this.domManager, this.eventsHub);
         this.historyManager = new HistoryManager(this.eventsHub);
-        this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
+        this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub, this.updateService, fireEvent);
 
-        for (const module of moduleRegistry.byType<ContextModule>('context')) {
-            if (!module.chartTypes.includes(chartType)) continue;
-
-            const moduleInstance = module.moduleFactory(this);
-            this.contextModules.push(moduleInstance);
-            (this as any)[module.contextKey] = moduleInstance;
+        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+            if (!module.chartType || module.chartType === chartType) {
+                module.patchContext?.(this);
+            }
         }
     }
 
@@ -162,7 +179,6 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
         this.widgets.destroy();
-        this.contextModules.forEach((m) => m.destroy());
         this.cleanup.flush();
     }
 }

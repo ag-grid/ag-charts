@@ -1,11 +1,11 @@
 import { afterEach, beforeEach } from '@jest/globals';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 import {
     CANVAS_HEIGHT,
     CANVAS_WIDTH,
-    SizeMetadata,
+    type SizeMetadata,
     WheelDeltaMode,
     flushTimings,
     loadBuiltExampleOptions,
@@ -18,7 +18,7 @@ import {
     sizeOf,
     wheelEvent,
 } from 'ag-charts-test';
-import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../src/main';
 import {
@@ -27,14 +27,16 @@ import {
     isHistoricBenchmarkTest,
     prepareTestOptions,
     waitForUpdate,
-} from './compatibility.ts';
+} from './compatibility';
 
 if (isHistoricBenchmarkTest()) {
     console.warn('Attempting to run against version: ', getVersion().join('.'));
 }
 
-globalThis.agChartsDebugTimeout = 60_000; // Use Jest timeouts
-const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT ? parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT) : undefined;
+(globalThis as any).agChartsDebugTimeout = 60_000; // Use Jest timeouts
+const repeatLimit = process.env.AG_BENCHMARK_REPEAT_LIMIT
+    ? Number.parseInt(process.env.AG_BENCHMARK_REPEAT_LIMIT)
+    : undefined;
 const softFailMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_SOFT_FAIL ?? '0');
 const debugMode = ['1', 'true'].includes(process.env.AG_BENCHMARK_DEBUG ?? '0');
 
@@ -57,7 +59,7 @@ const expectationBreaches: ExpectationBreach[] = [];
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     chart?: AgChartInstance<T>;
-    options: T;
+    options!: T;
     nodePositions: { x: number; y: number }[][] = [];
     repeat = 1;
 
@@ -227,10 +229,10 @@ function runAutoSnapshot(ctx: BenchmarkContext, expectations: BenchmarkExpectati
 }
 
 function runExpectations(
-    ctx: BenchmarkContext,
+    _ctx: BenchmarkContext,
     expectations: BenchmarkExpectations,
     currentTestName: string,
-    memory: ReturnType<typeof recordTiming>,
+    _memory: ReturnType<typeof recordTiming>,
     canvasInstances: unknown[],
     initialRetainedSize: number,
     finalRetainedSizeResult: SizeMetadata | undefined
@@ -322,7 +324,7 @@ export function benchmark(
     callback: () => Promise<void> | void,
     timeoutMs = defaultTimeoutMs(ctx)
 ) {
-    if (!global.gc) {
+    if (!globalThis.gc) {
         // Just warn and fail on exit - this allows us to run the benchmarks for debugging from VSCode.
         console.warn('GC flags disabled - invoke via `npm run benchmark` to collect heap usage stats');
         process.exitCode = 1;
@@ -331,7 +333,7 @@ export function benchmark(
     it(
         name,
         async () => {
-            global.gc?.();
+            globalThis.gc?.();
 
             const { repeat: runCount = 1 } = ctx;
 
@@ -351,11 +353,11 @@ export function benchmark(
                 await callback();
                 const end = performance.now();
                 totalDuration += end - start;
-                global.gc?.();
+                globalThis.gc?.();
             }
 
             await new Promise((r) => setTimeout(r, 100));
-            global.gc?.();
+            globalThis.gc?.();
 
             const memoryAfter = process.memoryUsage();
 

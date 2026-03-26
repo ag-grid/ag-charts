@@ -32,7 +32,7 @@ export const getExampleImageUrl = ({
     dpi: 1 | 2;
     ext: 'png' | 'webp';
 }) => {
-    const dpiExt = dpi !== 1 ? `@${dpi}x` : '';
+    const dpiExt = dpi === 1 ? '' : `@${dpi}x`;
     const imageUrl = getDevFileUrl({ filePath: `/ag-charts-thumbnails/${exampleName}/${theme}${dpiExt}.${ext}` });
     return imageUrl;
 };

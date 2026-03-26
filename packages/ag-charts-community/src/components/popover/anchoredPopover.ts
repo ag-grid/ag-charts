@@ -1,12 +1,11 @@
-import { clamp, getWindow } from 'ag-charts-core';
+import { type Point, clamp } from 'ag-charts-core';
 
-import type { Vec2 } from '../../util/vector';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 import { Popover, type PopoverOptions } from './popover';
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
-    anchor?: Vec2;
-    fallbackAnchor?: Vec2;
+    anchor?: Point;
+    fallbackAnchor?: Point;
 }
 
 /**
@@ -16,10 +15,10 @@ export interface AnchoredPopoverOptions extends PopoverOptions {
 export abstract class AnchoredPopover<
     Options extends AnchoredPopoverOptions = AnchoredPopoverOptions,
 > extends Popover<Options> {
-    private anchor?: Vec2;
-    private fallbackAnchor?: Partial<Vec2>;
+    private anchor?: Point;
+    private fallbackAnchor?: Partial<Point>;
 
-    public setAnchor(anchor: Vec2, fallbackAnchor?: Partial<Vec2>) {
+    public setAnchor(anchor: Point, fallbackAnchor?: Partial<Point>) {
         this.anchor = anchor;
         this.fallbackAnchor = fallbackAnchor;
 
@@ -39,18 +38,12 @@ export abstract class AnchoredPopover<
 
     protected override showWidget(controller: ExpansionControllerWidget, owns: ExpandableWidget, options: Options) {
         super.showWidget(controller, owns, options);
-        this.updateAnchor(options);
+        this.updateAfterShow(options);
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
         const popover = super.showWithChildren(children, options);
-        this.updateAnchor(options);
-
-        // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
-        // bounding box
-        getWindow().requestAnimationFrame(() => {
-            this.repositionWithinBounds();
-        });
+        this.updateAfterShow(options);
 
         return popover;
     }
@@ -63,12 +56,15 @@ export abstract class AnchoredPopover<
 
         const canvasRect = ctx.domManager.getBoundingClientRect();
         const { offsetWidth: width, offsetHeight: height } = popover;
+        const { isRtl } = ctx.domManager;
+        const anchorX = isRtl ? anchor.x - width : anchor.x;
 
-        let x = clamp(0, anchor.x, canvasRect.width - width);
+        let x = clamp(0, anchorX, canvasRect.width - width);
         let y = clamp(0, anchor.y, canvasRect.height - height);
 
-        if (x !== anchor.x && fallbackAnchor?.x != null) {
-            x = clamp(0, fallbackAnchor.x - width, canvasRect.width - width);
+        if (x !== anchorX && fallbackAnchor?.x != null) {
+            const fallbackX = isRtl ? fallbackAnchor.x : fallbackAnchor.x - width;
+            x = clamp(0, fallbackX, canvasRect.width - width);
         }
 
         if (y !== anchor.y && fallbackAnchor?.y != null) {
@@ -76,5 +72,15 @@ export abstract class AnchoredPopover<
         }
 
         this.updatePosition({ x, y });
+    }
+
+    private updateAfterShow(options: Options) {
+        this.updateAnchor(options);
+
+        // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
+        // bounding box
+        this.ctx.agDocument.requestAnimationFrame(() => {
+            this.repositionWithinBounds();
+        });
     }
 }

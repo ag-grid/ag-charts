@@ -1,7 +1,15 @@
 import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -74,10 +82,9 @@ const options: AgChartOptions = {
             fill: { type: 'pattern' },
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', paddingOuter: 0 },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', paddingOuter: 0 },
+    },
     legend: {
         fill: '#f6f6f6',
         border: {

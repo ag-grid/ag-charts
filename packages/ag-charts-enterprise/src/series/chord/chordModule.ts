@@ -1,35 +1,38 @@
-import { type AgChordSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgChordSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    SINGLE_SERIES_HIGHLIGHT_STYLE,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { ChordSeries } from './chordSeries';
 import { chordSeriesOptionsDef } from './chordSeriesOptionsDef';
 
-export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
+export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'chord',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
+    version: VERSION,
+    dependencies: [StandaloneChartModule],
 
-    identifier: 'chord',
-    moduleFactory: (ctx) => new ChordSeries(ctx),
-
+    options: chordSeriesOptionsDef,
     themeTemplate: {
         series: {
             fills: { $palette: 'fills' },
             strokes: { $palette: 'strokes' },
-            // @ts-expect-error undocumented option
-            fillGradientDefaults: _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS,
-            fillPatternDefaults: _ModuleSupport.FILL_PATTERN_DEFAULTS,
-            fillImageDefaults: _ModuleSupport.FILL_IMAGE_DEFAULTS,
-            highlightStyle: {
-                series: {
-                    dimOpacity: 0.2,
-                },
-            },
-            highlight: _ModuleSupport.singleSeriesHighlightStyle(),
+            fillGradientDefaults: FILL_GRADIENT_LINEAR_DEFAULTS,
+            fillPatternDefaults: FILL_PATTERN_DEFAULTS,
+            fillImageDefaults: FILL_IMAGE_DEFAULTS,
+            highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
+                enabled: true,
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: { $ref: 'fontWeight' },
@@ -53,15 +56,6 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
             toggleSeries: false,
         },
     },
-};
 
-export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
-    type: 'series',
-    name: 'chord',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: chordSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new ChordSeries(ctx),
+    create: (ctx) => new ChordSeries(ctx),
 };

@@ -129,11 +129,11 @@ export function getBenchmark2Data() {
         },
         // {
         //     name: 'b11.1.0',
-        //     timeMs: 72.76119159999999,
-        //     memoryUsage: 15762436,
-        //     heapUsed: 15378120,
-        //     canvasCount: 22,
-        //     canvasBytes: 3843168,
+        //     timeMs: 32.8,
+        //     memoryUsage: 17,
+        //     heapUsed: 15,
+        //     canvasCount: 30,
+        //     canvasBytes: 23,
         // },
         {
             name: 'b11.2.1',

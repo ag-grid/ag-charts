@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const numFormatter = new Intl.NumberFormat('en-US');
 
 const options: AgCartesianChartOptions = {
@@ -82,10 +99,9 @@ const options: AgCartesianChartOptions = {
             normalizedTo: 100,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.1,
             paddingOuter: 0.1,
             title: {
@@ -95,9 +111,8 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Percentage of Daily Entries',
             },
@@ -117,7 +132,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         x(params) {
             if (params.source === 'axis-label') {

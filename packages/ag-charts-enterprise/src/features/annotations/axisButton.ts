@@ -1,24 +1,24 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { AbstractModuleInstance, ChartAxisDirection, type Point, Property, getIconClassNames } from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
-const { BaseModuleInstance, InteractionState, Property, ChartAxisDirection, getIconClassNames } = _ModuleSupport;
-
+const { InteractionState } = _ModuleSupport;
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
-export class AxisButton extends BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class AxisButton extends AbstractModuleInstance {
     @Property
     public enabled = true;
 
     private readonly button: _Widget.ButtonWidget;
     private readonly snap: boolean = false;
     private padding: number = 0;
-    private coords?: _ModuleSupport.Vec2;
+    private coords?: Point;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
-        private readonly onButtonClick: (coords?: _ModuleSupport.Vec2) => void,
+        private readonly onButtonClick: (coords?: Point) => void,
         private seriesRect: _ModuleSupport.BBox
     ) {
         super();
@@ -42,7 +42,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             ctx.widgets.seriesDragInterpreter?.events.on('click', (e) => this.onClick(e)),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.hide()),
-            ctx.eventsHub.on('zoom:change', () => this.hide()),
+            ctx.eventsHub.on('zoom:change-complete', () => this.hide()),
             () => this.destroyElements(),
             () => this.button.destroy()
         );
@@ -67,7 +67,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onMouseMove(e: _Widget.MouseWidgetEvent<'mousemove'>) {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
+        if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.show(e);
     }
 
     private onMouseDrag(e: _Widget.DragWidgetEvent) {
@@ -75,7 +75,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onMouseLeave() {
-        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.hide();
+        if (this.ctx.interactionManager.isState(InteractionState.Hoverable)) this.hide();
     }
 
     private onClick(e: _ModuleSupport.DragInterpreterClickEvent) {
@@ -108,7 +108,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.hide();
     }
 
-    private getButtonCoordinates({ x, y }: _ModuleSupport.Vec2) {
+    private getButtonCoordinates({ x, y }: Point) {
         const {
             axisCtx: { direction, position },
             seriesRect,
@@ -156,7 +156,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.button.toggleClass(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${name}`, include);
     }
 
-    private updatePosition({ x, y }: _ModuleSupport.Vec2) {
+    private updatePosition({ x, y }: Point) {
         this.button.getElement().style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
 

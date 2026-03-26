@@ -1,11 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { ZIndexMap, isObject } from 'ag-charts-core';
 
 import { Handle } from './handle';
 
+<<<<<<< HEAD
 const { ZIndexMap } = _ModuleSupport;
 
 export abstract class AnnotationScene<D> extends _ModuleSupport.Group<D> {
+=======
+export abstract class AnnotationScene extends _ModuleSupport.Group {
+>>>>>>> latest
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
@@ -43,7 +47,7 @@ export abstract class AnnotationScene<D> extends _ModuleSupport.Group<D> {
         isConfigured?: boolean
     ) {
         if (!isConfigured && node) {
-            this.removeChild(node);
+            node.remove();
             return;
         }
 

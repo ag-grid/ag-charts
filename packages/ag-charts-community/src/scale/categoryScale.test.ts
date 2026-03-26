@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { CategoryScale } from './categoryScale';
+import { GroupedCategoryScale } from './groupedCategoryScale';
 
 describe('CategoryScale', () => {
     test('initial state', () => {
@@ -16,9 +17,9 @@ describe('CategoryScale', () => {
     test('no implicit domain construction', () => {
         const scale = new CategoryScale();
 
-        expect(scale.convert('B')).toBe(NaN);
-        expect(scale.convert('C')).toBe(NaN);
-        expect(scale.convert('A')).toBe(NaN);
+        expect(scale.convert('B')).toBe(Number.NaN);
+        expect(scale.convert('C')).toBe(Number.NaN);
+        expect(scale.convert('A')).toBe(Number.NaN);
 
         expect(scale.domain).toEqual([]);
     });
@@ -127,19 +128,22 @@ describe('CategoryScale', () => {
 
     describe('normalizeDomains', () => {
         test('de-duplicates categories', () => {
-            expect(new CategoryScale().normalizeDomains(['A', 'A'])).toEqual({ domain: ['A'], animatable: true });
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C', 'A'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'A'] })).toEqual({
+                domain: ['A'],
+                animatable: true,
+            });
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C', 'A'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: true,
             });
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C'] }, { domain: ['C'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: true,
             });
         });
 
         test('animatable', () => {
-            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C', 'B'])).toEqual({
+            expect(new CategoryScale().normalizeDomains({ domain: ['A', 'B', 'C'] }, { domain: ['C', 'B'] })).toEqual({
                 domain: ['A', 'B', 'C'],
                 animatable: false,
             });
@@ -147,7 +151,71 @@ describe('CategoryScale', () => {
 
         test('retains referential equality for a single, ordered domain', () => {
             const domain = ['A', 'B', 'C'];
-            expect(new CategoryScale().normalizeDomains(domain).domain).toBe(domain);
+            expect(new CategoryScale().normalizeDomains({ domain }).domain).toBe(domain);
+        });
+    });
+});
+
+describe('GroupedCategoryScale', () => {
+    // CRT-992: Verify that animation eligibility is correctly tracked.
+    // The fix ensures initial load animations work (animatable=true on first domain set)
+    // while preventing animations when domain changes (animatable=false on subsequent changes).
+    describe('CRT-992 animatable property', () => {
+        test('should be animatable on initial domain set', () => {
+            const scale = new GroupedCategoryScale<string[]>();
+            expect(scale.animatable).toBe(true);
+
+            // First domain set - should remain animatable
+            scale.domain = [
+                ['A', 'B'],
+                ['C', 'D'],
+            ];
+            expect(scale.animatable).toBe(true);
+        });
+
+        test('should remain animatable when domain is unchanged', () => {
+            const scale = new GroupedCategoryScale<string[]>();
+
+            scale.domain = [
+                ['A', 'B'],
+                ['C', 'D'],
+            ];
+            expect(scale.animatable).toBe(true);
+
+            // Same domain - should remain animatable
+            scale.domain = [
+                ['A', 'B'],
+                ['C', 'D'],
+            ];
+            expect(scale.animatable).toBe(true);
+        });
+
+        test('should not be animatable when domain changes', () => {
+            const scale = new GroupedCategoryScale<string[]>();
+
+            scale.domain = [
+                ['A', 'B'],
+                ['C', 'D'],
+            ];
+            expect(scale.animatable).toBe(true);
+
+            // Different domain - should not be animatable
+            scale.domain = [
+                ['X', 'Y'],
+                ['Z', 'W'],
+            ];
+            expect(scale.animatable).toBe(false);
+        });
+
+        test('should handle empty initial domain', () => {
+            const scale = new GroupedCategoryScale<string[]>();
+
+            scale.domain = [];
+            expect(scale.animatable).toBe(true);
+
+            // Add items - domain changed
+            scale.domain = [['A', 'B']];
+            expect(scale.animatable).toBe(false);
         });
     });
 });

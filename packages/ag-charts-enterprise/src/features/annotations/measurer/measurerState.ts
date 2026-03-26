@@ -1,6 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import type { Point } from '../annotationTypes';
+import type { DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import {
@@ -10,8 +10,6 @@ import {
     QuickDatePriceRangeProperties,
 } from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -31,13 +29,13 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
     protected node?: MeasurerScene;
 
     constructor(ctx: MeasurerStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point });
             ctx.create(datum);
         };
 
-        const actionEndUpdate = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
             datum?.set({ end: point });
 

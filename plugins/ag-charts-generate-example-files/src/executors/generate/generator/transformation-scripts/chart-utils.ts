@@ -35,13 +35,16 @@ export function wrapOptionsUpdateCode(
 
 export function getChartImports(imports: BindingImport[], usesChartApi: boolean): string {
     const enterpriseCharts = imports.find((i) => i.module.includes('ag-charts-enterprise'));
-    const chartsImport = imports.find(
-        (i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise')
-    );
-    if (chartsImport) {
+
+    // Collect ALL imports from both community AND enterprise packages
+    const allChartsImports = imports
+        .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
+        .flatMap((i) => i.imports);
+
+    if (allChartsImports.length > 0) {
         // Only included AgCharts if its api is used. Otherwise it can be removed as AgCharts.create is handled by framework components
         // But if AgCharts.download is used we mustn't remove it.
-        const extraImports = chartsImport.imports.filter((i) => usesChartApi || i !== 'AgCharts');
+        const extraImports = [...new Set(allChartsImports)].filter((i) => usesChartApi || i !== 'AgCharts');
 
         if (extraImports.length > 0) {
             return `import { ${extraImports.join(', ')} } from 'ag-charts-${

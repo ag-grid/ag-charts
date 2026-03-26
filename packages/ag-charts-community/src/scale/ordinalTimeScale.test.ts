@@ -1,16 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
-
-import { datesSortOrder } from '../util/date';
 import {
+    datesSortOrder,
     durationDay,
     durationHour,
     durationMinute,
     durationMonth,
     durationWeek,
     durationYear,
-} from '../util/time/duration';
+} from 'ag-charts-core';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
 describe('OrdinalTimeScale', () => {
@@ -27,7 +27,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 5,
             minTickCount: 0,
@@ -49,7 +49,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ].reverse();
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 5,
             minTickCount: 0,
@@ -71,7 +71,7 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 6),
         ];
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -90,7 +90,7 @@ describe('OrdinalTimeScale', () => {
         ];
 
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -274,7 +274,7 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: true,
+                    nice: [true, true],
                     interval,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -508,7 +508,7 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: true,
+                    nice: [true, true],
                     interval,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -521,8 +521,8 @@ describe('OrdinalTimeScale', () => {
 
     it('should sort domains', () => {
         const scale = new OrdinalTimeScale();
-        const { domain } = scale.normalizeDomains(
-            [
+        const { domain } = scale.normalizeDomains({
+            domain: [
                 new Date(2024, 1, 26),
                 new Date(2024, 1, 27),
                 new Date(2024, 1, 28),
@@ -531,8 +531,8 @@ describe('OrdinalTimeScale', () => {
                 new Date(2024, 2, 4),
                 new Date(2024, 2, 5),
                 new Date(2024, 2, 6),
-            ].reverse()
-        );
+            ].reverse(),
+        });
         expect(datesSortOrder(domain)).toBe(1);
     });
 
@@ -722,7 +722,7 @@ describe('OrdinalTimeScale', () => {
             scale.range = [0, 1000];
             expect(
                 scale.ticks({
-                    nice: true,
+                    nice: [true, true],
                     interval: 'month',
                     tickCount: 0,
                     minTickCount: 0,

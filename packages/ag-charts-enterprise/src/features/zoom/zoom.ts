@@ -1,34 +1,47 @@
-import { type AgZoomAnchorPoint, type AgZoomAxisDraggingMode, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { debounce, entries, roundTo } from 'ag-charts-core';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { AxisID, BaseStyleTypeMap, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ActionOnSet,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Property,
+    ProxyProperty,
+    UNIT_MAX,
+    UNIT_MIN,
+    definedZoomState,
+    entries,
+    isNumberEqual,
+    roundTo,
+} from 'ag-charts-core';
+import type { AgZoomAnchorPoint } from 'ag-charts-types';
 
+import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ZoomRect } from './scenes/zoomRect';
+import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
-import { ZoomDOMProxy } from './zoomDOMProxy';
+import { ZoomOnDataChange, ZoomOnDataChangeProperties } from './zoomOnDataChange';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
-import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import { ZoomToolbar } from './zoomToolbar';
 import { ZoomTwoFingers } from './zoomTwoFingers';
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT_MAX,
-    UNIT_MIN,
     UNIT_SIZE,
+    constrainAxis,
     constrainZoom,
-    definedZoomState,
     dx,
     dy,
     isMaxZoom,
-    isZoomEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
 } from './zoomUtils';
 
-const { ActionOnSet, ChartAxisDirection, ChartUpdateType, Property, InteractionState, ProxyProperty } = _ModuleSupport;
+const { userInteraction, InteractionState } = _ModuleSupport;
 
 const round = (value: number) => roundTo(value, 10);
 
@@ -43,34 +56,7 @@ enum DragState {
     TwoFingers,
 }
 
-interface ZoomAutoScale {
-    enabled: boolean;
-    padding: number;
-}
-
-class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoScale {
-    constructor(protected onChange: (opts: ZoomAutoScale) => void) {
-        super();
-    }
-
-    @Property
-    @ActionOnSet<ZoomAutoScaling>({
-        changeValue(enabled) {
-            this.onChange({ enabled, padding: this.padding });
-        },
-    })
-    enabled = false;
-
-    @Property
-    @ActionOnSet<ZoomAutoScaling>({
-        changeValue(padding) {
-            this.onChange({ enabled: this.enabled, padding });
-        },
-    })
-    padding = 0;
-}
-
-export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Zoom extends AbstractModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
             this.onEnabledChange(enabled);
@@ -79,21 +65,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Property
     public enabled = false;
 
-    @ActionOnSet<Zoom>({
-        changeValue(newValue) {
-            this.updateAxisCursor({ enableAxisDragging: newValue });
-        },
-    })
     @Property
     public enableAxisDragging = true;
 
-    @ActionOnSet<Zoom>({
-        changeValue(newValue) {
-            this.updateAxisCursor({ enableAxisScrolling: newValue });
-        },
-    })
     @Property
-    public enableAxisScrolling = false;
+    public enableAxisScrolling = true;
 
     @Property
     public enableDoubleClickToReset = true;
@@ -125,6 +101,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public axes: 'x' | 'y' | 'xy' = 'x';
 
     @Property
+    public scrollingMode: 'pan' | 'zoom' = 'zoom';
+
+    @Property
     public scrollingStep = UNIT_SIZE / 10;
 
     @Property
@@ -140,33 +119,23 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     @Property
-    public readonly autoScaling = new ZoomAutoScaling((newValue) => {
-        this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
-    });
+    public readonly autoScaling: ZoomAutoScalingProperties = new ZoomAutoScalingProperties();
 
-    @ActionOnSet<Zoom>({
-        changeValue(newValue) {
-            this.updateAxisCursor({ axisDraggingMode: newValue });
-        },
-    })
     @Property
-    public axisDraggingMode: AgZoomAxisDraggingMode = 'zoom';
-
-    private readonly canResetZoom = (zoom?: Readonly<DefinedZoomState>): boolean => {
-        zoom ??= this.getZoom();
-        return !isZoomEqual(zoom, this.getResetZoom());
-    };
+    public axisDraggingMode: 'pan' | 'zoom' = 'zoom';
 
     @Property
     public buttons = new ZoomToolbar(
         this.ctx,
         this.getModuleProperties.bind(this),
-        this.canResetZoom,
         this.updateZoom.bind(this),
         this.updateAxisZoom.bind(this),
         this.resetZoom.bind(this),
         this.isZoomValid.bind(this)
     );
+
+    @Property
+    public readonly onDataChange: ZoomOnDataChangeProperties = new ZoomOnDataChangeProperties();
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
@@ -174,13 +143,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
+    private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
-    private readonly panner = new ZoomPanner();
+    private readonly dataChangeHandler: ZoomOnDataChange;
+    private readonly panner = new ZoomPanner(this.ctx);
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
     private readonly twoFingers = new ZoomTwoFingers();
-    private readonly domProxy: ZoomDOMProxy;
+
+    private hoveredAxisId?: AxisID;
 
     @ProxyProperty('panner.deceleration')
     @Property
@@ -193,13 +165,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
-    private isFirstWheelEvent = true;
-    private wasFirstWheelEventZoomCapped?: boolean;
-    private readonly debouncedWheelReset = debounce(() => {
-        this.isFirstWheelEvent = true;
-        this.wasFirstWheelEventZoomCapped = undefined;
-    }, 100);
-
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -210,50 +175,68 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.contextMenuRegistry,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
-            this.canResetZoom,
             () => this.paddedRect,
             this.updateZoom.bind(this),
             this.isZoomValid.bind(this)
         );
 
-        this.domProxy = new ZoomDOMProxy({
-            onAxisDragStart: (direction) => this.onAxisDragStart(direction),
-            onAxisDragMove: (id, direction, event) => this.onAxisDragMove(id, direction, event),
-            onAxisDragEnd: () => this.onAxisDragEnd(),
-            onAxisDoubleClick: (id) => this.onAxisDoubleClick(id),
-            onAxisWheel: (id, direction, event) => this.onAxisWheel(id, direction, event),
-        });
+        // FIXME(AG-8627 TC10; AG-16414) `minVisibleItems` should have its own zoom:change-request handling
+        const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
+            if (this.minVisibleItems > 0) {
+                const restrictions = event.stateAsDefinedZoom();
+                event.constrainZoom(this.constrainZoom(restrictions));
+            }
+        };
+        this.dataChangeHandler = new ZoomOnDataChange(
+            minVisibleItemsCallback,
+            this.onDataChange,
+            this.ctx,
+            this.cleanup
+        );
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
                 ctx.widgets.seriesDragInterpreter.events.on('dblclick', (event) => this.onSeriesAreaDoubleClick(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-start', (event) => this.onSeriesAreaDragStart(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
                 ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
             );
         }
         this.cleanup.register(
             ctx.scene.attachNode(selectionRect),
             ctx.eventsHub.on('series:keynav-zoom', (event) => this.onNavZoom(event)),
-            ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('series:keynav-panx', (event) => this.onNavPanX(event)),
+            ctx.eventsHub.on('zoom-interaction:zoom:wheel', (event) => this.onWheel(event)),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-mouseenter', (event) => this.onAxisMouseEnter(event)),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-mouseleave', () => this.onAxisMouseLeave()),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-drag-start', (event) => this.onAxisDragStart(event.direction)),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-drag-move', (event) =>
+                this.onAxisDragMove(event.axisId, event.direction, event.event)
+            ),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-drag-end', () => this.onAxisDragEnd()),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-dblclick', (event) => this.onAxisDoubleClick(event.axisId)),
+            ctx.eventsHub.on('zoom-interaction:zoom:axis-wheel', (event) => this.onAxisWheel(event)),
             ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
-            ctx.eventsHub.on('zoom:change', (event) => this.onZoomChange(event)),
+            ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.teardown()
         );
+
+        // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
+        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this, ctx.eventsHub, this.cleanup);
     }
 
     private teardown() {
         this.ctx.zoomManager.setZoomModuleEnabled(false);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
-        this.domProxy.destroy();
+        this.dataChangeHandler.destroy();
     }
 
     private onEnabledChange(enabled: boolean) {
@@ -290,7 +273,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (!enabled || !enableDoubleClickToReset) return;
         if (event?.preventZoomDblClick || !this.isState(InteractionState.ZoomClickable)) return;
 
-        this.resetZoom();
+        this.resetZoom('zoom-seriesarea-dblclick');
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -311,6 +294,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.panner.stopInteractions();
+
+        if (this.hoveredAxisId) return;
 
         // Determine which ZoomDrag behaviour to use.
         let newDragState = DragState.None;
@@ -337,8 +322,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             paddedRect,
             panner,
             selector,
-            ctx: { interactionManager, tooltipManager, updateService },
+            ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
+
+        if (this.hoveredAxisId) return;
 
         if (!enabled || !paddedRect || !this.isState(InteractionState.ZoomDraggable) || this.isIgnoredTouch(event)) {
             return;
@@ -362,58 +349,127 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 return;
         }
 
-        tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
+        }
+        eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PERFORM_LAYOUT,
+            opts: { skipAnimations: true },
+        });
     }
 
     private onSeriesAreaDragEnd() {
         const {
-            dragState,
-            enabled,
-            panner,
-            selector,
-            ctx: { domManager, interactionManager, tooltipManager },
+            ctx: { interactionManager },
         } = this;
+
+        if (this.hoveredAxisId) return;
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        // Stop single clicks from triggering drag end and resetting the zoom
-        if (!enabled || dragState === DragState.None) return;
+        if (!this.enabled || this.dragState === DragState.None) return;
 
-        switch (dragState) {
+        this.handleRegularDragEnd();
+        this.resetDragState();
+    }
+
+    private handleRegularDragEnd(): void {
+        const { panner, selector } = this;
+
+        switch (this.dragState) {
             case DragState.Pan:
                 panner.stop();
                 break;
-
-            case DragState.Select: {
-                if (!selector.didUpdate()) break;
-                const zoom = this.getZoom();
-                const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
-                this.updateZoom(newZoom);
+            case DragState.Select:
+                if (selector.didUpdate()) {
+                    const newZoom = selector.stop(this.seriesRect, this.paddedRect, this.getZoom());
+                    if (newZoom) {
+                        this.updateZoom(userInteraction('zoom-seriesarea-selector'), newZoom);
+                    } else {
+                        // Change rejected (invalid zoom) - redraw canvas to remove the zoom-selection.
+                        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+                    }
+                }
                 break;
+        }
+    }
+
+    private resetDragState(): void {
+        this.dragState = DragState.None;
+        this.ctx.domManager.updateCursor(CURSOR_ID);
+        this.ctx.tooltipManager.removeTooltip(TOOLTIP_ID);
+    }
+
+    private onAxisMouseEnter(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>) {
+        const { anchorPointX, anchorPointY, axisDraggingMode, enabled, enableAxisDragging } = this;
+
+        this.hoveredAxisId = event.axisId;
+
+        if (!enabled || !enableAxisDragging) {
+            this.ctx.domManager.updateCursor(CURSOR_ID);
+            return;
+        }
+
+        const zoom = this.getZoom();
+
+        let cursor: BaseStyleTypeMap['cursor'];
+        let showCursor = false;
+
+        if (event.direction === ChartAxisDirection.X) {
+            cursor = 'ew-resize';
+            showCursor = !isNumberEqual(dx(zoom), UNIT_SIZE);
+
+            if (!showCursor) {
+                const checkZoomX = scaleZoom(zoom, 0.999, 1);
+                checkZoomX.x = scaleZoomAxisWithAnchor(checkZoomX.x, zoom.x, anchorPointX);
+                showCursor = this.isZoomValid(checkZoomX, { includeYVisibleRange: true });
+            }
+        } else {
+            cursor = 'ns-resize';
+            showCursor = !isNumberEqual(dy(zoom), UNIT_SIZE);
+
+            if (!showCursor) {
+                const checkZoomY = scaleZoom(zoom, 1, 0.999);
+                checkZoomY.y = scaleZoomAxisWithAnchor(checkZoomY.y, zoom.y, anchorPointY);
+                showCursor = this.isZoomValid(checkZoomY, { includeYVisibleRange: true });
             }
         }
 
-        this.dragState = DragState.None;
-        domManager.updateCursor(CURSOR_ID);
-        tooltipManager.removeTooltip(TOOLTIP_ID);
+        if (axisDraggingMode === 'pan') {
+            cursor = 'grab';
+        }
+
+        if (showCursor) {
+            event.stopProcessing();
+            this.ctx.domManager.updateCursor(CURSOR_ID, cursor);
+        } else {
+            this.ctx.domManager.updateCursor(CURSOR_ID);
+        }
     }
 
-    private onAxisDoubleClick(id: string) {
+    private onAxisMouseLeave() {
+        this.hoveredAxisId = undefined;
+        this.ctx.domManager.updateCursor(CURSOR_ID);
+
+        if (!this.enabled || !this.enableAxisDragging) return;
+    }
+
+    private onAxisDoubleClick(id: AxisID) {
         const {
             enabled,
             enableDoubleClickToReset,
             ctx: { zoomManager },
         } = this;
+
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
-        zoomManager.resetAxisZoom('zoom', id);
+        this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
+        zoomManager.resetAxisZoom({ source: 'user-interaction', sourceDetail: 'zoom-axis-dblclick' }, id);
     }
 
-    private onAxisDragStart(direction: _ModuleSupport.ChartAxisDirection) {
+    private onAxisDragStart(direction: ChartAxisDirection) {
         const {
             axisDraggingMode,
-            domProxy,
             enabled,
             enableAxisDragging,
             panner,
@@ -424,7 +480,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         panner.stopInteractions();
 
         if (axisDraggingMode === 'pan') {
-            domProxy.setAxisCursor('grabbing');
+            this.ctx.domManager.updateCursor(CURSOR_ID, 'grabbing');
 
             this.dragState = DragState.Pan;
             this.panner.start(direction);
@@ -435,11 +491,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onAxisDragMove(
-        axisId: string,
-        direction: _ModuleSupport.ChartAxisDirection,
-        event: _Widget.DragWidgetEvent<'drag-move'>
-    ) {
+    private onAxisDragMove(axisId: AxisID, direction: ChartAxisDirection, event: _Widget.DragWidgetEvent<'drag-move'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -449,7 +501,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             enableAxisDragging,
             seriesRect,
             shouldFlipXY,
-            ctx: { interactionManager, tooltipManager, updateService, zoomManager },
+            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
         } = this;
 
         if (!enabled || !enableAxisDragging || !seriesRect) return;
@@ -468,12 +520,21 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
             const axisZoom = zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
-            zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, newZoom);
+            this.autoScaler.onManualAdjustment(direction);
+            this.updateAxisZoom(
+                userInteraction('zoom-axis-drag'),
+                axisId,
+                direction as CartesianAxisDirection,
+                newZoom,
+                { directional: true }
+            );
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-        updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
+        eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PERFORM_LAYOUT,
+            opts: { skipAnimations: true },
+        });
     }
 
     private onAxisDragEnd() {
@@ -481,7 +542,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             axisDraggingMode,
             axisDragger,
             dragState,
-            domProxy,
             enabled,
             enableAxisDragging,
             ctx: { domManager, interactionManager, tooltipManager },
@@ -495,7 +555,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.dragState = DragState.None;
 
         if (axisDraggingMode === 'pan') {
-            domProxy.setAxisCursor('grab');
             this.panner.stop();
         }
 
@@ -506,64 +565,110 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
         const { enabled, enableScrolling, scroller } = this;
-        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
-        if (!isDefaultState || !enabled || !enableScrolling) return;
+        if (!isFocusableState || !enabled || !enableScrolling) return;
         event.widgetEvent.sourceEvent.preventDefault();
 
-        this.updateZoom(scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom()));
+        this.updateZoom(
+            userInteraction(`keyboard(${event.delta})`),
+            scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom())
+        );
     }
 
-    private onWheel(event: _Widget.WheelWidgetEvent) {
-        const { enabled, enablePanning, enableScrolling, paddedRect } = this;
+    private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
+        const { enabled } = this;
+        const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
+
+        if (!isFocusableState || !enabled) return;
+        event.widgetEvent.sourceEvent.preventDefault();
+
+        const delta: typeof event.delta = event.reverse
+            ? ({ [-1]: 1, [1]: -1, home: 'end', end: 'home' } as const)[event.delta]
+            : event.delta;
+        const zoom = this.getZoom();
+        const xdiff = dx(zoom);
+        if (delta === 'home') {
+            zoom.x.min = 0;
+            zoom.x.max = xdiff;
+        } else if (delta === 'end') {
+            zoom.x.min = 1 - xdiff;
+            zoom.x.max = 1;
+        } else {
+            const scrollDelta: number = delta * xdiff;
+            zoom.x.min += scrollDelta;
+            zoom.x.max += scrollDelta;
+            zoom.x = constrainAxis(zoom.x);
+        }
+        this.updateZoom(userInteraction(`keyboard-page(${event.delta})`), zoom);
+    }
+
+    private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
+        const { enabled, enablePanning, enableScrolling, paddedRect, scrollingMode } = this;
 
         if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
-        const { deltaX, deltaY } = event.sourceEvent;
+        baseEvent.stopProcessing();
+
+        const { deltaX, deltaY } = baseEvent.event;
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
-        if (enablePanning && isHorizontalScrolling) {
-            this.onWheelPanning(event);
+        if (enablePanning && (scrollingMode === 'pan' || isHorizontalScrolling)) {
+            this.onWheelPanning(baseEvent);
         } else {
-            this.onWheelScrolling(event);
+            this.onWheelScrolling(baseEvent);
         }
     }
 
-    private onWheelPanning(event: _Widget.WheelWidgetEvent) {
+    private onWheelPanning(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         const {
             scrollingStep,
             scrollPanner,
             seriesRect,
+            scrollingMode,
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return;
+        if (!seriesRect) {
+            baseEvent.abort();
+            return;
+        }
 
-        event.sourceEvent.preventDefault();
+        const { event } = baseEvent;
+        const zoom = this.getZoom();
+        const isZoomCapped =
+            (event.deltaY > 0 && zoom.y.min === UNIT_MIN) || (event.deltaY < 0 && zoom.y.max === UNIT_MAX);
 
-        const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
+        const newZooms = scrollPanner.update(
+            event,
+            scrollingStep,
+            scrollingMode,
+            seriesRect,
+            zoomManager.getAxisZooms()
+        );
+        this.updateChanges(userInteraction('zoom-seriesarea-wheel'), newZooms);
+
+        if (isZoomCapped) {
+            baseEvent.capped();
+        } else {
+            baseEvent.uncapped();
         }
     }
 
-    private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
+    private onWheelScrolling(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         const zoom = this.getZoom();
-        const isZoomCapped = event.deltaY > 0 && isMaxZoom(zoom);
+        const isZoomCapped = baseEvent.event.deltaY > 0 && isMaxZoom(zoom);
 
-        this.handleWheelScrolling(event, isZoomCapped);
+        this.handleWheelScrolling(baseEvent, isZoomCapped);
     }
 
-    private onAxisWheel(
-        axisId: string,
-        axisDirection: _ModuleSupport.ChartAxisDirection,
-        event: _ModuleSupport.WheelWidgetEvent
-    ) {
-        const {
-            enableAxisScrolling,
-            ctx: { zoomManager },
-        } = this;
-        if (!enableAxisScrolling) return;
+    private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
+        if (!this.enabled || !this.enableAxisScrolling) return;
+
+        baseEvent.stopProcessing();
+
+        const { event, direction: axisDirection } = baseEvent;
+
         if (axisDirection !== ChartAxisDirection.X && axisDirection !== ChartAxisDirection.Y) {
             return;
         }
@@ -577,13 +682,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const isZoomCapped =
             event.deltaY > 0 && zoom[axisDirection].min === UNIT_MIN && zoom[axisDirection].max === UNIT_MAX;
 
-        zoomManager.setAxisManuallyAdjusted('zoom', axisId);
-
-        this.handleWheelScrolling(event, isZoomCapped, props);
+        this.autoScaler.onManualAdjustment(axisDirection);
+        this.handleWheelScrolling(baseEvent, isZoomCapped, props);
     }
 
     private handleWheelScrolling(
-        event: _ModuleSupport.WheelWidgetEvent,
+        baseEvent: _ModuleSupport.ZoomInteractionWheelEvent | _ModuleSupport.ZoomInteractionAxisWheelEvent,
         isZoomCapped: boolean,
         props: ZoomProperties = this.getModuleProperties()
     ) {
@@ -594,44 +698,36 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { zoomManager },
         } = this;
 
-        if (!seriesRect) return;
+        if (!seriesRect) {
+            baseEvent.abort();
+            return;
+        }
+
+        const { event } = baseEvent;
 
         let updated = true;
 
+        const sourcing = userInteraction('zoom-axis-wheel');
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom: axisZoom }] of entries(newZooms)) {
+            for (const [axisId, { direction, min, max }] of entries(newZooms)) {
                 const constrainedZoom =
                     direction === ChartAxisDirection.X
-                        ? this.constrainZoom({ x: axisZoom, y: { min: 1, max: 1 } }).x
-                        : axisZoom;
-                updated &&= this.updateAxisZoom(
-                    axisId,
-                    direction as _ModuleSupport.CartesianAxisDirection,
-                    constrainedZoom
-                );
+                        ? this.constrainZoom({ x: { min, max }, y: { min: UNIT_MAX, max: UNIT_MAX } }).x
+                        : { min, max };
+                updated &&= this.updateAxisZoom(sourcing, axisId, direction, constrainedZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
-            if (newZoom == null) return;
-            updated = this.updateUnifiedZoom(newZoom);
+            if (newZoom == null) return 'abort';
+            updated = this.updateUnifiedZoom(sourcing, newZoom, { directional: true });
         }
 
-        isZoomCapped ||= event.deltaY < 0 && !updated;
-
-        if (this.isFirstWheelEvent) {
-            this.wasFirstWheelEventZoomCapped = isZoomCapped;
-            if (!isZoomCapped) {
-                event.sourceEvent.preventDefault();
-            }
-        } else if (this.wasFirstWheelEventZoomCapped === false) {
-            event.sourceEvent.preventDefault();
+        if (isZoomCapped || (event.deltaY < 0 && !updated)) {
+            baseEvent.capped();
+        } else {
+            baseEvent.uncapped();
         }
-
-        // Prevent browser scrolling when smooth wheel events continue being fired after the chart
-        // reaches a min or max extent
-        this.isFirstWheelEvent = false;
-        this.debouncedWheelReset();
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
@@ -644,7 +740,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
         if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
-        this.updateZoom(constrainZoom(newZoom));
+        this.updateZoom(userInteraction('zoom-seriesarea-twofingers'), constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
@@ -660,20 +756,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        this.domProxy.update(this.enableAxisDragging, this.enableAxisScrolling, this.ctx);
+        this.ctx.eventsHub.emit('axis-dom-proxy:update', {
+            source: 'zoom',
+            enabled: this.enabled,
+            enableDoubleClick: this.enableDoubleClickToReset,
+            enableDragging: this.enableAxisDragging,
+            enableScrolling: this.enableAxisScrolling,
+        });
 
         if (!this.enabled) return;
 
         this.seriesRect = event.series.rect;
         this.paddedRect = event.series.paddedRect;
-
-        if (this.enableAxisDragging) {
-            this.toggleAxisDraggingCursors();
-        }
     }
 
-    private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
-        if (event.callerId !== 'zoom') {
+    private onZoomChangeRequested(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        if (event.sourceDetail !== 'zoom-seriesarea-panner') {
             this.panner.stopInteractions();
         }
 
@@ -691,18 +789,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const {
             panner,
             seriesRect,
-            ctx: { tooltipManager, zoomManager },
+            ctx: { tooltipManager, zoomManager, interactionManager },
         } = this;
 
         if (!seriesRect) return;
 
         const newZooms = panner.translateZooms(seriesRect, zoomManager.getAxisZooms(), event.deltaX, event.deltaY);
-
-        for (const [axisId, { direction, zoom }] of entries(newZooms)) {
-            this.updateAxisZoom(axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
+        this.updateChanges(userInteraction('zoom-seriesarea-panner'), newZooms);
+        if (!interactionManager.isState(_ModuleSupport.InteractionState.Frozen)) {
+            tooltipManager.updateTooltip(TOOLTIP_ID);
         }
-
-        tooltipManager.updateTooltip(TOOLTIP_ID);
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
@@ -737,35 +833,60 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
-        const {
-            minVisibleItems,
-            ctx: { zoomManager },
-        } = this;
-
-        if (minVisibleItems === 0) return newZoom;
-
-        const constrainedZoom = zoomManager.constrainZoomToItemCount(newZoom, minVisibleItems);
-        return constrainedZoom ?? newZoom;
+        return this.ctx.zoomManager.constrainZoomToItemCount(newZoom, this.minVisibleItems, this.autoScaler.enabled);
     }
 
-    private isZoomValid(newZoom: DefinedZoomState) {
+    private previousZoomValid = true;
+    private isZoomValid(
+        newZoom: DefinedZoomState,
+        options?: { directional?: boolean; includeYVisibleRange?: boolean }
+    ) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
         } = this;
 
-        if (minVisibleItems === 0) return true;
+        if (minVisibleItems === 0) {
+            this.previousZoomValid = true;
+            return true;
+        }
 
         const zoom = this.getZoom();
 
         const zoomedInX = round(dx(newZoom)) < round(dx(zoom));
         const zoomedInY = round(dy(newZoom)) < round(dy(zoom));
-        if (!zoomedInX && !zoomedInY) return true;
 
-        return zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
+        // If zooming out, then the new zoom is always considered to be valid.
+        if (!zoomedInX && !zoomedInY) {
+            this.previousZoomValid = true;
+            return true;
+        }
+
+        // If zooming in and the previous zoom was invalid, then this zoom must also be invalid, so we can shortcut.
+        if (!this.previousZoomValid && options?.directional) {
+            return false;
+        }
+
+        const includeYVisibleRange = options?.includeYVisibleRange ?? false;
+        const autoScaleYAxis = this.autoScaler.enabled;
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, {
+            includeYVisibleRange,
+            autoScaleYAxis,
+        });
+        this.previousZoomValid = options?.directional ? valid : true;
+
+        return valid;
     }
 
-    private isAxisZoomValid(direction: _ModuleSupport.CartesianAxisDirection, axisZoom: _ModuleSupport.ZoomState) {
+    private previousAxisZoomValid = {
+        [ChartAxisDirection.X]: true,
+        [ChartAxisDirection.Y]: true,
+    };
+    private isAxisZoomValid(
+        direction: CartesianAxisDirection,
+        axisZoom: ZoomMinMax,
+        options?: { directional?: boolean }
+    ) {
         const {
             minVisibleItems,
             ctx: { zoomManager },
@@ -777,53 +898,95 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const deltaOld = zoom[direction].max - zoom[direction].min;
         const newZoom = { ...zoom, [direction]: axisZoom };
 
-        return deltaAxis >= deltaOld || zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems);
-    }
-
-    private resetZoom() {
-        this.ctx.zoomManager.resetZoom('zoom');
-    }
-
-    public updateSyncZoom(zoom: DefinedZoomState) {
-        this.updateZoom(zoom);
-    }
-
-    private updateZoom(zoom: DefinedZoomState) {
-        if (this.enableIndependentAxes) {
-            this.updatePrimaryAxisZooms(zoom);
-        } else {
-            this.updateUnifiedZoom(zoom);
+        // If zooming out, then the new zoom is always considered to be valid.
+        if (deltaAxis >= deltaOld) {
+            this.previousAxisZoomValid[direction] = true;
+            return true;
         }
-    }
 
-    private updateUnifiedZoom(zoom: DefinedZoomState) {
-        zoom = this.constrainZoom(zoom);
-
-        if (!this.isZoomValid(zoom)) {
-            // Ensure any lingering zoom interation elements (e.g. selection rect) are cleared
-            this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER, { skipAnimations: true });
+        // If zooming in and the previous zoom was invalid, then this zoom must also be invalid, so we can shortcut.
+        if (!this.previousAxisZoomValid[direction] && options?.directional) {
             return false;
         }
 
-        this.ctx.zoomManager.updateZoom('zoom', zoom);
+        const opts = { includeYVisibleRange: false, autoScaleYAxis: this.autoScaler.enabled };
+        const valid = zoomManager.isVisibleItemsCountAtLeast(newZoom, minVisibleItems, opts);
+        this.previousAxisZoomValid[direction] = options?.directional ? valid : true;
+
+        return valid;
+    }
+
+    private resetZoom(sourceDetail: _ModuleSupport.ZoomEventSourceDetail) {
+        this.previousZoomValid = true;
+        this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
+        this.ctx.zoomManager.resetZoom({ source: 'user-interaction', sourceDetail });
+    }
+
+    public updateSyncZoom(zoom: DefinedZoomState) {
+        this.updateZoom({ source: 'sync', sourceDetail: 'internal-updateSyncZoom' }, zoom);
+    }
+
+    private updateChanges(sourcing: _ModuleSupport.UpdateZoomSourcing, changes: _ModuleSupport.CoreZoomState) {
+        // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
+        // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
+        // breaking the behaviour.
+        const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
+        const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        this.updateZoom(sourcing, {
+            x: partialZoom.x ?? currentZoom.x,
+            y: partialZoom.y ?? currentZoom.y,
+        });
+    }
+
+    private updateZoom(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+        if (this.enableIndependentAxes) {
+            this.updatePrimaryAxisZooms(sourcing, zoom);
+        } else {
+            this.updateUnifiedZoom(sourcing, zoom);
+        }
+    }
+
+    private updateUnifiedZoom(
+        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        zoom: DefinedZoomState,
+        validOptions?: { directional?: boolean }
+    ) {
+        zoom = this.constrainZoom(zoom);
+
+        if (!this.isZoomValid(zoom, validOptions)) {
+            // Ensure any lingering zoom interaction elements (e.g. selection rect) are cleared
+            this.ctx.eventsHub.emit('chart:request-update', {
+                type: ChartUpdateType.SCENE_RENDER,
+                opts: { skipAnimations: true },
+            });
+            return false;
+        }
+
+        this.ctx.zoomManager.updateZoom(sourcing, zoom);
         return true;
     }
 
-    private updatePrimaryAxisZooms(zoom: DefinedZoomState) {
-        this.updatePrimaryAxisZoom(zoom, ChartAxisDirection.X);
-        this.updatePrimaryAxisZoom(zoom, ChartAxisDirection.Y);
+    private updatePrimaryAxisZooms(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
+        this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.X);
+        this.updatePrimaryAxisZoom(sourcing, zoom, ChartAxisDirection.Y);
     }
 
-    private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.CartesianAxisDirection) {
+    private updatePrimaryAxisZoom(
+        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        zoom: DefinedZoomState,
+        direction: CartesianAxisDirection
+    ) {
         const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
         if (axisId == null) return;
-        this.updateAxisZoom(axisId, direction, zoom[direction]);
+        this.updateAxisZoom(sourcing, axisId, direction, zoom[direction]);
     }
 
     private updateAxisZoom(
-        axisId: string,
-        direction: _ModuleSupport.CartesianAxisDirection,
-        axisZoom: _ModuleSupport.ZoomState | undefined
+        sourcing: _ModuleSupport.UpdateZoomSourcing,
+        axisId: AxisID,
+        direction: CartesianAxisDirection,
+        axisZoom: ZoomMinMax | undefined,
+        validOptions?: { directional?: boolean }
     ) {
         const {
             enableIndependentAxes,
@@ -836,63 +999,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableIndependentAxes !== true) {
             zoom[direction] = axisZoom;
-            return this.updateUnifiedZoom(zoom);
+            return this.updateUnifiedZoom(sourcing, zoom, validOptions);
         }
 
-        if (!this.isAxisZoomValid(direction, axisZoom)) return false;
+        if (!this.isAxisZoomValid(direction, axisZoom, validOptions)) return false;
 
-        zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+        const { source, sourceDetail } = sourcing;
+        zoomManager.updateChanges({ source, sourceDetail, changes: { [axisId]: axisZoom }, isReset: false });
         return true;
-    }
-
-    private updateAxisCursor(
-        opts: Partial<Pick<Zoom, 'enableAxisDragging' | 'enableAxisScrolling' | 'axisDraggingMode'>>
-    ) {
-        if (!this.domProxy) return;
-        const {
-            enableAxisDragging = this.enableAxisDragging,
-            enableAxisScrolling = this.enableAxisScrolling,
-            axisDraggingMode = this.axisDraggingMode,
-        } = opts;
-        if (enableAxisDragging) {
-            this.domProxy.setAxisCursor(axisDraggingMode === 'pan' ? 'grab' : undefined);
-        } else if (enableAxisScrolling) {
-            this.domProxy.setAxisCursor('default');
-        } else {
-            this.domProxy.setAxisCursor(undefined);
-        }
-    }
-
-    private toggleAxisDraggingCursors() {
-        const { anchorPointX, anchorPointY, domProxy } = this;
-
-        const zoom = this.getZoom();
-
-        let showCursorX = dx(zoom) !== UNIT_SIZE;
-        let showCursorY = dy(zoom) !== UNIT_SIZE;
-
-        if (!showCursorX) {
-            const checkZoomX = scaleZoom(zoom, 0.999, 1);
-            checkZoomX.x = scaleZoomAxisWithAnchor(checkZoomX.x, zoom.x, anchorPointX);
-            showCursorX = this.isZoomValid(checkZoomX);
-        }
-
-        if (!showCursorY) {
-            const checkZoomY = scaleZoom(zoom, 1, 0.999);
-            checkZoomY.y = scaleZoomAxisWithAnchor(checkZoomY.y, zoom.y, anchorPointY);
-            showCursorY = this.isZoomValid(checkZoomY);
-        }
-
-        domProxy.toggleAxisDraggingCursor(ChartAxisDirection.X, showCursorX);
-        domProxy.toggleAxisDraggingCursor(ChartAxisDirection.Y, showCursorY);
     }
 
     private getZoom() {
         return definedZoomState(this.ctx.zoomManager.getZoom());
-    }
-
-    private getResetZoom() {
-        return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {

@@ -87,12 +87,12 @@ const options: AgChartOptions = {
       stacked: true,
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
     },
-    {
+    y: {
       type: "number",
       position: "left",
       label: {
@@ -103,10 +103,10 @@ const options: AgChartOptions = {
         text: "Normalized Percentage Energy",
       },
     },
-  ],
+  },
   legend: {
     position: "top",
   },
 }
 
-const chart = AgCharts.create(options)
+AgCharts.create(options)

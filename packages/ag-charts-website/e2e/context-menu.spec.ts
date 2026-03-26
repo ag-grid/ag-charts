@@ -10,7 +10,7 @@ import {
 } from './util';
 
 test.describe('context-menu', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     for (const { framework, url } of toExamplePageUrls('zoom', 'zoom-min-visible-items')) {
         test.describe(`for ${framework}`, () => {
@@ -98,5 +98,67 @@ test.describe('context-menu', () => {
         await expect(page).toHaveScreenshot('no-context-menu-items-for-waterfall-legend.png', {
             animations: 'disabled',
         });
+    });
+
+    test('AG-16178 mouse exit and reenter', async ({ page }) => {
+        const { url } = toExamplePageUrl('context-menu', 'context-menu-actions', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.click(400, 300, { button: 'right' });
+        const sayHello = page.getByText('Say hello', { exact: true });
+
+        await sayHello.hover();
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+
+        await page.mouse.move(0, 0);
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-not-hovered.png');
+
+        await sayHello.hover();
+        await expect(page).toHaveScreenshot('AG-16178-say-hello-hovered.png');
+    });
+
+    test.describe('AG-16259 showsOn', () => {
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('context-menu-test', 'ag-16259-showOn', 'vanilla');
+            await gotoExample(page, url);
+        });
+
+        const cases: [string, number, number, string][] = [
+            ['chart', 212, 50, 'always,'],
+            ['title', 405, 47, 'always,'],
+            ['subtitle', 399, 76, 'always,'],
+            ['footnote', 403, 555, 'always,'],
+            ['xAxisLabel', 432, 476, 'always,'],
+            ['yAxisLabel', 46, 275, 'always,'],
+            ['seriesNode1', 400, 300, 'always,series-area,series-node,'],
+            ['seriesNode2', 710, 350, 'always,series-area,series-node,'],
+            ['seriesArea', 292, 165, 'always,series-area,'],
+            ['legendItem1', 356, 521, 'always,legend-item,'],
+            ['legendItem2', 460, 521, 'always,legend-item,'],
+        ];
+
+        for (const [name, x, y, expectedHtmlText] of cases) {
+            test(name, async ({ page }) => {
+                // Check that (x,y) coord are clicking the correct HTML element that we expect.
+                const rightClickedTextContent = await page.evaluate(
+                    (args) => document.elementFromPoint(args.x, args.y)?.textContent ?? '',
+                    { x, y }
+                );
+                expect(rightClickedTextContent).toMatchSnapshot();
+
+                await page.mouse.click(x, y, { button: 'right' });
+                const actualHtmlText = await page.textContent('.ag-charts-context-menu');
+                expect(actualHtmlText).toEqual(expectedHtmlText);
+            });
+        }
+    });
+
+    test('show context menu on activeChange preventDefault', async ({ page }) => {
+        const { url } = toExamplePageUrl('context-menu-test', 'activeChange-preventDefault', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.move(404, 265);
+        await page.mouse.click(404, 265, { button: 'right' });
+        await expect(page).toHaveScreenshot('context-menu-shown-on-highlighted-datum.png');
     });
 });

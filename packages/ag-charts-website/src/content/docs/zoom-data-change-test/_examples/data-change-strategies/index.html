@@ -1,0 +1,19 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label>
+            Strategy:
+            <select onchange="setStrategy(this.value)">
+                <option value="preserveDomain" selected>preserveDomain</option>
+                <option value="preserveRatios">preserveRatios</option>
+                <option value="reset">reset</option>
+            </select>
+        </label>
+    </div>
+    <div class="controls-row">
+        <button onclick="addDataAtStart()">Add at Start</button>
+        <button onclick="addDataAtMiddle()">Add in Middle</button>
+        <button onclick="addDataAtEnd()">Add at End</button>
+        <button onclick="resetData()">Reset Data</button>
+    </div>
+</div>
+<div id="myChart"></div>

@@ -1,81 +1,79 @@
-import { type AgSunburstSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgSunburstSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    BASE_FONT_SIZE,
+    FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { SunburstSeries } from './sunburstSeries';
 import { sunburstSeriesOptionsDef } from './sunburstSeriesOptionsDef';
 
-const { BASE_FONT_SIZE, FONT_SIZE_RATIO } = _ModuleSupport;
-
-export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-
-    identifier: 'sunburst',
-    moduleFactory: (ctx) => new SunburstSeries(ctx),
-    solo: true,
-    themeTemplate: {
-        series: {
-            fills: {
-                $applyCycle: [
-                    { $size: { $path: ['./data', { $path: '/data' }] } },
-                    { $palette: 'fills' },
-                    {
-                        $applySwitch: [
-                            { $path: ['/type', undefined, { $value: '$1' }] },
-                            { $value: '$1' },
-                            ['gradient', _ModuleSupport.FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
-                            ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                            ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                        ],
-                    },
-                ],
-            } as any,
-            strokes: {
-                $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
-            } as any,
-            colorRange: { $palette: 'divergingColors' },
-            strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
-            label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
-                minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'chartBackgroundColor' },
-                overflowStrategy: 'ellipsis',
-                wrapping: 'never',
-                spacing: 2,
-            },
-            secondaryLabel: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
-                fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
-                minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
-                fontWeight: { $ref: 'fontWeight' },
-                color: { $ref: 'chartBackgroundColor' },
-                overflowStrategy: 'ellipsis',
-                wrapping: 'never',
-            },
-            sectorSpacing: 2,
-            padding: 3,
-            highlightStyle: {
-                label: {
-                    color: { $ref: 'chartBackgroundColor' },
+const themeTemplate: ExtensibleTheme<'sunburst'> = {
+    series: {
+        fills: {
+            $applyCycle: [
+                { $size: { $path: ['./data', { $path: '/data' }] } },
+                { $palette: 'fills' },
+                {
+                    $applySwitch: [
+                        { $path: ['/type', undefined, { $value: '$1' }] },
+                        { $value: '$1' },
+                        ['gradient', FILL_GRADIENT_RADIAL_REVERSED_SERIES_DEFAULTS],
+                        ['pattern', FILL_PATTERN_DEFAULTS],
+                        ['image', FILL_IMAGE_DEFAULTS],
+                    ],
                 },
-                secondaryLabel: {
-                    color: { $ref: 'chartBackgroundColor' },
-                },
-                fill: 'rgba(255,255,255, 0.33)',
-                stroke: `rgba(0, 0, 0, 0.4)`,
-                strokeWidth: 2,
-            },
-        },
-        gradientLegend: {
+            ],
+        } as any,
+        strokes: {
+            $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
+        } as any,
+        colorRange: { $palette: 'divergingColors' },
+        strokeWidth: { $isUserOption: ['./strokes/0', 2, 0] },
+        label: {
+            ...LABEL_BOXING_DEFAULTS,
             enabled: true,
-            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
+            fontFamily: { $ref: 'fontFamily' },
+            fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+            minimumFontSize: { $rem: 9 / BASE_FONT_SIZE },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'chartBackgroundColor' },
+            overflowStrategy: 'ellipsis',
+            wrapping: 'never',
+            spacing: 2,
         },
+        secondaryLabel: {
+            ...LABEL_BOXING_DEFAULTS,
+            enabled: true,
+            fontFamily: { $ref: 'fontFamily' },
+            fontSize: { $rem: FONT_SIZE_RATIO.SMALLEST },
+            minimumFontSize: { $rem: 7 / BASE_FONT_SIZE },
+            fontWeight: { $ref: 'fontWeight' },
+            color: { $ref: 'chartBackgroundColor' },
+            overflowStrategy: 'ellipsis',
+            wrapping: 'never',
+        },
+        sectorSpacing: 2,
+        padding: 3,
+        highlight: {
+            unhighlightedItem: {
+                fillOpacity: 0.6,
+                strokeOpacity: 0.6,
+            },
+            unhighlightedBranch: {
+                fillOpacity: 0.2,
+                strokeOpacity: 0.2,
+            },
+        },
+    },
+    gradientLegend: {
+        enabled: { $if: [{ $path: '../series/0/colorKey' }, true, false] },
     },
 };
 
@@ -84,8 +82,12 @@ export const SunburstSeriesModule: SeriesModuleDefinition<AgSunburstSeriesOption
     name: 'sunburst',
     chartType: 'standalone',
     enterprise: true,
+    solo: true,
+    version: VERSION,
+    dependencies: [StandaloneChartModule],
 
     options: sunburstSeriesOptionsDef,
+    themeTemplate,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new SunburstSeries(ctx),
+    create: (ctx) => new SunburstSeries(ctx),
 };

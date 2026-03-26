@@ -1,2 +1,19 @@
 __diff_output__
 
+# Ignore .rulesync symlinks as nx format doesn't handle these well.
+packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkHarness.ts
+packages/ag-charts-website/src/content/docs/*/_examples/*/benchmarkUtils.ts
+.rulesync/**
+!.rulesync/README.md
+.patches/
+patches/
+
+# Files without Prettier parsers
+*.sh
+*.patch
+.gitrepo
+.nxignore
+.prettierignore
+
+# Ignore external repos.
+external/prompts/

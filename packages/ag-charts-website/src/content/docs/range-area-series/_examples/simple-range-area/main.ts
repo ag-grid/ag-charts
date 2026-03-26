@@ -1,7 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,9 +39,8 @@ const options: AgChartOptions = {
             yHighKey: 'detachedHouses',
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -30,11 +49,10 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'unit-time',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

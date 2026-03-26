@@ -1,30 +1,22 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    ChartAxisDirection,
+    Property,
+    type Scale,
+    type ScaleTickParams,
     type WrapOptions,
     countFractionDigits,
-    isArray,
     isNumberEqual,
-    wrapText,
-    wrapTextSegments,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toRadians,
+    wrapTextOrSegments,
 } from 'ag-charts-core';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const {
-    ChartAxisDirection,
-    Property,
-    toRadians,
-    normalizeAngle360,
-    normalizeAngle360Inclusive,
-    Path,
-    RotatableText,
-    Transformable,
-    BBox,
-    Selection,
-    Line,
-} = _ModuleSupport;
-
+const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
     text: TextOrSegments;
     x: number;
@@ -46,10 +38,7 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }
 
-export abstract class AngleAxis<
-    TDomain,
-    TScale extends _ModuleSupport.Scale<TDomain, any>,
-> extends _ModuleSupport.PolarAxis<TScale> {
+export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @Property
@@ -115,8 +104,8 @@ export abstract class AngleAxis<
     } {
         const { nice, scale } = this;
 
-        const ticksParams: _ModuleSupport.ScaleTickParams<any> = {
-            nice,
+        const ticksParams: ScaleTickParams<any> = {
+            nice: [nice, nice],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -156,9 +145,9 @@ export abstract class AngleAxis<
     private normalizedAngles(): [number, number] {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
         const sweep =
-            this.endAngle != null
-                ? normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle))
-                : 2 * Math.PI;
+            this.endAngle == null
+                ? 2 * Math.PI
+                : normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle));
         const endAngle = startAngle + sweep;
         return [startAngle, endAngle];
     }
@@ -199,7 +188,7 @@ export abstract class AngleAxis<
 
         const { points, closePath } = this.getAxisLinePoints();
 
-        points.forEach(({ x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 }) => {
+        for (const { x, y, moveTo, arc, radius = 0, startAngle = 0, endAngle = 0 } of points) {
             if (arc) {
                 path.arc(x, y, radius, startAngle, endAngle);
             } else if (moveTo) {
@@ -207,7 +196,7 @@ export abstract class AngleAxis<
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
 
         if (closePath) {
             path.closePath();
@@ -261,7 +250,7 @@ export abstract class AngleAxis<
         } else if (shape === 'polygon') {
             const angles = scale
                 .ticks({
-                    nice: this.nice,
+                    nice: [this.nice, this.nice],
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -269,12 +258,12 @@ export abstract class AngleAxis<
                 })
                 ?.ticks?.map((value) => scale.convert(value));
             if (angles && angles.length > 2) {
-                angles.forEach((angle, i) => {
+                for (const [i, angle] of angles.entries()) {
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
                     const moveTo = i === 0;
                     points.push({ x, y, moveTo });
-                });
+                }
             }
         }
 
@@ -413,7 +402,7 @@ export abstract class AngleAxis<
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
                     const wrapOptions: WrapOptions = { maxWidth: availWidth, font: label, textWrap: 'never' };
-                    text = isArray(text) ? wrapTextSegments(text, wrapOptions) : wrapText(text, wrapOptions);
+                    text = wrapTextOrSegments(text, wrapOptions);
                     tempText.text = text;
                     box = tempText.getBBox();
                 }
@@ -425,7 +414,7 @@ export abstract class AngleAxis<
                 y,
                 textAlign,
                 textBaseline,
-                hidden: text === '' || datum.hidden || isLastTickOverFirst,
+                hidden: text === '' || (datum.hidden ?? isLastTickOverFirst),
                 rotation,
                 box,
             };
@@ -521,14 +510,14 @@ export abstract class AngleAxis<
 
     protected override updateCrossLines() {
         const { shape, gridLength: radius, innerRadiusRatio } = this;
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             if (crossLine instanceof AngleCrossLine) {
                 crossLine.ticks = this.tickData.map((t) => t.value);
                 crossLine.shape = shape;
                 crossLine.axisOuterRadius = radius;
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
-        });
+        }
         super.updateCrossLines();
     }
 }

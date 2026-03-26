@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgChartState, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgChartState, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -50,14 +50,12 @@ const options: AgCartesianChartOptions = {
             id: 'tate-st-ives',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total visitors',
             },
@@ -67,7 +65,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 let chart = AgCharts.create(options);

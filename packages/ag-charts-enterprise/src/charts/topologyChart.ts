@@ -1,11 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { AxisID, FeatureCollection, Position } from 'ag-charts-core';
+import { ChartAxisDirection, Property, createId } from 'ag-charts-core';
 import type { AgTopologyChartOptions } from 'ag-charts-types';
 
-const { Chart, MercatorScale, ChartAxisDirection, Property } = _ModuleSupport;
+import type { LonLatBBox } from '../series/map-util/lonLatBbox';
+import type { ITopology } from '../series/map-util/topologyTypes';
 
+const { Chart, MercatorScale } = _ModuleSupport;
 function isTopologySeries(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>
-): series is _ModuleSupport.ITopology {
+): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -16,24 +20,28 @@ function isTopologySeries(
 }
 
 export class TopologyChart extends Chart {
-    static readonly className = 'TopologyChart';
+    static override readonly className = 'TopologyChart';
     static readonly type = 'topology' as const;
+    private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
+    private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
 
     @Property
-    topology?: _ModuleSupport.FeatureCollection;
+    topology?: FeatureCollection;
 
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
 
-        this.ctx.zoomManager.updateAxes([ChartAxisDirection.X, ChartAxisDirection.Y]);
+        this.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
+        this.ctx.zoomManager.panToBBoxScalingMode =
+            _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
     }
 
     override getChartType() {
         return 'topology' as const;
     }
 
-    override async updateData() {
-        await super.updateData();
+    override updateData() {
+        super.updateData();
 
         const options = this.getOptions() as AgTopologyChartOptions;
         if (this.topology !== options.topology) {
@@ -41,24 +49,23 @@ export class TopologyChart extends Chart {
         }
 
         const { topology } = this;
-        this.series.forEach((series) => {
+        for (const series of this.series) {
             if (isTopologySeries(series)) {
                 series.setChartTopology(topology);
             }
-        });
+        }
     }
 
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { layoutBox } = ctx;
 
-        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
 
-        const mapSeries = this.series.filter<_ModuleSupport.ITopology>(isTopologySeries);
-        const combinedBbox = mapSeries.reduce<_ModuleSupport.LonLatBBox | undefined>((combined, series) => {
+        const mapSeries = this.series as ITopology[];
+        const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;
             if (bbox == null) return combined;
@@ -69,7 +76,7 @@ export class TopologyChart extends Chart {
         let scale: _ModuleSupport.MercatorScale | undefined;
         if (combinedBbox != null) {
             const { lon0, lat0, lon1, lat1 } = combinedBbox;
-            const domain: _ModuleSupport.Position[] = [
+            const domain: Position[] = [
                 [lon0, lat0],
                 [lon1, lat1],
             ];
@@ -88,8 +95,8 @@ export class TopologyChart extends Chart {
             const x1 = viewBoxOriginX + viewBoxWidth;
             const y1 = viewBoxOriginY + viewBoxHeight;
 
-            const xZoom = this.ctx.zoomManager.getAxisZoom(ChartAxisDirection.X);
-            const yZoom = this.ctx.zoomManager.getAxisZoom(ChartAxisDirection.Y);
+            const xZoom = this.ctx.zoomManager.getAxisZoom(this.xAxis.id);
+            const yZoom = this.ctx.zoomManager.getAxisZoom(this.yAxis.id);
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
             const xStart = x0 - xSpan * xZoom.min;
             const ySpan = (y1 - y0) / (1 - yZoom.min - (1 - yZoom.max));
@@ -101,9 +108,9 @@ export class TopologyChart extends Chart {
             ]);
         }
 
-        mapSeries.forEach((series) => {
+        for (const series of mapSeries) {
             series.scale = scale;
-        });
+        }
 
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
@@ -114,7 +121,12 @@ export class TopologyChart extends Chart {
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: ctx.layoutBox },
+            layoutBox: ctx.layoutBox,
         });
+    }
+
+    override hasPgUpPgDownSupport(): boolean {
+        return false;
     }
 }

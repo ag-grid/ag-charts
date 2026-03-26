@@ -9,7 +9,7 @@ async function getSceneRenders(page: Page): Promise<string> {
 }
 
 test.describe('interactive-tooltip', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.beforeEach(async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('tooltips', 'tooltip-interaction', 'vanilla').url);

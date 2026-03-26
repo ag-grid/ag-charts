@@ -1,8 +1,18 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    BaseProperties,
+    type BoxBounds,
+    ChartAxisDirection,
+    CleanupRegistry,
+    EventEmitter,
+    PropertiesArray,
+    Property,
+} from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
-import { type AnnotationType } from './annotationTypes';
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
+import { AnnotationType } from './annotationTypes';
 import {
     FIBONACCI_ANNOTATION_ITEMS,
     LINE_ANNOTATION_ITEMS,
@@ -11,9 +21,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ActionOnSet, LayoutElement, Menu, PropertiesArray, ToolbarButtonProperties, Property, ChartAxisDirection } =
-    _ModuleSupport;
-
+const { LayoutElement, Menu } = _ModuleSupport;
 interface EventMap {
     'cancel-create-annotation': null;
     'pressed-create-annotation': { annotation: AnnotationType };
@@ -32,6 +40,17 @@ type AnnotationsToolbarButtonValue =
     | 'text-menu'
     | 'shape-menu'
     | 'measurer-menu'
+    | 'line'
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'fibonacci-retracement'
+    | 'fibonacci-retracement-trend-based'
+    | 'text'
+    | 'comment'
+    | 'callout'
+    | 'note'
     | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
@@ -39,10 +58,10 @@ class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
     value!: AnnotationsToolbarButtonValue;
 }
 
-export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
+export class AnnotationsToolbar extends BaseProperties {
     @Property
     @ActionOnSet<AnnotationsToolbar>({
-        changeValue(enabled) {
+        changeValue(enabled: boolean) {
             this.toolbar?.setHidden(!enabled);
         },
     })
@@ -61,8 +80,8 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private readonly toolbar: SharedToolbarWithSection<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
-
     private readonly cleanup = new CleanupRegistry();
+    private readonly menuMargin: number = 6;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -125,10 +144,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.clearActiveButton();
     }
 
-    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+    private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.toolbar.updateButtons(this.buttons);
-        this.toolbar.layout(event.layoutBox, this.padding);
+        this.toolbar.layout(ctx.layoutBox, this.padding);
     }
 
     public refreshButtonsEnabled(enabled: boolean) {
@@ -147,10 +166,6 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         const axisScale = this.ctx.axisManager.getAxisContext(ChartAxisDirection.Y)[0].scale;
 
         switch (button.value) {
-            case 'clear':
-                this.events.emit('pressed-clear', null);
-                break;
-
             case 'line-menu':
                 this.onToolbarButtonPressShowMenu(
                     event,
@@ -205,6 +220,54 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                     MEASURER_ANNOTATION_ITEMS
                 );
                 break;
+
+            case 'line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Line);
+                break;
+
+            case 'horizontal-line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.HorizontalLine);
+                break;
+
+            case 'vertical-line':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.VerticalLine);
+                break;
+
+            case 'parallel-channel':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.ParallelChannel);
+                break;
+
+            case 'disjoint-channel':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.DisjointChannel);
+                break;
+
+            case 'fibonacci-retracement':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracement);
+                break;
+
+            case 'fibonacci-retracement-trend-based':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.FibonacciRetracementTrendBased);
+                break;
+
+            case 'text':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Text);
+                break;
+
+            case 'comment':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Comment);
+                break;
+
+            case 'callout':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Callout);
+                break;
+
+            case 'note':
+                this.onButtonPressCreateAnnotation(button.value, AnnotationType.Note);
+                break;
+
+            case 'clear':
+                this.events.emit('pressed-clear', null);
+                break;
         }
     }
 
@@ -220,7 +283,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
         const index = this.buttons.findIndex((button) => button.value === menu);
         this.toolbar.toggleActiveButtonByIndex(index);
-        this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
+
+        const anchorX = this.ctx.domManager.isRtl
+            ? buttonBounds.x - this.menuMargin
+            : buttonBounds.x + buttonBounds.width + this.menuMargin;
+
+        this.annotationMenu.setAnchor({ x: anchorX, y: buttonBounds.y });
         this.annotationMenu.show<AnnotationType>(controller, {
             items,
             ariaLabel: this.ctx.localeManager.t(ariaLabel),
@@ -238,6 +306,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.updateButtonByIndex(index, { icon: item.icon });
         this.events.emit('pressed-create-annotation', { annotation: item.value });
         this.annotationMenu.hide();
+    }
+
+    private onButtonPressCreateAnnotation(item: AnnotationsToolbarButtonValue, annotation: AnnotationType) {
+        const index = this.buttons.findIndex((button) => button.value === item);
+        this.toolbar.toggleActiveButtonByIndex(index);
+        this.events.emit('pressed-create-annotation', { annotation });
     }
 
     private onKeyDown({ sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {

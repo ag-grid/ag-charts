@@ -1,22 +1,22 @@
 import {
     type BoxBounds,
+    Debug,
     type FontOptions,
-    type LineMetricsBox,
     LineSplitter,
     type RequireOptional,
+    SceneRefChangeDetection,
+    type TextMetricsBox,
     cachedTextMeasurer,
     createSvgElement,
     isArray,
-    isString,
     measureTextSegments,
     toFontString,
     toPlainText,
+    toTextString,
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Opacity, Padding, PixelSize, TextOrSegments } from 'ag-charts-types';
 
-import { Debug } from '../../util/debug';
 import { BBox } from '../bbox';
-import { SceneRefChangeDetection } from '../changeDetectable';
 import { Group } from '../group';
 import type { IScene, NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
@@ -45,8 +45,13 @@ export interface TextBoxingProperties {
     };
 }
 
+<<<<<<< HEAD
 export class Text<D = unknown> extends Shape<D> {
     static readonly className = 'Text';
+=======
+export class Text<D = any> extends Shape<D> {
+    static override readonly className = 'Text';
+>>>>>>> latest
 
     private static readonly debug = Debug.create(true, DebugSelectors.SCENE_TEXT);
 
@@ -72,12 +77,12 @@ export class Text<D = unknown> extends Shape<D> {
             this.richText.setScene(this.scene);
             this.richText.append(
                 this.text
-                    .flatMap((s) => s.text.split(LineSplitter))
+                    .flatMap((s) => toTextString(s.text).split(LineSplitter))
                     .filter(Boolean)
                     .map(() => new Text({ trimText: false }))
             );
         } else {
-            const lines = this.text?.split('\n') ?? [];
+            const lines = toTextString(this.text).split(LineSplitter);
             this.lines = this.trimText ? lines.map((line) => line.trim()) : lines;
         }
     }
@@ -92,6 +97,11 @@ export class Text<D = unknown> extends Shape<D> {
     get font() {
         this.fontCache ??= toFontString(this);
         return this.fontCache;
+    }
+
+    override resolveFont(): string | undefined {
+        if (!this.hasRenderableText()) return undefined;
+        return this.font;
     }
 
     @SceneChangeDetection({
@@ -141,8 +151,32 @@ export class Text<D = unknown> extends Shape<D> {
         this.trimText = options?.trimText ?? true;
     }
 
-    static computeBBox(
-        lines: string | string[],
+    static measureBBox(
+        text: TextOrSegments,
+        x: number,
+        y: number,
+        options: {
+            font: FontOptions;
+            lineHeight?: number;
+            textAlign?: CanvasTextAlign;
+            textBaseline?: CanvasTextBaseline;
+        }
+    ) {
+        if (isArray(text)) {
+            const { font, lineHeight, textAlign, textBaseline } = options;
+            const { width, height, lineMetrics } = measureTextSegments(text, font);
+            const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
+            const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
+            const offsetLeft = Text.calcLeftOffset(width, textAlign);
+
+            return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
+        } else {
+            return Text.computeBBox(toTextString(text).split(LineSplitter), x, y, options);
+        }
+    }
+
+    private static computeBBox(
+        lines: string[],
         x: number,
         y: number,
         opts: {
@@ -150,25 +184,26 @@ export class Text<D = unknown> extends Shape<D> {
             lineHeight?: number;
             textAlign?: CanvasTextAlign;
             textBaseline?: CanvasTextBaseline;
+            isRtl?: boolean;
         }
     ): BBox {
-        const { font, lineHeight, textAlign, textBaseline } = opts;
+        const { font, lineHeight, textAlign, textBaseline, isRtl } = opts;
         const { width, height, lineMetrics } = cachedTextMeasurer(font).measureLines(lines);
         const totalHeight = lineHeight ? lineHeight * lineMetrics.length : height;
-        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics, textBaseline);
-        const offsetLeft = Text.calcLeftOffset(width, textAlign);
+        const offsetTop = Text.calcTopOffset(totalHeight, lineMetrics[0], textBaseline);
+        const offsetLeft = Text.calcLeftOffset(width, textAlign, isRtl);
 
         return new BBox(x - offsetLeft, y - offsetTop, width, totalHeight);
     }
 
     private static calcTopOffset(
         height: number,
-        lineMetrics: LineMetricsBox[],
+        textMetrics?: TextMetricsBox,
         textBaseline?: CanvasTextBaseline
     ): number {
         switch (textBaseline) {
             case 'alphabetic':
-                return lineMetrics[0]?.ascent ?? 0;
+                return textMetrics?.ascent ?? 0;
             case 'middle':
                 return height / 2;
             case 'bottom':
@@ -178,20 +213,62 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
-    private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign): number {
+    private static calcSegmentedTopOffset(
+        height: number,
+        lineMetrics: ReturnType<typeof measureTextSegments>['lineMetrics'],
+        textBaseline: CanvasTextBaseline
+    ): number {
+        switch (textBaseline) {
+            case 'alphabetic':
+                return lineMetrics[0]?.ascent ?? 0;
+
+            case 'middle':
+                return lineMetrics.length === 1
+                    ? lineMetrics[0].ascent +
+                          lineMetrics[0].segments.reduce(
+                              (offsetY, segment) =>
+                                  Math.min(offsetY, cachedTextMeasurer(segment).baselineDistance('middle')),
+                              0
+                          )
+                    : height / 2;
+
+            case 'bottom':
+                return height;
+
+            default:
+                return 0;
+        }
+    }
+
+    private static calcLeftOffset(width: number, textAlign?: CanvasTextAlign, isRtl?: boolean): number {
         let offset = 0;
         switch (textAlign) {
             case 'center':
                 offset = 0.5;
                 break;
             case 'right':
-            case 'end':
+            case isRtl ? 'start' : 'end':
                 offset = 1;
         }
         return width * offset;
     }
 
+    override getBBox(): BBox {
+        const bbox = super.getBBox();
+        if (!this.textMap?.size || !isArray(this.text)) return bbox;
+
+        const { height, lineMetrics } = measureTextSegments(this.text, this);
+        const offsetTop = Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
+        const y = this.y - offsetTop;
+        if (bbox.y === y) return bbox;
+
+        return new BBox(bbox.x, y, bbox.width, bbox.height);
+    }
+
     protected override computeBBox(): BBox {
+        if (!this.hasRenderableText()) {
+            return new BBox(this.x, this.y, 0, 0);
+        }
         this.generateTextMap();
         if (this.textMap?.size) {
             const bbox = BBox.merge(this.textMap.values());
@@ -199,8 +276,9 @@ export class Text<D = unknown> extends Shape<D> {
             bbox.y = this.y;
             return bbox;
         }
+        const isRtl = this.scene?.isRtl;
         const { x, y, lines, textBaseline, textAlign } = this;
-        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign });
+        const measuredTextBounds = Text.computeBBox(lines, x, y, { font: this, textBaseline, textAlign, isRtl });
         if (this.boxing != null) measuredTextBounds.grow(this.boxPadding);
         return measuredTextBounds;
     }
@@ -247,41 +325,45 @@ export class Text<D = unknown> extends Shape<D> {
     override render(renderCtx: RenderContext): void {
         const { ctx, stats } = renderCtx;
 
-        if (!this.text || !this.layerManager) {
+        if (!this.layerManager || !this.hasRenderableText()) {
             if (stats) stats.nodesSkipped += 1;
-            return super.render(renderCtx);
+            return;
         }
 
-        if (isArray(this.text)) {
+        if (isArray(this.text) && this.richText) {
             this.generateTextMap();
-            const richTextBBox = this.richText!.getBBox();
+            const richTextBBox = this.richText.getBBox();
+            const { width, height, lineMetrics } = measureTextSegments(this.text, this);
 
             let translateX = 0;
             switch (this.textAlign) {
                 case 'left':
                 case 'start':
-                    translateX = richTextBBox.width / 2;
+                    translateX = width / 2;
                     break;
 
                 case 'right':
                 case 'end':
-                    translateX = richTextBBox.width / -2;
+                    translateX = width / -2;
             }
 
-            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, this.y));
+            const translateY = this.y - Text.calcSegmentedTopOffset(height, lineMetrics, this.textBaseline);
+
+            this.renderBoxing(renderCtx, richTextBBox.clone().translate(translateX, translateY));
 
             ctx.save();
-            ctx.translate(translateX, this.y);
-            this.richText!.render(renderCtx);
+            ctx.translate(translateX, translateY);
+            this.richText.opacity = this.opacity;
+            this.richText.render(renderCtx);
             ctx.restore();
         } else {
             this.renderText(renderCtx);
         }
 
-        if (Text.debug.check() && !this.textMap?.size) {
+        if (Text.debug.check()) {
             const bbox = this.getBBox();
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 1;
+            ctx.lineWidth = this.textMap?.size ? 2 : 1;
+            ctx.strokeStyle = this.textMap?.size ? 'blue' : 'red';
             ctx.strokeRect(bbox.x, bbox.y, bbox.width, bbox.height);
         }
 
@@ -347,7 +429,7 @@ export class Text<D = unknown> extends Shape<D> {
 
         const measurer = cachedTextMeasurer(this);
         const { lineMetrics } = measurer.measureLines(lines);
-        const { textBaseline, lineHeight = lineMetrics[0].height } = this;
+        const { textBaseline, lineHeight = measurer.lineHeight() } = this;
 
         let offsetY = 0;
         if (textBaseline === 'top') {
@@ -397,6 +479,10 @@ export class Text<D = unknown> extends Shape<D> {
         }
     }
 
+    hasBoxing() {
+        return this.boxing != null;
+    }
+
     getBoxingProperties(): TextBoxingProperties {
         const { fill, fillOpacity, cornerRadius, stroke, strokeWidth, strokeOpacity } = this.boxing ?? {};
 
@@ -413,11 +499,28 @@ export class Text<D = unknown> extends Shape<D> {
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
-        if (!this.visible || !this.text) return;
+        if (!this.visible || !this.hasRenderableText()) return;
 
+        const text = this.text;
+        if (text == null) return;
         const element = createSvgElement('text');
 
-        if (isString(this.text)) {
+        if (isArray(text)) {
+            for (const segment of text) {
+                const segmentElement = createSvgElement('tspan');
+
+                setSvgFontAttributes(segmentElement, {
+                    fontSize: segment.fontSize ?? this.fontSize,
+                    fontFamily: segment.fontFamily ?? this.fontFamily,
+                    fontWeight: segment.fontWeight ?? this.fontWeight,
+                    fontStyle: segment.fontStyle ?? this.fontStyle,
+                });
+                this.applySvgFillAttributes(segmentElement);
+
+                segmentElement.textContent = toTextString(segment.text);
+                element.append(segmentElement);
+            }
+        } else {
             this.applySvgFillAttributes(element);
             setSvgFontAttributes(element, this);
             element.setAttribute(
@@ -434,25 +537,18 @@ export class Text<D = unknown> extends Shape<D> {
             element.setAttribute('x', String(this.x));
             element.setAttribute('y', String(this.y));
 
-            element.textContent = this.text;
-        } else {
-            for (const segment of this.text) {
-                const segmentElement = createSvgElement('tspan');
-
-                setSvgFontAttributes(segmentElement, {
-                    fontSize: segment.fontSize ?? this.fontSize,
-                    fontFamily: segment.fontFamily ?? this.fontFamily,
-                    fontWeight: segment.fontWeight ?? this.fontWeight,
-                    fontStyle: segment.fontStyle ?? this.fontStyle,
-                });
-                this.applySvgFillAttributes(segmentElement);
-
-                segmentElement.textContent = segment.text;
-                element.append(segmentElement);
-            }
+            element.textContent = toTextString(text);
         }
 
         return { elements: [element] };
+    }
+
+    private hasRenderableText(): boolean {
+        const { text } = this;
+        if (text == null) {
+            return false;
+        }
+        return isArray(text) ? true : toTextString(text) !== '';
     }
 }
 

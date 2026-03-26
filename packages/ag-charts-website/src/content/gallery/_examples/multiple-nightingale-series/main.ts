@@ -1,7 +1,16 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModule]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -49,8 +58,8 @@ const options: AgPolarChartOptions = {
             radiusName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.15,
             interval: {
@@ -93,14 +102,14 @@ const options: AgPolarChartOptions = {
                 },
             ],
         },
-        {
+        angle: {
             type: 'angle-category',
             paddingInner: 0.25,
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

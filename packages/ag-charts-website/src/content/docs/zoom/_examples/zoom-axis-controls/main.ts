@@ -1,7 +1,27 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
@@ -13,34 +33,31 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
             title: {
                 text: 'Spending',
             },
-            keys: ['spending'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
             title: {
                 text: 'Tonnes',
             },
-            keys: ['tonnes'],
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             interval: {
                 minSpacing: 80,
@@ -50,7 +67,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     data: getData(),
     series: [
         {
@@ -62,6 +79,7 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'year',
             yKey: 'tonnes',
+            yKeyAxis: 'ySecondary',
         },
     ],
 };

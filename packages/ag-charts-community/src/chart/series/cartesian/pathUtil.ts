@@ -45,7 +45,7 @@ export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): nu
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {
-    const toFinite = (value: number) => (isFinite(value) ? value : 0);
+    const toFinite = (value: number) => (Number.isFinite(value) ? value : 0);
     path.clipX = toFinite(nodeDataDependencies.seriesRectWidth);
     path.clipY = toFinite(nodeDataDependencies.seriesRectHeight);
 }

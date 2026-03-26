@@ -2,7 +2,9 @@ import { type AgRangeAreaSeriesOptions, _ModuleSupport } from 'ag-charts-communi
 import {
     type OptionsDefs,
     boolean,
+    commonSeriesOptionsDefs,
     constant,
+    fillOptionsDef,
     number,
     required,
     shapeSegmentation,
@@ -10,7 +12,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, rangeAreaSeriesThemeableOptionsDef } = _ModuleSupport;
+const { rangeAreaSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -19,11 +21,18 @@ export const rangeAreaSeriesOptionsDef: OptionsDefs<AgRangeAreaSeriesOptions> = 
     xKey: required(string),
     yLowKey: required(string),
     yHighKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     yLowName: string,
     yHighName: string,
+    legendItemName: string,
     segmentation: shapeSegmentation,
+    invertedStyle: {
+        enabled: boolean,
+        ...fillOptionsDef,
+    },
 };
 
 // @ts-expect-error undocumented option

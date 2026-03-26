@@ -1,0 +1,50 @@
+---
+title: 'RTL Layout'
+description: '$framework Charts supports right-to-left (RTL) layouts for languages such as Arabic, Persian, and Hebrew.'
+---
+
+AG Charts supports right-to-left (RTL) text direction for languages such as Arabic, Persian, and Hebrew.
+
+{% note %}
+The RTL option handles text within the data elements and controls the visual direction of the chart.  
+To change the language of chart UI elements see [Localisation](./localisation/).
+{% /note %}
+
+## Enabling RTL
+
+Set `enableRtl: true` to enable right-to-left layout for the chart.
+
+```js format="snippet"
+{
+    enableRtl: true,
+}
+```
+
+AG Charts can also detect RTL automatically from the `dir="rtl"` attribute set on the chart container or any of its ancestor elements. When the `dir` attribute is present, `enableRtl` does not need to be set explicitly.
+
+## Example: RTL and Localisation
+
+Use the language dropdown to switch between English (LTR), Arabic, Persian, and Hebrew.
+
+{% chartExampleRunner title="RTL Locale Switcher" name="rtl-locale-switcher" type="generated" /%}
+
+In this example:
+
+-   The `enableRtl` option is used to enable right-to-left layout.
+-   The `localeText` option is used for localisation.
+-   All bidirectional text is rendered correctly.
+-   The RTL text in the title and subtitle wrap and truncate on the left.
+-   The legend layout is mirrored as is the series order in the chart.
+-   The tooltip and context menu layout are mirrored.
+
+## Axis Layout
+
+The axis positions and directions are not changed in RTL mode. If required, users should manually set [Axis Placement](./axes-position/) and `reverse` options explicitly.
+
+## API Reference
+
+{% tabs %}
+{% tabItem id="AgBaseChartOptions" label="Chart" %}
+{% apiReference id="AgBaseChartOptions" include=["enableRtl"] /%}
+{% /tabItem %}
+{% /tabs %}

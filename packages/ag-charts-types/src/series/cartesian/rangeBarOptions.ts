@@ -1,25 +1,36 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
+import type { ContextDefault, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
 import type {
     AgBaseCartesianThemeableOptions,
     AgBaseSeriesOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgRangeBarSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgRangeBarSeriesOptionsKeys<TDatum> &
     Required<AgRangeBarSeriesStyle>;
+
+export interface AgRangeBarSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams<HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgRangeBarSeriesOptionsKeys<TDatum>,
+        Required<AgRangeBarSeriesStyle> {}
 
 export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -55,13 +66,13 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     direction?: 'horizontal' | 'vertical';
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** @deprecated Configuration for the range series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeBarSeriesLabelOptions<TDatum, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
+    styler?: Styler<AgRangeBarSeriesStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
+    /** Function used to return formatting for individual RangeBar series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<TDatum, TContext>, AgRangeBarSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgRangeBarHighlightStyleOptions, AgRangeBarHighlightStyleOptions>;
@@ -69,6 +80,10 @@ export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContex
     grouped?: boolean;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
+    /** Fixed width of each bar in the series. */
+    width?: PixelSize;
+    /** Ratio of the bandwidth (or specified width) to use for the width for each bar in the series. */
+    widthRatio?: Ratio;
 }
 
 export interface AgRangeBarHighlightStyleOptions extends AgRangeBarSeriesStyle {
@@ -96,13 +111,16 @@ export interface AgRangeBarSeriesOptionsNames {
     yLowName?: string;
     /** A human-readable description of the y-high-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yHighName?: string;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgRangeBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions {
     /** Configuration for the Range Bar Series. */
     type: 'range-bar';
 }

@@ -1,10 +1,16 @@
-import type { AnyFn, IsAny, Point, RequireOptional } from 'ag-charts-core';
-import type { AgChartLabelStyleOptions, AgChartLabelStylerParams, HighlightState, PixelSize } from 'ag-charts-types';
+import type { Callback, CallbackParam, IsAny, Point, RequireOptional } from 'ag-charts-core';
+import { mergeDefaults } from 'ag-charts-core';
+import type {
+    AgChartLabelStyleOptions,
+    AgChartLabelStylerParams,
+    HighlightState,
+    PixelSize,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
-import { mergeDefaults } from '../util/object';
 import type { Label } from './label';
 import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -13,7 +19,7 @@ interface SeriesLike<TDatumIndex extends DatumIndexType> {
     ctx: ModuleContext;
     declarationOrder: number;
     get visible(): boolean;
-    cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined;
+    cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;
     isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined): boolean;
     getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
@@ -32,7 +38,7 @@ type Bounds = {
 export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
 };
@@ -43,10 +49,10 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
     params: TParams,
     label: Label<TParams>,
     isHighlight: boolean,
-    activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined
+    activeHighlight: HighlightNodeDatum<TDatumIndex> | undefined,
+    labelPath: string[] = ['series', `${series.declarationOrder}`, 'label']
 ): AgChartLabelStyleOptions & { fontSize: number } {
     if (series.visible && label.itemStyler) {
-        const highlighted = isHighlight || series.isSeriesHighlighted(activeHighlight);
         const highlightState = series.getHighlightStateString(
             activeHighlight,
             isHighlight ||
@@ -55,6 +61,9 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
                     activeHighlight?.datumIndex === nodeDatum.datumIndex),
             nodeDatum?.datumIndex
         );
+
+        const itemId: string | number | undefined =
+            typeof nodeDatum?.datumIndex === 'number' ? nodeDatum.datumIndex : nodeDatum?.itemId;
 
         const styleParams: RequireOptional<Omit<AgChartLabelStylerParams<unknown, unknown>, 'context'>> & {
             fontSize: number;
@@ -70,15 +79,15 @@ export function getLabelStyles<TParams, TDatumIndex extends DatumIndexType = Dat
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            itemId: nodeDatum?.itemId,
+            itemId,
+            itemType: nodeDatum?.itemType,
             seriesId: series.id,
             padding: label.padding,
-            highlighted,
             highlightState,
         };
         const stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
-                ['series', `${series.declarationOrder}`, 'label'],
+                labelPath,
                 series.cachedCallWithContext(label.itemStyler, { ...params, ...styleParams }),
                 { pick: false }
             ) ?? {};

@@ -18,4 +18,4 @@ export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialCol
 export { Rect } from './scene/shape/rect';
 export { Sector } from './scene/shape/sector';
 export { Shape } from './scene/shape/shape';
-export { toRadians } from './util/angle';
+export { toRadians } from 'ag-charts-core';

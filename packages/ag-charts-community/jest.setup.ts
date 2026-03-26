@@ -1,35 +1,46 @@
 import { expect } from '@jest/globals';
 import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+import { URL } from 'node:url';
+import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
-import { URL } from 'url';
-import { TextDecoder, TextEncoder } from 'util';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
-// @ts-expect-error types don't exactly align
-global.Canvas = mockCanvas.ConfiguredCanvas;
+import { isAtOrAfterVersion } from './benchmarks/compatibility';
+
+// ModuleRegistry was introduced in pre-13.0.0
+if (isAtOrAfterVersion(12, 4, 0)) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { ModuleRegistry } = require('ag-charts-core');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { AllCommunityModule } = require('./src/module-bundles/all');
+    ModuleRegistry.registerModules(AllCommunityModule);
+}
 
 // @ts-expect-error types don't exactly align
-global.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
+globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.DOMMatrix = DOMMatrix;
+globalThis.OffscreenCanvas = mockCanvas.ConfiguredCanvas;
 
 // @ts-expect-error types don't exactly align
-global.Image = Image;
+globalThis.DOMMatrix = DOMMatrix;
 
 // @ts-expect-error types don't exactly align
-global.Path2D = Path2D;
+globalThis.Image = Image;
 
 // @ts-expect-error types don't exactly align
-global.TextDecoder = TextDecoder;
-global.TextEncoder = TextEncoder;
+globalThis.Path2D = Path2D;
 
 // @ts-expect-error types don't exactly align
-global.URL = URL;
+globalThis.TextDecoder = TextDecoder;
+globalThis.TextEncoder = TextEncoder;
+
+// @ts-expect-error types don't exactly align
+globalThis.URL = URL;
 
 const TOGGLE_POPOVER_ATTRIBUTE = 'data-presented-as-popover';
-global.HTMLElement.prototype.togglePopover = function (visible) {
+globalThis.HTMLElement.prototype.togglePopover = function (visible) {
     visible ??= !this.hasAttribute(TOGGLE_POPOVER_ATTRIBUTE);
 
     if (visible) {
@@ -39,6 +50,17 @@ global.HTMLElement.prototype.togglePopover = function (visible) {
     }
 
     return visible;
+};
+
+globalThis.HTMLElement.prototype.matches = function (selector: string): boolean {
+    if (selector === ':focus-visible') {
+        return false;
+    }
+    try {
+        return HTMLElement.prototype.matches.call(this, selector);
+    } catch {
+        return false;
+    }
 };
 
 declare module 'expect' {

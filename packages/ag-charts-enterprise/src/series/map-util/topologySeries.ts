@@ -1,13 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
+interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+    legendItemName?: string;
+}
 
 interface TopologySeriesNodeDataContext<
     TDatum extends TopologySeriesNodeDatum = TopologySeriesNodeDatum,
     TLabel extends object = object,
 > extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
 
-abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {}
+abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {
+    legendItemName?: string;
+}
 
 export abstract class TopologySeries<
     TDatum extends TopologySeriesNodeDatum,
@@ -16,8 +20,11 @@ export abstract class TopologySeries<
     TLabel extends object,
     TContext extends TopologySeriesNodeDataContext<TDatum, TLabel> = TopologySeriesNodeDataContext<TDatum, TLabel>,
 > extends _ModuleSupport.DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
-    override addChartEventListeners(): void {
+    constructor(options: _ModuleSupport.DataModelSeriesConstructorOpts<TProps>) {
+        super(options);
+
         this.cleanup.register(
+            this.ctx.eventsHub.on('data:update', () => {}),
             this.ctx.eventsHub.on('legend:item-click', (event) => {
                 this.onLegendItemClick(event);
             }),
@@ -28,13 +35,35 @@ export abstract class TopologySeries<
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
+    }
+
+    protected getHighlightedDatum(): TDatum | undefined {
+        let highlightedDatum: TDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
+        const { legendItemName } = this.properties;
+        const matchingLegendItemName =
+            legendItemName != null &&
+            highlightedDatum?.datum == null &&
+            legendItemName === highlightedDatum?.legendItemName;
+
+        if (
+            highlightedDatum != null &&
+            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
+        ) {
+            highlightedDatum = undefined;
+        }
+
+        return highlightedDatum;
+    }
+
+    public override isSeriesHighlighted(highlightedDatum: _ModuleSupport.HighlightNodeDatum | undefined): boolean {
+        if (!this.properties.highlight.enabled) return false;
+        const { series, legendItemName: activeLegendItemName } = highlightedDatum ?? {};
+        const { legendItemName } = this.properties;
+        return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }
 }

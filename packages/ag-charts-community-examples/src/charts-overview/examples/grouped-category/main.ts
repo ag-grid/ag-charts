@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -8,8 +8,8 @@ const options: AgCartesianChartOptions = {
         text: 'Olympic Medal Counts by Region, Country, and City',
     },
     data: getData(),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
             position: 'bottom',
             depthOptions: [
@@ -18,11 +18,11 @@ const options: AgCartesianChartOptions = {
                 { label: { fontSize: 10, rotation: 10 } },
             ],
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -48,4 +48,4 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

@@ -1,7 +1,7 @@
 import { entries } from 'ag-charts-core';
 
-import { WidgetEventUtil } from './widgetEvents';
 import type { WidgetEventMap_HTML, WidgetSourceEventMap_HTML } from './widgetEvents';
+import { WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;
@@ -29,7 +29,9 @@ export class WidgetListenerHTML {
                 this.dispatch(type, target, widgetEvent);
             };
             const opts: AddEventListenerOptions = {};
-            if (type.startsWith('touch')) opts.passive = false;
+            if (type.startsWith('touch') || type === 'wheel') {
+                opts.passive = false;
+            }
             this.initSourceHandler(type, sourceHandler);
             target.getElement().addEventListener(type, sourceHandler, opts);
         }

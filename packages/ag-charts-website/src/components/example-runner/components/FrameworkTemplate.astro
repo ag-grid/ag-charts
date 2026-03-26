@@ -1,4 +1,5 @@
 ---
+// cspell:ignore vars
 import { getBoilerPlateUrl } from '@utils/pages';
 import type { InternalFramework } from '@ag-grid-types';
 import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
@@ -39,6 +40,10 @@ interface Props {
      * Whether to not include system js code
      */
     ignoreSystemJs?: boolean;
+    /**
+     * Ignore dark mode (always use light mode)
+     */
+    ignoreDarkMode?: boolean;
 }
 
 const {
@@ -52,6 +57,7 @@ const {
     addE2ECheckScript,
     addExternalExampleStyles,
     ignoreSystemJs,
+    ignoreDarkMode,
 } = Astro.props as Props;
 
 const isDev = getIsDev();
@@ -174,6 +180,14 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
         />
     )
 }
+
+<script define:vars={{
+    ignoreDarkMode
+}} nonce="123123">
+    if (ignoreDarkMode) {
+        document.documentElement.dataset.ignoreDarkMode = 'true';
+    }
+</script>
 
 {
     addE2ECheckScript && (

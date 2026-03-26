@@ -1,10 +1,24 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type {
+    CheckboxOptions as CoreCheckboxOptions,
+    SelectOptions as CoreSelectOptions,
+    TextAreaOptions as CoreTextAreaOptions,
+} from 'ag-charts-core';
 import {
+    Color,
     type ElementID,
+    type Point,
+    Vec2,
+    createButton,
+    createCheckbox,
     createElement,
     createElementId,
+    createSelect,
+    createTextArea,
     entries,
-    getWindow,
+    getIconClassNames,
+    initRovingTabIndex,
+    mapValues,
     setAttribute,
     setAttributes,
 } from 'ag-charts-core';
@@ -12,19 +26,7 @@ import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
 
-const {
-    Color,
-    DraggablePopover,
-    NativeWidget,
-    Vec2,
-    createButton,
-    createCheckbox,
-    createSelect,
-    createTextArea,
-    initRovingTabIndex,
-    getIconClassNames,
-    mapValues,
-} = _ModuleSupport;
+const { DraggablePopover, NativeWidget } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
@@ -35,16 +37,16 @@ interface RadioGroupOptions<T extends string> {
     onChange: (value: T) => void;
 }
 
-interface SelectOptions extends _ModuleSupport.SelectOptions {
+interface SelectOptions extends CoreSelectOptions {
     altText: string;
     label: string;
 }
 
-interface TextAreaOptions extends _ModuleSupport.TextAreaOptions {
+interface TextAreaOptions extends CoreTextAreaOptions {
     placeholder: string;
 }
 
-interface CheckboxOptions extends _ModuleSupport.CheckboxOptions {
+interface CheckboxOptions extends CoreCheckboxOptions {
     label: string;
 }
 
@@ -92,14 +94,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         popover.addEventListener('keydown', this.onKeyDown.bind(this));
 
         // Give the dialog's dimensions a chance to be calculated before positioning
-        getWindow().requestAnimationFrame(() => this.reposition());
+        this.ctx.agDocument.requestAnimationFrame(() => this.reposition());
 
         this.colorPicker.attachTo(this);
 
         return popover;
     }
 
-    protected override updatePosition(position: _ModuleSupport.Vec2): void {
+    protected override updatePosition(position: Point): void {
         super.updatePosition(position);
 
         const { anchor, fallbackAnchor } = this.getColorPickerAnchors() ?? {};
@@ -381,9 +383,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private reposition() {
         const { seriesRect, ctx } = this;
-        const clientRect = ctx.domManager.getBoundingClientRect();
         const popover = this.getPopoverElement();
         if (!seriesRect || !popover) return;
+
+        // Avoid triggering a layout change when getting the client rect unless absolutely necessary..
+        const clientRect = ctx.domManager.getBoundingClientRect();
 
         // Position the dialog relative to the series rect height, to cater for the range buttons and other
         // paraphernalia at the bottom of the chart, but relative to the client width so the dialog
@@ -393,7 +397,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const popoverSize = Vec2.from(popover);
         const halfWidth = Vec2.from(0.5, 1);
 
-        let position: _ModuleSupport.Vec2;
+        let position: Point;
         if (seriesRect.width > 1000) {
             const bottomCenter = Vec2.sub(
                 Vec2.add(outerOffset, Vec2.multiply(outerSize, halfWidth)),

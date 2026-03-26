@@ -1,19 +1,27 @@
-import { type AgTreemapSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgTreemapSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
+import { StandaloneChartModule } from '../../charts/standaloneChartModule';
 import { TreemapSeries } from './treemapSeries';
 import { treemapSeriesOptionsDef } from './treemapSeriesOptionsDef';
 
-const { FONT_SIZE_RATIO } = _ModuleSupport;
-
-export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
+export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
-    identifier: 'treemap',
-    moduleFactory: (ctx) => new TreemapSeries(ctx),
+    name: 'treemap',
+    chartType: 'standalone',
+    enterprise: true,
     solo: true,
+    version: VERSION,
+    dependencies: [StandaloneChartModule],
+
+    options: treemapSeriesOptionsDef,
     themeTemplate: {
         series: {
             fills: {
@@ -24,9 +32,9 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                         $applySwitch: [
                             { $path: ['/type', undefined, { $value: '$1' }] },
                             { $value: '$1' },
-                            ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                            ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
-                            ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
+                            ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                            ['pattern', FILL_PATTERN_DEFAULTS],
+                            ['image', FILL_IMAGE_DEFAULTS],
                         ],
                     },
                 ],
@@ -35,12 +43,11 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 $applyCycle: [{ $size: { $path: ['./data', { $path: '/data' }] } }, { $palette: 'strokes' }],
             },
             colorRange: { $palette: 'divergingColors' },
-            // @ts-expect-error undocumented option
             undocumentedGroupFills: { $palette: 'hierarchyColors' },
             undocumentedGroupStrokes: { $palette: 'secondHierarchyColors' },
             group: {
                 label: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'textColor' },
                     fontStyle: undefined,
@@ -55,10 +62,17 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 padding: 4,
                 gap: 2,
                 textAlign: 'left',
+                highlight: {
+                    unhighlightedItem: {
+                        opacity: 0.2,
+                        fillOpacity: 0.2,
+                        strokeOpacity: 0.2,
+                    },
+                },
             },
             tile: {
                 label: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
@@ -71,7 +85,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     spacing: 2,
                 },
                 secondaryLabel: {
-                    ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                    ...LABEL_BOXING_DEFAULTS,
                     enabled: true,
                     color: { $ref: 'chartBackgroundColor' },
                     fontStyle: undefined,
@@ -87,44 +101,22 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 strokeWidth: { $isUserOption: ['../strokes/0', 2, { $isUserOption: ['./stroke', 2, 0] }] },
                 padding: 3,
                 gap: 1,
-            },
-            // Override defaults
-            highlightStyle: {
-                group: {
-                    label: {
-                        color: { $ref: 'textColor' },
+                highlight: {
+                    unhighlightedItem: {
+                        fillOpacity: 0.6,
+                        strokeOpacity: 0.6,
                     },
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
-                },
-                tile: {
-                    label: {
-                        color: { $ref: 'chartBackgroundColor' },
+                    unhighlightedBranch: {
+                        fillOpacity: 0.2,
+                        strokeOpacity: 0.2,
                     },
-                    secondaryLabel: {
-                        color: { $ref: 'chartBackgroundColor' },
-                    },
-                    fill: 'rgba(255,255,255, 0.33)',
-                    stroke: `rgba(0, 0, 0, 0.4)`,
-                    strokeWidth: 2,
                 },
             },
         },
         gradientLegend: {
-            enabled: true,
-            ..._ModuleSupport.LEGEND_CONTAINER_THEME,
+            enabled: { $if: [{ $path: '../series/0/colorKey' }, true, false] },
         },
     },
-};
 
-export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions> = {
-    type: 'series',
-    name: 'treemap',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: treemapSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new TreemapSeries(ctx),
+    create: (ctx) => new TreemapSeries(ctx),
 };

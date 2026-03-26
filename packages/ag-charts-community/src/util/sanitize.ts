@@ -1,12 +1,13 @@
-import { createElement } from 'ag-charts-core';
+import { createElement, toPlainText } from 'ag-charts-core';
+import type { TextOrSegments } from 'ag-charts-types';
 
 let element: HTMLElement | null = null;
 
-export function sanitizeHtml(text: string): string {
-    if (text === '') {
-        return '';
-    }
+export function sanitizeHtml(text: TextOrSegments): string {
+    const plainText = toPlainText(text);
+    if (plainText === '') return '';
+
     element ??= createElement('div');
-    element.textContent = String(text);
-    return element.innerHTML.replace(/\n/g, '<br>');
+    element.textContent = plainText;
+    return element.innerHTML.replaceAll('\n', '<br>');
 }

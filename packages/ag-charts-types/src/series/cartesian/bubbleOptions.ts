@@ -1,6 +1,7 @@
 import type {
     ContextCallbackParams,
     DatumCallbackParams,
+    HighlightState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -14,7 +15,7 @@ import type {
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
-import type { FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -40,7 +41,7 @@ export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
 export interface AgBubbleSeriesStylerParams<TDatum, TContext>
     extends AgBubbleSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams,
+        SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         AgBubbleSeriesStyle {
     /** The largest size a marker can be in pixels. */
@@ -52,10 +53,10 @@ export interface AgBubbleSeriesStylerResult extends AgBubbleSeriesStyle {
     maxSize?: PixelSize;
 }
 
-export type BubbleSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgBubbleSeriesOptionsKeys<TDatum> &
     Required<AgBubbleSeriesStyle>;
@@ -71,7 +72,10 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     size?: PixelSize;
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
-    /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance. */
+    /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
+     *
+     * Default: `2000`
+     */
     maxRenderedItems?: number;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
@@ -79,9 +83,9 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     label?: AgBubbleSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgBubbleSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgBubbleSeriesStylerParams<TDatum, TContext>, AgBubbleSeriesStylerResult>;
-    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
@@ -107,10 +111,13 @@ export interface AgBubbleSeriesOptionsNames {
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
+    /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgBubbleSeriesThemeableOptions<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames {

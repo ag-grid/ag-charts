@@ -1,4 +1,6 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType } from 'ag-charts-community';
+import type { MementoOriginator } from 'ag-charts-core';
+import { deepClone } from 'ag-charts-core';
 
 import {
     type AnnotationLineStyle,
@@ -16,8 +18,6 @@ import {
 } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
-
-const { deepClone } = _ModuleSupport;
 
 interface DefaultsMemento {
     colors: DefaultColors;
@@ -38,7 +38,7 @@ type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignmen
 type DefaultLineTextPositions = Map<HasLineTextAnnotationType, LineTextPosition | ChannelTextPosition | undefined>;
 type DefaultFibonacciOptions = Map<FibonacciAnnotationType, FibonacciAnnotationToolbarOptionsType>;
 
-export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<DefaultsMemento> {
+export class AnnotationDefaults implements MementoOriginator<DefaultsMemento> {
     mementoOriginatorKey = 'annotation-defaults' as const;
 
     private colors: DefaultColors = new Map(
@@ -232,13 +232,13 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         for (const [annotationType, options] of this.fibonacciOptions) {
             if (datum.type !== annotationType || options == null) continue;
 
-            Object.keys(options).forEach((option) => {
+            for (const option of Object.keys(options)) {
                 const value = (options as any)[option];
                 if (value == null) {
-                    return;
+                    continue;
                 }
                 datum.set({ [option]: value });
-            });
+            }
         }
     }
 }

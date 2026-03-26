@@ -1,9 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Position } from 'ag-charts-core';
 
 import { polygonPointSearch } from './polygonPointSearch';
 
 export function preferredLabelCenter(
-    polygons: _ModuleSupport.Position[][],
+    polygons: Position[][],
     { aspectRatio, precision }: { aspectRatio: number; precision: number }
 ) {
     const result = polygonPointSearch(polygons, precision, (p, cx, cy, stride) => {
@@ -22,8 +22,8 @@ export function preferredLabelCenter(
 }
 
 export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
+    a: Position,
+    b: Position,
     cx: number,
     cy: number,
     aspectRatio: number
@@ -44,7 +44,19 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
     let maxWidth = Infinity;
 
     // (y - y0) = m(x - x0)
-    if (abx !== 0) {
+    if (abx === 0) {
+        // x = ax = bx
+        for (let i = 0; i <= 1; i += 1) {
+            const m = i === 0 ? positiveM : -positiveM;
+            // (y - cy) = m * (x - cx); x = ax
+            const y = m * (ax - cx) + cy;
+            if (y >= topPointY && y <= bottomPointY) {
+                const height = Math.abs(cy - y) * 2;
+                const width = height * aspectRatio;
+                maxWidth = Math.min(maxWidth, width);
+            }
+        }
+    } else {
         const abm = aby / abx;
 
         for (let i = 0; i <= 1; i += 1) {
@@ -60,21 +72,9 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
                 maxWidth = Math.min(maxWidth, width);
             }
         }
-    } else {
-        // x = ax = bx
-        for (let i = 0; i <= 1; i += 1) {
-            const m = i === 0 ? positiveM : -positiveM;
-            // (y - cy) = m * (x - cx); x = ax
-            const y = m * (ax - cx) + cy;
-            if (y >= topPointY && y <= bottomPointY) {
-                const height = Math.abs(cy - y) * 2;
-                const width = height * aspectRatio;
-                maxWidth = Math.min(maxWidth, width);
-            }
-        }
     }
 
-    // Use reciporicals to avoid division by zero
+    // Use reciprocals to avoid division by zero
     const positiveMRecip = aspectRatio;
     const centerToTopMRecip = Math.abs((topPointX - cx) / (topPointY - cy));
     const centerToBottomMRecip = Math.abs((bottomPointX - cx) / (bottomPointY - cy));
@@ -108,7 +108,7 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
 }
 
 function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
-    polygons: _ModuleSupport.Position[][],
+    polygons: Position[][],
     cx: number,
     cy: number,
     aspectRatio: number
@@ -117,7 +117,7 @@ function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
     let minWidth = Infinity;
 
     for (const polygon of polygons) {
-        let p0 = polygon[polygon.length - 1];
+        let p0 = polygon.at(-1)!;
         let [x0, y0] = p0;
 
         for (const p1 of polygon) {
@@ -150,8 +150,8 @@ function applyX(into: { minX: number; maxX: number }, cx: number, x: number) {
 
 export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     into: { minX: number; maxX: number },
-    a: _ModuleSupport.Position,
-    b: _ModuleSupport.Position,
+    a: Position,
+    b: Position,
     cx: number,
     cy: number,
     height: number
@@ -194,19 +194,14 @@ export function xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(
     return into;
 }
 
-export function maxWidthInPolygonForRectOfHeight(
-    polygons: _ModuleSupport.Position[][],
-    cx: number,
-    cy: number,
-    height: number
-) {
+export function maxWidthInPolygonForRectOfHeight(polygons: Position[][], cx: number, cy: number, height: number) {
     const result = {
         minX: -Infinity,
         maxX: Infinity,
     };
 
     for (const polygon of polygons) {
-        let p0 = polygon[polygon.length - 1];
+        let p0 = polygon.at(-1)!;
 
         for (const p1 of polygon) {
             xExtentsOfRectConstrainedByCenterAndHeightToLineSegment(result, p0, p1, cx, cy, height);

@@ -1,4 +1,17 @@
-import { type Point, type RequireOptional, isDate, isNumber } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DomainWithMetadata,
+    type Mutable,
+    type Point,
+    type RequireOptional,
+    createTicks,
+    deepClone,
+    findMinMax,
+    isDate,
+    isNumber,
+    mergeDefaults,
+    tickStep,
+} from 'ag-charts-core';
 import type {
     AgHistogramBinDatum,
     AgHistogramSeriesLabelFormatterParams,
@@ -15,11 +28,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { deepClone } from '../../../util/json';
-import { findMinMax } from '../../../util/number';
-import { mergeDefaults } from '../../../util/object';
-import { createTicks, tickStep } from '../../../util/ticks';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { ChartAxis } from '../../chartAxis';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';
 import type {
@@ -28,10 +37,17 @@ import type {
     GroupByFn,
     GroupedData,
     ProcessedOutputDiff,
-    PropertyDefinition,
 } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, keyProperty, rowCountProperty, valueProperty } from '../../data/processors';
+import type { PropertyDefinition } from '../../data/dataModelTypes';
+import {
+    SORT_DOMAIN_GROUPS,
+    createDatumId,
+    keyProperty,
+    processedDataIsAnimatable,
+    rowCountProperty,
+    valueProperty,
+} from '../../data/processors';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
@@ -44,27 +60,36 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { HighlightState } from '../seriesProperties';
-import { applyShapeStyle } from '../shapeUtil';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
     prepareBarAnimationFunctions,
+    resetBarSelectionsDirect,
     resetBarSelectionsFn,
 } from './barUtil';
 import {
-    type CartesianAnimationData,
     CartesianSeries,
-    type CartesianSeriesNodeDataContext,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
+import type {
+    CartesianAnimationDataOf,
+    CartesianCreateNodeDataContext,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesTypes,
+} from './cartesianSeriesTypes';
+import { upsertNodeDatum } from './cartesianSeriesUtil';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
+<<<<<<< HEAD
 type HistogramAnimationData = CartesianAnimationData<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
+=======
+type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
+>>>>>>> latest
 
 interface CalculatedBin {
     domain: [number, number];
@@ -78,6 +103,7 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
     styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
 }
 
+<<<<<<< HEAD
 export class HistogramSeries extends CartesianSeries<
     HistogramNodeDatum,
     Rect<HistogramNodeDatum>,
@@ -87,6 +113,34 @@ export class HistogramSeries extends CartesianSeries<
     HistogramSeriesNodeDataContext
 > {
     static readonly className = 'HistogramSeries';
+=======
+/**
+ * Consolidated type interface for HistogramSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface HistogramSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Rect<HistogramNodeDatum>;
+    readonly options: AgHistogramSeriesOptions;
+    readonly properties: HistogramSeriesProperties;
+    readonly datum: HistogramNodeDatum;
+    readonly label: HistogramNodeDatum;
+    readonly context: HistogramSeriesNodeDataContext;
+    readonly stackContext: never;
+    readonly createNodeDataContext: HistogramSeriesNodeDatumContext;
+}
+
+/** Context object caching expensive lookups for createNodeData(). */
+interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext<HistogramNodeDatum> {
+    // Pre-computed values specific to histogram
+    readonly yAxisReversed: boolean;
+
+    // Histogram-specific property lookups
+    readonly label: HistogramSeriesProperties['label'];
+}
+
+export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
+    static override readonly className = 'HistogramSeries';
+>>>>>>> latest
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
@@ -99,6 +153,8 @@ export class HistogramSeries extends CartesianSeries<
             categoryKey: undefined,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             datumSelectionGarbageCollection: true,
+            animationAlwaysPopulateNodeData: true,
+            alwaysClip: true,
             animationResetFns: {
                 datum: resetBarSelectionsFn,
                 label: resetLabelFn,
@@ -152,7 +208,7 @@ export class HistogramSeries extends CartesianSeries<
 
     private calculatePrecision(step: number): number {
         let precision = 10;
-        if (isFinite(step) && step > 0) {
+        if (Number.isFinite(step) && step > 0) {
             while (step < 1) {
                 precision *= 10;
                 step *= 10;
@@ -256,10 +312,10 @@ export class HistogramSeries extends CartesianSeries<
         const processedData = p as any as GroupedData<any>;
 
         const groups = new Map<string, { group: DataGroup; groupIndex: number }>();
-        processedData.groups.forEach((group, groupIndex) => {
+        for (const [groupIndex, group] of processedData.groups.entries()) {
             const domain = group.keys;
             groups.set(createDatumId(...domain), { group, groupIndex });
-        });
+        }
 
         this.calculatedBins = calculatedBinDomains.map((domain): CalculatedBin => {
             const g = groups.get(createDatumId(...domain));
@@ -267,7 +323,7 @@ export class HistogramSeries extends CartesianSeries<
             if (g) {
                 const { group, groupIndex } = g;
                 const [[negativeAgg, positiveAgg] = [0, 0]] = group.aggregation;
-                const datum = [...dataModel.forEachDatum(this, processedData, group)];
+                const datum = [...dataModel.forEachDatum(this, processedData, group, groupIndex)];
                 const frequency = this.frequency(group);
                 const total = negativeAgg + positiveAgg;
                 return { domain, datum, groupIndex, frequency, total };
@@ -280,37 +336,37 @@ export class HistogramSeries extends CartesianSeries<
     }
 
     override xCoordinateRange(): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
     override yCoordinateRange(): [number, number] {
-        return [NaN, NaN];
+        return [Number.NaN, Number.NaN];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.calculatedBins.length) return [];
+        if (!processedData || !dataModel || !this.calculatedBins.length) return { domain: [] };
 
-        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData);
+        const yDomain = dataModel.getDomain(this, `groupAgg`, 'aggregate', processedData).domain;
         const xDomainMin = this.calculatedBins[0].domain[0];
         const xDomainMax = this.calculatedBins[(this.calculatedBins?.length ?? 0) - 1].domain[1];
         if (direction === ChartAxisDirection.X) {
-            return fixNumericExtent([xDomainMin, xDomainMax]);
+            return { domain: fixNumericExtent([xDomainMin, xDomainMax]) };
         }
 
-        return fixNumericExtent(yDomain);
+        return { domain: fixNumericExtent(yDomain) };
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        if (!dataModel || processedData?.type !== 'grouped') return [NaN, NaN];
+        if (!dataModel || processedData?.type !== 'grouped') return [Number.NaN, Number.NaN];
 
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
 
         const yMin = 0;
         let yMax = -Infinity;
-        processedData.groups.forEach(({ keys, aggregation }) => {
+        for (const { keys, aggregation } of processedData.groups) {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const [xDomainMin, xDomainMax] = keys;
 
@@ -320,9 +376,9 @@ export class HistogramSeries extends CartesianSeries<
                 const total = negativeAgg + positiveAgg;
                 yMax = Math.max(yMax, total);
             }
-        });
+        }
 
-        if (yMin > yMax) return [NaN, NaN];
+        if (yMin > yMax) return [Number.NaN, Number.NaN];
 
         return [yMin, yMax];
     }
@@ -331,102 +387,224 @@ export class HistogramSeries extends CartesianSeries<
         return group.datumIndices.reduce((acc, datumIndices) => acc + datumIndices.length, 0);
     }
 
-    override createNodeData() {
-        const { axes, processedData, dataModel } = this;
+    /**
+     * Creates the shared context for datum creation.
+     * Caches expensive lookups and computations that are constant across all datums.
+     *
+     * Note: rawData and xValues are empty arrays because HistogramSeries
+     * iterates over calculatedBins rather than raw data.
+     */
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): HistogramSeriesNodeDatumContext | undefined {
+        const { xKey, yKey, xName, yName, label } = this.properties;
+        const { contextNodeData, processedData } = this;
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData?.changeDescription != null;
 
-        if (!xAxis || !yAxis || !dataModel) {
+        return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
+
+            // Scales
+            xScale: xAxis.scale,
+            yScale: yAxis.scale,
+            yAxisReversed: yAxis.isReversed(),
+
+            // Data source (empty arrays - histogram uses calculatedBins instead)
+            rawData: [],
+            xValues: [],
+
+            // Property lookups
+            xKey,
+            yKey,
+            xName,
+            yName,
+            label,
+
+            // Animation flag
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+
+            // Incremental update support
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Creates label data for a histogram bin if labels are enabled.
+     */
+    private createLabelData(
+        ctx: HistogramSeriesNodeDatumContext,
+        bin: CalculatedBin,
+        x: number,
+        y: number,
+        w: number,
+        h: number
+    ): HistogramNodeDatum['label'] {
+        const { label, yKey, xKey, xName, yName } = ctx;
+        const { total, datum } = bin;
+
+        if (!label.enabled || total === 0) {
+            return undefined;
+        }
+
+        return {
+            x: x + w / 2,
+            y: y + h / 2,
+            text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(total, datum, yKey!, 'y', [], label, {
+                value: total,
+                datum,
+                xKey,
+                yKey,
+                xName,
+                yName,
+            }),
+        };
+    }
+
+    /**
+     * Creates a skeleton HistogramNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
+        const { xKey, yKey } = ctx;
+        const { domain, datum, groupIndex, frequency, total } = bin;
+
+        return {
+            series: this,
+            datumIndex: groupIndex,
+            datum,
+            aggregatedValue: total,
+            frequency,
+            domain,
+            yKey,
+            xKey,
+            x: 0,
+            y: 0,
+            xValue: 0,
+            yValue: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
+            topLeftCornerRadius: false,
+            topRightCornerRadius: false,
+            bottomRightCornerRadius: false,
+            bottomLeftCornerRadius: false,
+            label: undefined,
+            crisp: true,
+        };
+    }
+
+    /**
+     * Updates an existing HistogramNodeDatum in-place.
+     * This is more efficient than recreating the entire node when only data values change.
+     */
+    private updateNodeDatum(ctx: HistogramSeriesNodeDatumContext, node: HistogramNodeDatum, bin: CalculatedBin): void {
+        const { xScale, yScale, yAxisReversed } = ctx;
+        const { domain, datum, groupIndex, frequency, total } = bin;
+        const mutableNode = node as Mutable<HistogramNodeDatum>;
+
+        const [xDomainMin, xDomainMax] = domain;
+        const xMinPx = xScale.convert(xDomainMin);
+        const xMaxPx = xScale.convert(xDomainMax);
+
+        const yZeroPx = yScale.convert(0);
+        const yMaxPx = yScale.convert(total);
+        const w = Math.abs(xMaxPx - xMinPx);
+        const h = Math.abs(yMaxPx - yZeroPx);
+
+        const x = Math.min(xMinPx, xMaxPx);
+        const y = Math.min(yZeroPx, yMaxPx);
+
+        // Update properties
+        mutableNode.datumIndex = groupIndex;
+        mutableNode.datum = datum;
+        mutableNode.aggregatedValue = total;
+        mutableNode.frequency = frequency;
+        mutableNode.domain = domain;
+        mutableNode.x = x;
+        mutableNode.y = y;
+        mutableNode.xValue = xMinPx;
+        mutableNode.yValue = yMaxPx;
+        mutableNode.width = w;
+        mutableNode.height = h;
+
+        // Update midPoint in place
+        if (mutableNode.midPoint) {
+            mutableNode.midPoint.x = x + w / 2;
+            mutableNode.midPoint.y = y + h / 2;
+        } else {
+            mutableNode.midPoint = { x: x + w / 2, y: y + h / 2 };
+        }
+
+        // Update corner radius flags
+        mutableNode.topLeftCornerRadius = !yAxisReversed;
+        mutableNode.topRightCornerRadius = !yAxisReversed;
+        mutableNode.bottomRightCornerRadius = yAxisReversed;
+        mutableNode.bottomLeftCornerRadius = yAxisReversed;
+
+        // Update label
+        mutableNode.label = this.createLabelData(ctx, bin, x, y, w, h);
+    }
+
+    /**
+     * Creates a HistogramNodeDatum for a single bin.
+     * Creates a skeleton node and uses updateNodeDatum to populate it.
+     */
+    private createNodeDatum(ctx: HistogramSeriesNodeDatumContext, bin: CalculatedBin): HistogramNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, bin);
+        this.updateNodeDatum(ctx, node, bin);
+        return node;
+    }
+
+    /**
+     * Template method hook: Iterates over calculated bins and creates/updates node datums.
+     */
+    protected override populateNodeData(ctx: HistogramSeriesNodeDatumContext): void {
+        const { processedData } = this;
+
+        if (processedData?.type !== 'grouped') {
             return;
         }
 
-        const { scale: xScale } = xAxis;
-        const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, label } = this.properties;
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        // Main iteration loop - uses shared upsertNodeDatum utility
+        for (const bin of this.calculatedBins) {
+            upsertNodeDatum(
+                ctx,
+                bin,
+                (c, b) => this.createNodeDatum(c, b),
+                (c, n, b) => this.updateNodeDatum(c, n, b)
+            );
+        }
+    }
 
-        const nodeData: HistogramNodeDatum[] = [];
-        const context = {
+    /**
+     * Template method hook: Creates the result object shell.
+     */
+    protected override initializeResult(ctx: HistogramSeriesNodeDatumContext): HistogramSeriesNodeDataContext {
+        return {
             itemId: this.properties.yKey ?? this.id,
-            nodeData,
-            labelData: nodeData,
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
             scales: this.calculateScaling(),
             animationValid: true,
-            visible: this.visible || animationEnabled,
+            visible: this.visible || ctx.animationEnabled,
             styles: getItemStyles(this.getItemStyle.bind(this)),
         };
-        if (processedData == null || processedData.type !== 'grouped') {
-            return context;
-        }
+    }
 
-        this.calculatedBins.forEach(({ domain, datum, groupIndex, frequency, total }) => {
-            const [xDomainMin, xDomainMax] = domain;
-            const xMinPx = xScale.convert(xDomainMin);
-            const xMaxPx = xScale.convert(xDomainMax);
-
-            const yZeroPx = yScale.convert(0);
-            const yMaxPx = yScale.convert(total);
-            const w = Math.abs(xMaxPx - xMinPx);
-            const h = Math.abs(yMaxPx - yZeroPx);
-
-            const x = Math.min(xMinPx, xMaxPx);
-            const y = Math.min(yZeroPx, yMaxPx);
-
-            let selectionDatumLabel = undefined;
-            if (label.enabled && total !== 0) {
-                selectionDatumLabel = {
-                    x: x + w / 2,
-                    y: y + h / 2,
-                    text: this.getLabelText<AgHistogramSeriesLabelFormatterParams>(
-                        total,
-                        datum,
-                        yKey!,
-                        'y',
-                        [],
-                        label,
-                        { value: total, datum, xKey, yKey, xName, yName }
-                    ),
-                };
-            }
-
-            const nodeMidPoint = {
-                x: x + w / 2,
-                y: y + h / 2,
-            };
-
-            const yAxisReversed = yAxis.isReversed();
-
-            nodeData.push({
-                series: this,
-                datumIndex: groupIndex,
-                datum, // required by SeriesNodeDatum, but might not make sense here
-                // since each selection is an aggregation of multiple data.
-                aggregatedValue: total,
-                frequency,
-                domain,
-                yKey,
-                xKey,
-                x,
-                y,
-                xValue: xMinPx,
-                yValue: yMaxPx,
-                width: w,
-                height: h,
-                midPoint: nodeMidPoint,
-                topLeftCornerRadius: !yAxisReversed,
-                topRightCornerRadius: !yAxisReversed,
-                bottomRightCornerRadius: yAxisReversed,
-                bottomLeftCornerRadius: yAxisReversed,
-                label: selectionDatumLabel,
-                crisp: true,
-            });
-        });
+    /**
+     * Template method hook: Trims arrays and sorts nodes for keyboard navigation.
+     */
+    protected override finalizeNodeData(ctx: HistogramSeriesNodeDatumContext): void {
+        super.finalizeNodeData(ctx);
 
         // AG-11323 Sort bins from left-to-right for intuitive keyboard navigation.
-        nodeData.sort((a, b) => a.x - b.x);
-
-        return context;
+        ctx.nodes.sort((a, b) => a.x - b.x);
     }
 
     protected override nodeFactory() {
@@ -438,6 +616,11 @@ export class HistogramSeries extends CartesianSeries<
         datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
+
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return datumSelection.update(nodeData);
+        }
 
         return datumSelection.update(nodeData, undefined, (datum: HistogramNodeDatum) =>
             createDatumId(...datum.domain)
@@ -488,7 +671,7 @@ export class HistogramSeries extends CartesianSeries<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
@@ -511,12 +694,24 @@ export class HistogramSeries extends CartesianSeries<
         });
     }
 
+<<<<<<< HEAD
     protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>> }) {
+=======
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum>; isHighlight?: boolean }) {
+>>>>>>> latest
         const labelEnabled = this.isLabelEnabled();
+        const { isHighlight = false } = opts;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((text, datum) => {
-            const style = getLabelStyles(this, datum, this.properties, this.properties.label, false, activeHighlight);
+            const style = getLabelStyles(
+                this,
+                datum,
+                this.properties,
+                this.properties.label,
+                isHighlight,
+                activeHighlight
+            );
             const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = style;
             if (enabled && labelEnabled && datum?.label) {
                 text.text = datum.label.text;
@@ -528,7 +723,7 @@ export class HistogramSeries extends CartesianSeries<
                 text.fontSize = fontSize;
                 text.fill = color;
                 text.visible = true;
-                text.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
+                text.fillOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex).opacity ?? 1;
                 text.setBoxing(style);
             } else {
                 text.visible = false;
@@ -572,7 +767,7 @@ export class HistogramSeries extends CartesianSeries<
         const [rangeMin, rangeMax]: number[] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
         const datum: AgHistogramBinDatum<any> = {
-            data: [...dataModel.forEachDatum(this, processedData, group)],
+            data: [...dataModel.forEachDatum(this, processedData, group, datumIndex)],
             aggregatedValue,
             frequency,
             domain: domain as any,
@@ -674,6 +869,11 @@ export class HistogramSeries extends CartesianSeries<
                 hideInLegend: !showInLegend,
             },
         ];
+    }
+
+    protected override resetDatumAnimation(data: HistogramAnimationData): void {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection]);
     }
 
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: HistogramAnimationData) {

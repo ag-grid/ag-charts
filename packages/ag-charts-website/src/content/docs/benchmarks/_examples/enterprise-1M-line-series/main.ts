@@ -1,11 +1,14 @@
+// @ag-skip-fws
 /* @ag-options-extract */
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, VERSION } from 'ag-charts-enterprise';
 
+import { type BenchmarkConfig, initBenchmark } from './benchmarkHarness';
+import { ChartRef, performInitialLoad, performZoom } from './benchmarkUtils';
 import { getData } from './data';
 
 (window as any).agChartsDebug = 'scene:stats:verbose';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     animation: { enabled: false },
@@ -24,26 +27,72 @@ const options: AgChartOptions = {
             xKey: 'timestamp',
             yKey: 'volume',
             yName: 'Volume',
+            yKeyAxis: 'volumeAxis',
             marker: { enabled: false },
         },
         {
             type: 'line',
             xKey: 'timestamp',
             yKey: 'price',
+            yKeyAxis: 'priceAxis',
             marker: { enabled: false },
         },
     ],
-    axes: [
-        { type: 'number', keys: ['price'], position: 'left' },
-        { type: 'time', nice: false, position: 'bottom' },
-        { type: 'number', keys: ['volume'], position: 'right' },
-    ],
+    axes: {
+        x: { type: 'time', nice: false },
+        priceAxis: { type: 'number', position: 'left' },
+        volumeAxis: { type: 'number', position: 'right' },
+    },
 };
 /* @ag-options-end */
 
-const start = performance.now();
-const chart = AgCharts.create(options);
+const chartRef: ChartRef = { current: AgCharts.create(options) };
+const container = document.getElementById('myChart')!;
 
-chart.waitForUpdate().then(() => {
-    console.log('Total update time: ', performance.now() - start);
-});
+const seriesCount = options.series!.length;
+const data = getData();
+
+/** inScope */
+function getBenchmarkConfig(): BenchmarkConfig {
+    return {
+        testCases: [
+            {
+                id: 'initial-load',
+                label: 'Initial Load',
+                variants: [
+                    {
+                        params: { Operation: 'Chart Create' },
+                        run: () => performInitialLoad(options, chartRef, (opts) => AgCharts.create(opts)),
+                    },
+                ],
+            },
+            {
+                id: 'zoom',
+                label: 'Zoom',
+                variants: [
+                    {
+                        params: { Repetitions: '20x' },
+                        run: () => performZoom(options, chartRef, (opts) => AgCharts.create(opts), container, 20),
+                    },
+                ],
+            },
+        ],
+        config: {
+            updatesPerTest: 10,
+            maxCollectionTimeMs: 30000,
+            warmupUpdates: 2,
+        },
+        metadata: {
+            dataPoints: data.length,
+            seriesCount: seriesCount,
+            axisType: 'time',
+            version: VERSION,
+            expectedRetainedSizeMB: 130,
+            expectedCanvasCount: 5,
+        },
+    };
+}
+
+if (!window.location.hash.includes('e2e=true')) {
+    initBenchmark(getBenchmarkConfig());
+}

@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleNumberAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AngleNumberAxisModule, LegendModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const { socialCircle, domains } = getData();
 
 const options: AgChartOptions = {
@@ -25,8 +35,8 @@ const options: AgChartOptions = {
             fillOpacity: 0.9,
         },
     })),
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-number',
             label: {
                 enabled: false,
@@ -35,7 +45,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             label: {
@@ -83,7 +93,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

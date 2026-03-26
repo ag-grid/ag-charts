@@ -8,12 +8,15 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningMessages,
     extractImageData,
     hoverAction,
+    resetMockConsole,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -114,6 +117,40 @@ describe('MapLineSeries', () => {
         });
     });
 
+    describe('Missing color values', () => {
+        it('omits lines without color values and avoids tooltip errors', async () => {
+            const missingRoads = new Set(['M3', 'M5']);
+            const data = ukRoadData.map((datum) => (missingRoads.has(datum.name) ? { name: datum.name } : datum));
+            const options: AgChartOptions = {
+                data,
+                topology: ukRoadTopology,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as MapLineSeries;
+            const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
+
+            expect(nodeIds).not.toContain('M3');
+            expect(nodeIds).not.toContain('M5');
+            expect(nodeIds).toHaveLength(data.length - missingRoads.size);
+
+            const missingIndex = data.findIndex((datum) => datum.name === 'M3');
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+
+            await compare();
+        });
+    });
+
     describe('Variable Stroke', () => {
         it('should render a simple chart', async () => {
             const options: AgChartOptions = { ...VARIABLE_STROKE_EXAMPLE };
@@ -121,6 +158,115 @@ describe('MapLineSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+    });
+
+    describe('colorScale', () => {
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 200_000] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 50_000, name: 'Low' },
+                                { color: 'yellow', stop: 100_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
+    describe('Legend Toggling', () => {
+        it('should not warn when toggling legend item', async () => {
+            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Clear any warnings from initial render
+            resetMockConsole();
+
+            // Toggle series visibility via legend
+            const series = chart.series[0];
+            series.toggleSeriesItem(false, 'category', series.id, undefined);
+            await waitForChartStability(chart);
+
+            expectWarningMessages([]);
         });
     });
 
@@ -238,7 +384,7 @@ describe('MapLineSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -295,7 +441,7 @@ describe('MapLineSeries', () => {
             },
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         });
     });
 });

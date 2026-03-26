@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    GradientLegendModule,
+    ModuleRegistry,
+    TreemapSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, data } from './data';
 
+ModuleRegistry.registerModules([GradientLegendModule, TreemapSeriesModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data,
@@ -9,9 +17,11 @@ const options: AgChartOptions<DataType> = {
         overrides: {
             treemap: {
                 series: {
-                    highlightStyle: {
-                        tile: {
-                            strokeWidth: 3,
+                    tile: {
+                        highlight: {
+                            highlightedItem: {
+                                strokeWidth: 3,
+                            },
                         },
                     },
                 },

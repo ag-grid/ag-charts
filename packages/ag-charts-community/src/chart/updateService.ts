@@ -1,21 +1,26 @@
-import { EventEmitter, type EventListener } from 'ag-charts-core';
+import { ChartAxisDirection, EventEmitter, type EventListener } from 'ag-charts-core';
 
-import { ChartUpdateType } from './chartUpdateType';
 import type { ISeries } from './series/seriesTypes';
-
-export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
     readonly type: 'update-complete';
     readonly apiUpdate: boolean;
+    readonly wasShortcut: boolean;
 }
 
 export interface PreDomUpdateEvent {
     readonly type: 'pre-dom-update';
 }
 
+export interface PreSeriesUpdateEvent {
+    readonly type: 'pre-series-update';
+    readonly requiredRangeRatio: number;
+    readonly requiredRangeDirection: ChartAxisDirection;
+}
+
 export interface PreSceneRenderEvent {
     readonly type: 'pre-scene-render';
+    readonly apiUpdate: boolean;
 }
 
 export interface ProcessDataEvent {
@@ -36,14 +41,13 @@ export interface UpdateOpts {
 interface EventMap {
     'update-complete': UpdateCompleteEvent;
     'pre-dom-update': PreDomUpdateEvent;
+    'pre-series-update': PreSeriesUpdateEvent;
     'pre-scene-render': PreSceneRenderEvent;
     'process-data': ProcessDataEvent;
 }
 
 export class UpdateService {
     private readonly events = new EventEmitter<EventMap>();
-
-    constructor(private readonly updateCallback: UpdateCallback) {}
 
     public addListener<K extends keyof EventMap>(eventName: K, listener: EventListener<EventMap[K]>) {
         return this.events.on(eventName, listener);
@@ -53,20 +57,24 @@ export class UpdateService {
         this.events.clear();
     }
 
-    public update(type = ChartUpdateType.FULL, options?: UpdateOpts) {
-        this.updateCallback(type, options);
-    }
-
-    public dispatchUpdateComplete(apiUpdate: boolean) {
-        this.events.emit('update-complete', { type: 'update-complete', apiUpdate });
+    public dispatchUpdateComplete(apiUpdate: boolean, wasShortcut: boolean) {
+        this.events.emit('update-complete', { type: 'update-complete', apiUpdate, wasShortcut });
     }
 
     public dispatchPreDomUpdate() {
         this.events.emit('pre-dom-update', { type: 'pre-dom-update' });
     }
 
-    public dispatchPreSceneRender() {
-        this.events.emit('pre-scene-render', { type: 'pre-scene-render' });
+    public dispatchPreSeriesUpdate(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+        this.events.emit('pre-series-update', {
+            type: 'pre-series-update',
+            requiredRangeRatio,
+            requiredRangeDirection,
+        });
+    }
+
+    public dispatchPreSceneRender(apiUpdate: boolean) {
+        this.events.emit('pre-scene-render', { type: 'pre-scene-render', apiUpdate });
     }
 
     public dispatchProcessData({ series }: { series: { shouldFlipXY?: boolean } }) {

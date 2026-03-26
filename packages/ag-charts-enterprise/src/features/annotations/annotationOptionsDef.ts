@@ -34,6 +34,7 @@ const {
     annotationTextStylesDef,
     annotationCommentStylesDefs,
     annotationMeasurerStylesDefs,
+    annotationQuickMeasurerStylesDefs,
     annotationShapeStylesDefs,
     annotationChannelTextDefs,
     annotationCrossLineStyleDefs,
@@ -42,6 +43,7 @@ const {
     annotationLineTextDefs,
     annotationDisjointChannelStyleDefs,
     annotationParallelChannelStyleDefs,
+    initialStatePickedOptionsDef,
 } = _ModuleSupport;
 
 const serializableDate = optionsDefs<AgStateSerializableDate>(
@@ -180,6 +182,13 @@ export const annotationInitialStateOptionsDef = typeUnion<AgAnnotation>(
             start: annotationPointOptionsDef,
             end: annotationPointOptionsDef,
         },
+        'quick-date-price-range': {
+            ...annotationMeasurerStylesDefs,
+            ...annotationQuickMeasurerStylesDefs,
+            text: lineAnnotationTextOptionsDef,
+            start: annotationPointOptionsDef,
+            end: annotationPointOptionsDef,
+        },
     },
     'an annotation initial state object'
 );
@@ -196,6 +205,7 @@ export const initialStateOptionsDef: OptionsDefs<AgInitialStateOptions> = {
         },
         'legend state array'
     ),
+    active: initialStatePickedOptionsDef,
     zoom: {
         rangeX: {
             start: or(number, serializableDate),

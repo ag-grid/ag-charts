@@ -9,18 +9,24 @@ type KeyActionName =
     | 'arrowleft'
     | 'arrowright'
     | 'arrowup'
+    | 'home'
+    | 'end'
     | 'delete'
     | 'undo'
     | 'redo'
     | 'submit'
     | 'zoomin'
-    | 'zoomout';
+    | 'zoomout'
+    | 'panxleft'
+    | 'panxright';
 
 const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
     arrowdown: { bindings: [{ code: 'ArrowDown' }] },
     arrowleft: { bindings: [{ code: 'ArrowLeft' }] },
     arrowright: { bindings: [{ code: 'ArrowRight' }] },
     arrowup: { bindings: [{ code: 'ArrowUp' }] },
+    home: { bindings: [{ code: 'Home' }] },
+    end: { bindings: [{ code: 'End' }] },
     delete: { bindings: [{ key: 'Backspace' }, { key: 'Delete' }], activatesFocusIndicator: false },
     redo: {
         bindings: [
@@ -33,6 +39,8 @@ const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
     submit: { bindings: [{ key: 'Enter' }, { code: 'Enter' }, { code: 'Space' }] },
     zoomin: { bindings: [{ key: '+' }, { code: 'ZoomIn' }, { code: 'Add' }], activatesFocusIndicator: false },
     zoomout: { bindings: [{ key: '-' }, { code: 'ZoomOut' }, { code: 'Substract' }], activatesFocusIndicator: false },
+    panxleft: { bindings: [{ key: 'PageUp' }, { code: 'PageUp' }], activatesFocusIndicator: true },
+    panxright: { bindings: [{ key: 'PageDown' }, { code: 'PageDown' }], activatesFocusIndicator: true },
 };
 
 function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {

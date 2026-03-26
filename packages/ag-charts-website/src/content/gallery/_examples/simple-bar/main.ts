@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -27,10 +44,9 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
@@ -41,9 +57,8 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total Visitors (Millions)',
             },
@@ -59,7 +74,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             const value = params.value as number;

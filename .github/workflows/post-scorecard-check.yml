@@ -1,0 +1,97 @@
+name: OSS Scorecard Results Check
+on:
+    workflow_dispatch:
+    workflow_run:
+        workflows: ['OSS Scorecard']
+        types:
+            - completed
+
+env:
+    SLACK_CHANNEL: '#ci-chart-gate'
+    AG_LIBRARY: charts
+    THRESHOLD: 7.3
+    SCORECARD_FILE: ./scorecard.json
+    REPORT_FILE: ./ctrf-report.json
+
+permissions:
+    contents: read
+
+jobs:
+    check_results:
+        name: Scorecard Results Check
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1 # shallow copy
+
+            # NOTE: This is done outside of the `scorecard` workflow as there are restrictions on `ossf/scorecard-action`
+            - name: 'Check Results'
+              id: check_results
+              uses: actions/github-script@v7
+              continue-on-error: true
+              with:
+                  result-encoding: string
+                  script: |
+                      const fs = require("fs");
+
+                      async function exec() {
+                        const {
+                          getOSSFScorecardResults,
+                        } = require("./external/ag-shared/scripts/ossf-scorecard/getAndCheckResults.mjs");
+
+                        const project = process.env.AG_LIBRARY;
+                        const threshold = process.env.THRESHOLD;
+
+                        const { results, report, hasPassed } = await getOSSFScorecardResults({ project, threshold });
+
+                        const messageType = hasPassed ? '::notice' : '::error';
+                        console.log(`${messageType}::Scorecard score for ${project}: ${results.score} (threshold = ${threshold})`);
+
+                        fs.writeFileSync("${{ env.REPORT_FILE }}", JSON.stringify(report));
+                        fs.writeFileSync("${{ env.SCORECARD_FILE }}", JSON.stringify(results));
+
+                        // Exit with a numeric code to signal step success/failure to GitHub Actions
+                        process.exit(hasPassed ? 0 : 1);
+                      }
+
+                      await exec();
+
+            - name: Persist scorecard report
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: oss-scorecard-results
+                  path: ${{ env.REPORT_FILE }}
+
+            - name: Persist scorecard response
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: oss-scorecard-response
+                  path: ${{ env.SCORECARD_FILE }}
+
+            - name: Publish CTRF Report
+              uses: ctrf-io/github-test-reporter@v1
+              if: always()
+              with:
+                  report-path: '${{ env.REPORT_FILE }}'
+
+            - name: Slack Notification
+              if: success() && steps.check_results.outcome == 'failure'
+              uses: ./external/ag-shared/github/actions/slack-integration
+              with:
+                  AG_LIBRARY: ${{ env.AG_LIBRARY }}
+                  CTRF_REPORT_FILE: ${{ env.REPORT_FILE }}
+                  SLACK_BOT_OAUTH_TOKEN: ${{ secrets.SLACK_BOT_OAUTH_TOKEN }}
+                  SLACK_CHANNEL: ${{ env.SLACK_CHANNEL }}
+                  IS_SUCCESS: ${{ steps.check_results.outcome != 'failure' }}
+
+            - name: Fail job if scan failed
+              shell: bash
+              if: success() && steps.check_results.outcome == 'failure'
+              run: |
+                  echo "Workflow failed, failing the build."
+                  exit 1

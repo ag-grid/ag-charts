@@ -1,0 +1,1 @@
+../../external/prompts/rules/browser-benchmarks.md

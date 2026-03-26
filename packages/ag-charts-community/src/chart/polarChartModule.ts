@@ -1,20 +1,19 @@
-import { type ChartModuleDefinition, UnknownError, ValidationError, validate } from 'ag-charts-core';
+import { type ChartModuleDefinition, UnknownError, ValidationError, validate, without } from 'ag-charts-core';
 import type { AgPolarChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import { without } from '../util/object';
+import { VERSION } from '../version';
 import type { TransferableResources } from './chart';
 import { polarChartOptionsDefs } from './chartOptionsDefs';
-import { isAgPolarChartOptions } from './mapping/types';
 import { PolarChart } from './polarChart';
 
 export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     type: 'chart',
     name: 'polar',
+    version: VERSION,
 
     options: polarChartOptionsDefs,
 
-    detect: isAgPolarChartOptions,
     create(options: ChartOptions, resources?: TransferableResources) {
         return new PolarChart(options, resources);
     },

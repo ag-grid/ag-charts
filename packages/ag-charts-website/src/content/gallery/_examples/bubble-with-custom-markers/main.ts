@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule, CrosshairModule]);
 const data = getData();
 const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
 
@@ -46,10 +56,9 @@ const options: AgChartOptions<DataType> = {
             shape: rainDrop,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             interval: { values: [1, 2, 3, 4] },
             label: {
                 formatter: ({ value }) => seasons[value - 1] ?? '',
@@ -72,9 +81,8 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },
@@ -88,7 +96,7 @@ const options: AgChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

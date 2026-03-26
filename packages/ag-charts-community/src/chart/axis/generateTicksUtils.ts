@@ -1,33 +1,19 @@
 import {
     type BoxBounds,
+    EllipsisChar,
     type ITextMeasurer,
+    type Scale,
+    ScaleAlignment,
+    type ScaleTickParams,
     type WrapOptions,
     boxCollides,
     buildDateFormatter,
     cachedTextMeasurer,
+    compareDates,
+    createIdsGenerator,
     dropFirstWhile,
     dropLastWhile,
-    isArray,
-    isPlainObject,
-    isSegmentTruncated,
-    measureTextSegments,
-    toPlainText,
-    wrapText,
-    wrapTextSegments,
-} from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
-
-import { BandScale } from '../../scale/bandScale';
-import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
-import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { normalizeAngle360FromDegrees } from '../../util/angle';
-import { compareDates } from '../../util/date';
-import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { createIdsGenerator } from '../../util/tempUtils';
-import {
+    getMaxInnerRectSize,
     intervalCeil,
     intervalExtent,
     intervalFloor,
@@ -37,7 +23,24 @@ import {
     intervalPrevious,
     intervalRange,
     intervalUnit,
-} from '../../util/time';
+    isArray,
+    isPlainObject,
+    isSegmentTruncated,
+    isTextTruncated,
+    measureTextSegments,
+    normalizeAngle360FromDegrees,
+    toPlainText,
+    toTextString,
+    wrapTextOrSegments,
+} from 'ag-charts-core';
+import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
+
+import { BandScale } from '../../scale/bandScale';
+import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
+import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
+import { TimeScale } from '../../scale/timeScale';
+import { UnitTimeScale } from '../../scale/unitTimeScale';
+import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
 import type { AxisInterval } from './axisInterval';
@@ -52,7 +55,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     domain: TDatum[];
     range: [number, number];
     visibleRange: [number, number];
-    niceMode: NiceMode;
+    niceMode: NiceMode[];
     reverse: boolean;
     primaryTickCount: AxisPrimaryTickCount | undefined;
     defaultTickMinSpacing: number;
@@ -193,7 +196,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
     const ticks: TickDatum[] = [];
 
     withTemporaryDomain(scale, niceDomain, () => {
-        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth ?? Infinity : Infinity;
+        const maxBandwidth = BandScale.is(scale) ? scale.bandwidth || Infinity : Infinity;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const axisFormatter = axisTickFormatter(
             label.enabled,
@@ -204,10 +207,20 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             timeInterval,
             tickFormatter
         );
+
+        let maxWidth = isVertical ? sizeLimit : maxBandwidth;
+        let maxHeight = isVertical ? maxBandwidth : sizeLimit;
+
+        if (label.rotation) {
+            const innerRect = getMaxInnerRectSize(label.rotation, maxWidth, maxHeight);
+            maxWidth = innerRect.width;
+            maxHeight = innerRect.height;
+        }
+
         const wrapOptions: WrapOptions = {
             font: label,
-            maxWidth: isVertical ? sizeLimit : maxBandwidth,
-            maxHeight: isVertical ? maxBandwidth : sizeLimit,
+            maxWidth,
+            maxHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
             textWrap: label.wrapping,
         };
@@ -223,14 +236,17 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
 
             let wrappedLabel: TextOrSegments | null = null;
             if (label.avoidCollisions) {
-                wrappedLabel = isArray(inputText)
-                    ? wrapTextSegments(inputText, wrapOptions)
-                    : wrapText(inputText, wrapOptions) || null;
+                wrappedLabel = wrapTextOrSegments(inputText, wrapOptions) || null;
+                if (wrappedLabel === EllipsisChar) {
+                    wrappedLabel = null;
+                }
             }
 
             const tickLabel = wrappedLabel ?? inputText;
             const isSegmented = isArray(tickLabel);
-            const isTruncated = tickLabel !== inputText && (!isSegmented || isSegmentTruncated(tickLabel.at(-1)));
+            const isTruncated =
+                tickLabel !== inputText &&
+                (isSegmented ? isSegmentTruncated(tickLabel.at(-1)) : isTextTruncated(toTextString(tickLabel)));
 
             let tickId: string;
             if (isContinuous) {
@@ -248,7 +264,9 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
                 isPrimary,
                 index: i + rawFirstTickIndex,
                 textUntruncated: isTruncated ? toPlainText(inputText) : undefined,
-                textMetrics: isSegmented ? measureTextSegments(tickLabel, label) : measurer.measureLines(tickLabel),
+                textMetrics: isSegmented
+                    ? measureTextSegments(tickLabel, label)
+                    : measurer.measureLines(toTextString(tickLabel)),
                 translation: Math.floor(translation),
             });
         }
@@ -316,8 +334,10 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
         visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
     }
 
-    const dv0 = Math.min(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
-    const dv1 = Math.max(scale.domain[0].valueOf(), scale.domain[scale.domain.length - 1].valueOf());
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const dv0 = Math.min(scale.domain[0].valueOf() as number, scale.domain.at(-1)!.valueOf() as number);
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    const dv1 = Math.max(scale.domain[0].valueOf() as number, scale.domain.at(-1)!.valueOf() as number);
 
     // Generate at least one tick outside the range on each side
     let [dp0, dp1] = intervalExtent(new Date(dv0), new Date(dv1), visibleRange);
@@ -462,10 +482,10 @@ export function timeIntervalMaxLabelSize(
     const primaryLabelFormatter = primarySpecifier ? buildDateFormatter(primarySpecifier) : labelFormatter;
 
     const d0 = new Date(domain[0]);
-    const d1 = new Date(domain[domain.length - 1]);
+    const d1 = new Date(domain.at(-1)!);
 
     const hierarchyRange = hierarchy
-        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain[domain.length - 1]), { extend: true })
+        ? intervalRange(hierarchy, new Date(domain[0]), new Date(domain.at(-1)!), { extend: true })
         : undefined;
 
     let maxWidth = 0;
@@ -537,16 +557,16 @@ export function getTextAlign(
     if (parallel) {
         if (labelRotation || labelAutoRotation) {
             if (sideFlag * alignFlag === -1) {
-                return 'end';
+                return 'right';
             }
         } else {
             return 'center';
         }
     } else if (sideFlag * regularFlipFlag === -1) {
-        return 'end';
+        return 'right';
     }
 
-    return 'start';
+    return 'left';
 }
 
 function labelSpecifier(
@@ -575,13 +595,7 @@ export function calculateLabelRotation(
     const parallelFlipFlag = !configuredRotation && axisRotation >= 0 && axisRotation <= Math.PI ? -1 : 1;
     const regularFlipFlag =
         !configuredRotation && axisRotation - Math.PI / 2 >= 0 && axisRotation - Math.PI / 2 <= Math.PI ? -1 : 1;
-
-    let defaultRotation = 0;
-    if (parallel) {
-        defaultRotation = parallelFlipFlag * (Math.PI / 2);
-    } else if (regularFlipFlag === -1) {
-        defaultRotation = Math.PI;
-    }
+    const defaultRotation = parallel ? parallelFlipFlag * (Math.PI / 2) : 0;
 
     return { configuredRotation, defaultRotation, parallelFlipFlag, regularFlipFlag };
 }

@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { Color } from './color';
+import { Color } from 'ag-charts-core';
+
 import { interpolateColor } from './interpolate';
 
 describe('interpolate module', () => {

@@ -17,7 +17,7 @@ describe('Annotations', () => {
             { x: new Date('2024-12-25'), y: 95 },
         ],
         series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
-        axes: [{ type: 'number' }, { type: 'time' }],
+        axes: { y: { type: 'number' }, x: { type: 'time' } },
         annotations: {
             enabled: true,
             toolbar: {
@@ -578,10 +578,10 @@ describe('Annotations', () => {
                 { category: 'Q4', value: 80 },
             ],
             series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            axes: [
-                { type: 'category', position: 'bottom' },
-                { type: 'number', position: 'left' },
-            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
             annotations: {
                 enabled: true,
                 toolbar: {
@@ -641,10 +641,10 @@ describe('Annotations', () => {
                     { type: 'bar', xKey: 'category', yKey: 'profit', yName: 'Profit' },
                     { type: 'bar', xKey: 'category', yKey: 'expenses', yName: 'Expenses' },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
                 annotations: {
                     enabled: true,
                     toolbar: {

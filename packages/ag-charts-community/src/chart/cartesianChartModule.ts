@@ -1,30 +1,29 @@
-import { type ChartModuleDefinition, ValidationError, isObject, validate } from 'ag-charts-core';
+import { type ChartModuleDefinition, ValidationError, isObject, validate, without } from 'ag-charts-core';
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import type { ChartOptions } from '../module/optionsModule';
-import { without } from '../util/object';
+import { VERSION } from '../version';
 import { CartesianChart } from './cartesianChart';
 import type { TransferableResources } from './chart';
 import { cartesianChartOptionsDefs } from './chartOptionsDefs';
-import { isAgCartesianChartOptions } from './mapping/types';
 
 const histogramAxisTypes = new Set(['number', 'log', 'time']);
-const validHistogramAxis = (axis: any) => isObject(axis) && !histogramAxisTypes.has(axis.type);
+const invalidHistogramAxis = (axis: any) => isObject(axis) && axis.type != null && !histogramAxisTypes.has(axis.type);
 
 export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions> = {
     type: 'chart',
     name: 'cartesian',
+    version: VERSION,
 
     options: cartesianChartOptionsDefs,
 
-    detect: isAgCartesianChartOptions,
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);
     },
     validate(options: any, optionsDefs, path) {
         const additionalErrors: ValidationError[] = [];
         if (options?.series?.[0]?.type === 'histogram') {
-            if (options?.axes?.some(validHistogramAxis)) {
+            if (Object.values(options?.axes ?? {}).some(invalidHistogramAxis)) {
                 additionalErrors.push(
                     new ValidationError(
                         'invalid',

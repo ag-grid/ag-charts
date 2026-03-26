@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
-const { Vec2 } = _ModuleSupport;
+import { Vec2, jsonDiff } from 'ag-charts-core';
 
 type ShapeClipMask = { x: number; y: number; radius: number };
 
@@ -81,7 +80,7 @@ export class CollidableLine<D> extends _ModuleSupport.Line<D> {
 
     public setClipMask(id: string, mask?: ShapeClipMask) {
         const cm = this.clipMask.get(id);
-        if (_ModuleSupport.jsonDiff(cm, mask) != null) {
+        if (jsonDiff(cm, mask) != null) {
             this.markDirty('CollidableLine');
         }
 

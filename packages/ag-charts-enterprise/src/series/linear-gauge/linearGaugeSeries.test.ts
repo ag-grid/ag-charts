@@ -199,11 +199,11 @@ describe('LinearGaugeSeries', () => {
 
     describe('when in development mode', () => {
         beforeEach(() => {
-            (window as any).agChartsDebug = ['dev'];
+            (globalThis as any).agChartsDebug = ['dev'];
         });
 
         afterEach(() => {
-            delete (window as any).agChartsDebug;
+            delete (globalThis as any).agChartsDebug;
         });
 
         it('should not error when creating gauge with disabled nested options', async () => {

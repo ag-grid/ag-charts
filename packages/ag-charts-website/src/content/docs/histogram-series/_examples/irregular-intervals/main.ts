@@ -1,7 +1,25 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -25,19 +43,17 @@ const options: AgChartOptions = {
             ],
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Age category (years)' },
             interval: { step: 2 },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Number of participants' },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

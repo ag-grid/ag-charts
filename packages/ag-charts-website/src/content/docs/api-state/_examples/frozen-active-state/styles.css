@@ -1,0 +1,54 @@
+.custom-tooltip {
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #1f1f1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+    line-height: 1.4;
+    min-width: 160px;
+
+    display: grid;
+    grid-template-columns: auto;
+    gap: 6px;
+}
+
+/* Heading */
+.custom-tooltip > span:first-child {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+/* Rows (open/high/low/close) */
+.custom-tooltip > div {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Labels */
+.custom-tooltip > div span:first-child {
+    opacity: 0.7;
+}
+
+/* Values */
+.custom-tooltip > div span:last-child {
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+}
+
+/* Button row */
+.custom-tooltip button {
+    justify-self: end;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background: #f5f5f5;
+    cursor: pointer;
+}
+
+.custom-tooltip button:hover {
+    background: #eaeaea;
+}

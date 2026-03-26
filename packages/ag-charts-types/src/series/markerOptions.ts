@@ -1,8 +1,11 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../chart/callbackOptions';
 import type { AgMarkerShape, ContextDefault, DatumDefault, PixelSize } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
-export type AgSeriesMarkerStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<TDatum> &
+export type AgSeriesMarkerStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgSeriesMarkerStyle;
 
@@ -16,6 +19,6 @@ export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions, LineDas
 export interface AgSeriesMarkerOptions<TDatum, TParams, TContext = ContextDefault> extends AgSeriesMarkerStyle {
     /** Whether to show markers. */
     enabled?: boolean;
-    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgSeriesMarkerStylerParams<TDatum, TContext> & TParams, AgSeriesMarkerStyle>;
 }

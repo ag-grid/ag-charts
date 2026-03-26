@@ -1,0 +1,392 @@
+{
+    "groups": [
+        {
+            "name": "Axes",
+            "children": [
+                {
+                    "moduleName": "CategoryAxisModule",
+                    "name": "Category Axis",
+                    "path": "axes-types/#category-axis"
+                },
+                {
+                    "moduleName": "GroupedCategoryAxisModule",
+                    "name": "Grouped Category Axis",
+                    "path": "axes-types/#grouped-category-axis"
+                },
+                {
+                    "moduleName": "NumberAxisModule",
+                    "name": "Number Axis",
+                    "path": "axes-types/#number-axis"
+                },
+                {
+                    "moduleName": "LogAxisModule",
+                    "name": "Log Axis",
+                    "path": "axes-types/#log-axis"
+                },
+                {
+                    "moduleName": "TimeAxisModule",
+                    "name": "Time Axis",
+                    "path": "axes-time"
+                },
+                {
+                    "moduleName": "UnitTimeAxisModule",
+                    "name": "Unit Time Axis",
+                    "path": "axes-time/#unit-time-axis"
+                },
+                {
+                    "moduleName": "OrdinalTimeAxisModule",
+                    "name": "Ordinal Time Axis",
+                    "path": "axes-time",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "AngleCategoryAxisModule",
+                    "name": "Angle Category Axis",
+                    "path": "radar-line-series/#customisation",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "AngleNumberAxisModule",
+                    "name": "Angle Number Axis",
+                    "path": "radar-line-series/#customisation",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadiusCategoryAxisModule",
+                    "name": "Radius Category Axis",
+                    "path": "radar-line-series/#customisation",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadiusNumberAxisModule",
+                    "name": "Radius Number Axis",
+                    "path": "radar-line-series/#customisation",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "name": "Series",
+            "children": [
+                {
+                    "moduleName": "BarSeriesModule",
+                    "name": "Bar Series",
+                    "path": "bar-series"
+                },
+                {
+                    "moduleName": "LineSeriesModule",
+                    "name": "Line Series",
+                    "path": "line-series"
+                },
+                {
+                    "moduleName": "AreaSeriesModule",
+                    "name": "Area Series",
+                    "path": "area-series"
+                },
+                {
+                    "moduleName": "ScatterSeriesModule",
+                    "name": "Scatter Series",
+                    "path": "scatter-series"
+                },
+                {
+                    "moduleName": "BubbleSeriesModule",
+                    "name": "Bubble Series",
+                    "path": "bubble-series"
+                },
+                {
+                    "moduleName": "PieSeriesModule",
+                    "name": "Pie Series",
+                    "path": "pie-series"
+                },
+                {
+                    "moduleName": "DonutSeriesModule",
+                    "name": "Donut Series",
+                    "path": "donut-series"
+                },
+                {
+                    "moduleName": "BoxPlotSeriesModule",
+                    "name": "Box Plot Series",
+                    "path": "box-plot-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "CandlestickSeriesModule",
+                    "name": "Candlestick Series",
+                    "path": "candlestick-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "OhlcSeriesModule",
+                    "name": "OHLC Series",
+                    "path": "ohlc-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "HeatmapSeriesModule",
+                    "name": "Heatmap Series",
+                    "path": "heatmap-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "HistogramSeriesModule",
+                    "name": "Histogram Series",
+                    "path": "histogram-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "NightingaleSeriesModule",
+                    "name": "Nightingale Series",
+                    "path": "nightingale-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadarAreaSeriesModule",
+                    "name": "Radar Area Series",
+                    "path": "radar-area-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadarLineSeriesModule",
+                    "name": "Radar Line Series",
+                    "path": "radar-line-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadialBarSeriesModule",
+                    "name": "Radial Bar Series",
+                    "path": "radial-bar-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RadialColumnSeriesModule",
+                    "name": "Radial Column Series",
+                    "path": "radial-column-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RangeAreaSeriesModule",
+                    "name": "Range Area Series",
+                    "path": "range-area-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RangeBarSeriesModule",
+                    "name": "Range Bar Series",
+                    "path": "range-bar-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "WaterfallSeriesModule",
+                    "name": "Waterfall Series",
+                    "path": "waterfall-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "SunburstSeriesModule",
+                    "name": "Sunburst Series",
+                    "path": "sunburst-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "TreemapSeriesModule",
+                    "name": "Treemap Series",
+                    "path": "treemap-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "SankeySeriesModule",
+                    "name": "Sankey Series",
+                    "path": "sankey-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ChordSeriesModule",
+                    "name": "Chord Series",
+                    "path": "chord-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "FunnelSeriesModule",
+                    "name": "Funnel Series",
+                    "path": "funnel-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ConeFunnelSeriesModule",
+                    "name": "Cone Funnel Series",
+                    "path": "cone-funnel-series",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "PyramidSeriesModule",
+                    "name": "Pyramid Series",
+                    "path": "pyramid-series",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "name": "Specialised Charts",
+            "children": [
+                {
+                    "moduleName": "FinancialChartModule",
+                    "name": "Financial Charts",
+                    "path": "financial-charts",
+                    "isEnterprise": true
+                },
+                {
+                    "name": "Maps",
+                    "path": "maps",
+                    "isEnterprise": true,
+                    "children": [
+                        {
+                            "moduleName": "MapShapeSeriesModule",
+                            "name": "Map Shape Series",
+                            "path": "map-shapes",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapShapeBackgroundSeriesModule",
+                            "name": "Map Shape Background",
+                            "path": "map-shapes",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapLineSeriesModule",
+                            "name": "Map Line Series",
+                            "path": "map-lines",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapLineBackgroundSeriesModule",
+                            "name": "Map Line Background",
+                            "path": "map-lines/#background-lines",
+                            "isEnterprise": true
+                        },
+                        {
+                            "moduleName": "MapMarkerSeriesModule",
+                            "name": "Map Marker Series",
+                            "path": "map-markers",
+                            "isEnterprise": true
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Gauges",
+            "children": [
+                {
+                    "moduleName": "RadialGaugeModule",
+                    "name": "Radial Gauge",
+                    "path": "radial-gauge",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "LinearGaugeModule",
+                    "name": "Linear Gauge",
+                    "path": "linear-gauge",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "name": "Data Elements",
+            "children": [
+                {
+                    "moduleName": "LegendModule",
+                    "name": "Legend",
+                    "path": "legend"
+                },
+                {
+                    "moduleName": "AnnotationsModule",
+                    "name": "Annotations",
+                    "path": "annotations",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ErrorBarsModule",
+                    "name": "Error Bars",
+                    "path": "error-bars",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "GradientLegendModule",
+                    "name": "Gradient Legend",
+                    "path": "heatmap-series/#gradient-legend",
+                    "isEnterprise": true
+                }
+            ]
+        },
+        {
+            "name": "Interactivity",
+            "children": [
+                {
+                    "moduleName": "LocaleModule",
+                    "name": "Localisation",
+                    "path": "localisation"
+                },
+                {
+                    "moduleName": "AnimationModule",
+                    "name": "Animation",
+                    "path": "animation",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "BandHighlightModule",
+                    "name": "Band Highlight",
+                    "path": "axes-crosshairs/#band-highlight",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ContextMenuModule",
+                    "name": "Context Menu",
+                    "path": "context-menu",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "CrosshairModule",
+                    "name": "Crosshair",
+                    "path": "axes-crosshairs",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "FlashOnUpdateModule",
+                    "name": "Flash On Update",
+                    "path": "flash-on-update",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "NavigatorModule",
+                    "name": "Navigator",
+                    "path": "navigator",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "RangesModule",
+                    "name": "Range Controls",
+                    "path": "range-controls",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ScrollbarModule",
+                    "name": "Scrollbar",
+                    "path": "scrollbar",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "SyncModule",
+                    "name": "Synchronization",
+                    "path": "sync",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "ZoomModule",
+                    "name": "Zoom",
+                    "path": "zoom",
+                    "isEnterprise": true
+                }
+            ]
+        }
+    ]
+}

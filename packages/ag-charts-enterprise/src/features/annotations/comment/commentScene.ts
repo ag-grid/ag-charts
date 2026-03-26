@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { calcLineHeight } from 'ag-charts-core';
+import { type Point, calcLineHeight } from 'ag-charts-core';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -37,7 +37,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.updatePath(datum, bbox);
     }
 
-    protected override getLabelCoords(datum: CommentProperties, point: _ModuleSupport.Vec2): _ModuleSupport.Vec2 {
+    protected override getLabelCoords(datum: CommentProperties, point: Point): Point {
         const padding = datum.getPadding();
         return {
             x: point.x + padding.left,

@@ -11,20 +11,40 @@
     "esModuleInterop": true,
     "target": "es2020",
     "module": "esnext",
-    "lib": ["es2023", "dom"],
+    "lib": [
+      "es2023",
+      "dom"
+    ],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "strictNullChecks": true,
     "paths": {
-      "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
-      "ag-charts-community-examples": ["packages/ag-charts-community-examples/src/index.ts"],
-      "ag-charts-community-test": ["packages/ag-charts-community/src/main-test.ts"],
-      "ag-charts-core": ["packages/ag-charts-core/src/main.ts"],
-      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"],
-      "ag-charts-locale": ["packages/ag-charts-locale/src/main.ts"],
-      "ag-charts-types": ["packages/ag-charts-types/src/main.ts"]
+      "ag-charts-community": [
+        "packages/ag-charts-community/src/main.ts"
+      ],
+      "ag-charts-community-examples": [
+        "packages/ag-charts-community-examples/src/index.ts"
+      ],
+      "ag-charts-community-test": [
+        "packages/ag-charts-community/src/main-test.ts"
+      ],
+      "ag-charts-core": [
+        "packages/ag-charts-core/src/main.ts"
+      ],
+      "ag-charts-enterprise": [
+        "packages/ag-charts-enterprise/src/main.ts"
+      ],
+      "ag-charts-locale": [
+        "packages/ag-charts-locale/src/main.ts"
+      ],
+      "ag-charts-types": [
+        "packages/ag-charts-types/src/main.ts"
+      ]
     }
   },
-  "exclude": ["node_modules", "tmp"]
+  "exclude": [
+    "node_modules",
+    "tmp"
+  ]
 }

@@ -5,24 +5,21 @@ import {
     type Padding,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { CleanupRegistry, createId } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Border,
+    CleanupRegistry,
+    type GradientColorStop,
+    Property,
+    ProxyProperty,
+    ZIndexMap,
+    createId,
+    expandLegendPosition,
+} from 'ag-charts-core';
 
 import { AxisTicks } from './axisTicks';
 
-const {
-    BaseProperties,
-    ZIndexMap,
-    ProxyProperty,
-    Property,
-    LayoutElement,
-    Group,
-    Rect,
-    Marker,
-    TranslatableGroup,
-    BBox,
-    expandLegendPosition,
-} = _ModuleSupport;
-
+const { LayoutElement, Group, Rect, Marker, TranslatableGroup, BBox } = _ModuleSupport;
 class GradientBar extends BaseProperties {
     @Property
     thickness = 16;
@@ -32,7 +29,7 @@ class GradientBar extends BaseProperties {
 }
 
 class GradientLegendScale
-    extends _ModuleSupport.BaseProperties<AgGradientLegendScaleOptions>
+    extends BaseProperties<AgGradientLegendScaleOptions>
     implements Omit<AgGradientLegendScaleOptions, 'label'>
 {
     constructor(protected axisTicks: AxisTicks) {
@@ -49,7 +46,7 @@ class GradientLegendScale
     padding?: AxisTicks['padding'];
 }
 
-export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLegendOptions> {
+export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     static readonly className = 'GradientLegend';
 
     readonly id = createId(this);
@@ -89,7 +86,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     spacing = 20;
 
     @Property
-    border = new _ModuleSupport.Border(this.containerNode);
+    border = new Border(this.containerNode);
 
     @Property
     cornerRadius: number = 0;
@@ -134,7 +131,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         scene.appendChild(this.legendGroup);
     }
 
-    private onStartLayout(ctx: _ModuleSupport.LayoutContext) {
+    private onStartLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
         const [data] = this.data;
 
         if (!this.enabled || !data?.enabled || data.legendType !== 'gradient') {
@@ -142,16 +139,14 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
             return;
         }
 
-        const { colorRange } = this.normalizeColorArrays(data);
-
-        const gradientRectBBox = this.updateGradientRect(ctx.layoutBox, colorRange);
-        const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
-
-        const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
         const { strokeWidth, padding } = this.getContainerStyles();
+        const gradientRectBBox = this.updateGradientRect(layoutBox, data.colorStops);
+        const axisBBox = this.updateAxis(data, gradientRectBBox) ?? new BBox(0, 0, 0, 0);
+        const legendBBox = BBox.merge([gradientRectBBox, axisBBox]);
+
         legendBBox.grow(padding).grow(strokeWidth);
 
-        const { left, top } = this.getMeasurements(ctx.layoutBox, legendBBox);
+        const { left, top } = this.getMeasurements(layoutBox, legendBBox);
 
         this.updateContainer(legendBBox);
         this.updateArrow();
@@ -161,36 +156,9 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         this.legendGroup.translationY = top;
     }
 
-    private normalizeColorArrays(data: _ModuleSupport.GradientLegendDatum) {
-        let colorDomain = data.colorDomain.slice();
-        const colorRange = data.colorRange.slice();
-
-        if (colorDomain.length === colorRange.length) {
-            return { colorDomain, colorRange };
-        }
-
-        if (colorDomain.length > colorRange.length) {
-            colorRange.splice(colorDomain.length);
-        }
-
-        const [d0, d1] = colorDomain;
-        const count = colorRange.length;
-        colorDomain = colorRange.map((_, i) => {
-            if (i === 0) {
-                return d0;
-            } else if (i === count - 1) {
-                return d1;
-            }
-            return d0 + ((d1 - d0) * i) / (count - 1);
-        });
-
-        return { colorDomain, colorRange };
-    }
-
-    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
+    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorStops: GradientColorStop[]) {
         const { gradientRect, gradient } = this;
         const { preferredLength, thickness } = gradient;
-
         const gradientRectBBox = new BBox(0, 0, 0, 0);
 
         let angle: number;
@@ -213,10 +181,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
             type: 'gradient',
             gradient: 'linear',
             colorSpace: 'oklch',
-            colorStops: colorRange.map((color, i) => ({
-                stop: i / (colorRange.length - 1),
-                color,
-            })),
+            colorStops,
             rotation: angle,
         };
 
@@ -233,7 +198,8 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : offset;
-        axisTicks.scale.domain = positiveAxis ? data.colorDomain.slice().reverse() : data.colorDomain;
+        const [dMin, dMax] = data.axisDomain;
+        axisTicks.scale.domain = positiveAxis ? [dMax, dMin] : [dMin, dMax];
         axisTicks.scale.range = vertical
             ? [gradientRectBBox.x, gradientRectBBox.height]
             : [gradientRectBBox.y, gradientRectBBox.width];
@@ -244,7 +210,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     private updateContainer(bbox: _ModuleSupport.BBox) {
         const containerStyles = this.getContainerStyles();
 
-        _ModuleSupport.applyShapeStyle(this.containerNode, containerStyles);
+        this.containerNode.setStyleProperties(containerStyles);
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
 
         this.containerNode.x = bbox.x;
@@ -257,7 +223,7 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
         const highlighted = this.highlightManager.getActiveHighlight();
         const { arrow } = this;
 
-        if (highlighted?.colorValue == null) {
+        if (highlighted?.colorValue == null || highlighted.series?.isHighlightEnabled() === false) {
             arrow.visible = false;
             return;
         }
@@ -286,9 +252,9 @@ export class GradientLegend extends _ModuleSupport.BaseProperties<AgGradientLege
     }
 
     private getMeasurements(shrinkRect: _ModuleSupport.BBox, legendBBox: _ModuleSupport.BBox) {
-        function unreachable(_a: never): never {
+        const unreachable = (_a: never): never => {
             return undefined as never;
-        }
+        };
 
         let { x: left, y: top } = shrinkRect;
         const { width, height } = legendBBox;

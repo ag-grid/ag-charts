@@ -1,4 +1,4 @@
-import { EventEmitter } from 'ag-charts-core';
+import { AgDocument, EventEmitter } from 'ag-charts-core';
 
 interface SpringAnimationUpdateEvent {
     readonly x: number;
@@ -14,21 +14,23 @@ const DELTA = 0.5;
 export class SpringAnimation {
     readonly events = new EventEmitter<{ update: SpringAnimationUpdateEvent }>();
 
-    private x1 = NaN;
-    private y1 = NaN;
-    public x = NaN;
-    public y = NaN;
+    private x1 = Number.NaN;
+    private y1 = Number.NaN;
+    public x = Number.NaN;
+    public y = Number.NaN;
     private vx = 0;
     private vy = 0;
-    private t0 = NaN;
+    private t0 = Number.NaN;
     private animationFrameHandle: number | undefined = undefined;
 
+    constructor(private readonly agDocument: AgDocument) {}
+
     reset() {
-        this.x = NaN;
-        this.y = NaN;
+        this.x = Number.NaN;
+        this.y = Number.NaN;
 
         if (this.animationFrameHandle != null) {
-            cancelAnimationFrame(this.animationFrameHandle);
+            this.agDocument.cancelAnimationFrame(this.animationFrameHandle);
             this.animationFrameHandle = undefined;
         }
     }
@@ -43,7 +45,7 @@ export class SpringAnimation {
             this.emitUpdate();
 
             if (this.animationFrameHandle != null) {
-                cancelAnimationFrame(this.animationFrameHandle);
+                this.agDocument.cancelAnimationFrame(this.animationFrameHandle);
                 this.animationFrameHandle = undefined;
             }
 
@@ -54,7 +56,7 @@ export class SpringAnimation {
         this.y1 = y;
         this.t0 = Date.now();
 
-        this.animationFrameHandle ??= requestAnimationFrame(this.onFrame.bind(this));
+        this.animationFrameHandle ??= this.agDocument.requestAnimationFrame(this.onFrame.bind(this));
     }
 
     private onFrame() {
@@ -67,7 +69,7 @@ export class SpringAnimation {
         this.t0 = t1;
 
         const stepT = 1e-3;
-        const iterations = Math.ceil(dt / (stepT * 1e3)) | 0;
+        const iterations = Math.trunc(Math.ceil(dt / (stepT * 1e3)));
 
         let { x, y, vx, vy } = this;
         for (let i = 0; i < iterations; i += 1) {
@@ -94,7 +96,7 @@ export class SpringAnimation {
             this.y = y;
             this.vx = vx;
             this.vy = vy;
-            this.animationFrameHandle = requestAnimationFrame(this.onFrame.bind(this));
+            this.animationFrameHandle = this.agDocument.requestAnimationFrame(this.onFrame.bind(this));
         }
 
         this.emitUpdate();

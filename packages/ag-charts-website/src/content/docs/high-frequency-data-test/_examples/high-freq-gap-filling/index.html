@@ -1,0 +1,22 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleFeedBtn" onclick="toggleFeed()">Start Feed</button>
+        <button id="toggleRapidFeedBtn" onclick="toggleRapidFeed()">Start Rapid Feed</button>
+        <button onclick="tickFeed()">Tick Feed</button>
+        <button onclick="resetDataGap()">Reset Gap</button>
+        <select onchange="use(this.value)">
+            <option value="applyTransaction-fill-gap">applyTransaction (fill gap)</option>
+            <option value="updateDelta-fill-gap">updateDelta (fill gap)</option>
+        </select>
+        <select onchange="changeSeriesType(this.value)">
+            <option value="line">Line</option>
+            <option value="area">Area</option>
+            <option value="bar">Bar</option>
+            <option value="scatter">Scatter</option>
+            <option value="bubble">Bubble</option>
+        </select>
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+        <span id="gapProgress" style="margin-left: 10px">Gap filled: 0.0%</span>
+    </div>
+</div>
+<div id="myChart"></div>

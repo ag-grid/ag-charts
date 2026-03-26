@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
 
 import type {
     AgCartesianChartOptions,
@@ -12,6 +12,7 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
     clickAction,
     deproxy,
@@ -109,6 +110,40 @@ describe('SunburstSeries', () => {
         }
     });
 
+    describe('Label itemStyler', () => {
+        it('should style labels via itemStyler', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Solar',
+                        children: [
+                            { name: 'Earth', size: 60 },
+                            { name: 'Mars', size: 20 },
+                        ],
+                    },
+                    {
+                        name: 'Gas Giants',
+                        children: [{ name: 'Jupiter', size: 80 }],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        label: {
+                            itemStyler: () => ({ color: 'lime' }),
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     const testPointerEvents = (testParams: {
         seriesOptions: any;
         chartOptions?: any;
@@ -141,8 +176,10 @@ describe('SunburstSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            fill: 'lime',
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'lime',
+                            },
                         },
                         listeners,
                         ...nodeClickRangeParams,
@@ -221,7 +258,7 @@ describe('SunburstSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -284,7 +321,7 @@ describe('SunburstSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -502,6 +539,138 @@ describe('SunburstSeries', () => {
         });
     });
 
+    describe('colorScale', () => {
+        const COLOR_SUNBURST_DATA = [
+            {
+                name: 'Americas',
+                children: [
+                    { name: 'United States', gdp: 26.9, change: 6 },
+                    { name: 'Canada', gdp: 2.1, change: 0 },
+                    { name: 'Brazil', gdp: 2.1, change: 11 },
+                ],
+            },
+            {
+                name: 'Asia',
+                children: [
+                    { name: 'China', gdp: 17.7, change: 0 },
+                    { name: 'Japan', gdp: 4.2, change: -1 },
+                    { name: 'India', gdp: 4, change: 20 },
+                ],
+            },
+            {
+                name: 'Europe',
+                children: [
+                    { name: 'Germany', gdp: 4.4, change: 9 },
+                    { name: 'France', gdp: 3, change: 10 },
+                    { name: 'UK', gdp: 3.3, change: 9 },
+                ],
+            },
+        ];
+
+        const COLOR_SUNBURST_BASE: AgChartOptions = {
+            data: COLOR_SUNBURST_DATA,
+            series: [
+                {
+                    type: 'sunburst',
+                    labelKey: 'name',
+                    sizeKey: 'gdp',
+                    colorKey: 'change',
+                },
+            ],
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [-10, 25] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_SUNBURST_BASE,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 0, name: 'Decline' },
+                                { color: 'yellow', stop: 10, name: 'Stable' },
+                                { color: 'green', name: 'Growth' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('AG-15448', () => {
         const DATA1 = [
             { type: 'Fruits', category: 'Citrus', item: 'Orange', count: 10, status: 1 },
@@ -560,7 +729,7 @@ describe('SunburstSeries', () => {
                 children: [
                     { name: 'China', gdp: 17.7, gdpChange: 0 },
                     { name: 'Japan', gdp: 4.23, gdpChange: 0 },
-                    { name: 'India', gdp: 4.0, gdpChange: 0.2 },
+                    { name: 'India', gdp: 4, gdpChange: 0.2 },
                 ],
                 gdpChange: 0.05,
             },

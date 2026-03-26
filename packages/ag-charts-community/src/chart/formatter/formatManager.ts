@@ -1,4 +1,13 @@
-import { Logger, buildDateFormatter, createNumberFormatter, isPlainObject, parseNumberFormat } from 'ag-charts-core';
+import {
+    Logger,
+    buildDateFormatter,
+    createNumberFormatter,
+    formatValue,
+    isPlainObject,
+    parseNumberFormat,
+    simpleMemorize2,
+    toTextString,
+} from 'ag-charts-core';
 import {
     type AgTimeIntervalUnit,
     type CategoryFormatterParams,
@@ -6,11 +15,10 @@ import {
     type DateFormatterStyle,
     type FormatterConfiguration,
     type NumberFormatterParams,
+    type TextValue,
 } from 'ag-charts-types';
 
-import { formatValue } from '../../util/format.util';
 import { Listeners } from '../../util/listeners';
-import { simpleMemorize2 } from '../../util/memo';
 import { defaultTimeFormats, deriveTimeSpecifier } from '../axis/timeFormatUtil';
 
 export type GlobalContextlessFormatterParams =
@@ -19,16 +27,17 @@ export type GlobalContextlessFormatterParams =
     | Omit<CategoryFormatterParams<any, any>, 'context'>;
 
 export type GlobalContextFormatter = (
-    fn: (params: GlobalContextlessFormatterParams) => string | undefined,
+    fn: (params: GlobalContextlessFormatterParams) => TextValue | undefined,
     params: GlobalContextlessFormatterParams,
     contextProvider?: { context?: unknown }
-) => string | undefined;
+) => TextValue | undefined;
 
 type Specifier = Record<AgTimeIntervalUnit, string> | string;
 
 interface FormatParams {
     specifier?: Record<string, string> | string;
     truncateDate?: 'year' | 'month' | 'day';
+    allowNull?: boolean;
 }
 
 export class FormatManager extends Listeners<'format-changed', () => void> {
@@ -53,10 +62,10 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     static mergeSpecifiers(...specifiers: Array<Specifier | undefined>): Specifier | undefined {
         let out: Specifier | undefined;
         for (const specifier of specifiers) {
-            if (typeof specifier === 'string') {
+            if (isPlainObject(specifier) && isPlainObject(out)) {
+                out = { ...out, ...specifier };
+            } else {
                 out = specifier;
-            } else if (isPlainObject(specifier)) {
-                out = isPlainObject(out) ? { ...out, ...specifier } : specifier;
             }
         }
         return out;
@@ -110,15 +119,15 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
     format(
         formatInContext: GlobalContextFormatter,
         params: GlobalContextlessFormatterParams,
-        { specifier, truncateDate }: FormatParams = {}
+        { specifier, truncateDate, allowNull }: FormatParams = {}
     ): string | undefined {
-        if (params.value == null) return;
+        if (params.value == null && !allowNull) return;
 
         const { formatter } = this;
         if (formatter == null) return;
         if (typeof formatter === 'function') {
             const value = formatInContext(formatter, params);
-            return value != null ? String(value) : undefined;
+            return value == null ? undefined : String(value);
         }
 
         const propertyFormatter = formatter[params.property];
@@ -126,7 +135,7 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
 
         if (typeof propertyFormatter === 'function') {
             const value = formatInContext(propertyFormatter, params);
-            return value != null ? String(value) : undefined;
+            return value == null ? value : toTextString(value);
         } else if (params.type === 'date') {
             const { unit, style } = params;
             const dateFormatter = this.dateFormatter(propertyFormatter, specifier, unit, style, truncateDate);
@@ -163,7 +172,9 @@ export class FormatManager extends Listeners<'format-changed', () => void> {
                 return formatValue(params.value, params.fractionDigits);
 
             case 'category':
-                if (Array.isArray(params.value)) {
+                if (params.value == null) {
+                    return '';
+                } else if (Array.isArray(params.value)) {
                     return params.value.join(' - ');
                 } else if (typeof params.value === 'string') {
                     return params.value;

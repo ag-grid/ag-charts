@@ -1,8 +1,6 @@
-import type { BoxBounds, Point } from 'ag-charts-core';
+import type { AxisID, BoxBounds, ChartAxisDirection, Point, Scale } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
 
-import type { ChartAxisDirection } from '../chart/chartAxisDirection';
-import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (
@@ -19,16 +17,19 @@ export interface AxisFormattableLabel<FormatParams extends object, Params extend
     ): TextOrSegments | undefined;
 }
 
-export interface AxisBandDatum {
+export interface AxisBandMeasurement {
+    readonly band: [number, number];
+}
+
+export interface AxisBandDatum extends AxisBandMeasurement {
     readonly id: string;
     readonly value: any;
-    readonly band: [number, number];
     readonly position: number;
 }
 
 export interface AxisContext {
     context?: unknown;
-    axisId: string;
+    axisId: AxisID;
     continuous: boolean;
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
@@ -47,4 +48,5 @@ export interface AxisContext {
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
     pickBand(point: Point): AxisBandDatum | undefined;
+    measureBand(value: string): AxisBandMeasurement | undefined;
 }

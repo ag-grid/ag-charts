@@ -8,10 +8,12 @@ import type {
 } from 'ag-charts-community';
 import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
-    Chart,
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     deproxy,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     setupMockCanvas,
@@ -211,7 +213,7 @@ describe('PyramidSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -268,7 +270,7 @@ describe('PyramidSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             // Returns a highlighted node
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -290,7 +292,7 @@ describe('PyramidSeries', () => {
             getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return [...series.highlightGroup.children()].find(
+                return [...series.highlightNodeGroup.children()].find(
                     (child: any) => child.datum.id === highlightedDatum.id
                 );
             },
@@ -410,6 +412,182 @@ describe('PyramidSeries', () => {
 
             chart = deproxy(AgCharts.create(options as AgChartOptions));
             await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should render with null category key value', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PyramidSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should filter undefined category key value', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: undefined, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [PyramidSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: undefined, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: undefined, value: 7260 },
+                    { group: 'Close', value: 4460 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should call stageLabel.formatter for null category key when allowNullKeys is true', async () => {
+            const formatterCalls: any[] = [];
+            const options: AgChartOptions = {
+                data: [
+                    { group: 'Qualify', value: 7910 },
+                    { group: null, value: 8170 },
+                    { group: 'Propose', value: 7260 },
+                ],
+                series: [
+                    {
+                        type: 'pyramid',
+                        stageKey: 'group',
+                        valueKey: 'value',
+                        allowNullKeys: true,
+                        stageLabel: {
+                            formatter: (params: any) => {
+                                formatterCalls.push(params.datum.group);
+                                return String(params.datum.group);
+                            },
+                        },
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(formatterCalls).toContain(null);
+            expectWarningsCalls().toEqual([]);
         });
     });
 

@@ -1,5 +1,11 @@
-import { type AgFunnelSeriesLabelFormatterParams, type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
+import {
+    type AgFunnelSeriesLabelFormatterParams,
+    type AgFunnelSeriesStyle,
+    type TextOrSegments,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import type { DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -7,10 +13,8 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
-    SeriesZIndexMap,
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
     LARGEST_KEY_INTERVAL,
@@ -21,14 +25,12 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    ContinuousScale,
     Group,
     Selection,
     PointerEvents,
     motion,
     checkCrisp,
     createDatumId,
-    applyShapeStyle,
 } = _ModuleSupport;
 
 export type Bounds = {
@@ -40,7 +42,7 @@ export type Bounds = {
 
 export type FunnelNodeLabelDatum = Readonly<Point> & {
     datumIndex: number;
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
@@ -51,7 +53,6 @@ export type FunnelNodeLabelDatum = Readonly<Point> & {
 
 export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly itemId: string;
     readonly width: number;
     readonly height: number;
     readonly label: FunnelNodeLabelDatum | undefined;
@@ -81,8 +82,25 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
     connectorData: FunnelConnectorDatum[];
 }
 
+<<<<<<< HEAD
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
     extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
+=======
+/**
+ * Base type interface for funnel series types.
+ * Constrains datum, label, context, and properties types while leaving node and options open for subclasses.
+ */
+export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.QuadtreeCompatibleNode;
+    readonly properties: BaseFunnelProperties<this['options']>;
+    readonly datum: FunnelNodeDatum;
+    readonly label: FunnelNodeLabelDatum;
+    readonly context: FunnelContext;
+}
+
+export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
+    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
+>>>>>>> latest
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -90,7 +108,12 @@ class FunnelSeriesNodeEvent<
     readonly xKey?: string;
     readonly yKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: FunnelNodeDatum, series: BaseFunnelSeries<any, object>) {
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: FunnelNodeDatum,
+        series: BaseFunnelSeries<BaseFunnelSeriesTypes>
+    ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
@@ -98,6 +121,7 @@ class FunnelSeriesNodeEvent<
 }
 
 export abstract class BaseFunnelSeries<
+<<<<<<< HEAD
     TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
     TOpts extends object,
 > extends _ModuleSupport.AbstractBarSeries<
@@ -108,6 +132,10 @@ export abstract class BaseFunnelSeries<
     FunnelNodeLabelDatum,
     FunnelContext
 > {
+=======
+    TTypes extends BaseFunnelSeriesTypes,
+> extends _ModuleSupport.AbstractBarSeries<TTypes> {
+>>>>>>> latest
     // @ts-expect-error xKey/yKey renamed
     protected override readonly NodeEvent = FunnelSeriesNodeEvent;
 
@@ -132,7 +160,10 @@ export abstract class BaseFunnelSeries<
     }: {
         moduleCtx: _ModuleSupport.ModuleContext;
         animationResetFns: {
-            datum: (node: TNode, datum: FunnelNodeDatum) => _ModuleSupport.AnimationValue & Partial<TNode>;
+            datum: (
+                node: _ModuleSupport.NodeOf<TTypes>,
+                datum: FunnelNodeDatum
+            ) => _ModuleSupport.AnimationValue & Partial<_ModuleSupport.NodeOf<TTypes>>;
         };
     }) {
         super({
@@ -177,6 +208,12 @@ export abstract class BaseFunnelSeries<
         return new FunnelConnector<FunnelConnectorDatum>();
     }
 
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        // Do not flip series axis keys for funnel series
+        if (direction === ChartAxisDirection.X) return this.properties.xKeyAxis;
+        if (direction === ChartAxisDirection.Y) return this.properties.yKeyAxis;
+    }
+
     override async processData(dataController: _ModuleSupport.DataController) {
         const { stageKey, valueKey } = this.properties;
         const { visible, id: seriesId } = this;
@@ -189,17 +226,18 @@ export abstract class BaseFunnelSeries<
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
+        if (this.needsDataModelDiff() && this.processedData) {
+            extraProps.push(diff(this.id, this.processedData));
+        }
         if (!this.ctx.animationManager.isSkipped()) {
-            if (this.processedData) {
-                extraProps.push(diff(this.id, this.processedData));
-            }
             extraProps.push(animationValidation());
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(stageKey, xScaleType, { id: 'xValue' }),
+                keyProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps, validation, invalidValue: 0 }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
@@ -213,14 +251,14 @@ export abstract class BaseFunnelSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const {
             processedData,
             dataModel,
             id: seriesId,
             ctx: { legendManager },
         } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -229,23 +267,22 @@ export abstract class BaseFunnelSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                if (!this.hasData) return [];
-                return keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
+                if (!this.hasData) return { domain: [] };
+                const domain = keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yValue'], 'xValue');
             const maxExtent = Math.max(...yExtent);
             const fixedYExtent = [-maxExtent, maxExtent];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     override createNodeData() {
@@ -253,7 +290,6 @@ export abstract class BaseFunnelSeries<
             hasData,
             data,
             dataModel,
-            groupScale,
             processedData,
             id: seriesId,
             ctx: { legendManager },
@@ -279,7 +315,7 @@ export abstract class BaseFunnelSeries<
             labelData: [],
             connectorData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
         };
 
@@ -289,8 +325,7 @@ export abstract class BaseFunnelSeries<
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
         const crisp = checkCrisp(
             xAxis?.scale,
@@ -306,14 +341,17 @@ export abstract class BaseFunnelSeries<
             datumIndex: number;
         }
         let previousConnection: ConnectorConfig | undefined;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+        for (const [datumIndex, datum] of rawData.entries()) {
             const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
 
-            const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
+            const xConverted = xScale.convert(xDatum);
+            if (!Number.isFinite(xConverted)) continue;
+            const x = Math.round(xConverted) + groupOffset + barOffset;
 
             const yDatum = yValues[datumIndex];
             const yNegative = Math.round(yScale.convert(-yDatum));
@@ -347,7 +385,6 @@ export abstract class BaseFunnelSeries<
             const nodeDatum: FunnelNodeDatum = {
                 index: datumIndex,
                 series: this,
-                itemId,
                 datum,
                 datumIndex,
                 xValue: xDatum,
@@ -413,7 +450,7 @@ export abstract class BaseFunnelSeries<
                     datumIndex: datumIndex,
                 };
             }
-        });
+        }
 
         return context;
     }
@@ -448,7 +485,11 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, TNode>;
+=======
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.NodeOf<TTypes>, FunnelNodeDatum>;
+>>>>>>> latest
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -476,8 +517,7 @@ export abstract class BaseFunnelSeries<
 
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
 
-            applyShapeStyle(
-                connector,
+            connector.setStyleProperties(
                 {
                     fill,
                     stroke,
@@ -494,7 +534,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateLabelSelection(opts: {
         labelData: FunnelNodeLabelDatum[];
-        labelSelection: FunnelAnimationData<TNode>['labelSelection'];
+        labelSelection: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>['labelSelection'];
     }) {
         const labelData = this.properties.label.enabled ? opts.labelData : [];
         return opts.labelSelection.update(labelData, (text) => {
@@ -503,17 +543,37 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
+<<<<<<< HEAD
         labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
+=======
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+        isHighlight?: boolean;
+>>>>>>> latest
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
             stageKey: this.properties.stageKey,
             valueKey: this.properties.valueKey,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
+        const { isHighlight = false, labelSelection } = opts;
+        labelSelection.each((textNode, datum) => {
+            const highlightStyle = this.getHighlightStyle(isHighlight, datum.datumIndex);
+            textNode.visible = datum.visible || isHighlight;
+            textNode.fillOpacity = highlightStyle.opacity ?? 1;
+            textNode.opacity = highlightStyle.opacity ?? 1;
+            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
         });
+    }
+
+    protected override getHighlightLabelData(
+        _labelData: FunnelNodeLabelDatum[],
+        highlightedItem: FunnelNodeDatum
+    ): FunnelNodeLabelDatum[] | undefined {
+        if (highlightedItem.label) {
+            return [{ ...highlightedItem.label }];
+        }
+
+        return undefined;
     }
 
     protected abstract tooltipStyle(datum: any, datumIndex: number): Required<AgFunnelSeriesStyle>;
@@ -526,11 +586,13 @@ export abstract class BaseFunnelSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -548,14 +610,23 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
+<<<<<<< HEAD
         data: _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext>
+=======
+        data: _ModuleSupport.CartesianAnimationData<
+            _ModuleSupport.NodeOf<TTypes>,
+            FunnelNodeDatum,
+            FunnelNodeLabelDatum,
+            FunnelContext
+        >
+>>>>>>> latest
     ): void {
         super.resetAllAnimation(data);
 
         resetMotion([this.connectorSelection], resetConnectorSelectionsFn);
     }
 
-    override animateEmptyUpdateReady({ labelSelection }: FunnelAnimationData<TNode>) {
+    override animateEmptyUpdateReady({ labelSelection }: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>) {
         const { connectorSelection } = this;
         const isVertical = this.isVertical();
         const mode = 'normal';
@@ -566,7 +637,7 @@ export abstract class BaseFunnelSeries<
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<TNode>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.NodeOf<TTypes>>) {
         const { labelSelection: labelSelections } = data;
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
@@ -620,10 +691,11 @@ export abstract class BaseFunnelSeries<
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
-        return (processedData.dataSources.get(this.id) ?? [])
+        return (processedData.dataSources.get(this.id)?.data ?? [])
             .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
                 const stageValue = xValues[datumIndex];
-                if (stageValue == null) return;
+                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                if (stageValue == null && !allowNullKeys) return;
 
                 return {
                     legendType: 'category',

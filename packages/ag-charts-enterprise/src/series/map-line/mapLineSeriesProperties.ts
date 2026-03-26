@@ -4,13 +4,18 @@ import type {
     AgMapLineSeriesOptions,
     AgMapLineSeriesStyle,
     AgMapLineSeriesTooltipRendererParams,
+    Opacity,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { FeatureCollection, Geometry, PointLabelDatum } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
-const { Property, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
-
-export interface MapLineNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+export interface MapLineNodeLabelDatum extends PointLabelDatum {
+    readonly datumIndex: number;
+    readonly idValue: string;
+}
 
 export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly idValue: string;
@@ -18,13 +23,13 @@ export interface MapLineNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly colorValue: number | undefined;
     readonly sizeValue: number | undefined;
     readonly legendItemName: string | undefined;
-    readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
+    readonly projectedGeometry: Geometry | undefined;
     style: AgMapLineSeriesStyle;
 }
 
 export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOptions> {
     @Property
-    topology?: _ModuleSupport.FeatureCollection = undefined;
+    topology?: FeatureCollection = undefined;
 
     @Property
     title?: string;
@@ -66,6 +71,9 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     colorRange: string[] | undefined = undefined;
 
     @Property
+    readonly colorScale = new ColorScaleProperties();
+
+    @Property
     maxStrokeWidth?: number = undefined;
 
     @Property
@@ -92,7 +100,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
     @Property
     readonly tooltip = makeSeriesTooltip<AgMapLineSeriesTooltipRendererParams<any>>();
 
-    getStyle(): Required<AgMapLineSeriesStyle> {
+    getStyle(): Required<AgMapLineSeriesStyle> & { opacity: Opacity } {
         const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this;
         return {
             stroke,
@@ -100,6 +108,7 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
             strokeWidth,
             lineDash,
             lineDashOffset,
+            opacity: 1,
         };
     }
 }

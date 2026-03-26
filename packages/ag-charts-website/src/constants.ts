@@ -84,7 +84,7 @@ export const SITE_BASE_URL =
  *
  * ie http://localhost:4600 for dev, https://charts-staging.ag-grid.com for staging
  */
-export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
+export const SITE_URL = import.meta.env?.SITE_URL ?? import.meta.env?.PUBLIC_SITE_URL;
 
 export const GRID_STAGING_SITE_URL = 'https://grid-staging.ag-grid.com';
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
@@ -95,7 +95,7 @@ export const FAIL_ON_UNMATCHED_GLOBS = ['1', 'true'].includes(import.meta.env?.F
 /**
  * Number of URL segments in `SITE_BASE_URL`
  */
-export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL?.split('/').filter(Boolean).length || 0;
+export const SITE_BASE_URL_SEGMENTS = SITE_BASE_URL?.split('/').filter(Boolean).length ?? 0;
 
 /**
  * URL prefix to serve files for dev server

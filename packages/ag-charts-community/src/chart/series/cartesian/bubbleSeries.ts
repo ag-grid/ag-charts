@@ -1,4 +1,25 @@
-import { type Point, type RequireOptional, cachedTextMeasurer, clamp } from 'ag-charts-core';
+import {
+    type CallbackParamRules,
+    ChartAxisDirection,
+    type DomainWithMetadata,
+    type LabelPlacement,
+    type MeasuredLabel,
+    type Mutable,
+    type PlacedLabel,
+    type Point,
+    type RequireOptional,
+    type Scale,
+    type SizedPoint,
+    cachedTextMeasurer,
+    clamp,
+    dateToNumber,
+    extent,
+    formatValue,
+    isArray,
+    measureTextSegments,
+    rescaleVisibleRange,
+    toPlainText,
+} from 'ag-charts-core';
 import {
     type AgBubbleSeriesItemStylerParams,
     type AgBubbleSeriesLabelFormatterParams,
@@ -6,6 +27,7 @@ import {
     type AgBubbleSeriesOptionsKeys,
     type AgBubbleSeriesStylerParams,
     type AgBubbleSeriesStylerResult,
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgScatterSeriesItemStylerParams,
     type AgScatterSeriesStylerParams,
@@ -22,27 +44,19 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { PointerEvents } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
-import type { LabelPlacement, MeasuredLabel, PlacedLabel } from '../../../scene/util/labelPlacement';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import type { CallbackParamRules } from '../../../util/callbackCache';
-import { extent } from '../../../util/extent';
-import { formatValue } from '../../../util/format.util';
-import { dateToNumber } from '../../../util/timeFormatDefaults';
-import { rescaleVisibleRange } from '../../../util/visibleRange';
 import type { ChartAxis } from '../../chartAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/dataModel';
-import { createDatumId, valueProperty } from '../../data/processors';
+import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
 import {
     type PickFocusInputs,
     type SeriesNodePickMatch,
@@ -55,27 +69,40 @@ import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesT
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
-    aggregateBubbleData,
+    aggregateBubbleDataFromDataModel,
     computeBubbleAggregationCount,
     computeBubbleAggregationData,
     computeBubbleAggregationDilation,
 } from './bubbleAggregation';
 import { BubbleSeriesProperties } from './bubbleSeriesProperties';
-import type {
-    CartesianAnimationData,
-    CartesianSeriesNodeDataContext,
-    CartesianSeriesNodeDatum,
-} from './cartesianSeries';
 import {
     CartesianSeries,
     CartesianSeriesNodeEvent,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { computeMarkerFocusBounds, getMarkerStyles, markerScaleInAnimation, resetMarkerFn } from './markerUtil';
+import type {
+    CartesianAnimationDataOf,
+    CartesianMarkerLikeContext,
+    CartesianSeriesNodeDataContext,
+    CartesianSeriesNodeDatum,
+    CartesianSeriesTypes,
+} from './cartesianSeriesTypes';
+import { upsertNodeDatum } from './cartesianSeriesUtil';
+import {
+    computeMarkerFocusBounds,
+    getMarkerStyles,
+    markerScaleInAnimation,
+    resetMarkerFn,
+    resetMarkerSelectionsDirect,
+} from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
+<<<<<<< HEAD
 type BubbleScatterAnimationData = CartesianAnimationData<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
+=======
+type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleSeriesTypes>;
+>>>>>>> latest
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -106,6 +133,7 @@ interface BubbleSeriesNodeDataContext
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
+<<<<<<< HEAD
 export class BubbleSeries extends CartesianSeries<
     BubbleScatterNodeDatum,
     Marker<BubbleScatterNodeDatum>,
@@ -115,6 +143,90 @@ export class BubbleSeries extends CartesianSeries<
     BubbleSeriesNodeDataContext
 > {
     static readonly className: string = 'BubbleSeries';
+=======
+/**
+ * Consolidated type interface for BubbleSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface BubbleSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgBubbleSeriesOptions;
+    readonly properties: BubbleSeriesProperties;
+    readonly datum: BubbleScatterNodeDatum;
+    readonly label: BubbleScatterNodeDatum;
+    readonly context: BubbleSeriesNodeDataContext;
+    readonly stackContext: never;
+    readonly createNodeDataContext: BubbleSeriesNodeDatumContext;
+}
+
+/** Context object caching expensive lookups for createNodeData(). */
+interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<BubbleScatterNodeDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
+
+    // Data arrays (BubbleSeries-specific naming - resolved from dataModel)
+    readonly xDataValues: any[];
+    readonly yDataValues: any[];
+    readonly sizeDataValues: number[] | undefined;
+    readonly labelDataValues: any[] | undefined;
+    readonly selectedDataValues: boolean[] | undefined;
+
+    // Additional scale (size is BubbleSeries-specific)
+    readonly sizeScale: Scale<any, number>;
+
+    // Property lookups (BubbleSeries-specific)
+    readonly sizeKey: string | undefined;
+    readonly labelKey: string | undefined;
+    readonly sizeName: string | undefined;
+    readonly labelName: string | undefined;
+    readonly legendItemName: string | undefined;
+
+    // Label properties
+    readonly labelsEnabled: boolean;
+    readonly labelPlacement: LabelPlacement;
+    readonly labelAnchor: Point;
+    readonly labelTextDomain: any[];
+    readonly labelPadding: { left: number; right: number; top: number; bottom: number };
+    readonly labelTextMeasurer: { measureLines: (text: string) => { width: number; height: number } };
+    readonly label: BubbleSeriesProperties['label'];
+
+    // Other state
+    readonly visible: boolean;
+}
+
+/**
+ * Scratch object for pre-computed datum state.
+ * Mutated in-place during iteration to avoid allocations.
+ */
+interface PreparedBubbleNodeDatumState {
+    // Raw values from data arrays
+    datum: any;
+    xDatum: any;
+    yDatum: any;
+    sizeValue: number | undefined;
+
+    // Computed coordinates
+    x: number;
+    y: number;
+
+    // Selection state
+    selected: boolean | undefined;
+
+    // Label data
+    nodeLabel: MeasuredLabel;
+
+    // Marker sizing
+    markerSize: number;
+
+    // Aggregation values
+    count: number;
+    dilation: number;
+    area: number;
+}
+
+export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
+    static override readonly className: string = 'BubbleSeries';
+>>>>>>> latest
     static readonly type: string = 'bubble';
 
     protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;
@@ -125,16 +237,14 @@ export class BubbleSeries extends CartesianSeries<
 
     private readonly sizeScale = new LinearScale();
 
+    private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
+
     override get pickModeAxis() {
         return 'main-category' as const;
     }
 
     override get type() {
         return super.type as 'bubble' | 'scatter';
-    }
-
-    override get hasData(): boolean {
-        return this.getHasData('xValue');
     }
 
     constructor(moduleCtx: ModuleContext) {
@@ -174,16 +284,13 @@ export class BubbleSeries extends CartesianSeries<
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
-        const { xKey, yKey, sizeKey, xFilterKey, yFilterKey, sizeFilterKey, labelKey, marker } = this.properties;
+        const { xKey, yKey, sizeKey, selectedKey, labelKey, marker } = this.properties;
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: `xValue` }),
-                valueProperty(yKey, yScaleType, { id: `yValue` }),
-                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })] : []),
-                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })] : []),
-                ...(sizeFilterKey != null
-                    ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
-                    : []),
+                valueProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
+                valueProperty(yKey, yScaleType, { id: `yValue`, allowNullKey }),
+                ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: `selectedValue` })]),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
             ],
@@ -206,8 +313,8 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
-        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [x - r, x + r];
     }
@@ -217,15 +324,15 @@ export class BubbleSeries extends CartesianSeries<
         const { size, sizeKey } = properties;
         const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
         const sizeValues =
-            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
-        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+            sizeKey == null ? undefined : this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!);
+        const sizeValue = sizeValues == null ? size : sizeScale.convert(sizeValues[index]);
         const r = 0.5 * sizeValue * pixelSize;
         return [y - r, y + r];
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const dataValues: { [K in ChartAxisDirection]?: string } = {
             [ChartAxisDirection.X]: 'xValue',
@@ -234,19 +341,19 @@ export class BubbleSeries extends CartesianSeries<
 
         const id = dataValues[direction]!;
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
-        const domain = dataModel.getDomain(this, id, 'value', processedData);
+        const domainData = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
-            return domain;
+            return { domain: domainData.domain };
         }
 
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
         const crossId = dataValues[crossDirection]!;
 
         const ext = this.domainForClippedRange(direction, [id], crossId);
-        return fixNumericExtent(extent(ext));
+        return { domain: fixNumericExtent(extent(ext)) };
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange);
     }
 
@@ -278,25 +385,14 @@ export class BubbleSeries extends CartesianSeries<
         const yScale = yAxis.scale;
         if (!ContinuousScale.is(xScale) || !ContinuousScale.is(yScale)) return;
 
-        const { sizeScale, properties } = this;
-        const { sizeKey } = properties;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const sizeValues = sizeKey ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const xDomain = dataModel.getDomain(this, `xValue`, 'value', processedData);
-        const yDomain = dataModel.getDomain(this, `yValue`, 'value', processedData);
-        const sizeDomain = sizeKey ? sizeScale.domain : [0, 0];
-
-        // Not used in mini chart - no memoization needed
-        return aggregateBubbleData(
+        return aggregateBubbleDataFromDataModel(
             xScale.type,
             yScale.type,
-            xValues,
-            yValues,
-            sizeValues,
-            xDomain,
-            yDomain,
-            sizeDomain
+            dataModel,
+            processedData,
+            this.sizeScale,
+            this.properties.sizeKey != null,
+            this
         );
     }
 
@@ -322,14 +418,20 @@ export class BubbleSeries extends CartesianSeries<
                 xVisibleRange = rescaleVisibleRange(
                     xVisibleRange,
                     xScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `xValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    dataModel.getDomain(this, `xValue`, 'value', processedData).domain.map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
             if (ContinuousScale.is(yScale)) {
                 yVisibleRange = rescaleVisibleRange(
                     yVisibleRange,
                     yScale.domain.map(dateToNumber) as [number, number],
-                    dataModel.getDomain(this, `yValue`, 'value', processedData).map(dateToNumber) as [number, number]
+                    dataModel.getDomain(this, `yValue`, 'value', processedData).domain.map(dateToNumber) as [
+                        number,
+                        number,
+                    ]
                 );
             }
         }
@@ -337,178 +439,156 @@ export class BubbleSeries extends CartesianSeries<
         return { xRange, yRange, minSize, maxSize, xVisibleRange, yVisibleRange };
     }
 
-    override createNodeData() {
-        const { axes, dataModel, processedData, sizeScale, visible } = this;
+    /**
+     * Creates and returns a context object that caches expensive property lookups
+     * and scale conversions. Called once per createNodeData() invocation.
+     */
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): BubbleSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData, sizeScale, visible } = this;
+        if (!dataModel || !processedData) return undefined;
+
+        const rawData = processedData.dataSources.get(this.id)?.data;
+        if (rawData == null) return undefined;
+
         const {
             xKey,
             yKey,
             sizeKey,
-            xFilterKey,
-            yFilterKey,
-            sizeFilterKey,
+            selectedKey,
             labelKey,
             xName,
             yName,
             sizeName,
             labelName,
             label,
+            legendItemName,
             marker,
-            maxRenderedItems,
         } = this.properties;
-        const { enabled: labelEnabled, placement } = label;
-        const anchor = Marker.anchor(marker.shape);
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
 
-        if (!(dataModel && processedData && xAxis && yAxis)) return;
+        // Determine if we can incrementally update existing nodes
+        const canIncrementallyUpdate =
+            processedData.changeDescription != null && this.contextNodeData?.nodeData != null;
 
-        const animationEnabled = !this.ctx.animationManager.isSkipped();
-        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const sizeDataValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const labelDataValues =
-            labelKey != null ? dataModel.resolveColumnById(this, `labelValue`, processedData) : undefined;
-        const xFilterDataValues =
-            xFilterKey != null ? dataModel.resolveColumnById(this, `xFilterValue`, processedData) : undefined;
-        const yFilterDataValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterValue`, processedData) : undefined;
-        const sizeFilterDataValues =
-            sizeFilterKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData)
-                : undefined;
-
+        // Determine label text domain for formatting
         let labelTextDomain: any[];
         if (labelKey) {
             labelTextDomain = [];
         } else if (sizeKey) {
-            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            labelTextDomain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
         } else {
             labelTextDomain = [];
         }
 
-        const xScale = xAxis.scale;
-        const yScale = yAxis.scale;
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-        const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: BubbleScatterNodeDatum[] = [];
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
 
-        sizeScale.range = this.getSizeRange();
+        return {
+            // Axes (from template method parameters)
+            xAxis,
+            yAxis,
 
-        const textMeasurer = cachedTextMeasurer(label);
-        const rawData = processedData.dataSources.get(this.id);
-        if (rawData == null) return;
+            // Data arrays
+            rawData,
+            xValues: xDataValues, // Base interface field
+            xDataValues, // BubbleSeries-specific alias
+            yDataValues: dataModel.resolveColumnById(this, `yValue`, processedData),
+            sizeDataValues:
+                sizeKey == null ? undefined : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData),
+            labelDataValues:
+                labelKey == null ? undefined : dataModel.resolveColumnById(this, `labelValue`, processedData),
+            selectedDataValues:
+                selectedKey == null
+                    ? undefined
+                    : dataModel.resolveColumnById<boolean>(this, `selectedValue`, processedData),
 
-        const padding = expandLabelPadding(label);
-        const handleDatum = (datumIndex: number, count: number, dilation: number, area: number) => {
-            const datum = rawData[datumIndex];
-            const xDatum = xDataValues[datumIndex];
-            const yDatum = yDataValues[datumIndex];
-            const sizeValue = sizeDataValues?.[datumIndex];
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yDatum) + yOffset;
+            // Scales
+            xScale,
+            yScale,
+            sizeScale,
 
-            let selected: boolean | undefined;
-            if (xFilterDataValues != null && yFilterDataValues != null) {
-                selected = xFilterDataValues[datumIndex] === xDatum && yFilterDataValues[datumIndex] === yDatum;
+            // Computed positioning
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+            yOffset: (yScale.bandwidth ?? 0) / 2,
 
-                if (sizeFilterDataValues != null) {
-                    selected &&= sizeFilterDataValues[datumIndex] === sizeValue;
-                }
-            }
+            // Property lookups
+            xKey,
+            yKey,
+            sizeKey,
+            labelKey,
+            xName,
+            yName,
+            sizeName,
+            labelName,
+            legendItemName,
 
-            let nodeLabel: MeasuredLabel;
-            if (labelEnabled) {
-                let labelTextValue: any;
-                let labelTextKey: string;
-                let labelTextProperty: FormatterPropertyType;
-                if (labelKey && labelDataValues) {
-                    labelTextValue = labelDataValues[datumIndex];
-                    labelTextKey = labelKey;
-                    labelTextProperty = 'label';
-                } else if (sizeKey) {
-                    labelTextValue = sizeValue;
-                    labelTextKey = sizeKey;
-                    labelTextProperty = 'size';
-                } else {
-                    labelTextValue = yDatum;
-                    labelTextKey = yKey;
-                    labelTextProperty = 'y';
-                }
-                const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
-                    labelTextValue,
-                    datum,
-                    labelTextKey,
-                    labelTextProperty,
-                    labelTextDomain,
-                    label,
-                    { value: labelTextValue, datum, xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName }
-                );
-                const size = textMeasurer.measureText(String(labelText));
-                size.width += padding.left + padding.right;
-                size.height += padding.bottom + padding.top;
+            // Label properties
+            labelsEnabled: label.enabled,
+            labelPlacement: label.placement,
+            labelAnchor: Marker.anchor(marker.shape),
+            labelTextDomain,
+            labelPadding: expandLabelPadding(label),
+            labelTextMeasurer: cachedTextMeasurer(label),
+            label,
 
-                nodeLabel = { text: labelText, ...size };
-            } else {
-                nodeLabel = { text: '', width: 0, height: 0 };
-            }
+            // Other state
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+            visible,
 
-            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : sizeScale.range[0];
-            const point = { x, y, size: Math.sqrt(dilation) * markerSize };
+            // Incremental update support
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
+    }
 
-            nodeData.push({
-                series: this,
-                itemId: yKey,
-                yKey,
-                xKey,
-                datum,
-                datumIndex,
-                xValue: xDatum,
-                yValue: yDatum,
-                sizeValue,
-                capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
-                point,
-                midPoint: { x, y },
-                label: nodeLabel,
-                anchor,
-                placement,
-                count,
-                dilation,
-                area,
-                selected,
-            });
+    // ============================================================================
+    // Template Method Hooks
+    // ============================================================================
+
+    /**
+     * Populates the node data array by iterating over visible data.
+     * Strategy selection happens inside: simple or aggregation path.
+     */
+    protected override populateNodeData(ctx: BubbleSeriesNodeDatumContext): void {
+        // Set size scale range
+        this.sizeScale.range = this.getSizeRange();
+
+        // Pre-allocate scratch object for datum state
+        const scratch: PreparedBubbleNodeDatumState = {
+            datum: undefined,
+            xDatum: undefined,
+            yDatum: undefined,
+            sizeValue: undefined,
+            x: 0,
+            y: 0,
+            selected: undefined,
+            nodeLabel: { text: '', width: 0, height: 0 },
+            markerSize: 0,
+            count: 1,
+            dilation: 1,
+            area: 0,
         };
 
+        // Strategy selection - delegate to specialized methods
         const { dataAggregation } = this;
-        if (!visible) {
-            // Don't create node data
-        } else if (dataAggregation == null) {
-            for (let datumIndex = 0; datumIndex < rawData.length; datumIndex++) {
-                handleDatum(datumIndex, 1, 1, 0);
-            }
+        if (dataAggregation == null) {
+            this.createNodeDataSimple(ctx, scratch);
         } else {
-            const aggregationOptions = this.aggregationOptions(xAxis, yAxis);
-            const aggregationDilation = computeBubbleAggregationDilation(
-                dataAggregation,
-                aggregationOptions,
-                maxRenderedItems
-            );
-
-            const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(
-                aggregationDilation,
-                dataAggregation,
-                aggregationOptions
-            );
-
-            for (const { datumIndex, count, dilation, area } of groupedAggregation) {
-                handleDatum(datumIndex, count, dilation, area);
-            }
-            for (const datumIndex of singleDatumIndices) {
-                handleDatum(datumIndex, 1, 1, 0);
-            }
+            this.createNodeDataWithAggregation(ctx, scratch, ctx.xAxis, ctx.yAxis, dataAggregation);
         }
+    }
 
+    /**
+     * Initializes the result context object with default values.
+     * Called before populate phase to allow early return for invisible series.
+     */
+    protected override initializeResult(ctx: BubbleSeriesNodeDatumContext): BubbleSeriesNodeDataContext {
+        const { marker } = this.properties;
         type StylerResult = AgBubbleSeriesStylerResult | AgScatterSeriesStylerResult | undefined;
         type StylerParams =
             | AgBubbleSeriesStylerParams<unknown, unknown>
@@ -517,13 +597,266 @@ export class BubbleSeries extends CartesianSeries<
             | AgBubbleSeriesItemStylerParams<unknown, unknown>
             | AgScatterSeriesItemStylerParams<unknown, unknown>;
         return {
-            itemId: yKey,
-            nodeData,
-            labelData: labelEnabled ? nodeData : [],
+            itemId: ctx.yKey,
+            nodeData: ctx.nodes,
+            labelData: ctx.labelsEnabled ? ctx.nodes : [],
             scales: this.calculateScaling(),
-            visible: this.visible || animationEnabled,
-            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, marker),
+            visible: this.visible || ctx.animationEnabled,
+            styles: getMarkerStyles<StylerParams, StylerResult, ItemStylerParams>(this, this.properties, marker),
         };
+    }
+
+    /**
+     * Validates datum state and upserts node - centralizes duplicated upsert pattern.
+     */
+    private upsertBubbleNodeDatum(
+        ctx: BubbleSeriesNodeDatumContext,
+        scratch: PreparedBubbleNodeDatumState,
+        datumIndex: number
+    ): void {
+        if (!this.prepareNodeDatumState(ctx, scratch, datumIndex)) return;
+        upsertNodeDatum(
+            ctx,
+            { scratch, datumIndex },
+            (c, p) => {
+                const node = this.createSkeletonNodeDatum(c, p.scratch, p.datumIndex);
+                this.updateNodeDatum(c, node, p.scratch, p.datumIndex);
+                return node;
+            },
+            (c, n, p) => this.updateNodeDatum(c, n, p.scratch, p.datumIndex)
+        );
+    }
+
+    /**
+     * Simple iteration path for ungrouped data without aggregation.
+     */
+    private createNodeDataSimple(ctx: BubbleSeriesNodeDatumContext, scratch: PreparedBubbleNodeDatumState): void {
+        const dataLength = ctx.rawData.length;
+        for (let datumIndex = 0; datumIndex < dataLength; datumIndex++) {
+            scratch.count = 1;
+            scratch.dilation = 1;
+            scratch.area = 0;
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
+        }
+    }
+
+    /**
+     * Aggregation path for large datasets using quadtree-based 2D spatial aggregation.
+     */
+    private createNodeDataWithAggregation(
+        ctx: BubbleSeriesNodeDatumContext,
+        scratch: PreparedBubbleNodeDatumState,
+        xAxis: ChartAxis,
+        yAxis: ChartAxis,
+        dataAggregation: BubbleAggregation
+    ): void {
+        const { maxRenderedItems } = this.properties;
+        const aggregationOptions = this.aggregationOptions(xAxis, yAxis);
+        const aggregationDilation = computeBubbleAggregationDilation(
+            dataAggregation,
+            aggregationOptions,
+            maxRenderedItems
+        );
+
+        const { groupedAggregation, singleDatumIndices } = computeBubbleAggregationData(
+            aggregationDilation,
+            dataAggregation,
+            aggregationOptions
+        );
+
+        for (const { datumIndex, count, dilation, area } of groupedAggregation) {
+            scratch.count = count;
+            scratch.dilation = dilation;
+            scratch.area = area;
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
+        }
+        for (const datumIndex of singleDatumIndices) {
+            scratch.count = 1;
+            scratch.dilation = 1;
+            scratch.area = 0;
+            this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
+        }
+    }
+
+    /**
+     * Validates and prepares state needed for node creation/update.
+     * Returns undefined if datum should be skipped (invalid data).
+     */
+    private prepareNodeDatumState(
+        ctx: BubbleSeriesNodeDatumContext,
+        scratch: PreparedBubbleNodeDatumState,
+        datumIndex: number
+    ): PreparedBubbleNodeDatumState | undefined {
+        const datum = ctx.rawData[datumIndex];
+        const xDatum = ctx.xDataValues[datumIndex];
+        const yDatum = ctx.yDataValues[datumIndex];
+
+        // Skip invalid data points (unless allowNullKeys is enabled)
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if ((xDatum === undefined || yDatum === undefined) && !allowNullKeys) return undefined;
+
+        const sizeValue = ctx.sizeDataValues?.[datumIndex];
+        const x = ctx.xScale.convert(xDatum) + ctx.xOffset;
+        const y = ctx.yScale.convert(yDatum) + ctx.yOffset;
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return undefined;
+
+        const selected = ctx.selectedDataValues?.[datumIndex];
+
+        // Compute label (skip expensive formatting if labels disabled)
+        let nodeLabel: MeasuredLabel;
+        if (ctx.labelsEnabled) {
+            nodeLabel = this.computeLabel(ctx, datum, yDatum, sizeValue, datumIndex);
+        } else {
+            nodeLabel = { text: '', width: 0, height: 0 };
+        }
+
+        // Compute marker size
+        const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convert(sizeValue);
+
+        // Populate scratch object
+        scratch.datum = datum;
+        scratch.xDatum = xDatum;
+        scratch.yDatum = yDatum;
+        scratch.sizeValue = sizeValue;
+        scratch.x = x;
+        scratch.y = y;
+        scratch.selected = selected;
+        scratch.nodeLabel = nodeLabel;
+        scratch.markerSize = markerSize;
+
+        return scratch;
+    }
+
+    /**
+     * Computes label text and measurements for a datum.
+     * Separated to enable skipping when labels are disabled.
+     */
+    private computeLabel(
+        ctx: BubbleSeriesNodeDatumContext,
+        datum: any,
+        yDatum: any,
+        sizeValue: number | undefined,
+        datumIndex: number
+    ): MeasuredLabel {
+        let labelTextValue: any;
+        let labelTextKey: string;
+        let labelTextProperty: FormatterPropertyType;
+
+        if (ctx.labelKey && ctx.labelDataValues) {
+            labelTextValue = ctx.labelDataValues[datumIndex];
+            labelTextKey = ctx.labelKey;
+            labelTextProperty = 'label';
+        } else if (ctx.sizeKey) {
+            labelTextValue = sizeValue;
+            labelTextKey = ctx.sizeKey;
+            labelTextProperty = 'size';
+        } else {
+            labelTextValue = yDatum;
+            labelTextKey = ctx.yKey;
+            labelTextProperty = 'y';
+        }
+
+        const labelText = this.getLabelText<AgBubbleSeriesLabelFormatterParams>(
+            labelTextValue,
+            datum,
+            labelTextKey,
+            labelTextProperty,
+            ctx.labelTextDomain,
+            ctx.label,
+            {
+                value: labelTextValue,
+                datum,
+                xKey: ctx.xKey,
+                yKey: ctx.yKey,
+                // sizeKey may be undefined for ScatterSeries (which extends BubbleSeries)
+                sizeKey: ctx.sizeKey!,
+                labelKey: ctx.labelKey,
+                xName: ctx.xName,
+                yName: ctx.yName,
+                sizeName: ctx.sizeName,
+                labelName: ctx.labelName,
+                legendItemName: ctx.legendItemName,
+            }
+        );
+
+        let { width, height } = isArray(labelText)
+            ? measureTextSegments(labelText, ctx.label)
+            : ctx.labelTextMeasurer.measureLines(String(labelText));
+
+        width += ctx.labelPadding.left + ctx.labelPadding.right;
+        height += ctx.labelPadding.bottom + ctx.labelPadding.top;
+
+        return { text: labelText, width, height };
+    }
+
+    /**
+     * Creates a minimal skeleton node - actual values set by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: BubbleSeriesNodeDatumContext,
+        _scratch: PreparedBubbleNodeDatumState,
+        _datumIndex: number
+    ): BubbleScatterNodeDatum {
+        return {
+            series: this,
+            yKey: ctx.yKey,
+            xKey: ctx.xKey,
+            datum: undefined,
+            datumIndex: 0,
+            xValue: undefined,
+            yValue: undefined,
+            sizeValue: undefined,
+            capDefaults: { lengthRatioMultiplier: this.properties.marker.getDiameter(), lengthMax: Infinity },
+            point: { x: 0, y: 0, size: 0 },
+            midPoint: { x: 0, y: 0 },
+            label: { text: '', width: 0, height: 0 },
+            anchor: ctx.labelAnchor,
+            placement: ctx.labelPlacement,
+            count: 1,
+            dilation: 1,
+            area: 0,
+            selected: undefined,
+        };
+    }
+
+    /**
+     * Updates node properties in-place.
+     * Shared by both create (skeleton + update) and incremental update paths.
+     */
+    private updateNodeDatum(
+        ctx: BubbleSeriesNodeDatumContext,
+        node: BubbleScatterNodeDatum,
+        scratch: PreparedBubbleNodeDatumState,
+        datumIndex: number
+    ): void {
+        const mutableNode = node as Mutable<BubbleScatterNodeDatum>;
+        const { x, y, markerSize, dilation } = scratch;
+
+        // Update basic properties
+        mutableNode.datum = scratch.datum;
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.xValue = scratch.xDatum;
+        mutableNode.yValue = scratch.yDatum;
+        mutableNode.sizeValue = scratch.sizeValue;
+        mutableNode.selected = scratch.selected;
+        mutableNode.count = scratch.count;
+        mutableNode.dilation = scratch.dilation;
+        mutableNode.area = scratch.area;
+        mutableNode.label = scratch.nodeLabel;
+        mutableNode.anchor = ctx.labelAnchor;
+        mutableNode.placement = ctx.labelPlacement;
+
+        // Update point in-place
+        const mutablePoint = mutableNode.point as Mutable<SizedPoint>;
+        mutablePoint.x = x;
+        mutablePoint.y = y;
+        mutablePoint.size = Math.sqrt(dilation) * markerSize;
+
+        // Update midPoint in-place
+        const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
+        mutableMidPoint.x = x;
+        mutableMidPoint.y = y;
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -540,16 +873,23 @@ export class BubbleSeries extends CartesianSeries<
         datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
-        const { sizeKey } = this.properties;
 
         if (this.properties.marker.isDirty()) {
             datumSelection.clear();
             datumSelection.cleanup();
         }
 
+        // Skip datum ID computation when animation is not supported (large datasets)
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return datumSelection.update(nodeData);
+        }
+
+        const { sizeKey } = this.properties;
         let getId: ((datum: BubbleScatterNodeDatum) => string) | undefined;
         if (sizeKey) {
-            getId = (datum) => createDatumId(datum.xValue, datum.yValue, datum.sizeValue, datum.label.text);
+            getId = (datum) =>
+                createDatumId(datum.xValue, datum.yValue, datum.sizeValue, toPlainText(datum.label.text));
         }
         return datumSelection.update(nodeData, undefined, getId);
     }
@@ -567,7 +907,7 @@ export class BubbleSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(opts.isHighlight, highlightState);
+                const stylerStyle = this.getStyle(highlightState);
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
@@ -575,7 +915,7 @@ export class BubbleSeries extends CartesianSeries<
                     {
                         isHighlight,
                         highlightState,
-                        resolveItemStylerMarkerPath: false,
+                        resolveMarkerSubPath: [],
                     },
                     stylerStyle
                 );
@@ -586,10 +926,11 @@ export class BubbleSeries extends CartesianSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) return;
-        const { datumSelection, isHighlight } = opts;
+        const { datumSelection, isHighlight, drawingMode } = opts;
 
         this.sizeScale.range = this.getSizeRange();
         const fillBBox = this.getShapeFillBBox();
@@ -605,11 +946,8 @@ export class BubbleSeries extends CartesianSeries<
                 area,
                 dilation,
             } = datum;
-            let style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-
-            style = { ...style };
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = { ...(datum.style ?? contextNodeData.styles[state]) };
             style.size = size;
 
             if (dilation > 1) {
@@ -620,12 +958,13 @@ export class BubbleSeries extends CartesianSeries<
                     0.000683 * count +
                     -37.534348 * area +
                     0.004449 * count * area +
-                    -0.0 * count ** 2 +
+                    -0 * count ** 2 +
                     44.428603 * area ** 2;
                 style.fillOpacity = clamp(fillOpacity / dilation, (fillOpacity / 0.1) * opacityScale, 1);
             }
 
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
             node.zIndex = aggregated ? [-count, index] : 0;
         });
 
@@ -635,6 +974,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     public override updatePlacedLabelData(labelData: PlacedLabel<BubbleScatterNodeDatum>[]) {
+        this.placedLabelData = labelData;
         this.labelSelection.update(
             labelData.map((v) => ({
                 ...v.datum,
@@ -649,6 +989,38 @@ export class BubbleSeries extends CartesianSeries<
             }
         );
         this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateHighlightLabelSelection();
+    }
+
+    private updateHighlightLabelSelection() {
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        const highlightItem =
+            this.isSeriesHighlighted(highlightedDatum) && highlightedDatum?.datum ? highlightedDatum : undefined;
+
+        const highlightLabelData =
+            highlightItem == null
+                ? []
+                : this.placedLabelData
+                      .filter((label) => label.datum.datumIndex === highlightItem.datumIndex)
+                      .map((label) => ({
+                          ...label.datum,
+                          point: {
+                              x: label.x,
+                              y: label.y,
+                              size: label.datum.point.size,
+                          },
+                      }));
+
+        this.highlightLabelSelection =
+            this.updateLabelSelection({
+                labelData: highlightLabelData,
+                labelSelection: this.highlightLabelSelection,
+            }) ?? this.highlightLabelSelection;
+
+        this.highlightLabelGroup.visible = highlightLabelData.length > 0;
+        this.highlightLabelGroup.batchedUpdate(() => {
+            this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
+        });
     }
 
     protected updateLabelNodes(opts: {
@@ -675,8 +1047,17 @@ export class BubbleSeries extends CartesianSeries<
         });
     }
 
+    protected override updateLabelSelection(opts: {
+        labelData: BubbleScatterNodeDatum[];
+        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+    }): Selection<Text, BubbleScatterNodeDatum> {
+        const { labelData, labelSelection } = opts;
+        return labelSelection.update(labelData, (text) => {
+            text.pointerEvents = PointerEvents.None;
+        });
+    }
+
     makeStylerParams(
-        highlighted: boolean,
         highlightStateEnum?: HighlightState
     ): AgBubbleSeriesStylerParams<unknown, unknown> | AgScatterSeriesStylerParams<unknown, unknown> {
         const {
@@ -704,7 +1085,6 @@ export class BubbleSeries extends CartesianSeries<
             type ResultRules = CallbackParamRules<AgBubbleSeriesStylerParams<unknown, unknown>>;
             return {
                 highlightState,
-                highlighted,
                 size,
                 maxSize,
                 shape,
@@ -725,7 +1105,6 @@ export class BubbleSeries extends CartesianSeries<
             type ResultRules = CallbackParamRules<AgScatterSeriesStylerParams<unknown, unknown>>;
             return {
                 highlightState,
-                highlighted,
                 size,
                 shape,
                 fill,
@@ -747,7 +1126,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName } = this.properties;
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, legendItemName } = this.properties;
         return {
             xKey,
             xName,
@@ -757,6 +1136,7 @@ export class BubbleSeries extends CartesianSeries<
             sizeName,
             labelKey,
             labelName,
+            legendItemName,
         } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
@@ -782,11 +1162,12 @@ export class BubbleSeries extends CartesianSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const data: TooltipContentDataRow[] = [];
 
@@ -811,39 +1192,45 @@ export class BubbleSeries extends CartesianSeries<
             {
                 label: xName,
                 fallbackLabel: xKey,
-                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                value: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(xValue, allowNullKeys),
             },
             {
                 label: yName,
                 fallbackLabel: yKey,
-                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName, allowNullKeys),
+                missing: isTooltipValueMissing(yValue, allowNullKeys),
             }
         );
 
         if (sizeKey != null) {
             const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
-            const content = formatManager.format(this.callWithContext.bind(this), {
-                type: 'number',
-                value,
-                datum,
-                seriesId,
-                legendItemName,
-                key: sizeKey,
-                source: 'tooltip',
-                property: 'size',
-                boundSeries: this.getFormatterContext('size'),
-                domain,
-                fractionDigits: undefined,
-            });
-            data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            // Only add size row if value is not null/undefined
+            if (value != null) {
+                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
+                const content = formatManager.format(this.callWithContext.bind(this), {
+                    type: 'number',
+                    value,
+                    datum,
+                    seriesId,
+                    legendItemName,
+                    key: sizeKey,
+                    source: 'tooltip',
+                    property: 'size',
+                    boundSeries: this.getFormatterContext('size'),
+                    domain,
+                    fractionDigits: undefined,
+                    visibleDomain: undefined,
+                });
+                data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            }
         }
 
         const activeStyle = this.getMarkerStyle(
             marker,
             { datum, datumIndex },
-            { xKey, yKey, sizeKey, labelKey, highlighted: true },
-            { resolveItemStylerMarkerPath: false }
+            { xKey, yKey, sizeKey, labelKey },
+            { resolveMarkerSubPath: [] }
         );
 
         return this.formatTooltipWithContext(
@@ -865,6 +1252,7 @@ export class BubbleSeries extends CartesianSeries<
                 sizeName,
                 labelKey,
                 labelName,
+                legendItemName,
                 ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
@@ -872,7 +1260,7 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const style = this.getStyle(false);
+        const style = this.getStyle();
         const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
             this.properties.marker,
             {},
@@ -880,7 +1268,7 @@ export class BubbleSeries extends CartesianSeries<
             {
                 isHighlight: false,
                 checkForHighlight: false,
-                resolveItemStylerMarkerPath: false,
+                resolveMarkerSubPath: [],
             },
             style satisfies RequireOptional<AgSeriesMarkerStyle>
         );
@@ -896,7 +1284,7 @@ export class BubbleSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title } = this.properties;
+        const { yKey: itemId, yName, legendItemName, title, showInLegend } = this.properties;
 
         return [
             {
@@ -906,9 +1294,11 @@ export class BubbleSeries extends CartesianSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? itemId,
+                    text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
+                hideInLegend: !showInLegend,
             },
         ];
     }
@@ -916,6 +1306,11 @@ export class BubbleSeries extends CartesianSeries<
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: BubbleScatterAnimationData) {
         markerScaleInAnimation(this, this.ctx.animationManager, datumSelection);
         seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+    }
+
+    protected override resetDatumAnimation(data: BubbleScatterAnimationData): void {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetMarkerSelectionsDirect([data.datumSelection]);
     }
 
     protected isLabelEnabled() {
@@ -926,12 +1321,12 @@ export class BubbleSeries extends CartesianSeries<
         return new Marker<BubbleScatterNodeDatum>();
     }
 
-    public getStyle(highlighted: boolean, highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
+    public getStyle(highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {
         const { properties } = this;
 
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -956,18 +1351,13 @@ export class BubbleSeries extends CartesianSeries<
     }
 
     public getSizeRange(): [number, number] {
-        const { size, maxSize } = this.getStyle(false);
+        const { size, maxSize } = this.getStyle();
         return [size, maxSize];
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(
-            marker,
-            datum,
-            { xKey, yKey, sizeKey, labelKey },
-            { resolveItemStylerMarkerPath: false }
-        );
+        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, { resolveMarkerSubPath: [] });
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

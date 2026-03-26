@@ -1,7 +1,16 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -32,12 +41,12 @@ const options: AgCartesianChartOptions = {
             strokeOpacity: 0.6,
             label: {
                 enabled: true,
-                formatter: ({ datum, yLowKey, yHighKey, itemId }) => {
+                formatter: ({ datum, yLowKey, yHighKey, itemType }) => {
                     const increase = datum[yHighKey] - datum[yLowKey];
-                    if (increase > 50 && itemId === 'high') {
+                    if (increase > 50 && itemType === 'high') {
                         return `↑£${increase}K`;
                     }
-                    if (increase < -50 && itemId === 'low') {
+                    if (increase < -50 && itemType === 'low') {
                         return `↓£${Math.abs(increase)}K`;
                     }
                     return '';
@@ -72,16 +81,14 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },
             paddingInner: 0.4,
             paddingOuter: 0.2,
-            interval: { placement: 'between' },
             gridLine: {
                 enabled: true,
                 style: [
@@ -95,7 +102,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             title: {
@@ -133,7 +140,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         enabled: false,
     },

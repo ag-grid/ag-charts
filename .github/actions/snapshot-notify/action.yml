@@ -4,6 +4,9 @@ inputs:
     branch:
         description: 'Snapshot branch name to use.'
         required: true
+    run_started_at:
+        description: 'ISO timestamp when the workflow run started (github.run_started_at). Used to detect stale snapshot branches from previous attempts.'
+        required: true
     github_token:
         description: 'GitHub token to use for PR creation.'
         required: true
@@ -26,9 +29,23 @@ runs:
               set -eux
 
               branch=${{ inputs.branch }}
+              run_started_at="${{ inputs.run_started_at }}"
 
               if (git ls-remote --exit-code --heads origin ${branch} >/dev/null) ; then
-                  echo "updated=true" >> $GITHUB_OUTPUT
+                  # Get the timestamp of the latest commit on the snapshot branch
+                  git fetch origin ${branch} --depth=1
+                  snapshot_commit_time=$(git log -1 --format=%cI FETCH_HEAD)
+
+                  # Compare timestamps - if snapshot was created before this run, it's stale
+                  # This handles the case where GitHub Actions reuses successful jobs on retry,
+                  # so the init job (which cleans up snapshot branches) doesn't re-run.
+                  if [[ "${snapshot_commit_time}" < "${run_started_at}" ]] ; then
+                      echo "Snapshot branch exists but is stale (commit: ${snapshot_commit_time}, run started: ${run_started_at})"
+                      echo "updated=false" >> $GITHUB_OUTPUT
+                  else
+                      echo "Snapshot branch has new updates (commit: ${snapshot_commit_time}, run started: ${run_started_at})"
+                      echo "updated=true" >> $GITHUB_OUTPUT
+                  fi
               else
                   echo "updated=false" >> $GITHUB_OUTPUT
               fi
@@ -39,11 +56,42 @@ runs:
           continue-on-error: true
           with:
               script: |
+                  const baseSha = context.payload.pull_request.base.sha;
+                  const headSha = context.payload.pull_request.head.sha;
+                  const headRef = context.payload.pull_request.head.ref;
+                  const snapshotBranch = "${{inputs.branch}}";
+                  const repoUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}`;
+                  const encodedHeadRef = encodeURIComponent(headRef);
+                  const encodedSnapshotBranch = encodeURIComponent(snapshotBranch);
+                  const snapshotDiffUrl = `${repoUrl}/compare/${encodedHeadRef}...${encodedSnapshotBranch}`;
+                  let permalinkDiffUrl;
+
+                  try {
+                      const { data: snapshotRef } = await github.rest.git.getRef({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          ref: `heads/${snapshotBranch}`,
+                      });
+                      const snapshotBranchSha = snapshotRef.object.sha;
+                      permalinkDiffUrl = `${repoUrl}/compare/${baseSha}...${snapshotBranchSha}`;
+                  } catch (error) {
+                      const warningMessage = `Unable to resolve snapshot branch ref ${snapshotBranch}: ${error.message}`;
+                      if (typeof core !== 'undefined' && typeof core.warning === 'function') {
+                          core.warning(warningMessage);
+                      } else {
+                          console.warn(warningMessage);
+                      }
+                      permalinkDiffUrl = `${repoUrl}/compare/${baseSha}...${headSha}`;
+                  }
                   github.rest.issues.createComment({
                       issue_number: context.issue.number,
                       owner: context.repo.owner,
                       repo: context.repo.repo,
-                      body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{inputs.branch}})`
+                      body: [
+                          'Snapshots automatically updated, please review before merge:',
+                          `- [Merge snapshot changes into this PR](${snapshotDiffUrl})`,
+                          `- [Permanent snapshot diff](${permalinkDiffUrl})`
+                      ].join('\n')
                   })
 
         - name: Raise PR with Snapshot Changes on latest

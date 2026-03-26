@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -26,9 +35,8 @@ const options: AgChartOptions<DataType> = {
             formatter: ({ datum }) => `${datum.ranking}. ${datum.title}`,
         },
     })),
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             title: {
                 text: 'Year',
@@ -38,8 +46,7 @@ const options: AgChartOptions<DataType> = {
             },
             nice: false,
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'IMDb Rating →',
@@ -48,8 +55,7 @@ const options: AgChartOptions<DataType> = {
                 enabled: false,
             },
         },
-    ],
-
+    },
     legend: {
         position: 'top',
     },

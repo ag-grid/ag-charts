@@ -28,7 +28,7 @@ interface OffscreenImageBitmap {
 let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
 
 export class Group<TDatum = unknown> extends Node<TDatum> {
-    static readonly className: string = 'Group';
+    static override readonly className: string = 'Group';
 
     static is(value: unknown): value is Group {
         return value instanceof Group;
@@ -39,7 +39,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private static compareChildren(this: void, a: Node, b: Node) {
-        return compareZIndex(a.zIndex, b.zIndex) || a.serialNumber - b.serialNumber;
+        return compareZIndex(a.__zIndex, b.__zIndex) || a.serialNumber - b.serialNumber;
     }
 
     private readonly childNodes = new Set<Node>();
@@ -50,6 +50,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
+
+    private _childFontDirty = true;
+    private _cachedChildFont: string | undefined;
 
     renderToOffscreenCanvas: boolean;
     optimizeForInfrequentRedraws: boolean;
@@ -108,20 +111,21 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
     }
 
     private prepareSharedCanvas(width: number, height: number, pixelRatio: number) {
-        if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
-            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
-        } else {
+        if (sharedOffscreenCanvas?.pixelRatio === pixelRatio) {
             sharedOffscreenCanvas.resize(width, height, pixelRatio);
+        } else {
+            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
         }
 
         return sharedOffscreenCanvas;
     }
 
     override setScene(scene?: IScene) {
+        const previousScene = this.scene;
         super.setScene(scene);
 
-        if (this.layer) {
-            this.scene?.layersManager.removeLayer(this.layer);
+        if (this.layer && previousScene && previousScene !== scene) {
+            previousScene.layersManager.removeLayer(this.layer);
             this.layer = undefined;
         }
 
@@ -130,8 +134,34 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         }
     }
 
+    override resolveFont(): string | undefined {
+        // Offscreen layer groups render to a separate canvas context, so their
+        // children's fonts don't affect the parent canvas. Return undefined so
+        // the parent's resolveChildFont() skips past this group. The group's own
+        // renderInContext() still calls resolveChildFont() to pre-set the font
+        // on its offscreen context.
+        if (this.renderToOffscreenCanvas) return undefined;
+        return this.resolveChildFont();
+    }
+
+    private resolveChildFont(): string | undefined {
+        if (this._childFontDirty) {
+            this._cachedChildFont = undefined;
+            for (const child of this.children()) {
+                const font = child.resolveFont();
+                if (font != null) {
+                    this._cachedChildFont = font;
+                    break;
+                }
+            }
+            this._childFontDirty = false;
+        }
+        return this._cachedChildFont;
+    }
+
     override markDirty(property?: string): void {
         this.dirty = true;
+        this._childFontDirty = true;
         super.markDirty(property);
     }
 
@@ -151,7 +181,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
      */
     append(nodes: Iterable<Node> | Node) {
         for (const node of toIterable(nodes)) {
-            node.parentNode?.removeChild(node);
+            node.remove();
             this.childNodes.add(node);
 
             node.parentNode = this;
@@ -234,9 +264,9 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
         return into;
     }
 
-    private _lastWidth = NaN;
-    private _lastHeight = NaN;
-    private _lastDevicePixelRatio = NaN;
+    private _lastWidth = Number.NaN;
+    private _lastHeight = Number.NaN;
+    private _lastDevicePixelRatio = Number.NaN;
     private isDirty(renderCtx: RenderContext) {
         const { width, height, devicePixelRatio } = renderCtx;
         const { dirty, layer } = this;
@@ -309,6 +339,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
                 ...transform: [DOMMatrix] | [number, number, number, number, number, number]
             ) => {
                 const offscreenCtx = offscreenCanvas.context;
+                offscreenCtx.direction = childRenderCtx.direction;
                 childRenderCtx.ctx = offscreenCtx;
 
                 offscreenCanvas.clear();
@@ -328,10 +359,16 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             } else if (bbox) {
                 const { x, y, width, height } = bbox;
 
-                const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
-                renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+                // Canvas dimensions are floored, so skip if scaled dimensions would be < 1px
+                const scaledWidth = Math.floor(width * pixelRatio);
+                const scaledHeight = Math.floor(height * pixelRatio);
 
-                image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+                if (scaledWidth > 0 && scaledHeight > 0) {
+                    const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
+                    renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+
+                    image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+                }
             }
 
             this.image = image;
@@ -380,6 +417,17 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 
         try {
             ctx.globalAlpha *= this.opacity;
+
+            // Pre-set ctx.font for this group's children. Each child Text node is wrapped in
+            // save/restore (via isolatedRender), so restore() reverts the font — causing Chrome
+            // to re-resolve the CSS font string on every subsequent ctx.font assignment. By setting
+            // the font once here, child Text nodes see ctx.font already matches and skip the
+            // assignment entirely. The !== guard avoids redundant assignments when a parent Group
+            // already set the same font.
+            const childFont = this.resolveChildFont();
+            if (childFont != null && ctx.font !== childFont) {
+                ctx.font = childFont;
+            }
 
             if (this.clipRect != null) {
                 // clipRect is in the group's coordinate space

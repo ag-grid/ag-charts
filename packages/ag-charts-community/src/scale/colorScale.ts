@@ -1,9 +1,9 @@
-import { Logger, clamp } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain } from 'ag-charts-core';
+import { Color, Logger, clamp } from 'ag-charts-core';
 
-import { Color } from '../util/color';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { NormalizedDomain } from './scale';
+import { unpackDomainMinMax } from './scaleUtil';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 
@@ -51,6 +51,8 @@ export class ColorScale extends AbstractScale<number, string> {
     domain = [0, 1];
     @Invalidating
     range = ['red', 'blue'];
+    @Invalidating
+    mode: 'continuous' | 'discrete' = 'continuous';
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
@@ -76,8 +78,10 @@ export class ColorScale extends AbstractScale<number, string> {
             }
         }
 
-        if (range.length < domain.length) {
-            for (let i = range.length; i < domain.length; i++) {
+        // For discrete mode, domain may have N+1 boundaries for N colours.
+        const expectedLength = this.mode === 'discrete' ? domain.length - 1 : domain.length;
+        if (range.length < expectedLength) {
+            for (let i = range.length; i < expectedLength; i++) {
                 range.push(range.length > 0 ? range[0] : 'black');
             }
         }
@@ -85,8 +89,8 @@ export class ColorScale extends AbstractScale<number, string> {
         this.parsedRange = this.range.map(convertColorStringToOklcha);
     }
 
-    override normalizeDomains(...domains: number[][]): NormalizedDomain<number> {
-        return { domain: domains.flat(), animatable: true };
+    override normalizeDomains(...domains: DomainWithMetadata<number>[]): NormalizedDomain<number> {
+        return { domain: domains.map((d) => d.domain).flat(), animatable: true };
     }
 
     override toDomain(): number | undefined {
@@ -100,7 +104,7 @@ export class ColorScale extends AbstractScale<number, string> {
         const d0 = domain[0];
         const d1 = domain.at(-1)!;
         const r0 = range[0];
-        const r1 = range[range.length - 1];
+        const r1 = range.at(-1)!;
 
         if (x <= d0) {
             return r0;
@@ -129,6 +133,10 @@ export class ColorScale extends AbstractScale<number, string> {
             q = (x - a) / (b - a);
         }
 
+        if (this.mode === 'discrete') {
+            return range[index];
+        }
+
         const c0 = parsedRange[index];
         const c1 = parsedRange[index + 1];
         return interpolateOklch(c0, c1, q).toRgbaString();
@@ -136,6 +144,10 @@ export class ColorScale extends AbstractScale<number, string> {
 
     override invert(): number | undefined {
         return;
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 
     protected refresh() {

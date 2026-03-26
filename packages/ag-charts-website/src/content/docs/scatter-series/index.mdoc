@@ -10,17 +10,19 @@ A Scatter Series identifies the correlation between values across two categories
 
 To create a Scatter Series use the `'scatter'` series type.
 
-```js
-series: [
-    {
-        type: 'scatter',
-        title: 'Male',
-        xKey: 'height',
-        xName: 'Height',
-        yKey: 'weight',
-        yName: 'Weight',
-    },
-],
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'scatter',
+            title: 'Male',
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -36,13 +38,17 @@ In this configuration:
 
 It is possible to customise the fill, stroke and shape of the markers used in the Scatter Series.
 
-```js
-series: {
-    //...
-    shape: 'square',
-    fill: '#e36f6ab5',
-    stroke: '#9f4e4a',
-},
+```js format="snippet"
+{
+    series: [
+        {
+            //...
+            shape: 'square',
+            fill: '#e36f6ab5',
+            stroke: '#9f4e4a',
+        },
+    ],
+}
 ```
 
 In the above example, the 'females' series uses `'circle'` markers and the 'male' series uses `'square'` markers.
@@ -69,6 +75,12 @@ label placement.
 {% note %}
 Satisfying these constraints is computationally intensive and the complexity rises exponentially with increasing number of data points. Given that label placement might have to happen in real time, for example, when resizing a chart window, it is advised not to enable Scatter Series labels for data sets with more than a few hundred points.
 {% /note %}
+
+## Large Datasets
+
+By default, a maximum of 2000 markers per series are rendered. Items beyond this limit are aggregated to improve performance whilst maintaining the same visual appearance. Use `maxRenderedItems` to increase this limit if needed.
+
+See [Large Dataset Interactivity](./large-dataset-interactivity/) for more details.
 
 ## API Reference
 

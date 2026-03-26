@@ -1,9 +1,7 @@
-import { clamp } from 'ag-charts-core';
+import type { DomainWithMetadata, NormalizedDomain, ScaleTickParams, ScaleTickResult } from 'ag-charts-core';
+import { clamp, dateToNumber, previousPowerOf2 } from 'ag-charts-core';
 
-import { previousPowerOf2 } from '../util/number';
-import { dateToNumber } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import type { NormalizedDomain, ScaleTickParams, ScaleTickResult } from './scale';
 import { filterVisibleTicks } from './scaleUtil';
 
 export class CategoryScale<D, I = number> extends BandScale<D, I> {
@@ -42,12 +40,13 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return this._domain;
     }
 
-    override normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+    override normalizeDomains(...domains: DomainWithMetadata<D>[]): NormalizedDomain<D> {
         let normalizedDomain: D[] | undefined = undefined;
         const seenDomains = new Set<D[]>();
 
         let animatable = true;
-        for (const domain of domains) {
+        for (const input of domains) {
+            const domain = input.domain;
             if (seenDomains.has(domain)) continue;
             seenDomains.add(domain);
 
@@ -92,17 +91,17 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
             return { ticks, count: undefined, firstTickIndex };
         }
 
-        let step = tickCount != null && tickCount !== 0 ? (bands.length / tickCount) | 0 : 1;
+        let step = tickCount != null && tickCount !== 0 ? Math.trunc(bands.length / tickCount) : 1;
         step = previousPowerOf2(step);
 
         if (step <= 1) {
             return filterVisibleTicks(domain, false, visibleRange);
         }
 
-        tickCount = (bands.length / step) | 0;
+        tickCount = Math.trunc(bands.length / step);
 
         const span = step * tickCount;
-        const inset = previousPowerOf2(((bands.length - span) / 2) | 0);
+        const inset = previousPowerOf2(Math.trunc((bands.length - span) / 2));
 
         const vt0 = clamp(0, Math.floor((visibleRange?.[0] ?? 0) * bands.length), bands.length);
         const vt1 = clamp(0, Math.ceil((visibleRange?.[1] ?? 1) * bands.length), bands.length);

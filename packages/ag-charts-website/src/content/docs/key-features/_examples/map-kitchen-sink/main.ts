@@ -1,8 +1,30 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    MapShapeSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { getCurrencyData } from './data';
 import { cables, capitals, topology } from './topology';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    MapShapeSeriesModule,
+    ContextMenuModule,
+]);
 const currencyLayers: Record<string, { title: string; fill: string }> = {
     euro: { title: 'Euro', fill: '#3F51B5' },
     dollar: { title: 'Dollar', fill: '#8BC34A' },

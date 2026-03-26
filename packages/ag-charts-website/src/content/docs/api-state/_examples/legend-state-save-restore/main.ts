@@ -3,10 +3,31 @@ import {
     AgCartesianSeriesTooltipRendererParams,
     AgChartState,
     AgCharts,
+    AnimationModule,
+    AreaSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, yKey }: AgCartesianSeriesTooltipRendererParams<DataType>) => {
@@ -64,14 +85,12 @@ const options: AgCartesianChartOptions<DataType> = {
             tooltip,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total visitors',
             },
@@ -81,7 +100,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

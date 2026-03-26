@@ -1,5 +1,6 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type RichFormatter, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgGradientColor, RequireOptional } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGradientColorMode,
@@ -11,7 +12,6 @@ import type {
     AgLinearGaugeTooltipRendererParams,
     FontStyle,
     FontWeight,
-    Formatter,
     OverflowStrategy,
     TextWrap,
 } from 'ag-charts-types';
@@ -19,16 +19,7 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const {
-    BaseProperties,
-    makeSeriesTooltip,
-    SeriesProperties,
-    PropertiesArray,
-    Property,
-    Label,
-    AxisLabel,
-    getColorStops,
-} = _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, Label, AxisLabel, getColorStops } = _ModuleSupport;
 
 export enum NodeDataType {
     Node,
@@ -39,6 +30,7 @@ export type LinearGaugeNodeDatumIndex = { type: NodeDataType.Node } | { type: No
 
 export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
+    readonly itemId: 'value' | 'scale' | `value-${number}` | `scale-${number}`;
     x0: number;
     y0: number;
     x1: number;
@@ -71,6 +63,7 @@ export interface LinearGaugeTargetDatumLabel {
 
 export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
+    readonly itemId: `target-${number}`;
     value: number;
     text: string | undefined;
     x: number;
@@ -81,11 +74,11 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<L
     label: LinearGaugeTargetDatumLabel;
     style: AgLinearGaugeSeriesStyle;
 }
-export type LinearGaugeLabelDatum = {
+export interface LinearGaugeLabelDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     placement: AgLinearGaugeLabelPlacement;
     avoidCollisions: boolean;
     spacing: number;
-    text: string | undefined;
+    text: TextOrSegments | undefined;
     value: number;
     fill: string | undefined;
     fontStyle: FontStyle | undefined;
@@ -96,8 +89,8 @@ export type LinearGaugeLabelDatum = {
     lineHeight: number | undefined;
     wrapping: TextWrap;
     overflowStrategy: OverflowStrategy;
-    formatter: Formatter<AgChartLabelFormatterParams<any>> | undefined;
-};
+    formatter: RichFormatter<AgChartLabelFormatterParams<any>> | undefined;
+}
 
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
     @Property

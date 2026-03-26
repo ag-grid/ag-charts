@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
@@ -8,6 +9,7 @@ import type { ChartTestCase } from './test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -20,7 +22,7 @@ const EXAMPLES: Record<string, ChartTestCase> = {
     TRUNCATED_LEGEND_ITEMS: {
         options: examples.TRUNCATED_LEGEND_ITEMS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['number', 'category'],
+            axisTypes: { x: 'number', y: 'category' },
             seriesTypes: repeat('bar', 4),
         }),
     },
@@ -43,7 +45,7 @@ describe('AgChartV2', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        document.body.removeChild(container);
+        container.remove();
     });
 
     const compare = async () => {
@@ -112,7 +114,9 @@ describe('AgChartV2', () => {
                 ...opts,
                 series: series?.map((s) => ({ ...s, grouped: idx === 0, stacked: idx !== 0 })),
             }));
-            exampleCycle.forEach((opts) => prepareTestOptions(opts));
+            for (const opts of exampleCycle) {
+                prepareTestOptions(opts);
+            }
             const snapshots: any[] = [];
 
             // Create initial chart instance.
@@ -161,9 +165,11 @@ describe('AgChartV2', () => {
                 { ...examples.GROUPED_BAR_CHART_EXAMPLE },
             ].map(({ axes, ...opts }, idx) => ({
                 ...opts,
-                axes: axes?.map((a) => adjustPosition(a, idx)),
+                axes: mapValues(axes ?? {}, (a) => adjustPosition(a, idx)),
             }));
-            exampleCycle.forEach((opts) => prepareTestOptions(opts));
+            for (const opts of exampleCycle) {
+                prepareTestOptions(opts);
+            }
 
             // Create initial chart instance.
             chart = AgCharts.create(exampleCycle[0]);
@@ -187,6 +193,100 @@ describe('AgChartV2', () => {
 
             chart = AgCharts.create(options);
             await compareImageDataUrl();
+        });
+
+        it('should download when legend is hidden due to small chart size (AG-16787)', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y1: 1, y2: 2, y3: 3 },
+                    { x: 'B', y1: 4, y2: 5, y3: 6 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1' },
+                    { type: 'bar', xKey: 'x', yKey: 'y2' },
+                    { type: 'bar', xKey: 'x', yKey: 'y3' },
+                ],
+            };
+            prepareTestOptions(options, container);
+            options.width = 100;
+            options.height = 80;
+
+            chart = AgCharts.create(options);
+            await compareImageDataUrl();
+        });
+    });
+
+    describe('#getState', () => {
+        it('omits legend state when legend is disabled', async () => {
+            const options: AgChartOptions = {
+                legend: { enabled: false },
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expect(chart.getState().legend).toBeUndefined();
+        });
+    });
+
+    describe('AG-16360', () => {
+        beforeEach(async () => {
+            const options: AgChartOptions = {
+                legend: {},
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                    { x: 'c', y: 3 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            prepareTestOptions(options, container);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hide series by clicking the legend item
+            await clickAction(405, 572)(chart);
+            await waitForChartStability(chart);
+            const state = chart.getState();
+            expect(state.legend).toHaveLength(1);
+            expect(state.legend![0].visible).toBe(false);
+        });
+
+        afterEach(async () => {
+            // Check that update/updateDelta has reset series `visible: true`.
+            const state = chart.getState();
+            expect(state.legend).toHaveLength(1);
+            expect(state.legend![0].visible).toBe(true);
+            await compare();
+        });
+
+        it('update', async () => {
+            const options: AgChartOptions = {
+                legend: {},
+                data: [
+                    { x: 'a', y: 1 },
+                    { x: 'b', y: 2 },
+                    { x: 'c', y: 3 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            prepareTestOptions(options, container);
+            await chart.update(options);
+            await waitForChartStability(chart);
+        });
+
+        it('updateDelta', async () => {
+            const options: AgChartOptions = {
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', visible: true }],
+            };
+            await chart.updateDelta(options);
+            await waitForChartStability(chart);
         });
     });
 });

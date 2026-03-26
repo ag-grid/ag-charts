@@ -1,4 +1,4 @@
-import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { ExampleOverrides, convertPageUrls, createTestCase, triggerExampleTooltips } from './examples-util';
 import { expect, test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
@@ -27,16 +27,13 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'bar-series-error-bars': { status: '404' },
         '100--stacked-column': { status: '404' },
         '100--stacked-bar': { status: '404' },
-
-        // Examples with random data.
-        'radar-with-markers': { randomData: true },
-        'reversed-radar-with-markers': { randomData: true },
+        'fruit-comparison': { status: '404' },
     },
 };
 
 test.describe('gallery examples', () => {
     const designSystemViewportConstraints = { width: 1166, height: 586 };
-    const config = setupIntrinsicAssertions({ viewportSize: designSystemViewportConstraints });
+    const config = setupIntrinsicAssertions(test, { viewportSize: designSystemViewportConstraints });
 
     const examples = getExamples();
 
@@ -53,6 +50,7 @@ test.describe('gallery examples', () => {
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
                     createTestCase(testFn as any, opts, config, async (page) => {
+                        await triggerExampleTooltips(page);
                         if (opts.randomData) return;
 
                         await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);

@@ -1,7 +1,16 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    LineSeriesModule,
+    LogAxisModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, LogAxisModule, NumberAxisModule]);
 const formatter = new Intl.NumberFormat();
 
 const options: AgCartesianChartOptions = {
@@ -20,10 +29,9 @@ const options: AgCartesianChartOptions = {
             yKey: 'population',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'log',
-            position: 'left',
             title: {
                 text: 'Population',
             },
@@ -31,14 +39,13 @@ const options: AgCartesianChartOptions = {
                 format: ',.0f',
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -47,7 +54,7 @@ function setNumberAxis() {
     options.subtitle = {
         text: 'linear scale',
     };
-    options.axes![0] = {
+    options.axes!.x! = {
         type: 'number',
         position: 'left',
         title: {
@@ -64,7 +71,7 @@ function setLogAxis() {
     options.subtitle = {
         text: 'log scale',
     };
-    options.axes![0] = {
+    options.axes!.x! = {
         type: 'log',
         position: 'left',
         title: {

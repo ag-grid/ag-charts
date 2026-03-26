@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('financial-charts-showcase', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const testUrls = toExamplePageUrls('financial-charts', 'financial-charts-showcase');
 

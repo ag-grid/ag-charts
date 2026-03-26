@@ -1,22 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { ChartAxisDirection, isNumberEqual, normalizeAngle360 } from 'ag-charts-core';
 
 import { PolarCrossLine } from './polarCrossLine';
 
-const {
-    ChartAxisDirection,
-    getCrossLineValue,
-    validateCrossLineValue,
-    normalizeAngle360,
-    Group,
-    Path,
-    Sector,
-    RotatableText,
-    ContinuousScale,
-} = _ModuleSupport;
+const { getCrossLineValue, validateCrossLineValue, Group, Path, Sector, RotatableText, ContinuousScale } =
+    _ModuleSupport;
 
 export class AngleCrossLine extends PolarCrossLine {
-    static readonly className = 'AngleCrossLine';
+    static override readonly className = 'AngleCrossLine';
 
     override direction = ChartAxisDirection.Angle;
 
@@ -83,7 +74,7 @@ export class AngleCrossLine extends PolarCrossLine {
         }
 
         const angle = scale.convert(value);
-        if (isNaN(angle)) {
+        if (Number.isNaN(angle)) {
             line.visible = false;
             return;
         }
@@ -129,7 +120,7 @@ export class AngleCrossLine extends PolarCrossLine {
 
         const { path } = polygon;
         path.clear(true);
-        angles.forEach((angle: number, index: number) => {
+        for (const [index, angle] of angles.entries()) {
             const x = axisOuterRadius * Math.cos(angle);
             const y = axisOuterRadius * Math.sin(angle);
             if (index === 0) {
@@ -137,18 +128,16 @@ export class AngleCrossLine extends PolarCrossLine {
             } else {
                 path.lineTo(x, y);
             }
-        });
+        }
         if (axisInnerRadius === 0) {
             path.lineTo(0, 0);
         } else {
-            angles
-                .slice()
-                .reverse()
-                .forEach((angle: number) => {
-                    const x = axisInnerRadius * Math.cos(angle);
-                    const y = axisInnerRadius * Math.sin(angle);
-                    path.lineTo(x, y);
-                });
+            const reversedAngles = angles.slice().reverse();
+            for (const angle of reversedAngles) {
+                const x = axisInnerRadius * Math.cos(angle);
+                const y = axisInnerRadius * Math.sin(angle);
+                path.lineTo(x, y);
+            }
         }
         polygon.path.closePath();
 

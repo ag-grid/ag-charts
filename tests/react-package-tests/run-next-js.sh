@@ -11,6 +11,8 @@ function install_fw {
 
     cd react-${version}-next-js-test
     npm i react@${version} react-dom@${version}
+
+    git init
 }
 
 function build_fw {

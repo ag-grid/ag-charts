@@ -1,12 +1,13 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
-import { AgChartOptions } from 'ag-charts-types';
+import { mapValues } from 'ag-charts-core';
+import type { AgChartOptions } from 'ag-charts-types';
 
 import { VERSION } from '../src/version';
 
 const PACKAGE_VERSION = JSON.parse(fs.readFileSync(path.join(__dirname, '../../../package.json'), 'utf8')).version;
-const IS_LATEST_VERSION = process.env.AG_BENCHMARK_LATEST_VERSION === '1';
+const IS_LATEST_VERSION = (process.env.AG_BENCHMARK_LATEST_VERSION ?? '1') === '1';
 
 export function isHistoricBenchmarkTest() {
     return PACKAGE_VERSION !== VERSION;
@@ -17,7 +18,7 @@ export function getVersion() {
         .split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
-    if (result.length !== 3 || result.some((n) => isNaN(n))) {
+    if (result.length !== 3 || result.some((n) => Number.isNaN(n))) {
         throw new Error("Couldn't parse semver of: " + process.env.VERSION);
     }
     return result;
@@ -62,9 +63,11 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 1, 0)) {
         // maxRenderedItems not available in older versions.
-        options.series?.forEach((series: any) => {
-            delete series.maxRenderedItems;
-        });
+        if (options.series) {
+            for (const series of options.series) {
+                delete (series as any).maxRenderedItems;
+            }
+        }
     }
     if (isHistoricBenchmarkTest() && isBeforeVersion(12, 0, 0)) {
         // highlightStyle => highlight for 12.
@@ -90,10 +93,8 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.container = container;
 
     if (enterprise) {
-        if (!options.animation) {
-            // Default to animation off.
-            options.animation ??= { enabled: false };
-        }
+        // Default to animation off.
+        options.animation ??= { enabled: false };
     }
 
     let baseTestTheme = {
@@ -121,7 +122,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     options.theme = baseTestTheme as any;
 
     if (!isAtOrAfterVersion(10, 0, 0)) {
-        options.series = options.series?.map((s) => {
+        (options as any).series = options.series?.map((s: any) => {
             if (s.type === 'scatter' && s.shape != null) {
                 const { shape, ...sOther } = s;
                 return { ...sOther, marker: { ...sOther.marker, shape } };
@@ -129,7 +130,7 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
             return s;
         });
 
-        (options as any).axes = (options as any).axes?.map((a) => {
+        (options as any).axes = mapValues((options as any).axes ?? {}, (a: any) => {
             if (a.interval != null) {
                 const { interval, ...aOther } = a;
                 return { ...aOther, tick: { ...aOther.tick, ...interval } };
@@ -141,12 +142,12 @@ export function prepareTestOptions<T extends AgChartOptions>(options: T, contain
     if (
         !isAtOrAfterVersion(11, 0, 0) &&
         (options as any).mode === 'integrated' &&
-        (options as any).axes?.some((a) => a.type === 'grouped-category')
+        Object.values((options as any).axes ?? {}).some((a: any) => a.type === 'grouped-category')
     ) {
-        (options as any).data.forEach((d: object) => {
+        for (const d of (options as any).data) {
             const labels = d['ag-Grid-AutoColumn'];
             d['ag-Grid-AutoColumn'] = { labels, toString: () => labels.join(' - ') };
-        });
+        }
     }
 
     return options;

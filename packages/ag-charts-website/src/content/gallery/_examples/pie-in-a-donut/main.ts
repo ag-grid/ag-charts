@@ -1,7 +1,17 @@
-import { AgCharts, AgPolarChartOptions, AgPolarSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AgPolarSeriesOptions,
+    ContextMenuModule,
+    DonutSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    PieSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData2020, getData2022 } from './data';
 
+ModuleRegistry.registerModules([DonutSeriesModule, LegendModule, PieSeriesModule]);
 const sharedSeriesOptions: AgPolarSeriesOptions = {
     type: 'pie' as const,
     sectorLabelKey: 'share',

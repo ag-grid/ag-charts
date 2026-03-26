@@ -1,7 +1,27 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -22,17 +42,17 @@ const options: AgPolarChartOptions = {
             radiusName: 'Efficiency',
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
             label: {
                 orientation: 'parallel',
             },
         },
-        {
+        radius: {
             type: 'radius-number',
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

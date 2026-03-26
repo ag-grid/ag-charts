@@ -1,14 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
+const { PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
 
 export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
-    static readonly className = 'RadialColumnSeries';
+    static override readonly className = 'RadialColumnSeries';
     static readonly type = 'radial-column' as const;
 
     override properties = new RadialColumnSeriesProperties();
@@ -46,7 +47,6 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
         highlight: boolean
     ) {
         node.isBeveled = this.isRadiusAxisCircle();
-        node.isRadiusAxisReversed = this.isRadiusAxisReversed();
 
         if (highlight) {
             node.innerRadius = datum.innerRadius;
@@ -65,6 +65,10 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.itemStyler != null ||
+            this.properties.styler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

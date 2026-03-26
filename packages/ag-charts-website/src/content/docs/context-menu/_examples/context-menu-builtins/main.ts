@@ -1,7 +1,30 @@
-import { AgCartesianChartOptions, AgCharts, AgContextMenuItemLiteral } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgContextMenuItemLiteral,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { generateCurrencyData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const CUSTOM_ORDER: AgContextMenuItemLiteral[] = [
     'toggle-series-visibility',
     'toggle-other-series',
@@ -26,10 +49,9 @@ const options: AgCartesianChartOptions = {
         { type: 'line', xKey: 'year', yKey: 'GBP' },
         { type: 'line', xKey: 'year', yKey: 'JPY' },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', label: { autoRotate: false } },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category', label: { autoRotate: false } },
+    },
 };
 
 const chart = AgCharts.create(options);

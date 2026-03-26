@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -15,7 +15,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'salary',
             yName: 'Salary',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -23,7 +23,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'subcon',
             yName: 'Subcon',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -31,7 +31,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'travel',
             yName: 'Travel',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -39,7 +39,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'visa',
             yName: 'Visa',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
@@ -47,25 +47,20 @@ const options: AgCartesianChartOptions = {
             yKey: 'others',
             yName: 'Others',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             label: {},
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 document.getElementById('myRotation')?.addEventListener('input', (e: any) => {
-    options.axes![0].label!.rotation = Number(e.target.value);
+    options.axes!.x!.label!.rotation = Number(e.target.value);
     chart.update(options);
 });

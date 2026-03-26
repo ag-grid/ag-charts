@@ -1,7 +1,22 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleCategoryAxisModule,
+    AnimationModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    AnimationModule,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const data = getData();
 const totalRevenue = data.reduce((sum, d) => sum + d.hardware, 0);
 const avgRevenue = totalRevenue / data.length;
@@ -56,8 +71,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             label: {
                 enabled: false,
@@ -75,7 +90,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        angle: {
             type: 'angle-category',
             gridLine: {
                 enabled: true,
@@ -88,7 +103,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -1,8 +1,11 @@
 import type { LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from './callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, Ratio } from './types';
 
-export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<TDatum> &
+export type AgErrorBarItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     SeriesKeyOptions<TDatum> &
     ErrorBarKeyOptions<TDatum> &
@@ -43,7 +46,7 @@ interface ErrorBarNameOptions {
 }
 
 interface ErrorBarFormatterOption<TDatum, TContext> {
-    /** Function used to return formatting for individual error bars, based on the given parameters. If the current error bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual error bars, based on the given parameters.*/
     itemStyler?: Styler<AgErrorBarItemStylerParams<TDatum, TContext>, AgErrorBarThemeableOptions>;
 }
 
@@ -58,8 +61,6 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
     /** Options to style error bars' caps */
     cap?: ErrorBarCapOptions;
 }
-
-export const AgErrorBarSupportedSeriesTypes = ['bar', 'line', 'scatter'] as const;
 
 export interface AgErrorBarOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends ErrorBarKeyOptions<TDatum>,

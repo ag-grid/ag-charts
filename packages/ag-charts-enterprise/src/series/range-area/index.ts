@@ -1,1 +1,0 @@
-export { RangeAreaSeriesModule } from './rangeAreaModule';

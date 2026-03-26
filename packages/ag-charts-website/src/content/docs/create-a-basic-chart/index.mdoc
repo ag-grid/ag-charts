@@ -48,7 +48,7 @@ Complete our [Quick Start](./quick-start/) (or open the example below in Plunker
     -   **Container:** The HTML element in which the chart should be rendered.
     -   **Data:** The data to display within a chart (_typically_ an array of data-points).
     -   **Series:** The type of chart to display, and the data to use. For cartesian charts, a minimum of three properties are required:
-        -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc...).
+        -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc.).
         -   **xKey:** The data to use for the X axis.
         -   **yKey:** The data to use for the Y axis.
 -   **Create:** `AgCharts.create(chartOptions)` API for creating new charts, using the Chart Options configurations.
@@ -60,7 +60,7 @@ Complete our [Quick Start](./quick-start/) (or open the example below in Plunker
 -   **Chart Options:** Object which contains the chart configuration options, including **data**, and **series** properties:
     -   **Data:** The data to display within a chart (_typically_ an array of data-points).
     -   **Series:** The type of chart to display, and the data to use. For cartesian charts, a minimum of three properties are required:
-        -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc...).
+        -   **Type:** Defines the type of chart to display (e.g. Line, Bar, etc.).
         -   **xKey:** The data to use for the X axis.
         -   **yKey:** The data to use for the Y axis.
 
@@ -76,7 +76,7 @@ A chart can have more than one series, which can be useful when comparing datase
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
@@ -90,7 +90,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```jsx format="reactHooks"
 const [chartOptions, setChartOptions] = useState({
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
@@ -118,17 +118,14 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        series: [
-            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
-            { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
-        ],
-        // ...
-    };
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }, // Existing 'Bar' Series, using 'iceCreamSales' data-points
+        { type: 'line', xKey: 'month', yKey: 'avgTemp' }, // Additional 'Line' Series, using 'avgTemp' data-points
+    ],
+    // ...
+});
 ```
 
 {% /if %}
@@ -139,16 +136,29 @@ Running the chart at this point will show the two series in the same chart.
 
 ### Configuring Secondary Axes
 
-The chart above shows both series in a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series. To do this, we need to configure three Axes: bottom, left and right.
+The chart above shows both series in a single chart, but given that the data-sets are quite different, it would make more sense to have a secondary axis for the second series.
+
+To do this, first we need to link each series to the appropriate axis using the `yKeyAxis` property on the series:
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
     ],
     // ...
 };
@@ -158,12 +168,23 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```jsx format="reactHooks"
 const [chartOptions, setChartOptions] = useState({
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
     ],
     // ...
 });
@@ -175,10 +196,21 @@ const [chartOptions, setChartOptions] = useState({
 
 ```js
 this.chartOptions = {
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
     ],
     // ...
 };
@@ -188,31 +220,133 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    series: [
+        {
+            type: 'bar',
+            xKey: 'month',
+            yKey: 'iceCreamSales',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'priceAxis',
+        },
+        {
+            type: 'line',
+            xKey: 'month',
+            yKey: 'avgTemp',
+            // Y Axis Key, to link series to an axis
+            yKeyAxis: 'temperatureAxis',
+        },
+    ],
+    // ...
+});
+```
+
+{% /if %}
+
+The `yKeyAxis` property provides a way to reference a series from the axis configuration. To configure the axes, we need to add the `axes` property to the chart options, defining each axis and linking it to the appropriate series using the same keys defined in the `yKeyAxis` properties above:
+
+{% if isFramework("javascript") %}
+
+```js format="snippet"
+const options = {
+    axes: {
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
+    },
+    // ...
+};
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx format="reactHooks"
+const [chartOptions, setChartOptions] = useState({
+    axes: {
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
+    },
+    // ...
+});
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
 ```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        axes: [
-            { type: 'category', position: 'bottom' },
-            { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-            { type: 'number', position: 'right', keys: ['avgTemp'] },
-        ],
-        // ...
-    };
+this.chartOptions = {
+    axes: {
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
+    },
+    // ...
+};
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    axes: {
+        // Use left axis for 'iceCreamSales' series
+        priceAxis: {
+            type: 'number',
+            position: 'left',
+        },
+        // Use right axis for 'avgTemp' series
+        temperatureAxis: {
+            type: 'number',
+            position: 'right',
+        },
+    },
+    // ...
+});
 ```
 
 {% /if %}
 
 Let's breakdown what's happening here:
 
--   **Type:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
--   **Position:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
--   **Keys:** Associates the axis with a given series, with the keys axis property linking the appropriate series to the axis.
+-   **`axes.{key}`:** The key used to reference the axis, which should match the `yKeyAxis` property on the series.
+-   **`Type`:** The type of axis to use - one of [Category](./axes-types/#category), [Number](./axes-types/#number), [Time](./axes-types/#time) or [Log](./axes-types/#log).
+-   **`Position`:** The position on the chart where the axis should be rendered, e.g. 'top', 'bottom', 'right' or 'left'.
 
 Now when we run our chart, we should see both series and three axes.
 
 {% chartExampleRunner title="Second Series Example" name="second-series-example" type="generated" /%}
+
+{% note %}
+Refer to our [Axes Configuration](./axes-configuration/) docs for more information on configuring axes.
+{% /note %}
 
 ## Styling
 
@@ -224,7 +358,7 @@ Titles and subtitles can also be added to the chart via the `title` and `subtitl
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -236,7 +370,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -260,7 +394,7 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```ts
+```tsx format="reactHooks"
 const options = ref<AgChartOptions>({
     title: { text: 'Ice Cream Sales' },
     subtitle: { text: 'Data from 2022' },
@@ -280,7 +414,7 @@ You may have noticed that the chart added a Legend when we added a second series
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
     legend: {
         position: 'right',
@@ -293,7 +427,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     legend: {
         position: 'right',
@@ -319,16 +453,13 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        legend: {
-            position: 'right',
-        },
-        // ...
-    };
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    legend: {
+        position: 'right',
+    },
+    // ...
+});
 ```
 
 {% /if %}
@@ -345,7 +476,7 @@ As you can see, our Legend and Tooltips use the property name from the data dire
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
@@ -359,7 +490,7 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
@@ -387,17 +518,14 @@ this.chartOptions = {
 
 {% if isFramework("vue") %}
 
-```js
-const options =
-    ref <
-    AgChartOptions >
-    {
-        series: [
-            { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
-            // ...
-        ],
+```tsx format="reactHooks"
+const options = ref<AgChartOptions>({
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales', yName: 'Ice Cream Sales' },
         // ...
-    };
+    ],
+    // ...
+});
 ```
 
 {% /if %}
@@ -414,14 +542,13 @@ The `formatter` should be a function that receives the axis label data and retur
 
 {% if isFramework("javascript") %}
 
-```js
+```js format="snippet"
 const options = {
-    axes: [
+    axes: {
         // ...
-        {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
@@ -429,7 +556,7 @@ const options = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```
@@ -438,14 +565,13 @@ const options = {
 
 {% if isFramework("react") %}
 
-```js
+```js format="snippet"
 const [chartOptions, setChartOptions] = useState({
-    axes: [
+    axes: {
         // ...
-        {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
@@ -453,7 +579,7 @@ const [chartOptions, setChartOptions] = useState({
                 },
             },
         },
-    ],
+    },
     // ...
 });
 ```
@@ -464,12 +590,11 @@ const [chartOptions, setChartOptions] = useState({
 
 ```js
 this.chartOptions = {
-    axes: [
+    axes: {
         // ...
-        {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
@@ -477,7 +602,7 @@ this.chartOptions = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```
@@ -488,12 +613,11 @@ this.chartOptions = {
 
 ```js
 this.chartOptions = {
-    axes: [
+    axes: {
         // ...
-        {
+        temperatureAxis: {
             type: 'number',
             position: 'right',
-            keys: ['avgTemp'],
             label: {
                 // Label value as a formatter function
                 formatter: (params) => {
@@ -501,7 +625,7 @@ this.chartOptions = {
                 },
             },
         },
-    ],
+    },
     // ...
 };
 ```
@@ -518,7 +642,7 @@ _Note: Refer to the [axes](/options/#reference-AgChartOptions-axes/) API docs fo
 
 1. Format the left axis using `toLocaleString()`
 
-    _Hint: Add a formatter to the `axes.label` property_
+    _Hint: Add a formatter to the `axes.{key}.label` property_
 
 2. Change the 'avgTemp' legend item label to 'Average Temperature (°C)'.
 
@@ -536,4 +660,4 @@ Congratulations, you've completed our introductory tutorial! By now, you should 
 -   **Data:** The data to be displayed within the chart.
 -   **Series:** Controls the chart type (series) and links it to the data. Multiple series can be used to create combination charts.
 -   **Axes:** Controls the Axes and links it to the data.
--   **Styling & Formatting:** Controls the look and feel of the chart through formatters and series properties, etc...
+-   **Styling & Formatting:** Controls the look and feel of the chart through formatters and series properties.

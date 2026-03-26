@@ -29,6 +29,33 @@ env:
     AG_LIBRARY: charts
 
 jobs:
+    # TODO: Re-enable rulesync-integrity job once rulesync issues are resolved
+    # rulesync-integrity:
+    #     name: Rulesync Integrity Check
+    #     runs-on: ubuntu-latest
+    #     steps:
+    #         - name: Checkout
+    #           uses: actions/checkout@v4
+    #           with:
+    #               fetch-depth: 1
+    #
+    #         - name: Setup Node
+    #           uses: actions/setup-node@v4
+    #           with:
+    #               node-version-file: '.nvmrc'
+    #               cache: 'yarn'
+    #
+    #         - name: Install dependencies
+    #           run: yarn install --frozen-lockfile
+    #
+    #         - name: Verify Rulesync Integrity (Claude Code)
+    #           id: rulesync-claudecode
+    #           run: ./external/ag-shared/scripts/setup-prompts/verify-rulesync.sh . claudecode
+    #
+    #         - name: Verify Rulesync Integrity (Codex CLI)
+    #           id: rulesync-codexcli
+    #           run: ./external/ag-shared/scripts/setup-prompts/verify-rulesync.sh . codexcli
+
     code-dependency-scan:
         runs-on: ubuntu-latest
         steps:
@@ -93,6 +120,13 @@ jobs:
               with:
                   name: sast-code-scan
                   path: ${{ env.OUTPUT_DIR }}
+
+            - name: Fail job if scan failed
+              shell: bash
+              if: success() && steps.snyk-code-scan.outcome == 'failure'
+              run: |
+                  echo "Workflow failed, failing the build."
+                  exit 1
 
     combine-scan-results:
         needs: [code-dependency-scan, sast-code-scan]

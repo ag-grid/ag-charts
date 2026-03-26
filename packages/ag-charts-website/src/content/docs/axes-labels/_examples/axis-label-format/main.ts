@@ -1,5 +1,7 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     series: [
@@ -9,23 +11,21 @@ const options: AgChartOptions = {
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-            label: {
-                format: '$#{0>6.2f}',
-            },
-        },
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: { step: 'month' },
             label: {
                 format: '%b %Y',
             },
         },
-    ],
+        y: {
+            type: 'number',
+            label: {
+                format: '$#{0>6.2f}',
+            },
+        },
+    },
     data: [
         { date: new Date('2019-01-01'), temp: 82.0 },
         { date: new Date('2019-02-01'), temp: 75.0 },

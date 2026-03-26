@@ -1,7 +1,24 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AreaSeriesModule,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BandHighlightModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -43,10 +60,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 rotation: -90,
             },
@@ -83,9 +99,8 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },
@@ -96,7 +111,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

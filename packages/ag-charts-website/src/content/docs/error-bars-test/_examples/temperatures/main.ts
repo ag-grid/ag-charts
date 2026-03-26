@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgErrorBarItemStylerParams, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getData, getData2 } from './data';
 
@@ -9,7 +9,7 @@ const highlight = {
 
 const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     const errorBarStyle = { strokeWidth: 3 };
-    if (param.highlighted) {
+    if (param.highlightState === 'highlighted-item') {
         return { ...errorBarStyle, stroke: 'red' };
     } else {
         return errorBarStyle;

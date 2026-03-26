@@ -1,318 +1,264 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 
-import { EventEmitter, getDocument } from 'ag-charts-core';
+import { AgDocument, EventEmitter, getDocument } from 'ag-charts-core';
 
-import { EventsHub } from '../core/eventsHub';
+import type { EventsHub } from '../core/eventsHub';
 import { DOMManager } from './domManager';
 
 describe('DOMManager', () => {
+    const doc = new AgDocument(getDocument());
+
     beforeEach(() => {
         // Prevent bleed of state between tests.
-        getDocument().head.innerHTML = '';
+        doc.head.innerHTML = '';
+        (DOMManager as any).headStyles?.clear?.();
     });
 
     const eventsHub: EventsHub = new EventEmitter();
 
     describe('for normal container cases', () => {
         it('should initialize the expected DOM', () => {
-            const doc = getDocument();
             const container = doc.createElement('div');
             doc.body.append(container);
 
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
-            expect(container).toMatchInlineSnapshot(`
-<div>
-  <div
-    class="ag-charts-wrapper ag-charts-styles"
-    data-ag-charts=""
-    role="presentation"
-    style="width: 300px; height: 300px;"
-  >
-    
-    
-    <div
-      class="ag-charts-tab-guard"
-    />
-    <div
-      class="ag-charts-canvas-center"
-      role="presentation"
-      style="visibility: hidden;"
-    >
-      
-        
-      <div
-        class="ag-charts-canvas-container"
-        role="presentation"
-      >
-        
-            
-        <div
-          aria-hidden="true"
-          class="ag-charts-canvas"
-          role="presentation"
-        />
-        
-            
-        <div
-          class="ag-charts-canvas-proxy"
-          role="figure"
-        >
-          
-                
-          <div
-            class="ag-charts-series-area"
-            role="presentation"
-          />
-          
-            
-        </div>
-        
-            
-        <div
-          class="ag-charts-canvas-overlay ag-charts-tooltip-container"
-          role="presentation"
-        />
-        
-        
-      </div>
-      
-    
-    </div>
-    <div
-      class="ag-charts-tab-guard"
-    />
-    
-
-  </div>
-</div>
-`);
-            expect(doc.head).toMatchInlineSnapshot(`
-<head>
-  <style
-    data-ag-charts="ag-charts-community"
-    nonce="416d1177"
-  >
-    @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-  </style>
-  <style
-    data-ag-charts="test"
-    nonce="416d1177"
-  >
-    .test { width: 100% }
-  </style>
-</head>
-`);
+            expect(container).toMatchSnapshot();
+            expect(doc.head).toMatchSnapshot();
         });
     });
 
     describe('for disconnected container cases', () => {
         it('should initialize the expected DOM', () => {
-            const doc = getDocument();
             const container = doc.createElement('div');
-            // doc.body.append(container);
-
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1171' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1171' }, doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
-            expect(container).toMatchInlineSnapshot(`
-<div>
-  <div
-    class="ag-charts-wrapper ag-charts-styles"
-    data-ag-charts=""
-    role="presentation"
-    style="width: 300px; height: 300px;"
-  >
-    
-    
-    <div
-      class="ag-charts-tab-guard"
-    />
-    <div
-      class="ag-charts-canvas-center"
-      role="presentation"
-      style="visibility: hidden;"
-    >
-      
-        
-      <div
-        class="ag-charts-canvas-container"
-        role="presentation"
-      >
-        
-            
-        <div
-          aria-hidden="true"
-          class="ag-charts-canvas"
-          role="presentation"
-        />
-        
-            
-        <div
-          class="ag-charts-canvas-proxy"
-          role="figure"
-        >
-          
-                
-          <div
-            class="ag-charts-series-area"
-            role="presentation"
-          />
-          
-            
-        </div>
-        
-            
-        <div
-          class="ag-charts-canvas-overlay ag-charts-tooltip-container"
-          role="presentation"
-        />
-        
-        
-      </div>
-      
-    
-    </div>
-    <div
-      class="ag-charts-tab-guard"
-    />
-    
-
-    <style
-      data-ag-charts="ag-charts-community"
-      nonce="416d1171"
-    >
-      @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-    </style>
-    <style
-      data-ag-charts="test"
-      nonce="416d1171"
-    >
-      .test { width: 100% }
-    </style>
-  </div>
-</div>
-`);
+            expect(container).toMatchSnapshot();
             expect(doc.head).toMatchInlineSnapshot(`<head />`);
         });
     });
 
     describe('for shadow-DOM container cases', () => {
         it('should initialize the expected DOM', () => {
-            const doc = getDocument();
             const component = doc.createElement('div');
             const container = doc.createElement('div');
             doc.body.append(component);
             const shadow = component.attachShadow({ mode: 'open' });
             shadow.appendChild(container);
 
-            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, container);
+            const dm = new DOMManager(eventsHub, { styleNonce: '416d1177' }, doc, container);
             dm.addStyles('test', '.test { width: 100% }');
 
-            expect(container).toMatchInlineSnapshot(`
-<div>
-  <div
-    class="ag-charts-wrapper ag-charts-styles"
-    data-ag-charts=""
-    role="presentation"
-    style="width: 300px; height: 300px;"
-  >
-    
-    
-    <div
-      class="ag-charts-tab-guard"
-    />
-    <div
-      class="ag-charts-canvas-center"
-      role="presentation"
-      style="visibility: hidden;"
-    >
-      
-        
-      <div
-        class="ag-charts-canvas-container"
-        role="presentation"
-      >
-        
-            
-        <div
-          aria-hidden="true"
-          class="ag-charts-canvas"
-          role="presentation"
-        />
-        
-            
-        <div
-          class="ag-charts-canvas-proxy"
-          role="figure"
-        >
-          
-                
-          <div
-            class="ag-charts-series-area"
-            role="presentation"
-          />
-          
-            
-        </div>
-        
-            
-        <div
-          class="ag-charts-canvas-overlay ag-charts-tooltip-container"
-          role="presentation"
-        />
-        
-        
-      </div>
-      
-    
-    </div>
-    <div
-      class="ag-charts-tab-guard"
-    />
-    
-
-    <style
-      data-ag-charts="ag-charts-community"
-      nonce="416d1177"
-    >
-      @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-    </style>
-    <style
-      data-ag-charts="test"
-      nonce="416d1177"
-    >
-      .test { width: 100% }
-    </style>
-  </div>
-</div>
-`);
+            expect(container).toMatchSnapshot();
             expect(doc.head).toMatchInlineSnapshot(`<head />`);
+        });
+    });
+
+    describe('when connecting after initialisation', () => {
+        beforeEach(() => jest.useFakeTimers());
+        afterEach(() => jest.useRealTimers());
+
+        it('should move styles to head when the container is attached to the document', () => {
+            const container = doc.createElement('div');
+            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, doc, container);
+            dm.addStyles('late-test', '.test { width: 100% }');
+
+            expect(container.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+
+            doc.body.append(container);
+            dm.setDeferring(false);
+            jest.runAllTimers();
+
+            expect(container.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+        });
+
+        it('should keep styles inside the shadow root when attached to a shadow DOM', () => {
+            const component = doc.createElement('div');
+            const container = doc.createElement('div');
+            doc.body.append(component);
+            const shadow = component.attachShadow({ mode: 'open' });
+
+            const dm = new DOMManager(eventsHub, { styleNonce: 'late-416d' }, doc, container);
+            dm.addStyles('late-test', '.test { width: 100% }');
+
+            shadow.appendChild(container);
+            dm.setDeferring(false);
+            jest.runAllTimers();
+
+            expect(shadow.querySelector('style[data-ag-charts="late-test"]')).not.toBeNull();
+            expect(shadow.querySelector('style[data-ag-charts="ag-charts-community"]')).not.toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="late-test"]')).toBeNull();
+            expect(doc.head.querySelector('style[data-ag-charts="ag-charts-community"]')).toBeNull();
+        });
+    });
+
+    describe('getBoundingClientRect() caching', () => {
+        it('should return the same object reference on repeated calls', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const rect1 = dm.getBoundingClientRect();
+            const rect2 = dm.getBoundingClientRect();
+            expect(rect1).toBe(rect2);
+        });
+
+        it('should not call element getBoundingClientRect on cache hit', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const canvasEl = dm.getParent('canvas');
+            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+
+            // First call populates cache
+            dm.getBoundingClientRect();
+            const callCount = spy.mock.calls.length;
+
+            // Second call should be a cache hit
+            dm.getBoundingClientRect();
+            expect(spy.mock.calls.length).toBe(callCount);
+        });
+
+        it('should invalidate cache after scroll event', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const rect1 = dm.getBoundingClientRect();
+            doc.window.dispatchEvent(new Event('scroll'));
+            const rect2 = dm.getBoundingClientRect();
+
+            expect(rect1).not.toBe(rect2);
+        });
+
+        it('should invalidate cache after resize event', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const rect1 = dm.getBoundingClientRect();
+            doc.window.dispatchEvent(new Event('resize'));
+            const rect2 = dm.getBoundingClientRect();
+
+            expect(rect1).not.toBe(rect2);
+        });
+
+        it('should only make one real getBoundingClientRect call after invalidation', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const canvasEl = dm.getParent('canvas');
+            // Populate cache first
+            dm.getBoundingClientRect();
+
+            const spy = jest.spyOn(canvasEl, 'getBoundingClientRect');
+
+            // Invalidate
+            doc.window.dispatchEvent(new Event('scroll'));
+
+            // Two calls after invalidation
+            dm.getBoundingClientRect();
+            dm.getBoundingClientRect();
+
+            // Only one real call (re-populates cache, then cache hits)
+            expect(spy).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('deferred proxy flushing', () => {
+        it('should create a proxy tracked for deferred flushing', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            expect(proxy).toBeDefined();
+        });
+
+        it('should not apply buffered writes to DOM before flush', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
+            proxy.setProperty('left', '10px');
+
+            const childEl = dm.getParent('canvas-overlay').querySelector('div');
+            expect(childEl!.style.getPropertyValue('left')).toBe('');
+        });
+
+        it('should apply buffered writes after setDeferring(false)', () => {
+            jest.useFakeTimers();
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            const proxy = dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.setDeferring(true); // simulate being inside performUpdate()
+            proxy.setProperty('left', '10px');
+
+            dm.setDeferring(false);
+            jest.runAllTimers();
+            jest.useRealTimers();
+
+            const childEl = dm.getParent('canvas-overlay').querySelector('div');
+            expect(childEl!.style.getPropertyValue('left')).toBe('10px');
+        });
+
+        it('should remove proxy from deferredProxies map on removeChild', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            dm.addDeferredProxyChild('canvas-overlay', 'test-proxy');
+            dm.removeChild('canvas-overlay', 'test-proxy');
+
+            // Access private field to verify cleanup
+            const deferredProxies = (dm as any).deferredProxies as Map<string, unknown>;
+            expect(deferredProxies.has('canvas-overlay:test-proxy')).toBe(false);
+        });
+    });
+
+    describe('updateCursor() compare-before-write', () => {
+        it('should set cursor style on first call', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            dm.updateCursor('test', 'pointer');
+            expect(dm.getCursor()).toBe('pointer');
+        });
+
+        it('should skip DOM write when cursor is unchanged', () => {
+            const container = doc.createElement('div');
+            doc.body.append(container);
+            const dm = new DOMManager(eventsHub, {}, doc, container);
+
+            dm.updateCursor('test', 'pointer');
+
+            // Spy on the element style cursor setter after the first write
+            const element = (dm as any).element as HTMLElement;
+            const descriptor = Object.getOwnPropertyDescriptor(CSSStyleDeclaration.prototype, 'cursor')!;
+            const setter = jest.fn(descriptor.set!.bind(element.style));
+            Object.defineProperty(element.style, 'cursor', {
+                get: descriptor.get!.bind(element.style),
+                set: setter,
+                configurable: true,
+            });
+
+            dm.updateCursor('test', 'pointer');
+            expect(setter).not.toHaveBeenCalled();
+
+            // Restore
+            Object.defineProperty(element.style, 'cursor', descriptor);
         });
     });
 });

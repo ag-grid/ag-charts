@@ -1,7 +1,28 @@
-import { AgCartesianChartOptions, AgCharts, AgCrosshairLabelRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgCrosshairLabelRendererParams,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ContextMenuModule,
+]);
 const crosshairLabelRenderer = ({ value }: AgCrosshairLabelRendererParams) => {
     return {
         text: `${(value / 1000000).toFixed(1)}M`,
@@ -23,8 +44,8 @@ const options: AgCartesianChartOptions = {
             xName: 'Day',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -37,16 +58,15 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'time',
-            position: 'bottom',
             crosshair: {
                 label: {
                     format: `%b %d`,
                 },
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => `${(params.value as number) / 1000000}M`,
     },

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -110,6 +111,38 @@ describe('HeatmapSeries', () => {
         await compare();
     });
 
+    describe('AG-16306 - clearing data', () => {
+        it('should clear heatmap when data is updated to empty array', async () => {
+            const options = prepareEnterpriseTestOptions({
+                title: { text: 'Should render empty chart' },
+                data: [
+                    { year: '2018', month: 'Jan', temperature: 4.4 },
+                    { year: '2018', month: 'Apr', temperature: 8.8 },
+                    { year: '2019', month: 'Jan', temperature: 4.4 },
+                    { year: '2019', month: 'Apr', temperature: 8.9 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'month',
+                        yKey: 'year',
+                        colorKey: 'temperature',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Clear the data
+            await chart.updateDelta({ data: [] });
+            await waitForChartStability(chart);
+
+            // Verify chart is cleared
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
     describe('AG-15645 - colorKey edge cases', () => {
         it('should handle some null color values', async () => {
             const options = prepareEnterpriseTestOptions({
@@ -139,18 +172,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -185,18 +218,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -227,18 +260,18 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
                     },
-                ],
+                },
             });
 
             chart = AgCharts.create(options);
@@ -273,21 +306,242 @@ describe('HeatmapSeries', () => {
                         label: {},
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         position: 'bottom',
                         type: 'category',
                         label: {},
                     },
-                    {
+                    y: {
                         position: 'left',
                         type: 'category',
                         label: {},
+                    },
+                },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('colorScale', () => {
+        it('should render with continuous colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
                     },
                 ],
             });
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 100] as [number, number],
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                ...EXAMPLE_OPTIONS,
+                series: [
+                    {
+                        ...EXAMPLE_OPTIONS.series![0],
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should render with null category key value', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                    { year: '2021', person: null, spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [HeatmapSeries-1 / yValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should filter undefined category key value', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: undefined, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [HeatmapSeries-1 / yValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                    { year: '2021', person: null, spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: undefined, spending: 20 },
+                    { year: '2021', person: 'Florian', spending: 30 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: null, spending: 20 },
+                    { year: '2020', person: undefined, spending: 30 },
+                    { year: '2021', person: 'Florian', spending: 40 },
+                    { year: '2021', person: null, spending: 50 },
+                    { year: '2021', person: undefined, spending: 60 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
             await compare();
         });
     });

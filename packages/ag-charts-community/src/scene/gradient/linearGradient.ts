@@ -1,9 +1,12 @@
-import { type ColorSpace, createSvgElement } from 'ag-charts-core';
+import {
+    type ColorSpace,
+    type GradientColorStop,
+    createSvgElement,
+    normalizeAngle360FromDegrees,
+} from 'ag-charts-core';
 
-import { normalizeAngle360FromDegrees } from '../../util/angle';
 import type { BBox } from '../bbox';
 import { Gradient } from './gradient';
-import type { GradientColorStop } from './stops';
 
 export class LinearGradient extends Gradient {
     constructor(
@@ -28,7 +31,7 @@ export class LinearGradient extends Gradient {
         const cx = bbox.x + w * 0.5;
         const cy = bbox.y + h * 0.5;
 
-        const diagonal = Math.sqrt(h * h + w * w) / 2;
+        const diagonal = Math.hypot(h, w) / 2;
         const diagonalAngle = Math.atan2(h, w);
 
         let quarteredAngle: number;
@@ -48,7 +51,7 @@ export class LinearGradient extends Gradient {
 
     protected override createCanvasGradient(ctx: CanvasRenderingContext2D, bbox: BBox): CanvasGradient | undefined {
         const { x0, y0, x1, y1 } = this.getGradientPoints(bbox);
-        if (isNaN(x0) || isNaN(y0) || isNaN(x1) || isNaN(y1)) {
+        if (Number.isNaN(x0) || Number.isNaN(y0) || Number.isNaN(x1) || Number.isNaN(y1)) {
             return undefined;
         }
         return ctx.createLinearGradient(x0, y0, x1, y1);

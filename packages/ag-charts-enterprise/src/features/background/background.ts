@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { ActionOnSet, ChartUpdateType, Property } from 'ag-charts-core';
 
 import { Image } from '../image/image';
-
-const { ActionOnSet, Property } = _ModuleSupport;
 
 export class Background extends _ModuleSupport.Background<Image> {
     @Property
@@ -12,7 +11,7 @@ export class Background extends _ModuleSupport.Background<Image> {
             image.onLoad = () => this.onImageLoad();
         },
         oldValue(image: Image) {
-            this.node.removeChild(image.node);
+            image.node.remove();
             image.onLoad = undefined;
         },
     })
@@ -27,6 +26,6 @@ export class Background extends _ModuleSupport.Background<Image> {
     }
 
     protected onImageLoad() {
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 }

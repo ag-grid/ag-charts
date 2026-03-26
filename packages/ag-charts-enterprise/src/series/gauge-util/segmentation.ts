@@ -1,7 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
-
-const { BaseProperties, Property } = _ModuleSupport;
+import { BaseProperties, Logger, Property, type Scale } from 'ag-charts-core';
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
@@ -13,7 +10,7 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Property
     count?: number;
 
-    getSegments(scale: _ModuleSupport.Scale<number, number>, maxTicks: number) {
+    getSegments(scale: Scale<number, number>, maxTicks: number) {
         const { values, step, count } = this;
         const d0 = Math.min(...scale.domain);
         const d1 = Math.max(...scale.domain);
@@ -29,20 +26,20 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
             }
             segments.push(d1);
             ticks = segments;
-        } else if (count != null) {
-            const segments = count + 1;
-            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
-        } else {
+        } else if (count == null) {
             const segments = scale
                 .ticks({
-                    nice: true,
+                    nice: [true, true],
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,
                     maxTickCount: Infinity,
                 })
                 ?.ticks?.filter((v) => v > d0 && v < d1);
-            ticks = segments != null ? [d0, ...segments, d1] : undefined;
+            ticks = segments == null ? undefined : [d0, ...segments, d1];
+        } else {
+            const segments = count + 1;
+            ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
         }
 
         if (ticks != null && ticks.length > maxTicks) {

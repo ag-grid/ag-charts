@@ -1,8 +1,12 @@
 {
   "name": "ag-charts-core",
-  "version": "12.2.0-beta.20250914",
+  "version": "13.2.0",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
-  "sideEffects": false,
+  "sideEffects": [
+    "*.css",
+    "*.html",
+    "./src/main.ts"
+  ],
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
@@ -49,7 +53,7 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-types": "12.2.0-beta.20250914"
+    "ag-charts-types": "13.2.0"
   },
   "devDependencies": {
     "@jest/globals": "29.6.1"

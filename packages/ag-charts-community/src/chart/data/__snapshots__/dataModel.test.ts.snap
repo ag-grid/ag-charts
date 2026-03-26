@@ -1,137 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DataModel empty data set processing should generated the expected results 1`] = `
-{
-  "aggregation": undefined,
-  "columnScopes": [
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-  ],
-  "columns": [
-    [],
-    [],
-    [],
-    [],
-  ],
-  "dataSources": Map {
-    "test" => [],
-  },
-  "defs": {
-    "allScopesHaveSameDefs": true,
-    "keys": [
-      {
-        "index": 0,
-        "missing": Map {},
-        "property": "year",
-        "scopes": [
-          "test",
-        ],
-        "type": "key",
-        "valueType": "category",
-      },
-    ],
-    "values": [
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 0,
-        "missing": Map {},
-        "property": "ie",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 1,
-        "missing": Map {},
-        "property": "chrome",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 2,
-        "missing": Map {},
-        "property": "firefox",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 3,
-        "missing": Map {},
-        "property": "safari",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-    ],
-  },
-  "domain": {
-    "keys": [
-      [],
-    ],
-    "values": [
-      [],
-      [],
-      [],
-      [],
-    ],
-  },
-  "input": {
-    "count": 0,
-  },
-  "invalidData": Map {},
-  "invalidKeyCount": Map {},
-  "invalidKeys": Map {},
-  "keys": [
-    Map {
-      "test" => [],
-    },
-  ],
-  "partialValidDataCount": 0,
-  "scopes": Set {
-    "test",
-  },
-  "time": Any<Number>,
-  "type": "ungrouped",
-  Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
-  Symbol(column-sort-orders): Map {},
-}
-`;
-
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with area bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -330,12 +204,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
+          7,
           8,
-          9,
+          13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -355,8 +229,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -368,10 +242,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -400,6 +276,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -422,15 +300,27 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with average bucket calculation 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -652,13 +542,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          2,
+          1,
+          11,
           12,
           13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -677,8 +567,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -689,10 +579,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -721,6 +613,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -740,15 +634,27 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -949,13 +855,13 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          2,
+          1,
+          11,
           12,
           13,
           14,
           15,
           16,
-          17,
         ],
       ],
       "keys": [
@@ -974,8 +880,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
       "datumIndices": [
         [
-          18,
-          19,
+          16,
+          17,
         ],
       ],
       "keys": [
@@ -986,10 +892,12 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       },
     },
   ],
+  "groupsUnique": false,
   "input": {
     "count": 20,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -1018,6 +926,31 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       ],
     },
   ],
+  "missingData": Map {
+    "test" => [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ],
+  },
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "reduced": {
     "sortedGroupDomain": [
@@ -1037,15 +970,28 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": false,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - grouped example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1240,10 +1186,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -1262,10 +1208,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -1284,10 +1230,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -1306,10 +1252,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -1328,10 +1274,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -1350,10 +1296,10 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -1364,10 +1310,12 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 7,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -1383,21 +1331,40 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked area example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -1855,22 +1822,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -1889,22 +1856,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -1923,22 +1890,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -1957,22 +1924,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -1991,22 +1958,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -2025,22 +1992,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -2059,22 +2026,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -2093,22 +2060,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
         [
-          8,
+          0,
         ],
       ],
       "keys": [
@@ -2127,22 +2094,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
         [
-          9,
+          0,
         ],
       ],
       "keys": [
@@ -2161,22 +2128,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
         [
-          10,
+          0,
         ],
       ],
       "keys": [
@@ -2195,22 +2162,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
         [
-          11,
+          0,
         ],
       ],
       "keys": [
@@ -2221,10 +2188,12 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 12,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -2245,21 +2214,40 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked columns example 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -2572,22 +2560,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -2606,22 +2594,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -2640,22 +2628,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -2674,22 +2662,22 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -2700,10 +2688,12 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 5,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -2717,21 +2707,38 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3019,16 +3026,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -3047,16 +3054,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -3075,16 +3082,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -3103,16 +3110,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -3131,16 +3138,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -3159,16 +3166,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -3187,16 +3194,16 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -3207,10 +3214,12 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -3227,21 +3236,38 @@ exports[`DataModel grouped processing - stacked example should generated the exp
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked with accumulation and normalised example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -3529,16 +3555,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -3557,16 +3583,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -3585,16 +3611,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -3613,16 +3639,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -3641,16 +3667,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -3669,16 +3695,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -3697,16 +3723,16 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -3717,10 +3743,12 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -3737,21 +3765,38 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel grouped processing - stacked with accumulation example should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -4027,16 +4072,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
         [
-          1,
+          0,
         ],
       ],
       "keys": [
@@ -4050,16 +4095,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
         [
-          2,
+          0,
         ],
       ],
       "keys": [
@@ -4073,16 +4118,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
         [
-          3,
+          0,
         ],
       ],
       "keys": [
@@ -4096,16 +4141,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
         [
-          4,
+          0,
         ],
       ],
       "keys": [
@@ -4119,16 +4164,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
         [
-          5,
+          0,
         ],
       ],
       "keys": [
@@ -4142,16 +4187,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
         [
-          6,
+          0,
         ],
       ],
       "keys": [
@@ -4165,16 +4210,16 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       "aggregation": [],
       "datumIndices": [
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
         [
-          7,
+          0,
         ],
       ],
       "keys": [
@@ -4185,10 +4230,12 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       },
     },
   ],
+  "groupsUnique": true,
   "input": {
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -4205,875 +4252,36 @@ exports[`DataModel grouped processing - stacked with accumulation example should
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "grouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": undefined,
+    },
+  },
   Symbol(column-sort-orders): Map {},
-}
-`;
-
-exports[`DataModel missing and invalid data processing - multiple scopes should generated the expected results 1`] = `
-{
-  "aggregation": undefined,
-  "columnScopes": [
-    Set {
-      "test",
-    },
-    Set {
-      "series-a",
-    },
-    Set {
-      "series-b",
-    },
-    Set {
-      "series-c",
-    },
-  ],
-  "columns": [
-    [
-      null,
-      54.39,
-      44.03,
-      undefined,
-      null,
-      17.75,
-      -13.3,
-      -8.94,
-      null,
-      3.2,
-      2.7,
-    ],
-    [
-      undefined,
-      null,
-      15.01,
-      25.99,
-      31.71,
-      null,
-      42.27,
-      47.79,
-      51.76,
-      null,
-      61.72,
-    ],
-    [
-      26.85,
-      31.15,
-      null,
-      22.69,
-      undefined,
-      14.77,
-      null,
-      8.97,
-      6.75,
-      undefined,
-      null,
-    ],
-    [
-      2.79,
-      4.22,
-      5.94,
-      null,
-      undefined,
-      12.63,
-      undefined,
-      null,
-      14.54,
-      14.44,
-      15.23,
-    ],
-  ],
-  "dataSources": Map {
-    "test" => [
-      {
-        "chrome": "illegal value",
-        "firefox": 26.85,
-        "safari": 2.79,
-        "year": "2009",
-      },
-      {
-        "firefox": 31.15,
-        "ie": 54.39,
-        "safari": 4.22,
-        "year": "2010",
-      },
-      {
-        "chrome": 15.01,
-        "ie": 44.03,
-        "safari": 5.94,
-        "year": "2011",
-      },
-      {
-        "chrome": 25.99,
-        "firefox": 22.69,
-        "ie": "illegal value",
-        "year": "2012",
-      },
-      {
-        "chrome": 31.71,
-        "firefox": undefined,
-        "safari": undefined,
-        "year": "2013",
-      },
-      {
-        "firefox": 14.77,
-        "ie": 17.75,
-        "safari": 12.63,
-        "year": "2014",
-      },
-      {
-        "chrome": 42.27,
-        "ie": -13.3,
-        "safari": "illegal value",
-        "year": "2015",
-      },
-      {
-        "chrome": 47.79,
-        "firefox": 8.97,
-        "ie": -8.94,
-        "year": "2016",
-      },
-      {
-        "chrome": 51.76,
-        "firefox": 6.75,
-        "safari": 14.54,
-        "year": "2017",
-      },
-      {
-        "firefox": "illegal value",
-        "ie": 3.2,
-        "safari": 14.44,
-        "year": "2018",
-      },
-      {
-        "chrome": 61.72,
-        "ie": 2.7,
-        "safari": 15.23,
-        "year": "2019",
-      },
-    ],
-    "series-a" => [
-      {
-        "chrome": "illegal value",
-        "firefox": 26.85,
-        "safari": 2.79,
-        "year": "2009",
-      },
-      {
-        "firefox": 31.15,
-        "ie": 54.39,
-        "safari": 4.22,
-        "year": "2010",
-      },
-      {
-        "chrome": 15.01,
-        "ie": 44.03,
-        "safari": 5.94,
-        "year": "2011",
-      },
-      {
-        "chrome": 25.99,
-        "firefox": 22.69,
-        "ie": "illegal value",
-        "year": "2012",
-      },
-      {
-        "chrome": 31.71,
-        "firefox": undefined,
-        "safari": undefined,
-        "year": "2013",
-      },
-      {
-        "firefox": 14.77,
-        "ie": 17.75,
-        "safari": 12.63,
-        "year": "2014",
-      },
-      {
-        "chrome": 42.27,
-        "ie": -13.3,
-        "safari": "illegal value",
-        "year": "2015",
-      },
-      {
-        "chrome": 47.79,
-        "firefox": 8.97,
-        "ie": -8.94,
-        "year": "2016",
-      },
-      {
-        "chrome": 51.76,
-        "firefox": 6.75,
-        "safari": 14.54,
-        "year": "2017",
-      },
-      {
-        "firefox": "illegal value",
-        "ie": 3.2,
-        "safari": 14.44,
-        "year": "2018",
-      },
-      {
-        "chrome": 61.72,
-        "ie": 2.7,
-        "safari": 15.23,
-        "year": "2019",
-      },
-    ],
-    "series-b" => [
-      {
-        "chrome": "illegal value",
-        "firefox": 26.85,
-        "safari": 2.79,
-        "year": "2009",
-      },
-      {
-        "firefox": 31.15,
-        "ie": 54.39,
-        "safari": 4.22,
-        "year": "2010",
-      },
-      {
-        "chrome": 15.01,
-        "ie": 44.03,
-        "safari": 5.94,
-        "year": "2011",
-      },
-      {
-        "chrome": 25.99,
-        "firefox": 22.69,
-        "ie": "illegal value",
-        "year": "2012",
-      },
-      {
-        "chrome": 31.71,
-        "firefox": undefined,
-        "safari": undefined,
-        "year": "2013",
-      },
-      {
-        "firefox": 14.77,
-        "ie": 17.75,
-        "safari": 12.63,
-        "year": "2014",
-      },
-      {
-        "chrome": 42.27,
-        "ie": -13.3,
-        "safari": "illegal value",
-        "year": "2015",
-      },
-      {
-        "chrome": 47.79,
-        "firefox": 8.97,
-        "ie": -8.94,
-        "year": "2016",
-      },
-      {
-        "chrome": 51.76,
-        "firefox": 6.75,
-        "safari": 14.54,
-        "year": "2017",
-      },
-      {
-        "firefox": "illegal value",
-        "ie": 3.2,
-        "safari": 14.44,
-        "year": "2018",
-      },
-      {
-        "chrome": 61.72,
-        "ie": 2.7,
-        "safari": 15.23,
-        "year": "2019",
-      },
-    ],
-    "series-c" => [
-      {
-        "chrome": "illegal value",
-        "firefox": 26.85,
-        "safari": 2.79,
-        "year": "2009",
-      },
-      {
-        "firefox": 31.15,
-        "ie": 54.39,
-        "safari": 4.22,
-        "year": "2010",
-      },
-      {
-        "chrome": 15.01,
-        "ie": 44.03,
-        "safari": 5.94,
-        "year": "2011",
-      },
-      {
-        "chrome": 25.99,
-        "firefox": 22.69,
-        "ie": "illegal value",
-        "year": "2012",
-      },
-      {
-        "chrome": 31.71,
-        "firefox": undefined,
-        "safari": undefined,
-        "year": "2013",
-      },
-      {
-        "firefox": 14.77,
-        "ie": 17.75,
-        "safari": 12.63,
-        "year": "2014",
-      },
-      {
-        "chrome": 42.27,
-        "ie": -13.3,
-        "safari": "illegal value",
-        "year": "2015",
-      },
-      {
-        "chrome": 47.79,
-        "firefox": 8.97,
-        "ie": -8.94,
-        "year": "2016",
-      },
-      {
-        "chrome": 51.76,
-        "firefox": 6.75,
-        "safari": 14.54,
-        "year": "2017",
-      },
-      {
-        "firefox": "illegal value",
-        "ie": 3.2,
-        "safari": 14.44,
-        "year": "2018",
-      },
-      {
-        "chrome": 61.72,
-        "ie": 2.7,
-        "safari": 15.23,
-        "year": "2019",
-      },
-    ],
-  },
-  "defs": {
-    "allScopesHaveSameDefs": false,
-    "keys": [
-      {
-        "index": 0,
-        "missing": Map {},
-        "property": "year",
-        "scopes": [
-          "test",
-        ],
-        "type": "key",
-        "valueType": "category",
-      },
-    ],
-    "values": [
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 0,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "ie",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 1,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "chrome",
-        "scopes": [
-          "series-a",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 2,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "firefox",
-        "scopes": [
-          "series-b",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 3,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "safari",
-        "scopes": [
-          "series-c",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-    ],
-  },
-  "domain": {
-    "keys": [
-      [
-        "2009",
-        "2010",
-        "2011",
-        "2012",
-        "2013",
-        "2014",
-        "2015",
-        "2016",
-        "2017",
-        "2018",
-        "2019",
-      ],
-    ],
-    "values": [
-      [
-        -13.3,
-        54.39,
-      ],
-      [
-        15.01,
-        61.72,
-      ],
-      [
-        6.75,
-        31.15,
-      ],
-      [
-        2.79,
-        15.23,
-      ],
-    ],
-  },
-  "input": {
-    "count": 11,
-  },
-  "invalidData": Map {
-    "test" => [
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    ],
-    "series-a" => [
-      true,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-      false,
-    ],
-    "series-b" => [
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-    ],
-    "series-c" => [
-      false,
-      false,
-      false,
-      false,
-      true,
-      false,
-      true,
-      false,
-      false,
-      false,
-      false,
-    ],
-  },
-  "invalidKeyCount": Map {},
-  "invalidKeys": Map {},
-  "keys": [
-    Map {
-      "test" => [
-        "2009",
-        "2010",
-        "2011",
-        "2012",
-        "2013",
-        "2014",
-        "2015",
-        "2016",
-        "2017",
-        "2018",
-        "2019",
-      ],
-    },
-  ],
-  "partialValidDataCount": 6,
-  "scopes": Set {
-    "test",
-    "series-a",
-    "series-b",
-    "series-c",
-  },
-  "time": Any<Number>,
-  "type": "ungrouped",
-  Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
-  Symbol(column-sort-orders): Map {},
-}
-`;
-
-exports[`DataModel missing and invalid data processing should generated the expected results 1`] = `
-{
-  "aggregation": undefined,
-  "columnScopes": [
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-  ],
-  "columns": [
-    [
-      null,
-      54.39,
-      44.03,
-      NaN,
-      null,
-      17.75,
-      -13.3,
-      -8.94,
-      null,
-      3.2,
-      2.7,
-    ],
-    [
-      NaN,
-      null,
-      15.01,
-      25.99,
-      31.71,
-      null,
-      42.27,
-      47.79,
-      51.76,
-      null,
-      61.72,
-    ],
-    [
-      26.85,
-      31.15,
-      null,
-      22.69,
-      NaN,
-      14.77,
-      null,
-      8.97,
-      6.75,
-      NaN,
-      null,
-    ],
-    [
-      2.79,
-      4.22,
-      5.94,
-      null,
-      NaN,
-      12.63,
-      NaN,
-      null,
-      14.54,
-      14.44,
-      15.23,
-    ],
-  ],
-  "dataSources": Map {
-    "test" => [
-      {
-        "chrome": "illegal value",
-        "firefox": 26.85,
-        "safari": 2.79,
-        "year": "2009",
-      },
-      {
-        "firefox": 31.15,
-        "ie": 54.39,
-        "safari": 4.22,
-        "year": "2010",
-      },
-      {
-        "chrome": 15.01,
-        "ie": 44.03,
-        "safari": 5.94,
-        "year": "2011",
-      },
-      {
-        "chrome": 25.99,
-        "firefox": 22.69,
-        "ie": "illegal value",
-        "year": "2012",
-      },
-      {
-        "chrome": 31.71,
-        "firefox": undefined,
-        "safari": undefined,
-        "year": "2013",
-      },
-      {
-        "firefox": 14.77,
-        "ie": 17.75,
-        "safari": 12.63,
-        "year": "2014",
-      },
-      {
-        "chrome": 42.27,
-        "ie": -13.3,
-        "safari": "illegal value",
-        "year": "2015",
-      },
-      {
-        "chrome": 47.79,
-        "firefox": 8.97,
-        "ie": -8.94,
-        "year": "2016",
-      },
-      {
-        "chrome": 51.76,
-        "firefox": 6.75,
-        "safari": 14.54,
-        "year": "2017",
-      },
-      {
-        "firefox": "illegal value",
-        "ie": 3.2,
-        "safari": 14.44,
-        "year": "2018",
-      },
-      {
-        "chrome": 61.72,
-        "ie": 2.7,
-        "safari": 15.23,
-        "year": "2019",
-      },
-    ],
-  },
-  "defs": {
-    "allScopesHaveSameDefs": true,
-    "keys": [
-      {
-        "index": 0,
-        "missing": Map {},
-        "property": "year",
-        "scopes": [
-          "test",
-        ],
-        "type": "key",
-        "valueType": "category",
-      },
-    ],
-    "values": [
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 0,
-        "invalidValue": NaN,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "ie",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 1,
-        "invalidValue": NaN,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "chrome",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 2,
-        "invalidValue": NaN,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "firefox",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 3,
-        "invalidValue": NaN,
-        "missing": Map {},
-        "missingValue": null,
-        "property": "safari",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "validation": [Function],
-        "valueType": "range",
-      },
-    ],
-  },
-  "domain": {
-    "keys": [
-      [
-        "2009",
-        "2010",
-        "2011",
-        "2012",
-        "2013",
-        "2014",
-        "2015",
-        "2016",
-        "2017",
-        "2018",
-        "2019",
-      ],
-    ],
-    "values": [
-      [
-        -13.3,
-        54.39,
-      ],
-      [
-        15.01,
-        61.72,
-      ],
-      [
-        6.75,
-        31.15,
-      ],
-      [
-        2.79,
-        15.23,
-      ],
-    ],
-  },
-  "input": {
-    "count": 11,
-  },
-  "invalidData": Map {
-    "test" => [
-      true,
-      false,
-      false,
-      true,
-      true,
-      false,
-      true,
-      false,
-      false,
-      true,
-      false,
-    ],
-  },
-  "invalidKeyCount": Map {},
-  "invalidKeys": Map {},
-  "keys": [
-    Map {
-      "test" => [
-        "2009",
-        "2010",
-        "2011",
-        "2012",
-        "2013",
-        "2014",
-        "2015",
-        "2016",
-        "2017",
-        "2018",
-        "2019",
-      ],
-    },
-  ],
-  "partialValidDataCount": 6,
-  "scopes": Set {
-    "test",
-  },
-  "time": Any<Number>,
-  "type": "ungrouped",
-  Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
-  Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel repeated property processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5177,24 +4385,35 @@ exports[`DataModel repeated property processing should generated the expected re
     "count": 5,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "ungrouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel ungrouped processing - accumulated and normalised properties should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5344,24 +4563,34 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
     "count": 8,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "ungrouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
   Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;
 
 exports[`DataModel ungrouped processing should generated the expected results 1`] = `
 {
   "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+  ],
   "columnScopes": [
     Set {
       "test",
@@ -5809,6 +5038,7 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
     "count": 52,
   },
   "invalidData": Map {},
+  "invalidDataCount": Map {},
   "invalidKeyCount": Map {},
   "invalidKeys": Map {},
   "keys": [
@@ -5869,14 +5099,25 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
       ],
     },
   ],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
   "partialValidDataCount": 0,
   "scopes": Set {
     "test",
   },
   "time": Any<Number>,
   "type": "ungrouped",
+  "version": Any<Number>,
   Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
+  Symbol(key-sort-orders): Map {
+    0 => {
+      "isDirty": false,
+      "isUnique": true,
+      "sortOrder": 1,
+    },
+  },
   Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
 }
 `;

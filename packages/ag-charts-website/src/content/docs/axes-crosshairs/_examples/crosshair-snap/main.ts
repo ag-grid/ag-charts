@@ -1,7 +1,27 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -15,17 +35,15 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             crosshair: {
                 snap: false,
             },
         },
-        {
+        x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
@@ -33,7 +51,7 @@ const options: AgCartesianChartOptions = {
                 snap: false,
             },
         },
-    ],
+    },
     tooltip: {
         enabled: false,
     },

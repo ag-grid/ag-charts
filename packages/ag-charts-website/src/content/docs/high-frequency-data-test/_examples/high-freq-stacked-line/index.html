@@ -1,0 +1,22 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <button id="toggleBtn" onclick="toggleUpdates()">Start Updates</button>
+        <select id="methodSelect" onchange="updateMethod(this.value)">
+            <option value="updateDelta">updateDelta()</option>
+            <option value="applyTransaction">applyTransaction()</option>
+        </select>
+        <span id="updateRate" style="margin-left: 10px">Updates: 50ms</span>
+        <input
+            type="range"
+            id="rateSlider"
+            min="10"
+            max="200"
+            value="50"
+            step="10"
+            oninput="updateRate(this.value)"
+            style="margin-left: 10px"
+        />
+        <span id="cpuUsage" style="margin-left: 10px">CPU: 0%</span>
+    </div>
+</div>
+<div id="myChart"></div>

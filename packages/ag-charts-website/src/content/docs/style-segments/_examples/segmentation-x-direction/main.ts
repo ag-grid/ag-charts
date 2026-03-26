@@ -1,7 +1,9 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { DataType, data } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'Performance Variance' },
@@ -27,10 +29,10 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        { type: 'unit-time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'unit-time' },
+        y: { type: 'number' },
+    },
 };
 
 AgCharts.create(options);

@@ -1,7 +1,7 @@
-import { CleanupRegistry } from 'ag-charts-core';
+import { ChartUpdateType, CleanupRegistry } from 'ag-charts-core';
+import type { ZoomMinMax } from 'ag-charts-core';
 
-import type { EventsHub, ZoomState } from '../../core/eventsHub';
-import { ChartUpdateType } from '../chartUpdateType';
+import type { EventsHub } from '../../core/eventsHub';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ZoomManager } from '../interaction/zoomManager';
@@ -11,7 +11,7 @@ import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
     private dirtyDataSource = false;
-    private readonly lastAxisZooms = new Map<string, ZoomState>();
+    private readonly lastAxisZooms = new Map<string, ZoomMinMax>();
 
     private readonly cleanup = new CleanupRegistry();
 
@@ -28,7 +28,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             this.eventsHub.on('data:load', () => this.onDataLoad()),
             this.eventsHub.on('data:error', () => this.onDataError()),
             this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
-            this.eventsHub.on('zoom:change', () => this.onZoomChange())
+            this.eventsHub.on('zoom:change-complete', () => this.onZoomChange())
         );
     }
 
@@ -38,11 +38,11 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onDataLoad() {
         this.animationManager.skip();
-        this.updateService.update(ChartUpdateType.UPDATE_DATA);
+        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.UPDATE_DATA });
     }
 
     private onDataError() {
-        this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+        this.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
     }
 
     private onDataSourceChange() {
@@ -51,6 +51,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onUpdateComplete(event: UpdateCompleteEvent) {
         if (!event.apiUpdate && !this.dirtyZoom && !this.dirtyDataSource) return;
+
+        // If the update was shortcut, skip the window update as we are expecting another update shortly.
+        if (event.wasShortcut) return;
+
         this.updateWindow(event);
     }
 
@@ -68,11 +72,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
         if (axis) {
             const zoom = this.zoomManager.getAxisZoom(axis.id);
-
-            if (zoom.min !== 0 || zoom.max !== 1) {
-                window = this.getAxisWindow(axis, zoom);
-            }
-
+            window = this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
 
@@ -88,7 +88,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
-    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomState) {
+    private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomMinMax) {
         if (event.apiUpdate) return true;
         if (this.dirtyDataSource) return true;
         if (!this.dirtyZoom) return false;
@@ -103,10 +103,10 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         return true;
     }
 
-    private getAxisWindow(axis: AxisLike, zoom: ZoomState) {
+    private getAxisWindow(axis: AxisLike, zoom: ZoomMinMax) {
         const { domain } = axis.scale;
 
-        if (!zoom || domain.length === 0 || isNaN(Number(domain[0]))) return;
+        if (!zoom || domain.length === 0 || Number.isNaN(Number(domain[0]))) return;
 
         const diff = Number(domain[1]) - Number(domain[0]);
 

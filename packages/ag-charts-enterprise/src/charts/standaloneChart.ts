@@ -1,20 +1,29 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { HierarchyDataSet } from './hierarchyDataSet';
+
 const { Chart } = _ModuleSupport;
 
 export class StandaloneChart extends Chart {
-    static readonly className = 'StandaloneChart';
+    static override readonly className = 'StandaloneChart';
     static readonly type = 'standalone' as const;
 
     override getChartType() {
         return 'standalone' as const;
     }
 
+    protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
+        for (const series of this.series) {
+            if ('childrenKey' in series.properties) {
+                return new HierarchyDataSet(data, this.dataIdKey, series.properties.childrenKey);
+            }
+        }
+        return super.createDataSet(data);
+    }
+
     protected performLayout(ctx: _ModuleSupport.LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
-        const { layoutBox } = ctx;
-
-        const seriesRect = layoutBox.clone().shrink(this.modulesManager.getModule<any>('seriesArea').getPadding());
+        const seriesRect = ctx.layoutBox.clone().shrink(this.seriesArea.getPadding());
 
         this.seriesRect = seriesRect;
         this.animationRect = seriesRect;
@@ -27,7 +36,8 @@ export class StandaloneChart extends Chart {
         seriesRoot.visible = this.series[0].visible;
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: ctx.layoutBox },
+            layoutBox: ctx.layoutBox,
         });
     }
 

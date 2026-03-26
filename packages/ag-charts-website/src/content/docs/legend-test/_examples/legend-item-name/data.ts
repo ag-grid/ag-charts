@@ -1,7 +1,7 @@
 export function getData() {
     return [
         {
-            year: new Date().getFullYear() - 2,
+            year: 2023,
             NAQ1: 14,
             EURQ1: 16,
             ASIAQ1: 14,
@@ -16,7 +16,7 @@ export function getData() {
             ASIAQ4: 14,
         },
         {
-            year: new Date().getFullYear() - 1,
+            year: 2024,
             NAQ1: 13,
             EURQ1: 14,
             ASIAQ1: 16,
@@ -31,7 +31,7 @@ export function getData() {
             ASIAQ4: 15,
         },
         {
-            year: new Date().getFullYear(),
+            year: 2025,
             NAQ1: 16,
             EURQ1: 14,
             ASIAQ1: 16,

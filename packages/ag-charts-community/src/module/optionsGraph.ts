@@ -1,11 +1,18 @@
-import { AdjacencyListGraph, type PlainObject, type Vertex, isObject, isObjectLike } from 'ag-charts-core';
+import {
+    AdjacencyListGraph,
+    Debug,
+    ModuleRegistry,
+    type PlainObject,
+    type Vertex,
+    isObject,
+    isObjectLike,
+    isPlainObject,
+    pick,
+    simpleMemorize,
+    without,
+} from 'ag-charts-core';
 
-import { chartTypes } from '../chart/factory/chartTypes';
-import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import type { ChartTheme } from '../chart/themes/chartTheme';
-import { Debug } from '../util/debug';
-import { simpleMemorize } from '../util/memo';
-import { pick, without } from '../util/object';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { type Operation, getOperation, isOperation, operations } from './optionsGraphOperations';
 import {
@@ -31,20 +38,55 @@ import {
 
 const debug = Debug.create('opts', 'options-graph');
 
+// Interface that only exposes safe access methods to the OptionsGraph.
+export interface OptionsGraphAccessor {
+    resolve(): PlainObject;
+    resolveParams(): PlainObject;
+    resolveAnnotationThemes(): PlainObject;
+    resolvePartial(
+        path: Array<string>,
+        partialOptions?: PlainObject,
+        resolveOptions?: OptionsGraphAccessorResolvePartialOptions
+    ): PlainObject | undefined;
+    clearSafe(): void;
+}
+
+export interface OptionsGraphAccessorResolvePartialOptions {
+    permissivePath?: boolean;
+    pick?: boolean;
+    proxyPaths?: Record<string, Array<string>>;
+}
+
 export const createOptionsGraph = simpleMemorize(createOptionsGraphFn);
-export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject) {
-    return debug.group(
-        'OptionsGraph.constructor()',
-        () =>
-            new OptionsGraph(
-                theme.config,
-                options,
-                theme.params,
-                theme.palette,
-                theme.overrides,
-                theme.getTemplateParameters()
-            )
-    );
+export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): OptionsGraphAccessor {
+    return debug.group('OptionsGraph.constructor()', () => {
+        const optionsGraph = new OptionsGraph(
+            theme.config,
+            options,
+            theme.params,
+            theme.palette,
+            theme.overrides,
+            theme.getTemplateParameters()
+        );
+
+        return {
+            resolve() {
+                return optionsGraph.resolve();
+            },
+            resolveParams() {
+                return optionsGraph.resolveParams();
+            },
+            resolveAnnotationThemes() {
+                return optionsGraph.resolveAnnotationThemes();
+            },
+            resolvePartial(path, partialOptions, resolveOptions) {
+                return optionsGraph.resolvePartial(path, partialOptions, resolveOptions);
+            },
+            clearSafe() {
+                return optionsGraph.clearSafe();
+            },
+        };
+    });
 }
 
 /**
@@ -81,6 +123,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // A cache of values that persists between chart updates, use sparingly.
     private static readonly valueCache = new Map();
 
+    public static clearValueCache() {
+        OptionsGraph.valueCache.clear();
+    }
+
     public readonly paletteType: PaletteType;
 
     // The current priority order in which to resolve options values.
@@ -113,6 +159,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     private rollbackEdgesValue: Array<string> = [];
     private isRollingBack = false;
 
+    // Records the already resolved root ancestors, i.e. vertices with a path of a single segment
+    private readonly resolvedRootAncestorsPaths = new Set();
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
@@ -131,12 +180,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
         // Extract the primary series type, bypassing the graph so we have it ready immediately.
         const seriesType = userOptions.series?.[0]?.type ?? 'line';
-
-        // Apply the default axes of the primary series type if none are provided by the user.
-        userOptions.axes ??=
-            seriesRegistry.predictAxes(seriesType, userOptions.series?.[0], userOptions.data) ??
-            seriesRegistry.cloneDefaultAxes(seriesType) ??
-            [];
 
         // Build the initial user options, defaults, common and series overrides graphs on the root.
         debug('build user');
@@ -157,7 +200,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             this.buildGraphFromObject(
                 this.root,
                 OVERRIDES_EDGE,
-                chartTypes.isCartesian(seriesType) ? commonOverrides : without(commonOverrides, ['zoom', 'navigator'])
+                ModuleRegistry.getSeriesModule(seriesType)?.chartType === 'cartesian'
+                    ? commonOverrides
+                    : without(commonOverrides, ['zoom', 'navigator'])
             );
         }
 
@@ -626,10 +671,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
      */
     graftValue(target: Vertex<unknown>, path: string, ontoObject: unknown, value: unknown, edgeValue = this.graftEdge) {
         const pathArray = [...this.getPathArray(target), path];
+        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.value$1.set(pathArray.join('.'), value);
-
-        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
 
         this.buildGraphFromValue(target, pathVertex, edgeValue, pathArray, ontoObject);
         this.buildDependencyGraph();
@@ -647,6 +691,30 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.resolveVertex(orphanVertex, orphan);
 
         return getPathSafe(orphan, contextPathArray);
+    }
+
+    /**
+     * Resolve a value as if it were a child of the context vertex, but without attaching it to the resolved root.
+     */
+    graftAndResolveOrphanValue(
+        context: Vertex<unknown>,
+        path: string,
+        ontoObject: unknown,
+        value: unknown,
+        edgeValue = this.graftEdge
+    ) {
+        const orphan: PlainObject = {};
+        const orphanVertex = this.addVertex(orphan);
+        const contextPathArray = this.getPathArray(context);
+        const pathArray = [...contextPathArray, path];
+        const pathVertex = this.findVertexAtPath(pathArray) ?? this.addVertex(path);
+
+        this.value$1.set(pathArray.join('.'), value);
+
+        this.buildGraphFromValue(orphanVertex, pathVertex, edgeValue, pathArray, ontoObject);
+        this.resolveVertex(orphanVertex, orphan);
+
+        return getPathSafe(orphan, pathArray);
     }
 
     private buildGraphFromObject(
@@ -897,14 +965,32 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
 
     private resolveVertex(vertex: Vertex<unknown>, object: PlainObject = this.resolved!, prune?: unknown) {
         const pathArray = this.getPathArray(vertex);
+        const rootAncestorPath = pathArray[0];
 
-        // TODO: is it resolving the same vertex multiple times, is that a bug, or should it just skip it if already resolved?
-        // if (debug.check()) {
-        //     if (pathArray.length > 0 && object === this.resolved && getPathSafe(object, pathArray) != null) {
-        //         // eslint-disable-next-line no-console
-        //         console.warn('duplicate resolve', pathArray.join('.'), getPathSafe(object, pathArray));
-        //     }
-        // }
+        if (pathArray.length === 1) {
+            this.resolvedRootAncestorsPaths.add(rootAncestorPath);
+        }
+
+        // Resolve the full ancestor object if attempting to resolve a child before the ancestor. For example,
+        // `/series/0/type` must be resolved after `/series`, otherwise the de-duplication below will prevent
+        // subsequent resolving from filling out the full ancestor object.
+        if (pathArray.length > 1 && !this.resolvedRootAncestorsPaths.has(rootAncestorPath)) {
+            const rootAncestorVertex = this.findVertexAtPath([rootAncestorPath]);
+            if (rootAncestorVertex) {
+                this.resolveVertex(rootAncestorVertex, object, prune);
+                return;
+            }
+        }
+
+        // Only resolve vertices once, to prevent duplication of vertices and edges. This is only applied to when not
+        // partially resolving or using a custom path branch and also only for simple non-object values to avoid
+        // skipping unresolved children.
+        if (this.userPartialOptions == null && object === this.resolved && pathArray.length > 0) {
+            const resolvedVertexValue = getPathSafe(object, pathArray);
+            if (resolvedVertexValue != null && !isPlainObject(resolvedVertexValue)) {
+                return;
+            }
+        }
 
         this.resolveVertexInEdgePriority(vertex, object, pathArray, prune);
         this.resolveVertexAutoEnable(vertex, object, pathArray);
@@ -933,10 +1019,9 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             if (children && children.length > 0 && edgeValue !== highestPriority) continue;
 
             // Do not resolve edges that have been pruned
-            if (Array.isArray(prune) && prune.indexOf(edgeValue) >= 0) continue;
+            if (Array.isArray(prune) && prune.includes(edgeValue)) continue;
 
-            this.hasUnsafeClearKeys ||=
-                value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray[pathArray.length - 1]);
+            this.hasUnsafeClearKeys ||= value != null && OptionsGraph.UNSAFE_CLEAR_KEYS.has(pathArray.at(-1)!);
 
             if (pathArray.length === 0) {
                 if (value == null) continue;
@@ -971,8 +1056,12 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!autoEnableValueVertex) return;
 
         const pathVertex = this.findVertexAtPath(pathArray);
-        const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as PlainObject;
-        const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as PlainObject;
+        const defaultsEnabled = this.findNeighbourValue(autoEnableValueVertex, DEFAULTS_EDGE) as
+            | PlainObject
+            | undefined;
+        const overridesEnabled = this.findNeighbourValue(autoEnableValueVertex, OVERRIDES_EDGE) as
+            | PlainObject
+            | undefined;
         const userOptionsEnabled = this.findNeighbourValue(autoEnableValueVertex, USER_OPTIONS_EDGE) as
             | PlainObject
             | undefined;
@@ -983,7 +1072,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
             ? undefined
             : (this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as PlainObject | undefined);
 
-        const isUserEnabled: boolean =
+        const isUserEnabled =
             (userOptionsEnabled != null && userOptionsEnabled.enabled == null) ||
             (userPartialOptionsEnabled != null && userPartialOptionsEnabled.enabled == null);
 
@@ -1017,7 +1106,6 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         if (!dependencies) return;
 
         for (const dependency of dependencies) {
-            // TODO: should it check here to not resolve if already resolved?
             this.resolveVertex(dependency);
         }
     }
@@ -1104,5 +1192,226 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         this.rollbackEdgesTo = [];
         this.rollbackEdgesValue = [];
         this.isRollingBack = false;
+    }
+
+    private diagramKeys?: Map<string, string>;
+    private diagramEdges?: Map<string, Set<string>>;
+    /**
+     * Console log a flowchart diagram of the graph at the given path.
+     */
+    diagram(pathArray: Array<string>, maxDepth: number = 2) {
+        this.diagramKeys = new Map();
+        this.diagramEdges = new Map();
+
+        const vertex = this.findVertexAtPath(pathArray);
+        const diagram: Array<string> = [
+            '---',
+            'config:',
+            '  layout: elk',
+            '  look: neo',
+            '  theme: redux',
+            '---',
+            'flowchart TB',
+        ];
+
+        if (vertex) {
+            this.diagramVertex(diagram, vertex as any, 1, maxDepth);
+        }
+
+        diagram.push('classDef UO fill: #e8f5e8, stroke: #4caf50');
+        diagram.push('classDef DE fill: #e3f2fd, stroke: #2196f3');
+        diagram.push('classDef DEP fill: #ffe0fd, stroke: #ff00f2');
+        diagram.push('classDef OP fill: #fff3e0, stroke: #ff9800');
+        diagram.push('classDef OPV fill: #fff3e0, stroke: #ff9800, stroke-width: 1px');
+        diagram.push('classDef OV fill: #e8f5ee, stroke: #4caf87');
+
+        // eslint-disable-next-line no-console
+        console.log(diagram.join('\n'));
+    }
+
+    private diagramKey(path: string) {
+        let diagramKey = this.diagramKeys!.get(path);
+        if (!diagramKey) {
+            diagramKey = `${this.diagramKeys!.size}`;
+            this.diagramKeys!.set(path, diagramKey);
+        }
+        return diagramKey;
+    }
+
+    private diagramLabel(path: string, vertex: Vertex<unknown, string>, edge?: string) {
+        let diagramKey = this.diagramKeys!.get(path);
+        if (diagramKey) return diagramKey;
+
+        diagramKey = this.diagramKey(path);
+
+        const classNames: any = {
+            [USER_OPTIONS_EDGE]: 'UO',
+            [DEFAULTS_EDGE]: 'DE',
+            [DEPENDENCY_EDGE]: 'DEP',
+            [OPERATION_EDGE]: 'OP',
+            [OPERATION_VALUE_EDGE]: 'OPV',
+            [OVERRIDES_EDGE]: 'OV',
+        };
+        let className = edge ? classNames[edge] ?? undefined : undefined;
+        className = className ? `:::${className}` : '';
+
+        if (typeof vertex.value === 'symbol') {
+            return `${diagramKey}[/"[symbol]"\\]${className}`;
+        } else if (Array.isArray(vertex.value)) {
+            return `${diagramKey}[/"[array]"\\]${className}`;
+        } else if (typeof vertex.value === 'object') {
+            return `${diagramKey}[/"[object]"\\]${className}`;
+        } else if (edge === DEFAULTS_EDGE || edge === USER_OPTIONS_EDGE || edge === OVERRIDES_EDGE) {
+            return `${diagramKey}("${vertex.value as any}")${className}`;
+        } else {
+            return `${diagramKey}["${vertex.value as any}"]${className}`;
+        }
+    }
+
+    private diagramVertex(diagram: Array<string>, vertex: Vertex<unknown, string>, depth: number, maxDepth: number) {
+        const pathArray = this.getPathArray(vertex);
+        const path = pathArray.length > 0 ? pathArray.join('.') : 'root';
+
+        this.diagramNeighbours(diagram, path, vertex, depth + 1, maxDepth);
+
+        let diagramKey = this.diagramKeys!.get(path);
+        if (!diagramKey) {
+            diagramKey = this.diagramKey(path);
+            diagram.push(`\t${diagramKey}["${vertex.value as any}"]`);
+        }
+    }
+
+    private diagramNeighbours(
+        diagram: Array<string>,
+        path: string,
+        vertex: Vertex<unknown, string>,
+        depth: number,
+        maxDepth: number
+    ) {
+        for (const neighbour of this.neighboursWithEdgeValue(vertex, PATH_EDGE) ?? []) {
+            const neighbourPathArray = this.getPathArray(neighbour);
+            const neighbourPath = neighbourPathArray.length > 0 ? neighbourPathArray.join('.') : 'root';
+
+            if (depth < maxDepth) {
+                this.diagramVertex(diagram, neighbour as any, depth + 1, maxDepth);
+            }
+            this.diagramChild(diagram, PATH_EDGE, path, vertex, neighbourPath, vertex);
+        }
+
+        const userValues = this.neighboursWithEdgeValue(vertex, USER_OPTIONS_EDGE) ?? [];
+        let index = 0;
+        for (const userValue of userValues) {
+            this.diagramChild(
+                diagram,
+                USER_OPTIONS_EDGE,
+                path,
+                vertex,
+                `${path}.${USER_OPTIONS_EDGE}.${index}`,
+                userValue as any
+            );
+            index++;
+        }
+
+        const defaultValues = this.neighboursWithEdgeValue(vertex, DEFAULTS_EDGE) ?? [];
+        index = 0;
+        for (const defaultValue of defaultValues) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                DEFAULTS_EDGE,
+                path,
+                vertex,
+                `${path}.${DEFAULTS_EDGE}.${index}`,
+                defaultValue as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+        }
+
+        const operationVertices = this.neighboursWithEdgeValue(vertex, OPERATION_EDGE) ?? [];
+        index = 0;
+        // for (const operation of operationVertices) {
+        const [operation] = operationVertices;
+        if (operation) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                OPERATION_EDGE,
+                path,
+                vertex,
+                `${path}.${OPERATION_EDGE}.${index}`,
+                operation as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+            // break; // TODO: there should only be 1 operation per vertex
+        }
+
+        const operationValueVertices = this.neighboursWithEdgeValue(vertex, OPERATION_VALUE_EDGE) ?? [];
+        index = 0;
+        for (const operationValue of operationValueVertices) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                OPERATION_VALUE_EDGE,
+                path,
+                vertex,
+                `${path}.${OPERATION_VALUE_EDGE}.${index}`,
+                operationValue as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+        }
+
+        const dependencyVertices = this.neighboursWithEdgeValue(vertex, DEPENDENCY_EDGE) ?? [];
+        index = 0;
+        for (const dependency of dependencyVertices) {
+            this.diagramChildWithNeighbours(
+                diagram,
+                DEPENDENCY_EDGE,
+                path,
+                vertex,
+                this.getPathArray(dependency).join('.'),
+                dependency as any,
+                depth + 1,
+                maxDepth
+            );
+            index++;
+        }
+    }
+
+    private diagramChild(
+        diagram: Array<string>,
+        edge: string,
+        parentPath: string,
+        parentVertex: Vertex<unknown, string>,
+        childPath: string,
+        childVertex: Vertex<unknown, string>
+    ) {
+        let edges = this.diagramEdges!.get(parentPath);
+        if (edges?.has(childPath)) return;
+        if (!edges) {
+            edges = new Set();
+            this.diagramEdges!.set(parentPath, edges);
+        }
+        edges.add(childPath);
+        const edgeString = edge === PATH_EDGE ? '' : `|${edge}|`;
+        diagram.push(
+            `\t${this.diagramLabel(parentPath, parentVertex)} -->${edgeString} ${this.diagramLabel(childPath, childVertex, edge)}`
+        );
+    }
+
+    private diagramChildWithNeighbours(
+        diagram: Array<string>,
+        edge: string,
+        parentPath: string,
+        parentVertex: Vertex<unknown, string>,
+        childPath: string,
+        childVertex: Vertex<unknown, string>,
+        depth: number,
+        maxDepth: number
+    ) {
+        this.diagramChild(diagram, edge, parentPath, parentVertex, childPath, childVertex);
+        this.diagramNeighbours(diagram, childPath, childVertex as any, depth + 1, maxDepth);
     }
 }

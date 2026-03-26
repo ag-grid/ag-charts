@@ -2,15 +2,18 @@ import { type AgRangeBarSeriesOptions, _ModuleSupport } from 'ag-charts-communit
 import {
     type OptionsDefs,
     boolean,
+    commonSeriesOptionsDefs,
     constant,
     number,
+    positiveNumberNonZero,
+    ratio,
     required,
     shapeSegmentation,
     string,
     undocumented,
 } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, rangeBarSeriesThemeableOptionsDef } = _ModuleSupport;
+const { rangeBarSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -19,11 +22,16 @@ export const rangeBarSeriesOptionsDef: OptionsDefs<AgRangeBarSeriesOptions> = {
     xKey: required(string),
     yLowKey: required(string),
     yHighKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     yLowName: string,
     yHighName: string,
+    legendItemName: string,
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 // @ts-expect-error undocumented option

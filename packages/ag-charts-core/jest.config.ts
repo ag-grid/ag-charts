@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 
 // Reading the SWC compilation config and remove the "exclude"
 // for the test files to be compiled by SWC
@@ -21,6 +21,7 @@ const commonConfig = {
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'html'],
     testEnvironment: './jest.jsdom-env.cjs',
     preset: '../../jest.preset.js',
+    modulePathIgnorePatterns: ['<rootDir>/dist'],
     transform: {
         '^.+\\.[tj]s$': ['@swc/jest', swcJestConfig],
     },

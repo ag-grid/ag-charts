@@ -1,7 +1,16 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, NumberAxisModule, RangeAreaSeriesModule, UnitTimeAxisModule]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {
@@ -109,8 +118,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -124,20 +133,18 @@ const options: AgCartesianChartOptions = {
             max: 160,
             interval: { step: 20 },
         },
-        {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 enabled: true,
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             placement: ['right', 'left', 'top', 'bottom'],
         },
-        delay: 100,
     },
 };
 

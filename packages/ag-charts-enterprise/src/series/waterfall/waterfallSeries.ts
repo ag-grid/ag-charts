@@ -3,9 +3,19 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
+    TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    type DomainWithMetadata,
+    type Mutable,
+    type Point,
+    type RequireOptional,
+    easeOut,
+    isContinuous,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -18,12 +28,12 @@ const {
     keyProperty,
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
-    ChartAxisDirection,
     createDatumId,
     checkCrisp,
     updateLabelNode,
     prepareBarAnimationFunctions,
     collapsedStartingBarPosition,
+    resetBarSelectionsDirect,
     resetBarSelectionsFn,
     seriesLabelFadeInAnimation,
     resetLabelFn,
@@ -31,16 +41,16 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    isContinuous,
     Rect,
     motion,
-    applyShapeStyle,
-    mergeDefaults,
     getItemStylesPerItemId,
+    DataSet,
+    processedDataIsAnimatable,
+    upsertNodeDatum,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<Point> & {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
 };
@@ -52,7 +62,8 @@ type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] 
 
 interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<Point> {
     readonly index: number;
-    readonly itemId: AgWaterfallSeriesItemType;
+    readonly itemId?: never;
+    readonly itemType: AgWaterfallSeriesItemType;
     readonly cumulativeValue: number;
     readonly width: number;
     readonly height: number;
@@ -69,22 +80,69 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
     styles: Record<AgWaterfallSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<Required<AgWaterfallSeriesStyle>>>;
 }
 
+<<<<<<< HEAD
 type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     WaterfallNodeDatum,
     _ModuleSupport.Rect<WaterfallNodeDatum>,
     WaterfallNodeDatum,
     WaterfallContext
 >;
+=======
+/** Internal context for createNodeData() - caches expensive lookups */
+interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<WaterfallNodeDatum> {
+    readonly categoryAxis: _ModuleSupport.ChartAxis;
+    readonly valueAxis: _ModuleSupport.ChartAxis;
+    readonly barAlongX: boolean;
+    readonly barWidth: number;
+    readonly categoryAxisReversed: boolean;
+    readonly valueAxisReversed: boolean;
+    readonly crisp: boolean;
+    // Override from base to make required (Waterfall always has yKey)
+    readonly yKey: string;
+    readonly yName: string | undefined;
+    readonly lineStrokeWidth: number;
+    readonly yDomain: number[];
+    // Data arrays
+    readonly yRawValues: (number | undefined)[];
+    readonly totalTypeValues: (AgWaterfallSeriesItemType | undefined)[];
+    readonly yCurrValues: number[];
+    readonly yPrevValues: number[];
+    readonly yCurrTotalValues: number[];
+    // Mutable state for connector line points (built during populateNodeData)
+    pointData: WaterfallNodePointDatum[];
+}
+>>>>>>> latest
 
-export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect<WaterfallNodeDatum>,
-    AgWaterfallSeriesOptions,
-    WaterfallSeriesProperties,
-    WaterfallNodeDatum,
-    WaterfallNodeDatum,
-    WaterfallContext
-> {
-    static readonly className = 'WaterfallSeries';
+/** Parameters for creating/updating a WaterfallNodeDatum */
+interface WaterfallNodeDatumParams {
+    datumIndex: number;
+    datum: unknown;
+    xDatum: any;
+    value: number | undefined;
+    cumulativeValue: number | undefined;
+    trailingValue: number | undefined;
+    datumType: AgWaterfallSeriesItemType | undefined;
+}
+
+/**
+ * Consolidated type interface for WaterfallSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface WaterfallSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.Rect<WaterfallNodeDatum>;
+    readonly options: AgWaterfallSeriesOptions;
+    readonly properties: WaterfallSeriesProperties;
+    readonly datum: WaterfallNodeDatum;
+    readonly label: WaterfallNodeDatum;
+    readonly context: WaterfallContext;
+    readonly stackContext: never;
+    readonly createNodeDataContext: WaterfallSeriesNodeDatumContext;
+}
+
+type WaterfallAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<WaterfallSeriesTypes>;
+
+export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallSeriesTypes> {
+    static override readonly className = 'WaterfallSeries';
     static readonly type = 'waterfall' as const;
 
     override properties = new WaterfallSeriesProperties();
@@ -109,7 +167,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     override async processData(dataController: _ModuleSupport.DataController) {
         const { xKey, yKey, totals } = this.properties;
-        const { data = [] } = this;
+        const { data } = this;
 
         if (!this.visible) return;
 
@@ -129,12 +187,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return result;
         }, new Map());
 
-        data.forEach((datum, i) => {
+        for (const [i, datum] of data?.data.entries() ?? []) {
             dataWithTotals.push(datum);
             // Use the `toString` method to make the axis labels unique as they're used as categories in the axis scale domain.
             // Add random id property as there is caching for the axis label formatter result. If the label object is not unique, the axis label formatter will not be invoked.
-            totalsMap.get(i)?.forEach((total) => dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel }));
-        });
+            const totalsAtIndex = totalsMap.get(i);
+            if (totalsAtIndex) {
+                for (const total of totalsAtIndex) {
+                    dataWithTotals.push({ ...total.toJson(), [xKey]: total.axisLabel });
+                }
+            }
+        }
 
         const extraProps = [];
 
@@ -146,42 +209,49 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = this.getValueAxis()?.scale;
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
-        const { processedData } = await this.requestDataModel<any, any, true>(dataController, dataWithTotals, {
-            props: [
-                keyProperty(xKey, xScaleType, { id: `xValue` }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrent`,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    missingValue: 0,
-                    id: `yCurrentTotal`,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrentPositive`,
-                    validation: positiveNumber,
-                }),
-                accumulativeValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yCurrentNegative`,
-                    validation: negativeNumber,
-                }),
-                trailingAccumulatedValueProperty(yKey, yScaleType, {
-                    ...propertyDefinition,
-                    id: `yPrevious`,
-                }),
-                valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
-                valueProperty('totalType', 'category', {
-                    id: `totalTypeValue`,
-                    missingValue: undefined,
-                    validation: totalTypeValue,
-                }),
-                ...(isContinuousX ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL] : []),
-                ...extraProps,
-            ],
-        });
+        const allowNullKey = this.properties.allowNullKeys ?? false;
+        const { processedData } = await this.requestDataModel<any, any, true>(
+            dataController,
+            DataSet.wrap(dataWithTotals),
+            {
+                props: [
+                    keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrent`,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        missingValue: 0,
+                        id: `yCurrentTotal`,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrentPositive`,
+                        validation: positiveNumber,
+                    }),
+                    accumulativeValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yCurrentNegative`,
+                        validation: negativeNumber,
+                    }),
+                    trailingAccumulatedValueProperty(yKey, yScaleType, {
+                        ...propertyDefinition,
+                        id: `yPrevious`,
+                    }),
+                    valueProperty(yKey, yScaleType, { id: `yRaw` }), // Raw value pass-through.
+                    valueProperty('totalType', 'category', {
+                        id: `totalTypeValue`,
+                        missingValue: undefined,
+                        validation: totalTypeValue,
+                    }),
+                    ...(isContinuousX
+                        ? [_ModuleSupport.SMALLEST_KEY_INTERVAL, _ModuleSupport.LARGEST_KEY_INTERVAL]
+                        : []),
+                    ...extraProps,
+                ],
+            }
+        );
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;
@@ -191,9 +261,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -203,59 +273,136 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
             const isDirectionY = direction === ChartAxisDirection.Y;
             const isReversed = this.getCategoryAxis()!.isReversed();
-            return this.padBandExtent(keys, isReversed !== isDirectionY);
+            return { domain: this.padBandExtent(keys, isReversed !== isDirectionY) };
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
-    override createNodeData() {
-        const { data, dataModel, processedData } = this;
-        const categoryAxis = this.getCategoryAxis();
-        const valueAxis = this.getValueAxis();
+    protected override populateNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
+        let trailingSubtotal = 0;
 
-        if (!data || !categoryAxis || !valueAxis || !dataModel || !processedData) {
-            return;
+        // Scratch object for params - reused across iterations
+        const paramsScratch: WaterfallNodeDatumParams = {
+            datumIndex: 0,
+            datum: undefined,
+            xDatum: undefined,
+            value: undefined,
+            cumulativeValue: undefined,
+            trailingValue: undefined,
+            datumType: undefined,
+        };
+
+        for (const [datumIndex, datum] of ctx.rawData.entries()) {
+            const datumType = ctx.totalTypeValues[datumIndex];
+            const isSubtotal = this.isSubtotal(datumType);
+            const isTotal = this.isTotal(datumType);
+            const isTotalOrSubtotal = isTotal || isSubtotal;
+
+            const xDatum = ctx.xValues[datumIndex];
+            if (xDatum === undefined && !this.properties.allowNullKeys) continue;
+
+            const rawValue = ctx.yRawValues[datumIndex];
+            const { cumulativeValue, trailingValue } = this.computeWaterfallValues(
+                ctx,
+                datumIndex,
+                isTotal,
+                isSubtotal,
+                trailingSubtotal
+            );
+
+            if (isTotalOrSubtotal) {
+                trailingSubtotal = cumulativeValue ?? 0;
+            }
+
+            const value = this.computeDisplayValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
+
+            // Update scratch params
+            paramsScratch.datumIndex = datumIndex;
+            paramsScratch.datum = datum;
+            paramsScratch.xDatum = xDatum;
+            paramsScratch.value = value;
+            paramsScratch.cumulativeValue = cumulativeValue;
+            paramsScratch.trailingValue = trailingValue;
+            paramsScratch.datumType = datumType;
+
+            // Use shared utility for create/update logic
+            const nodeDatum = upsertNodeDatum(
+                ctx,
+                paramsScratch,
+                (c, p) => this.createNodeDatum(c, p),
+                (c, n, p) => this.updateNodeDatum(c, n, p)
+            );
+
+            if (nodeDatum) {
+                const pathPoint = this.createPointDatum(
+                    ctx,
+                    nodeDatum,
+                    cumulativeValue,
+                    trailingValue,
+                    isTotalOrSubtotal
+                );
+                ctx.pointData.push(pathPoint);
+            }
         }
+    }
 
-        const { line } = this.properties;
-        const xScale = categoryAxis.scale;
-        const yScale = valueAxis.scale;
-        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const barWidth = this.getBandwidth(categoryAxis) ?? 10;
-        const categoryAxisReversed = categoryAxis.isReversed();
-        const valueAxisReversed = valueAxis.isReversed();
+    protected override finalizeNodeData(ctx: WaterfallSeriesNodeDatumContext): void {
+        // Trim excess nodes if the data shrunk
+        if (ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
+        }
+    }
 
-        if (processedData.type !== 'ungrouped') return;
-
-        const context: WaterfallContext = {
+    protected override initializeResult(ctx: WaterfallSeriesNodeDatumContext): WaterfallContext {
+        return {
             itemId: this.properties.yKey,
-            nodeData: [],
-            labelData: [],
+            nodeData: ctx.nodes,
+            labelData: ctx.nodes,
             pointData: [],
             scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
             visible: this.visible,
             styles: getItemStylesPerItemId(this.getItemStyle.bind(this), 'total', 'subtotal', 'positive', 'negative'),
         };
+    }
 
-        if (!this.visible) return context;
+    protected override assembleResult(
+        ctx: WaterfallSeriesNodeDatumContext,
+        result: WaterfallContext
+    ): WaterfallContext {
+        const connectorLinesEnabled = this.properties.line.enabled;
+        if (ctx.yCurrValues != null && connectorLinesEnabled) {
+            result.pointData = ctx.pointData;
+        }
+        return result;
+    }
 
-        const pointData: WaterfallNodePointDatum[] = [];
+    protected override createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
+    ): WaterfallSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData || processedData.type !== 'ungrouped') return undefined;
+
+        const categoryAxis = this.getCategoryAxis();
+        const valueAxis = this.getValueAxis();
+        if (!categoryAxis || !valueAxis) return undefined;
+
+        const xScale = xAxis.scale;
+        const yScale = yAxis.scale;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
@@ -268,139 +415,183 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
-        const crisp = checkCrisp(
-            categoryAxis?.scale,
-            categoryAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
+        const { xKey, yKey, xName, yName, line } = this.properties;
+        const { contextNodeData } = this;
 
-        function getValues(
-            isTotal: boolean,
-            isSubtotal: boolean,
-            datumIndex: number
-        ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
-            if (isTotal || isSubtotal) {
-                return {
-                    cumulativeValue: yCurrTotalValues[datumIndex],
-                    trailingValue: isSubtotal ? trailingSubtotal : 0,
-                };
-            }
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
+        const canIncrementallyUpdate = contextNodeData?.nodeData != null && processedData.changeDescription != null;
 
+        const { barWidth } = this.getBarDimensions();
+
+        return {
+            xAxis,
+            yAxis,
+            xScale,
+            yScale,
+            categoryAxis,
+            valueAxis,
+            barAlongX: this.getBarDirection() === ChartAxisDirection.X,
+            barWidth,
+            categoryAxisReversed: categoryAxis.isReversed(),
+            valueAxisReversed: valueAxis.isReversed(),
+            crisp: checkCrisp(
+                categoryAxis.scale,
+                categoryAxis.visibleRange,
+                this.smallestDataInterval,
+                this.largestDataInterval
+            ),
+            animationEnabled,
+            xKey,
+            yKey,
+            xName,
+            yName,
+            lineStrokeWidth: line.strokeWidth,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
+            xValues,
+            rawData,
+            yRawValues,
+            totalTypeValues,
+            yCurrValues,
+            yPrevValues,
+            yCurrTotalValues,
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? contextNodeData.nodeData : [],
+            nodeIndex: 0,
+            pointData: [],
+        };
+    }
+
+    private computeWaterfallValues(
+        ctx: WaterfallSeriesNodeDatumContext,
+        datumIndex: number,
+        isTotal: boolean,
+        isSubtotal: boolean,
+        trailingSubtotal: number
+    ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
+        if (isTotal || isSubtotal) {
             return {
-                cumulativeValue: yCurrValues[datumIndex],
-                trailingValue: yPrevValues[datumIndex],
+                cumulativeValue: ctx.yCurrTotalValues[datumIndex],
+                trailingValue: isSubtotal ? trailingSubtotal : 0,
             };
         }
 
-        function getValue(
-            isTotal: boolean,
-            isSubtotal: boolean,
-            rawValue?: number,
-            cumulativeValue?: number,
-            trailingValue?: number
-        ) {
-            if (isTotal) {
-                return cumulativeValue;
-            }
-            if (isSubtotal) {
-                return (cumulativeValue ?? 0) - (trailingValue ?? 0);
-            }
-            return rawValue;
+        return {
+            cumulativeValue: ctx.yCurrValues[datumIndex],
+            trailingValue: ctx.yPrevValues[datumIndex],
+        };
+    }
+
+    private computeDisplayValue(
+        isTotal: boolean,
+        isSubtotal: boolean,
+        rawValue?: number,
+        cumulativeValue?: number,
+        trailingValue?: number
+    ): number | undefined {
+        if (isTotal) {
+            return cumulativeValue;
+        }
+        if (isSubtotal) {
+            return (cumulativeValue ?? 0) - (trailingValue ?? 0);
+        }
+        return rawValue;
+    }
+
+    /**
+     * Creates a skeleton WaterfallNodeDatum with minimal required fields.
+     * The node will be populated by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        params: WaterfallNodeDatumParams
+    ): WaterfallNodeDatum {
+        const { xKey, yKey, crisp } = ctx;
+        const { datumIndex, datum, xDatum, value, cumulativeValue, datumType } = params;
+
+        const isPositive = (value ?? 0) >= 0;
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+
+        return {
+            index: datumIndex,
+            series: this,
+            itemType: seriesItemType,
+            datum,
+            datumIndex,
+            cumulativeValue: cumulativeValue ?? 0,
+            xValue: xDatum,
+            yValue: value,
+            yKey,
+            xKey,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            midPoint: { x: 0, y: 0 },
+            crisp,
+            label: { text: '', x: 0, y: 0, textAlign: 'center', textBaseline: 'middle' },
+        };
+    }
+
+    /**
+     * Updates an existing WaterfallNodeDatum in-place.
+     * This is more efficient than recreating the entire node when only data values change.
+     */
+    private updateNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        node: WaterfallNodeDatum,
+        params: WaterfallNodeDatumParams
+    ): void {
+        const { xScale, yScale, barAlongX, barWidth, valueAxisReversed, xKey, yKey, xName, yName, yDomain, crisp } =
+            ctx;
+        const { datumIndex, datum, xDatum, value, cumulativeValue, trailingValue, datumType } = params;
+        const mutableNode = node as Mutable<WaterfallNodeDatum>;
+
+        const x = Math.round(xScale.convert(xDatum));
+        if (!Number.isFinite(x)) return;
+
+        const isPositive = (value ?? 0) >= 0;
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+        const { strokeWidth, label } = this.getItemConfig(seriesItemType);
+
+        const currY = Math.round(yScale.convert(cumulativeValue));
+        const trailY = Math.round(yScale.convert(trailingValue));
+
+        const y = isPositive ? currY : trailY;
+        const bottomY = isPositive ? trailY : currY;
+        const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
+
+        const rectX = barAlongX ? Math.min(y, bottomY) : x;
+        const rectY = barAlongX ? x : Math.min(y, bottomY);
+        const rectWidth = barAlongX ? barHeight : barWidth;
+        const rectHeight = barAlongX ? barWidth : barHeight;
+
+        // Update properties
+        mutableNode.index = datumIndex;
+        mutableNode.itemType = seriesItemType;
+        mutableNode.datum = datum;
+        mutableNode.datumIndex = datumIndex;
+        mutableNode.cumulativeValue = cumulativeValue ?? 0;
+        mutableNode.xValue = xDatum;
+        mutableNode.yValue = value;
+        mutableNode.x = rectX;
+        mutableNode.y = rectY;
+        mutableNode.width = rectWidth;
+        mutableNode.height = rectHeight;
+        mutableNode.crisp = crisp;
+
+        // Update midPoint in place
+        if (mutableNode.midPoint) {
+            mutableNode.midPoint.x = rectX + rectWidth / 2;
+            mutableNode.midPoint.y = rectY + rectHeight / 2;
+        } else {
+            mutableNode.midPoint = { x: rectX + rectWidth / 2, y: rectY + rectHeight / 2 };
         }
 
-        let trailingSubtotal = 0;
-        const { xKey, yKey, xName, yName } = this.properties;
-
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
-            const datumType = totalTypeValues[datumIndex];
-
-            const isSubtotal = this.isSubtotal(datumType);
-            const isTotal = this.isTotal(datumType);
-            const isTotalOrSubtotal = isTotal || isSubtotal;
-
-            const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
-
-            const x = Math.round(xScale.convert(xDatum));
-
-            const rawValue = yRawValues[datumIndex];
-
-            const { cumulativeValue, trailingValue } = getValues(isTotal, isSubtotal, datumIndex);
-
-            if (isTotalOrSubtotal) {
-                trailingSubtotal = cumulativeValue ?? 0;
-            }
-
-            const currY = Math.round(yScale.convert(cumulativeValue));
-            const trailY = Math.round(yScale.convert(trailingValue));
-
-            const value = getValue(isTotal, isSubtotal, rawValue, cumulativeValue, trailingValue);
-            const isPositive = (value ?? 0) >= 0;
-
-            const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { strokeWidth, label } = this.getItemConfig(seriesItemType);
-
-            const y = isPositive ? currY : trailY;
-            const bottomY = isPositive ? trailY : currY;
-            const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
-
-            const rect = {
-                x: barAlongX ? Math.min(y, bottomY) : x,
-                y: barAlongX ? x : Math.min(y, bottomY),
-                width: barAlongX ? barHeight : barWidth,
-                height: barAlongX ? barWidth : barHeight,
-            };
-
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
-
-            const pointY = isTotalOrSubtotal ? currY : trailY;
-            const pixelAlignmentOffset = (Math.floor(line.strokeWidth) % 2) / 2;
-
-            const startY = categoryAxisReversed ? currY : pointY;
-            const stopY = categoryAxisReversed ? pointY : currY;
-
-            let startCoordinates: { x: number; y: number };
-            let stopCoordinates: { x: number; y: number };
-            if (barAlongX) {
-                startCoordinates = {
-                    x: startY + pixelAlignmentOffset,
-                    y: rect.y,
-                };
-                stopCoordinates = {
-                    x: stopY + pixelAlignmentOffset,
-                    y: rect.y + rect.height,
-                };
-            } else {
-                startCoordinates = {
-                    x: rect.x,
-                    y: startY + pixelAlignmentOffset,
-                };
-                stopCoordinates = {
-                    x: rect.x + rect.width,
-                    y: stopY + pixelAlignmentOffset,
-                };
-            }
-
-            const pathPoint = {
-                // lineTo
-                x: categoryAxisReversed ? stopCoordinates.x : startCoordinates.x,
-                y: categoryAxisReversed ? stopCoordinates.y : startCoordinates.y,
-                // moveTo
-                x2: categoryAxisReversed ? startCoordinates.x : stopCoordinates.x,
-                y2: categoryAxisReversed ? startCoordinates.y : stopCoordinates.y,
-                size: 0,
-            };
-
-            pointData.push(pathPoint);
-
-            const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+        // Update label - skip expensive getLabelText() when labels are disabled
+        if (label.enabled) {
+            const itemType = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
             const labelText = this.getLabelText<AgWaterfallSeriesLabelFormatterParams>(
                 value,
                 datum,
@@ -409,7 +600,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 yDomain,
                 label,
                 {
-                    itemId,
+                    itemType,
                     value,
                     datum,
                     xKey,
@@ -420,45 +611,89 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             );
 
             const spacing: number = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
-            const nodeDatum: WaterfallNodeDatum = {
-                index: datumIndex,
-                series: this,
-                itemId: seriesItemType,
-                datum,
-                datumIndex,
-                cumulativeValue: cumulativeValue ?? 0,
-                xValue: xDatum,
-                yValue: value,
-                yKey,
-                xKey,
-                x: rect.x,
+            const labelPlacement = adjustLabelPlacement({
+                isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
+                isVertical: !barAlongX,
+                placement: label.placement,
+                spacing,
+                rect: { x: rectX, y: rectY, width: rectWidth, height: rectHeight },
+            });
+
+            mutableNode.label.text = labelText;
+            mutableNode.label.x = labelPlacement.x;
+            mutableNode.label.y = labelPlacement.y;
+            mutableNode.label.textAlign = labelPlacement.textAlign;
+            mutableNode.label.textBaseline = labelPlacement.textBaseline;
+        } else {
+            // Clear label when disabled
+            mutableNode.label.text = '';
+        }
+    }
+
+    /**
+     * Creates a WaterfallNodeDatum for a single data point.
+     * Creates a skeleton node and uses updateNodeDatum to populate it.
+     */
+    private createNodeDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        params: WaterfallNodeDatumParams
+    ): WaterfallNodeDatum {
+        const node = this.createSkeletonNodeDatum(ctx, params);
+        this.updateNodeDatum(ctx, node, params);
+        return node;
+    }
+
+    private createPointDatum(
+        ctx: WaterfallSeriesNodeDatumContext,
+        nodeDatum: WaterfallNodeDatum,
+        cumulativeValue: number | undefined,
+        trailingValue: number | undefined,
+        isTotalOrSubtotal: boolean
+    ): WaterfallNodePointDatum {
+        const { yScale, barAlongX, categoryAxisReversed, lineStrokeWidth } = ctx;
+
+        const currY = Math.round(yScale.convert(cumulativeValue));
+        const trailY = Math.round(yScale.convert(trailingValue));
+
+        const pointY = isTotalOrSubtotal ? currY : trailY;
+        const pixelAlignmentOffset = (Math.floor(lineStrokeWidth) % 2) / 2;
+
+        const startY = categoryAxisReversed ? currY : pointY;
+        const stopY = categoryAxisReversed ? pointY : currY;
+
+        const rect = { x: nodeDatum.x, y: nodeDatum.y, width: nodeDatum.width, height: nodeDatum.height };
+
+        let startCoordinates: { x: number; y: number };
+        let stopCoordinates: { x: number; y: number };
+        if (barAlongX) {
+            startCoordinates = {
+                x: startY + pixelAlignmentOffset,
                 y: rect.y,
-                width: rect.width,
-                height: rect.height,
-                midPoint: nodeMidPoint,
-                crisp,
-                label: {
-                    text: labelText,
-                    ...adjustLabelPlacement({
-                        isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
-                        isVertical: !barAlongX,
-                        placement: label.placement,
-                        spacing,
-                        rect,
-                    }),
-                },
             };
-
-            context.nodeData.push(nodeDatum);
-            context.labelData.push(nodeDatum);
-        });
-
-        const connectorLinesEnabled = this.properties.line.enabled;
-        if (yCurrValues != null && connectorLinesEnabled) {
-            context.pointData = pointData;
+            stopCoordinates = {
+                x: stopY + pixelAlignmentOffset,
+                y: rect.y + rect.height,
+            };
+        } else {
+            startCoordinates = {
+                x: rect.x,
+                y: startY + pixelAlignmentOffset,
+            };
+            stopCoordinates = {
+                x: rect.x + rect.width,
+                y: stopY + pixelAlignmentOffset,
+            };
         }
 
-        return context;
+        return {
+            // lineTo
+            x: categoryAxisReversed ? stopCoordinates.x : startCoordinates.x,
+            y: categoryAxisReversed ? stopCoordinates.y : startCoordinates.y,
+            // moveTo
+            x2: categoryAxisReversed ? startCoordinates.x : stopCoordinates.x,
+            y2: categoryAxisReversed ? startCoordinates.y : stopCoordinates.y,
+            size: 0,
+        };
     }
 
     private updateSeriesItemTypes() {
@@ -490,11 +725,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
 
-        itemTypes.forEach((type) => {
+        for (const type of itemTypes) {
             if (type === 'total' || type === 'subtotal') {
                 seriesItemTypes.add('total');
             }
-        });
+        }
     }
 
     private isSubtotal(datumType: AgWaterfallSeriesItemType | undefined) {
@@ -534,22 +769,28 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
-        return datumSelection.update(data);
+
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id.
+            return datumSelection.update(data);
+        }
+
+        return datumSelection.update(data, undefined, (datum) => createDatumId(datum.datumIndex));
     }
 
     private getItemStyle(
         nodeDatum: Pick<WaterfallNodeDatum, 'datum' | 'datumIndex'> | undefined,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState,
-        itemId: AgWaterfallSeriesItemType = 'total'
+        itemType: AgWaterfallSeriesItemType = 'total'
     ): Required<AgWaterfallSeriesStyle> {
         const { properties } = this;
         const { datumIndex = 0, datum } = nodeDatum ?? {};
 
-        const propertyItemId = itemId === 'subtotal' ? 'total' : itemId;
+        const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemId));
+        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
 
@@ -559,7 +800,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const overrides = this.cachedDatumCallback(
                 createDatumId(datumIndex, isHighlight ? 'highlight' : 'node'),
                 () => {
-                    const params = this.makeItemStylerParams(itemId, datumIndex, datum, isHighlight, style);
+                    const params = this.makeItemStylerParams(itemType, datumIndex, datum, isHighlight, style);
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`, 'item', propertyItemId],
                         this.callWithContext(itemStyler, params)
@@ -575,7 +816,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private makeItemStylerParams(
-        itemId: AgWaterfallSeriesItemType,
+        itemType: AgWaterfallSeriesItemType,
         datumIndex: number,
         datum: unknown,
         isHighlight: boolean,
@@ -590,11 +831,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         return {
             seriesId,
-            itemId,
+            itemType,
             datum,
             xKey,
             yKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,
@@ -609,7 +849,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -632,10 +872,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((rect, datum) => {
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
+                contextNodeData.styles[datum.itemType][
                     this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.cornerRadius = style.cornerRadius ?? 0;
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
@@ -654,29 +894,40 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const data = labelData.filter((labelDatum) => {
-            const { label } = this.getItemConfig(labelDatum.itemId);
+            const { label } = this.getItemConfig(labelDatum.itemType);
             return label.enabled;
         });
 
         return labelSelection.update(data);
     }
 
+<<<<<<< HEAD
     protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text>;
+=======
+    protected updateLabelNodes({
+        labelSelection,
+        isHighlight,
+    }: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        isHighlight: boolean;
+>>>>>>> latest
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
-            itemId: 'positive',
+            itemType: 'positive',
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xName,
             yKey: this.properties.yKey,
             yName: this.properties.yName ?? this.properties.yName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((textNode, datum) => {
-            params.itemId = datum.itemId;
-            textNode.fillOpacity = this.getHighlightStyle(false, datum.datumIndex)?.opacity ?? 1;
-            const label = this.getItemConfig(datum.itemId).label;
-            updateLabelNode(this, textNode, params, label, datum.label, false, activeHighlight);
+        labelSelection.each((textNode, datum) => {
+            params.itemType = datum.itemType;
+            const styleOpacity = this.getHighlightStyle(isHighlight, datum.datumIndex)?.opacity ?? 1;
+            textNode.visible = true;
+            textNode.fillOpacity = styleOpacity;
+            const label = this.getItemConfig(datum.itemType).label;
+            updateLabelNode(this, textNode, params, label, datum.label, isHighlight, activeHighlight);
         });
     }
 
@@ -688,7 +939,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
         const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
@@ -698,7 +949,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             processedData
         );
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const datumType = totalTypeValues[datumIndex];
         const isPositive = (yValue ?? 0) >= 0;
@@ -721,7 +974,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
-        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemId);
+        const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -733,10 +986,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', total, datum, yKey, legendItemName),
+                        missing: _ModuleSupport.isTooltipValueMissing(total),
                     },
                 ],
             },
-            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName, ...format }
+            { seriesId, datum, title: yName, itemType: seriesItemType, xKey, xName, yKey, yName, ...format }
         );
     }
 
@@ -767,12 +1021,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { showInLegend } = this.properties;
 
-        seriesItemTypes.forEach((item) => {
+        for (const item of seriesItemTypes) {
             const { name } = this.getItemConfig(item);
             legendData.push({
                 legendType: 'category',
                 id,
-                itemId: item,
+                itemId: createDatumId(item),
                 seriesId: id,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
@@ -780,13 +1034,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 hideInLegend: !showInLegend,
                 isFixed: true,
             });
-        });
+        }
 
         return legendData;
     }
 
     protected override toggleSeriesItem(): void {
         // Legend item toggling is unsupported.
+    }
+
+    protected override resetDatumAnimation(data: WaterfallAnimationData): void {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection]);
     }
 
     override animateEmptyUpdateReady(opts: WaterfallAnimationData) {
@@ -841,19 +1100,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startX,
             to: endX,
-            ease: _ModuleSupport.Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointX) {
                 linePath.clear(true);
 
-                pointData.forEach((point, index) => {
+                for (const [index, point] of pointData.entries()) {
                     const x = scale(pointX, startX, endX, startX, point.x);
                     const x2 = scale(pointX, startX, endX, startX, point.x2);
                     if (index !== 0) {
                         linePath.lineTo(x, point.y);
                     }
                     linePath.moveTo(x2, point.y2);
-                });
+                }
 
                 lineNode.checkPathDirty();
             },
@@ -893,19 +1152,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             phase: 'initial',
             from: startY,
             to: endY,
-            ease: _ModuleSupport.Motion.easeOut,
+            ease: easeOut,
             collapsable: false,
             onUpdate(pointY) {
                 linePath.clear(true);
 
-                pointData.forEach((point, index) => {
+                for (const [index, point] of pointData.entries()) {
                     const y = scale(pointY, startY, endY, startY, point.y);
                     const y2 = scale(pointY, startY, endY, startY, point.y2);
                     if (index !== 0) {
                         linePath.lineTo(point.x, y);
                     }
                     linePath.moveTo(point.x2, y2);
-                });
+                }
 
                 lineNode.checkPathDirty();
             },
@@ -918,13 +1177,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.resetConnectorLinesPath(data);
     }
 
-    protected override updatePaths(opts: {
-        seriesHighlighted?: boolean;
-        itemId?: string;
-        contextData: WaterfallContext;
-        paths: _ModuleSupport.Path[];
-        seriesIdx: number;
-    }) {
+    protected override updatePaths(opts: { contextData: WaterfallContext; paths: _ModuleSupport.Path[] }) {
         this.resetConnectorLinesPath({ contextData: opts.contextData, paths: opts.paths });
     }
 
@@ -950,12 +1203,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         if (!pointData) {
             return;
         }
-        pointData.forEach((point, index) => {
+        for (const [index, point] of pointData.entries()) {
             if (index !== 0) {
                 linePath.lineTo(point.x, point.y);
             }
             linePath.moveTo(point.x2, point.y2);
-        });
+        }
 
         lineNode.checkPathDirty();
     }
@@ -978,8 +1231,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { positive, negative, total } = this.properties.item;
         return positive.label.enabled || negative.label.enabled || total.label.enabled;
     }
-
-    protected override onDataChange() {}
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);

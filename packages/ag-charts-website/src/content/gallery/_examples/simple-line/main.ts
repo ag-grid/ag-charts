@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    ContextMenuModule,
+    ErrorBarsModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    ErrorBarsModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+]);
 const dateFormatter = new Intl.DateTimeFormat('en-US');
 
 const options: AgCartesianChartOptions<DataType> = {
@@ -77,9 +96,8 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             bandHighlight: {
                 enabled: true,
@@ -88,8 +106,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: false,
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Price (pence per litre)',
@@ -109,7 +126,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

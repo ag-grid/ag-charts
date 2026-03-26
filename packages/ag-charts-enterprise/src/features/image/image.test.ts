@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { _ModuleSupport } from 'ag-charts-community';
+import { calculatePlacement as coreCalculatePlacement } from 'ag-charts-core';
 
 import { Image } from './image';
 
@@ -25,7 +25,7 @@ describe('Image', () => {
 
             image.performLayout(containerWidth, containerHeight);
 
-            return _ModuleSupport.calculatePlacement(
+            return coreCalculatePlacement(
                 naturalWidth,
                 naturalHeight,
                 { width: containerWidth, height: containerHeight },

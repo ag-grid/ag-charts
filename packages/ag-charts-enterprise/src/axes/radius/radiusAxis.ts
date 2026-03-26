@@ -1,24 +1,18 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    Property,
+    type Scale,
+    ZIndexMap,
+    isNumberEqual,
+    normalizeAngle360,
+    toRadians,
+} from 'ag-charts-core';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const {
-    ChartAxisDirection,
-    ZIndexMap,
-    Property,
-    normalizeAngle360,
-    toRadians,
-    Caption,
-    Group,
-    TransformableGroup,
-    Path,
-    Line,
-    Selection,
-    generateTicks,
-    AxisGroupZIndexMap,
-} = _ModuleSupport;
+const { Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];
@@ -34,8 +28,13 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 }
 
 export abstract class RadiusAxis<
+<<<<<<< HEAD
     S extends _ModuleSupport.Scale<D, number, _ModuleSupport.TickInterval<S>> = _ModuleSupport.Scale<any, number, any>,
     D = unknown,
+=======
+    S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
+    D = any,
+>>>>>>> latest
 > extends _ModuleSupport.PolarAxis<S, D> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
@@ -143,7 +142,7 @@ export abstract class RadiusAxis<
 
     override calculateTickLayout(
         domain: D[],
-        niceMode: _ModuleSupport.NiceMode,
+        niceMode: [_ModuleSupport.NiceMode, _ModuleSupport.NiceMode],
         _visibleRange: [number, number]
     ): {
         niceDomain: D[];
@@ -269,7 +268,7 @@ export abstract class RadiusAxis<
             }
 
             const radius = this.getTickRadius(value);
-            angles.forEach((angle, idx) => {
+            for (const [idx, angle] of angles.entries()) {
                 const x = radius * Math.cos(angle);
                 const y = radius * Math.sin(angle);
                 if (idx === 0) {
@@ -278,7 +277,7 @@ export abstract class RadiusAxis<
                     path.lineTo(x, y);
                 }
 
-                angles.forEach((innerAngle, innerIdx) => {
+                for (const [innerIdx, innerAngle] of angles.entries()) {
                     const x2 = radius * Math.cos(innerAngle);
                     const y2 = radius * Math.sin(innerAngle);
                     if (innerIdx === 0) {
@@ -286,9 +285,9 @@ export abstract class RadiusAxis<
                     } else {
                         path.lineTo(x2, y2);
                     }
-                });
+                }
                 path.closePath();
-            });
+            }
             path.closePath();
         };
 
@@ -311,26 +310,33 @@ export abstract class RadiusAxis<
         title.caption.fontWeight = title.fontWeight;
         title.caption.color = title.color;
         title.caption.wrapping = title.wrapping;
+        title.caption.truncate = title.truncate;
+        title.caption.maxWidth = title.maxWidth;
+        title.caption.maxHeight = title.maxHeight;
 
         let titleVisible = false;
         const titleNode = title.caption.node;
         if (title.enabled) {
+            const axisLength = Math.abs(requestedRange[1] - requestedRange[0]);
+
             titleVisible = true;
 
             titleNode.rotation = Math.PI / 2;
             titleNode.x = Math.floor((requestedRange[0] + requestedRange[1]) / 2);
-            titleNode.y = -Caption.SMALL_PADDING;
+            titleNode.y = -title.spacing;
             titleNode.textAlign = 'center';
             titleNode.textBaseline = 'bottom';
 
             titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
+            title.caption.text = titleNode.text;
+            title.caption.computeTextWrap(axisLength, Infinity);
         }
 
         titleNode.visible = titleVisible;
     }
 
     protected override updateCrossLines() {
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             if (crossLine instanceof RadiusCrossLine) {
                 const { shape, gridAngles, range, innerRadiusRatio } = this;
                 const radius = range[0];
@@ -339,7 +345,7 @@ export abstract class RadiusAxis<
                 crossLine.axisOuterRadius = radius;
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
-        });
+        }
         super.updateCrossLines();
     }
 
@@ -358,14 +364,12 @@ export abstract class RadiusAxis<
         const text = datum.tickLabel ?? '';
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
-        const visible = text !== '' && text != null;
-
-        const combinedRotation = rotation;
+        const visible = text !== '';
 
         return {
             ...this.getLabelStyles({ value: datum.tick, formattedValue: datum.tickLabel }),
             tickId: datum.tickId,
-            rotation: combinedRotation,
+            rotation,
             text,
             textAlign,
             textBaseline,

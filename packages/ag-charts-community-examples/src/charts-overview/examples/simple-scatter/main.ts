@@ -25,22 +25,22 @@ const options: AgChartOptions = {
             strokeOpacity: 0,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
                 text: 'Weight (pounds)',
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
                 text: 'Height (inches)',
             },
         },
-    ],
+    },
 };
 
-const chart = AgCharts.create(options);
+AgCharts.create(options);

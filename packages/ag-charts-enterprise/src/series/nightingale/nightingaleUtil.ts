@@ -60,10 +60,10 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         } else {
             let clipInnerRadius: number, clipOuterRadius: number;
             ({ innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum));
-            if (isNaN(innerRadius)) innerRadius = axisZeroRadius;
-            if (isNaN(outerRadius)) outerRadius = axisZeroRadius;
-            if (isNaN(clipInnerRadius)) clipInnerRadius = axisZeroRadius;
-            if (isNaN(clipOuterRadius)) clipOuterRadius = axisZeroRadius;
+            if (Number.isNaN(innerRadius)) innerRadius = axisZeroRadius;
+            if (Number.isNaN(outerRadius)) outerRadius = axisZeroRadius;
+            if (Number.isNaN(clipInnerRadius)) clipInnerRadius = axisZeroRadius;
+            if (Number.isNaN(clipOuterRadius)) clipOuterRadius = axisZeroRadius;
             clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);
         }
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector };

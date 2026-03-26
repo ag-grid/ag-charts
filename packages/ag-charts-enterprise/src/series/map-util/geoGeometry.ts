@@ -1,9 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { DistantObject, Geometry, Position } from 'ag-charts-core';
+import { SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } from 'ag-charts-core';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, ExtendedPath2D, BBox, SceneChangeDetection, SceneObjectChangeDetection, objectsEqual } = _ModuleSupport;
+const { Path, ExtendedPath2D, BBox } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
@@ -11,9 +13,13 @@ export enum GeoGeometryRenderMode {
     Lines = 0b10,
 }
 
+<<<<<<< HEAD
 export class GeoGeometry<D = unknown> extends Path<D> implements _ModuleSupport.DistantObject {
+=======
+export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
+>>>>>>> latest
     @SceneObjectChangeDetection({ equals: objectsEqual })
-    projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
+    projectedGeometry: Geometry | undefined = undefined;
 
     @SceneChangeDetection()
     renderMode: GeoGeometryRenderMode = GeoGeometryRenderMode.All;
@@ -37,7 +43,7 @@ export class GeoGeometry<D = unknown> extends Path<D> implements _ModuleSupport.
         this.strokePath.clear();
         this.path.clear();
 
-        this.bbox = projectedGeometry != null ? this.drawGeometry(projectedGeometry, undefined) : undefined;
+        this.bbox = projectedGeometry == null ? undefined : this.drawGeometry(projectedGeometry, undefined);
     }
 
     override drawPath(ctx: any) {
@@ -62,7 +68,7 @@ export class GeoGeometry<D = unknown> extends Path<D> implements _ModuleSupport.
         return distance > 0 ? distance * distance : 0;
     }
 
-    private geometryDistance(geometry: _ModuleSupport.Geometry, x: number, y: number): number {
+    private geometryDistance(geometry: Geometry, x: number, y: number): number {
         const { renderMode, strokeWidth } = this;
         const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
         const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
@@ -103,55 +109,85 @@ export class GeoGeometry<D = unknown> extends Path<D> implements _ModuleSupport.
         }
     }
 
-    private drawGeometry(
-        geometry: _ModuleSupport.Geometry,
+    private shouldDrawPolygons(): boolean {
+        return (this.renderMode & GeoGeometryRenderMode.Polygons) !== 0;
+    }
+
+    private shouldDrawLines(): boolean {
+        return (this.renderMode & GeoGeometryRenderMode.Lines) !== 0;
+    }
+
+    private drawGeometryCollection(
+        geometries: Geometry[],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
-        const { renderMode, path, strokePath } = this;
-        const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
-        const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
+        for (const g of geometries) {
+            bbox = this.drawGeometry(g, bbox);
+        }
+        return bbox;
+    }
 
+    private drawMultiPolygon(
+        coordinates: Position[][][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawPolygons()) return bbox;
+
+        for (const polygon of coordinates) {
+            bbox = this.drawPolygon(this.path, polygon, bbox);
+        }
+        return bbox;
+    }
+
+    private drawSinglePolygon(
+        coordinates: Position[][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawPolygons()) return bbox;
+        return this.drawPolygon(this.path, coordinates, bbox);
+    }
+
+    private drawMultiLineString(
+        coordinates: Position[][],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawLines()) return bbox;
+
+        for (const lineString of coordinates) {
+            bbox = this.drawLineString(this.strokePath, lineString, bbox, false);
+        }
+        return bbox;
+    }
+
+    private drawSingleLineString(
+        coordinates: Position[],
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
+        if (!this.shouldDrawLines()) return bbox;
+        return this.drawLineString(this.strokePath, coordinates, bbox, false);
+    }
+
+    private drawGeometry(geometry: Geometry, bbox: _ModuleSupport.BBox | undefined): _ModuleSupport.BBox | undefined {
         switch (geometry.type) {
             case 'GeometryCollection':
-                geometry.geometries.forEach((g) => {
-                    bbox = this.drawGeometry(g, bbox);
-                });
-                break;
+                return this.drawGeometryCollection(geometry.geometries, bbox);
             case 'MultiPolygon':
-                if (drawPolygons) {
-                    geometry.coordinates.forEach((coordinates) => {
-                        bbox = this.drawPolygon(path, coordinates, bbox);
-                    });
-                }
-                break;
+                return this.drawMultiPolygon(geometry.coordinates, bbox);
             case 'Polygon':
-                if (drawPolygons) {
-                    bbox = this.drawPolygon(path, geometry.coordinates, bbox);
-                }
-                break;
-            case 'LineString':
-                if (drawLines) {
-                    bbox = this.drawLineString(strokePath, geometry.coordinates, bbox, false);
-                }
-                break;
+                return this.drawSinglePolygon(geometry.coordinates, bbox);
             case 'MultiLineString':
-                if (drawLines) {
-                    geometry.coordinates.forEach((coordinates) => {
-                        bbox = this.drawLineString(strokePath, coordinates, bbox, false);
-                    });
-                }
-                break;
+                return this.drawMultiLineString(geometry.coordinates, bbox);
+            case 'LineString':
+                return this.drawSingleLineString(geometry.coordinates, bbox);
             case 'Point':
             case 'MultiPoint':
-                break;
+                return bbox;
         }
-
-        return bbox;
     }
 
     private drawPolygon(
         path: _ModuleSupport.ExtendedPath2D,
-        polygons: _ModuleSupport.Position[][],
+        polygons: Position[][],
         bbox: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.BBox | undefined {
         if (polygons.length < 1) return bbox;
@@ -167,7 +203,7 @@ export class GeoGeometry<D = unknown> extends Path<D> implements _ModuleSupport.
 
     private drawLineString(
         path: _ModuleSupport.ExtendedPath2D,
-        coordinates: _ModuleSupport.Position[],
+        coordinates: Position[],
         bbox: _ModuleSupport.BBox | undefined,
         isClosed: boolean
     ): _ModuleSupport.BBox | undefined {

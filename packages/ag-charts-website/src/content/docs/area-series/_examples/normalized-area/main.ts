@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { AreaSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -13,9 +15,9 @@ const options: AgChartOptions = {
             type: 'area',
             xKey: 'month',
             yKey: 'subscriptions',
-            yName: 'Subscriptions',
             stacked: true,
             normalizedTo: 1000,
+            yName: 'Subscriptions',
         },
         {
             type: 'area',

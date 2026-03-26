@@ -1,6 +1,7 @@
 import type {
     ContextCallbackParams,
     DatumCallbackParams,
+    HighlightState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -16,7 +17,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -31,16 +32,16 @@ export type AgScatterSeriesLabelFormatterParams<TDatum = DatumDefault> = AgScatt
 
 export interface AgScatterSeriesStylerParams<TDatum, TContext>
     extends AgScatterSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams,
+        SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         AgSeriesMarkerStyle {}
 
 export interface AgScatterSeriesStylerResult extends AgSeriesMarkerStyle {}
 
-export type AgScatterSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgScatterSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgScatterSeriesOptionsKeys<TDatum> &
     Required<AgSeriesMarkerStyle>;
@@ -58,7 +59,10 @@ export interface AgScatterSeriesLabel<TDatum, TContext = ContextDefault>
 export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
         AgSeriesMarkerStyle {
-    /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance. */
+    /** Determines the largest number of items that can be rendered at once. If there are more items, they will be aggregated to resemble similar visual appearance.
+     *
+     * Default: `2000`
+     */
     maxRenderedItems?: number;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
@@ -66,9 +70,9 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     label?: AgScatterSeriesLabel<TDatum, TContext>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgScatterSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** Function used to return formatting for entire series, based on the given parameters. If the current bar is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgScatterSeriesStylerParams<TDatum, TContext>, AgScatterSeriesStylerResult>;
-    /** Function used to return formatting for individual markers, based on the supplied information. If the current marker is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgScatterSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarThemeableOptions;
@@ -92,10 +96,13 @@ export interface AgScatterSeriesOptionsNames {
     yName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
+    /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgScatterSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgScatterSeriesOptionsKeys<TDatum>,
         AgScatterSeriesOptionsNames,
         AgScatterSeriesThemeableOptions<TDatum, TContext> {

@@ -145,7 +145,7 @@ export const getPageImages = async ({
     }
 
     const image = await images[fullImagePath]();
-    const imageSrc = image.default.src || image.default;
+    const imageSrc = image.default.src ?? image.default;
 
     const splitName = fullImagePath.split('.');
     const extension = splitName.at(-1);
@@ -153,7 +153,7 @@ export const getPageImages = async ({
     const fullDarkModeImagePath = path.join(docsPath, pageName, darkModeImagePath);
     const darkModeImage = images[fullDarkModeImagePath];
     const darkModeImageSrc = darkModeImage
-        ? (await darkModeImage()).default.src || (await darkModeImage()).default
+        ? (await darkModeImage()).default.src ?? (await darkModeImage()).default
         : undefined;
 
     return {

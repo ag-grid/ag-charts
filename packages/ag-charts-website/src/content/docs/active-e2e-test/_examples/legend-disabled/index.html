@@ -1,0 +1,26 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <input id="myLegendEnabled" type="checkbox" onchange="onLegendChange(event)" />Legend
+        <button onclick="onPopEvents()"><code>popEvents()</code></button>
+        <span id="myPointerPos">not assigned</span>
+    </div>
+    <div class="controls-row">
+        <div class="legend-item" onmouseenter="activateSeries('publicTransit')" onmouseleave="deactivateSeries()">
+            <span class="legend-swatch" style="background: #4fa8e0"></span>
+            <span>Public Transit</span>
+        </div>
+        <div class="legend-item" onmouseenter="activateSeries('privateCar')" onmouseleave="deactivateSeries()">
+            <span class="legend-swatch" style="background: #e87d4a"></span>
+            <span>Private Car</span>
+        </div>
+        <div class="legend-item" onmouseenter="activateSeries('cycle')" onmouseleave="deactivateSeries()">
+            <span class="legend-swatch" style="background: #57b85a"></span>
+            <span>Cycle</span>
+        </div>
+        <div class="legend-item" onmouseenter="activateSeries('other')" onmouseleave="deactivateSeries()">
+            <span class="legend-swatch" style="background: #b05fbf"></span>
+            <span>Other</span>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

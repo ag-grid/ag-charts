@@ -1,13 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { DistantObject } from 'ag-charts-core';
+import { SceneChangeDetection, lineDistanceSquared } from 'ag-charts-core';
 
-const { lineDistanceSquared, BBox, Path, SceneChangeDetection } = _ModuleSupport;
+const { BBox, Path } = _ModuleSupport;
 
 const delta = 1e-6;
 function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) {
     return Math.abs(ax - bx) <= delta && Math.abs(ay - by) <= delta;
 }
 
+<<<<<<< HEAD
 export class FunnelConnector<D = unknown> extends Path<D> implements _ModuleSupport.DistantObject {
+=======
+export class FunnelConnector<D = any> extends Path<D> implements DistantObject {
+>>>>>>> latest
     @SceneChangeDetection()
     x0: number = 0;
 
@@ -76,9 +82,9 @@ export class FunnelConnector<D = unknown> extends Path<D> implements _ModuleSupp
         let current: readonly [number, number] | undefined;
 
         // Required because path hit detection is flaky when the points are the same
-        points.forEach((p) => {
+        for (const p of points) {
             if ((start != null && pointsEq(start, p)) || (current != null && pointsEq(current, p))) {
-                return;
+                continue;
             }
 
             const [x, y] = p;
@@ -90,7 +96,7 @@ export class FunnelConnector<D = unknown> extends Path<D> implements _ModuleSupp
 
             start ??= p;
             current = p;
-        });
+        }
 
         path.closePath();
     }

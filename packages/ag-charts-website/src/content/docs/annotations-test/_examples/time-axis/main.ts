@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -25,16 +25,11 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
-            position: 'bottom',
         },
-        {
-            type: 'number',
-            position: 'right',
-        },
-    ],
+    },
     annotations: {
         enabled: true,
     },

@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -14,9 +16,9 @@ const options: AgChartOptions<DataType> = {
             xKey: 'country',
             yKey: 'gdp',
             showInLegend: false,
-            itemStyler: ({ datum: { country }, fill, highlighted }) => {
+            itemStyler: ({ datum: { country }, fill, highlightState }) => {
                 return {
-                    fill: country === 'UK' ? (highlighted ? 'lime' : 'red') : fill,
+                    fill: country === 'UK' ? (highlightState === 'highlighted-item' ? 'lime' : 'red') : fill,
                 };
             },
         },

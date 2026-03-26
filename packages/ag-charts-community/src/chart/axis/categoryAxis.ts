@@ -1,11 +1,11 @@
-import { isFiniteNumber } from 'ag-charts-core';
+import type { DomainWithMetadata } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { UnitTimeScale } from '../../scale/unitTimeScale';
-import { Property } from '../../util/properties';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
@@ -20,6 +20,35 @@ export class CategoryAxis<
 
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
+
+    @Property
+    groupPaddingInner: number = 0.1;
+
+    @Property
+    paddingInner?: number;
+
+    @Property
+    paddingOuter?: number;
+
+    @ProxyPropertyOnWrite('layoutConstraints', 'align')
+    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
+
+    @Property
+    skipNullBars?: boolean;
+
+    @ActionOnSet<CategoryAxis>({
+        newValue(value?: number) {
+            if (value == null || value <= 0) {
+                this.layoutConstraints.width = 100;
+                this.layoutConstraints.unit = 'percent';
+            } else {
+                this.layoutConstraints.width = value;
+                this.layoutConstraints.unit = 'px';
+                this.animationManager.skipCurrentBatch();
+            }
+        },
+    })
+    override requiredRange?: number;
 
     constructor(
         moduleCtx: ModuleContext,
@@ -37,21 +66,19 @@ export class CategoryAxis<
         return true;
     }
 
-    @Property
-    groupPaddingInner: number = 0.1;
-
-    @Property
-    paddingInner?: number;
-
-    @Property
-    paddingOuter?: number;
-
     override hasDefinedDomain(): boolean {
         return false;
     }
 
-    override normaliseDataDomain(domain: Array<string | object>) {
-        return { domain, clipped: false };
+    override normaliseDataDomain(d: DomainWithMetadata<string | object>) {
+        return { domain: d.domain, clipped: false };
+    }
+
+    override getUpdateTypeOnResize(): ChartUpdateType {
+        if (this.bandAlignment == null || this.bandAlignment === 'justify') {
+            return super.getUpdateTypeOnResize();
+        }
+        return ChartUpdateType.PROCESS_DOMAIN;
     }
 
     protected override updateScale() {
@@ -126,7 +153,7 @@ export class CategoryAxis<
         const firstTick = ticks[0];
         const firstFillOffCanvas = firstTick.translation > range[0] + scale.step / 2;
 
-        const lastTick = ticks[ticks.length - 1];
+        const lastTick = ticks.at(-1)!;
         const lastFillOffCanvas = horizontal && lastTick.translation < range[1] - scale.step / 2;
 
         if (firstFillOffCanvas) {
@@ -169,8 +196,12 @@ export class CategoryAxis<
         return { tickId, x1, y1, x2, y2, fill, fillOpacity };
     }
 
-    protected override calculateTickLines(ticks: TickDatum[], direction: number): AxisLineDatum[] {
-        const tickLines = super.calculateTickLines(ticks, direction);
+    protected override calculateTickLines(
+        ticks: TickDatum[],
+        direction: number,
+        scrollbarThickness: number = 0
+    ): AxisLineDatum[] {
+        const tickLines = super.calculateTickLines(ticks, direction, scrollbarThickness);
 
         if (this.interval.placement === 'between' && ticks.length > 0) {
             tickLines.push(
@@ -178,7 +209,8 @@ export class CategoryAxis<
                     { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
                     ticks.length,
                     direction,
-                    ticks
+                    ticks,
+                    scrollbarThickness
                 )
             );
         }
@@ -190,19 +222,29 @@ export class CategoryAxis<
         { isPrimary, tickId, translation }: Pick<TickDatum, 'tickId' | 'translation' | 'isPrimary'>,
         index: number,
         direction: number,
-        ticks: TickDatum[]
+        ticks: TickDatum[],
+        scrollbarThickness: number = 0
     ): AxisLineDatum {
         const { horizontal, interval, primaryTick, scale, tick } = this;
 
         if (interval.placement !== 'between') {
-            return super.calculateTickLine({ isPrimary, tickId, translation }, index, direction, ticks);
+            return super.calculateTickLine(
+                { isPrimary, tickId, translation },
+                index,
+                direction,
+                ticks,
+                scrollbarThickness
+            );
         }
 
         const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
         const h = -direction * this.getTickSize(datumTick);
         const halfStep = translation < scale.step ? Math.floor(scale.step / 2) : scale.step / 2;
         const offset = translation - halfStep;
-        const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
+        const tickOffset = -direction * (scrollbarThickness + this.getTickSpacing(datumTick));
+        const [x1, y1, x2, y2] = horizontal
+            ? [offset, tickOffset, offset, tickOffset + h]
+            : [tickOffset, offset, tickOffset + h, offset];
         const { stroke, width: strokeWidth } = datumTick;
         const lineDash = undefined;
 
@@ -246,13 +288,6 @@ export class CategoryAxis<
         const { datum, seriesId, legendItemName, key, source, property, domain, boundSeries } = params;
         if (Array.isArray(value) && value.some((v) => typeof v !== 'string')) {
             value = value.map(String);
-        } else if (
-            !Array.isArray(value) &&
-            typeof value !== 'string' &&
-            typeof value !== 'number' &&
-            !(value instanceof Date)
-        ) {
-            value = String(value);
         }
         return { type: 'category', value, datum, seriesId, legendItemName, key, source, property, domain, boundSeries };
     }

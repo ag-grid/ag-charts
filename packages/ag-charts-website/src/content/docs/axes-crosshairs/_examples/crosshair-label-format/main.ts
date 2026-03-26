@@ -1,7 +1,28 @@
-import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgUnitTimeAxisOptions,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -32,15 +53,14 @@ const options: AgCartesianChartOptions = {
             yName: 'Small Scale Hydro',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             crosshair: {
                 enabled: true,
             },
         },
-        {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -53,7 +73,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     tooltip: {
         enabled: false,
     },
@@ -65,7 +85,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
-    const crosshair = options.axes![0].crosshair! as AgUnitTimeAxisOptions;
+    const crosshair = options.axes!.x!.crosshair! as AgUnitTimeAxisOptions;
     crosshair.label = {
         format: `%d %b '%y`,
     };
@@ -73,23 +93,23 @@ function crosshairLabelFormat() {
 }
 
 function axisLabelFormat() {
-    const axes0 = options.axes![0] as AgUnitTimeAxisOptions;
-    const crosshair = axes0.crosshair!;
+    const axesX = options.axes!.x! as AgUnitTimeAxisOptions;
+    const crosshair = axesX.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;
     }
-    axes0.label = { format: `%b %Y` };
+    axesX.label = { format: `%b %Y` };
     chart.update(options);
 }
 
 function defaultFormat() {
-    const axes0 = options.axes![0] as AgUnitTimeAxisOptions;
-    const crosshair = axes0.crosshair!;
+    const axesX = options.axes!.x! as AgUnitTimeAxisOptions;
+    const crosshair = axesX.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;
     }
-    if (axes0.label && axes0.label.format) {
-        delete axes0.label!.format;
+    if (axesX.label && axesX.label.format) {
+        delete axesX.label!.format;
     }
     chart.update(options);
 }

@@ -1,12 +1,38 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    DataSourceModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { FakeServer } from './fakeServer';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    DataSourceModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     dataSource: {
         getData: ({ windowStart, windowEnd }) => {
-            // Request the data from the server, this is an asynchronous call which may take up to 500ms. In your
+            // Request the data from the server, this is an asynchronous call which may take up to 2500ms. In your
             // application, replace this with a call to your server api.
             return FakeServer.get({ windowStart, windowEnd });
         },
@@ -25,17 +51,14 @@ const options: AgCartesianChartOptions = {
             yName: 'Price',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
-            keys: ['price'],
             min: 400,
             max: 1600,
         },
-        {
+        x: {
             type: 'time',
-            position: 'bottom',
             min: new Date('2019-01-01 00:00:00'),
             max: new Date('2024-12-30 23:59:59'),
             interval: {
@@ -51,7 +74,7 @@ const options: AgCartesianChartOptions = {
                     }).format(new Date(value)),
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

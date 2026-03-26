@@ -1,5 +1,5 @@
 import type { AgNumericAxisFormattableLabelOptions } from '../../chart/axisOptions';
-import type { ContextCallbackParams, DatumCallbackParams } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
@@ -26,7 +26,7 @@ export interface AgConeFunnelSeriesStageLabelOptions<TContext = ContextDefault>
 }
 
 export interface AgConeFunnelSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         Required<AgConeFunnelSeriesStyle> {}

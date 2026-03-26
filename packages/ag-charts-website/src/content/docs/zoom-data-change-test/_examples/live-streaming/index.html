@@ -1,0 +1,16 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label>
+            Strategy:
+            <select onchange="setStrategy(this.value)">
+                <option value="preserveDomain" selected>preserveDomain</option>
+                <option value="preserveRatios">preserveRatios</option>
+                <option value="reset">reset</option>
+            </select>
+        </label>
+        <button onclick="startStreaming()">Start Streaming</button>
+        <button onclick="stopStreaming()">Stop Streaming</button>
+        <button onclick="resetData()">Reset Data</button>
+    </div>
+</div>
+<div id="myChart"></div>

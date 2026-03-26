@@ -1,4 +1,4 @@
-import { isArray } from 'ag-charts-core';
+import { BaseProperties, Property, isArray, objectsEqual } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
@@ -7,16 +7,14 @@ import type {
     DateFormatterStyle,
     FontStyle,
     FontWeight,
-    Formatter,
     FormatterParams,
     Padding,
+    RichFormatter,
     Styler,
     TextOrSegments,
     TextWrap,
 } from 'ag-charts-types';
 
-import { objectsEqual } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 import { LabelBorder } from '../label';
@@ -77,11 +75,11 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     minSpacing?: number;
 
     /**
-     * The color of the labels.
+     * The colour of the labels.
      * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
      */
     @Property
-    color?: string = '#575757';
+    color?: string;
 
     /**
      * Custom label rotation in degrees.
@@ -130,7 +128,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     /**
      * Labels are rendered perpendicular to the axis line by default.
      * Setting this config to `true` makes labels render parallel to the axis line
-     * and center aligns labels' text at the ticks.
+     * and centre aligns labels' text at the ticks.
      */
     @Property
     parallel: boolean = false;
@@ -145,7 +143,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * the `fractionDigits` is 4.
      */
     @Property
-    formatter?: Formatter<AgAxisLabelFormatterParams>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams>;
 
     @Property
     format?: string | Record<string, string>;
@@ -162,18 +160,15 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     };
     formatValue(
         callWithContext: (
-            formatter: (params: AgAxisLabelFormatterParams) => string | undefined,
+            formatter: (params: AgAxisLabelFormatterParams) => TextOrSegments | undefined,
             params: AgAxisLabelFormatterParams
         ) => TextOrSegments | undefined,
         params: FormatterParams<any>,
         index: number,
-        options: {
+        options?: {
             specifier?: string | Record<string, string>;
             dateStyle: DateFormatterStyle;
             truncateDate: 'year' | 'month' | 'day' | undefined;
-        } = {
-            dateStyle: 'long',
-            truncateDate: undefined,
         }
     ): TextOrSegments | undefined {
         const { formatter, format } = this;
@@ -184,26 +179,35 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
         let result: TextOrSegments | undefined;
         if (formatter != null) {
             const step = params.type === 'date' ? params.step : undefined;
-            result = callWithContext(formatter, { value, index, domain, fractionDigits, unit, step, boundSeries });
+            const visibleDomain = params.type === 'number' ? params.visibleDomain : undefined;
+            result = callWithContext(formatter, {
+                value,
+                index,
+                domain,
+                fractionDigits,
+                unit,
+                step,
+                boundSeries,
+                visibleDomain,
+            });
         }
 
         if (format != null && result == null) {
-            const { specifier, dateStyle, truncateDate } = options;
+            const { specifier, dateStyle = 'long', truncateDate } = options ?? {};
             const cacheKey: FormatterCacheKey = `${dateStyle}:${truncateDate ?? 'none'}`;
             let valueFormatter = this._formatters[cacheKey];
 
             const mergedFormat = FormatManager.mergeSpecifiers(specifier, format);
             if (
-                valueFormatter == null ||
-                valueFormatter.type !== type ||
-                valueFormatter.unit !== unit ||
-                !objectsEqual(valueFormatter.mergedFormat, mergedFormat)
+                valueFormatter?.type !== type ||
+                valueFormatter?.unit !== unit ||
+                !objectsEqual(valueFormatter?.mergedFormat, mergedFormat)
             ) {
                 valueFormatter = {
                     type,
                     mergedFormat,
                     unit,
-                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, options),
+                    formatter: FormatManager.getFormatter(type, mergedFormat, unit, dateStyle, { truncateDate }),
                 };
 
                 this._formatters[cacheKey] = valueFormatter;

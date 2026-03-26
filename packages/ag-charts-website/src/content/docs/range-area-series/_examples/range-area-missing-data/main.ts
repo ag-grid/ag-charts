@@ -1,7 +1,28 @@
-import { AgCartesianChartOptions, AgCharts, AgRangeAreaSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgRangeAreaSeriesOptions,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    UnitTimeAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -20,9 +41,8 @@ const options: AgCartesianChartOptions = {
             connectMissingData: false,
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             title: {
                 text: 'Average Price',
@@ -31,11 +51,10 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => `£${Number(value).toLocaleString()}`,
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'unit-time',
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

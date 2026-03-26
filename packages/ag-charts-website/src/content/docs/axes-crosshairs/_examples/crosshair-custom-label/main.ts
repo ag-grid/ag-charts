@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts, AgCrosshairLabelRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgCrosshairLabelRendererParams,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const crosshairLabelRenderer = (arrowPosition: 'top' | 'right') => {
     const classList =
         arrowPosition === 'top'
@@ -29,10 +48,9 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data,
     series: buildSeries(),
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Kilotonnes of Oil Equivalent',
             },
@@ -43,10 +61,8 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
-            keys: ['year'],
             crosshair: {
                 snap: false,
                 label: {
@@ -54,7 +70,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

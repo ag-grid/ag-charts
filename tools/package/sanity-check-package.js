@@ -23,7 +23,7 @@ if (!packageJsonFile) {
     process.exit(1);
 }
 
-const packageContents = glob.sync('**/*', { cwd: dir, nodir: true });
+const packageContents = glob.sync('**/*', { cwd: dir, nodir: true, dot: true });
 
 const expectedVersion = JSON.parse(fs.readFileSync('./package.json').toString()).version;
 const packageJson = JSON.parse(packageJsonFile.toString());

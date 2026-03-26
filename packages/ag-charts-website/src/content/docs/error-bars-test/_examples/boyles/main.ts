@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { DataType, getArgon, getHelium, getOxygen } from './data';
 
@@ -7,12 +7,11 @@ const options: AgCartesianChartOptions<DataType> = {
     title: {
         text: 'Volume-Pressure Relationship with Confidence Intervals',
     },
-    axes: [
+    axes: {
         // Note: axis configuration is required only for line series.
         // The bottom axis defaults to 'number' for scatter series.
-        { type: 'number', position: 'left' },
-        { type: 'number', position: 'bottom' },
-    ],
+        x: { type: 'number' },
+    },
     series: [
         {
             data: getOxygen(),

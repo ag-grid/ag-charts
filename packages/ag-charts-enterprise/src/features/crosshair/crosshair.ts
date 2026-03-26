@@ -1,18 +1,25 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { createId } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Property,
+    ZIndexMap,
+    createId,
+    toPlainText,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, InteractionState, Property, ZIndexMap, ChartAxisDirection } =
-    _ModuleSupport;
-
+const { Group, TranslatableGroup, Line, BBox, InteractionState } = _ModuleSupport;
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
     | _ModuleSupport.DragInterpreterClickEvent;
 
-export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class Crosshair extends AbstractModuleInstance {
+    static readonly className = 'Crosshair';
     readonly id = createId(this);
 
     @Property
@@ -59,6 +66,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
 
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
+    private activeHighlightInViewport: boolean = false;
+
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
         super();
 
@@ -68,10 +77,11 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.hideCrosshairs();
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
+            if (this.checkInteractionState()) return;
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.crosshairGroup.visible && !isSeriesAreaChild) {
                 this.hideCrosshairs();
-                this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
             }
         });
 
@@ -82,10 +92,14 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.eventsHub.on('series:focus-change', () => this.onKeyPress()),
             ctx.eventsHub.on('zoom:pan-start', () => this.onMouseOut()),
-            ctx.eventsHub.on('zoom:change', () => this.onMouseOut()),
+            ctx.eventsHub.on('zoom:change-complete', () => this.onMouseOut()),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.layout(event)),
-            () => Object.values(this.labels).forEach((label) => label.destroy())
+            () => {
+                for (const label of Object.values(this.labels)) {
+                    label.destroy();
+                }
+            }
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -95,6 +109,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
+    private checkInteractionState(): boolean {
+        return this.ctx.interactionManager.isState(InteractionState.Frozen);
+    }
+
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         if (!visible || !axes || !this.enabled) return;
 
@@ -102,7 +120,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
-        const axisLayout = axes.find((a) => a.id === axisId);
+        const axisLayout = axes[axisId];
 
         if (!axisLayout) return;
 
@@ -115,8 +133,23 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
+
+        if (!this.snap && this.activeHighlight) {
+            // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
+            // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
+            // positioning can stay as-is to stay in sync with the mouse position.
+            return;
+        }
+
         this.updateLines();
         this.updateLabels(crosshairKeys);
+
+        if (this.snap && !this.activeHighlightInViewport) {
+            // Do not redraw the crosshair labels when the highlight is outside the viewport.
+            return;
+        }
+
+        this.refreshPositions();
     }
 
     private updateSelections(data: string[]) {
@@ -181,7 +214,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private formatValue(value: unknown): string {
-        return this.axisCtx.formatScaleValue(value, 'crosshair', this.label);
+        return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this.label));
     }
 
     private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
@@ -193,19 +226,25 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private onMouseHoverLike(event: HoverLikeEvent) {
         if (!this.enabled || this.snap) return;
 
-        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        const requiredState = this.isHover(event)
+            ? InteractionState.Hoverable | InteractionState.Frozen
+            : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
 
         this.updatePositions(this.getData(event));
         this.crosshairGroup.visible = true;
 
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private onMouseOut() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
+        // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
+        const mask: _ModuleSupport.InteractionState = this.snap
+            ? InteractionState.Hoverable
+            : InteractionState.Hoverable | InteractionState.Frozen;
+        if (!this.ctx.interactionManager.isState(mask)) return;
         this.hideCrosshairs();
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private onKeyPress() {
@@ -222,20 +261,33 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const hasCrosshair = datum && (series?.axes.x?.id === axisCtx.axisId || series?.axes.y?.id === axisCtx.axisId);
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
+        this.activeHighlightInViewport = event.highlightInViewport;
 
         if (!this.activeHighlight) {
             this.hideCrosshairs();
         } else if (this.snap) {
-            const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
+            if (event.highlightInViewport) {
+                const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
-            this.updatePositions(activeHighlightData);
+                this.updatePositions(activeHighlightData);
 
-            crosshairGroup.visible = true;
+                crosshairGroup.visible = true;
+            } else {
+                this.hideCrosshairs();
+            }
         }
+
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private isInRange(value: number) {
         return this.axisCtx.inRange(value);
+    }
+
+    private refreshPositions() {
+        if (this.activeHighlight) {
+            this.updatePositions(this.getActiveHighlightData(this.activeHighlight));
+        }
     }
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
@@ -299,8 +351,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const halfBandwidth = (axisCtx.scale.bandwidth ?? 0) / 2;
 
         const matchingAxisId = series.axes[axisCtx.direction]?.id === axisCtx.axisId;
-        const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
-        const isXKey = seriesKeyProperties.indexOf('xKey') > -1 && matchingAxisId;
+        const isYKey = seriesKeyProperties.includes('yKey') && matchingAxisId;
+        const isXKey = seriesKeyProperties.includes('xKey') && matchingAxisId;
 
         const datumValue = aggregatedValue ?? cumulativeValue;
         if (isYKey && datumValue !== undefined) {
@@ -321,7 +373,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
 
-        seriesKeyProperties.forEach((key) => {
+        for (const key of seriesKeyProperties) {
             const keyValue = series.properties[key];
             const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
@@ -330,7 +382,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             if (isInRange) {
                 activeHighlightData[key] = { value, position };
             }
-        });
+        }
 
         return activeHighlightData;
     }
@@ -353,21 +405,29 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         label.setLabelHtml(html);
 
-        const { width, height } = label.getBBox();
         const axisPosition = this.axisCtx.position;
         let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
+        // Use CSS translate percentages to avoid synchronous dimension reads.
+        // translate(-50%, 0) centres horizontally; translate(0, -50%) centres vertically;
+        // translate(-100%, ...) offsets by the element's full width/height.
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             padding -= 4;
+            const isBottom = axisPosition === 'bottom';
             label.show({
-                x: x - width / 2,
-                y: axisPosition === 'bottom' ? bounds.y + bounds.height + padding : bounds.y - height - padding,
+                x,
+                y: isBottom ? bounds.y + bounds.height + padding : bounds.y - padding,
+                translateX: '-50%',
+                translateY: isBottom ? '0' : '-100%',
             });
         } else {
             padding -= 8;
+            const isRight = axisPosition === 'right';
             label.show({
-                x: axisPosition === 'right' ? bounds.x + bounds.width + padding : bounds.x - width - padding,
-                y: y - height / 2,
+                x: isRight ? bounds.x + bounds.width + padding : bounds.x - padding,
+                y,
+                translateX: isRight ? '0' : '-100%',
+                translateY: '-50%',
             });
         }
     }

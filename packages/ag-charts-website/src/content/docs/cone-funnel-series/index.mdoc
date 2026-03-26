@@ -12,14 +12,16 @@ and filled areas denoting the change between them.
 
 To create a Cone Funnel Series, use the `cone-funnel` series type.
 
-```js
-series: [
-    {
-        type: 'cone-funnel',
-        stageKey: 'group',
-        valueKey: 'value'
-    },
-],
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'cone-funnel',
+            stageKey: 'group',
+            valueKey: 'value',
+        },
+    ],
+}
 ```
 
 In this configuration:
@@ -33,7 +35,7 @@ In this configuration:
 
 To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
 
-```js
+```js format="snippet"
 {
     direction: 'horizontal',
 }
@@ -43,9 +45,9 @@ To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
 
 {% chartExampleRunner title="Cone Funnel Fills" name="cone-funnel-fills" type="generated" /%}
 
-```js
+```js format="snippet"
 {
-    fills: ["#5090DC", "#FFA03A", "#459D55"],
+    fills: ['#5090DC', '#FFA03A', '#459D55'],
 }
 ```
 

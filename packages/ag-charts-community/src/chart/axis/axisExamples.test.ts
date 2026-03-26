@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { ChartAxisDirection, ChartUpdateType, mapValues } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianAxisType,
@@ -8,10 +9,9 @@ import type {
 } from 'ag-charts-types';
 
 import type { ChartAxis } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
-import { ChartUpdateType } from '../chartUpdateType';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
+import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -25,12 +25,11 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import type { CartesianTestCase, ChartOrProxy } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -52,7 +51,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })),
     };
 }
 
@@ -71,22 +70,22 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         BASIC_TIME_AXIS: {
             options: axesExamples.TIME_AXIS_BASIC_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         BASIC_TIME_MIN_MAX_DATE_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_DATE_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
             compare: ['unit-time'],
         },
         BASIC_TIME_MIN_MAX_NUMBER_AXIS: {
             options: axesExamples.TIME_AXIS_MIN_MAX_NUMBER_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
             compare: ['unit-time'],
         },
         NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: ['line'],
             }),
         },
@@ -96,79 +95,79 @@ const EXAMPLES: Record<string, TestCase> = {
 const EXAMPLES_NO_SERIES: Record<string, TestCase> = {
     NUMBER_AXIS_NO_SERIES: {
         options: axesExamples.NUMBER_AXIS_NO_SERIES,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
     },
     NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
-        assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
     },
     TIME_AXIS_NO_SERIES: {
         options: axesExamples.TIME_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: repeat('line', 4),
         }),
     },
     TIME_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.TIME_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: ['time', 'number'],
+            axisTypes: { x: 'time', y: 'number' },
             seriesTypes: repeat('line', 4),
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN: {
         options: axesExamples.COMBO_CATEGORY_NUMBER_AXIS_NO_SERIES_FIXED_DOMAIN,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES: {
         options: axesExamples.COMBO_SERIES_AREA_PADDING_WITHOUT_LABELS_OR_TITLES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number'],
+            axisTypes: { x: 'category', y: 'number', __AXIS_ID_2: 'number' },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
     AREA_CHART_NO_SERIES: {
         options: axesExamples.AREA_CHART_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['unit-time', 'number'],
+            axisTypes: { x: 'unit-time', y: 'number' },
             seriesTypes: repeat('area', 6),
         }),
     },
     AREA_CHART_STACKED_NORMALISED_NO_SERIES: {
         options: axesExamples.AREA_CHART_STACKED_NORMALISED_NO_SERIES,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number'],
+            axisTypes: { x: 'category', y: 'number' },
             seriesTypes: repeat('area', 7),
         }),
     },
@@ -178,19 +177,19 @@ const EXAMPLES_TICK_VALUES: Record<string, TestCase> = {
     ...mixinReversedAxesCases({
         NUMBER_AXIS_TICK_VALUES: {
             options: axesExamples.NUMBER_AXIS_TICK_VALUES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         },
         TIME_AXIS_TICK_VALUES: {
             options: axesExamples.TIME_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['time', 'number'],
+                axisTypes: { x: 'time', y: 'number' },
                 seriesTypes: repeat('line', 4),
             }),
         },
         CATEGORY_AXIS_TICK_VALUES: {
             options: axesExamples.CATEGORY_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 7),
             }),
         },
@@ -202,18 +201,18 @@ const EXAMPLES_TICK_SPACING: Record<string, TestCase> = {
         AXIS_TICK_MIN_SPACING: {
             options: axesExamples.AXIS_TICK_MIN_SPACING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['time', 'number'],
+                axisTypes: { x: 'time', y: 'number' },
                 seriesTypes: repeat('line', 4),
             }),
         },
         AXIS_TICK_MAX_SPACING: {
             options: axesExamples.AXIS_TICK_MAX_SPACING,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['scatter'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['scatter'] }),
         },
         AXIS_TICK_MIN_MAX_SPACING: {
             options: axesExamples.AXIS_TICK_MIN_MAX_SPACING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 7),
             }),
         },
@@ -225,7 +224,7 @@ const EXAMPLES_CLIPPING: Record<string, TestCase> = {
         GRIDLINE_TICKLINE_CLIPPING: {
             options: axesExamples.GRIDLINE_TICKLINE_CLIPPING,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
         },
@@ -236,7 +235,15 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
     COMBO_SERIES_COMPLEX_LAYOUT: {
         options: axesExamples.COMBO_SERIES_COMPLEX_LAYOUT,
         assertions: cartesianChartAssertions({
-            axisTypes: ['category', 'number', 'number', 'number', 'number', 'number', 'number'],
+            axisTypes: {
+                x: 'category',
+                y: 'number',
+                __AXIS_ID_2: 'number',
+                __AXIS_ID_3: 'number',
+                __AXIS_ID_4: 'number',
+                __AXIS_ID_5: 'number',
+                __AXIS_ID_6: 'number',
+            },
             seriesTypes: ['bar', 'bar', 'line'],
         }),
     },
@@ -245,7 +252,7 @@ const EXAMPLES_LAYOUT: Record<string, TestCase> = {
 function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -262,7 +269,7 @@ function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, 
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -270,12 +277,12 @@ function mixinDerivedCases(baseCases: Record<string, TestCase>): Record<string, 
 function mixinReversedAxesCases(baseCases: Record<string, TestCase>): Record<string, TestCase> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         result[name + '_REVERSED_AXES'] = {
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -364,19 +371,19 @@ describe('Axis Examples', () => {
                 chart = await createChart({ ...example.options, legend: { enabled: true } });
                 const reference = await snapshot();
 
-                chart.series.forEach((s) => {
+                for (const s of chart.series) {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
                     (s as any).toggleSeriesItem(true, 'category', itemId, undefined);
-                });
+                }
                 chart.update(ChartUpdateType.FULL);
 
                 const afterUpdate = await snapshot();
                 expect(afterUpdate).not.toMatchImage(reference);
 
-                chart.series.forEach((s) => {
+                for (const s of chart.series) {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
                     (s as any).toggleSeriesItem(false, 'category', itemId, undefined);
-                });
+                }
                 chart.update(ChartUpdateType.FULL);
 
                 const afterFinalUpdate = await snapshot();
@@ -506,13 +513,13 @@ describe('Axis Examples', () => {
                 ],
                 series: [
                     { type: 'line', xKey: 'quarter', yKey: 'petrol' },
-                    { type: 'line', xKey: 'quarter2', yKey: 'diesel' },
+                    { type: 'line', xKey: 'quarter2', yKey: 'diesel', xKeyAxis: 'secondaryX' },
                 ],
-                axes: [
-                    { type: 'category', position: 'top', keys: ['quarter'] },
-                    { type: 'category', position: 'bottom', keys: ['quarter2'] },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'top' },
+                    secondaryX: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             });
             await compare();
         });
@@ -541,10 +548,10 @@ describe('Axis Examples', () => {
         it.each(['number', 'time', 'unit-time'] as const)(`should render empty %s axis`, async (axisType) => {
             chart = await createChart({
                 data: [],
-                axes: [
-                    { type: 'number', position: 'left' },
-                    { type: axisType, position: 'bottom', min: 1 },
-                ],
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: { type: axisType, position: 'bottom', min: 1 },
+                },
             });
             await compare();
         });

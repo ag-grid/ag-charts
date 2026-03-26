@@ -1,18 +1,25 @@
-import { type AgRadialGaugePreset, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgRadialGaugePreset, VERSION } from 'ag-charts-community';
+import {
+    FONT_SIZE_RATIO,
+    LABEL_BOXING_DEFAULTS,
+    SAFE_RANGE2_OPERATION,
+    SAFE_STROKE_FILL_OPERATION,
+    type SeriesModuleDefinition,
+    radialGaugeSeriesOptionsDef,
+} from 'ag-charts-core';
 
+import { GaugePresetModule } from '../../preset/gaugePresetModule';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
-const { FONT_SIZE_RATIO } = _ModuleSupport;
-
-export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
+export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['standalone'],
+    name: 'radial-gauge',
+    chartType: 'standalone',
+    enterprise: true,
+    dependencies: [GaugePresetModule],
+    version: VERSION,
 
-    identifier: 'radial-gauge',
-    moduleFactory: (ctx) => new RadialGaugeSeries(ctx),
+    options: radialGaugeSeriesOptionsDef,
     themeTemplate: {
         minWidth: 200,
         minHeight: 200,
@@ -28,13 +35,12 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 $if: [
                     { $eq: [{ $palette: 'type' }, 'inbuilt'] },
                     { $interpolate: [{ $palette: 'secondDivergingColors' }, 5] },
-                    _ModuleSupport.SAFE_RANGE2_OPERATION,
+                    SAFE_RANGE2_OPERATION,
                 ],
             },
             scale: {
-                // @ts-expect-error undocumented option
                 defaultFill: { $path: ['/1', { $palette: 'fill' }, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
-                stroke: { $path: ['/2', _ModuleSupport.SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
+                stroke: { $path: ['/2', SAFE_STROKE_FILL_OPERATION, { $palette: 'hierarchyColors' }] }, // TODO: mix backgroundColor and foregroundColor?
                 strokeWidth: { $isUserOption: ['./stroke', 2, 0] },
                 label: {
                     fontWeight: { $ref: 'fontWeight' },
@@ -74,7 +80,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 spacing: 10,
             },
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: 56,
@@ -83,7 +89,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 color: { $ref: 'textColor' },
             },
             secondaryLabel: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
                 fontWeight: { $ref: 'fontWeight' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
@@ -96,15 +102,6 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
         },
     },
-};
 
-export const RadialGaugeSeriesModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
-    type: 'series',
-    name: 'radial-gauge',
-    chartType: 'standalone',
-    enterprise: true,
-
-    options: _ModuleSupport.radialGaugeSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new RadialGaugeSeries(ctx),
+    create: (ctx) => new RadialGaugeSeries(ctx),
 };

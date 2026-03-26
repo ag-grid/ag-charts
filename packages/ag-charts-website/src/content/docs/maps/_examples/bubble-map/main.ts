@@ -1,8 +1,26 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { africaData, asiaData, europeData, northAmericaData, oceaniaData, southAmericaData } from './data';
 import { topology } from './topology';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     padding: {

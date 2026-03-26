@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -24,20 +33,15 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 enabled: true,
                 text: 'Change / Thousands',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -1,9 +1,29 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import type { CurrencyConverter } from './currencyConverter';
 import { Currency, makeCurrencyConverter } from './currencyConverter';
 import { TradeDatum, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    TimeAxisModule,
+]);
 const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
     container: document.getElementById('myChart'),
     context: makeCurrencyConverter('EUR'),
@@ -35,21 +55,19 @@ const options: AgCartesianChartOptions<TradeDatum, CurrencyConverter> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'time',
-            position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: ({ value, context }) => {
                     return context?.formatUserCurrency(value);
                 },
             },
         },
-    ],
+    },
     contextMenu: {
         items: [
             {

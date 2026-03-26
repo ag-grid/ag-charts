@@ -1,6 +1,16 @@
-// Fictitious data used for demonstration purposes
-import { AgCharts, AgFlowProportionChartOptions, AgSankeySeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgFlowProportionChartOptions,
+    AgSankeySeriesOptions,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    SankeySeriesModule,
+} from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, SankeySeriesModule, ContextMenuModule]);
 const options: AgFlowProportionChartOptions = {
     container: document.getElementById('myChart'),
     title: {

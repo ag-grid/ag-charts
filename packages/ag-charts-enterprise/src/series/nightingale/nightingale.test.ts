@@ -1,16 +1,31 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts, AgNightingaleSeriesOptions } from 'ag-charts-community';
+import {
+    type AgChartOptions,
+    AgCharts,
+    type AgNightingaleSeriesOptions,
+    type AgPolarChartOptions,
+    type AgRadialSeriesItemStylerParams,
+    type AgRadialSeriesStyle,
+    type AgRadialSeriesStylerParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
+    type MockNightingaleStyler,
     clickAction,
+    deproxy,
     doubleClickAction,
     doubleTapAction,
+    expectWarningsCalls,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
     tapAction,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -93,16 +108,16 @@ describe('NightingaleSeries', () => {
     it(`should render stacked nightingale chart as expected with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
         chart = AgCharts.create(options);
@@ -134,16 +149,16 @@ describe('NightingaleSeries', () => {
                     grouped: true,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -176,16 +191,16 @@ describe('NightingaleSeries', () => {
                     normalizedTo: 100,
                 };
             }),
-            axes: [
-                {
+            axes: {
+                radius: {
                     type: 'radius-number',
                     reverse: true,
                 },
-                {
+                angle: {
                     type: 'angle-category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -222,6 +237,12 @@ describe('NightingaleSeries', () => {
                     await clickAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await clickAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
@@ -231,6 +252,12 @@ describe('NightingaleSeries', () => {
                     await tapAction(x, y)(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-click-${x}`);
                     await tapAction(x, y)(chart);
+                    // Clear highlight state to match initial state (legend click sets highlight when toggling back on)
+                    const chartInstance = deproxy(chart);
+                    for (const { legend } of chartInstance.modulesManager.legends()) {
+                        chartInstance.ctx.highlightManager.updateHighlight((legend as any).id);
+                    }
+                    await waitForChartStability(chart);
                     await compare(`nightingale-test-ts-nightingale-series-legend-All`);
                 });
             }
@@ -515,5 +542,403 @@ describe('NightingaleSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+    });
+
+    describe('AG-15782 styler', () => {
+        type D = { quarter: string; sw: number; hw: number };
+        type C = unknown;
+        type O = AgPolarChartOptions<D, C>;
+        type M = MockNightingaleStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        let data: D[];
+
+        beforeEach(() => {
+            data = [
+                { quarter: `Q1'22`, sw: 4.35, hw: 2.14 },
+                { quarter: `Q2'22`, sw: 4.28, hw: 3.13 },
+                { quarter: `Q3'22`, sw: 4.14, hw: 3.34 },
+                { quarter: `Q4'22`, sw: 3.48, hw: 3.56 },
+                { quarter: `Q1'23`, sw: 3.35, hw: 3.14 },
+                { quarter: `Q2'23`, sw: 3.28, hw: 3.13 },
+                { quarter: `Q3'23`, sw: 3.14, hw: 2.84 },
+                { quarter: `Q4'23`, sw: 2.48, hw: 2.46 },
+            ];
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRadialSeriesStylerParams<D, C>): AgRadialSeriesStyle | undefined => {
+                    if (params.radiusKey === 'sw') {
+                        return {
+                            fill: 'cyan',
+                            lineDash: [7, 2],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                            strokeOpacity: 0.5,
+                        };
+                    }
+                    if (params.radiusKey === 'hw')
+                        return {
+                            fill: 'hotpink',
+                            stroke: 'darkmagenta',
+                            strokeWidth: 4,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'software context 1' };
+                c2 = { name: 'hardware context 2' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                context: c1,
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                context: c2,
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgRadialSeriesItemStylerParams<D, C>): AgRadialSeriesStyle => {
+                    if (params.radiusKey === 'sw' && params.datum.quarter === `Q1'22`) {
+                        return { fill: 'lightskyblue', stroke: 'deepskyblue' };
+                    }
+                    if (params.radiusKey === 'hw' && params.datum.quarter === `Q3'23`) {
+                        return { fill: 'darkkhaki', strokeWidth: 7, strokeOpacity: 1 };
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                fill: 'lime', // ignored
+                                fillOpacity: 0.5, // not ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                stroke: 'CornflowerBlue', // ignored
+                                strokeOpacity: 0.5, // not ignored
+                                strokeWidth: 15, // ignored
+                                styler: styler.frozen,
+                                itemStyler,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('highlights', () => {
+            // Manual-test version available at nightingale-series-test#styler-highlight-state
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<O>({
+                        data,
+                        series: [
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'sw',
+                                radiusName: 'Software',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'nightingale',
+                                angleKey: 'quarter',
+                                radiusKey: 'hw',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 100, y: 100 } as const;
+            const series0datum0 = { x: 400, y: 200 } as const;
+            const series0datum2 = { x: 465, y: 275 } as const;
+            const series1datum0 = { x: 400, y: 120 } as const;
+            const legendItem0 = { x: 375, y: 570 } as const;
+            const legendItem1 = { x: 450, y: 570 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's1', radiusName: 'series 1' },
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's2', radiusName: 'series 2' },
+                    { type: 'nightingale', angleKey: 'x', radiusKey: 's3', radiusName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('null category key', () => {
+        const NIGHTINGALE_NULL_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_NULL_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [NightingaleSeries-1 / angleValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const NIGHTINGALE_UNDEFINED_CATEGORY_KEY_DATA = [
+            { category: 'A', value: 10 },
+            { category: undefined, value: 20 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { category: 'A', value: 10 },
+            { category: null, value: 20 },
+            { category: undefined, value: 25 },
+            { category: 'B', value: 15 },
+        ];
+
+        const NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_UNDEFINED_CATEGORY_KEY_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        const NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_DATA,
+            series: [
+                {
+                    type: 'nightingale',
+                    angleKey: 'category',
+                    radiusKey: 'value',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [NightingaleSeries-1 / angleValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories', async () => {
+            const options: AgChartOptions = {
+                ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...NIGHTINGALE_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
     });
 });

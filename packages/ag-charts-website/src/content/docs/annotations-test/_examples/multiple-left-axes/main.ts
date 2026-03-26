@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -30,21 +30,17 @@ const options: AgChartOptions = {
             xKey: 'year',
             yKey: 'exportedTonnes',
             yName: 'Beef exports',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 5,
             marker: {
                 enabled: false,
             },
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['male', 'female'],
             title: {
                 text: 'Number of cattle',
             },
@@ -54,10 +50,9 @@ const options: AgChartOptions = {
                 },
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'left',
-            keys: ['exportedTonnes'],
             title: {
                 enabled: true,
                 text: 'Exports (tonnes)',
@@ -68,7 +63,7 @@ const options: AgChartOptions = {
                 },
             },
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

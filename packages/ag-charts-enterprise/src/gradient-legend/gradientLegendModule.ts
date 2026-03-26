@@ -1,17 +1,68 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgGradientLegendOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_BLANK_DEFAULTS,
+    FILL_IMAGE_BLANK_DEFAULTS,
+    FILL_PATTERN_BLANK_DEFAULTS,
+    LEGEND_CONTAINER_THEME,
+    type PluginModuleDefinition,
+    and,
+    array,
+    boolean,
+    borderOptionsDef,
+    callback,
+    colorUnion,
+    fontOptionsDef,
+    greaterThan,
+    legendPositionValidator,
+    lessThan,
+    number,
+    numberFormatValidator,
+    padding,
+    positiveNumber,
+    ratio,
+} from 'ag-charts-core';
 
 import { GradientLegend } from './gradientLegend';
 
-export const GradientLegendModule: _ModuleSupport.LegendModule = {
-    type: 'legend',
-    optionsKey: 'gradientLegend',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'topology', 'standalone'],
+export const GradientLegendModule: PluginModuleDefinition<AgGradientLegendOptions> = {
+    type: 'plugin',
+    name: 'gradientLegend',
+    enterprise: true,
+    version: VERSION,
+    // removable: 'standalone-only',
 
-    identifier: 'gradient',
-    moduleFactory: (ctx) => new GradientLegend(ctx),
-
+    options: {
+        enabled: boolean,
+        position: legendPositionValidator,
+        spacing: positiveNumber,
+        reverseOrder: boolean,
+        border: borderOptionsDef,
+        cornerRadius: number,
+        padding: padding,
+        fill: colorUnion,
+        fillOpacity: ratio,
+        gradient: {
+            preferredLength: positiveNumber,
+            thickness: positiveNumber,
+        },
+        scale: {
+            label: {
+                ...fontOptionsDef,
+                minSpacing: positiveNumber,
+                format: numberFormatValidator,
+                formatter: callback,
+            },
+            padding: positiveNumber,
+            interval: {
+                step: number,
+                values: array,
+                minSpacing: and(positiveNumber, lessThan('maxSpacing')),
+                maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
+            },
+        },
+    },
     themeTemplate: {
+        ...LEGEND_CONTAINER_THEME,
         enabled: false,
         position: 'bottom',
         spacing: 20,
@@ -37,12 +88,16 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
             $applySwitch: [
                 { $path: 'type' },
                 { $ref: 'chartBackgroundColour' },
-                ['gradient', _ModuleSupport.FILL_GRADIENT_BLANK_DEFAULTS],
-                ['pattern', _ModuleSupport.FILL_PATTERN_BLANK_DEFAULTS],
-                ['image', _ModuleSupport.FILL_IMAGE_BLANK_DEFAULTS],
+                ['gradient', FILL_GRADIENT_BLANK_DEFAULTS],
+                ['pattern', FILL_PATTERN_BLANK_DEFAULTS],
+                ['image', FILL_IMAGE_BLANK_DEFAULTS],
             ],
         },
     },
 
-    removable: 'standalone-only',
+    create: (ctx) => {
+        const moduleInstance = new GradientLegend(ctx);
+        moduleInstance.attachLegend(ctx.scene);
+        return moduleInstance;
+    },
 };

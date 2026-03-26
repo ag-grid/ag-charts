@@ -43,7 +43,13 @@ if [[ ${AG_SKIP_NATIVE_DEP_VERSION_CHECK:-} != "" ]] ; then
     exit 0
 fi
 
-checkVersion fontconfig libfontconfig "2..*" "2..*"
+## On Debian/Ubuntu the package providing fontconfig is named `libfontconfig1`.
+## Check for that package name as well to avoid false negatives on apt systems.
+if (which apt-cache >/dev/null) ; then
+    checkVersion fontconfig libfontconfig1 "2..*" "2..*"
+else
+    checkVersion fontconfig libfontconfig "2..*" "2..*"
+fi
 
 if [[ $PASS == "false" ]] ; then
     exit 1

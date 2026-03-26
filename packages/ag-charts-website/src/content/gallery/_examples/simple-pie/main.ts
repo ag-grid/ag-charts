@@ -1,7 +1,15 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AnimationModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    PieSeriesModule,
+} from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
+import { getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, PieSeriesModule]);
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -28,8 +36,16 @@ const options: AgPolarChartOptions = {
             calloutLabelKey: 'segment',
             sectorLabelKey: 'revenue',
             angleKey: 'revenue',
+            sectorSpacing: 3,
             calloutLabel: {
-                offset: 20,
+                minAngle: 30,
+                formatter: ({ datum }) => [
+                    {
+                        text: currencyFormatter.format(datum.revenue),
+                        fontSize: 20,
+                    },
+                    { text: '\n' + datum.segment, fontSize: 10, color: 'grey' },
+                ],
             },
             sectorLabel: {
                 positionOffset: 30,

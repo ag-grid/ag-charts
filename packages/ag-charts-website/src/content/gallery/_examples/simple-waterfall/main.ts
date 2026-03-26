@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CategoryAxisModule,
+    LegendModule,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+]);
 const formatter = new Intl.NumberFormat(undefined, {
     style: 'currency',
     currency: 'GBP',
@@ -50,16 +67,15 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             interval: { values: [0, -148.1] },
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-        {
+        x: {
             type: 'category',
             position: 'top',
             gridLine: { enabled: true },
@@ -67,7 +83,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         position: {
             floating: true,

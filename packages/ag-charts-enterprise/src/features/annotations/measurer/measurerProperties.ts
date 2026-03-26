@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { isObject } from 'ag-charts-core';
+import { BaseProperties, Property, isObject } from 'ag-charts-core';
 
 import {
     Background,
@@ -15,12 +15,10 @@ import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type Constructor,
-    type Point,
+    type DataPoint,
 } from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
-
-const { BaseProperties, Property } = _ModuleSupport;
 
 class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 
@@ -45,7 +43,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Property
     public statistics = new MeasurerStatistics();
 
-    public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => undefined;
+    public getVolume: (from: DataPoint['x'], to: DataPoint['x']) => number | undefined = () => undefined;
 
     @Property
     text = new LineTextProperties();

@@ -1,18 +1,29 @@
-import { isNumberEqual } from 'ag-charts-core';
+import { SceneChangeDetection, angleBetween, isNumberEqual, normalizeAngle360 } from 'ag-charts-core';
 
-import { angleBetween, normalizeAngle360 } from '../../util/angle';
 import { BBox } from '../bbox';
-import { SceneChangeDetection } from '../changeDetectable';
 import { Path } from './path';
 
 function rotatePoint(x: number, y: number, rotation: number) {
-    const radius = Math.sqrt(x ** 2 + y ** 2);
+    const radius = Math.hypot(x, y);
     const angle = Math.atan2(y, x);
     const rotated = angle + rotation;
     return {
         x: Math.cos(rotated) * radius,
         y: Math.sin(rotated) * radius,
     };
+}
+
+interface CircleIntersection {
+    y: number;
+    angle: number;
+}
+
+interface BevelGeometry {
+    left: number;
+    right: number;
+    top: number;
+    bottom: number;
+    rotation: number;
 }
 
 export class RadialColumnShape<D = any> extends Path<D> {
@@ -42,15 +53,14 @@ export class RadialColumnShape<D = any> extends Path<D> {
     @SceneChangeDetection()
     axisOuterRadius: number = 0;
 
-    @SceneChangeDetection()
-    isRadiusAxisReversed?: boolean = false;
-
     set cornerRadius(_value: number) {
         // TODO implement cornerRadius support
     }
 
     protected override computeBBox(): BBox {
-        const { innerRadius, outerRadius, columnWidth } = this;
+        const { columnWidth } = this;
+        const [innerRadius, outerRadius] = this.normalizeRadii(this.innerRadius, this.outerRadius);
+
         const rotation = this.getRotation();
         const left = -columnWidth / 2;
         const right = columnWidth / 2;
@@ -79,6 +89,13 @@ export class RadialColumnShape<D = any> extends Path<D> {
         return normalizeAngle360(startAngle + midAngle / 2 + Math.PI / 2);
     }
 
+    private normalizeRadii(innerRadius: number, outerRadius: number): [number, number] {
+        if (innerRadius > outerRadius) {
+            return [outerRadius, innerRadius];
+        }
+        return [innerRadius, outerRadius];
+    }
+
     override updatePath() {
         const { isBeveled } = this;
 
@@ -92,7 +109,8 @@ export class RadialColumnShape<D = any> extends Path<D> {
     }
 
     private updateRectangularPath() {
-        const { columnWidth, innerRadius, outerRadius, path } = this;
+        const { columnWidth, path } = this;
+        const [innerRadius, outerRadius] = this.normalizeRadii(this.innerRadius, this.outerRadius);
 
         const left = -columnWidth / 2;
         const right = columnWidth / 2;
@@ -117,125 +135,153 @@ export class RadialColumnShape<D = any> extends Path<D> {
         path.closePath();
     }
 
-    private updateBeveledPath() {
-        const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius, isRadiusAxisReversed } =
-            this;
+    private calculateCircleIntersection(x: number, radiusSquared: number): CircleIntersection | null {
+        const xSquared = x * x;
+        if (radiusSquared < xSquared) {
+            return null;
+        }
+        const y = -Math.sqrt(radiusSquared - xSquared);
+        const angle = Math.atan2(y, x);
+        return { y, angle };
+    }
 
-        const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
-        const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
-        const pointRotation = this.getRotation();
-        const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
+    private calculateBothIntersections(left: number, right: number, radius: number) {
+        const radiusSquared = radius * radius;
+        const leftInt = this.calculateCircleIntersection(left, radiusSquared);
+        const rightInt = this.calculateCircleIntersection(right, radiusSquared);
 
-        const getTriangleHypotenuse = (leg: number, otherLeg: number) => Math.sqrt(leg ** 2 + otherLeg ** 2);
-        const getTriangleLeg = (hypotenuse: number, otherLeg: number) => {
-            if (otherLeg > hypotenuse) {
-                return 0;
-            }
-            return Math.sqrt(hypotenuse ** 2 - otherLeg ** 2);
+        if (!leftInt || !rightInt) {
+            return null;
+        }
+
+        return { left: leftInt, right: rightInt };
+    }
+
+    private calculateAxisOuterIntersections(left: number, right: number, axisOuterRadius: number) {
+        const axisOuterRadiusSquared = axisOuterRadius * axisOuterRadius;
+        const axisOuterLeft = this.calculateCircleIntersection(left, axisOuterRadiusSquared);
+        const axisOuterRight = this.calculateCircleIntersection(right, axisOuterRadiusSquared);
+
+        if (!axisOuterLeft || !axisOuterRight) {
+            return null;
+        }
+
+        return {
+            left: axisOuterLeft,
+            right: axisOuterRight,
+            radiusSquared: axisOuterRadiusSquared,
         };
-        const compare = (value: number, otherValue: number, lessThan: boolean) =>
-            lessThan ? value < otherValue : value > otherValue;
+    }
 
-        // Avoid the connecting lines to be too long
-        const shouldConnectBottomCircle = isStackBottom && !isNaN(sideRotation) && sideRotation < Math.PI / 6;
+    private moveToRotated(x: number, y: number, rotation: number) {
+        const point = rotatePoint(x, y, rotation);
+        this.path.moveTo(point.x, point.y);
+    }
 
-        let left = -columnWidth / 2;
-        let right = columnWidth / 2;
+    private lineToRotated(x: number, y: number, rotation: number) {
+        const point = rotatePoint(x, y, rotation);
+        this.path.lineTo(point.x, point.y);
+    }
+
+    private renderTopWithCornerClipping(
+        axisOuterRadius: number,
+        axisOuter: { left: CircleIntersection; right: CircleIntersection; radiusSquared: number },
+        geometry: BevelGeometry
+    ) {
+        const { path } = this;
+        const { right, top, rotation } = geometry;
+        const topSquared = top * top;
+        const topIntersectionSquared = axisOuter.radiusSquared - topSquared;
+
+        if (topIntersectionSquared <= 0) {
+            // Top edge is entirely outside the axis outer radius - use continuous arc
+            this.lineToRotated(right, axisOuter.right.y, rotation);
+            path.arc(0, 0, axisOuterRadius, rotation + axisOuter.right.angle, rotation + axisOuter.left.angle, true);
+        } else {
+            // Top edge intersects the circle - straight section with clipped corners
+            const topIntersectionX = Math.sqrt(topIntersectionSquared);
+            const topRightAngle = Math.atan2(top, topIntersectionX);
+            const topLeftAngle = Math.atan2(top, -topIntersectionX);
+
+            this.lineToRotated(right, axisOuter.right.y, rotation);
+            path.arc(0, 0, axisOuterRadius, rotation + axisOuter.right.angle, rotation + topRightAngle, true);
+
+            this.lineToRotated(-topIntersectionX, top, rotation);
+            path.arc(0, 0, axisOuterRadius, rotation + topLeftAngle, rotation + axisOuter.left.angle, true);
+        }
+    }
+
+    private updateBeveledPath() {
+        // Create a path similar to updateRectangularPath().
+        // However we want to improve the visual quality of the bevelled path:
+        // - If the bar is growing outwards and starting from the inner radius, the bottom edge should curve around the inner radius.
+        // - If the bar is growing inwards and starting from the outer radius, the top edge should curve around the outer radius.
+        // - If the bar spans the entire radius range, both edges should be curved.
+        // - If the corners breach a radius, those corners should follow the arc while maintaining straight perpendicular sections.
+
+        const { columnWidth, path, axisInnerRadius, axisOuterRadius } = this;
+        const [innerRadius, outerRadius] = this.normalizeRadii(this.innerRadius, this.outerRadius);
+
+        const left = -columnWidth / 2;
+        const right = columnWidth / 2;
         const top = -outerRadius;
-        const bottom = -innerRadius * (shouldConnectBottomCircle ? Math.cos(sideRotation) : 1);
+        const bottom = -innerRadius;
+        const rotation = this.getRotation();
 
-        const hasBottomIntersection = compare(
-            axisOuterRadius,
-            getTriangleHypotenuse(innerRadius, columnWidth / 2),
-            !isRadiusAxisReversed
-        );
+        const isTouchingInner = isNumberEqual(innerRadius, axisInnerRadius);
+        const isTouchingOuter = isNumberEqual(outerRadius, axisOuterRadius);
+        const topCornersBreach = Math.hypot(left, top) > axisOuterRadius || Math.hypot(right, top) > axisOuterRadius;
 
-        if (hasBottomIntersection) {
-            // Crop bottom side overflowing outer radius
-            const bottomIntersectionX = getTriangleLeg(axisOuterRadius, innerRadius);
-            left = -bottomIntersectionX;
-            right = bottomIntersectionX;
+        // Early exit if no bevelling needed
+        if (!isTouchingInner && !isTouchingOuter && !topCornersBreach) {
+            this.updateRectangularPath();
+            return;
+        }
+
+        // Calculate only the intersections we need
+        const inner = isTouchingInner ? this.calculateBothIntersections(left, right, innerRadius) : null;
+        const outer = isTouchingOuter ? this.calculateBothIntersections(left, right, outerRadius) : null;
+        const axisOuter = topCornersBreach ? this.calculateAxisOuterIntersections(left, right, axisOuterRadius) : null;
+
+        // Single validation point: if expected intersections are missing, fall back
+        if ((isTouchingInner && !inner) || (isTouchingOuter && !outer) || (topCornersBreach && !axisOuter)) {
+            this.updateRectangularPath();
+            return;
         }
 
         path.clear(true);
+        const geometry: BevelGeometry = { left, right, top, bottom, rotation };
 
-        // Bottom-left point
-        const bottomLeftPt = rotate(left, bottom);
-        path.moveTo(bottomLeftPt.x, bottomLeftPt.y);
-
-        // Top
-        const isEmpty = isNumberEqual(innerRadius, outerRadius);
-        const hasSideIntersection = compare(
-            axisOuterRadius,
-            getTriangleHypotenuse(outerRadius, columnWidth / 2),
-            !isRadiusAxisReversed
-        );
-
-        if (isEmpty && shouldConnectBottomCircle) {
-            // A single line across the axis inner radius
-            path.arc(
-                0,
-                0,
-                innerRadius,
-                normalizeAngle360(-sideRotation - Math.PI / 2) + pointRotation,
-                normalizeAngle360(sideRotation - Math.PI / 2) + pointRotation,
-                false
-            );
-        } else if (hasSideIntersection) {
-            // Crop top side overflowing outer radius
-            const sideIntersectionY = -getTriangleLeg(axisOuterRadius, columnWidth / 2);
-            const topIntersectionX = getTriangleLeg(axisOuterRadius, outerRadius);
-            if (!hasBottomIntersection) {
-                const topLeftPt = rotate(left, sideIntersectionY);
-                path.lineTo(topLeftPt.x, topLeftPt.y);
-            }
-            path.arc(
-                0,
-                0,
-                axisOuterRadius,
-                Math.atan2(sideIntersectionY, left) + pointRotation,
-                Math.atan2(top, -topIntersectionX) + pointRotation,
-                false
-            );
-            if (!isNumberEqual(topIntersectionX, 0)) {
-                // Connecting line between two top bevels
-                const topRightBevelPt = rotate(topIntersectionX, top);
-                path.lineTo(topRightBevelPt.x, topRightBevelPt.y);
-            }
-            path.arc(
-                0,
-                0,
-                axisOuterRadius,
-                Math.atan2(top, topIntersectionX) + pointRotation,
-                Math.atan2(sideIntersectionY, right) + pointRotation,
-                false
-            );
+        // Walk clockwise around the shape starting from bottom-left
+        // 1. Start at bottom-left corner
+        if (inner) {
+            this.moveToRotated(left, inner.left.y, rotation);
         } else {
-            // Basic connecting line
-            const topLeftPt = rotate(left, top);
-            const topRightPt = rotate(right, top);
-            path.lineTo(topLeftPt.x, topLeftPt.y);
-            path.lineTo(topRightPt.x, topRightPt.y);
+            this.moveToRotated(left, bottom, rotation);
         }
 
-        // Bottom
-        const bottomRightPt = rotate(right, bottom);
-        path.lineTo(bottomRightPt.x, bottomRightPt.y);
-        if (shouldConnectBottomCircle) {
-            // Connect column with inner circle
-            path.arc(
-                0,
-                0,
-                innerRadius,
-                normalizeAngle360(sideRotation - Math.PI / 2) + pointRotation,
-                normalizeAngle360(-sideRotation - Math.PI / 2) + pointRotation,
-                true
-            );
+        // 2. Bottom edge (horizontal)
+        if (inner) {
+            path.arc(0, 0, innerRadius, rotation + inner.left.angle, rotation + inner.right.angle, false);
         } else {
-            const rotatedBottomLeftPt = rotate(left, bottom);
-            path.lineTo(rotatedBottomLeftPt.x, rotatedBottomLeftPt.y);
+            this.lineToRotated(right, bottom, rotation);
         }
 
+        // 3. Right edge (vertical) + Top edge (horizontal with potential clipping)
+        if (outer) {
+            // Simple outer arc case
+            this.lineToRotated(right, outer.right.y, rotation);
+            path.arc(0, 0, outerRadius, rotation + outer.right.angle, rotation + outer.left.angle, true);
+        } else if (axisOuter) {
+            // Corner clipping case
+            this.renderTopWithCornerClipping(axisOuterRadius, axisOuter, geometry);
+        } else {
+            // Straight top case
+            this.lineToRotated(right, top, rotation);
+            this.lineToRotated(left, top, rotation);
+        }
+
+        // 4. Left edge (implicit via closePath)
         path.closePath();
     }
 }
@@ -268,7 +314,7 @@ export function getRadialColumnWidth(
     const endX = axisOuterRadius * Math.cos(endAngle);
     const endY = axisOuterRadius * Math.sin(endAngle);
 
-    const colWidth = Math.floor(Math.sqrt((startX - endX) ** 2 + (startY - endY) ** 2));
+    const colWidth = Math.floor(Math.hypot(startX - endX, startY - endY));
     const maxWidth = 2 * axisOuterRadius * maxColumnWidthRatio;
 
     return Math.max(1, Math.min(maxWidth, colWidth));

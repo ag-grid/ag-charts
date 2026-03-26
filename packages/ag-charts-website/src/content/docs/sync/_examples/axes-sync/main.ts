@@ -1,7 +1,29 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    SyncModule,
+} from 'ag-charts-enterprise';
 
 import { currentData, historicalData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    SyncModule,
+    ContextMenuModule,
+]);
 const commonOptions: AgCartesianChartOptions = {
     sync: {
         axes: 'y',
@@ -10,21 +32,19 @@ const commonOptions: AgCartesianChartOptions = {
     title: {
         text: 'Renewable Fuel Sources',
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             crosshair: { enabled: false },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'category',
             crosshair: { enabled: false },
             label: {
                 autoRotate: false,
             },
         },
-    ],
+    },
     series: [
         {
             type: 'bar',

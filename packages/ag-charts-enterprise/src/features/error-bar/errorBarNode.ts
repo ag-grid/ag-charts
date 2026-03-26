@@ -1,9 +1,16 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import type { PickNodeDatumResult } from 'ag-charts-core';
+import {
+    type NearestResult,
+    mergeDefaults,
+    nearestSquared,
+    nearestSquaredInContainer,
+    partialAssign,
+} from 'ag-charts-core';
 import type { HighlightState } from 'ag-charts-types';
 
-const { nearestSquared, nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
-type NearestResult<T> = _ModuleSupport.NearestResult<T>;
+const { BBox } = _ModuleSupport;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
@@ -48,7 +55,7 @@ class HierarchicalBBox {
 export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
     private readonly whiskerPath: _ModuleSupport.Path;
     private readonly capsPath: _ModuleSupport.Path;
-    private capLength: number = NaN;
+    private capLength: number = Number.NaN;
 
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
     // series class handle that for us. The 'exact' interaction range is the same as having a distance
@@ -235,12 +242,17 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
 }
 
 export class ErrorBarGroup extends _ModuleSupport.Group {
-    nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
+    nearestSquared(x: number, y: number): PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,
         });
+<<<<<<< HEAD
         if (nearest !== undefined && !isNaN(distanceSquared)) {
             return { datum: nearest.unsafeDatum, distanceSquared };
+=======
+        if (nearest !== undefined && !Number.isNaN(distanceSquared)) {
+            return { datum: nearest.datum, distanceSquared };
+>>>>>>> latest
         }
     }
 }

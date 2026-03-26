@@ -3,29 +3,27 @@ import {
     arrayOf,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
     required,
+    seriesLabelOptionsDefs,
     shapeHighlightOptionsDef,
     string,
+    tooltipOptionsDefs,
+    undocumented,
     union,
+    without,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
     AgBubbleSeriesStylerResult,
     AgBubbleSeriesThemeableOptions,
 } from 'ag-charts-types';
-
-import { without } from '../../../util/object';
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    markerOptionsDefs,
-    seriesLabelOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeableOptions> = {
     title: string,
@@ -59,5 +57,11 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     yName: string,
     sizeName: string,
     labelName: string,
+    legendItemName: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
+
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.selectedKey = undocumented(string);

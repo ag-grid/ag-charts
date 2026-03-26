@@ -5,32 +5,59 @@ export class AsyncAwaitQueue {
     private readonly queue: (() => void)[] = [];
 
     /** Await another async process to call notify(). */
-    public await(timeout = 50) {
-        return new Promise<boolean>((resolve) => {
-            const successFn = () => {
+    public waitForCompletion(timeout = 50) {
+        const queue = this.queue;
+
+        function createCompletionPromise(resolve: (value: boolean) => void): void {
+            function successFn(): void {
                 clearTimeout(timeoutHandle);
                 resolve(true);
-            };
-            const timeoutFn = () => {
-                const queueIndex = this.queue.indexOf(successFn);
+            }
+
+            function timeoutFn(): void {
+                const queueIndex = queue.indexOf(successFn);
                 if (queueIndex < 0) return;
 
-                this.queue.splice(queueIndex, 1);
+                queue.splice(queueIndex, 1);
                 resolve(false);
-            };
+            }
+
             const timeoutHandle = setTimeout(timeoutFn, timeout);
-            this.queue.push(successFn);
-        });
+            queue.push(successFn);
+        }
+
+        return new Promise<boolean>(createCompletionPromise);
     }
 
     /** Trigger any await()ing async processes to continue. */
     public notify() {
-        this.queue.splice(0).forEach((cb) => cb());
+        for (const cb of this.queue.splice(0)) {
+            cb();
+        }
     }
 }
 
 export function pause(delayMilliseconds = 0) {
-    return new Promise((resolve) => {
+    function resolveAfterDelay(resolve: (_result: any) => void): void {
         setTimeout(resolve, delayMilliseconds);
+    }
+
+    return new Promise(resolveAfterDelay);
+}
+
+/** Wraps a promise with a timeout. Rejects with an error if the timeout expires before resolution. */
+export async function withTimeout<T>(
+    promise: Promise<T>,
+    timeoutMs: number,
+    errorMessage = `Timeout after ${timeoutMs}ms`
+): Promise<T> {
+    let timer: ReturnType<typeof setTimeout>;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(errorMessage)), timeoutMs);
     });
+    try {
+        return await Promise.race([promise, timeoutPromise]);
+    } finally {
+        clearTimeout(timer!);
+    }
 }

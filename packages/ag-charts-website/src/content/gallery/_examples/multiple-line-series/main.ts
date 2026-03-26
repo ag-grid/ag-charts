@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, CategoryAxisModule, LineSeriesModule, NumberAxisModule]);
 const timeDurationFormatter = (time: number) => {
     const hours = Math.floor(time / 60);
     const minutes = Math.floor(time % 60);
@@ -85,10 +95,9 @@ const options: AgChartOptions<DataType> = {
             yName: 'With Coworkers',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Age (years)',
             },
@@ -107,8 +116,7 @@ const options: AgChartOptions<DataType> = {
                 ],
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Time Spent (hours)',
@@ -128,7 +136,7 @@ const options: AgChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     formatter: {
         y: (params) => {
             const value = params.value as number;

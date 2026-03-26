@@ -1,37 +1,34 @@
-import { type AgRangeAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgRangeAreaSeriesOptions, CartesianChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
+import {
+    CARTESIAN_AXIS_TYPE,
+    CARTESIAN_POSITION,
+    ChartAxisDirection,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
 import { RangeAreaSeries } from './rangeArea';
 import { rangeAreaSeriesOptionsDef } from './rangeAreaSeriesOptionsDef';
 import { RANGE_AREA_SERIES_THEME } from './rangeAreaThemes';
 
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
-} = _ModuleSupport;
-
-export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
-    type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-
-    identifier: 'range-area',
-    moduleFactory: (ctx) => new RangeAreaSeries(ctx),
-    predictAxis: _ModuleSupport.predictCartesianTimeAxis,
-    defaultAxes: [
-        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
-        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
-    ],
-    themeTemplate: RANGE_AREA_SERIES_THEME,
-};
+const { predictCartesianNonPrimitiveAxis } = _ModuleSupport;
 
 export const RangeAreaSeriesModule: SeriesModuleDefinition<AgRangeAreaSeriesOptions> = {
     type: 'series',
     name: 'range-area',
     chartType: 'cartesian',
     enterprise: true,
+    version: VERSION,
+    dependencies: [CartesianChartModule],
 
     options: rangeAreaSeriesOptionsDef,
+    matchingKeys: ['xKey', 'yLowKey', 'yHighKey', 'normalizedTo'],
+    predictAxis: predictCartesianNonPrimitiveAxis,
+    defaultAxes: {
+        y: { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        x: { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
+    },
+    axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
+    themeTemplate: RANGE_AREA_SERIES_THEME,
 
-    create: (ctx: _ModuleSupport.ModuleContext) => new RangeAreaSeries(ctx),
+    create: (ctx) => new RangeAreaSeries(ctx),
 };

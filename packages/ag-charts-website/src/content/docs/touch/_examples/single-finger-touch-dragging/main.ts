@@ -1,6 +1,30 @@
-import { AgCartesianChartOptions, AgCharts, AgTouchOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgTouchOptions,
+    AnimationModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CandlestickSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),

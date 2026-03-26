@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,9 +21,8 @@ const options: AgChartOptions = {
             yName: 'Diesel',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             title: {
                 text: 'Date',
@@ -37,12 +38,17 @@ const options: AgChartOptions = {
                         text: 'Price Peak',
                         position: 'top',
                         fontSize: 14,
+                        fill: '#7290C4',
+                        fillOpacity: 0.4,
+                        cornerRadius: 4,
+                        border: {
+                            stroke: '#7290C4',
+                        },
                     },
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Price in pence',
@@ -98,7 +104,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

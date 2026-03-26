@@ -1,12 +1,10 @@
-import { isArray } from 'ag-charts-core';
+import type { MementoOriginator } from 'ag-charts-core';
+import { deepClone, isArray, mergeDefaults } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
-import type { MementoOriginator } from '../../api/state/memento';
 import type { EventsHub } from '../../core/eventsHub';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
-import { deepClone } from '../../util/json';
-import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 
 type AnnotationsMemento = AgAnnotation[];
@@ -53,7 +51,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     public attachNode(node: Node) {
         this.annotationRoot.append(node);
         return () => {
-            this.annotationRoot?.removeChild(node);
+            node.remove();
             return this;
         };
     }
@@ -74,7 +72,9 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     private cleanData(annotations: AnnotationsMemento) {
         // Strip text align from annotations as this is fixed by annotation type
         for (const annotation of annotations) {
-            if ('textAlign' in annotation) delete annotation.textAlign;
+            if ('textAlign' in annotation) {
+                delete annotation.textAlign;
+            }
         }
         return annotations;
     }

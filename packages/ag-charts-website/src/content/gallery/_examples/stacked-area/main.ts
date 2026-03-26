@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AreaSeriesModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, LegendModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
@@ -66,10 +76,9 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             label: {
                 format: '%b',
             },
@@ -95,9 +104,8 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: (params) => {
                     const value = params.value as number;
@@ -119,7 +127,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: false,

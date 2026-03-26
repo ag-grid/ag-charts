@@ -1,6 +1,7 @@
 import pluginJs from '@eslint/js';
 import checkFile from 'eslint-plugin-check-file';
 import sonarjs from 'eslint-plugin-sonarjs';
+import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
@@ -41,18 +42,19 @@ export const sonarjsConfig = [
     {
         files: ['**/*.{js,ts}'],
         rules: {
-            // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
-            'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-redeclare': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/function-return-type': env !== 'nx-task' ? 1 : 0,
+            // Rules moved from sonarjs to @typescript-eslint.
+            '@typescript-eslint/no-redeclare': 2,
+
+            // Make these warnings only; ideally only shown in IDE and PRs - but unused rule errors happen otherwise if not enabled.
+            'sonarjs/cognitive-complexity': 1,
+            'sonarjs/no-duplicate-string': 1,
+            'sonarjs/todo-tag': 1,
+            'sonarjs/fixme-tag': 1,
+            'sonarjs/function-return-type': 1,
+            'sonarjs/no-selector-parameter': 1,
+            'sonarjs/redundant-type-aliases': 1,
 
             // We don't really care about these.
-            'sonarjs/no-selector-parameter': 0,
-            'sonarjs/redundant-type-aliases': 0,
             'sonarjs/new-cap': 0,
 
             // Duplicates @typescript-eslint
@@ -61,6 +63,17 @@ export const sonarjsConfig = [
             'sonarjs/sonar-prefer-optional-chain': 0,
             'sonarjs/no-base-to-string': 0,
             'sonarjs/no-misused-promises': 0,
+
+            // Unicorn rules, as referenced from the SonarCloud documentation.
+            'unicorn/prefer-export-from': 2,
+            'unicorn/prefer-math-trunc': 2,
+            'unicorn/prefer-at': 2,
+            'unicorn/prefer-number-properties': 2,
+            'unicorn/no-array-for-each': 2,
+            'unicorn/prefer-dom-node-remove': 2,
+            'unicorn/prefer-global-this': 2,
+            'unicorn/prefer-includes': 2,
+            'unicorn/no-zero-fractions': 2,
         },
     },
 ];
@@ -85,12 +98,10 @@ export default [
         languageOptions: {
             globals: globals.browser,
             parserOptions: {
-                // projectService: true,
-                project: './tsconfig.lint.json',
+                projectService: true,
             },
         },
     },
-
     {
         files: ['**/src/**/*'],
         ignores: ['**/src/pages/**'], // Ignore astro pages
@@ -115,20 +126,22 @@ export default [
                     'change-detection': lintChangeDetection,
                 },
             },
+            unicorn,
         },
         rules: {
             'no-lonely-if': 2,
-            'no-negated-condition': 1,
+            'unicorn/no-negated-condition': 2,
             'no-nested-ternary': 2,
             'no-unneeded-ternary': 2,
             'no-eval': 2,
             'no-console': 2,
             'no-unused-vars': 0,
             'no-case-declarations': 0,
+            'no-duplicate-imports': ['error', { allowSeparateTypeImports: true }],
             'aglint/change-detection': 2,
             '@typescript-eslint/no-explicit-any': 0,
             '@typescript-eslint/consistent-type-imports': 0,
-            '@typescript-eslint/no-redundant-type-constituents': 1,
+            '@typescript-eslint/no-redundant-type-constituents': 2,
             '@typescript-eslint/no-floating-promises': 2,
             '@typescript-eslint/no-implied-eval': 2,
             '@typescript-eslint/no-shadow': 2,
@@ -136,7 +149,8 @@ export default [
             '@typescript-eslint/prefer-nullish-coalescing': 2,
             '@typescript-eslint/prefer-optional-chain': 2,
             '@typescript-eslint/prefer-readonly': 2,
-            '@typescript-eslint/prefer-ts-expect-error': 1,
+            '@typescript-eslint/prefer-ts-expect-error': 2,
+            '@typescript-eslint/prefer-literal-enum-member': ['error', { allowBitwiseExpressions: true }],
             '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
             '@typescript-eslint/no-for-in-array': 2,
             '@typescript-eslint/restrict-template-expressions': [
@@ -171,6 +185,14 @@ export default [
                     object: 'Object',
                     property: 'entries',
                     message: 'Prefer Object.keys() to Object.entries() for performance reasons.',
+                },
+                {
+                    property: 'stopPropagation',
+                    message: 'AG Charts must all bubble events. See AG-16736.',
+                },
+                {
+                    property: 'stopImmediatePropagation',
+                    message: 'AG Charts must all bubble events. See AG-16736.',
                 },
             ],
         },

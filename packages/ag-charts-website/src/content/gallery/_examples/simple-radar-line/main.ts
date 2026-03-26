@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AngleCategoryAxisModule, LegendModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -43,17 +53,17 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        angle: {
             type: 'angle-category',
         },
-        {
+        radius: {
             type: 'radius-number',
             label: {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         enabled: true,
         position: {

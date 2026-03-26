@@ -1,8 +1,8 @@
-import type { Scale } from '../../scale/scale';
+import type { Scale } from 'ag-charts-core';
+import { ChartAxisDirection, Property } from 'ag-charts-core';
+
 import type { BBox } from '../../scene/bbox';
-import { Property } from '../../util/properties';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { PolarCrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
@@ -35,18 +35,25 @@ export abstract class PolarAxis<
 
     abstract calculateRotations(): { rotation: number; parallelFlipRotation: number; regularFlipRotation: number };
 
+    override update() {
+        super.update();
+
+        this.tickLineGroup.visible = this.tick.enabled;
+        this.tickLabelGroup.visible = this.label.enabled;
+    }
+
     layoutCrossLines() {
         const sideFlag = this.label.getSideFlag();
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
-        (this.crossLines as PolarCrossLine[]).forEach((crossLine) => {
+        for (const crossLine of this.crossLines as PolarCrossLine[]) {
             crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.Angle : ChartAxisDirection.Radius;
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
             crossLine.calculateLayout?.(crosslinesVisible, this.reverse);
-        });
+        }
     }
 
     override updatePosition(): void {

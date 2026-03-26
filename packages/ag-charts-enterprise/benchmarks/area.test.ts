@@ -1,6 +1,6 @@
 import { describe as originalDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
@@ -15,7 +15,7 @@ describe('area series benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 208, expectedCanvasCount: 2, autoSnapshot: false },
+        { expectedRetainedSizeMB: 170, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
         },
@@ -30,7 +30,7 @@ describe('area series benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 1, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 65, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);

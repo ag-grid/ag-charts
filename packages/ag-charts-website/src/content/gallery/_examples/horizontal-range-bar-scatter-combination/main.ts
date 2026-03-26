@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     style: 'percent',
     maximumFractionDigits: 0,
@@ -32,6 +42,8 @@ const options: AgChartOptions<DataType> = {
             yLowName: 'Lowest Cost',
             yHighName: 'Highest Cost',
             yName: 'Production Cost Range',
+            xKeyAxis: 'product',
+            yKeyAxis: 'value',
             cornerRadius: 2,
         },
         {
@@ -44,6 +56,8 @@ const options: AgChartOptions<DataType> = {
             yLowName: 'Lowest Price',
             yHighName: 'Highest Price',
             yName: 'Retail Price Range',
+            xKeyAxis: 'product',
+            yKeyAxis: 'value',
             cornerRadius: 2,
         },
         {
@@ -51,6 +65,8 @@ const options: AgChartOptions<DataType> = {
             yKey: 'smartphone',
             xKey: 'profitMargin',
             xName: 'Profit Margin',
+            xKeyAxis: 'percentage',
+            yKeyAxis: 'product',
             yName: 'Profit Margin %',
             sizeKey: 'profitMargin',
             labelKey: 'profitMargin',
@@ -72,27 +88,24 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        product: {
             type: 'category',
             position: 'left',
-            keys: ['smartphone'],
             groupPaddingInner: 0,
             paddingInner: 0.9,
             paddingOuter: 0.8,
         },
-        {
+        percentage: {
             type: 'number',
             position: 'top',
-            keys: ['profitMargin'],
             label: {
                 formatter: ({ value }) => `${Math.round(value)}%`,
             },
         },
-        {
+        value: {
             type: 'number',
             position: 'bottom',
-            keys: ['lowRetail', 'highRetail', 'lowCost', 'highCost'],
             label: {
                 formatter: ({ value }) =>
                     `${Number(value).toLocaleString('en-US', {
@@ -102,7 +115,7 @@ const options: AgChartOptions<DataType> = {
                     })}`,
             },
         },
-    ],
+    },
     seriesArea: { padding: { right: 10 } },
 };
 

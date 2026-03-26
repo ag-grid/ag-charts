@@ -5,13 +5,14 @@ import path from 'path';
 import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
 
 import type { AgChartThemeName } from 'ag-charts-community';
+import { ConfiguredCanvasMixin } from 'ag-charts-core';
 
 import { generateThumbnail } from './generator/thumbnailGenerator';
 
 global.Path2D = Path2D;
 global.DOMMatrix = DOMMatrix as any;
 global.Image = Image as any;
-global.OffscreenCanvas = Canvas as any;
+global.OffscreenCanvas = ConfiguredCanvasMixin(Canvas) as any;
 
 export type ExecutorOptions = {
     outputPath: string;
@@ -69,7 +70,7 @@ export async function generateFiles(
                 try {
                     await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
                 } catch (e) {
-                    console.error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
+                    console.error(`Unable to render example [${name}] with theme [${theme}]`, e);
                     throw e;
                 }
             }

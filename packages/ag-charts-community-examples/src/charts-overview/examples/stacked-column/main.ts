@@ -75,15 +75,16 @@ const options: AgChartOptions = {
       stacked: true,
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       type: "category",
       position: "bottom",
       label: {
         rotation: 30,
+        wrapping: "never"
       },
     },
-    {
+    y: {
       type: "number",
       position: "left",
       label: {
@@ -92,10 +93,10 @@ const options: AgChartOptions = {
         },
       },
     },
-  ],
+  },
   padding: {
     bottom: 40,
   },
 }
 
-const chart = AgCharts.create(options)
+AgCharts.create(options)

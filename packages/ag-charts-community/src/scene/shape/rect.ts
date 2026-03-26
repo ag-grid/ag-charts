@@ -1,8 +1,8 @@
-import { boxesEqual, isNumberEqual } from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, type DistantObject, boxesEqual, isNumberEqual } from 'ag-charts-core';
+import type { AgDrawingMode } from 'ag-charts-types';
 
-import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
+import type { DropShadow } from '../dropShadow';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { type Corner, drawCorner } from '../util/corner';
 import { Path } from './path';
@@ -15,13 +15,13 @@ export interface CornerRadii {
     bottomLeft: number;
 }
 
-const cornerEdges = (
+function cornerEdges(
     leadingEdge: number,
     trailingEdge: number,
     leadingInset: number,
     trailingInset: number,
     cornerRadius: number
-) => {
+) {
     let leadingClipped = false;
     let trailingClipped = false;
     let leading0 = trailingInset - Math.sqrt(Math.max(cornerRadius ** 2 - leadingInset ** 2, 0));
@@ -46,9 +46,9 @@ const cornerEdges = (
     }
 
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
-};
+}
 
-export const clippedRoundRect = (
+export function clippedRoundRect(
     path: ExtendedPath2D,
     x: number,
     y: number,
@@ -56,7 +56,7 @@ export const clippedRoundRect = (
     height: number,
     cornerRadii: CornerRadii,
     clipBBox: BBox | undefined
-) => {
+) {
     let {
         topLeft: topLeftCornerRadius,
         topRight: topRightCornerRadius,
@@ -237,36 +237,44 @@ export const clippedRoundRect = (
         drawCorner(path, bottomLeftCorner, bottomLeftCornerRadius, !didMove);
     }
     path.closePath();
-};
+}
 
 export class Rect<D = unknown> extends Path<D> implements DistantObject {
     static override readonly className: string = 'Rect';
 
     readonly borderPath = new ExtendedPath2D();
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     x: number = 0;
+    declare __x: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     y: number = 0;
+    declare __y: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     width: number = 10;
+    declare __width: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     height: number = 10;
+    declare __height: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     topLeftCornerRadius: number = 0;
+    declare __topLeftCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     topRightCornerRadius: number = 0;
+    declare __topRightCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     bottomRightCornerRadius: number = 0;
+    declare __bottomRightCornerRadius: number; // optimised field accessor
 
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     bottomLeftCornerRadius: number = 0;
+    declare __bottomLeftCornerRadius: number; // optimised field accessor
 
     set cornerRadius(cornerRadius: number) {
         this.topLeftCornerRadius = cornerRadius;
@@ -275,29 +283,31 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         this.bottomLeftCornerRadius = cornerRadius;
     }
 
-    @SceneObjectChangeDetection({ equals: boxesEqual })
+    @DeclaredSceneChangeDetection({ equals: boxesEqual })
     clipBBox?: BBox = undefined;
+    declare __clipBBox: BBox | undefined; // optimised field accessor
 
     /**
      * If `true`, the rect is aligned to the pixel grid for crisp looking lines.
      * Animated rects may not look nice with this option enabled, for example
      * when a rect is translated by a sub-pixel value on each frame.
      */
-    @SceneChangeDetection()
+    @DeclaredSceneChangeDetection()
     crisp: boolean = false;
+    declare __crisp: boolean; // optimised field accessor
 
     private borderClipPath?: ExtendedPath2D;
 
-    private lastUpdatePathStrokeWidth: number = this.strokeWidth;
+    private lastUpdatePathStrokeWidth: number = this.__strokeWidth;
 
     protected override isDirtyPath() {
         return (
-            this.lastUpdatePathStrokeWidth !== this.strokeWidth ||
+            this.lastUpdatePathStrokeWidth !== this.__strokeWidth ||
             Boolean(this.path.isDirty() || this.borderPath.isDirty())
         );
     }
 
-    private effectiveStrokeWidth: number = this.strokeWidth;
+    private effectiveStrokeWidth: number = this.__strokeWidth;
 
     private hittester = super.isPointInPath.bind(this);
     private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
@@ -313,19 +323,19 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
         const {
             path,
             borderPath,
-            crisp,
-            topLeftCornerRadius: topLeft,
-            topRightCornerRadius: topRight,
-            bottomRightCornerRadius: bottomRight,
-            bottomLeftCornerRadius: bottomLeft,
+            __crisp: crisp,
+            __topLeftCornerRadius: topLeft,
+            __topRightCornerRadius: topRight,
+            __bottomRightCornerRadius: bottomRight,
+            __bottomLeftCornerRadius: bottomLeft,
         } = this;
-        let { x, y, width: w, height: h, strokeWidth, clipBBox } = this;
+        let { __x: x, __y: y, __width: w, __height: h, __strokeWidth: strokeWidth, __clipBBox: clipBBox } = this;
         const pixelRatio = this.layerManager?.canvas.pixelRatio ?? 1;
         const pixelSize = 1 / pixelRatio;
         let microPixelEffectOpacity = 1;
 
-        path.clear(true);
-        borderPath.clear(true);
+        path.clear();
+        borderPath.clear();
 
         if (w === 0 || h === 0) {
             this.effectiveStrokeWidth = 0;
@@ -347,14 +357,14 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             y = this.align(y);
 
             clipBBox =
-                clipBBox != null
-                    ? new BBox(
+                clipBBox == null
+                    ? undefined
+                    : new BBox(
                           this.align(clipBBox.x),
                           this.align(clipBBox.y),
                           this.align(clipBBox.x, clipBBox.width),
                           this.align(clipBBox.y, clipBBox.height)
-                      )
-                    : undefined;
+                      );
         }
 
         if (strokeWidth) {
@@ -402,7 +412,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             } else {
                 // Skip the fill and just render the stroke.
                 this.borderClipPath = this.borderClipPath ?? new ExtendedPath2D();
-                this.borderClipPath.clear(true);
+                this.borderClipPath.clear();
                 this.borderClipPath.rect(x, y, w, h);
                 borderPath.rect(x, y, w, h);
             }
@@ -416,10 +426,16 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
 
         // Path's isPointInPath and distanceSquared are expensive computations,
         // so just use a BBox if the corners aren't rounded.
-        if ([topLeft, topRight, bottomRight, bottomLeft].every((r) => r === 0)) {
+        if ([topLeft, topRight, bottomRight, bottomLeft].every(areCornersZero)) {
             const bbox = this.getBBox();
             this.hittester = bbox.containsPoint.bind(bbox);
-            this.distanceSquared = (hitX: number, hitY: number) => this.getBBox().distanceSquared(hitX, hitY);
+            const rectInstance = this;
+
+            function distanceSquaredFromRect(hitX: number, hitY: number): number {
+                return rectInstance.getBBox().distanceSquared(hitX, hitY);
+            }
+
+            this.distanceSquared = distanceSquaredFromRect;
         } else {
             this.hittester = super.isPointInPath;
             this.distanceCalculator = super.distanceSquaredTransformedPoint;
@@ -431,7 +447,7 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     }
 
     protected override computeBBox(): BBox {
-        const { x, y, width, height, clipBBox } = this;
+        const { __x: x, __y: y, __width: width, __height: height, __clipBBox: clipBBox } = this;
         return clipBBox?.clone() ?? new BBox(x, y, width, height);
     }
 
@@ -440,7 +456,77 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
     }
 
     get midPoint(): { x: number; y: number } {
-        return { x: this.x + this.width / 2, y: this.y + this.height / 2 };
+        return { x: this.__x + this.__width / 2, y: this.__y + this.__height / 2 };
+    }
+
+    /**
+     * High-performance static property setter that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__propertyName) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls per property
+     * - Object.keys() iteration in assignIfNotStrictlyEqual
+     * - Object allocation overhead
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for hot paths where performance is critical and properties don't need
+     * individual change detection (e.g., when updating many nodes in a loop).
+     */
+    setStaticProperties(
+        drawingMode: AgDrawingMode,
+        topLeftCornerRadius: number,
+        topRightCornerRadius: number,
+        bottomRightCornerRadius: number,
+        bottomLeftCornerRadius: number,
+        visible: boolean,
+        crisp: boolean,
+        fillShadow: DropShadow | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__drawingMode = drawingMode;
+        this.__topLeftCornerRadius = topLeftCornerRadius;
+        this.__topRightCornerRadius = topRightCornerRadius;
+        this.__bottomRightCornerRadius = bottomRightCornerRadius;
+        this.__bottomLeftCornerRadius = bottomLeftCornerRadius;
+        this.__visible = visible;
+        this.__crisp = crisp;
+        this.__fillShadow = fillShadow;
+
+        // Mark path as dirty since corner radii, crisp, direction, and featherRatio affect path
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
+    }
+
+    /**
+     * High-performance animation reset that bypasses the decorator system entirely.
+     * Writes directly to backing fields (__x, __y, etc.) to avoid:
+     * - Decorator setter chains and equality checks
+     * - Multiple onChangeDetection calls
+     * - Object.keys() iteration
+     *
+     * A single markDirty() call at the end ensures the scene graph is properly invalidated.
+     * WARNING: Only use for animation hot paths where performance is critical.
+     */
+    resetAnimationProperties(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        opacity: number,
+        clipBBox: BBox | undefined
+    ): void {
+        // Direct backing field writes bypass SceneChangeDetection decorators
+        this.__x = x;
+        this.__y = y;
+        this.__width = width;
+        this.__height = height;
+        this.__opacity = opacity;
+        this.__clipBBox = clipBBox;
+        this.dirtyPath = true;
+
+        // Single dirty notification for the batch
+        this.markDirty();
     }
 
     override distanceSquared(x: number, y: number): number {
@@ -490,4 +576,8 @@ export class Rect<D = unknown> extends Path<D> implements DistantObject {
             ctx.globalAlpha = globalAlpha;
         }
     }
+}
+
+function areCornersZero(cornerRadius: number): boolean {
+    return cornerRadius === 0;
 }

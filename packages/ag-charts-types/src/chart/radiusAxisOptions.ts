@@ -17,7 +17,7 @@ interface AgRadiusAxisLabelOptions<TContext = ContextDefault> extends AgBaseAxis
 export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
     extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions<TContext>, TContext>, 'interval'>,
         AgContinuousAxisOptions<number, number> {
-    type: 'radius-number';
+    type?: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
     /** Shape of axis. Default: `polygon` */
@@ -35,7 +35,7 @@ export interface AgRadiusNumberAxisOptions<TContext = ContextDefault>
 
 export interface AgRadiusCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseAxisOptions<AgRadiusAxisLabelOptions<TContext>, TContext> {
-    type: 'radius-category';
+    type?: 'radius-category';
     /** The rotation angle of axis line and labels in degrees. */
     positionAngle?: Degree;
     /** Configuration for the title shown next to the axis. */

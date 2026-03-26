@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -20,16 +22,6 @@ const options: AgChartOptions<DataType> = {
                 seriesNodeClick: (event) => console.log(makeMessage('[click]', event.datum)),
                 seriesNodeDoubleClick: (event) => console.log(makeMessage('[double click]', event.datum)),
             },
-        },
-    ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
         },
     ],
 };

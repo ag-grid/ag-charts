@@ -1,7 +1,35 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    SyncModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { AAPL, MSFT } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    SyncModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const commonOptions: AgChartOptions = {
     minWidth: 0,
     minHeight: 0,
@@ -21,10 +49,9 @@ const commonOptions: AgChartOptions = {
         enabled: true,
         enableSelecting: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             interval: {
                 maxSpacing: 180,
             },
@@ -34,14 +61,13 @@ const commonOptions: AgChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '$~s',
             },
         },
-    ],
+    },
 };
 
 const chartOptions1: AgChartOptions = {

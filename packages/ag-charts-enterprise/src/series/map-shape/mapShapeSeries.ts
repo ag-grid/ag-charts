@@ -1,6 +1,8 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
+import { Logger, cachedTextMeasurer, isArray, measureTextSegments, mergeDefaults, toPlainText } from 'ag-charts-core';
 import type {
+    AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
@@ -8,12 +10,14 @@ import type {
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { getTopologyShapeFillBBox } from '../map-util/shapeFillBBox';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
     type MapShapeNodeDatum,
@@ -23,6 +27,8 @@ import {
 
 const {
     getMissCount,
+    buildGradientLegendDatum,
+    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
@@ -31,24 +37,28 @@ const {
     Selection,
     Text,
     PointerEvents,
-    applyShapeStyle,
     getLabelStyles,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
+interface ShapeDataValues {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly labelValue: string | undefined;
+}
+
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
-    geometry: _ModuleSupport.Geometry;
-    labelText: string;
+    geometry: Geometry;
+    labelText: TextOrSegments;
     aspectRatio: number;
     x: number;
     y: number;
     maxWidth: number;
-    fixedPolygon: _ModuleSupport.Position[][];
+    fixedPolygon: Position[][];
 }
 export class MapShapeSeries
     extends TopologySeries<
@@ -58,18 +68,18 @@ export class MapShapeSeries
         MapShapeNodeLabelDatum,
         MapShapeNodeDataContext
     >
-    implements _ModuleSupport.ITopology
+    implements ITopology
 {
-    static readonly className = 'MapShapeSeries';
+    static override readonly className = 'MapShapeSeries';
     static readonly type = 'map-shape' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapShapeSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapShapeNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -88,11 +98,27 @@ export class MapShapeSeries
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
+<<<<<<< HEAD
     public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
     private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
     private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.highlightGroup, () =>
         this.nodeFactory()
+=======
+    public datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+        this.itemGroup,
+        () => this.nodeFactory()
     );
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> = Selection.select(
+        this.itemLabelGroup,
+        Text
+    );
+    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
+>>>>>>> latest
+    );
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> =
+        Selection.select(this.highlightLabelGroup, Text);
 
     public contextNodeData?: MapShapeNodeDataContext;
 
@@ -151,12 +177,12 @@ export class MapShapeSeries
         const { data, topology, colorScale } = this;
         const { topologyIdKey, idKey, colorKey, labelKey, colorRange } = this.properties;
 
-        const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        const featureById = new Map<string, Feature>();
+        for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.Polygon)) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const colorScaleType = this.colorScale.type;
         const mercatorScaleType = this.scale?.type;
@@ -174,22 +200,17 @@ export class MapShapeSeries
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
         }, undefined);
 
-        if (colorRange != null && this.isColorScaleValid()) {
+        if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            colorScale.domain = processedData.domain.values[colorKeyIdx];
-            colorScale.range = colorRange;
-            colorScale.update();
+            const domain = processedData.domain.values[colorKeyIdx];
+            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
         }
 
         if (topology == null) {
@@ -219,7 +240,7 @@ export class MapShapeSeries
         datum: any,
         labelValue: string | undefined,
         measurer: ITextMeasurer,
-        geometry: _ModuleSupport.Geometry | undefined,
+        geometry: Geometry | undefined,
         previousLabelLayout: LabelLayout | undefined
     ): LabelLayout | undefined {
         if (labelValue == null || geometry == null) return;
@@ -247,9 +268,10 @@ export class MapShapeSeries
         );
         if (labelText == null) return;
 
-        const baseSize = measurer.measureText(String(labelText));
-        const numLines = labelText.split('\n').length;
-        const aspectRatio = (baseSize.width + 2 * padding) / (numLines * calcLineHeight(label.fontSize) + 2 * padding);
+        const baseSize = isArray(labelText)
+            ? measureTextSegments(labelText, label)
+            : measurer.measureLines(String(labelText));
+        const aspectRatio = (baseSize.width + 2 * padding) / (baseSize.height + 2 * padding);
 
         if (
             previousLabelLayout?.geometry === geometry &&
@@ -274,7 +296,12 @@ export class MapShapeSeries
         return { geometry, labelText, aspectRatio, x, y, maxWidth, fixedPolygon };
     }
 
-    private getLabelDatum(labelLayout: LabelLayout, scaling: number): MapShapeNodeLabelDatum | undefined {
+    private getLabelDatum(
+        labelLayout: LabelLayout,
+        scaling: number,
+        datumIndex: number,
+        idValue: string
+    ): MapShapeNodeLabelDatum | undefined {
         const { scale } = this;
         if (scale == null) return;
 
@@ -286,18 +313,23 @@ export class MapShapeSeries
             height: Math.ceil((maxWidth * scaling) / aspectRatio),
             meta: untruncatedX,
         };
-        const labelFormatting = formatSingleLabel<number>(labelText, label, { padding }, (height, allowTruncation) => {
-            if (!allowTruncation) {
-                return maxSizeWithoutTruncation;
-            }
+        const labelFormatting = formatSingleLabel<number>(
+            toPlainText(labelText),
+            label,
+            { padding },
+            (height, allowTruncation) => {
+                if (!allowTruncation) {
+                    return maxSizeWithoutTruncation;
+                }
 
-            const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
-            return {
-                width: result.width * scaling,
-                height,
-                meta: result.x,
-            };
-        });
+                const result = maxWidthInPolygonForRectOfHeight(fixedPolygon, untruncatedX, y, height / scaling);
+                return {
+                    width: result.width * scaling,
+                    height,
+                    meta: result.x,
+                };
+            }
+        );
         if (labelFormatting == null) return;
 
         const [{ text, fontSize, lineHeight, width }, formattingX] = labelFormatting;
@@ -313,28 +345,58 @@ export class MapShapeSeries
             text,
             fontSize,
             lineHeight,
+            datumIndex,
+            idValue,
+            datumId: createDatumId(idValue),
         };
+    }
+
+    private resolveColumn<T>(
+        key: string | undefined,
+        columnId: string,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): T[] | undefined {
+        if (key == null || this.dataModel == null) return undefined;
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+    }
+
+    private resolveShapeDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
+        const { colorKey, labelKey } = this.properties;
+
+        return {
+            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+        };
+    }
+
+    private warnMissingGeometries(missingGeometries: string[]): void {
+        if (missingGeometries.length === 0) return;
+
+        const missingGeometriesCap = 10;
+        if (missingGeometries.length > missingGeometriesCap) {
+            const excessItems = missingGeometries.length - missingGeometriesCap;
+            missingGeometries.length = missingGeometriesCap;
+            missingGeometries.push(`(+${excessItems} more)`);
+        }
+
+        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
     }
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
-        const { idKey, colorKey, labelKey, label, legendItemName } = properties;
+        const { label, legendItemName, colorKey } = properties;
 
         if (dataModel == null || processedData == null) return;
 
-        const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
+        if (!this.visible) {
+            return { itemId: seriesId, nodeData: [], labelData: [] };
+        }
 
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
-        const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        const scaling = scale == null ? Number.NaN : (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width;
+        const columns = this.resolveShapeDataColumns(processedData);
 
         const measurer = cachedTextMeasurer(label);
 
@@ -344,30 +406,39 @@ export class MapShapeSeries
         const nodeData: MapShapeNodeDatum[] = [];
         const labelData: MapShapeNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
-            const idValue = idValues[datumIndex];
-            const colorValue: number | undefined = colorValues?.[datumIndex];
-            const labelValue: string | undefined = labelValues?.[datumIndex];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
 
-            const geometry = featureValues[datumIndex]?.geometry ?? undefined;
+        for (const [datumIndex, datum] of rawData.entries()) {
+            const dataValues: ShapeDataValues = {
+                idValue: columns.idValues[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
+
+            const geometry = columns.featureValues[datumIndex]?.geometry ?? undefined;
             if (geometry == null) {
-                missingGeometries.push(idValue);
+                missingGeometries.push(dataValues.idValue);
+            }
+
+            if (colorKey != null && dataValues.colorValue == null) {
+                continue;
             }
 
             const labelLayout = this.getLabelLayout(
                 datum,
-                labelValue,
+                dataValues.labelValue,
                 measurer,
                 geometry,
-                previousLabelLayouts?.get(idValue)
+                previousLabelLayouts?.get(dataValues.idValue)
             );
             if (labelLayout != null) {
-                labelLayouts.set(idValue, labelLayout);
+                labelLayouts.set(dataValues.idValue, labelLayout);
             }
 
             const labelDatum =
-                labelLayout != null && scale != null ? this.getLabelDatum(labelLayout, scaling) : undefined;
+                labelLayout != null && scale != null
+                    ? this.getLabelDatum(labelLayout, scaling, datumIndex, dataValues.idValue)
+                    : undefined;
             if (labelDatum != null) {
                 labelData.push(labelDatum);
             }
@@ -376,27 +447,16 @@ export class MapShapeSeries
 
             nodeData.push({
                 series: this,
-                itemId: idKey,
                 datum,
                 datumIndex,
-                idValue,
-                colorValue,
-                labelValue,
+                ...dataValues,
                 projectedGeometry,
                 legendItemName,
-                style: this.getItemStyle({ datum, datumIndex, colorValue }, false),
+                style: this.getItemStyle({ datum, datumIndex, colorValue: dataValues.colorValue }, false),
             });
-        });
+        }
 
-        const missingGeometriesCap = 10;
-        if (missingGeometries.length > missingGeometriesCap) {
-            const excessItems = missingGeometries.length - missingGeometriesCap;
-            missingGeometries.length = missingGeometriesCap;
-            missingGeometries.push(`(+${excessItems} more)`);
-        }
-        if (missingGeometries.length > 0) {
-            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
-        }
+        this.warnMissingGeometries(missingGeometries);
 
         return {
             itemId: seriesId,
@@ -419,37 +479,44 @@ export class MapShapeSeries
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
-        let highlightedDatum: MapShapeNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-        const { legendItemName } = this.properties;
-        const matchingLegendItemName =
-            legendItemName != null &&
-            highlightedDatum?.datum == null &&
-            legendItemName === highlightedDatum?.legendItemName;
-
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
-            highlightedDatum = undefined;
-        }
+        const highlightedDatum = this.getHighlightedDatum();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection });
+        this.updateDatumNodes({ datumSelection, drawingMode: 'overlay' });
 
         this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
-        this.updateLabelNodes({ labelSelection });
+        const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum);
+        this.highlightLabelSelection = this.updateLabelSelection({
+            labelData: highlightLabelData,
+            labelSelection: this.highlightLabelSelection,
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, drawingMode });
+    }
+
+    private getHighlightLabelData(
+        labelData: MapShapeNodeLabelDatum[],
+        highlightedDatum?: MapShapeNodeDatum
+    ): MapShapeNodeLabelDatum[] {
+        if (labelData.length === 0) return [];
+
+        const highlightId = createDatumId(highlightedDatum?.idValue);
+        return labelData.filter(
+            (labelDatum) => labelDatum.datumId === highlightId && labelDatum.datumIndex === highlightedDatum?.datumIndex
+        );
     }
 
     private updateDatumSelection(opts: {
@@ -466,16 +533,17 @@ export class MapShapeSeries
         const { properties, colorScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = properties.getStyle();
 
-        if (!isHighlight && colorValue != null) {
-            baseStyle.fill = this.isColorScaleValid()
-                ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? baseStyle.fill;
+        if (colorValue != null) {
+            const fillOverride = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange?.[0];
+            if (fillOverride != null) {
+                baseStyle.fill = fillOverride;
+            }
         }
 
-        let style = baseStyle;
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        let style = mergeDefaults(highlightStyle, baseStyle);
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -512,7 +580,6 @@ export class MapShapeSeries
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,
@@ -533,8 +600,14 @@ export class MapShapeSeries
 
     private updateDatumNodes({
         datumSelection,
+        drawingMode,
     }: {
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
+=======
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
+        drawingMode: AgDrawingMode;
+>>>>>>> latest
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -549,7 +622,9 @@ export class MapShapeSeries
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
 
-            applyShapeStyle(geoGeometry, nodeDatum.style, fillBBox);
+            geoGeometry.setStyleProperties(nodeDatum.style, fillBBox);
+
+            geoGeometry.drawingMode = drawingMode;
         });
     }
 
@@ -561,14 +636,31 @@ export class MapShapeSeries
         return opts.labelSelection.update(labels);
     }
 
+<<<<<<< HEAD
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
+=======
+    private updateLabelNodes({
+        isHighlight,
+        labelSelection,
+    }: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
+        isHighlight: boolean;
+>>>>>>> latest
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { x, y, text, fontSize, lineHeight }, datumIndex) => {
+        labelSelection.each((label, labelDatum) => {
+            const { x, y, text, fontSize, lineHeight, datumIndex } = labelDatum;
             type P = AgMapShapeSeriesLabelFormatterParams;
-            const style = getLabelStyles<P>(this, undefined, properties, properties.label, false, activeHighlight);
+            const style = getLabelStyles<P>(
+                this,
+                undefined,
+                properties,
+                properties.label,
+                isHighlight,
+                activeHighlight
+            );
             const { color: fill, fontStyle, fontWeight, fontFamily } = style;
             label.visible = true;
             label.x = x;
@@ -582,7 +674,7 @@ export class MapShapeSeries
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
     }
@@ -603,7 +695,7 @@ export class MapShapeSeries
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private _previousDatumMidPoint:
@@ -616,9 +708,9 @@ export class MapShapeSeries
         }
 
         const projectedGeometry = (datum as MapShapeNodeDatum).projectedGeometry;
-        const polygon = projectedGeometry != null ? largestPolygon(projectedGeometry) : undefined;
-        const center = polygon != null ? polygonMarkerCenter(polygon, 2) : undefined;
-        const point = center != null ? { x: center[0], y: center[1] } : undefined;
+        const polygon = projectedGeometry == null ? undefined : largestPolygon(projectedGeometry);
+        const center = polygon == null ? undefined : polygonMarkerCenter(polygon, 2);
+        const point = center == null ? undefined : { x: center[0], y: center[1] };
 
         this._previousDatumMidPoint = { datum, point };
 
@@ -633,7 +725,9 @@ export class MapShapeSeries
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
-            fill = this.colorScale.convert(colorValue);
+            if (colorValue != null) {
+                fill = this.colorScale.convert(colorValue);
+            }
         }
 
         return {
@@ -657,20 +751,20 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idKey, idName, colorKey, colorRange, showInLegend } = this.properties;
+        const {
+            title,
+            legendItemName,
+            idKey,
+            idName,
+            colorKey,
+            colorRange,
+            colorScale: colorScaleProps,
+            showInLegend,
+        } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
-            const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
-            const legendDatum: _ModuleSupport.GradientLegendDatum = {
-                legendType: 'gradient',
-                enabled: visible,
-                seriesId,
-                series: this.getFormatterContext('color'),
-                colorRange,
-                colorDomain,
-            };
-            return [legendDatum];
+        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
@@ -700,12 +794,16 @@ export class MapShapeSeries
         const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
@@ -726,7 +824,7 @@ export class MapShapeSeries
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (colorValue != null) {
-            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
@@ -739,6 +837,7 @@ export class MapShapeSeries
                 domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
         }

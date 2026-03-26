@@ -21,3 +21,15 @@ external/ag-website-shared/src/components/documentation-archive/DocumentationArc
 
 # With script tag
 packages/ag-charts-website/src/components/example-runner/components/FrameworkTemplate.astro
+
+.prettierrc
+tsconfig.base.json
+
+# Files without Prettier parsers
+*.patch
+*.sh
+.gitrepo
+.nxignore
+
+# External subrepo (managed separately)
+external/ag-shared/

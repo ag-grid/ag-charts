@@ -1,15 +1,16 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
-    AgChartOptions,
+    type AgCartesianChartOptions,
+    type AgChartOptions,
     AgCharts,
-    AgWaterfallSeriesLabelPlacement,
-    AgWaterfallSeriesOptions,
-    WaterfallSeriesTotalMeta,
+    type AgWaterfallSeriesLabelPlacement,
+    type AgWaterfallSeriesOptions,
+    type WaterfallSeriesTotalMeta,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
@@ -19,6 +20,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import type { WaterfallSeries } from './waterfallSeries';
 
 describe('WaterfallSeries', () => {
     setupMockConsole();
@@ -190,17 +192,17 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -212,18 +214,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'bottom',
                     type: 'time',
                     reverse: true,
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -235,17 +237,17 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -257,18 +259,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...switchSeriesType(WATERFALL_COLUMN_OPTIONS, 'horizontal'),
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'time',
                     reverse: true,
                     nice: false,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -281,18 +283,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_COLUMN_OPTIONS,
             series: [{ ...WATERFALL_COLUMN_SERIES_OPTIONS[0], totals: TOTALS_META_DATA }],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                     reverse: true,
                 },
-                {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -306,18 +308,18 @@ describe('WaterfallSeries', () => {
         const options: AgChartOptions = {
             ...WATERFALL_BAR_OPTIONS,
             series: [{ ...WATERFALL_BAR_SERIES_OPTIONS, totals: TOTALS_META_DATA }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'category',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -605,6 +607,273 @@ describe('WaterfallSeries', () => {
 
             chart = AgCharts.create(options as any);
             await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        const WATERFALL_NULL_CATEGORY_KEY_DATA = [
+            { year: '2020', spending: 10 },
+            { year: null, spending: 20 },
+            { year: '2022', spending: -15 },
+        ];
+
+        const WATERFALL_NULL_CATEGORY_KEY_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [WaterfallSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const WATERFALL_UNDEFINED_CATEGORY_KEY_DATA = [
+            { year: '2020', spending: 10 },
+            { year: undefined, spending: 20 },
+            { year: '2022', spending: -15 },
+        ];
+
+        const WATERFALL_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { year: '2020', spending: 10 },
+            { year: null, spending: 15 },
+            { year: undefined, spending: 5 },
+            { year: '2023', spending: -10 },
+        ];
+
+        const WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        const WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgCartesianChartOptions = {
+            data: WATERFALL_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [WaterfallSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...WATERFALL_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('CRT-1049: tooltip content for subtotal and total nodes', () => {
+        const WATERFALL_TOTALS_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { year: '2020', spending: 10 },
+                { year: '2021', spending: 20 },
+                { year: '2022', spending: 30 },
+                { year: '2023', spending: -20 },
+                { year: '2024', spending: -30 },
+                { year: '2025', spending: 40 },
+                { year: '2026', spending: -30 },
+                { year: '2027', spending: 40 },
+                { year: '2028', spending: 50 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    totals: [
+                        { totalType: 'subtotal', index: 2, axisLabel: 'Subtotal 1' },
+                        { totalType: 'subtotal', index: 5, axisLabel: 'Subtotal 2' },
+                        { totalType: 'total', index: 8, axisLabel: 'Total' },
+                    ],
+                },
+            ],
+        };
+
+        it('should return valid tooltip content for subtotal nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Index 3 is the first subtotal (after data indices 0, 1, 2)
+            const subtotalContent = series.getTooltipContent(3);
+            expect(subtotalContent).toBeDefined();
+            expect(subtotalContent?.type).toBe('structured');
+            if (subtotalContent?.type === 'structured') {
+                expect(subtotalContent.data?.[0].missing).not.toBe(true);
+            }
+        });
+
+        it('should return valid tooltip content for total nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Last index is the total node
+            const nodeData = series['contextNodeData']?.nodeData;
+            const totalIndex = nodeData ? nodeData.length - 1 : -1;
+            const totalContent = series.getTooltipContent(totalIndex);
+            expect(totalContent).toBeDefined();
+            expect(totalContent?.type).toBe('structured');
+            if (totalContent?.type === 'structured') {
+                expect(totalContent.data?.[0].missing).not.toBe(true);
+            }
+        });
+
+        it('should return valid tooltip content for regular data nodes', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+
+            // Index 0 is the first regular data node
+            const regularContent = series.getTooltipContent(0);
+            expect(regularContent).toBeDefined();
+            expect(regularContent?.type).toBe('structured');
+            if (regularContent?.type === 'structured') {
+                expect(regularContent.data?.[0].missing).not.toBe(true);
+            }
+        });
+
+        it('should return non-missing tooltip content for all node types in sequence', async () => {
+            const options = { ...WATERFALL_TOTALS_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = series['contextNodeData']?.nodeData;
+            expect(nodeData).toBeDefined();
+
+            // Verify every node returns non-missing tooltip content
+            for (let i = 0; i < nodeData!.length; i++) {
+                const content = series.getTooltipContent(i);
+                expect(content).toBeDefined();
+                expect(content?.type).toBe('structured');
+                if (content?.type === 'structured') {
+                    expect(content.data?.[0].missing).not.toBe(true);
+                }
+            }
         });
     });
 });

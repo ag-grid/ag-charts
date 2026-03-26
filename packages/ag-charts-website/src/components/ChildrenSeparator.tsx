@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import { Children, Fragment } from 'react';
+import { Children, Fragment, type ReactNode } from 'react';
 
 export function ChildrenSeparator({ children, separator = ', ' }: { children: ReactNode[]; separator?: ReactNode }) {
     const createSeparator =

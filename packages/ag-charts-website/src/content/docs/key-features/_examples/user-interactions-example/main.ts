@@ -1,7 +1,9 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -63,15 +65,13 @@ const options: AgCartesianChartOptions = {
             yName: 'Landfill Gas',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'unit-time',
             min: new Date(2000, 0, 1),
             max: new Date(2022, 0, 1),
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: `ktoe`,
@@ -80,7 +80,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

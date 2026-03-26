@@ -1,7 +1,7 @@
 import { type AgRadarAreaSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, constant, required, string } from 'ag-charts-core';
+import { type OptionsDefs, commonSeriesOptionsDefs, constant, required, string, undocumented } from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, radarAreaSeriesThemeableOptionsDef } = _ModuleSupport;
+const { radarAreaSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -11,4 +11,10 @@ export const radarAreaSeriesOptionsDef: OptionsDefs<AgRadarAreaSeriesOptions> = 
     radiusKey: required(string),
     angleName: string,
     radiusName: string,
+    legendItemName: string,
 };
+
+// @ts-expect-error undocumented option
+radarAreaSeriesOptionsDef.angleKeyAxis = undocumented(string);
+// @ts-expect-error undocumented option
+radarAreaSeriesOptionsDef.radiusKeyAxis = undocumented(string);

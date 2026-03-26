@@ -7,7 +7,7 @@ export type Framework = 'javascript' | 'react' | 'angular' | 'vue';
 
 export type InternalFramework = 'vanilla' | 'typescript' | 'reactFunctional' | 'reactFunctionalTs' | 'angular' | 'vue3';
 
-export type Library = 'charts' | 'grid';
+export type Library = 'charts' | 'grid' | 'dash';
 
 export type GalleryData = typeof Gallery;
 export interface GalleryExample {

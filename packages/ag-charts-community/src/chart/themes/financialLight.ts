@@ -1,15 +1,14 @@
-import type { AgChartThemeParams, WithThemeParams } from 'ag-charts-types';
-
-import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_TOOLBAR_POSITION,
-} from './symbols';
-import { getSequentialColors } from './util';
+    getSequentialColors,
+} from 'ag-charts-core';
+import type { AgChartAllThemeParams, WithThemeParams } from 'ag-charts-types';
+
+import { ChartTheme } from './chartTheme';
 
 const FINANCIAL_LIGHT_FILLS = {
     GREEN: '#089981',
@@ -47,9 +46,9 @@ export class FinancialLight extends ChartTheme {
         };
     }
 
-    override getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
+    override getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
         return {
-            ...super.getPublicParameters(),
+            ...super.getThemeParameters(),
             chartPadding: 0,
             gridLineColor: { $foregroundBackgroundMix: 0.06 },
         };
@@ -64,7 +63,6 @@ export class FinancialLight extends ChartTheme {
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
         params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');
-        params.set(DEFAULT_GRIDLINE_ENABLED, true);
 
         return params;
     }

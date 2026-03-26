@@ -1,23 +1,22 @@
-import { cachedTextMeasurer } from 'ag-charts-core';
+import { cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
 
+import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
-import { ChartUpdateType } from '../chartUpdateType';
-import type { UpdateService } from '../updateService';
 
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
 
     constructor(
         private readonly domManager: DOMManager,
-        private readonly updateService: UpdateService
+        private readonly eventsHub: EventsHub
     ) {}
 
     public updateFonts(fonts?: Set<string>) {
         if (!fonts || fonts.size === 0) return;
         this.loadFonts(fonts);
-        fonts.forEach((font) => {
+        for (const font of fonts) {
             this.observeFontStatus(font);
-        });
+        }
     }
 
     public destroy() {
@@ -36,30 +35,36 @@ export class FontManager {
     }
 
     private observeFontStatus(font: string) {
-        const fontCheckElement = window.document.createElement('div');
-        fontCheckElement.style.setProperty('position', 'absolute');
-        fontCheckElement.style.setProperty('top', '0');
-        fontCheckElement.style.setProperty('margin', '0');
-        fontCheckElement.style.setProperty('padding', '0');
-        fontCheckElement.style.setProperty('overflow', 'hidden');
-        fontCheckElement.style.setProperty('visibility', 'hidden');
-        fontCheckElement.style.setProperty('width', 'auto');
-        fontCheckElement.style.setProperty('max-width', 'none');
-        fontCheckElement.style.setProperty('font-synthesis', 'none');
-        fontCheckElement.style.setProperty('font-family', font);
-        fontCheckElement.style.setProperty('font-size', '16px');
-        fontCheckElement.style.setProperty('white-space', 'nowrap');
+        // Skip font observation in SSR environments where ResizeObserver is not available
+        const ResizeObserverCtor = getResizeObserver();
+        if (ResizeObserverCtor === undefined) return;
+
+        const doc = this.domManager.getDocument();
+        const fontCheckElement = doc.createElement('div', {
+            position: 'absolute',
+            top: '0',
+            margin: '0',
+            padding: '0',
+            overflow: 'hidden',
+            visibility: 'hidden',
+            width: 'auto',
+            maxWidth: 'none',
+            fontSynthesis: 'none',
+            fontFamily: font,
+            fontSize: '16px',
+            whiteSpace: 'nowrap',
+        });
         fontCheckElement.textContent = 'UVWxyz';
 
         this.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);
 
         // Observe changes to the element size as a proxy for the font loading
-        const fontCheckObserver = new ResizeObserver((entries) => {
+        const fontCheckObserver = new ResizeObserverCtor((entries) => {
             const width = entries?.at(0)?.contentBoxSize.at(0)?.inlineSize;
             if (width != null && width > 0) {
                 // Clear the text measurer pool to ensure the font metrics are recalculated on update
                 cachedTextMeasurer.clear();
-                this.updateService.update(ChartUpdateType.PERFORM_LAYOUT);
+                this.eventsHub.emit('font:load', null);
             }
         });
         fontCheckObserver.observe(fontCheckElement);

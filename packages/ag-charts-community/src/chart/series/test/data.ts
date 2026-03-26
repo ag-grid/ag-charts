@@ -68,9 +68,9 @@ export const DATA_TREEMAP: any = convertGridTreeData(rowData);
 function convertGridTreeData(ds: any[]) {
     const root: any = {};
 
-    ds.forEach((row) => {
+    for (const row of ds) {
         insert(root, row, 'orgHierarchy');
-    });
+    }
 
     return root.children;
 }
@@ -79,7 +79,7 @@ function insert(root: any, row: any, pathFieldName: string) {
     const pathParts = row[pathFieldName];
     const lastPartIndex = pathParts.length - 1;
 
-    pathParts.forEach((pathPart: any, partIndex: number) => {
+    for (const [partIndex, pathPart] of pathParts.entries()) {
         let children = root.children;
         if (!children) {
             root.children = children = [];
@@ -101,7 +101,7 @@ function insert(root: any, row: any, pathFieldName: string) {
                 children.push(root);
             }
         }
-    });
+    }
 }
 
 export const DATA_MARKET_SHARE = [

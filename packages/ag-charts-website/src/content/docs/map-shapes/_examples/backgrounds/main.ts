@@ -1,8 +1,26 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    MapShapeBackgroundSeriesModule,
+    MapShapeSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { central, eastern, mountain, pacific } from './data';
 import { topology } from './topology';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    MapShapeBackgroundSeriesModule,
+    MapShapeSeriesModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

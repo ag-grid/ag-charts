@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -15,19 +15,17 @@ const options: AgChartOptions = {
             xName: 'Participant Age',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Age band (years)' },
             interval: { step: 2 },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Number of participants' },
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

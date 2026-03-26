@@ -1,0 +1,398 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`mdoc object wrapper formatting > adds outer braces to property-only snippets with object values 1`] = `
+"\`\`\`ts format="snippet"
+{
+    contextMenu: {
+        enabled: false,
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > converts semicolons in simple property lines 1`] = `
+"\`\`\`js format="snippet"
+padding: 4, //padding of 4px on all sides
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > does not wrap complete statements (const, import, etc.) 1`] = `
+"\`\`\`ts format="snippet"
+const myTheme = {
+    palette: {
+        fills: ['#5C2983', '#0076C5'],
+    },
+};
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > fixes semicolons inside complete object literals 1`] = `
+"\`\`\`js format="snippet"
+{
+    styleNonce: '416d1177',
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > formats code with block comment placeholders and adds outer braces 1`] = `
+"\`\`\`js format="snippet"
+{
+    marker: {
+        /* ... */
+        fill: {
+            type: 'gradient',
+        },
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > formats code with placeholder comments correctly 1`] = `
+"\`\`\`js format="snippet"
+series: [
+    {
+        // ...
+        interpolation: {
+            type: 'smooth',
+        },
+    },
+]
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > formats code with regular comments (not placeholders) and adds outer braces 1`] = `
+"\`\`\`js format="snippet"
+{
+    axes: [
+        {
+            // This is a regular comment
+            type: 'number',
+        },
+    ],
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > formats json code blocks using prettier without wrappers 1`] = `
+"\`\`\`json
+{ "properties": { "name": "United Kingdom" } }
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles Angular decorators with export statements 1`] = `
+"\`\`\`ts format="snippet"
+@Component({
+    selector: 'app-root',
+    standalone: true,
+})
+export class AppComponent {
+    constructor() {}
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles complete array literals with semicolons 1`] = `
+"\`\`\`js format="snippet"
+[
+    { type: 'bar', xKey: 'month' },
+    { type: 'line', xKey: 'month' },
+]
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles decorators with leading comments 1`] = `
+"\`\`\`ts format="snippet"
+// Angular Chart Component
+@Component({
+    selector: 'app-root',
+})
+export class AppComponent {}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles import statements with leading comments 1`] = `
+"\`\`\`ts format="snippet"
+// Angular Chart Component
+import { AgCharts } from 'ag-charts-angular';
+// Chart Options Type Interface
+import { AgChartOptions } from 'ag-charts-community';
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles mixed language code blocks in same document 1`] = `
+"\`\`\`ts format="snippet"
+{
+    contextMenu: {
+        enabled: false,
+    },
+}
+\`\`\`
+
+\`\`\`json
+{ "name": "test" }
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles objects with function bodies containing semicolons 1`] = `
+"\`\`\`js format="snippet"
+{
+    formatter: {
+        x: (params) => {
+            const value = params.value;
+            return value.toString();
+        },
+        y: (params) => {
+            return \`Value: \${params.value}\`;
+        },
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > handles simple property with array value and semicolon and adds outer braces 1`] = `
+"\`\`\`ts format="snippet"
+{
+    axes: [{ type: 'number' }],
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > preserves nested blocks that close with \`};\` inside the snippet 1`] = `
+"\`\`\`ts format="snippet"
+template: \`<ag-gauge :options="options"/>\`,
+components: {
+    'ag-gauge': AgGauge,
+},
+data() {
+    return {
+        options: {
+            type: 'linear-gauge',
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        },
+    };
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > removes incorrect indentation added by previous formatter runs 1`] = `
+"\`\`\`jsx format="reactHooks"
+const [options, setOptions] = useState({
+    type: 'linear-gauge',
+    value: 80,
+});
+
+return <AgGauge options={options} />;
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > removes indentation from reactHooks code blocks 1`] = `
+"\`\`\`jsx format="reactHooks"
+const [options, setOptions] = useState({
+    type: 'linear-gauge',
+    value: 80,
+});
+
+return <AgGauge options={options} />;
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > strips trailing commas even when present in the original snippet 1`] = `
+"\`\`\`ts format="snippet"
+axes: [
+    {
+        type: 'number',
+        position: 'left',
+    },
+]
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > strips trailing semicolons even when code is valid JavaScript 1`] = `
+"\`\`\`ts format="snippet"
+{
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > strips trailing semicolons from full object literals 1`] = `
+"\`\`\`ts format="snippet"
+{
+    animation: {
+        duration: 500,
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > strips trailing semicolons from property assignments with arrays and adds outer braces 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [
+        { type: 'area', xKey: 'month', yKey: 'subscriptions' },
+        { type: 'area', xKey: 'month', yKey: 'services' },
+    ],
+}
+\`\`\`
+"
+`;
+
+exports[`mdoc object wrapper formatting > strips trailing semicolons from property assignments with objects and adds outer braces 1`] = `
+"\`\`\`ts format="snippet"
+{
+    contextMenu: {
+        enabled: false,
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > does not add outer braces for simple array properties without objects 1`] = `
+"\`\`\`js format="snippet"
+labels: ['Q1', 'Q2', 'Q3', 'Q4']
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > does not add outer braces for simple property assignments 1`] = `
+"\`\`\`js format="snippet"
+padding: 10
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces and strips trailing semicolon 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [{ type: 'bar', xKey: 'month' }],
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces for bubble series configuration 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [
+        {
+            //...
+            size: 10, //defaults to 7
+            maxSize: 20, //defaults to 30
+            domain: [0, 100], //defaults to the series data domain
+        },
+    ],
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces for multi-line object properties 1`] = `
+"\`\`\`js format="snippet"
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: 'top',
+        },
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces for multi-line series with array of objects 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'software',
+            radiusName: 'Software',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'hardware',
+            radiusName: 'Hardware',
+            grouped: true,
+        },
+        {
+            type: 'nightingale',
+            angleKey: 'quarter',
+            radiusKey: 'services',
+            radiusName: 'Services',
+            grouped: true,
+        },
+    ],
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces for object properties 1`] = `
+"\`\`\`js format="snippet"
+{
+    tooltip: {
+        pagination: true,
+    },
+}
+\`\`\`
+"
+`;
+
+exports[`preserve braces for array-of-objects properties > preserves outer braces for single-line series with array of objects 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [{ type: 'bar', xKey: 'month', yKey: 'sales' }],
+}
+\`\`\`
+"
+`;
+
+exports[`previously masked syntax errors > formats correctly fixed version of array with object wrapper and adds outer braces 1`] = `
+"\`\`\`js format="snippet"
+{
+    series: [
+        {
+            // ...
+            fill: {
+                type: 'gradient',
+            },
+        },
+    ],
+}
+\`\`\`
+"
+`;

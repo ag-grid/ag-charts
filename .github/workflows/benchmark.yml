@@ -17,13 +17,16 @@ on:
                 required: true
     schedule:
         - cron: '0 0 * * *' # Run daily at midnight UTC
-        - cron: '0 1 * * *' # Run daily at 01:00 UTC
+        # - cron: '0 1 * * *' # Run daily at 01:00 UTC - DISABLED: b11.3.1 benchmark execution
 
 env:
     NX_NO_CLOUD: true
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+
+permissions:
+    contents: read
 
 jobs:
     # Check permissions for issue_comment events
@@ -85,8 +88,12 @@ jobs:
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=b11.3.1" >> $GITHUB_OUTPUT
                   elif [[ "${{ github.event_name }}" == "schedule" ]] ; then
-                    # For scheduled runs, get the most recent branch matching 'b' followed by semver (e.g. b1.2.3)
-                    release=$(git ls-remote --heads origin 'b[0-9]*\.[0-9]*\.[0-9]*' | sort -t '/' -k 2 -V | tail -n 1 | sed 's/.*refs\/heads\///')
+                    # For scheduled runs, get the most recent release branch matching exact 'bX.Y.Z' format
+                    release=$(git ls-remote --heads origin | grep -E 'refs/heads/b[0-9]+\.[0-9]+\.[0-9]+$' | sort -t '/' -k 3 -V | tail -n 1 | sed 's/.*refs\/heads\///')
+                    # Special case: b13.0.x series uses b13.0.0 as base due to circular dependency issues in b13.0.1+
+                    if [[ "$release" =~ ^b13\.0\.[1-9] ]] ; then
+                      release="b13.0.0"
+                    fi
                     echo "branch=latest" >> $GITHUB_OUTPUT
                     echo "base=$release" >> $GITHUB_OUTPUT
                   else
@@ -251,7 +258,7 @@ jobs:
                   EOF
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
-            - name: Perist benchmark results
+            - name: Persist benchmark results
               if: always()
               uses: actions/upload-artifact@v4
               with:

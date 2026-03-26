@@ -23,15 +23,27 @@ const tags: Record<ChartAPI, string> = {
     vanilla: 'ag-charts',
 };
 
-function processFunction(code: string, suppressOptionsClone: boolean): string {
-    return wrapOptionsUpdateCode(
+function processFunction(code: string, suppressOptionsClone: boolean, methodNames: string[] = []): string {
+    let processed = wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
         'this.options',
         undefined,
         undefined,
         !suppressOptionsClone
     );
-    return wrapOptionsUpdateCode(convertFunctionToProperty(code));
+
+    // Add this. prefix to instance method calls within this function
+    methodNames.forEach((methodName) => {
+        if (!GLOBAL_FUNCTIONS.includes(methodName)) {
+            // Negative lookbehind: not preceded by '.' (covers this.method, obj.method, etc.)
+            // Negative lookahead: not followed by '=' or ':' (for declarations like 'method = ')
+            // https://regex101.com/r/u79W6c/4
+            const regex = new RegExp(`(?<!\\.|'|")\\b${methodName}\\b(?!\\s*[=:])`, 'g');
+            processed = processed.replace(regex, `this.${methodName}`);
+        }
+    });
+
+    return processed;
 }
 
 function getImports(bindings, componentFileNames: string[], { typeParts }): string[] {
@@ -111,6 +123,51 @@ function getTemplate(bindings: any, id: string, attributes: string[]): string {
     return convertTemplate(template);
 }
 
+// Built-in/global functions that should NOT be transformed with this. prefix
+const GLOBAL_FUNCTIONS = [
+    'requestAnimationFrame',
+    'cancelAnimationFrame',
+    'setTimeout',
+    'setInterval',
+    'clearTimeout',
+    'clearInterval',
+    'performance',
+    'console',
+    'Math',
+    'JSON',
+    'Object',
+    'Array',
+    'Date',
+    'String',
+    'Number',
+    'Boolean',
+    'Error',
+    'parseInt',
+    'parseFloat',
+    'isNaN',
+    'isFinite',
+    'encodeURIComponent',
+    'decodeURIComponent',
+    'clone', // from imports
+];
+
+function getInstanceMethodNames(bindings: any): string[] {
+    const eventHandlerNames = bindings.externalEventHandlers.map((h) => h.name);
+    const instanceMethodNames = bindings.instanceMethods
+        .map((m) => {
+            // Extract function name from declaration
+            // Handles: "function methodName()" (including async), "methodName = () =>", and "methodName: () =>"
+            const fnDeclMatch = m.match(/^\s*(?:async\s+)?function\s+(\w+)\s*\(/);
+            if (fnDeclMatch) {
+                return fnDeclMatch[1];
+            }
+            const match = m.match(/^\s*(\w+)\s*[=:]/);
+            return match ? match[1] : null;
+        })
+        .filter(Boolean);
+    return [...eventHandlerNames, ...instanceMethodNames];
+}
+
 export async function vanillaToAngular(
     bindings: any,
     componentFileNames: string[],
@@ -129,9 +186,14 @@ export async function vanillaToAngular(
         const { propertyAttributes, propertyAssignments, propertyVars } = getComponentMetadata(bindings, options);
         const template = getTemplate(bindings, placeholders[0], propertyAttributes);
 
-        const instanceMethods = bindings.instanceMethods.map((v) => processFunction(v, suppressOptionsClone));
+        // Get method names first so we can transform calls within method bodies
+        const methodNames = getInstanceMethodNames(bindings);
+
+        const instanceMethods = bindings.instanceMethods.map((v) =>
+            processFunction(v, suppressOptionsClone, methodNames)
+        );
         const externalEventHandlers = bindings.externalEventHandlers.map((handler) =>
-            processFunction(handler.body, suppressOptionsClone)
+            processFunction(handler.body, suppressOptionsClone, methodNames)
         );
 
         indexFile = `${imports.join('\n')}${declarations.length > 0 ? '\n' + declarations.join('\n') : ''}
@@ -175,8 +237,8 @@ export async function vanillaToAngular(
         }
         `;
 
-        // @todo(AG-14126) - handle listener events correctly
-        indexFile = indexFile.replace('toggleDatum(event, event.datum);', 'this.toggleDatum(event, event.datum);');
+        // @todo(AG-14126, CRT-1003) - handle listener events correctly
+        indexFile = indexFile.replace('toggleDatum(event.datum);', 'this.toggleDatum(event.datum);');
     } else {
         const components: Array<{ selector: string; className: string }> = [];
 
@@ -243,6 +305,13 @@ export async function vanillaToAngular(
         indexFile = indexFile.replace(/AgCharts.(\w*)\((\w*)(,|\))/g, 'AgCharts.$1(this.agCharts.chart!$3');
         indexFile = indexFile.replace(/chart.(\w*)\(/g, 'this.agCharts.chart!.$1(');
         indexFile = indexFile.replace(/this.agCharts.chart!.(\w*)\(options/g, 'this.agCharts.chart!.$1(this.options');
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        indexFile = indexFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace `chart` references but not in variable declarations or strings
+        indexFile = indexFile.replace(
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
+            (match) => (match === 'chart' ? 'this.agCharts.chart!' : match)
+        );
     }
 
     return indexFile;

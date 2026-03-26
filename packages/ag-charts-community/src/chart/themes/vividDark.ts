@@ -1,9 +1,10 @@
-import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-} from './symbols';
-import { getSequentialColors } from './util';
+    getSequentialColors,
+} from 'ag-charts-core';
+
+import { DarkTheme } from './darkTheme';
 
 const VIVID_DARK_FILLS = {
     BLUE: '#0083ff',

@@ -64,7 +64,7 @@
     - `packages/ag-charts-enterprise/src/features/ranges/rangesButtonProperties.ts` - Button properties
 
 2. **Integration**:
-    - `packages/ag-charts-community/src/api/preset/priceVolumePreset.ts` - Financial chart integration
+    - `packages/ag-charts-enterprise/src/preset/priceVolumePreset.ts` - Financial chart integration
 
 ### Examples to Test with Expected Behaviors
 

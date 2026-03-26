@@ -29,3 +29,10 @@ export const chartsVersionPatch: ConfigFunction = {
         return `${major}.${minor}.${patchNum}`;
     },
 };
+
+export const codespaceUrl: ConfigFunction = {
+    transform() {
+        const { major, minor, patchNum } = parseVersion(agChartsVersion);
+        return `https://codespaces.new/ag-grid/ag-charts?devcontainer_path=.devcontainer/ssr-example/devcontainer.json&ref=b${major}.${minor}.${patchNum}`;
+    },
+};

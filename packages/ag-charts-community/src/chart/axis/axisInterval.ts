@@ -1,4 +1,5 @@
-import { BaseProperties, Property } from '../../util/properties';
+import { BaseProperties, Property } from 'ag-charts-core';
+
 import type { TickInterval } from './axisTick';
 
 export class AxisInterval<S> extends BaseProperties {

@@ -1,4 +1,5 @@
 import type { InternalAgColorType } from 'ag-charts-core';
+import { Property, ProxyProperty, SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
 import type {
     AgBubbleSeriesLabelFormatterParams,
     AgBubbleSeriesOptions,
@@ -17,9 +18,6 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { SceneArrayChangeDetection, SceneChangeDetection } from '../../../scene/changeDetectable';
-import { Property } from '../../../util/properties';
-import { ProxyProperty } from '../../../util/proxy';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
@@ -60,13 +58,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     labelKey?: string;
 
     @Property
-    xFilterKey: string | undefined;
-
-    @Property
-    yFilterKey: string | undefined;
-
-    @Property
-    sizeFilterKey: string | undefined;
+    selectedKey: string | undefined;
 
     @Property
     xName?: string;

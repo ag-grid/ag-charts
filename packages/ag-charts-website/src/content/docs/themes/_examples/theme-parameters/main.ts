@@ -1,7 +1,30 @@
-import { AgCartesianChartOptions, AgChartTheme, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartTheme,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ErrorBarsModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    ErrorBarsModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const paperTheme: AgChartTheme = {
     palette: {
         fills: ['#006f9b', '#ff7faa', '#00994d', '#ff8833', '#00a0dd'],
@@ -123,6 +146,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksTM',
             yName: 'Number of Looks - Transparent Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Transparent Mirror',
             stackGroup: 'NOL',
         },
@@ -131,18 +155,15 @@ const options: AgCartesianChartOptions = {
             xKey: 'dolphin',
             yKey: 'numberOfLooksYM',
             yName: 'Number of Looks - Yellow Mirror',
+            yKeyAxis: 'ySecondary',
             legendItemName: 'Number of Looks - Yellow Mirror',
             stackGroup: 'NOL',
         },
     ],
-    axes: [
-        {
-            position: 'top',
+    axes: {
+        x: {
             type: 'category',
-            keys: ['dolphin'],
-            title: {
-                text: 'Dolphin',
-            },
+            position: 'top',
             paddingInner: 0.5,
             paddingOuter: 0.2,
             crossLines: [
@@ -158,23 +179,21 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
-            keys: ['interactionDurationTM', 'interactionDurationYM'],
+            position: 'left',
             title: {
                 text: 'Duration of Interaction (seconds)',
             },
         },
-        {
-            position: 'right',
+        ySecondary: {
             type: 'number',
+            position: 'right',
             title: {
-                text: 'Numer of Looks',
+                text: 'Number of Looks',
             },
-            keys: ['numberOfLooksTM', 'numberOfLooksYM'],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

@@ -1,30 +1,24 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
+    type ScaleTickParams,
+    ZIndexMap,
     cachedTextMeasurer,
     countFractionDigits,
     createId,
+    createIdsGenerator,
+    estimateTickCount,
+    findMinMax,
+    findRangeExtent,
     isArray,
     measureTextSegments,
     toPlainText,
+    toTextString,
 } from 'ag-charts-core';
 import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const {
-    AxisInterval,
-    AxisLabel,
-    ZIndexMap,
-    LinearScale,
-    BBox,
-    TranslatableGroup,
-    Selection,
-    Text,
-    createIdsGenerator,
-    findMinMax,
-    findRangeExtent,
-    estimateTickCount,
-} = _ModuleSupport;
+const { AxisInterval, AxisLabel, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;
@@ -38,6 +32,7 @@ interface DataProvider {
 }
 
 export class AxisTicks {
+    static readonly className = 'AxisTicks';
     static readonly DefaultTickCount = 5;
     static readonly DefaultMinSpacing = 10;
 
@@ -159,6 +154,7 @@ export class AxisTicks {
                 domain,
                 boundSeries,
                 fractionDigits,
+                visibleDomain: undefined,
             };
 
             return (
@@ -188,7 +184,7 @@ export class AxisTicks {
         );
 
         const tickData = this.getTicksData({
-            nice: true,
+            nice: [true, true],
             interval: this.interval.step,
             tickCount,
             minTickCount,
@@ -206,7 +202,7 @@ export class AxisTicks {
                 if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
                 const { width: labelWidth } = isArray(data.tickLabel)
                     ? measureTextSegments(data.tickLabel, this.label)
-                    : measurer.measureLines(data.tickLabel);
+                    : measurer.measureLines(toTextString(data.tickLabel));
                 lastTickPosition = data.translation + labelWidth * direction;
                 return true;
             });
@@ -215,7 +211,7 @@ export class AxisTicks {
         return tickData;
     }
 
-    private getTicksData(tickParams: _ModuleSupport.ScaleTickParams<any>) {
+    private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
         const domain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
         const rawTicks = this.scale.ticks(tickParams, domain)?.ticks ?? [];

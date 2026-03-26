@@ -9,7 +9,7 @@ import {
 } from './util';
 
 test.describe('toolbar', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const { url } = toExamplePageUrl('financial-charts-test', 'e2e-toolbar', 'vanilla');
 

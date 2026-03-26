@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts, AgDonutSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    DonutSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, DonutSeriesModule]);
 const data = getData();
 const numFormatter = new Intl.NumberFormat('en-GB');
 const total = data.reduce((sum, d) => sum + d.count, 0);
@@ -37,7 +45,25 @@ const options: AgChartOptions<DataType> = {
         {
             type: 'donut',
             angleKey: 'count',
+            calloutLabelKey: 'count',
             sectorLabelKey: 'count',
+            calloutLabel: {
+                minAngle: 10,
+                formatter: ({ datum }) => [
+                    {
+                        text: numFormatter.format(datum.count),
+                        fontSize: 20,
+                    },
+                    { text: '\n' + datum.type, fontSize: 10, color: 'grey' },
+                ],
+            },
+            sectorLabel: {
+                formatter: ({ datum, angleKey }) => {
+                    const value = datum[angleKey] as number;
+                    const percentage = ((value / total) * 100).toFixed(1);
+                    return `${percentage}%`;
+                },
+            },
             innerLabels: [
                 {
                     text: numFormatter.format(total),
@@ -65,29 +91,10 @@ const options: AgChartOptions<DataType> = {
                     };
                 },
             },
-            legendItemKey: 'type',
         },
     ],
-    formatter: (params) => (typeof params.value === 'number' ? numFormatter.format(params.value) : undefined),
     legend: {
-        position: 'right',
-        item: {
-            paddingX: 16,
-            paddingY: 8,
-            marker: {
-                size: 12,
-            },
-            label: {
-                formatter: ({ value }) => {
-                    const item = sortedData.find((d) => d.type === value);
-                    if (item) {
-                        const percentage = ((item.count / total) * 100).toFixed(1);
-                        return `${value} (${percentage}%)`;
-                    }
-                    return value;
-                },
-            },
-        },
+        enabled: false,
     },
     animation: {
         enabled: true,

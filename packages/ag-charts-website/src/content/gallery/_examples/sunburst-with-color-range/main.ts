@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    GradientLegendModule,
+    ModuleRegistry,
+    SunburstSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([GradientLegendModule, SunburstSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,

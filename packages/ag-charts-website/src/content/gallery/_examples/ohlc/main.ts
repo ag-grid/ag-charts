@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([NumberAxisModule, OhlcSeriesModule, OrdinalTimeAxisModule, CrosshairModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 4,
     maximumFractionDigits: 4,
@@ -56,10 +66,9 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             line: {
                 enabled: false,
             },
@@ -80,7 +89,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             interval: { step: 0.01 },
@@ -106,7 +115,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'chart',

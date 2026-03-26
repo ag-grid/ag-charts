@@ -1,19 +1,34 @@
 import {
+    type AgActiveItemState,
     type AgLinearGaugeMarkerShape,
     type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
     type FontStyle,
     type FontWeight,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer } from 'ag-charts-core';
+import {
+    type ChartAnimationPhase,
+    type Point,
+    StateMachine,
+    cachedTextMeasurer,
+    easeOut,
+    findRangeExtent,
+    isArray,
+    measureTextSegments,
+    mergeDefaults,
+    tickFormat,
+    toRadians,
+    toTextString,
+} from 'ag-charts-core';
 
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
-import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
+import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
@@ -34,9 +49,7 @@ const {
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
-    StateMachine,
     createDatumId,
-    toRadians,
     BBox,
     Group,
     PointerEvents,
@@ -48,12 +61,10 @@ const {
     LinearScale,
     generateTicks,
     NiceMode,
-    easing,
-    findRangeExtent,
-    tickFormat,
-    mergeDefaults,
-    applyShapeStyle,
 } = _ModuleSupport;
+
+type DatumIndexType = _ModuleSupport.DatumIndexType;
+type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
 
 interface TargetLabel {
     enabled: boolean;
@@ -119,7 +130,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     LinearGaugeLabelDatum,
     LinearGaugeNodeDataContext
 > {
-    static readonly className = 'LinearGaugeSeries';
+    static override readonly className = 'LinearGaugeSeries';
     static readonly type = 'linear-gauge' as const;
 
     override properties = new LinearGaugeSeriesProperties();
@@ -171,8 +182,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         TransformableText
     );
 
+<<<<<<< HEAD
     public datumUnion: DatumUnion<_ModuleSupport.Rect<LinearGaugeNodeDatum>> = new DatumUnion();
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+=======
+    public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
+    private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+>>>>>>> latest
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 
@@ -391,6 +407,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             formatter = (params) => this.formatLabel(params.value),
         } = label;
         return {
+            series: this,
+            datum: undefined,
+            datumIndex: { type: NodeDataType.Node },
             placement,
             avoidCollisions,
             spacing,
@@ -428,7 +447,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const ticks =
             scaleProps.interval.values ??
             scale.ticks({
-                nice: false,
+                nice: [false, false],
                 interval: scaleProps.interval.step,
                 minTickCount: 0,
                 maxTickCount: 6,
@@ -438,23 +457,25 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const linesOrTicks =
             lines ?? ticks?.map((tick) => getLabelText(this.id, this.ctx, this.labelDatum(label, tick)) ?? '');
 
-        const labelSize = linesOrTicks.reduce((accum, text) => {
-            const { width } = measurer.measureText(text);
+        const labelSize = linesOrTicks.reduce<number>((accum, text) => {
+            const { width } = isArray(text)
+                ? measureTextSegments(text, label)
+                : measurer.measureLines(toTextString(text));
             return Math.max(accum, width);
         }, 0);
 
         return label.spacing + labelSize;
     }
 
-    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => string {
+    private tickFormatter(domain: number[], ticks: number[]): (value: number, index: number) => TextOrSegments {
         const { format, formatter } = this.properties.scale.label;
-        let tickFormatter: ((value: number) => string) | undefined;
+        let tickFormatter: ((value: number) => TextOrSegments) | undefined;
         if (format != null) {
             tickFormatter = tickFormat(ticks, typeof format === 'string' ? format : undefined);
         }
 
-        return (value: number, index: number): string => {
-            let r: string | undefined = undefined;
+        return (value: number, index: number): TextOrSegments => {
+            let r: TextOrSegments | undefined = undefined;
             if (formatter) {
                 r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
             }
@@ -475,6 +496,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             scale: scaleProps,
             label,
             defaultColorRange,
+            defaultScale,
         } = properties;
 
         scale.domain = [scaleProps.min, scaleProps.max];
@@ -485,7 +507,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         let sideFlag: 1 | -1;
         if (horizontal) {
             sideFlag = 1;
-            axisRotation = Math.PI / 2;
+            axisRotation = Math.PI / -2;
         } else if (scaleProps.label.placement === 'before') {
             sideFlag = 1;
             axisRotation = 0;
@@ -530,12 +552,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleProps.min, scaleProps.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
+        const scaleLabel = mergeDefaults({ parallel: horizontal }, scaleProps.label, defaultScale.label);
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
-            label: this.properties.scale.label,
-            interval: this.properties.scale.interval,
+            label: scaleLabel,
+            interval: scaleProps.interval,
             tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
             domain: scale.domain,
             range: this.range,
@@ -543,7 +566,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             primaryTickCount: undefined,
             defaultTickMinSpacing: 0,
             visibleRange: [0, 1],
-            niceMode: NiceMode.Off,
+            niceMode: [NiceMode.Off, NiceMode.Off],
             labelOffset: 0,
             axisRotation,
             sideFlag,
@@ -721,6 +744,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 });
             }
         }
+        for (const dataArray of [scaleData, nodeData]) {
+            for (const datum of dataArray) {
+                const dx0 = datum.clipX0 ?? datum.x0;
+                const dx1 = datum.clipX1 ?? datum.x1;
+                const dy0 = datum.clipY0 ?? datum.y0;
+                const dy1 = datum.clipY1 ?? datum.y1;
+                datum.midPoint = { x: (dx0 + dx1) / 2, y: (dy0 + dy1) / 2 };
+            }
+        }
 
         if (label.enabled) {
             labelData.push(this.labelDatum(label, value));
@@ -765,6 +797,10 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         };
     }
 
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+        return findGaugeNodeDatum(this, itemId);
+    }
+
     updateSelections(resize: boolean) {
         if (this.nodeDataRefresh || resize) {
             this.contextNodeData = this.createNodeData();
@@ -773,7 +809,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): LinearGaugeTargetDatum | undefined {
-        if (node != null && node.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
+        if (node?.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
             return node as LinearGaugeTargetDatum;
         }
     }
@@ -821,7 +857,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
@@ -855,7 +891,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, datum.style, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
             rect.topLeftCornerRadius = topLeftCornerRadius;
             rect.topRightCornerRadius = topRightCornerRadius;
             rect.bottomRightCornerRadius = bottomRightCornerRadius;
@@ -920,7 +956,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            applyShapeStyle(rect, datum.style, fillBBox);
+            rect.setStyleProperties(datum.style, fillBBox);
 
             rect.setProperties(resetLinearGaugeSeriesResetRectFunction(rect, datum));
             rect.topLeftCornerRadius = topLeftCornerRadius;
@@ -955,7 +991,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             const { x, y, shape, size, rotation } = datum;
 
             const style = this.getTargetStyle(isHighlight, datum);
-            applyShapeStyle(target, style);
+            target.setStyleProperties(style);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;
@@ -1031,7 +1067,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const defaultScale = properties.defaultScale;
         const {
             enabled,
-            color,
+            color = defaultScale.label.color,
             fontFamily = defaultScale.label.fontFamily,
             fontSize = defaultScale.label.fontSize,
             fontStyle,
@@ -1147,7 +1183,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         this.formatLabelText();
     }
 
-    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
+    resetAnimation(phase: ChartAnimationPhase) {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -1181,7 +1217,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
                 from: { label: labelFrom },
                 to: { label: labelTo },
                 phase: params.phase ?? 'update',
-                ease: easing.easeOut,
+                ease: easeOut,
                 onUpdate: (datum) => this.formatLabelText(datum),
                 onStop: () => this.formatLabelText({ label: labelTo }),
             });
@@ -1192,7 +1228,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(true, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
 
         fromToMotion(this.id, 'label', animationManager, [this.labelSelection], fadeInFns, () => 'primary');
 
@@ -1203,7 +1239,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(false, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
 
         this.animateLabelText();
     }
@@ -1214,18 +1250,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     override getSeriesDomain() {
         // Not used - required to be set to a finite for animations
-        return [0, 1];
+        return { domain: [0, 1] };
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {

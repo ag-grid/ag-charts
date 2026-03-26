@@ -1,31 +1,35 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
-import { AsyncAwaitQueue, Logger, arraysEqual, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
+import {
+    AsyncAwaitQueue,
+    BaseProperties,
+    ChartAxisDirection,
+    ChartUpdateType,
+    Debug,
+    Logger,
+    type ModuleInstance,
+    ObserveChanges,
+    Property,
+    type Scale,
+    arraysEqual,
+    definedZoomState,
+    findMinMax,
+    isDate,
+    isDefined,
+    isFiniteNumber,
+    isObjectWithStringProperty,
+    unique,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import type { Zoom } from '../zoom/zoom';
-import { definedZoomState } from '../zoom/zoomUtils';
 
-const {
-    BaseProperties,
-    CartesianAxis,
-    ChartAxisDirection,
-    ContinuousScale,
-    TimeScale,
-    UnitTimeScale,
-    ChartUpdateType,
-    ObserveChanges,
-    TooltipManager,
-    Property,
-    findMinMax,
-    isObjectWithStringProperty,
-} = _ModuleSupport;
+const { CartesianAxis, ContinuousScale, TimeScale, UnitTimeScale, TooltipManager } = _ModuleSupport;
 
-const debug = _ModuleSupport.Debug.create('sync');
+const debug = Debug.create('sync');
 
 function getDirectionKeys(
     series: _ModuleSupport.ISeries<any, any, any, any>,
-    primary: _ModuleSupport.ChartAxisDirection,
-    secondary: _ModuleSupport.ChartAxisDirection
+    primary: ChartAxisDirection,
+    secondary: ChartAxisDirection
 ) {
     const primaryKeys = series.getKeys(primary);
     const secondaryKeys = series.getKeys(secondary);
@@ -46,7 +50,7 @@ function syncedDirections(axes: 'x' | 'y' | 'xy' = 'x') {
     }
 }
 
-function domainChanged(scale: _ModuleSupport.Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
+function domainChanged(scale: Scale<unknown, unknown>, a: unknown[], b: unknown[]) {
     if (TimeScale.is(scale) || UnitTimeScale.is(scale)) {
         return !arraysEqual(
             a.map((x) => x?.valueOf()),
@@ -57,7 +61,7 @@ function domainChanged(scale: _ModuleSupport.Scale<unknown, unknown>, a: unknown
     }
 }
 
-export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleInstance, AgChartSyncOptions {
+export class ChartSync extends BaseProperties implements ModuleInstance, AgChartSyncOptions {
     static readonly className = 'Sync';
 
     @Property
@@ -82,7 +86,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     @Property
     @ObserveChanges<ChartSync>((target) => target.onAxesChange())
-    domainMode: 'direction' | 'position' | 'key' = 'key';
+    domainMode: 'direction' | 'position' | 'id' = 'id';
 
     private readonly domainSync = new AsyncAwaitQueue();
 
@@ -101,9 +105,12 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private updateChart(chart: _ModuleSupport.SyncChartLike, updateType = ChartUpdateType.PROCESS_DOMAIN) {
         debug('ChartSync.updateChart()', chart.id, ChartUpdateType[updateType], chart);
         if (updateType === ChartUpdateType.PROCESS_DOMAIN) {
-            chart.ctx.updateService.update(updateType, { forceNodeDataRefresh: true });
+            chart.ctx.eventsHub.emit('chart:request-update', {
+                type: updateType,
+                opts: { forceNodeDataRefresh: true },
+            });
         } else {
-            chart.ctx.updateService.update(updateType);
+            chart.ctx.eventsHub.emit('chart:request-update', { type: updateType });
         }
     }
 
@@ -111,30 +118,51 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     private enabledZoomSync() {
         const { eventsHub } = this.moduleContext;
         this.disableZoomSync?.(); // Cleanup any existing listeners.
-        this.disableZoomSync = eventsHub.on('zoom:change', this.onZoom.bind(this));
+        this.disableZoomSync = eventsHub.on('zoom:change-complete', (e) => this.onZoom(e));
     }
 
-    private onZoom() {
+    private onZoom(e: _ModuleSupport.ZoomChangeCompleteEvent) {
         const { syncManager } = this.moduleContext;
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            if (!chart.modulesManager.getModule<ChartSync>('sync')?.zoom) continue;
-            const zoomModule = chart.modulesManager.getModule<Zoom>('zoom');
+            const syncModule: any = chart.modulesManager.getModule('sync');
+            if (!syncModule?.zoom) continue;
+            const zoomModule: any = chart.modulesManager.getModule('zoom');
             if (!zoomModule) continue;
 
             const zoom = this.prepareZoomUpdate();
 
-            debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
-            zoomModule.updateSyncZoom(zoom);
+            // Zoom.updateSyncZoom emits change-requests with `changeType: 'sync'`. This allows the ChartSync to ignore
+            // these change-requests. Otherwise, we end with infinite recursion on `updateSyncZoom`, caused by ChartSync:
+            //
+            // 1. Let Chart A and Chart B be synchronised charts.
+            // 2. User interacts with Chart A (updates the zoom).
+            // 3. ChartSync of Chart B calls `updateSyncZoom`.
+            // 4. ChartSync of Chart A calls `updateSyncZoom`.
+            // 5. ChartSync of Chart B calls `updateSyncZoom`.
+            // 6. Add so on...
+            //
+            if (e.source !== 'sync') {
+                debug('ChartsSyncManager.enabledZoomSync()', chart.id, zoom);
+                zoomModule.updateSyncZoom(zoom);
+            }
         }
     }
 
     private disableNodeInteractionSync?: () => void;
     private enabledNodeInteractionSync() {
         this.disableNodeInteractionSync?.(); // Cleanup any existing listeners.
-        this.disableNodeInteractionSync = this.moduleContext.eventsHub.on(
+        const offHighlightChange = this.moduleContext.eventsHub.on(
             'highlight:change',
             this.onHighlightChange.bind(this)
         );
+        const offActiveChangeListener = this.moduleContext.eventsHub.on(
+            'active:load-memento',
+            this.onActiveLoadMemento.bind(this)
+        );
+        this.disableNodeInteractionSync = () => {
+            offHighlightChange();
+            offActiveChangeListener();
+        };
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
@@ -160,10 +188,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         if (!event.currentHighlight?.datum) {
             for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-                if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+                const syncModule: any = chart.modulesManager.getModule('sync');
+                if (!syncModule?.nodeInteraction) continue;
 
-                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`);
-                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
+                chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, undefined, true); // true = delayed
+                chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
             }
             return;
         }
@@ -179,9 +208,20 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         );
     }
 
+    private onActiveLoadMemento(event: _ModuleSupport.ActiveLoadMementoEvent): void {
+        const { activeItem, chartId } = event;
+        if (activeItem === undefined) {
+            this.moduleContext.highlightManager.updateHighlight(`${chartId}-sync`, undefined, false);
+            this.moduleContext.tooltipManager.removeTooltip(`${chartId}-sync`, undefined, false);
+            for (const chart of this.moduleContext.syncManager.getGroupSiblings(this.groupId)) {
+                chart.onSyncActiveClear();
+            }
+        }
+    }
+
     private findMatchingHighlightNodes(
-        primaryDirection: _ModuleSupport.ChartAxisDirection,
-        secondaryDirection: _ModuleSupport.ChartAxisDirection,
+        primaryDirection: ChartAxisDirection,
+        secondaryDirection: ChartAxisDirection,
         secondaryKeys: string[],
         valueIsDate: boolean,
         eventValue: any,
@@ -195,7 +235,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         });
 
         for (const chart of syncManager.getGroupSiblings(this.groupId)) {
-            if (!chart.modulesManager.getModule<ChartSync>('sync')?.nodeInteraction) continue;
+            const syncModule: any = chart.modulesManager.getModule('sync');
+            if (!syncModule?.nodeInteraction) continue;
 
             let dispatched = false;
             for (const axis of chart.axes) {
@@ -240,9 +281,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         eventValue: any
     ) {
         return (series: _ModuleSupport.ISeries<any, any, any, any>) => {
-            const seriesKeys = series.getKeys(axis.direction);
-
-            if (axis.keys.length && !axis.keys.some((key) => seriesKeys.includes(key))) return;
+            const seriesKeyAxis = series.getKeyAxis(axis.direction);
+            if (seriesKeyAxis !== axis.id) return;
 
             const nodeData: _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>[] =
                 (series as any).contextNodeData?.nodeData ?? [];
@@ -268,7 +308,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     ) {
         debug('ChartSync.dispatchHighlightUpdate()', chart.id, nodeDatum);
 
-        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum);
+        // Use delayed unhighlight when clearing (nodeDatum is undefined)
+        const delayed = nodeDatum == null;
+        chart.ctx.highlightManager.updateHighlight(`${chart.id}-sync`, nodeDatum, delayed);
 
         const tooltipEnabled = nodeDatum?.series.tooltipEnabled ?? chart.tooltip.enabled;
         if (nodeDatum && tooltipEnabled) {
@@ -288,18 +330,18 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 chart.getTooltipContent(nodeDatum.series, nodeDatum.datumIndex, nodeDatum, 'tooltip')
             );
         } else {
-            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`);
+            chart.ctx.tooltipManager.removeTooltip(`${chart.id}-sync`, undefined, true); // true = delayed
         }
 
         this.updateChart(chart, ChartUpdateType.SERIES_UPDATE);
     }
 
     async getSyncedDomain(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
             return;
         }
 
-        const { groupState, directionDomains, domainsByKey, positionDomains } = this.updateDomainState(axis);
+        const { groupState, directionDomains, idDomains, positionDomains } = this.updateDomainState(axis);
         this.validateAxis(axis, groupState);
 
         await this.waitForDomainsToBeReady();
@@ -308,11 +350,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
             return this.calculateDerivedDomain(axis, positionDomains);
         }
 
-        if (this.domainMode === 'direction' || axis.keys.length === 0) {
+        if (this.domainMode === 'direction') {
             return this.calculateDerivedDomain(axis, directionDomains);
         }
 
-        return this.calculateKeyDerivedDomain(axis, domainsByKey);
+        return this.calculateDerivedDomain(axis, idDomains);
     }
 
     private updateDomainState(axis: _ModuleSupport.CartesianAxis<any, any>) {
@@ -329,13 +371,11 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chartDirectionDomains[axisId] = axis.dataDomain.domain;
         directionDomains.dirty = true;
 
-        const domainsByKey = (groupState.domainsByKey ??= {});
-        for (const key of axis.keys ?? []) {
-            const keyDomains = (domainsByKey[key] ??= { derived: [], sources: {}, dirty: true });
-            const chartKeyDomains = (keyDomains.sources[chartId] ??= {});
-            chartKeyDomains[axisId] = axis.dataDomain.domain;
-            keyDomains.dirty = true;
-        }
+        const domainsById = (groupState.domainsById ??= {});
+        const idDomains = (domainsById[axisId] ??= { derived: [], sources: {}, dirty: true });
+        const chartIdDomains = (idDomains.sources[chartId] ??= {});
+        chartIdDomains[axisId] = axis.dataDomain.domain;
+        idDomains.dirty = true;
 
         const domainsByPosition = (groupState.domainsByPosition ??= {});
         const positionDomains = (domainsByPosition[axis.position] ??= { derived: [], sources: {}, dirty: true });
@@ -343,7 +383,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         chartPositionDomains[axisId] = axis.dataDomain.domain;
         positionDomains.dirty = true;
 
-        return { groupState, directionDomains, domainsByKey, positionDomains };
+        return { groupState, directionDomains, idDomains, positionDomains };
     }
 
     private validateAxis(axis: _ModuleSupport.CartesianAxis<any, any>, groupState: _ModuleSupport.SyncGroupState) {
@@ -367,7 +407,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
         for (const member of groupState.members) {
             const { axes, modulesManager } = member;
-            const memberSyncDirections = syncedDirections(modulesManager.getModule<ChartSync>('sync')?.axes);
+            const syncModule: any = modulesManager.getModule('sync');
+            const memberSyncDirections = syncedDirections(syncModule?.axes);
 
             const keyMatchedAxes = axes
                 .filter((a) => memberSyncDirections.includes(a.direction))
@@ -418,76 +459,41 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private calculateDerivedDomain(
         axis: _ModuleSupport.CartesianAxis<any, any>,
-        directionDomains: _ModuleSupport.SyncDerivedDomain
+        domains: _ModuleSupport.SyncDerivedDomain
     ) {
-        if (!directionDomains.dirty) return directionDomains.derived;
+        if (!domains.dirty) return domains.derived;
 
-        const previousDerived = directionDomains.derived;
-        directionDomains.derived = unique(
-            Object.values(directionDomains.sources)
-                .map((d) => Object.values(d))
-                .flat(2)
-        );
-
+        let previousDerived = domains.derived;
+        const newDerivedBySource = Object.values(domains.sources).map((d) => Object.values(d));
+        let newDerived: unknown[];
         if (ContinuousScale.is(axis.scale)) {
-            directionDomains.derived = findMinMax(directionDomains.derived as number[]);
+            newDerived = newDerivedBySource.flat(2);
+        } else {
+            // Sort category scale sources by their length, largest to smallest, so missing datums are not appended
+            // to the end.
+            newDerived = newDerivedBySource
+                .flat()
+                .toSorted((a, b) => (a.length > b.length ? -1 : 1))
+                .flat();
         }
-        directionDomains.dirty = false;
-
-        if (domainChanged(axis.scale, previousDerived, directionDomains.derived)) {
-            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: directionDomains.derived });
-            this.updateSiblings();
-        }
-
-        return directionDomains.derived;
-    }
-
-    private calculateKeyDerivedDomain(
-        axis: _ModuleSupport.CartesianAxis<any, any>,
-        domainsByKey: { [key: string]: _ModuleSupport.SyncDerivedDomain }
-    ) {
-        let previousDerived = [];
-        let newDerived = [];
-        let updated = false;
-        for (const key of axis.keys ?? []) {
-            const keyDomains = domainsByKey[key];
-            const previousDerivedForKey = keyDomains.derived;
-            previousDerived.push(...previousDerivedForKey);
-
-            if (!keyDomains.dirty) {
-                newDerived.push(...keyDomains.derived);
-                continue;
-            }
-
-            keyDomains.derived = unique(
-                Object.values(keyDomains.sources)
-                    .map((d) => Object.values(d))
-                    .flat(2)
-            );
-            if (ContinuousScale.is(axis.scale)) {
-                keyDomains.derived = findMinMax(keyDomains.derived as number[]);
-            }
-            newDerived.push(...keyDomains.derived);
-
-            keyDomains.dirty = false;
-            updated ||= !arraysEqual(previousDerivedForKey, keyDomains.derived);
-        }
+        domains.derived = unique(newDerived);
 
         if (ContinuousScale.is(axis.scale)) {
             previousDerived = findMinMax(previousDerived as number[]);
-            newDerived = findMinMax(newDerived as number[]);
+            domains.derived = findMinMax(domains.derived as number[]);
         }
+        domains.dirty = false;
 
-        if (updated && domainChanged(axis.scale, previousDerived, newDerived)) {
-            debug(axis.id, 'updated', axis.keys, { before: previousDerived, after: newDerived });
+        if (domainChanged(axis.scale, previousDerived, domains.derived)) {
+            debug(axis.id, 'updated', { before: previousDerived, after: domains.derived });
             this.updateSiblings();
         }
 
-        return newDerived;
+        return domains.derived;
     }
 
     removeAxis(axis: unknown) {
-        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== (axis.direction as string))) {
             return;
         }
 
@@ -497,10 +503,8 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         const chartId = syncManager.getChart().id;
         const axisId = axis.id;
         delete syncGroup?.domains?.[axis.direction]?.sources?.[chartId]?.[axisId];
-        for (const key of axis.keys ?? []) {
-            delete syncGroup?.domainsByKey?.[key]?.sources?.[chartId]?.[axisId];
-        }
         delete syncGroup?.domainsByPosition?.[axis.position]?.sources?.[chartId]?.[axisId];
+        delete syncGroup?.domainsById?.[axisId]?.sources?.[chartId]?.[axisId];
     }
 
     private async waitForDomainsToBeReady() {
@@ -508,7 +512,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         let count = 0;
         while (syncManager.getGroupMembers(this.groupId).some((c) => c.syncStatus === 'init')) {
             debug('ChartSync.waitForDomainsToBeReady() - waiting for all domains to be calculated', this.groupId);
-            await this.domainSync.await();
+            await this.domainSync.waitForCompletion();
             count++;
         }
         if (count > 0) {
@@ -531,11 +535,13 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     }
 
     private onEnabledChange() {
-        const { syncManager } = this.moduleContext;
+        const { syncManager, highlightManager } = this.moduleContext;
         if (this.enabled) {
             syncManager.subscribe(this.groupId);
+            highlightManager.unhighlightDelay = 0; // Workaround for AG-16398
         } else {
             syncManager.unsubscribe(this.groupId);
+            highlightManager.unhighlightDelay = 100; // Workaround for AG-16398
         }
         this.updateSiblings();
         this.onNodeInteractionChange();

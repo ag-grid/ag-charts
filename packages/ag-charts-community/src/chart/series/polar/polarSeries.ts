@@ -1,3 +1,6 @@
+import type { ChartAnimationPhase } from 'ag-charts-core';
+import { ChartAxisDirection, PolarZIndexMap, StateMachine } from 'ag-charts-core';
+
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
@@ -8,9 +11,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import { StateMachine } from '../../../util/stateMachine';
-import type { ChartAnimationPhase } from '../../chartAnimationPhase';
-import { ChartAxisDirection } from '../../chartAxisDirection';
 import {
     DataModelSeries,
     type DataModelSeriesConstructorOpts,
@@ -20,7 +20,6 @@ import {
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { type SeriesProperties } from '../seriesProperties';
 import type { ShapeFillBBox } from '../shapeUtil';
-import { PolarZIndexMap } from './polarZIndexMap';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 export type PolarAnimationEvent = {
@@ -38,8 +37,10 @@ export type PolarAnimationData = { duration?: number };
 type PolarSeriesProperties = {
     angleKey: string;
     angleName?: string;
+    angleKeyAxis?: string;
     radiusKey?: string;
     radiusName?: string;
+    radiusKeyAxis?: string;
 };
 
 export const DEFAULT_POLAR_DIRECTION_KEYS = {
@@ -69,7 +70,7 @@ export abstract class PolarSeries<
 > extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
     override directions = [ChartAxisDirection.Angle, ChartAxisDirection.Radius];
 
-    protected itemGroup = this.contentGroup.appendChild(new Group());
+    protected itemGroup = this.contentGroup.appendChild(new Group({ name: 'items' }));
     public getItemNodes(): TNode[] {
         return [...this.itemGroup.children()] as TNode[];
     }
@@ -84,9 +85,21 @@ export abstract class PolarSeries<
         () => this.nodeFactory(),
         false
     );
+<<<<<<< HEAD
     protected labelSelection = Selection.select<Text<TDatum>>(this.labelGroup, () => this.labelFactory(), false);
     protected highlightSelection = Selection.selectNoInference<TDatum, TNode>(this.highlightGroup, () =>
+=======
+    protected labelSelection: Selection<Text, TDatum> = Selection.select(
+        this.labelGroup,
+        () => this.labelFactory(),
+        false
+    );
+    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightNodeGroup, () =>
+>>>>>>> latest
         this.nodeFactory()
+    );
+    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabelGroup, () =>
+        this.labelFactory()
     );
 
     animationResetFns?: {
@@ -109,6 +122,12 @@ export abstract class PolarSeries<
      * and is not supposed to be set by the user.
      */
     radius: number = 0;
+
+    /**
+     * The largest marker size of any series in the same chart. Used to determine the extent of pointer interaction
+     * with the series.
+     */
+    maxChartMarkerSize: number = 0;
 
     protected animationState: StateMachine<PolarAnimationState, PolarAnimationEvent>;
 
@@ -136,7 +155,6 @@ export abstract class PolarSeries<
         });
 
         this.animationResetFns = animationResetFns;
-
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(
             'empty',
             {
@@ -176,6 +194,16 @@ export abstract class PolarSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
+
+        this.cleanup.register(
+            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
+            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
+        );
+    }
+
+    override getKeyAxis(direction: ChartAxisDirection): string | undefined {
+        if (direction === ChartAxisDirection.Angle) return this.properties.angleKeyAxis;
+        if (direction === ChartAxisDirection.Radius) return this.properties.radiusKeyAxis;
     }
 
     override setZIndex(zIndex: number) {
@@ -200,13 +228,6 @@ export abstract class PolarSeries<
         const text = new Text<TDatum>();
         text.pointerEvents = PointerEvents.None;
         return text;
-    }
-
-    override addChartEventListeners(): void {
-        this.cleanup.register(
-            this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.eventsHub.on('legend:item-double-click', (event) => this.onLegendItemDoubleClick(event))
-        );
     }
 
     getInnerRadius(): number {
@@ -237,11 +258,12 @@ export abstract class PolarSeries<
             resetMotion([this.itemSelection, this.highlightSelection], item);
         }
         if (label) {
-            resetMotion([this.labelSelection], label);
+            resetMotion([this.labelSelection, this.highlightLabelSelection], label);
         }
         this.itemSelection.cleanup();
         this.labelSelection.cleanup();
         this.highlightSelection.cleanup();
+        this.highlightLabelSelection.cleanup();
     }
 
     protected animateEmptyUpdateReady(_data: PolarAnimationData) {
@@ -255,9 +277,12 @@ export abstract class PolarSeries<
     }
 
     protected animateReadyHighlight(_data: unknown) {
-        const { item } = this.animationResetFns ?? {};
+        const { item, label } = this.animationResetFns ?? {};
         if (item) {
             resetMotion([this.highlightSelection], item);
+        }
+        if (label) {
+            resetMotion([this.highlightLabelSelection], label);
         }
     }
 
@@ -282,14 +307,18 @@ export abstract class PolarSeries<
         return undefined;
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     public override isSeriesHighlighted(highlightedDatum: HighlightNodeDatum | undefined, legendItemValues?: string[]) {
-        const { series, legendItemName: activeLegendItemName, itemId } = highlightedDatum ?? {};
+        if (!this.properties.highlight.enabled) {
+            return false;
+        }
 
-        const legendItemName = legendItemValues?.[itemId];
+        const { series, legendItemName: activeLegendItemName, datumIndex } = highlightedDatum ?? {};
+
+        const legendItemName = typeof datumIndex === 'number' ? legendItemValues?.[datumIndex] : undefined;
 
         return series === this || (legendItemName != null && legendItemName === activeLegendItemName);
     }

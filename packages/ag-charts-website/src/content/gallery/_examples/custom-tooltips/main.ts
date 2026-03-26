@@ -1,7 +1,17 @@
-import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgBarSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgCharts,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 function tooltipRenderer({ fill, yName, datum, yKey }: AgBarSeriesTooltipRendererParams<DataType>) {
     var formatThousands = function (value: number) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
@@ -97,14 +107,9 @@ const options: AgChartOptions<DataType> = {
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Waste collected (tonnes)',
             },
@@ -114,7 +119,7 @@ const options: AgChartOptions<DataType> = {
                 },
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

@@ -1,6 +1,5 @@
-import { type AnyFn, CleanupRegistry, attachListener, boxContains } from 'ag-charts-core';
+import { type AnyFn, CleanupRegistry, attachListener, boxContains, partialAssign } from 'ag-charts-core';
 
-import { partialAssign } from '../util/object';
 import { type MouseDragCallbacks, type MouseDragger, startMouseDrag } from './mouseDragger';
 import { type TouchDragCallbacks, type TouchDragger, startOneFingerTouch } from './touchDragger';
 import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
@@ -131,8 +130,8 @@ export class WidgetListenerInternal {
             const element = target.getElement();
             const cleanup = new CleanupRegistry();
             cleanup.register(
-                attachListener(element, 'mousedown', (event) => this.triggerMouseDrag(target, event)),
-                attachListener(element, 'touchstart', (event) => this.triggerTouchDrag(target, event), {
+                attachListener(element, 'mousedown', (event: MouseEvent) => this.triggerMouseDrag(target, event)),
+                attachListener(element, 'touchstart', (event: TouchEvent) => this.triggerTouchDrag(target, event), {
                     passive: false,
                 })
             );
@@ -142,12 +141,17 @@ export class WidgetListenerInternal {
 
     private triggerMouseDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
         if (downEvent.button === 0) {
+            if (downEvent.view == null) {
+                // Fallback event `view` in case it's missing. (local tests)
+                const elWin = current.getElement().ownerDocument.defaultView!;
+                downEvent = new elWin.MouseEvent(downEvent.type, { ...downEvent, view: elWin });
+            }
             this.startMouseDrag(current, downEvent);
         }
     }
 
     private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
-        const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
+        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, offsetX: Number.NaN, offsetY: Number.NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
         const dragCallbacks: MouseDragCallbacks = {
@@ -186,7 +190,7 @@ export class WidgetListenerInternal {
     }
 
     private startOneFingerTouch<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
-        const origin: DragOrigin = { pageX: NaN, pageY: NaN, ...getTouchOffsets(current, initialTouch) };
+        const origin: DragOrigin = { pageX: Number.NaN, pageY: Number.NaN, ...getTouchOffsets(current, initialTouch) };
         partialAssign(['pageX', 'pageY'], origin, initialTouch);
 
         const dragCallbacks: TouchDragCallbacks = {

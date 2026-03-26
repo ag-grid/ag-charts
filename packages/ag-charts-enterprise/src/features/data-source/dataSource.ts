@@ -1,16 +1,15 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance, ActionOnSet, Property } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
-const { ActionOnSet, Property } = _ModuleSupport;
-
-export class DataSource extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class DataSource extends AbstractModuleInstance {
     @ActionOnSet<DataSource>({
         newValue(enabled) {
             this.updateCallback(enabled, this.getData);
         },
     })
     @Property
-    public enabled = false;
+    public enabled = true;
 
     @ActionOnSet<DataSource>({
         newValue(getData) {
@@ -46,6 +45,18 @@ export class DataSource extends _ModuleSupport.BaseModuleInstance implements _Mo
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super();
         this.dataService = ctx.dataService;
+
+        let dirty: boolean = false;
+        this.cleanup.register(
+            ctx.eventsHub.on('data:load', () => {
+                dirty = true;
+            }),
+            ctx.eventsHub.on('layout:complete', () => {
+                if (dirty) {
+                    ctx.zoomManager.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
+                }
+            })
+        );
     }
 
     private updateCallback(enabled: boolean, getData: (params: AgDataSourceCallbackParams) => Promise<unknown>) {

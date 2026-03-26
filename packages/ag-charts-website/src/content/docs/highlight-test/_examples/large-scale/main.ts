@@ -1,5 +1,4 @@
 // @ag-skip-fws
-
 /* @ag-options-extract */
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
@@ -27,10 +26,7 @@ const options: AgCartesianChartOptions = {
             bar: highlightTheme,
         },
     },
-    axes: [
-        { type: 'number', position: 'left' },
-        { type: 'time', position: 'bottom' },
-    ],
+    axes: { x: { type: 'time' } },
     data: getLargeScaleData(size),
     series: [
         {

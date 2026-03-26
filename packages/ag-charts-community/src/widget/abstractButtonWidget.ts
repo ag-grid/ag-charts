@@ -1,6 +1,5 @@
-import { setAttribute } from 'ag-charts-core';
+import { isButtonClickEvent, setAttribute } from 'ag-charts-core';
 
-import { isButtonClickEvent } from '../util/keynavUtil';
 import type { ExpandOpts, ExpandableWidget, ExpansionControllerWidget } from './expandableWidget';
 import { ExpansionControllerImpl } from './expansionControllerImpl';
 import { Widget } from './widget';

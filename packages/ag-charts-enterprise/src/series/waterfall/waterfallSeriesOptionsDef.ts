@@ -1,7 +1,17 @@
 import { type AgWaterfallSeriesOptions, type WaterfallSeriesTotalMeta, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, arrayOfDefs, constant, positiveNumber, required, string, union } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    arrayOfDefs,
+    commonSeriesOptionsDefs,
+    constant,
+    positiveNumber,
+    positiveNumberNonZero,
+    required,
+    string,
+    union,
+} from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, waterfallSeriesThemeableOptionsDef } = _ModuleSupport;
+const { waterfallSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = {
     ...waterfallSeriesThemeableOptionsDef,
@@ -9,6 +19,8 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
     type: required(constant('waterfall')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     totals: arrayOfDefs<WaterfallSeriesTotalMeta>(
@@ -19,4 +31,5 @@ export const waterfallSeriesOptionsDef: OptionsDefs<AgWaterfallSeriesOptions> = 
         },
         'a total definition options array'
     ),
+    width: positiveNumberNonZero,
 };

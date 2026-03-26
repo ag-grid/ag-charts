@@ -1,19 +1,23 @@
-import { type Point, clamp } from 'ag-charts-core';
+import type { Scale } from 'ag-charts-core';
+import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
-import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
 import type { Path } from '../../scene/shape/path';
-import { objectsEqual } from '../../util/object';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { DataController } from '../data/dataController';
-import type { DataModel, DataModelOptions, ProcessedData, PropertyDefinition } from '../data/dataModel';
+import type { DataModel, DataModelOptions, ProcessedData } from '../data/dataModel';
+import type { PropertyDefinition } from '../data/dataModelTypes';
+import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import { findNodeDatumInArray } from './util';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
+    itemId?: never;
+}
 
 export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
     extends SeriesNodeDataContext<number, TDatum, TLabel> {}
@@ -43,24 +47,19 @@ export abstract class DataModelSeries<
     }
 
     dataCount() {
-        return this.processedData?.dataSources?.get(this.id)?.length ?? 0;
+        return this.processedData?.dataSources?.get(this.id)?.data?.length ?? 0;
     }
 
-    getHasData(axisKey: string): boolean {
-        const { dataModel, processedData } = this;
+    invalidDataCount() {
+        return this.processedData?.invalidDataCount?.get(this.id) ?? 0;
+    }
 
-        if (!dataModel || !processedData) {
-            return super.hasData;
-        }
+    missingDataCount() {
+        return this.dataModel?.resolveMissingDataCount(this) ?? 0;
+    }
 
-        const values = dataModel.resolveColumnById(this, axisKey, processedData);
-        for (const value of values) {
-            if (value != null && (typeof value !== 'number' || !isNaN(value))) {
-                return true;
-            }
-        }
-
-        return false;
+    override get hasData() {
+        return Math.max(0, this.dataCount() - this.invalidDataCount() - this.missingDataCount()) > 0;
     }
 
     protected getScaleInformation({
@@ -79,7 +78,7 @@ export abstract class DataModelSeries<
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         return this.moduleMap
-            .mapModules((mod) => mod.getPropertyDefinitions(this.getScaleInformation({ xScale, yScale })))
+            .mapModules((m) => m.getPropertyDefinitions(this.getScaleInformation({ xScale, yScale })))
             .flat();
     }
 
@@ -88,11 +87,19 @@ export abstract class DataModelSeries<
         D extends object,
         K extends keyof D & string = keyof D & string,
         G extends boolean | undefined = undefined,
-    >(dataController: DataController, data: D[] | undefined, opts: DataModelOptions<K, boolean | undefined, false>) {
+    >(
+        dataController: DataController,
+        dataSet: DataSet<D> | undefined,
+        opts: DataModelOptions<K, boolean | undefined, false>
+    ) {
         // Merge properties of this series with properties of all the attached series-options
         opts.props.push(...(this.getModulePropertyDefinitions() as PropertyDefinition<K>[]));
 
-        const { dataModel, processedData } = await dataController.request<D, K, G>(this.id, data ?? [], opts);
+        const { dataModel, processedData } = await dataController.request<D, K, G>(
+            this.id,
+            dataSet ?? DataSet.empty(),
+            opts
+        );
 
         this.dataModel = dataModel;
         this.processedData = processedData;
@@ -123,6 +130,10 @@ export abstract class DataModelSeries<
     protected abstract computeFocusBounds(opts: PickFocusInputs): Path | BBox | undefined;
 
     public abstract getNodeData(): TDatum[] | undefined;
+
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): TDatum | undefined {
+        return findNodeDatumInArray(itemId, this.getNodeData(), this.data?.dataIdKey);
+    }
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();

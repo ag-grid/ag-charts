@@ -1,11 +1,13 @@
-import { clamp } from 'ag-charts-core';
-
-import type { ScaleType } from '../../../scale/scale';
-import { aggregationDomain, aggregationXRatioForXValue } from '../aggregation';
+import type { DomainWithMetadata, ScaleType } from 'ag-charts-core';
+import { aggregationDomain, aggregationXRatioForXValue, clamp } from 'ag-charts-core';
 
 const SIZE_QUANTIZATION = 3;
 const FILTER_DATUM_THRESHOLD = 5;
 const FILTER_RANGE_THRESHOLD = 0.05;
+
+// ============================================================================
+// CORE LAYER: Pure, testable aggregation functions
+// ============================================================================
 
 export interface BubbleAggregation {
     xValues: any[];
@@ -15,6 +17,8 @@ export interface BubbleAggregation {
     yd0: number;
     yd1: number;
     filters: BubbleAggregationFilter[];
+    xNeedsValueOf: boolean;
+    yNeedsValueOf: boolean;
 }
 
 export interface BubbleAggregationFilter {
@@ -41,19 +45,26 @@ interface ChildBucket {
     y1: number;
 }
 
-function getPrimaryDatumIndex(
-    xValues: any[],
-    yValues: any[],
-    xd0: number,
-    yd0: number,
-    xd1: number,
-    yd1: number,
-    indices: number[],
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number
-): number {
+interface BubbleAggregationContext {
+    xValues: any[];
+    yValues: any[];
+    xDomain: { min: number; max: number };
+    yDomain: { min: number; max: number };
+    xNeedsValueOf: boolean;
+    yNeedsValueOf: boolean;
+}
+
+interface QuadBounds {
+    x0: number;
+    y0: number;
+    x1: number;
+    y1: number;
+}
+
+function getPrimaryDatumIndex(context: BubbleAggregationContext, indices: number[], bounds: QuadBounds): number {
+    const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
+    const { x0, y0, x1, y1 } = bounds;
+
     let currentIndex = 0;
     let currentDistanceSquared = Infinity;
     const midX = (x0 + x1) / 2;
@@ -62,8 +73,8 @@ function getPrimaryDatumIndex(
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xDomain.min, xDomain.max, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yDomain.min, yDomain.max, yNeedsValueOf);
 
         const distanceSquared = (xRatio - midX) ** 2 + (yRatio - midY) ** 2;
         if (distanceSquared < currentDistanceSquared) {
@@ -74,26 +85,17 @@ function getPrimaryDatumIndex(
     return currentIndex;
 }
 
-function countVisibleItems(
-    xValues: any[],
-    yValues: any[],
-    xd0: number,
-    yd0: number,
-    xd1: number,
-    yd1: number,
-    indices: number[],
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number
-) {
+function countVisibleItems(context: BubbleAggregationContext, indices: number[], bounds: QuadBounds) {
+    const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
+    const { x0, y0, x1, y1 } = bounds;
+
     let count = 0;
     for (const datumIndex of indices) {
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xDomain.min, xDomain.max, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yDomain.min, yDomain.max, yNeedsValueOf);
 
         if (xRatio >= x0 && xRatio <= x1 && yRatio >= y0 && yRatio <= y1) {
             count += 1;
@@ -104,18 +106,13 @@ function countVisibleItems(
 }
 
 function quadChildren(
-    xValues: any[],
-    yValues: any[],
-    xd0: number,
-    yd0: number,
-    xd1: number,
-    yd1: number,
+    context: BubbleAggregationContext,
     indices: number[],
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number
+    bounds: QuadBounds
 ): BubbleAggregationNode[] {
+    const { xValues, yValues, xDomain, yDomain, xNeedsValueOf, yNeedsValueOf } = context;
+    const { x0, y0, x1, y1 } = bounds;
+
     const childBuckets: ChildBucket[] = [
         { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
         { x0: 1, y0: 1, x1: 0, y1: 0, indices: [] },
@@ -129,8 +126,8 @@ function quadChildren(
         const xValue = xValues[datumIndex];
         const yValue = yValues[datumIndex];
         if (xValue == null || yValue == null) continue;
-        const xRatio = aggregationXRatioForXValue(xValue, xd0, xd1);
-        const yRatio = aggregationXRatioForXValue(yValue, yd0, yd1);
+        const xRatio = aggregationXRatioForXValue(xValue, xDomain.min, xDomain.max, xNeedsValueOf);
+        const yRatio = aggregationXRatioForXValue(yValue, yDomain.min, yDomain.max, yNeedsValueOf);
 
         const childIndex = (xRatio > midX ? 1 : 0) + (yRatio > midY ? 2 : 0);
         const childBucket = childBuckets[childIndex];
@@ -146,7 +143,7 @@ function quadChildren(
         const { indices: childIndices, x0: cx0, x1: cx1, y0: cy0, y1: cy1 } = childBucket;
         if (childIndices.length === 0) continue;
 
-        const child = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, childIndices, cx0, cy0, cx1, cy1);
+        const child = aggregateQuad(context, childIndices, { x0: cx0, y0: cy0, x1: cx1, y1: cy1 });
         children.push(child);
     }
 
@@ -154,25 +151,19 @@ function quadChildren(
 }
 
 function aggregateQuad(
-    xValues: any[],
-    yValues: any[],
-    xd0: number,
-    yd0: number,
-    xd1: number,
-    yd1: number,
+    context: BubbleAggregationContext,
     indices: number[],
-    x0: number,
-    y0: number,
-    x1: number,
-    y1: number
+    bounds: QuadBounds
 ): BubbleAggregationNode {
+    const { x0, y0, x1, y1 } = bounds;
+
     const terminate =
         (indices.length < FILTER_DATUM_THRESHOLD &&
             x1 - x0 < FILTER_RANGE_THRESHOLD &&
             y1 - y0 < FILTER_RANGE_THRESHOLD) ||
         (x0 === x1 && y0 === y1);
 
-    let children = terminate ? null : quadChildren(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
+    let children = terminate ? null : quadChildren(context, indices, bounds);
 
     if (children?.length === 1) {
         // Flatten the tree if there's only one child
@@ -182,23 +173,65 @@ function aggregateQuad(
     }
 
     const scale = Math.hypot(x1 - x0, y1 - y0);
-    const primaryDatumIndex = getPrimaryDatumIndex(xValues, yValues, xd0, yd0, xd1, yd1, indices, x0, y0, x1, y1);
+    const primaryDatumIndex = getPrimaryDatumIndex(context, indices, bounds);
     return { scale, x0, y0, x1, y1, indices, primaryDatumIndex, children };
 }
 
-export function aggregateBubbleData(
-    xScale: ScaleType,
-    yScale: ScaleType,
+/**
+ * Computes quadtree-based spatial aggregation for bubble chart data.
+ *
+ * Creates a hierarchical quadtree structure to efficiently render large bubble
+ * datasets by grouping spatially-close bubbles. Unlike linear series aggregation,
+ * this uses 2D spatial partitioning with optional size-based quantization.
+ *
+ * @param xDomain - X domain bounds [min, max]
+ * @param yDomain - Y domain bounds [min, max]
+ * @param xValues - X coordinate values
+ * @param yValues - Y coordinate values
+ * @param sizeValues - Bubble size values (optional)
+ * @param sizeDomain - Size domain [min, max]
+ * @param options - Configuration options
+ * @param options.xNeedsValueOf - Whether X values need valueOf() conversion
+ * @param options.yNeedsValueOf - Whether Y values need valueOf() conversion
+ * @returns Bubble aggregation with quadtree nodes, or undefined if no aggregation possible
+ *
+ * @complexity O(n log n) for quadtree construction where n is data points
+ * @memory Creates hierarchical node structure proportional to spatial distribution
+ *
+ * @example
+ * const aggregation = computeBubbleAggregation(
+ *   [0, 100], [0, 100],
+ *   xData, yData, sizeData,
+ *   [10, 50],
+ *   { xNeedsValueOf: false, yNeedsValueOf: false }
+ * );
+ * // Returns quadtree with spatially-grouped bubble indices
+ */
+export function computeBubbleAggregation(
+    xDomain: [number, number],
+    yDomain: [number, number],
     xValues: any[],
     yValues: any[],
     sizeValues: any[] | undefined,
-    xDomain: any[],
-    yDomain: any[],
-    sizeDomain: number[]
+    sizeDomain: [number, number],
+    options: {
+        xNeedsValueOf: boolean;
+        yNeedsValueOf: boolean;
+    }
 ): BubbleAggregation | undefined {
-    const [xd0, xd1] = aggregationDomain(xScale, xDomain);
-    const [yd0, yd1] = aggregationDomain(yScale, yDomain);
+    const [xd0, xd1] = xDomain;
+    const [yd0, yd1] = yDomain;
     const [sd0, sd1] = sizeDomain;
+    const { xNeedsValueOf, yNeedsValueOf } = options;
+
+    const context: BubbleAggregationContext = {
+        xValues,
+        yValues,
+        xDomain: { min: xd0, max: xd1 },
+        yDomain: { min: yd0, max: yd1 },
+        xNeedsValueOf,
+        yNeedsValueOf,
+    };
 
     const filters: BubbleAggregationFilter[] = [];
     if (sizeValues != null && sd1 > sd0) {
@@ -206,7 +239,7 @@ export function aggregateBubbleData(
         for (let datumIndex = 0; datumIndex < sizeValues.length; datumIndex += 1) {
             const sizeValue = sizeValues[datumIndex];
             const sizeRatio = (sizeValue - sd0) / (sd1 - sd0);
-            const sizeIndex = (sizeRatio * SIZE_QUANTIZATION) | 0;
+            const sizeIndex = Math.trunc(sizeRatio * SIZE_QUANTIZATION);
             if (sizeIndex >= 0 && sizeIndex < SIZE_QUANTIZATION) {
                 sizeIndices[sizeIndex].push(datumIndex);
             }
@@ -214,7 +247,7 @@ export function aggregateBubbleData(
 
         for (let i = 0; i < sizeIndices.length; i += 1) {
             const indices = sizeIndices[i];
-            const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+            const node = aggregateQuad(context, indices, { x0: 0, y0: 0, x1: 1, y1: 1 });
 
             if (node != null) {
                 const sizeRatio = i / SIZE_QUANTIZATION;
@@ -223,14 +256,105 @@ export function aggregateBubbleData(
         }
     } else {
         const indices = xValues.map((_, i) => i);
-        const node = aggregateQuad(xValues, yValues, xd0, yd0, xd1, yd1, indices, 0, 0, 1, 1);
+        const node = aggregateQuad(context, indices, { x0: 0, y0: 0, x1: 1, y1: 1 });
 
         if (node != null) {
             filters.push({ sizeRatio: 0, node });
         }
     }
 
-    return filters.length > 0 ? { xValues, yValues, xd0, xd1, yd0, yd1, filters } : undefined;
+    return filters.length > 0
+        ? { xValues, yValues, xd0, xd1, yd0, yd1, filters, xNeedsValueOf, yNeedsValueOf }
+        : undefined;
+}
+
+// ============================================================================
+// ADAPTER LAYER: Scale integration
+// ============================================================================
+
+/**
+ * Aggregates bubble data for rendering optimization (low-level adapter).
+ * Extracts domains from scales and delegates to core aggregation function.
+ *
+ * Note: No memoization layer - bubble aggregation is not used in mini charts
+ * where performance would be critical.
+ *
+ * @internal
+ */
+function aggregateBubbleData(
+    xScale: ScaleType,
+    yScale: ScaleType,
+    xValues: any[],
+    yValues: any[],
+    sizeValues: any[] | undefined,
+    xDomainInput: DomainWithMetadata<any>,
+    yDomainInput: DomainWithMetadata<any>,
+    sizeDomain: number[],
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
+): BubbleAggregation | undefined {
+    const [xd0, xd1] = aggregationDomain(xScale, xDomainInput);
+    const [yd0, yd1] = aggregationDomain(yScale, yDomainInput);
+    return computeBubbleAggregation(
+        [xd0, xd1],
+        [yd0, yd1],
+        xValues,
+        yValues,
+        sizeValues,
+        [sizeDomain[0], sizeDomain[1]],
+        { xNeedsValueOf, yNeedsValueOf }
+    );
+}
+
+// ============================================================================
+// INTEGRATION LAYER: DataModel
+// ============================================================================
+
+/**
+ * High-level aggregation function for series integration.
+ * Handles data extraction from DataModel and delegates to aggregation.
+ *
+ * @param xScale - The X-axis scale type
+ * @param yScale - The Y-axis scale type
+ * @param dataModel - Data model containing the processed data
+ * @param processedData - Processed data to aggregate
+ * @param sizeScale - Size scale for bubble sizing
+ * @param hasSizeKey - Whether size key is defined
+ * @param series - Series context for data model queries
+ * @returns Bubble aggregation or undefined if aggregation not needed
+ */
+export function aggregateBubbleDataFromDataModel(
+    xScale: ScaleType,
+    yScale: ScaleType,
+    dataModel: any,
+    processedData: any,
+    sizeScale: any,
+    hasSizeKey: boolean,
+    series: any
+): BubbleAggregation | undefined {
+    const xValues = dataModel.resolveColumnById(series, 'xValue', processedData);
+    const yValues = dataModel.resolveColumnById(series, 'yValue', processedData);
+    const sizeValues = hasSizeKey ? dataModel.resolveColumnById(series, 'sizeValue', processedData) : undefined;
+
+    const xDomain = dataModel.getDomain(series, 'xValue', 'value', processedData);
+    const yDomain = dataModel.getDomain(series, 'yValue', 'value', processedData);
+    const sizeDomain = hasSizeKey ? sizeScale.domain : [0, 0];
+
+    const xNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'xValue', processedData);
+    const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(series, 'yValue', processedData);
+
+    return aggregateBubbleData(
+        xScale,
+        yScale,
+        xValues,
+        yValues,
+        sizeValues,
+        xDomain,
+        yDomain,
+        sizeDomain,
+        xNeedsValueOf,
+        yNeedsValueOf
+    );
 }
 
 export interface BubbleAggregationOptions {
@@ -265,8 +389,17 @@ function computeBubbleAggregationCountIndices(
         minSize,
         maxSize,
     } = options;
-    const { xValues, yValues, xd0, xd1, yd0, yd1 } = dataAggregation;
+    const { xValues, yValues, xd0, xd1, yd0, yd1, xNeedsValueOf, yNeedsValueOf } = dataAggregation;
     const baseScalingFactor = 1 / Math.min(xRange / (xvr1 - xvr0), yRange / (yvr1 - yvr0));
+
+    const context: BubbleAggregationContext = {
+        xValues,
+        yValues,
+        xDomain: { min: xd0, max: xd1 },
+        yDomain: { min: yd0, max: yd1 },
+        xNeedsValueOf,
+        yNeedsValueOf,
+    };
 
     for (const { sizeRatio, node } of dataAggregation.filters) {
         const radius = 0.5 * (minSize + sizeRatio * (maxSize - minSize));
@@ -301,7 +434,7 @@ function computeBubbleAggregationCountIndices(
                     const fullyVisible = item.x0 >= xvr0 && item.x1 <= xvr1 && item.y0 >= yvr0 && item.y1 <= yvr1;
                     const itemCount = fullyVisible
                         ? indices.length
-                        : countVisibleItems(xValues, yValues, xd0, yd0, xd1, yd1, indices, xvr0, yvr0, xvr1, yvr1);
+                        : countVisibleItems(context, indices, { x0: xvr0, y0: yvr0, x1: xvr1, y1: yvr1 });
                     counter.count += itemCount;
                 }
                 singleDatumIndices?.push(...indices);

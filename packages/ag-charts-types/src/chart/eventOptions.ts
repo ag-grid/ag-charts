@@ -1,3 +1,4 @@
+import type { AgActiveState } from '../api/activeState';
 import type { AgAnnotation } from './annotationsOptions';
 import type { Listener } from './callbackOptions';
 import type { ContextDefault, DatumDefault, DatumKey, Ratio } from './types';
@@ -21,6 +22,10 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = Cont
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
+    /** The unique identifier of the picked datum. */
+    itemId: string | number;
+    /** The data ID key, if set on chart options. When present, `itemId` is a stable identifier. */
+    dataIdKey?: DatumKey<TDatum>;
     /** Datum from the chart or series data array. */
     datum: TDatum;
     /** xKey as specified on series options */
@@ -58,14 +63,38 @@ export interface AgSeriesVisibilityChange<TContext = ContextDefault> {
     visible: boolean;
 }
 
+export type AgActiveChangeEventSource = 'state-change' | 'user-interaction';
+
+export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, AgPreventableEvent {
+    /** Event type. */
+    type: 'activeChange';
+    /** An indication of what triggered this event. */
+    source: AgActiveChangeEventSource;
+    /** Callback context for this event. */
+    context?: TContext;
+    /** Datum from the chart or series data array. */
+    datum?: TDatum;
+    /** The data ID key, if set on chart options. When present, `activeItem.itemId` is a stable identifier. */
+    dataIdKey?: DatumKey<TDatum>;
+}
+
 export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
     context?: TContext;
 }
 
+export type AgZoomEventSource =
+    | 'chart-update'
+    | 'data-update'
+    | 'range-check'
+    | 'state-change'
+    | 'sync'
+    | 'user-interaction';
+
 export interface AgZoomEvent<TContext = ContextDefault> {
     type: 'zoom';
+    source: AgZoomEventSource;
     rangeX?: AgZoomEventRange;
     rangeY?: AgZoomEventRange;
     ratioX: AgZoomEventRatio;
@@ -107,6 +136,8 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     seriesNodeDoubleClick?: Listener<AgNodeClickEvent<'seriesNodeDoubleClick', TDatum, TContext>>;
     /** The listener to call when a series visibility is changed. */
     seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
+    /** The listener to call when the active state (highlight/tooltip) is changed. */
+    activeChange?: Listener<AgActiveChangeEvent<TDatum, TContext>>;
     /** The listener to call when the chart is clicked. */
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */

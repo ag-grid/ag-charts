@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,10 +18,9 @@ const options: AgCartesianChartOptions = {
             yKey: 'population',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'log',
-            position: 'left',
             title: {
                 text: 'Population',
             },
@@ -29,14 +28,13 @@ const options: AgCartesianChartOptions = {
                 format: ',.0f',
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

@@ -1,7 +1,9 @@
-import { AgBarSeriesTooltipRendererParams, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesTooltipRendererParams, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

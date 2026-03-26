@@ -1,4 +1,4 @@
-import { EventEmitter, type EventListener, Logger, getWindow } from 'ag-charts-core';
+import { AgDocument, Debug, EventEmitter, type EventListener, Logger } from 'ag-charts-core';
 
 import type {
     AdditionalAnimationOptions,
@@ -8,8 +8,8 @@ import type {
     IAnimation,
 } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
-import { Debug } from '../../util/debug';
 import type { Mutex } from '../../util/mutex';
+import { MAX_ANIMATABLE_NODES } from '../data/processors';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';
 
@@ -24,7 +24,7 @@ type AnimationEventMap = { [K in AnimationEventType]: AnimationEvent };
 
 function validAnimationDuration(testee?: number) {
     if (testee == null) return true;
-    return !isNaN(testee) && testee >= 0 && testee <= 2;
+    return !Number.isNaN(testee) && testee >= 0 && testee <= 2;
 }
 
 /**
@@ -33,7 +33,7 @@ function validAnimationDuration(testee?: number) {
  */
 export class AnimationManager {
     public defaultDuration = 1000;
-    public maxAnimatableItems = Infinity;
+    public maxAnimatableItems = MAX_ANIMATABLE_NODES;
 
     private batch = new AnimationBatch(this.defaultDuration * 1.5);
 
@@ -49,6 +49,7 @@ export class AnimationManager {
     private cumulativeAnimationTime: number = 0;
 
     constructor(
+        private readonly agDocument: AgDocument,
         private readonly interactionManager: InteractionManager,
         private readonly chartUpdateMutex: Mutex
     ) {}
@@ -77,7 +78,7 @@ export class AnimationManager {
             this.currentAnonymousAnimationId += 1;
         }
 
-        const skip = this.isSkipped() || opts.phase === 'none';
+        const skip = (this.isSkipped() && !opts.forceAnimation) || opts.phase === 'none';
         if (skip) {
             this.debug('AnimationManager - skipping animation');
         }
@@ -181,7 +182,9 @@ export class AnimationManager {
 
     public skipCurrentBatch() {
         if (this.debug.check()) {
-            this.debug(`AnimationManager - skipCurrentBatch()`, { stack: new Error().stack });
+            this.debug(`AnimationManager - skipCurrentBatch()`, {
+                stack: new Error('Stack trace for animation skip tracking').stack,
+            });
         }
         this.batch.skip();
     }
@@ -193,7 +196,7 @@ export class AnimationManager {
 
     /** Mocking point for tests to capture requestAnimationFrame callbacks. */
     public scheduleAnimationFrame(cb: (time: number) => Promise<void>) {
-        this.requestId = getWindow().requestAnimationFrame((t) => {
+        this.requestId = this.agDocument.requestAnimationFrame((t) => {
             cb(t).catch((e) => Logger.error(e));
         });
     }
@@ -265,7 +268,7 @@ export class AnimationManager {
     private cancelAnimation() {
         if (this.requestId === null) return;
 
-        cancelAnimationFrame(this.requestId);
+        this.agDocument.cancelAnimationFrame(this.requestId);
         this.events.emit('animation-stop', {
             type: 'animation-stop',
             deltaMs: this.batch.consumedTimeMs,

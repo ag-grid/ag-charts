@@ -1,5 +1,5 @@
-import { type AgChartOptions, AgCharts, AgGaugeOptions } from 'ag-charts-community';
-import { Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
+import { type AgChartOptions, AgCharts, type AgGaugeOptions } from 'ag-charts-community';
+import { type Chart, deproxy, prepareTestOptions, waitForChartStability } from 'ag-charts-community-test';
 
 import { setupEnterpriseModules } from '../setup';
 
@@ -14,10 +14,8 @@ export function prepareEnterpriseTestOptions<T extends AgChartOptions<any, any> 
     options: T,
     container = document.body
 ) {
-    if (!options.animation) {
-        // Default to animation off.
-        options.animation ??= { enabled: false };
-    }
+    // Default to animation off.
+    options.animation ??= { enabled: false };
     return prepareTestOptions(options as any, container);
 }
 

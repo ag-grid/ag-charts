@@ -1,7 +1,9 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 let options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -24,10 +26,6 @@ let options: AgCartesianChartOptions<DataType> = {
                 seriesNodeClick: ({ datum }) => console.log(`diesel - ${datum.diesel}`),
             },
         },
-    ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
     ],
 };
 

@@ -1,4 +1,12 @@
-import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgTopologyChartOptions,
+    ContextMenuModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapShapeSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { londonBoroughData } from './londonBoroughData';
 import { londonBoroughTopology } from './londonBoroughTopology';
@@ -7,6 +15,7 @@ import { otherCountiesTopology } from './otherCountiesTopology';
 import { tubeData } from './tubeData';
 import { tubeTopology } from './tubeTopology';
 
+ModuleRegistry.registerModules([LegendModule, MapLineSeriesModule, MapShapeSeriesModule]);
 const sizeDomain = [0, 141537];
 
 const tubeLineColours = {
@@ -17,6 +26,10 @@ const tubeLineColours = {
     District: '#007D32',
     Metropolitan: '#9B0058',
     Northern: '#000000',
+    Piccadilly: '#0019A8',
+    'Waterloo & City': '#76D0BD',
+    Circle: '#FFC80A',
+    Central: '#DC241F',
 };
 
 const options: AgTopologyChartOptions = {
@@ -45,6 +58,11 @@ const options: AgTopologyChartOptions = {
                 strokeWidth: 4,
             },
         },
+        listeners: {
+            legendItemDoubleClick: (event) => {
+                event.preventDefault();
+            },
+        },
     },
     series: [
         {
@@ -58,6 +76,7 @@ const options: AgTopologyChartOptions = {
             stroke: '#6687990C',
             strokeWidth: 1,
             showInLegend: false,
+            highlight: { enabled: false },
             label: {
                 minimumFontSize: 8,
                 color: '#66879933',
@@ -77,6 +96,7 @@ const options: AgTopologyChartOptions = {
             stroke: '#6687990C',
             strokeWidth: 1,
             showInLegend: false,
+            highlight: { enabled: false },
             label: {
                 enabled: true,
                 minimumFontSize: 8,

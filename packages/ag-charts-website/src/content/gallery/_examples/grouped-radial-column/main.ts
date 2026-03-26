@@ -1,7 +1,22 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    RadialColumnSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    LegendModule,
+    RadialColumnSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -45,28 +60,21 @@ const options: AgPolarChartOptions = {
             radiusName: 'Services',
         },
     ],
-    tooltip: {
-        mode: 'shared',
-        position: {
-            placement: ['right', 'left', 'top', 'bottom'],
-        },
-    },
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             innerRadiusRatio: 0.4,
             label: {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             groupPaddingInner: 0.3,
             paddingInner: 0.3,
         },
-    ],
+    },
     legend: {
-        enabled: true,
         spacing: 40,
         item: {
             marker: {

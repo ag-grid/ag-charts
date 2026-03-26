@@ -7,6 +7,7 @@ export type AgIconName =
     | 'arrow-up-drawing'
     | 'callout-annotation'
     | 'candlestick-series'
+    | 'chevron-filled-down'
     | 'chevron-right'
     | 'close'
     | 'comment-annotation'

@@ -1,4 +1,5 @@
 import {
+    Debug,
     Logger,
     type OptionsDefs,
     arrayOf,
@@ -6,11 +7,14 @@ import {
     color,
     colorUnion,
     fontFamilyFull,
+    fontWeight,
     gradientStrict,
     isObject,
+    mergeDefaults,
     number,
     object,
     or,
+    simpleMemorize,
     string,
     union,
     validate,
@@ -23,9 +27,6 @@ import type {
     AgChartThemeParams,
 } from 'ag-charts-types';
 
-import { Debug } from '../../util/debug';
-import { simpleMemorize } from '../../util/memo';
-import { mergeDefaults } from '../../util/object';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';
@@ -132,22 +133,23 @@ export const themeOptionsDef: OptionsDefs<AgChartTheme> = {
         foregroundColor: color,
         fontFamily: fontFamilyFull,
         fontSize: number,
-        fontWeight: or(string, number),
+        fontWeight: fontWeight,
         gridLineColor: color,
         popupShadow: string,
         subtleTextColor: color,
         textColor: color,
+        separationLinesColor: color,
 
         chromeBackgroundColor: color,
         chromeFontFamily: fontFamilyFull,
         chromeFontSize: number,
-        chromeFontWeight: or(string, number),
+        chromeFontWeight: fontWeight,
         chromeSubtleTextColor: color,
         chromeTextColor: color,
 
         buttonBackgroundColor: color,
         buttonBorder: boolean,
-        buttonFontWeight: number,
+        buttonFontWeight: fontWeight,
         buttonTextColor: color,
 
         inputBackgroundColor: color,

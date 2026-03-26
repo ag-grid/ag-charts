@@ -1,7 +1,16 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, CleanupRegistry, EventEmitter } from 'ag-charts-core';
+import {
+    BaseProperties,
+    type BoxBounds,
+    CleanupRegistry,
+    Color,
+    EventEmitter,
+    PropertiesArray,
+    Property,
+} from 'ag-charts-core';
 
 import { ColorPicker } from '../../components/color-picker/colorPicker';
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
 import {
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,
@@ -19,9 +28,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { Color, FloatingToolbar, Menu, PropertiesArray, ToolbarButtonProperties, ToolbarButtonWidget, Property } =
-    _ModuleSupport;
-
+const { FloatingToolbar, Menu, ToolbarButtonWidget } = _ModuleSupport;
 interface EventMap {
     'pressed-delete': null;
     'pressed-settings': { sourceEvent: Event };
@@ -109,7 +116,7 @@ class FloatingAnnotationOptionsToolbar extends FloatingToolbar<
     }
 }
 
-export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
+export class AnnotationOptionsToolbar extends BaseProperties {
     @Property
     public enabled?: boolean = true;
 
@@ -130,6 +137,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
     private readonly lineStrokeWidthMenu = new Menu(this.ctx, 'annotations-line-stroke-width');
+
+    private textSizeMenuMinWidth?: number;
+    private lineStyleTypeMenuMinWidth?: number;
+    private lineStrokeWidthMenuMinWidth?: number;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
@@ -246,7 +257,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
     private updateFontSize(fontSize: number | undefined) {
         this.updateButtonByValue(AnnotationOptions.TextSize, {
-            label: fontSize != null ? String(fontSize) : undefined,
+            label: fontSize == null ? undefined : String(fontSize),
         });
     }
 
@@ -280,6 +291,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     items: LINE_STYLE_TYPE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStyle'),
                     value: lineStyle,
+                    minWidth: this.lineStyleTypeMenuMinWidth,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-style-type-menu',
                 });
@@ -292,6 +304,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     items: LINE_STROKE_WIDTH_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsLineStrokeWidth'),
                     value: strokeWidth,
+                    minWidth: this.lineStrokeWidthMenuMinWidth,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
                     class: 'ag-charts-annotations__line-stroke-width-menu',
                 });
@@ -308,7 +321,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     sourceEvent: event.sourceEvent,
                     hasMultiColorOption: 'isMultiColor' in datum,
                     isMultiColor: 'isMultiColor' in datum && datum?.isMultiColor,
-                    onChange: datum != null ? this.onColorPickerChange.bind(this, button.value, datum) : undefined,
+                    onChange: datum == null ? undefined : this.onColorPickerChange.bind(this, button.value, datum),
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.events.emit('saved-color', {
                             type: datum.type,
@@ -326,6 +339,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     items: TEXT_SIZE_ITEMS,
                     ariaLabel: this.ctx.localeManager.t('toolbarAnnotationsTextSize'),
                     value: fontSize,
+                    minWidth: this.textSizeMenuMinWidth,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
                     class: 'ag-charts-annotations__text-size-menu',
                 });
@@ -367,17 +381,23 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             const fallbackAnchor = { y: bounds.y };
 
             switch (button.value) {
-                case AnnotationOptions.LineStrokeWidth:
+                case AnnotationOptions.LineStrokeWidth: {
+                    this.lineStrokeWidthMenuMinWidth = bounds.width + 1;
                     this.lineStrokeWidthMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
 
-                case AnnotationOptions.LineStyleType:
+                case AnnotationOptions.LineStyleType: {
+                    this.lineStyleTypeMenuMinWidth = bounds.width + 1;
                     this.lineStyleTypeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
 
-                case AnnotationOptions.TextSize:
+                case AnnotationOptions.TextSize: {
+                    this.textSizeMenuMinWidth = bounds.width + 1;
                     this.textSizeMenu.setAnchor(anchor, fallbackAnchor);
                     break;
+                }
             }
         }
     }

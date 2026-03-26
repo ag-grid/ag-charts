@@ -6,7 +6,7 @@ BRANCH=$1
 RELEASE=$(echo "$1" | sed 's/^[a-zA-Z]*//')
 echo "Preparing BRANCH branch ${BRANCH}"
 
-SKIP_LICENSE_UPDATE="${2:-false}" # optional - for lts releases we dont update the license timestamp
+SKIP_LICENSE_UPDATE="${2:-false}" # optional - for lts releases we don't update the license timestamp
 
 git checkout -b ${BRANCH}
 ./tools/bump-versions.sh ${RELEASE}
@@ -21,5 +21,5 @@ NEW_VERSION=$(node ./tools/calculate-next-version.js)
 node ./tools/readme/sync-readme.js
 node ./tools/updateVersionsData.js version
 
-git commit -a -m "BRANCH prep for ${NEW_VERSION}"
-git push --set-upstream origin $BRANCH
+git commit -a -m "BRANCH prep for ${NEW_VERSION}" --no-verify
+git push --set-upstream origin $BRANCH --no-verify

@@ -1,4 +1,4 @@
-import type { StrictHTMLElement } from '../attributeUtil';
+import type { StrictHTMLElement } from './attributeUtil';
 import { getDocument } from './globalsProxy';
 
 /**

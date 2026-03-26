@@ -1,7 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    GradientLegendModule,
+    ModuleRegistry,
+    SunburstSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    GradientLegendModule,
+    SunburstSeriesModule,
+    ContextMenuModule,
+]);
 const gdpFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

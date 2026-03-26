@@ -1,17 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { definedZoomState } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState, ZoomState } from 'ag-charts-core';
 
 import type { ZoomRect } from './scenes/zoomRect';
-import type { DefinedZoomState, ZoomCoords, ZoomProperties } from './zoomTypes';
-import {
-    constrainZoom,
-    definedZoomState,
-    dx,
-    dy,
-    multiplyZoom,
-    pointToRatio,
-    scaleZoom,
-    translateZoom,
-} from './zoomUtils';
+import type { ZoomCoords, ZoomProperties } from './zoomTypes';
+import { constrainZoom, dx, dy, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
@@ -25,7 +17,7 @@ export class ZoomSelector {
         this.rect.visible = false;
     }
 
-    update(event: { currentX: number; currentY: number }, props: ZoomProperties, bbox?: _ModuleSupport.BBox): void {
+    update(event: { currentX: number; currentY: number }, props: ZoomProperties, bbox?: BoxBounds): void {
         const canvasX = event.currentX + (bbox?.x ?? 0);
         const canvasY = event.currentY + (bbox?.y ?? 0);
         this.rect.visible = true;
@@ -34,11 +26,7 @@ export class ZoomSelector {
         this.updateRect(bbox);
     }
 
-    stop(
-        innerBBox?: _ModuleSupport.BBox,
-        bbox?: _ModuleSupport.BBox,
-        currentZoom?: _ModuleSupport.AxisZoomState
-    ): DefinedZoomState {
+    stop(innerBBox?: BoxBounds, bbox?: BoxBounds, currentZoom?: ZoomState): DefinedZoomState | undefined {
         let zoom = definedZoomState();
 
         if (!innerBBox || !bbox) return zoom;
@@ -56,7 +44,9 @@ export class ZoomSelector {
 
         this.reset();
 
-        return zoom;
+        if (this.isZoomValid(zoom)) {
+            return zoom;
+        }
     }
 
     reset(): void {
@@ -68,7 +58,7 @@ export class ZoomSelector {
         return this.rect.visible && this.rect.width > 0 && this.rect.height > 0;
     }
 
-    private updateCoords(x: number, y: number, props: ZoomProperties, bbox?: _ModuleSupport.BBox): void {
+    private updateCoords(x: number, y: number, props: ZoomProperties, bbox?: BoxBounds): void {
         if (!this.coords) {
             this.coords = { x1: x, y1: y, x2: x, y2: y };
             return;
@@ -107,7 +97,7 @@ export class ZoomSelector {
         }
     }
 
-    private updateRect(bbox?: _ModuleSupport.BBox): void {
+    private updateRect(bbox?: BoxBounds): void {
         if (!bbox) return;
 
         const { rect } = this;
@@ -134,7 +124,7 @@ export class ZoomSelector {
         }
     }
 
-    private createZoomFromCoords(bbox: _ModuleSupport.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
+    private createZoomFromCoords(bbox: BoxBounds, currentZoom?: ZoomState) {
         const oldZoom = definedZoomState(currentZoom);
         const normal = this.getNormalisedDimensions();
 
@@ -161,8 +151,8 @@ export class ZoomSelector {
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
 
         // Ensure we create a box starting at the top left corner
-        const x = x1 <= x2 ? x1 : x2;
-        const y = y1 <= y2 ? y1 : y2;
+        const x = Math.min(x1, x2);
+        const y = Math.min(y1, y2);
         const width = x1 <= x2 ? x2 - x1 : x1 - x2;
         const height = y1 <= y2 ? y2 - y1 : y1 - y2;
 

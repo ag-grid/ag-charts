@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('security', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.describe('CSP', () => {
         test.describe('basic-csp example', () => {

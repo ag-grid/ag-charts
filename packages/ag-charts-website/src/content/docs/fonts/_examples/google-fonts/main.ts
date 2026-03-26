@@ -1,5 +1,25 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -29,17 +49,16 @@ const options: AgChartOptions = {
             yName: 'Ice Cream Sales',
         },
     ],
-    axes: [
-        { position: 'left', type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
-        {
-            position: 'bottom',
+    axes: {
+        y: { type: 'number', label: { fontFamily: ['Helvetica', 'Arial', 'sans-serif'] } },
+        x: {
             type: 'category',
             label: {
                 fontFamily: { googleFont: 'Orbitron' },
                 fontSize: 12,
             },
         },
-    ],
+    },
     loadGoogleFonts: true,
 };
 

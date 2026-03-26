@@ -1,11 +1,21 @@
-import type { PlainObject } from 'ag-charts-core';
-import { Logger, circularSliceArray, isArray, isNumber, isObjectLike, isPlainObject, isString } from 'ag-charts-core';
+import {
+    Color,
+    Debug,
+    Logger,
+    ModuleRegistry,
+    type PlainObject,
+    circularSliceArray,
+    isArray,
+    isGradientFill,
+    isImageFill,
+    isNumber,
+    isObjectLike,
+    isPatternFill,
+    isPlainObject,
+    isString,
+    without,
+} from 'ag-charts-core';
 
-import { chartTypes } from '../chart/factory/chartTypes';
-import { isGradientFill, isImageFill, isPatternFill } from '../scene/util/fill';
-import { Color } from '../util/color';
-import { Debug } from '../util/debug';
-import { without } from '../util/object';
 import {
     DEFAULTS_EDGE,
     DEPENDENCY_EDGE,
@@ -17,7 +27,6 @@ import {
     USER_OPTIONS_EDGE,
     type VertexInterface,
     getPathLastIndex,
-    getPathLastIndexIndex,
     getPathSafe,
     isRatio,
     resolvePath,
@@ -164,13 +173,16 @@ function isChartTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterf
     const seriesType = graph.getResolvedPath(['series', '0', 'type']);
     if (typeof seriesType !== 'string') return false;
 
+    const seriesModule = ModuleRegistry.getSeriesModule(seriesType);
+    if (seriesModule == null) return false;
+
     switch (value) {
         case 'cartesian':
-            return chartTypes.isCartesian(seriesType);
+            return seriesModule.chartType === 'cartesian';
         case 'polar':
-            return chartTypes.isPolar(seriesType);
+            return seriesModule.chartType === 'polar';
         case 'standalone':
-            return chartTypes.isStandalone(seriesType);
+            return seriesModule.chartType === 'standalone';
     }
 
     return false;
@@ -334,9 +346,10 @@ const fontOperations: Record<FontOperation, OperationFns> = {
 };
 
 function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
+    const [valueVertex, paramVertex] = values;
     const value = graph.getVertexValue(valueVertex);
-    const fontSize = graph.getParamValue('fontSize');
+    const param = paramVertex ? (graph.getVertexValue(paramVertex) as string) : 'fontSize';
+    const fontSize = graph.getParamValue(param);
 
     if (typeof fontSize === 'number' && typeof value === 'number') {
         return Math.round(value * fontSize);
@@ -354,28 +367,35 @@ function remOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 enum LogicOperation {
     And = '$and',
     Eq = '$eq',
+    Every = '$every',
     GreaterThan = '$greaterThan',
     If = '$if',
     LessThan = '$lessThan',
     Not = '$not',
     Or = '$or',
+    Some = '$some',
     Switch = '$switch',
 }
 
 const logicOperations: Record<LogicOperation, OperationFns> = {
     $and: andOperation,
     $eq: eqOperation,
+    $every: everyOperation,
     $greaterThan: greaterThanOperation,
     $if: ifOperation,
     $lessThan: lessThanOperation,
     $not: notOperation,
     $or: orOperation,
+    $some: someOperation,
     $switch: switchOperation,
 };
 
 function andOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
+        if (values.length === 1 && Array.isArray(value)) {
+            return value.every((v) => Boolean(v));
+        }
         if (!value) return false;
     }
     return true;
@@ -393,6 +413,23 @@ function eqOperation(graph: OptionsGraphInterface, vertex: VertexInterface, valu
             return false;
         }
     }
+    return true;
+}
+
+function everyOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [mapOperationVertex, mapValuesVertex] = values;
+
+    const mapOperationValue = graph.getVertexValue(mapOperationVertex);
+    const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
+    if (!Array.isArray(mapValues)) return;
+
+    let index = 0;
+    for (const value of mapValues) {
+        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        if (!resolved) return false;
+        index++;
+    }
+
     return true;
 }
 
@@ -432,8 +469,28 @@ function notOperation(graph: OptionsGraphInterface, vertex: VertexInterface, val
 function orOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     for (const valueVertex of values) {
         const value = graph.resolveVertexValue(vertex, valueVertex);
+        if (values.length === 1 && Array.isArray(value)) {
+            return value.some((v) => Boolean(v));
+        }
         if (value) return true;
     }
+    return false;
+}
+
+function someOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [mapOperationVertex, mapValuesVertex] = values;
+
+    const mapOperationValue = graph.getVertexValue(mapOperationVertex);
+    const mapValues = graph.resolveVertexValue(vertex, mapValuesVertex);
+    if (!Array.isArray(mapValues)) return;
+
+    let index = 0;
+    for (const value of mapValues) {
+        const resolved = graph.graftAndResolveOrphanValue(vertex, `${index}`, mapOperationValue, value);
+        if (resolved) return true;
+        index++;
+    }
+
     return false;
 }
 
@@ -460,7 +517,6 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 
 enum LocationOperation {
     IsUserOption = '$isUserOption',
-    IsThemeOverride = '$isThemeOverride',
     MapPalette = '$mapPalette',
     Palette = '$palette',
     Path = '$path',
@@ -470,7 +526,6 @@ enum LocationOperation {
 
 const locationOperations: Record<LocationOperation, OperationFns> = {
     $isUserOption: isUserOptionOperation,
-    $isThemeOverride: isThemeOverrideOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
     $path: {
@@ -515,29 +570,6 @@ function isUserOptionCheck(graph: OptionsGraphInterface, vertex: VertexInterface
     return graph.hasUserOption(path);
 }
 
-function isThemeOverrideOperation(
-    graph: OptionsGraphInterface,
-    vertex: VertexInterface,
-    values: Array<VertexInterface>
-) {
-    const [relativePathVertex, thenVertex, elseVertex] = values;
-
-    const relativePath = graph.resolveVertexValue(vertex, relativePathVertex);
-    if (!isString(relativePath)) {
-        throw new Error(`\`$isThemeOverride\` json operation failed on [${String(relativePath)}], expecting a string.`);
-    }
-
-    const pathArray = graph.getPathArray(vertex);
-    const path = resolvePath(pathArray, relativePath);
-    if (path === UNRESOLVABLE_PATH) return;
-
-    if (graph.hasThemeOverride(path)) {
-        return graph.resolveVertexValue(vertex, thenVertex);
-    }
-
-    return graph.resolveVertexValue(vertex, elseVertex);
-}
-
 const PALETTE_INDEX_KEYS = new Set(['fill', 'fillFallback', 'stroke', 'gradient', 'range2']);
 
 function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
@@ -550,7 +582,7 @@ function paletteOperation(graph: OptionsGraphInterface, vertex: VertexInterface,
         const pathArray = graph.getPathArray(vertex);
         const index = getPathLastIndex(pathArray);
 
-        if (isNaN(index)) return;
+        if (Number.isNaN(index)) return;
 
         switch (key) {
             case 'fill':
@@ -604,7 +636,7 @@ function mapPaletteOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
         }
         index -= ignoreIndexOffset;
 
-        if (isNaN(index)) return;
+        if (Number.isNaN(index)) return;
 
         switch (key) {
             case 'fill':
@@ -726,6 +758,7 @@ enum TransformOperation {
     ApplyCycle = '$applyCycle',
     ApplySwitch = '$applySwitch',
     ApplyTheme = '$applyTheme',
+    Clone = '$clone',
     FindFirstSiblingNotOperation = '$findFirstSiblingNotOperation',
     Map = '$map',
     Merge = '$merge',
@@ -741,6 +774,7 @@ const transformOperations: Record<TransformOperation, OperationFns> = {
     $applyCycle: applyCycleOperation,
     $applySwitch: applySwitchOperation,
     $applyTheme: applyThemeOperation,
+    $clone: cloneOperation,
     $findFirstSiblingNotOperation: findFirstSiblingNotOperationOperation,
     $map: mapOperation,
     $merge: mergeOperation,
@@ -881,6 +915,18 @@ function applyThemeOperation(graph: OptionsGraphInterface, vertex: VertexInterfa
     return RESOLVED_TO_BRANCH;
 }
 
+function cloneOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+
+    if (!isPlainObject(value)) return;
+
+    // Graft as the 'user' edge to ensure it takes priority over the default values.
+    graph.graftObject(vertex, value, undefined, USER_OPTIONS_EDGE);
+
+    return RESOLVED_TO_BRANCH;
+}
+
 function findFirstSiblingNotOperationOperation(
     graph: OptionsGraphInterface,
     vertex: VertexInterface,
@@ -889,12 +935,10 @@ function findFirstSiblingNotOperationOperation(
     const [defaultValueVertex] = values;
 
     const pathArray = graph.getPathArray(vertex);
-    const indexIndex = getPathLastIndexIndex(pathArray);
-    if (indexIndex < 0) {
-        return graph.resolveVertexValue(vertex, defaultValueVertex);
-    }
 
-    const parentPathArray = pathArray.slice(0, indexIndex);
+    const parentPathArray = resolvePath(pathArray, '..');
+    if (parentPathArray === UNRESOLVABLE_PATH) return;
+
     const parentVertex = graph.findVertexAtPath(parentPathArray);
     if (!parentVertex) {
         return graph.resolveVertexValue(vertex, defaultValueVertex);
@@ -903,10 +947,11 @@ function findFirstSiblingNotOperationOperation(
     const siblings = graph.neighboursWithEdgeValue(parentVertex, PATH_EDGE);
 
     if (siblings) {
-        for (let index = 0; index < siblings.length; index++) {
-            if (`${index}` === pathArray[indexIndex]) continue;
+        for (const sibling of siblings) {
+            const siblingPathArray = graph.getPathArray(sibling);
+            if (siblingPathArray[parentPathArray.length] === pathArray[parentPathArray.length]) continue;
 
-            const siblingChildPathArray = parentPathArray.concat([`${index}`, ...pathArray.slice(indexIndex + 1)]);
+            const siblingChildPathArray = siblingPathArray.concat(pathArray.slice(parentPathArray.length + 1));
             const siblingChildVertex = graph.findVertexAtPath(siblingChildPathArray);
             if (!siblingChildVertex) continue;
 
@@ -1029,6 +1074,10 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
         return getPathLastIndex(pathArray);
     }
 
+    if (value === '$parentIndex') {
+        return getPathLastIndex(pathArray, 1);
+    }
+
     if (value === '$1') {
         return graph.resolveValue$1(pathArray);
     }
@@ -1038,42 +1087,20 @@ function valueOperation(graph: OptionsGraphInterface, vertex: VertexInterface, v
 
 enum NumericOperation {
     IsEven = '$isEven',
-    Mul = '$mul',
-    Round = '$round',
 }
 
 const numericOperations: Record<NumericOperation, OperationFns> = {
     $isEven: isEvenOperation,
-    $mul: mulOperation,
-    $round: roundOperation,
 };
 
 function isEvenOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [valueVertex] = values;
     const value = graph.resolveVertexValue(vertex, valueVertex);
-    if (isNaN(Number(value))) return false;
+    if (Number.isNaN(Number(value))) return false;
     return Number(value) % 2 === 0;
 }
 
-function mulOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    let result: number | undefined;
-    for (const valueVertex of values) {
-        const value = graph.resolveVertexValue(vertex, valueVertex);
-        if (result == null) {
-            result = Number(value);
-        } else {
-            result *= Number(value);
-        }
-    }
-    return result;
-}
-
-function roundOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
-    const [valueVertex] = values;
-    if (!valueVertex) return;
-
-    return Math.round(Number(graph.resolveVertexValue(vertex, valueVertex)));
-}
+// --- EXPORTS ---
 
 export const operations: Record<Operation, OperationFns> = {
     ...cacheOperations,

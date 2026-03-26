@@ -1,6 +1,5 @@
-import { CleanupRegistry, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
+import { CleanupRegistry, Debug, EventEmitter, Logger, createId, downloadUrl } from 'ag-charts-core';
 
-import { Debug } from '../util/debug';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { Group } from './group';
@@ -11,9 +10,11 @@ import {
     DebugSelectors,
     buildDirtyTree,
     buildTree,
+    cleanupDebugStats,
     debugSceneNodeHighlight,
     debugStats,
     prepareSceneNodeHighlight,
+    registerDebugStatsConsumer,
 } from './sceneDebug';
 
 type EventMap = {
@@ -33,8 +34,11 @@ export class Scene extends EventEmitter<EventMap> {
     private root: Group | null = null;
     private pendingSize: [number, number, number] | null = null;
     private isDirty: boolean = false;
+    private direction: CanvasDirection = 'ltr';
+    private _baseFont: string | undefined;
 
     private readonly cleanup = new CleanupRegistry();
+    private releaseDebugStats?: () => void;
 
     constructor(canvasOptions: CanvasOptions) {
         super();
@@ -69,10 +73,18 @@ export class Scene extends EventEmitter<EventMap> {
         return this.pendingSize?.[2] ?? this.canvas.pixelRatio;
     }
 
-    /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
+    get isRtl(): boolean {
+        return this.direction === 'rtl';
+    }
+
+    /**
+     * @deprecated v10.2.0 Only used by AG Grid Sparklines + Mini Charts
+     *
+     * DO NOT REMOVE WITHOUT FIXING THE GRID DEPENDENCIES.
+     */
     setContainer(value: HTMLElement) {
         const { element } = this.canvas;
-        element.parentElement?.removeChild(element);
+        element.remove();
         value.appendChild(element);
         return this;
     }
@@ -104,7 +116,7 @@ export class Scene extends EventEmitter<EventMap> {
 
     attachNode<T extends Node>(node: T) {
         this.appendChild(node);
-        return () => this.removeChild(node);
+        return () => node.remove();
     }
 
     appendChild<T extends Node>(node: T) {
@@ -113,7 +125,7 @@ export class Scene extends EventEmitter<EventMap> {
     }
 
     removeChild<T extends Node>(node: T) {
-        this.root?.removeChild(node);
+        node.remove();
         return this;
     }
 
@@ -142,34 +154,53 @@ export class Scene extends EventEmitter<EventMap> {
         return false;
     }
 
+    setDirection(isRtl: boolean) {
+        this.direction = isRtl ? 'rtl' : 'ltr';
+        this.canvas.setDirection(isRtl);
+    }
+
+    updateBaseFont() {
+        const baseFont = this.root?.resolveFont();
+        if (baseFont != null && baseFont !== this._baseFont) {
+            this._baseFont = baseFont;
+            this.canvas.context.font = baseFont;
+        }
+    }
+
+    applyPendingResize(): boolean {
+        if (this.pendingSize) {
+            this.layersManager.resize(...this.pendingSize);
+            this.pendingSize = null;
+            // Resize resets canvas context state — re-apply the cached base font.
+            if (this._baseFont != null) {
+                this.canvas.context.font = this._baseFont;
+            }
+            return true;
+        }
+        return false;
+    }
+
     render(opts?: {
         debugSplitTimes: Record<string, number>;
         extraDebugStats: Record<string, number>;
         seriesRect?: BBox;
+        debugColors?: { background?: string; foreground?: string };
     }) {
-        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
-        const {
-            canvas,
-            canvas: { context: ctx } = {},
-            root,
-            pendingSize,
-            width,
-            height,
-            pixelRatio: devicePixelRatio,
-        } = this;
+        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect, debugColors } = opts ?? {};
+        const { canvas, canvas: { context: ctx } = {}, root, width, height, pixelRatio: devicePixelRatio } = this;
 
         if (!ctx) {
             // Scene.destroy() has dereferenced the HdpiCanvas instance, just abort silently.
             return;
         }
 
-        const renderStartTime = performance.now();
-        let resized = false;
-        if (pendingSize) {
-            resized = true;
-            this.layersManager.resize(...pendingSize);
-            this.pendingSize = null;
+        const statsEnabled = Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE);
+        if (statsEnabled) {
+            this.ensureDebugStatsRegistration();
         }
+
+        const renderStartTime = performance.now();
+        const resized: boolean = this.applyPendingResize();
 
         if (root && !root.visible) {
             this.isDirty = false;
@@ -188,12 +219,23 @@ export class Scene extends EventEmitter<EventMap> {
                 });
             }
 
-            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
+            if (statsEnabled) {
+                debugStats(
+                    this.layersManager,
+                    debugSplitTimes,
+                    ctx,
+                    undefined,
+                    extraDebugStats,
+                    seriesRect,
+                    debugColors
+                );
+            }
             return;
         }
 
         const renderCtx: RenderContext = {
             ctx,
+            direction: this.direction,
             width,
             height,
             devicePixelRatio,
@@ -267,7 +309,17 @@ export class Scene extends EventEmitter<EventMap> {
 
         this.isDirty = false;
 
-        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
+        if (statsEnabled) {
+            debugStats(
+                this.layersManager,
+                debugSplitTimes,
+                ctx,
+                renderCtx.stats,
+                extraDebugStats,
+                seriesRect,
+                debugColors
+            );
+        }
         debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {
@@ -276,6 +328,19 @@ export class Scene extends EventEmitter<EventMap> {
                 canvasCleared,
             });
         }
+    }
+
+    private ensureDebugStatsRegistration() {
+        if (this.releaseDebugStats) return;
+
+        const release = registerDebugStatsConsumer();
+        const cleanup = () => {
+            release();
+            this.releaseDebugStats = undefined;
+        };
+
+        this.releaseDebugStats = cleanup;
+        this.cleanup.register(cleanup);
     }
 
     toSVG() {
@@ -302,6 +367,7 @@ export class Scene extends EventEmitter<EventMap> {
         this.canvas.destroy();
         this.imageLoader.destroy();
         this.cleanup.flush();
+        cleanupDebugStats();
         Object.assign(this, { canvas: undefined });
     }
 }

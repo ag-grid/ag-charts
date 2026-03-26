@@ -1,7 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule, ModuleRegistry, PyramidSeriesModule } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([PyramidSeriesModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),

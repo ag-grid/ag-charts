@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
@@ -15,9 +15,9 @@ import type {
 import type {
     AgColorType,
     FillOptions,
-    FontOptions,
     LineDashOptions,
     StrokeOptions,
+    TextOptions,
     Toggleable,
 } from '../cartesian/commonOptions';
 import type {
@@ -45,10 +45,10 @@ export interface AgDonutSeriesSectorLabelOptions<TDatum, TParams, TContext = Con
     positionRatio?: Ratio;
 }
 
-export type AgDonutSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgDonutSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgDonutSeriesOptionsKeys<TDatum> &
     Required<AgDonutSeriesStyle>;
@@ -58,7 +58,7 @@ export interface AgDonutSeriesStyle extends FillOptions, StrokeOptions, LineDash
     cornerRadius?: PixelSize;
 }
 
-export interface AgDonutTitleOptions extends Toggleable, FontOptions {
+export interface AgDonutTitleOptions extends Toggleable, TextOptions {
     /** The text to display. */
     text?: string;
     /** Spacing added to help position the text. */
@@ -68,7 +68,7 @@ export interface AgDonutTitleOptions extends Toggleable, FontOptions {
 }
 
 export interface AgDonutCalloutLineItemStylerParams<TDatum, TContext>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgDonutSeriesLabelFormatterParams<TDatum> {}
 
@@ -92,7 +92,7 @@ export interface AgDonutSeriesCalloutOptions<TDatum = DatumDefault, TContext = C
     itemStyler?: Styler<AgDonutCalloutLineItemStylerParams<TDatum, TContext>, AgDonutCalloutLineItemStylerResult>;
 }
 
-export interface AgDonutInnerLabel extends FontOptions {
+export interface AgDonutInnerLabel extends TextOptions {
     /** The text to show in the inner label. */
     text: string;
     /** The spacing in pixels before and after the inner label. */

@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule, TimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -40,22 +49,20 @@ const options: AgChartOptions = {
             yKey: 'magnitude',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'time',
             label: {
                 format: '%d/%m',
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Magnitude',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

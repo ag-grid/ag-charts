@@ -1,18 +1,28 @@
-import { type AgMapShapeSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type AgMapShapeSeriesOptions, VERSION } from 'ag-charts-community';
+import {
+    FILL_GRADIENT_LINEAR_DEFAULTS,
+    FILL_IMAGE_DEFAULTS,
+    FILL_PATTERN_DEFAULTS,
+    LABEL_BOXING_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+    SAFE_RANGE2_OPERATION,
+    type SeriesModuleDefinition,
+} from 'ag-charts-core';
 
+import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS, applyMapPalette } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 import { mapShapeSeriesOptionsDef } from './mapShapeSeriesOptionsDef';
 
-export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
+export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
     type: 'series',
-    optionsKey: 'series[]',
-    packageType: 'enterprise',
-    chartTypes: ['topology'],
+    name: 'map-shape',
+    chartType: 'topology',
+    enterprise: true,
+    version: VERSION,
+    dependencies: [TopologyChartModule],
 
-    identifier: 'map-shape',
-    moduleFactory: (ctx) => new MapShapeSeries(ctx),
+    options: mapShapeSeriesOptionsDef,
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
@@ -20,9 +30,9 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 $applySwitch: [
                     { $path: 'type' },
                     { $mapPalette: 'fill' },
-                    ['gradient', _ModuleSupport.FILL_GRADIENT_LINEAR_DEFAULTS],
-                    ['image', _ModuleSupport.FILL_IMAGE_DEFAULTS],
-                    ['pattern', _ModuleSupport.FILL_PATTERN_DEFAULTS],
+                    ['gradient', FILL_GRADIENT_LINEAR_DEFAULTS],
+                    ['image', FILL_IMAGE_DEFAULTS],
+                    ['pattern', FILL_PATTERN_DEFAULTS],
                 ],
             }),
             stroke: { $ref: 'chartBackgroundColor' },
@@ -30,7 +40,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
                 $if: [
                     { $eq: [{ $mapPalette: 'type' }, 'inbuilt'] },
                     { $mapPalette: 'divergingColors' },
-                    applyMapPalette(_ModuleSupport.SAFE_RANGE2_OPERATION),
+                    applyMapPalette(SAFE_RANGE2_OPERATION),
                 ],
             },
             fillOpacity: 1,
@@ -39,28 +49,20 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
             lineDashOffset: 0,
             padding: 2,
             label: {
-                ..._ModuleSupport.LABEL_BOXING_DEFAULTS,
+                ...LABEL_BOXING_DEFAULTS,
+                enabled: true,
                 color: { $ref: 'chartBackgroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $ref: 'fontSize' },
                 fontWeight: 'bold',
                 overflowStrategy: 'hide',
             },
-            highlight: applyMapPalette(_ModuleSupport.multiSeriesHighlightStyle(true)),
+            highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
         },
         tooltip: {
             range: 'exact',
         },
     },
-};
 
-export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOptions> = {
-    type: 'series',
-    name: 'map-shape',
-    chartType: 'topology',
-    enterprise: true,
-
-    options: mapShapeSeriesOptionsDef,
-
-    create: (ctx: _ModuleSupport.ModuleContext) => new MapShapeSeries(ctx),
+    create: (ctx) => new MapShapeSeries(ctx),
 };

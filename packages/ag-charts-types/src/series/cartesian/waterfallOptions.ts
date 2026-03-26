@@ -1,24 +1,30 @@
-import type { ContextCallbackParams, DatumItemCallbackParams, Renderer, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumItemCallbackParams,
+    HighlightState,
+    Renderer,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgTooltipRendererResult } from '../../chart/tooltipOptions';
-import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
-import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize, Ratio } from '../../chart/types';
+import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgWaterfallSeriesItemType = 'positive' | 'negative' | 'total' | 'subtotal';
 
 export type AgWaterfallSeriesItemStylerParams<
     TDatum = DatumDefault,
     TContext = ContextDefault,
-> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum> &
+> = DatumItemCallbackParams<AgWaterfallSeriesItemType, TDatum, HighlightState> &
     ContextCallbackParams<TContext> &
     AgWaterfallSeriesOptionsKeys<TDatum> &
     Required<AgWaterfallSeriesStyle>;
 
 export type AgWaterfallSeriesLabelFormatterParams<TDatum = DatumDefault> = AgWaterfallSeriesOptionsKeys<TDatum> &
-    AgWaterfallSeriesOptionsNames & { itemId: AgWaterfallSeriesItemType };
+    AgWaterfallSeriesOptionsNames & { itemType: AgWaterfallSeriesItemType };
 
 export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */
@@ -28,8 +34,8 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
 export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgWaterfallSeriesStyle {
-    /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
-    itemId: AgWaterfallSeriesItemType;
+    /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
+    itemType: AgWaterfallSeriesItemType;
 }
 
 export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = ContextDefault> {
@@ -66,8 +72,10 @@ export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TConte
     line?: AgWaterfallSeriesLineOptions;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>>;
-    /** @deprecated Configuration for the waterfall series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
+    /** Fixed width of each bar in the series. */
+    width?: PixelSize;
+    /** Ratio of the bandwidth (or specified width) to use for the width for each bar in the series. */
+    widthRatio?: Ratio;
 }
 
 export interface AgWaterfallSeriesOptionsKeys<TDatum = DatumDefault> {
@@ -86,6 +94,7 @@ export interface AgWaterfallSeriesOptionsNames {
 
 export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
+        AgBaseCartesianSeriesAxisOptions,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,
         AgWaterfallSeriesThemeableOptions<TDatum, TContext> {
@@ -121,7 +130,7 @@ export interface AgWaterfallSeriesItemOptions<TDatum, TContext = ContextDefault>
     label?: AgWaterfallSeriesLabelOptions<TDatum, AgWaterfallSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
-    /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual Waterfall series item cells, based on the given parameters.*/
     itemStyler?: Styler<AgWaterfallSeriesItemStylerParams<TDatum, TContext>, AgWaterfallSeriesStyle>;
     /** Series item specific tooltip configuration. */
     tooltip?: AgWaterfallSeriesItemTooltip<TDatum, TContext>;

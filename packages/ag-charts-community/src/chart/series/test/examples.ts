@@ -705,22 +705,22 @@ export const HISTOGRAM_DATE_BASED_BUCKETS: AgCartesianChartOptions = {
             xKey: 'day',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             label: {
                 formatter: (params) => `${params.value / 1000000}M`,
             },
         },
-        {
+        x: {
             type: 'time',
             position: 'bottom',
             label: {
                 format: `%b %d`,
             },
         },
-    ],
+    },
 };
 
 export const SCATTER_SERIES_LABELS: AgCartesianChartOptions = {
@@ -763,8 +763,8 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             };
         }) ?? []),
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -786,7 +786,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
             title: {
@@ -808,7 +808,7 @@ export const BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 ],
             },
         },
-    ],
+    },
 };
 
 export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
@@ -858,8 +858,8 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
             title: {
@@ -869,7 +869,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 style: [{}],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             title: {
@@ -884,7 +884,7 @@ export const GROUPED_BUBBLE_SERIES_LABELS: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 export const PIE_SERIES_LABELS: AgPolarChartOptions = {
@@ -1018,37 +1018,36 @@ export const LINE_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             label: {
                 enabled: true,
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{}],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
@@ -1069,6 +1068,7 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             strokeWidth: 3,
             marker: {
                 enabled: true,
@@ -1100,31 +1100,29 @@ export const AREA_COLUMN_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{}],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
@@ -1160,6 +1158,7 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             xName: 'Weight',
             yKey: 'age',
             yName: 'Age',
+            yKeyAxis: 'ySecondary',
             labelKey: 'age',
             size: 7,
             fill: '#ccb9c9',
@@ -1167,8 +1166,8 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
             label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             title: {
@@ -1179,10 +1178,9 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 style: [{}],
             },
         },
-        {
+        y: {
             position: 'left',
             type: 'number',
-            keys: ['height'],
             title: {
                 enabled: true,
                 text: 'Height',
@@ -1191,15 +1189,14 @@ export const HISTOGRAM_SCATTER_COMBO_SERIES_LABELS: AgCartesianChartOptions = {
                 stroke: undefined,
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['age'],
             line: {
                 stroke: undefined,
             },
         },
-    ],
+    },
     legend: {
         position: 'bottom',
     },

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { deepClone } from 'ag-charts-core';
 import type {
     AgCartesianChartOptions,
     AgChartInstance,
@@ -12,7 +13,6 @@ import type {
 } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
-import { deepClone } from '../../../util/json';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -21,12 +21,15 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockLineStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockLineStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    deproxy,
     extractImageData,
+    hoverAction,
     mixinReversedAxesCases,
     prepareTestOptions,
     repeat,
@@ -42,7 +45,7 @@ const buildLogAxisTestCase = (
 ): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'line'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['line'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['line'] }),
         ...extra,
     };
 };
@@ -52,25 +55,25 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_NUMBER_X_AXIS_TIME_Y_AXIS: {
             options: examples.LINE_NUMBER_X_AXIS_TIME_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'unit-time'],
+                axisTypes: { x: 'number', y: 'unit-time' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_MISSING_Y_DATA_EXAMPLE: {
             options: examples.LINE_MISSING_Y_DATA_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_NUMBER_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: ['line'],
             }),
             warnings: [
@@ -81,7 +84,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: {
             options: examples.LINE_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['unit-time', 'number'],
+                axisTypes: { x: 'unit-time', y: 'number' },
                 seriesTypes: ['line'],
             }),
             warnings: [
@@ -93,28 +96,28 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         LINE_NUMBER_AXES_0_X_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_X_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_NUMBER_AXES_0_Y_DOMAIN: {
             options: examples.LINE_NUMBER_AXES_0_Y_DOMAIN,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('line', 2),
             }),
         },
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS: {
             options: examples.LINE_TIME_X_AXIS_POSITION_TOP_NUMBER_Y_AXIS_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS: {
             options: examples.LINE_TIME_X_AXIS_NUMBER_Y_AXIS_POSITION_RIGHT_LABELS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['line'] }),
         },
         LINE_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
         LINE_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
@@ -133,7 +136,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         }),
         LINE_STACKED_DATA_PER_SERIES: {
             options: examples.LINE_STACKED_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'line'] }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: ['line', 'line'],
+            }),
         },
         LINE_NORMALISED_SINGLE_LINE: {
             options: {
@@ -147,7 +153,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('line', 1),
             }),
         },
@@ -164,11 +170,39 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('line', 1),
             }),
         },
     }),
+    LINE_NULL_CATEGORY_KEY: {
+        options: examples.LINE_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xKey] ignored:', '[null]'],
+            ['AG Charts - invalid value of type [object] for [LineSeries-1 / xValue] ignored:', '[null]'],
+        ],
+    },
+    LINE_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.LINE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    LINE_UNDEFINED_CATEGORY_KEY: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xKey] ignored:', '[undefined]'],
+            ['AG Charts - invalid value of type [undefined] for [LineSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    LINE_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.LINE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
+    LINE_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.LINE_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['line'] }),
+    },
 };
 
 describe('LineSeries', () => {
@@ -206,12 +240,12 @@ describe('LineSeries', () => {
                 await waitForChartStability(chart);
                 await assertions(chart);
 
-                warnings.forEach((message, index) => {
+                for (const [index, message] of warnings.entries()) {
                     expect(console.warn).toHaveBeenNthCalledWith(
                         index + 1,
                         ...(Array.isArray(message) ? message : [message])
                     );
-                });
+                }
                 if (warnings.length === 0) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
@@ -279,17 +313,16 @@ describe('LineSeries', () => {
                     },
                 },
             ],
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
-                    keys: ['iphone'],
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                 },
-            ],
+            },
         };
 
         const animationTestCases: Array<[string, any] | [string, any, number]> = [
@@ -345,6 +378,40 @@ describe('LineSeries', () => {
                 ],
                 700,
             ],
+            [
+                'replacing all categories with fewer points',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                ],
+            ],
+            [
+                'replacing all categories with more points',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                    { quarter: 'Thu', iphone: 180 },
+                    { quarter: 'Fri', iphone: 90 },
+                    { quarter: 'Sat', iphone: 110 },
+                    { quarter: 'Sun', iphone: 140 },
+                    { quarter: 'holiday 1', iphone: 160 },
+                    { quarter: 'holiday 2', iphone: 130 },
+                ],
+            ],
+            [
+                'replacing all categories with same count',
+                [
+                    { quarter: 'Mon', iphone: 100 },
+                    { quarter: 'Tue', iphone: 150 },
+                    { quarter: 'Wed', iphone: 120 },
+                    { quarter: 'Thu', iphone: 180 },
+                    { quarter: 'Fri', iphone: 90 },
+                    { quarter: 'Sat', iphone: 110 },
+                    { quarter: 'Sun', iphone: 140 },
+                ],
+            ],
         ];
 
         for (const [testCase, changedData, duration = 1200] of animationTestCases) {
@@ -387,16 +454,16 @@ describe('LineSeries', () => {
                     },
                 },
             ],
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                 },
-            ],
+            },
         };
 
         describe('hide', () => {
@@ -439,6 +506,52 @@ describe('LineSeries', () => {
                 });
             }
         });
+    });
+
+    // CRT-995: Verify stacked line series animation works correctly when adding points.
+    // The fix ensures animation uses yCumulative instead of yDatum for stacked series,
+    // preventing lines from animating up from the bottom (y=0) when points are added.
+    describe('CRT-995 stacked line animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const STACKED_DATA = [
+            { quarter: 'Q1', apples: 50, oranges: 30 },
+            { quarter: 'Q2', apples: 60, oranges: 40 },
+            { quarter: 'Q3', apples: 70, oranges: 35 },
+        ];
+
+        const STACKED_OPTIONS: AgChartOptions = {
+            data: STACKED_DATA,
+            series: [
+                { type: 'line', xKey: 'quarter', yKey: 'apples', stacked: true },
+                { type: 'line', xKey: 'quarter', yKey: 'oranges', stacked: true },
+            ],
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+        };
+
+        for (const ratio of [0, 0.5, 0.6, 0.7, 0.8]) {
+            it(`should animate adding points to stacked series at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+                prepareTestOptions(STACKED_OPTIONS);
+                chart = AgCharts.create(STACKED_OPTIONS);
+                await waitForChartStability(chart);
+
+                // Add more data points
+                const newData = [
+                    ...STACKED_DATA,
+                    { quarter: 'Q4', apples: 80, oranges: 45 },
+                    { quarter: 'Q5', apples: 65, oranges: 50 },
+                ];
+
+                animate(1200, ratio);
+                await chart.updateDelta({ data: newData });
+                await waitForChartStability(chart);
+                await compare();
+            });
+        }
     });
 
     describe('multiple overlapping lines', () => {
@@ -694,6 +807,47 @@ describe('LineSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-16613 should not error on hover with null category keys', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 20 },
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        allowNullKeys: true,
+                        marker: {
+                            size: 20,
+                            itemStyler: (params: AgLineSeriesMarkerItemStylerParams<unknown, unknown>) => {
+                                if (params.first) return { fill: 'red' };
+                                if (params.last) return { fill: 'blue' };
+                            },
+                        },
+                    } as any,
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hover over the null category data point
+            await hoverAction(100, 300)(chart);
+            await waitForChartStability(chart);
+
+            // Hover over a non-null category data point
+            await hoverAction(400, 300)(chart);
             await compare();
         });
     });
@@ -988,10 +1142,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1024,10 +1178,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1071,10 +1225,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1126,12 +1280,12 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'category',
                         position: 'bottom',
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         title: {
@@ -1139,7 +1293,7 @@ describe('LineSeries', () => {
                         },
                         nice: true,
                     },
-                ],
+                },
                 legend: {
                     position: 'bottom',
                 },
@@ -1158,20 +1312,20 @@ describe('LineSeries', () => {
                     { month: "Mar '24", value: 12.2e6 },
                     { month: "Apr '24", value: 11.6e6 },
                     { month: "May '24", value: 10.2e6 },
-                    { month: "Jun '24", value: 9.0e6 },
+                    { month: "Jun '24", value: 9e6 },
                     { month: "Jul '24", value: 8.8e6 },
                     { month: "Aug '24", value: 8.3e6 },
-                    { month: "Sep '24", value: 8.0e6 },
+                    { month: "Sep '24", value: 8e6 },
                     { month: "Oct '24", value: 7.6e6 },
                     { month: "Nov '24", value: 7.2e6 },
-                    { month: "Dec '24", value: 7.0e6 },
+                    { month: "Dec '24", value: 7e6 },
                     { month: "Jan '25", value: 17.8e6 },
-                    { month: "Feb '25", value: 17.0e6 },
-                    { month: "Mar '25", value: 16.0e6 },
+                    { month: "Feb '25", value: 17e6 },
+                    { month: "Mar '25", value: 16e6 },
                     { month: "Apr '25", value: 15.2e6 },
-                    { month: "May '25", value: 14.0e6 },
+                    { month: "May '25", value: 14e6 },
                     { month: "Jun '25", value: 12.5e6 },
-                    { month: "Jul '25", value: 9.0e6 },
+                    { month: "Jul '25", value: 9e6 },
                 ],
                 padding: { top: 40, right: 10, bottom: 40, left: 60 },
                 title: { text: 'Cash' },
@@ -1217,8 +1371,8 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    {
+                axes: {
+                    x: {
                         type: 'category',
                         position: 'bottom',
                         paddingOuter: 0.8,
@@ -1243,7 +1397,7 @@ describe('LineSeries', () => {
                             fontWeight: 'bold',
                         },
                     },
-                    {
+                    y: {
                         type: 'number',
                         position: 'left',
                         nice: false,
@@ -1268,7 +1422,7 @@ describe('LineSeries', () => {
                             enabled: false,
                         },
                     },
-                ],
+                },
                 legend: { enabled: false },
             };
 
@@ -1308,10 +1462,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1347,10 +1501,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1389,10 +1543,10 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1430,14 +1584,613 @@ describe('LineSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('cutout drawing mode', () => {
+        it('should render line series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 25 },
+                    { x: 3, y: 15 },
+                    { x: 4, y: 30 },
+                    { x: 5, y: 20 },
+                    { x: 6, y: 35 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        title: 'Line Series',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.2,
+                                stroke: 'black',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(250, 300)(chart);
+            await compare();
+        });
+
+        it('should render multi-line series with cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { month: 'Jan', sales: 100, expenses: 80 },
+                    { month: 'Feb', sales: 120, expenses: 90 },
+                    { month: 'Mar', sales: 110, expenses: 85 },
+                    { month: 'Apr', sales: 140, expenses: 100 },
+                    { month: 'May', sales: 130, expenses: 95 },
+                    { month: 'Jun', sales: 150, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'sales',
+                        title: 'Sales',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'square',
+                        },
+                        strokeWidth: 3,
+                        highlight: {
+                            highlightedItem: {
+                                fill: 'blue',
+                                fillOpacity: 0.2,
+                                stroke: 'white',
+                                lineDash: [4, 2],
+                            },
+                        },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'expenses',
+                        title: 'Expenses',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'triangle',
+                        },
+                        strokeWidth: 3,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(200, 250)(chart);
+            await compare();
+        });
+
+        it('should render line series with default highlight style cutout highlight drawing mode', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                    { x: 5, y: 12 },
+                    { x: 6, y: 18 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        marker: {
+                            enabled: true,
+                            size: 25,
+                            shape: 'diamond',
+                        },
+                        strokeWidth: 2,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
+            await compare();
+        });
+
+        it('should use cutout on dimmed non-highlight markers to mask the line', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: 1, y: 5 },
+                    { x: 2, y: 15 },
+                    { x: 3, y: 10 },
+                    { x: 4, y: 20 },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                        highlight: {
+                            unhighlightedItem: {
+                                fillOpacity: 0.4,
+                                strokeOpacity: 0.4,
+                            },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(300, 280)(chart);
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('should dim non-highlight markers with cutout in multi-series default highlight style', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { month: 'Jan', sales: 100, expenses: 80 },
+                    { month: 'Feb', sales: 120, expenses: 90 },
+                    { month: 'Mar', sales: 110, expenses: 85 },
+                    { month: 'Apr', sales: 140, expenses: 100 },
+                    { month: 'May', sales: 130, expenses: 95 },
+                    { month: 'Jun', sales: 150, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'sales',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'circle',
+                        },
+                    },
+                    {
+                        type: 'line',
+                        xKey: 'month',
+                        yKey: 'expenses',
+                        strokeWidth: 5,
+                        marker: {
+                            enabled: true,
+                            size: 28,
+                            shape: 'triangle',
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(220, 250)(chart);
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 's1', yName: 'series 1' },
+                    { type: 'line', xKey: 'x', yKey: 's2', yName: 'series 2' },
+                    { type: 'line', xKey: 'x', yKey: 's3', yName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('aggregation data size transitions', () => {
+        const getNodeDataCount = () => {
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+            return series.contextNodeData?.nodeData?.length ?? 0;
+        };
+
+        it('should render consistent node count after data size transitions (small -> large -> small)', async () => {
+            const smallData = Array.from({ length: 100 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+            const largeData = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.random() * 100 }));
+
+            const options: AgCartesianChartOptions = {
+                data: smallData,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const initialNodeCount = getNodeDataCount();
+            expect(initialNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: largeData });
+            await waitForChartStability(chart);
+
+            const largeDataNodeCount = getNodeDataCount();
+            expect(largeDataNodeCount).toBeGreaterThan(0);
+
+            await chart.update({ ...options, data: smallData });
+            await waitForChartStability(chart);
+
+            const finalNodeCount = getNodeDataCount();
+
+            expect(finalNodeCount).toBe(initialNodeCount);
+        });
+
+        it('should render correct node count after multi-step data size transitions', async () => {
+            const data1K = Array.from({ length: 1000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+            const data10K = Array.from({ length: 10000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+            const data100K = Array.from({ length: 100000 }, (_, i) => ({ x: i, y: Math.sin(i / 10) * 100 }));
+
+            const options: AgCartesianChartOptions = {
+                data: data1K,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', marker: { enabled: true } }],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const baseline1K = getNodeDataCount();
+            expect(baseline1K).toBeGreaterThan(0);
+
+            // 1K -> 10K
+            await chart.update({ ...options, data: data10K });
+            await waitForChartStability(chart);
+
+            // 10K -> 1K (should match baseline)
+            await chart.update({ ...options, data: data1K });
+            await waitForChartStability(chart);
+            expect(getNodeDataCount()).toBe(baseline1K);
+
+            // 1K -> 100K
+            await chart.update({ ...options, data: data100K });
+            await waitForChartStability(chart);
+
+            // 100K -> 1K (should match baseline)
+            await chart.update({ ...options, data: data1K });
+            await waitForChartStability(chart);
+            expect(getNodeDataCount()).toBe(baseline1K);
+        });
+    });
+
+    // CRT-1025: After toggling a line series off and back on while highlighting is active,
+    // the re-shown series should animate to dimmed opacity (not full opacity 1).
+    // The fix ensures lineSeries passes this.getOpacity() (0.2 when dimmed) instead of
+    // hardcoded 1 to staticFromToMotion and prepareLinePathAnimation.
+    describe('CRT-1025 legend toggle with highlighting', () => {
+        const animate = spyOnAnimationManager();
+
+        const OPTIONS: AgChartOptions = {
+            data: ANIMATION_CATEGORY_DATA,
+            series: [
+                { type: 'line', xKey: 'quarter', yKey: 'iphone' },
+                { type: 'line', xKey: 'quarter', yKey: 'macos' },
+            ],
+            axes: {
+                y: { type: 'number', position: 'left' },
+                x: { type: 'category', position: 'bottom' },
+            },
+        };
+
+        for (const ratio of [0, 0.5, 1]) {
+            it(`should animate re-shown series to dimmed opacity at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = deepClone(OPTIONS);
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Hide series 0
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                // Activate highlighting on series 1 directly via highlightManager
+                const chartInstance = deproxy(chart);
+                const series1 = chartInstance.series[1] as any;
+                const nodeData = series1.contextNodeData?.nodeData;
+                expect(nodeData?.length).toBeGreaterThan(0);
+                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                await waitForChartStability(chart);
+
+                // Precondition: highlighting must be active for series 0 to be dimmed
+                expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();
+
+                // Re-show series 0 while highlighting is active
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                // The default theme sets unhighlightedSeries.opacity = 0.2.
+                // With the fix, animation targets 0.2; with the bug, it targeted 1.
+                const series0 = chartInstance.series[0] as any;
+                const path = series0.paths?.[0];
+                if (ratio === 1) {
+                    expect(path.opacity).toBeCloseTo(0.2, 1);
+                } else if (ratio === 0.5) {
+                    expect(path.opacity).toBeGreaterThanOrEqual(0);
+                    expect(path.opacity).toBeLessThanOrEqual(0.2);
+                } else if (ratio === 0) {
+                    expect(path.opacity).toBeLessThan(0.1);
+                }
+            });
+        }
+    });
+
+    // CRT-1052: Line series with markers should not have stroke gaps during fade-in animation.
+    // Markers should use overlay drawing mode while animating in.
+    // The fix ensures getAnimationDrawingModes() passes start: { drawingMode: 'overlay' }
+    // so markers don't use 'cutout' (destination-out compositing) during animation.
+    describe('CRT-1052 line stroke gaps with markers', () => {
+        const animate = spyOnAnimationManager();
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render continuous stroke at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+
+        for (const ratio of [0, 0.5, 1]) {
+            it(`should render continuous stroke after legend toggle at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Toggle series off then back on
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+
+        for (const ratio of [0, 0.5]) {
+            it(`should use overlay drawing mode on markers during animation at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: ANIMATION_CATEGORY_DATA,
+                    series: [
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'iphone',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                        {
+                            type: 'line',
+                            xKey: 'quarter',
+                            yKey: 'macos',
+                            strokeWidth: 4,
+                            marker: { enabled: true, size: 14 },
+                        },
+                    ],
+                    axes: {
+                        y: { type: 'number', position: 'left' },
+                        x: { type: 'category', position: 'bottom' },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                // Activate highlighting so steady-state drawing mode would be 'cutout'
+                const chartInstance = deproxy(chart);
+                const series1 = chartInstance.series[1] as any;
+                const nodeData = series1.contextNodeData?.nodeData;
+                expect(nodeData?.length).toBeGreaterThan(0);
+                chartInstance.ctx.highlightManager.updateHighlight(chartInstance.id, nodeData[0]);
+                await waitForChartStability(chart);
+
+                expect(chartInstance.ctx.highlightManager.getActiveHighlight()).toBeDefined();
+
+                // Toggle series 0 off then back on while highlighting is active
+                options.series![0].visible = false;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                options.series![0].visible = true;
+                await chart.update({ ...options });
+                await waitForChartStability(chart);
+
+                // During animation (ratio < 1), markers should use 'overlay' not 'cutout'.
+                // With the bug, markers used 'cutout' (destination-out) during animation,
+                // erasing the line stroke underneath and creating gaps.
+                const series0 = chartInstance.series[0] as any;
+                const datumSelection = series0.datumSelection;
+                for (const { node } of datumSelection) {
+                    expect(node.drawingMode).toBe('overlay');
+                }
+            });
+        }
+    });
+
+    // CRT-1083: When a series is hidden while animations are skipped (e.g. JSDOM, or AG Grid's
+    // setLegendState path), _contextNodeData.visible must be synced to false. Without this,
+    // stale visible:true causes a spurious animation on the next non-skipped update.
+    // NB: bar series has animationAlwaysUpdateSelections:true so never enters this path —
+    // line series uses the default (false), matching the real-world trigger.
+    describe('stale visibility on skipped animation (CRT-1083)', () => {
+        it('should sync _contextNodeData.visible when series hidden during animation skip', async () => {
+            // No spyOnAnimationManager — animations are skipped by default in JSDOM,
+            // which is the condition required to enter the early-return path in updateSelections().
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, v1: 10, v2: 20 },
+                    { x: 1, v1: 30, v2: 40 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'v1' },
+                    { type: 'line', xKey: 'x', yKey: 'v2' },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const series1 = chartInstance.series[1] as any;
+
+            // Confirm contextNodeData exists and is not marked invisible
+            expect(series1.contextNodeData).toBeDefined();
+            expect(series1.contextNodeData?.visible).not.toBe(false);
+
+            // Hide second series (simulates legend click / setLegendState)
+            (options.series![1] as AgLineSeriesOptions).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            // Core assertion: _contextNodeData.visible must be synced to false
+            expect(series1.contextNodeData?.visible).toBe(false);
+        });
+    });
+
+    describe('crossfiltering', () => {
+        it('selectedKey with one selected item sets crossFiltering on contextNodeData', async () => {
+            const data = [
+                { x: 'Jan', y: 10, selected: true },
+                { x: 'Feb', y: 20, selected: false },
+                { x: 'Mar', y: 15, selected: false },
+            ];
+            const options = prepareTestOptions({
+                data,
+                series: [{ type: 'line', xKey: 'x', yKey: 'y', selectedKey: 'selected' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
             await compare();
         });
     });

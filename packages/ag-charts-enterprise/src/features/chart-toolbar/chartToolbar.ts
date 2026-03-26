@@ -1,10 +1,9 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { AbstractModuleInstance, ActionOnSet, Logger, Property } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
-const { ActionOnSet, LayoutElement, Menu, Property } = _ModuleSupport;
-
+const { LayoutElement, Menu } = _ModuleSupport;
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
     { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series', value: 'candlestick' },
@@ -15,7 +14,7 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series', value: 'high-low' },
 ];
 
-export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class ChartToolbar extends AbstractModuleInstance {
     @Property
     @ActionOnSet<ChartToolbar>({
         changeValue(enabled) {
@@ -24,8 +23,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
+    private readonly menuMargin: number = 6;
     private readonly toolbar: SharedToolbarWithSection;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
+    private menuShowing = false;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -35,18 +36,22 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.cleanup.register(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
+            ctx.eventsHub.on('series-area:click', () => this.hidePopover()),
             () => this.toolbar.destroy()
         );
     }
 
-    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+    private onLayoutStart(ctx: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.updateButton();
-        this.toolbar.layout(event.layoutBox);
+        this.toolbar.layout(ctx.layoutBox);
     }
 
     private onButtonPressed({ event, buttonBounds, buttonWidget }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
-        this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
+        const anchorX = this.ctx.domManager.isRtl
+            ? buttonBounds.x - this.menuMargin
+            : buttonBounds.x + buttonBounds.width + this.menuMargin;
+        this.menu.setAnchor({ x: anchorX, y: buttonBounds.y });
         this.menu.show(buttonWidget, {
             items: menuItems,
             menuItemRole: 'menuitemradio',
@@ -60,9 +65,11 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
             },
             onHide: () => {
                 this.toolbar.clearActiveButton();
+                this.menuShowing = false;
             },
         });
 
+        this.menuShowing = true;
         this.toolbar.toggleActiveButtonByIndex(0);
     }
 
@@ -76,7 +83,10 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     }
 
     private hidePopover() {
-        this.toolbar.clearActiveButton();
+        if (this.menuShowing) {
+            this.menuShowing = false;
+            this.toolbar.clearActiveButton();
+        }
         this.menu.hide();
     }
 

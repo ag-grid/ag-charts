@@ -1,14 +1,15 @@
 import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { PolarZIndexMap } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector, SectorBox, PolarZIndexMap } = _ModuleSupport;
+const { Sector, SectorBox } = _ModuleSupport;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
-    static readonly className = 'NightingaleSeries';
+    static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
     override properties = new RadialColumnSeriesBaseProperties<AgNightingaleSeriesOptions>();
@@ -45,8 +46,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         const { negative } = datum;
         node.centerX = 0;
         node.centerY = 0;
-        node.startOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
-        node.endOuterCornerRadius = !negative ? this.properties.cornerRadius : 0;
+        node.startOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
+        node.endOuterCornerRadius = negative ? 0 : this.properties.cornerRadius;
         node.startInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
         node.endInnerCornerRadius = negative ? this.properties.cornerRadius : 0;
         if (highlight) {
@@ -66,6 +67,10 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.itemStyler != null ||
+            this.properties.styler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

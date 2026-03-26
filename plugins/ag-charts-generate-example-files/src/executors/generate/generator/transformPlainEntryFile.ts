@@ -1,9 +1,12 @@
 import j from 'jscodeshift';
 
 import * as agCharts from 'ag-charts-community';
+import * as agChartsLocale from 'ag-charts-locale';
 import { parseExampleOptions } from 'ag-charts-test';
 
 import { filterPropertyKeys } from './jsCodeShiftUtils';
+
+agCharts.ModuleRegistry.registerModules(agCharts.AllCommunityModule);
 
 /**
  * JS Code Shift transformer to generate plain entry file
@@ -29,7 +32,11 @@ function generateOptions(
     if (node.id.type !== 'Identifier') {
         throw new Error('Invalid options specifier');
     }
-    const options: agCharts.AgChartOptions = parseExampleOptions(node.id.name, code, preamble, { agCharts });
+    const options: agCharts.AgChartOptions = parseExampleOptions(node.id.name, code, preamble, {
+        agCharts,
+        agChartsLocale,
+        document: { documentElement: { lang: 'en-US' } }, // for dynamic locale-and-formatters example.
+    });
 
     return { code, options };
 }

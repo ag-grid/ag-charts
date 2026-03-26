@@ -6,7 +6,17 @@ import {
     _Scene,
     _Widget,
 } from 'ag-charts-community';
-import { isValidDate } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    ObserveChanges,
+    type Point,
+    PropertiesArray,
+    Property,
+    Vec2,
+    isValidDate,
+} from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -15,9 +25,9 @@ import { AnnotationOptionsToolbar } from './annotationOptionsToolbar';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
+    DataPoint,
     HasFontSizeAnnotationType,
     HasLineStyleAnnotationType,
-    Point,
 } from './annotationTypes';
 import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -35,32 +45,16 @@ import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { invertCoords } from './utils/values';
 
-const {
-    ChartUpdateType,
-    InteractionState,
-    PropertiesArray,
-    Property,
-    ChartAxisDirection,
-    keyProperty,
-    valueProperty,
-    Vec2,
-    Selection,
-    BBox,
-} = _ModuleSupport;
+const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _ModuleSupport;
 
-type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
-
-type AnnotationAxis = {
+interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
     bounds: _ModuleSupport.BBox;
     button?: AxisButton;
-};
+}
 
-export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    @Property
-    public enabled: boolean = true;
-
+export class Annotations extends AbstractModuleInstance {
     @Property
     public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
@@ -75,6 +69,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     public axesButtons = new AxesButtons();
 
     @Property
+    @ObserveChanges<Annotations>((target: Annotations, value?: boolean) => {
+        const enabled = value ?? true;
+        target.toolbar.enabled = enabled;
+        target.optionsToolbar.enabled = enabled;
+        target.axesButtons.enabled = enabled;
+    })
+    public enabled: boolean = true;
+
+    @Property
     public snap: boolean = false;
 
     // Hidden options for use with measurer statistics
@@ -84,9 +87,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     // State
     private readonly state: AnnotationsStateMachine;
-    private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
-        Annotations.createAnnotationDatum
-    );
+    private readonly annotationData = new PropertiesArray<AnnotationProperties>(Annotations.createAnnotationDatum);
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
@@ -121,6 +122,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.clear();
             this.xAxis?.button?.destroy();
             this.yAxis?.button?.destroy();
+            this.textInput.destroy();
         });
     }
 
@@ -137,7 +139,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
-            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, previousHovered?: number) => {
+            hoverAtCoords: (coords: Point, active?: number, previousHovered?: number) => {
                 let hovered: number | undefined;
 
                 this.annotations.each((annotation, datum, index) => {
@@ -167,17 +169,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
-            getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
+            getNodeAtCoords: (coords: Point, active: number) => {
                 const node = this.annotations.at(active);
-
-                if (!node) {
-                    return;
-                }
-
-                return node.getNodeAtCoords(coords.x, coords.y);
+                return node?.getNodeAtCoords(coords.x, coords.y);
             },
 
-            translate: (index: number, translation: _ModuleSupport.Vec2) => {
+            translate: (index: number, translation: Point) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
                 if (!node || !datum) {
@@ -207,20 +204,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             select: (index?: number, previous?: number) => {
-                const { annotations, optionsToolbar, toolbar } = this;
+                const { annotations, optionsToolbar } = this;
 
                 this.hideOverlays();
-                toolbar.clearActiveButton();
-                toolbar.resetButtonIcons();
+                if (!this.textInput.isVisible()) {
+                    this.toolbar.clearActiveButton();
+                    this.toolbar.resetButtonIcons();
+                }
 
+<<<<<<< HEAD
                 const selectedNode = index != null ? (annotations.at(index) as AnnotationSceneUnion | undefined) : null;
                 const previousNode = previous != null ? annotations.at(previous) : null;
                 const selectedDatum = index != null ? this.annotationData.at(index) : null;
+=======
+                const selectedNode = index == null ? null : annotations.at(index);
+                const previousNode = previous == null ? null : annotations.at(previous);
+                const selectedDatum = index == null ? null : this.annotationData.at(index);
+>>>>>>> latest
 
                 // Only change anything else if a different node has been selected or when deselecting
-                if (previousNode === selectedNode && selectedNode != null) {
-                    return;
-                }
+                if (previousNode === selectedNode && selectedNode != null) return;
 
                 // Deselect the previous node
                 previousNode?.toggleActive(false);
@@ -231,19 +234,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (selectedNode && !selectedDatum?.readOnly) {
                     this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    optionsToolbar.updateButtons(this.annotationData.at(index!)!);
-                    this.postUpdateFns.push(() => {
-                        // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
-                        // element has a width and height that it can use in the anchor calculations.
-                        optionsToolbar.show();
-                        optionsToolbar.setAnchorScene(selectedNode);
-                    });
+                    if (!isEphemeralType(selectedDatum)) {
+                        optionsToolbar.updateButtons(this.annotationData.at(index!)!);
+                        this.postUpdateFns.push(() => {
+                            // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
+                            // element has a width and height that it can use in the anchor calculations.
+                            optionsToolbar.show();
+                            optionsToolbar.setAnchorScene(selectedNode);
+                        });
+                    }
                 } else {
                     this.popAnnotationState(InteractionState.AnnotationsSelected);
                     this.popAnnotationState(InteractionState.Annotations);
                 }
 
-                this.deleteEphemeralAnnotations();
+                if (!isEphemeralType(selectedDatum)) {
+                    this.deleteEphemeralAnnotations();
+                }
                 this.update();
             },
 
@@ -270,16 +277,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             deleteAll: () => {
                 // Filter the readOnly data and recreate the array since this is not a standard array.
-                const readOnly = this.annotationData.filter((datum) => {
-                    if (datum.readOnly === true) return datum;
-                });
-                this.annotationData.splice(0, this.annotationData.length);
-                for (const datum of readOnly) {
-                    this.annotationData.push(datum);
-                }
+                const readOnly = this.annotationData.filter((datum) => (datum.readOnly ? datum : false));
+                this.annotationData.splice(0, this.annotationData.length, ...readOnly);
             },
 
-            validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => {
+            validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => {
                 const context = this.getAnnotationContext();
                 return context ? validateDatumPoint(context, point, options) : true;
             },
@@ -303,7 +305,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             update: () => {
                 this.postUpdateFns.push(() => {
                     const active = this.state.getActive();
+<<<<<<< HEAD
                     const node = active != null ? (this.annotations.at(active) as AnnotationSceneUnion) : null;
+=======
+                    const node = active == null ? null : this.annotations.at(active);
+>>>>>>> latest
                     if (node == null) return;
                     this.optionsToolbar.setAnchorScene(node);
                 });
@@ -478,7 +484,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.eventsHub.on('annotations:restore', this.onRestoreAnnotations.bind(this)),
             ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
-            ctx.eventsHub.on('zoom:change', () => this.onResize()),
+            ctx.eventsHub.on('zoom:change-complete', () => this.onResize()),
             ctx.eventsHub.on('dom:resize', () => this.onResize()),
 
             // Toolbar
@@ -572,7 +578,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         // data model and we don't have missing props of `date` and `volume`.
         // Request a data model with no extra props, we expect the required keys of `date` and `volume` will already
         // be provided by the series, so we can skip duplicate processing.
-        const { dataModel, processedData } = await dataController.request('annotations', [...this.data], { props });
+        const dataSet = _ModuleSupport.DataSet.wrap(this.data) ?? _ModuleSupport.DataSet.empty();
+        const { dataModel, processedData } = await dataController.request('annotations', dataSet, {
+            props,
+        });
         this.dataModel = dataModel;
         this.processedData = processedData;
     }
@@ -632,7 +641,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private getDatumRangeVolume(fromPoint: Point['x'], toPoint: Point['x']) {
+    private getDatumRangeVolume(fromPoint: DataPoint['x'], toPoint: DataPoint['x']) {
         const { dataModel, processedData } = this;
 
         let from = getGroupingValue(fromPoint);
@@ -659,7 +668,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private translateNode(
         node: AnnotationSceneNode<AnnotationProperties>,
         datum: AnnotationProperties,
-        translation: _ModuleSupport.Vec2
+        translation: Point
     ): AnnotationProperties | undefined {
         const config = this.getAnnotationConfig(datum);
 
@@ -700,8 +709,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
         if (!this.enabled) return;
 
-        this.clear();
-        this.annotationData.set(event.annotations);
+        const { annotations } = event;
+        const canPatchInPlace =
+            this.annotationData.length === annotations.length &&
+            annotations.every((annotation, index) => {
+                const current = this.annotationData.at(index);
+                return current != null && current.type === (annotation.type as AnnotationType);
+            });
+
+        if (canPatchInPlace) {
+            for (let i = 0; i < annotations.length; i += 1) {
+                this.annotationData[i].set(annotations[i]);
+            }
+        } else {
+            this.reset();
+            this.annotationData.set(annotations);
+        }
 
         this.postUpdateFns.push(() => {
             this.ctx.annotationManager.fireChangedEvent();
@@ -710,19 +733,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        if (!this.enabled) return;
+
         const seriesRect = event.series.paddedRect;
         this.seriesRect = seriesRect;
 
         // clip annotations to series padded rect
         this.container.setClipRect(seriesRect);
 
-        for (const axisLayout of event.axes ?? []) {
-            if (axisLayout.direction === _ModuleSupport.ChartAxisDirection.X) {
-                this.xAxis = this.getAxis(axisLayout, seriesRect, this.xAxis?.button);
-            } else {
-                this.yAxis = this.getAxis(axisLayout, seriesRect, this.yAxis?.button);
-            }
-        }
+        this.xAxis = this.getAxis(event.axes[ChartAxisDirection.X], seriesRect, this.xAxis?.button);
+        this.yAxis = this.getAxis(event.axes[ChartAxisDirection.Y], seriesRect, this.yAxis?.button);
 
         if (this.showAnnotations()) {
             this.animateAnnotations({ from: 0, to: 1, phase: 'trailing' });
@@ -777,6 +797,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onPreRender() {
+        if (!this.enabled) return;
         this.updateAnnotations();
         this.state.transition('render');
     }
@@ -896,19 +917,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 updateAnnotation(node, datum, context);
             });
 
-        this.postUpdateFns.forEach((fn) => fn());
+        for (const fn of this.postUpdateFns) {
+            fn();
+        }
         this.postUpdateFns = [];
     }
 
     private getAnnotationContext(): AnnotationContext | undefined {
-        const { seriesRect, xAxis, yAxis, snap } = this;
-
-        if (!(seriesRect && xAxis && yAxis)) {
-            return;
-        }
+        const { seriesRect, xAxis, yAxis, snap, ctx } = this;
+        if (!seriesRect || !xAxis || !yAxis) return;
 
         return {
             seriesRect,
+            isRtl: ctx.domManager.isRtl,
             xAxis: {
                 ...xAxis.context,
                 bounds: xAxis.bounds,
@@ -963,7 +984,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('dblclick', { offset });
     }
 
-    private onAxisButtonClick(coords?: _ModuleSupport.Vec2, direction?: Direction) {
+    private onAxisButtonClick(coords?: Point, direction?: Direction) {
         this.cancel();
         this.reset();
 
@@ -1118,6 +1139,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (translation.x || translation.y) {
             state.transition('translate', { translation });
 
+            // eslint-disable-next-line no-restricted-properties
             sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
         }
@@ -1214,7 +1236,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private update(status = ChartUpdateType.PRE_SCENE_RENDER) {
-        this.ctx.updateService.update(status);
+    private update(type = ChartUpdateType.PRE_SCENE_RENDER) {
+        this.ctx.eventsHub.emit('chart:request-update', { type });
     }
 }

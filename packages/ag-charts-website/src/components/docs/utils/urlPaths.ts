@@ -1,5 +1,4 @@
-import type { InternalFramework } from '@ag-grid-types';
-import type { Framework } from '@ag-grid-types';
+import type { Framework, InternalFramework } from '@ag-grid-types';
 import { FRAMEWORK_REDIRECT_PATH, SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
 
@@ -15,8 +14,8 @@ export function getFrameworkPath(framework: Framework) {
     return framework;
 }
 
-export function getFrameworkFromPath(path: string) {
-    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
+export function getFrameworkFromPath(path: string): Framework {
+    return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX] as Framework;
 }
 
 export function getPageNameFromPath(path: string): string {
@@ -24,7 +23,7 @@ export function getPageNameFromPath(path: string): string {
 }
 
 export const getExamplePageUrl = ({ framework, path }: { framework?: Framework; path: string }) => {
-    const frameworkPath = framework ? framework : FRAMEWORK_REDIRECT_PATH;
+    const frameworkPath = framework ?? FRAMEWORK_REDIRECT_PATH;
     return pathJoin(SITE_BASE_URL, frameworkPath, path) + '/';
 };
 

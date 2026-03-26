@@ -1,4 +1,4 @@
-import { type RequireOptional, isArray } from 'ag-charts-core';
+import { BaseProperties, Property, type RequireOptional, isArray } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -7,15 +7,14 @@ import type {
     ContextDefault,
     FontStyle,
     FontWeight,
-    Formatter,
     Padding,
     PaddingOptions,
+    RichFormatter,
     Styler,
     TextOrSegments,
 } from 'ag-charts-types';
 
 import type { ContextFormatter } from '../module/axisContext';
-import { BaseProperties, Property } from '../util/properties';
 import { FormatManager } from './formatter/formatManager';
 
 interface FormatterCache {
@@ -38,13 +37,7 @@ export class LabelBorder {
     strokeOpacity?: number;
 }
 
-export class Label<TParams = never, TDatum = any>
-    extends BaseProperties
-    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
-{
-    @Property
-    enabled = true;
-
+export class LabelStyle extends BaseProperties implements AgChartLabelStyleOptions {
     @Property
     border = new LabelBorder();
 
@@ -73,13 +66,21 @@ export class Label<TParams = never, TDatum = any>
     fontFamily!: string;
 
     @Property
-    formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
+    padding?: Padding;
+}
+
+export class Label<TParams = never, TDatum = any>
+    extends LabelStyle
+    implements AgChartLabelOptions<TDatum, RequireOptional<TParams>>
+{
+    @Property
+    enabled: boolean = false;
+
+    @Property
+    formatter?: RichFormatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 
     @Property
     format?: string;
-
-    @Property
-    padding?: Padding;
 
     @Property
     itemStyler?: Styler<AgChartLabelStylerParams<TDatum, ContextDefault>, AgChartLabelStyleOptions>;
@@ -100,7 +101,7 @@ export class Label<TParams = never, TDatum = any>
 
         if (format != null) {
             let cachedFormatter = this._cachedFormatter;
-            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+            if (cachedFormatter?.type !== type || cachedFormatter?.format !== format) {
                 cachedFormatter = {
                     type,
                     format,

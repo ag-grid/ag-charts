@@ -1,7 +1,15 @@
-import { transformIntegratedCategoryValue } from '../../../util/value';
-import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
-import type { Scaling } from './scaling';
+import type { Scaling } from 'ag-charts-core';
+import {
+    type Span,
+    clipSpanX,
+    collapseSpanToPoint,
+    isUnitTimeCategoryScaling,
+    rescaleSpan,
+    spanRange,
+    transformIntegratedCategoryValue,
+} from 'ag-charts-core';
+
+import type { CartesianSeriesNodeDataContext } from './cartesianSeriesTypes';
 
 const MAX_CATEGORIES = 1000;
 
@@ -65,7 +73,7 @@ function toAxisValue(value: any) {
 }
 
 export function scale(val: number | string | Date, scaling?: Scaling) {
-    if (!scaling) return NaN;
+    if (!scaling) return Number.NaN;
 
     if (val instanceof Date) {
         val = val.getTime();
@@ -77,9 +85,21 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     if (scaling.type === 'log' && typeof val === 'number') {
         return scaling.convert(val);
     }
-    if (scaling.type !== 'category') return NaN;
+    if (scaling.type !== 'category') return Number.NaN;
 
-    // Category axis case.
+    // Unit-time category case: O(1) index calculation
+    if (isUnitTimeCategoryScaling(scaling)) {
+        if (typeof val === 'number') {
+            const { firstBandTime, intervalMs, bandCount, inset, step } = scaling;
+            const matchingIndex = Math.round((val - firstBandTime) / intervalMs);
+            if (matchingIndex >= 0 && matchingIndex < bandCount) {
+                return inset + step * matchingIndex;
+            }
+        }
+        return Number.NaN;
+    }
+
+    // Standard category axis case.
     const axisValue = toAxisValue(val);
     let matchingIndex = scaling.domain.findIndex((d) => toAxisValue(d) === axisValue);
     if (matchingIndex === -1) {
@@ -91,7 +111,7 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     }
 
     // We failed to convert using the scale.
-    return NaN;
+    return Number.NaN;
 }
 
 interface ValueEntry {
@@ -110,6 +130,10 @@ function getAxisIndices({ data }: SpanContext, values: any[]): SpanIndices[] {
 function isValidScaling(data: SpanContext) {
     return Object.values(data.scales).every((s) => {
         if (s.type === 'category') {
+            // Unit-time scales use bandCount instead of domain.length
+            if (isUnitTimeCategoryScaling(s)) {
+                return s.bandCount < MAX_CATEGORIES;
+            }
             return s.domain.length < MAX_CATEGORIES;
         }
         return true;
@@ -121,6 +145,11 @@ function validateCategorySorting(newData: SpanContext, oldData: SpanContext) {
     const newScale = newData.scales.x;
 
     if (oldScale?.type !== 'category' || newScale?.type !== 'category') return true;
+
+    // Unit-time scales are inherently sorted by time order
+    if (isUnitTimeCategoryScaling(oldScale) || isUnitTimeCategoryScaling(newScale)) {
+        return true;
+    }
 
     let x0 = -Infinity;
     for (const oldValue of oldScale.domain) {
@@ -263,12 +292,12 @@ function collapseSpan(
 
     if (indices.xValue0Index >= range.xValue1Index) {
         const datumIndex = axisIndices.findLast((i) => i.xValue1Index <= range.xValue1Index)?.datumIndex;
-        const datum = datumIndex != null ? data.data[datumIndex] : undefined;
+        const datum = datumIndex == null ? undefined : data.data[datumIndex];
         xValue = datum?.xValue1;
         yValue = datum?.yValue1;
     } else if (indices.xValue0Index <= range.xValue0Index) {
         const datumIndex = axisIndices.find((i) => i.xValue0Index >= range.xValue0Index)?.datumIndex;
-        const datum = datumIndex != null ? data.data[datumIndex] : undefined;
+        const datum = datumIndex == null ? undefined : data.data[datumIndex];
         xValue = datum?.xValue0;
         yValue = datum?.yValue0;
     }
@@ -314,13 +343,13 @@ function addSpan(
     const newSpan = newSpanDatum.span;
     const zeroSpan = zeroDataSpan(newSpanDatum, oldZeroData);
 
-    if (zeroSpan != null) {
+    if (zeroSpan == null) {
+        const oldSpan = collapseSpan(newSpan, collapseMode, newData, newAxisIndices, newIndices, range);
+        out.added.push({ from: oldSpan, to: newSpan });
+    } else {
         out.removed.push({ from: zeroSpan, to: zeroSpan });
         out.moved.push({ from: zeroSpan, to: newSpan });
         out.added.push({ from: newSpan, to: newSpan });
-    } else {
-        const oldSpan = collapseSpan(newSpan, collapseMode, newData, newAxisIndices, newIndices, range);
-        out.added.push({ from: oldSpan, to: newSpan });
     }
 }
 
@@ -337,13 +366,13 @@ function removeSpan(
     const oldSpan = oldSpanDatum.span;
     const zeroSpan = zeroDataSpan(oldSpanDatum, newZeroData);
 
-    if (zeroSpan != null) {
+    if (zeroSpan == null) {
+        const newSpan = collapseSpan(oldSpan, collapseMode, oldData, oldAxisIndices, oldIndices, range);
+        out.removed.push({ from: oldSpan, to: newSpan });
+    } else {
         out.removed.push({ from: oldSpan, to: oldSpan });
         out.moved.push({ from: oldSpan, to: zeroSpan });
         out.added.push({ from: zeroSpan, to: zeroSpan });
-    } else {
-        const newSpan = collapseSpan(oldSpan, collapseMode, oldData, oldAxisIndices, oldIndices, range);
-        out.removed.push({ from: oldSpan, to: newSpan });
     }
 }
 
@@ -451,12 +480,12 @@ function appendSpanPhases(
             newData,
             newIndices
         );
-        if (clippedPostRemoveOldSpanOldScale != null) {
+        if (clippedPostRemoveOldSpanOldScale == null) {
+            removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
+        } else {
             out.removed.push({ from: clippedOldSpanOldScale, to: clippedPostRemoveOldSpanOldScale });
             out.moved.push({ from: clippedPostRemoveOldSpanOldScale, to: clippedNewSpanNewScale });
             out.added.push({ from: clippedNewSpanNewScale, to: clippedNewSpanNewScale });
-        } else {
-            removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
         }
     } else if (ordering === -1) {
         // Added
@@ -467,12 +496,12 @@ function appendSpanPhases(
             oldData,
             oldIndices
         );
-        if (clippedPreAddedNewSpanNewScale != null) {
+        if (clippedPreAddedNewSpanNewScale == null) {
+            addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
+        } else {
             out.removed.push({ from: clippedOldSpanOldScale, to: clippedOldSpanOldScale });
             out.moved.push({ from: clippedOldSpanOldScale, to: clippedPreAddedNewSpanNewScale });
             out.added.push({ from: clippedPreAddedNewSpanNewScale, to: clippedNewSpanNewScale });
-        } else {
-            addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
         }
     } else {
         // Updated
@@ -527,13 +556,39 @@ function replotXAnimation(newData: SpanContext, oldData: SpanContext) {
     const moved: SpanInterpolationResult['moved'] = [];
     const added: SpanInterpolationResult['added'] = [];
 
-    for (let i = 0; i < oldData.data.length; i += 1) {
+    const minLen = Math.min(oldData.data.length, newData.data.length);
+
+    for (let i = 0; i < minLen; i += 1) {
         const oldSpan = oldData.data[i].span;
         const newSpan = newData.data[i].span;
 
         removed.push({ from: oldSpan, to: oldSpan });
         moved.push({ from: oldSpan, to: newSpan });
         added.push({ from: newSpan, to: newSpan });
+    }
+
+    if (oldData.data.length > newData.data.length && newData.data.length > 0) {
+        const lastNewSpan = newData.data.at(-1)!.span;
+        const [, lastNewEnd] = spanRange(lastNewSpan);
+        const collapsed = collapseSpanToPoint(lastNewSpan, lastNewEnd);
+
+        for (let i = minLen; i < oldData.data.length; i += 1) {
+            const oldSpan = oldData.data[i].span;
+            removed.push({ from: oldSpan, to: oldSpan });
+            moved.push({ from: oldSpan, to: collapsed });
+        }
+    }
+
+    if (newData.data.length > oldData.data.length && oldData.data.length > 0) {
+        const lastOldSpan = oldData.data.at(-1)!.span;
+        const [, lastOldEnd] = spanRange(lastOldSpan);
+        const collapsed = collapseSpanToPoint(lastOldSpan, lastOldEnd);
+
+        for (let i = minLen; i < newData.data.length; i += 1) {
+            const newSpan = newData.data[i].span;
+            moved.push({ from: collapsed, to: newSpan });
+            added.push({ from: newSpan, to: newSpan });
+        }
     }
 
     return {

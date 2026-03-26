@@ -1,12 +1,12 @@
-import { type AgCandlestickSeriesItemOptions, type WithThemeParams, _ModuleSupport } from 'ag-charts-community';
-
-const {
-    ThemeConstants: { CARTESIAN_AXIS_TYPE },
-    multiSeriesHighlightStyle,
-    FILL_GRADIENT_LINEAR_SHADED_DEFAULTS,
+import { type AgCandlestickSeriesItemOptions, type WithThemeParams } from 'ag-charts-community';
+import {
+    CARTESIAN_AXIS_TYPE,
+    FILL_GRADIENT_LINEAR_KEYED_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
-    FILL_PATTERN_DEFAULTS,
-} = _ModuleSupport;
+    FILL_PATTERN_KEYED_DEFAULTS,
+    MULTI_SERIES_HIGHLIGHT_STYLE,
+} from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
 
 function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemOptions> {
     return {
@@ -20,9 +20,9 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
                         { $palette: `${key}.fill` },
                     ],
                 },
-                ['gradient', FILL_GRADIENT_LINEAR_SHADED_DEFAULTS(key)],
+                ['gradient', FILL_GRADIENT_LINEAR_KEYED_DEFAULTS(key)],
                 ['image', FILL_IMAGE_DEFAULTS],
-                ['pattern', FILL_PATTERN_DEFAULTS],
+                ['pattern', FILL_PATTERN_KEYED_DEFAULTS(key)],
             ],
         },
         stroke: {
@@ -35,19 +35,16 @@ function itemTheme(key: 'up' | 'down'): WithThemeParams<AgCandlestickSeriesItemO
     };
 }
 
-export const CANDLESTICK_SERIES_THEME: _ModuleSupport.SeriesModule<'candlestick'>['themeTemplate'] = {
+export const CANDLESTICK_SERIES_THEME: ExtensibleTheme<'candlestick'> = {
     series: {
         item: {
             up: itemTheme('up'),
             down: itemTheme('down'),
         },
-        highlightStyle: {
-            item: { strokeWidth: 3 },
-        },
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
-        highlight: multiSeriesHighlightStyle(),
+        highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
     animation: { enabled: false },
     axes: {

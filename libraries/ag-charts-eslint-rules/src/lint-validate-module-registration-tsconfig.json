@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "verbatimModuleSyntax": true,
+        "types": ["node"]
+    },
+    "include": ["**/lint-validate-module-registration.data.ts"]
+}

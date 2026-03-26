@@ -128,8 +128,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "nx run ag-charts-website:dev"
+          "NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
         ]
       }
     },
@@ -141,8 +140,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "./tools/dev-server/lite.sh"
+          "NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"./tools/dev-server/lite.sh\""
         ]
       }
     },
@@ -154,8 +152,7 @@
       "options": {
         "parallel": true,
         "commands": [
-          "NX_DAEMON=true node external/ag-shared/scripts/watch/watch.js charts",
-          "nx run ag-charts-website:dev"
+          "NX_DAEMON=true yarn concurrently -n \"watch,astro\" --kill-others \"node external/ag-shared/scripts/watch/watch.js charts\" \"nx run ag-charts-website:dev\""
         ]
       },
       "configurations": {
@@ -251,7 +248,43 @@
         "forwardAllArgs": true
       }
     },
-    "snykIgnore": {
+    "snyk:test": {
+      "command": "npx snyk test --yarn-workspaces --dev --strict-out-of-sync=false --severity-threshold=high --exclude=.nx,project.json,dist,.claude --remote-repo-url=https://github.com/ag-grid/ag-charts",
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "snyk:test:json": {
+      "command": "mkdir -p tmp && { npx snyk test --yarn-workspaces --dev --strict-out-of-sync=false --severity-threshold=high --exclude=.nx,project.json,dist,.claude --remote-repo-url=https://github.com/ag-grid/ag-charts --json > tmp/snyk.json; code=$?; [ $code -le 1 ]; }",
+      "cache": true,
+      "inputs": ["{workspaceRoot}/yarn.lock"],
+      "outputs": ["{workspaceRoot}/tmp/snyk.json"],
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "snyk:view": {
+      "command": "node ./external/ag-shared/scripts/snyk-viewer/index.mjs {args.file} --port {args.port} --name \"{args.name}\"",
+      "dependsOn": ["snyk:test:json"],
+      "options": {
+        "cwd": "{workspaceRoot}",
+        "file": "tmp/snyk.json",
+        "port": 4605,
+        "name": "AG Charts"
+      },
+      "configurations": {
+        "open": {
+          "args": ["--open"]
+        }
+      }
+    },
+    "snyk:code": {
+      "command": "npx snyk code test",
+      "options": {
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "snyk:ignore": {
       "command": "node ./external/ag-shared/scripts/snyk/getSnykIgnore.mjs",
       "options": {
         "cwd": "{workspaceRoot}"
@@ -263,6 +296,7 @@
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-community-examples",
+    "ag-charts-server-side",
     "ag-charts-website",
     "ag-charts-angular",
     "ag-charts-locale",

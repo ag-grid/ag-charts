@@ -1,11 +1,15 @@
-import { afterEach, describe, expect, jest, test } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 import type { AgChartOptions, AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
+import { AgCharts } from '../../../api/agCharts';
+import { OptionsGraph } from '../../../module/optionsGraph';
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
+import type { AgChartProxy } from '../../chartProxy';
 import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
-import { MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
+import * as examples from '../../test/examples';
+import { type MockPieCalloutLineItemStyler, newFreezableMock } from '../../test/freezableMock';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
@@ -20,6 +24,7 @@ import {
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
+    spyOnAnimationManager,
     tapAction,
     waitForChartStability,
 } from '../../test/utils';
@@ -91,6 +96,10 @@ describe('PieSeries', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
     "AG Charts - no value was found for the key 'dog' on 3 data elements",
   ],
   [
@@ -101,6 +110,164 @@ describe('PieSeries', () => {
   ],
 ]
 `);
+        });
+
+        test('null callout label key warning', async () => {
+            chart = await createChart({
+                ...options,
+                data: [
+                    { label: 'A', value: 10 },
+                    { label: null, value: 20 },
+                    { label: 'B', value: 15 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'label' }],
+            });
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_ANGLE_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should reject undefined category key with warning', async () => {
+            const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelKey] ignored:",
+    "[undefined]",
+  ],
+  [
+    "AG Charts - invalid value of type [undefined] for [PieSeries-1 / calloutLabelValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = examples.PIE_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - legend item '' has multiple fill colours, this may cause unexpected behaviour.",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should call calloutLabel formatter with null value when allowNullKeys is true', async () => {
+            const calloutLabelFormatter = jest.fn((params: any) =>
+                params.value === null ? 'Unknown' : String(params.value)
+            );
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: { formatter: calloutLabelFormatter },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            expect(calloutLabelFormatter).toHaveBeenCalled();
+            const callWithNull = calloutLabelFormatter.mock.calls.find((c: any[]) => c[0]?.value === null);
+            expect(callWithNull).toBeDefined();
+        });
+
+        it('should render formatted callout label for null category when allowNullKeys is true', async () => {
+            const opts: AgChartOptions = {
+                data: [
+                    { asset: null, amount: 60000 },
+                    { asset: 'Bonds', amount: 40000 },
+                ],
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'amount',
+                        calloutLabelKey: 'asset',
+                        calloutLabel: {
+                            formatter: (params: any) => (params.value === null ? 'Unknown' : String(params.value)),
+                        },
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareTestOptions(opts);
+
+            chart = await createChart(opts);
+
+            await compare();
         });
     });
 
@@ -559,7 +726,7 @@ describe('PieSeries', () => {
     describe('nodeClick', () => {
         const clicks: string[] = [];
         const doubleClicks: string[] = [];
-        const legendClicks: string[] = [];
+        const legendClicks: (string | number)[] = [];
 
         const nodeClickOptions: AgPolarChartOptions = {
             data: [
@@ -713,6 +880,118 @@ describe('PieSeries', () => {
         });
     });
 
+    describe('AG-16665 downloaded image excludes hidden sectors', () => {
+        let chartProxy: AgChartProxy;
+
+        beforeEach(async () => {
+            const testOptions: AgPolarChartOptions = prepareTestOptions({
+                data: [
+                    { name: 'A (deselected)', value: 10 },
+                    { name: 'B', value: 20 },
+                    { name: 'C', value: 30 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'name' }],
+            });
+            chartProxy = AgCharts.create(testOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+        });
+
+        test('should exclude hidden sectors from downloaded image', async () => {
+            // Get first legend item coordinates
+            const [{ x, y }] = [...iterLegendMarkerLabels(chart)];
+
+            // Hide sector by clicking legend item
+            await clickAction(x, y)(chart);
+            await waitForChartStability(chart);
+
+            // Take snapshot of current chart state (with hidden sector)
+            const reference = ctx.snapshot();
+
+            // Get downloaded image
+            const canvasCount = ctx.getActiveCanvasInstances().length;
+            const imageURL = await chartProxy.getImageDataURL();
+            const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
+            expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+            // Verify downloaded image matches current chart (both should have hidden sector)
+            const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+            expect(imageRaw.getContext('2d').getImageData(0, 0, imageRaw.width, imageRaw.height)).toMatchImage(
+                reference
+            );
+        });
+    });
+
+    describe('applyTransaction', () => {
+        let chartProxy: AgChartProxy;
+        let pieSeries: PieSeries;
+
+        beforeEach(async () => {
+            OptionsGraph.clearValueCache();
+            const transactionOptions = prepareTestOptions({
+                theme: {
+                    palette: {
+                        fills: ['red', 'green'],
+                        strokes: ['black'],
+                    },
+                },
+                data: [
+                    { food: 'Pizza', value: 3 },
+                    { food: 'Cake', value: 4 },
+                ],
+                series: [{ type: 'pie', angleKey: 'value', calloutLabelKey: 'food' }],
+            });
+            chartProxy = AgCharts.create(transactionOptions) as AgChartProxy;
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            pieSeries = chart.series[0] as PieSeries;
+        });
+
+        afterEach(() => {
+            chartProxy = undefined!;
+            pieSeries = undefined!;
+        });
+
+        test('reprocesses palette entries for new data', async () => {
+            expect(pieSeries.properties.fills).toEqual(['red', 'green']);
+
+            await chartProxy.applyTransaction({
+                add: [
+                    { food: 'Quiche', value: 5 },
+                    { food: 'Salad', value: 2 },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(pieSeries.properties.fills).toEqual(['red', 'green', 'red', 'green']);
+            expect(nodeData).toHaveLength(4);
+            expect(nodeData.map((datum) => datum.sectorFormat.fill)).toEqual(['red', 'green', 'red', 'green']);
+        });
+
+        test('removes data items correctly', async () => {
+            const initialData = chartProxy.getOptions().data!;
+            expect(initialData).toHaveLength(2);
+            const initialNodeData = pieSeries.getNodeData() ?? [];
+            expect(initialNodeData).toHaveLength(2);
+
+            const itemToRemove = initialData[0];
+            await chartProxy.applyTransaction({
+                remove: [itemToRemove],
+            });
+            await waitForChartStability(chart);
+
+            const updatedOptions = chartProxy.getOptions();
+            expect(updatedOptions.data).toBeDefined();
+            expect(updatedOptions.data!).toHaveLength(1);
+            expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+
+            const nodeData = pieSeries.getNodeData() ?? [];
+            expect(nodeData).toHaveLength(1);
+        });
+    });
+
     // AG-8724 - Allow hiding zero value sectors in legend
     describe('hideZeroValueSectorsInLegend', () => {
         const data = [
@@ -849,6 +1128,122 @@ describe('PieSeries', () => {
             expect(itemStyler.mock.mock.calls).toMatchSnapshot();
         });
         test('image', async () => {
+            await compare();
+        });
+    });
+
+    // CRT-1053: Pie sectors with non-string fills (patterns/gradients) should not render black
+    // during animation. The fix conditionally excludes fill from animation properties when
+    // the fill is not a plain colour string.
+    describe('CRT-1053 pattern fill animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const PIE_PATTERN_DATA = [
+            { label: 'A', value: 30 },
+            { label: 'B', value: 25 },
+            { label: 'C', value: 20 },
+            { label: 'D', value: 15 },
+        ];
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render pattern fills (not black) at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const opts: AgChartOptions = {
+                    data: PIE_PATTERN_DATA,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'label',
+                            fills: [{ type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }, { type: 'pattern' }],
+                        } as AgPieSeriesOptions,
+                    ],
+                };
+                prepareTestOptions(opts);
+
+                chart = AgCharts.create(opts) as any;
+                await waitForChartStability(chart);
+
+                await compare(undefined, PATTERN_SNAPSHOT_DEFAULTS);
+            });
+        }
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should render gradient fills (not black) at ${ratio * 100}%`, async () => {
+                animate(1200, ratio);
+
+                const opts: AgChartOptions = {
+                    data: PIE_PATTERN_DATA,
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'label',
+                            fills: [
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                                { type: 'gradient' },
+                            ],
+                        } as AgPieSeriesOptions,
+                    ],
+                };
+                prepareTestOptions(opts);
+
+                chart = AgCharts.create(opts) as any;
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+        }
+    });
+
+    describe('crossfiltering', () => {
+        const angleFilterData = [
+            { label: 'A', angle: 10, angleFilter: 20 },
+            { label: 'B', angle: 5, angleFilter: 15 },
+            { label: 'C', angle: 8, angleFilter: 12 },
+        ];
+
+        it('angleKey less than angleFilterKey', async () => {
+            chart = await createChart({
+                ...options,
+                data: angleFilterData,
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'angle',
+                        angleFilterKey: 'angleFilter',
+                        calloutLabelKey: 'label',
+                    } as AgPieSeriesOptions,
+                ],
+            });
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('angleKey greater than angleFilterKey', async () => {
+            const data = [
+                { label: 'A', angle: 20, angleFilter: 10 },
+                { label: 'B', angle: 15, angleFilter: 5 },
+                { label: 'C', angle: 12, angleFilter: 8 },
+            ];
+            chart = await createChart({
+                ...options,
+                data,
+                series: [
+                    {
+                        type: 'pie',
+                        angleKey: 'angle',
+                        angleFilterKey: 'angleFilter',
+                        calloutLabelKey: 'label',
+                    } as AgPieSeriesOptions,
+                ],
+            });
+            await waitForChartStability(chart);
+
             await compare();
         });
     });

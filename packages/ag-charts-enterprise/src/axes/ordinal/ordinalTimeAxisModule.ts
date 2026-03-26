@@ -1,12 +1,22 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { type AgOrdinalTimeAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import type { AxisModuleDefinition } from 'ag-charts-core';
 
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 
-export const OrdinalTimeAxisModule: _ModuleSupport.AxisModule = {
+export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions> = {
     type: 'axis',
-    optionsKey: 'axes[]',
-    packageType: 'enterprise',
-    chartTypes: ['cartesian'],
-    identifier: 'ordinal-time',
-    moduleFactory: (ctx) => new OrdinalTimeAxis(ctx),
+    name: 'ordinal-time',
+    chartType: 'cartesian',
+    enterprise: true,
+    version: VERSION,
+
+    options: _ModuleSupport.ordinalTimeAxisOptionsDefs,
+    themeTemplate: {
+        groupPaddingInner: 0,
+        label: { autoRotate: false, minSpacing: 40 },
+        gridLine: { enabled: false },
+        interval: { placement: 'between' },
+    },
+
+    create: (ctx) => new OrdinalTimeAxis(ctx),
 };

@@ -4,7 +4,6 @@ import {
     arrayOf,
     arrayOfDefs,
     boolean,
-    callback,
     color,
     fillOptionsDef,
     fontOptionsDef,
@@ -15,6 +14,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    toolbarButtonOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
@@ -45,8 +45,6 @@ import type {
     AgTextAnnotationStyles,
     LineOptions,
 } from 'ag-charts-types';
-
-import { toolbarButtonOptionsDefs } from '../commonOptionsDefs';
 
 const annotationLineOptionsDef: OptionsDefs<LineOptions> = {
     lineStyle: union('solid', 'dashed', 'dotted'),
@@ -82,7 +80,6 @@ export const annotationChannelTextDefs: OptionsDefs<AgChannelAnnotationTextStyle
 const annotationAxisLabelOptionsDef: OptionsDefs<AgAnnotationAxisLabel> = {
     enabled: boolean,
     cornerRadius: positiveNumber,
-    formatter: callback,
     ...fontOptionsDef,
     ...fillOptionsDef,
     ...strokeOptionsDef,

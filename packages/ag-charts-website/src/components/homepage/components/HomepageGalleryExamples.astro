@@ -1,4 +1,5 @@
 ---
+// cspell:ignore vars
 import { getCacheBustingUrl, getChartEnterpriseScriptPath } from '@utils/chartLibraryPaths';
 import { getIsDev } from '@utils/env';
 import { SITE_BASE_URL } from '@constants';
@@ -135,7 +136,6 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
     }
 
     function init() {
-        let prevExampleId = initialExampleId;
         let currentExampleId = initialExampleId;
 
         // Called from example `updateExample` function
@@ -149,7 +149,10 @@ const examplesUrl = getIsDev() ? urlWithBaseUrl('/homepage/examples.js') : urlWi
             const { exampleId } = button.dataset;
 
             button.addEventListener('click', () => {
-                prevExampleId = currentExampleId;
+                if (exampleId === currentExampleId) {
+                    return;
+                }
+
                 currentExampleId = exampleId;
 
                 updateExample(exampleId);

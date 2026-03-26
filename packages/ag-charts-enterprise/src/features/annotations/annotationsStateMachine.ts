@@ -1,5 +1,13 @@
 /* eslint-disable no-restricted-properties */
 import { _ModuleSupport } from 'ag-charts-community';
+import {
+    ActionOnSet,
+    Debug,
+    ParallelStateMachine,
+    type Point,
+    StateMachine,
+    StateMachineProperty,
+} from 'ag-charts-core';
 
 import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -16,8 +24,6 @@ import { maybeWrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isEphemeralType, isTextType } from './utils/types';
-
-const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 enum States {
     Idle = 'idle',
@@ -129,7 +135,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
     protected hovered?: number;
 
     @StateMachineProperty()
-    protected hoverCoords?: _ModuleSupport.Vec2;
+    protected hoverCoords?: Point;
 
     @StateMachineProperty()
     protected copied?: AnnotationProperties;
@@ -185,14 +191,14 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                 type,
                 config.createState(createStateMachineContext, stateMachineHelpers),
             ])
-        ) as Record<AnnotationType, _ModuleSupport.StateMachine<any, any>>;
+        ) as Record<AnnotationType, StateMachine<any, any>>;
 
         const dragStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
                 type,
                 config.dragState(ctx, stateMachineHelpers),
             ])
-        ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
+        ) as Record<Partial<AnnotationType>, StateMachine<any, any>>;
 
         const actionColor = ({
             colorPickerType,
@@ -440,8 +446,7 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     this.hovered = undefined;
                     this.active = undefined;
 
-                    ctx.select(this.active, this.active);
-
+                    ctx.select();
                     ctx.resetToIdle();
                 },
 
@@ -572,6 +577,9 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
                     const node = ctx.node(wasActive);
                     if (!datum || !node) return;
 
+                    if ('setTextInputBBox' in node) {
+                        node.setTextInputBBox();
+                    }
                     datum.visible = true;
                 },
             },

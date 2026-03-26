@@ -8,6 +8,8 @@ export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
 export type AgAutoScaledAxes = Array<'y'>;
 export type AgZoomAxisDraggingMode = 'pan' | 'zoom';
+export type AgZoomScrollingMode = 'pan' | 'zoom';
+export type AgZoomOnDataChangeStrategy = 'reset' | 'preserveDomain' | 'preserveRatios';
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */
@@ -39,8 +41,10 @@ export interface AgZoomButtons extends Toggleable {
 
 export type AgZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
-export interface AgZoomButton extends ToolbarButton {
+export interface AgZoomButton extends Omit<ToolbarButton, 'iconPosition'> {
+    /** The action to perform when the button is clicked. */
     value: AgZoomButtonValue;
+    /** The toolbar section in which to display this button. */
     section: string;
 }
 
@@ -57,6 +61,23 @@ export interface AgZoomAutoScaling {
      * Padding to apply between the zoomed data and the boundary of the series.
      */
     padding?: Ratio;
+}
+
+export interface AgZoomOnDataChange {
+    /**
+     * The behaviour of how to adjust the zoom when chart data changes.
+     *
+     * Default: `'preserveDomain'`
+     */
+    strategy?: AgZoomOnDataChangeStrategy;
+    /**
+     * When `true`, the zoom will be adjusted to ensure that newly appended data is in the viewport. This behaviour only
+     * happens if the chart's horizontal viewport is panned all the way to the very end of data range; otherwise the current `strategy`
+     * is used instead.
+     *
+     * Default: `false`
+     */
+    stickToEnd?: boolean;
 }
 
 export interface AgZoomOptions {
@@ -111,7 +132,7 @@ export interface AgZoomOptions {
     /**
      * Set to `true` to enable scrolling an axis to zoom series attached to that axis.
      *
-     * Default: `false`
+     * Default: `true`
      */
     enableAxisScrolling?: boolean;
     /**
@@ -163,9 +184,19 @@ export interface AgZoomOptions {
      */
     panKey?: AgZoomPanKey;
     /**
+     * Whether scrolling the mouse wheel or track pad vertically zooms or pans.
+     *
+     * Default: `zoom`
+     */
+    scrollingMode?: AgZoomScrollingMode;
+    /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.
      *
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
+    /**
+     * Configuration for how the zoom-pan should respond to data changes
+     */
+    onDataChange?: AgZoomOnDataChange;
 }

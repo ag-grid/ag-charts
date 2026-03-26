@@ -1,33 +1,38 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import { CleanupRegistry, createElement, entries } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import {
+    ActionOnSet,
+    BaseProperties,
+    ChartAxisDirection,
+    CleanupRegistry,
+    PropertiesArray,
+    Property,
+    UNIT_MAX,
+    UNIT_MIN,
+    createElement,
+    debounce,
+    definedZoomState,
+    entries,
+} from 'ag-charts-core';
 
-import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
+import { ToolbarButtonProperties } from '../toolbar/buttonProperties';
+import type { ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
-    UNIT_MAX,
-    UNIT_MIN,
+    ZOOM_VALID_CHECK_DEBOUNCE,
+    canResetZoom,
     constrainAxis,
     constrainZoom,
-    definedZoomState,
     dx,
+    isMaxZoom,
     isZoomEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
-    unitZoomState,
 } from './zoomUtils';
 
-const {
-    ActionOnSet,
-    BaseProperties,
-    ChartAxisDirection,
-    NativeWidget,
-    PropertiesArray,
-    Toolbar,
-    ToolbarButtonProperties,
-    Property,
-} = _ModuleSupport;
+const { userInteraction, NativeWidget, Toolbar } = _ModuleSupport;
 
 class ZoomButtonProperties extends ToolbarButtonProperties {
     @Property
@@ -50,7 +55,7 @@ export class ZoomToolbar extends BaseProperties {
             this.toolbar?.setHidden(!enabled);
         },
     })
-    public enabled?: boolean = false;
+    public enabled: boolean = false;
 
     @Property
     public buttons = new PropertiesArray(ZoomButtonProperties);
@@ -59,7 +64,9 @@ export class ZoomToolbar extends BaseProperties {
     @ActionOnSet<ZoomToolbar>({
         changeValue(visible: ZoomButtonsVisible, oldValue: any) {
             if (oldValue == null) return;
-            this.toggleVisibility(visible === 'always');
+            const always = visible === 'always';
+            const zoomed = visible === 'zoomed' && this.previousZoom != null && !isMaxZoom(this.previousZoom);
+            this.toggleVisibility(always || zoomed);
         },
     })
     public visible: ZoomButtonsVisible = 'hover';
@@ -83,14 +90,14 @@ export class ZoomToolbar extends BaseProperties {
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly canResetZoom: (zoom: Readonly<DefinedZoomState>) => boolean,
-        private readonly updateZoom: (zoom: DefinedZoomState) => void,
+        private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
-            axisId: string,
-            direction: _ModuleSupport.CartesianAxisDirection,
-            partialZoom: _ModuleSupport.ZoomState | undefined
+            sourcing: _ModuleSupport.UpdateZoomSourcing,
+            axisId: AxisID,
+            direction: CartesianAxisDirection,
+            partialZoom: ZoomMinMax | undefined
         ) => void,
-        private readonly resetZoom: () => void,
+        private readonly resetZoom: (sourceDetail: _ModuleSupport.ZoomEventSourceDetail) => void,
         private readonly isZoomValid: (zoom: DefinedZoomState) => boolean
     ) {
         super();
@@ -104,6 +111,7 @@ export class ZoomToolbar extends BaseProperties {
 
         // Initially translate by an estimated offset to prevent flash on load
         this.toolbar.getElement().style.transform = `translateY(54px)`;
+        this.toolbar.setHidden(!this.enabled);
 
         this.toggleVisibility(this.visible === 'always');
 
@@ -121,9 +129,9 @@ export class ZoomToolbar extends BaseProperties {
         this.cleanup.flush();
     }
 
-    public toggleVisibleZoomed(isMaxZoom: boolean) {
+    public toggleVisibleZoomed(maxZoom: boolean) {
         if (this.visible !== 'zoomed') return;
-        this.toggleVisibility(!isMaxZoom);
+        this.toggleVisibility(!maxZoom);
     }
 
     private teardown() {
@@ -132,6 +140,8 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        if (!this.enabled) return;
+
         const { buttons, container } = this;
         const { rect } = event.series;
 
@@ -151,7 +161,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
         this.toolbar.updateButtons(buttons);
-        this.toggleButtons();
+        this.toggleButtonsDebounced();
 
         const height = container.getBounds().height;
         container.setBounds({ y: rect.y + rect.height - height });
@@ -194,6 +204,10 @@ export class ZoomToolbar extends BaseProperties {
             : `translateY(${container.getBounds().height + verticalSpacing}px)`;
     }
 
+    private readonly toggleButtonsDebounced = debounce(this.toggleButtons.bind(this), ZOOM_VALID_CHECK_DEBOUNCE, {
+        leading: true,
+        trailing: true,
+    });
     private toggleButtons() {
         const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.zoomManager.getZoom());
 
@@ -218,7 +232,7 @@ export class ZoomToolbar extends BaseProperties {
                     enabled = zoom.x.max < UNIT_MAX;
                     break;
                 case 'zoom-out':
-                    enabled = !isZoomEqual(zoom, unitZoomState());
+                    enabled = !isMaxZoom(zoom);
                     break;
                 case 'zoom-in':
                     enabled = this.isZoomValid(
@@ -226,7 +240,7 @@ export class ZoomToolbar extends BaseProperties {
                     );
                     break;
                 case 'reset':
-                    enabled = this.canResetZoom(zoom);
+                    enabled = canResetZoom(this.ctx.zoomManager);
                     break;
             }
 
@@ -241,9 +255,10 @@ export class ZoomToolbar extends BaseProperties {
 
         if (props.independentAxes && button.value !== 'reset') {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
-            for (const [axisId, { direction, zoom }] of entries(axisZooms)) {
-                if (zoom == null) continue;
-                this.onButtonPressAxis(button, props, axisId, direction as _ModuleSupport.CartesianAxisDirection, zoom);
+            for (const [axisId, value] of entries(axisZooms)) {
+                if (value == null) continue;
+                const { direction, min, max } = value;
+                this.onButtonPressAxis(button, props, axisId, direction, { min, max });
             }
         } else {
             this.onButtonPressUnified(button, props);
@@ -257,9 +272,9 @@ export class ZoomToolbar extends BaseProperties {
     private onButtonPressAxis(
         event: { value: AgZoomButtonValue },
         props: ZoomProperties,
-        axisId: string,
-        direction: _ModuleSupport.CartesianAxisDirection,
-        zoom: _ModuleSupport.ZoomState
+        axisId: AxisID,
+        direction: CartesianAxisDirection,
+        zoom: ZoomMinMax
     ) {
         const { isScalingX, isScalingY, scrollingStep } = props;
 
@@ -302,7 +317,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateAxisZoom(axisId, direction, constrainAxis(newZoom));
+        this.updateAxisZoom(userInteraction(`zoom-button-${event.value}`), axisId, direction, constrainAxis(newZoom));
     }
 
     private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
@@ -313,7 +328,7 @@ export class ZoomToolbar extends BaseProperties {
 
         switch (event.value) {
             case 'reset':
-                this.resetZoom();
+                this.resetZoom('zoom-button-reset');
                 return;
 
             case 'pan-start':
@@ -341,7 +356,7 @@ export class ZoomToolbar extends BaseProperties {
             }
         }
 
-        this.updateZoom(constrainZoom(zoom));
+        this.updateZoom(userInteraction(`zoom-button-${event.value}`), constrainZoom(zoom));
     }
 
     private getNextZoomStateUnified(button: 'zoom-in' | 'zoom-out', oldZoom: DefinedZoomState, props: ZoomProperties) {

@@ -5,8 +5,12 @@ env:
     NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
     NX_BRANCH: ${{ github.ref }}
     SONAR_PROJECT: ag-charts-community
+    SONAR_SOURCE_PROJECT: ag-charts-community-latest
 
 on: workflow_dispatch
+
+permissions:
+    contents: read
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.event.number || github.event.head_commit.id }}
@@ -21,20 +25,41 @@ jobs:
               uses: actions/checkout@v4
               with:
                   fetch-depth: 0
-            - name: Setup Node.js
-              id: setup_node
-              uses: actions/setup-node@v4
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
               with:
-                  node-version: '20'
-                  cache: 'yarn'
+                  cache_mode: ro
+                  base_ref: ${{ github.head_ref }}
+                  yarn_postinstall: false
             - uses: actions/setup-java@v4
               with:
                   distribution: 'oracle'
                   java-version: '17'
-            - name: yarn install
-              id: yarn_install
-              run: yarn install --ci --ignore-scripts
 
             - name: Run Scan
               run: |
                   npx sonar-scanner -Dsonar.token=${{ secrets.SONAR_LOGIN }} -Dsonar.projectKey=${SONAR_PROJECT}
+
+    sync_accepted_issues:
+        runs-on: ubuntu-24.04
+        needs: sonar_scanner
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: package.json
+
+            - name: Install dependencies
+              run: yarn install --frozen-lockfile
+
+            - name: Sync Accepted Issues
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
+              run: |
+                  npx tsx external/ag-shared/scripts/sonar/sync-sonar-issues.ts \
+                    --source ${SONAR_SOURCE_PROJECT} \
+                    --target ${SONAR_PROJECT}

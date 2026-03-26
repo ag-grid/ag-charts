@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -32,9 +32,8 @@ const options: AgChartOptions = {
             cornerRadius: 3,
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'category',
             paddingInner: 0.7,
             paddingOuter: 0.2,
@@ -48,8 +47,7 @@ const options: AgChartOptions = {
                 spacing: 10,
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'number',
             line: {
                 enabled: false,
@@ -58,7 +56,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

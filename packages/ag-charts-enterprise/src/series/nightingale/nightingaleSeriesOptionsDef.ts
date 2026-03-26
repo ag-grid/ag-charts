@@ -1,7 +1,16 @@
 import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, number, required, string } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    commonSeriesOptionsDefs,
+    constant,
+    number,
+    required,
+    string,
+    undocumented,
+} from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
+const { nightingaleSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -11,8 +20,14 @@ export const nightingaleSeriesOptionsDef: OptionsDefs<AgNightingaleSeriesOptions
     radiusKey: required(string),
     angleName: string,
     radiusName: string,
+    legendItemName: string,
     grouped: boolean,
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
 };
+
+// @ts-expect-error undocumented option
+nightingaleSeriesOptionsDef.angleKeyAxis = undocumented(string);
+// @ts-expect-error undocumented option
+nightingaleSeriesOptionsDef.radiusKeyAxis = undocumented(string);

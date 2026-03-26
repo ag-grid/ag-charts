@@ -14,10 +14,12 @@ import type {
 
 import { AgCharts } from '../../../api/agCharts';
 import * as examples from '../../test/examples';
-import { MockScatterStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockScatterStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     looserSnapshotDefaults,
@@ -81,6 +83,113 @@ describe('ScatterSeries', () => {
             prepareTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = examples.SCATTER_NULL_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [ScatterSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.SCATTER_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: undefined, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [ScatterSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: undefined, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: undefined, y: 30 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
             await compare();
         });
     });
@@ -152,18 +261,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                         min: 100,
                         max: 500,
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -190,18 +299,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                         min: 60,
                         max: 100,
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -227,18 +336,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                         min: 100,
                         max: 500,
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -265,18 +374,18 @@ describe('ScatterSeries', () => {
                         strokeWidth: 0,
                     } as AgScatterSeriesOptions,
                 ],
-                axes: [
-                    {
+                axes: {
+                    y: {
                         position: 'left',
                         type: 'number',
                         min: 60,
                         max: 100,
                     },
-                    {
+                    x: {
                         position: 'bottom',
                         type: 'number',
                     },
-                ],
+                },
             };
 
             prepareTestOptions(options);
@@ -407,18 +516,18 @@ describe('ScatterSeries', () => {
     it('should render scatter series with reversed axes', async () => {
         const options: AgChartOptions = {
             ...examples.SIMPLE_SCATTER_CHART_EXAMPLE,
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     reverse: true,
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                     reverse: true,
                 },
-            ],
+            },
         };
 
         prepareTestOptions(options);
@@ -692,6 +801,50 @@ describe('ScatterSeries', () => {
         });
     });
 
+    describe('showInLegend', () => {
+        const commonOptions = {
+            series: [
+                {
+                    type: 'scatter',
+                    data: [{ x: 10, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Male',
+                },
+                {
+                    type: 'scatter',
+                    data: [{ x: 20, y: 20 }],
+                    xKey: 'x',
+                    yKey: 'y',
+                    title: 'Female',
+                },
+            ],
+            legend: {},
+        } satisfies AgCartesianChartOptions;
+
+        it('should hide scatter series from legend when showInLegend is false', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'Two series, only female series should be shown in legend' },
+                series: [commonOptions.series[0], { ...commonOptions.series[1], showInLegend: false }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show scatter series in legend when showInLegend is true (default)', async () => {
+            const options = prepareTestOptions({
+                ...commonOptions,
+                title: { text: 'One series, only male series should be shown in legend' },
+                series: [{ ...commonOptions.series[0], showInLegend: true }],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('predict axes', () => {
         it('number', async () => {
             const options: AgChartOptions = {
@@ -778,6 +931,25 @@ describe('ScatterSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [
+                    { He_V: 10, He_P: 95, Ne_V: 10, Ne_P: 90, Ar_V: 10, Ar_P: 80 },
+                    { He_V: 15, He_P: 81, Ne_V: 15, Ne_P: 80, Ar_V: 15, Ar_P: 60 },
+                    { He_V: 20, He_P: 68, Ne_V: 20, Ne_P: 70, Ar_V: 20, Ar_P: 40 },
+                ],
+                series: [
+                    { type: 'scatter', xKey: 'He_V', yKey: 'He_P', yName: 'Helium' },
+                    { type: 'scatter', xKey: 'Ne_V', yKey: 'Ne_P', yName: 'Neon' },
+                    { type: 'scatter', xKey: 'Ar_V', yKey: 'Ar_P', yName: 'Argon' },
+                ],
+            },
         });
     });
 });

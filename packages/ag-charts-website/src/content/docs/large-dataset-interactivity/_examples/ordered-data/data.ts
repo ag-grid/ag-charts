@@ -1,5 +1,4 @@
 const startPrice = 100;
-const startPrice2 = 50;
 const maxDailyPriceChange = 5;
 const maxRangeDelta = 1;
 
@@ -27,10 +26,13 @@ function seedRandom(seed = 1337): () => number {
     return sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, realSeed);
 }
 
-export function getData(days: number) {
+const referenceDate = new Date(2024, 0, 1, 0).getTime();
+export function getData(hours: number) {
     let currentPrice = startPrice;
     const random = seedRandom();
-    return Array.from({ length: days }, (_, i) => {
+    const period = 60 * 60 * 1000;
+    const startDate = new Date(2024, 0, 1, -hours);
+    return Array.from({ length: hours }, () => {
         // Note time is reversed
         const close = currentPrice;
         const open = close + (random() * 2 - 1) * maxDailyPriceChange;
@@ -39,36 +41,15 @@ export function getData(days: number) {
         const high = Math.max(open, close) + random() * maxRangeDelta;
         const low = Math.min(open, close) - random() * maxRangeDelta;
 
-        const timestamp = new Date(2024, 0, 1, -i);
+        startDate.setHours(startDate.getHours() + 1);
+        const timestamp = startDate.getTime();
 
-        return { timestamp, open, close, high, low };
-    }).reverse();
-}
-
-export function getStackedData(days: number) {
-    const random = seedRandom();
-    let series1 = startPrice;
-    let series2 = startPrice2;
-    return Array.from({ length: days / 2 }, (_, i) => {
-        // Note time is reversed
-        series1 += (random() * 2 - 1) * maxDailyPriceChange;
-        series2 += (random() * 2 - 1) * maxDailyPriceChange;
-
-        const timestamp = new Date(2024, 0, 1, -i);
-
-        return { timestamp, series1, series2 };
-    }).reverse();
-}
-
-export function getBubbleData(days: number) {
-    const random = seedRandom();
-    return Array.from({ length: days }, () => {
         let x = random();
         let y = random();
         x *= random();
         y *= random();
         const size = random();
 
-        return { x, y, size };
+        return { timestamp, open, close, high, low, x, y, size };
     });
 }

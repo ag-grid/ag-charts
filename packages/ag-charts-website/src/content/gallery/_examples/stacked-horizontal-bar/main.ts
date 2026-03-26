@@ -1,7 +1,18 @@
-import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgBarSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const data: any[] = getData();
 
 const options: AgChartOptions<DataType> = {
@@ -94,10 +105,9 @@ const options: AgChartOptions<DataType> = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             interval: { values: [2013, 2018, 2023] },
             title: {
                 text: 'Season',
@@ -112,9 +122,8 @@ const options: AgChartOptions<DataType> = {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             min: -40,
             max: 60,
@@ -148,7 +157,7 @@ const options: AgChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         mode: 'shared',
         position: {

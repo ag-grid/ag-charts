@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BoxPlotSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -68,10 +78,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.7,
             bandHighlight: {
                 enabled: true,
@@ -83,9 +92,8 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Number of Arrivals',
             },
@@ -113,7 +121,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

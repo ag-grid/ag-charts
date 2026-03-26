@@ -1,24 +1,23 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { attachListener, setAttributes } from 'ag-charts-core';
-import type { FontOptions, TextAlign } from 'ag-charts-types';
+import { CleanupRegistry, type Point, attachListener, ceilTo, focusCursorAtEnd, setAttributes } from 'ag-charts-core';
+import type { TextAlign, TextOptions } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
 import textInputTemplate from './textInputTemplate.html';
-
-const { focusCursorAtEnd } = _ModuleSupport;
 
 const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: (height: number) => _ModuleSupport.Vec2;
+    getTextInputCoords: (height: number) => Point;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
     width?: number;
 }
 
-export class TextInput extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class TextInput {
+    private readonly cleanup = new CleanupRegistry();
     private readonly element: HTMLElement;
     private layout: Layout = {
         getTextInputCoords: () => ({ x: 0, y: 0 }),
@@ -28,9 +27,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
     };
     private visible = false;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
-        super();
-
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 
@@ -45,7 +42,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         anchor?: { x: number; y: number };
         text?: string;
         placeholderText?: string;
-        styles?: FontOptions & { placeholderColor?: string };
+        styles?: TextOptions & { placeholderColor?: string };
         layout?: Layout;
         onChange?: (text: string, bbox: _ModuleSupport.BBox) => void;
         onClose?: (text: string) => void;
@@ -57,14 +54,6 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             role: 'textbox', // AG-15233
             'data-preventdefault': false, // AG-13715
         });
-
-        // FireFox does not yet support `contenteditable="plaintext-only", so it defaults to false and has to be
-        // added back on to the element as the normal richtext version. The plaintext version is preferred as
-        // it handles newlines better without requiring any custom text processing.
-        // @see https://bugzilla.mozilla.org/show_bug.cgi?id=1291467
-        if (!textArea.isContentEditable) {
-            textArea.contentEditable = 'true';
-        }
 
         textArea.setAttribute(
             'placeholder',
@@ -93,6 +82,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
 
         textArea.addEventListener('click', (event) => {
+            // eslint-disable-next-line no-restricted-properties
             event.stopPropagation();
         });
 
@@ -176,6 +166,12 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
-        return new _ModuleSupport.BBox(left, top, width, height);
+        // Ceil the width to 2dp to fix floating point issues with dropping last character onto next line after
+        // converting text to canvas.
+        return new _ModuleSupport.BBox(left, top, ceilTo(width, 2), height);
+    }
+
+    public destroy() {
+        this.cleanup.flush();
     }
 }

@@ -1,10 +1,6 @@
-import { createElement } from 'ag-charts-core';
+import { AbstractModuleInstance, type Point, createElement, getLastFocus } from 'ag-charts-core';
 
-import type { ModuleInstance } from '../../module/baseModule';
-import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
-import { getLastFocus } from '../../util/keynavUtil';
-import type { Vec2 } from '../../util/vector';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
@@ -19,6 +15,7 @@ export interface PopoverOptions {
     ariaLabel?: string;
     class?: string;
     initialFocus?: HTMLElement;
+    minWidth?: number;
     sourceEvent?: Event;
     onHide?: () => void;
 }
@@ -26,10 +23,7 @@ export interface PopoverOptions {
 /**
  * A non-modal element that overlays the chart.
  */
-export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
-    extends BaseModuleInstance
-    implements ModuleInstance
-{
+export abstract class Popover<Options extends PopoverOptions = PopoverOptions> extends AbstractModuleInstance {
     protected readonly hideFns: Array<() => void> = [];
 
     private readonly moduleId: string;
@@ -75,7 +69,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         // Ensure no side-effects in `onHide()` listeners are caused by modules eagerly hiding the popover when it is
         // already hidden.
         if (this.element.children.length === 0) return;
-        this.hideFns.forEach((fn) => fn());
+        for (const fn of this.hideFns) {
+            fn();
+        }
 
         lastFocus?.focus();
         this.lastFocus = undefined;
@@ -100,6 +96,10 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
             popover.classList.add(options.class);
         }
 
+        if (options.minWidth != null) {
+            popover.style.minWidth = `${options.minWidth}px`;
+        }
+
         this.element.replaceChildren(popover);
         return popover;
     }
@@ -108,11 +108,16 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         this.setOwnedWidget(owns);
         this.initPopoverElement(owns.getElement(), options);
         owns.addListener('collapse-widget', () => {
+            this.hide();
             controller.setControlled(undefined);
             this.setOwnedWidget(undefined);
         });
         controller.setControlled(owns);
         controller.expandControlled();
+
+        if (options.onHide) {
+            this.hideFns.push(options.onHide);
+        }
     }
 
     protected showWithChildren(children: Array<HTMLElement>, options: Options) {
@@ -139,14 +144,14 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: Partial<Vec2>) {
+    protected updatePosition(position: Partial<Point>) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
         popover.style.setProperty('right', 'unset');
         popover.style.setProperty('bottom', 'unset');
-        if (position.x != null) popover.style.setProperty('left', `${Math.floor(position.x)}px`);
-        if (position.y != null) popover.style.setProperty('top', `${Math.floor(position.y)}px`);
+        if (position.x != null) popover.style.setProperty('left', `${position.x}px`);
+        if (position.y != null) popover.style.setProperty('top', `${position.y}px`);
 
         // AG-13167 Deferred focus() call after position have been initialised
         this.initialFocus?.focus();

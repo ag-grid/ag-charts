@@ -1,11 +1,12 @@
-import { AgCharts, AgFinancialChartOptions } from 'ag-charts-enterprise';
+import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([FinancialChartModule]);
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-
     navigator: false, // disabled by default!
     toolbar: true,
     rangeButtons: true,

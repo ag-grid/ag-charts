@@ -23,9 +23,11 @@ For an initial load, this is simply the duration of the whole animation.
 
 For a data update, the duration is the total time of all three animation phases together — remove, update then add.
 
-```ts
-animation: {
-    duration: 500,
+```js format="snippet"
+{
+    animation: {
+        duration: 500,
+    },
 }
 ```
 
@@ -33,12 +35,8 @@ In this example, click a duration then change the series type to see the initial
 
 {% chartExampleRunner title="Duration" name="duration" type="generated" /%}
 
+To highlight data changes with a flash effect, see [Flash On Update](./flash-on-update/).
+
 ## API Reference
 
-{% tabs %}
-
-{% tabItem id="AgAnimationOptions" label="Animation" %}
 {% apiReference id="AgAnimationOptions" /%}
-{% /tabItem %}
-
-{% /tabs %}

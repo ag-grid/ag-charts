@@ -1,4 +1,5 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import type { AgActiveItemState } from 'ag-charts-community';
 import { type Point, clamp, iterate } from 'ag-charts-core';
 
 type SceneNode = _ModuleSupport.Node;
@@ -14,6 +15,7 @@ type GaugeSeries = {
         nodeData: SeriesNodeDatum[];
         targetData: SeriesNodeDatum[];
     };
+    data?: { dataIdKey?: string };
     datumUnion: SelectionLike;
     targetSelection: SelectionLike;
     pickNodeNearestDistantObject(point: Point, items: Iterable<SceneNode>): SeriesNodePickMatch | undefined;
@@ -44,4 +46,12 @@ export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFo
             return { bounds, clipFocusBox: true, datum, datumIndex, otherIndex };
         }
     }
+}
+
+export function findGaugeNodeDatum(self: GaugeSeries, itemId: AgActiveItemState['itemId']) {
+    const dataIdKey = self.data?.dataIdKey;
+    return (
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.nodeData, dataIdKey) ??
+        _ModuleSupport.findNodeDatumInArray(itemId, self.contextNodeData?.targetData, dataIdKey)
+    );
 }

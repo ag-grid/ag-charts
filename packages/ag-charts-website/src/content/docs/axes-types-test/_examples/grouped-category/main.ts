@@ -8,10 +8,9 @@ const options: AgCartesianChartOptions = {
         text: 'Total Winnings by Country & Game',
     },
     data: getData(),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             title: {
                 text: 'Axis title',
             },
@@ -19,14 +18,13 @@ const options: AgCartesianChartOptions = {
                 stroke: 'blue',
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Axis title',
             },
         },
-    ],
+    },
     series: [
         {
             xKey: 'grouping',

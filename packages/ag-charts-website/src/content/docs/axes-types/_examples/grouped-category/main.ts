@@ -1,24 +1,21 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, GroupedCategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, GroupedCategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Olympic Medal Counts by Region, Country, and City',
     },
     data: getData(),
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             depthOptions: [{}, { label: { fontWeight: 'bold' } }, { label: { fontSize: 10 } }],
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    },
     series: [
         {
             type: 'bar',

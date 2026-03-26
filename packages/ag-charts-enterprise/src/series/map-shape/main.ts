@@ -1,1 +1,0 @@
-export { MapShapeModule } from './mapShapeModule';

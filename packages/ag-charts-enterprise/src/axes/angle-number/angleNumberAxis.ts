@@ -1,12 +1,18 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import type { DomainWithMetadata } from 'ag-charts-core';
+import {
+    Property,
+    type ScaleTickParams,
+    angleBetween,
+    findMinMax,
+    isNumberEqual,
+    normalisedExtentWithMetadata,
+} from 'ag-charts-core';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
-
-const { Property, angleBetween, normalisedExtentWithMetadata, findMinMax } = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
@@ -21,6 +27,12 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     max?: number;
 
     @Property
+    preferredMin?: number;
+
+    @Property
+    preferredMax?: number;
+
+    @Property
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -32,11 +44,23 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         return min != null && max != null && min < max;
     }
 
-    override normaliseDataDomain(d: number[]) {
-        const { min, max } = this;
-        const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
+    override normaliseDataDomain(d: DomainWithMetadata<number>) {
+        const { min, max, preferredMin, preferredMax } = this;
+        const { extent, clipped } = normalisedExtentWithMetadata(
+            d.domain,
+            min,
+            max,
+            preferredMin,
+            preferredMax,
+            undefined,
+            d.sortMetadata?.sortOrder
+        );
 
         return { domain: extent, clipped };
+    }
+
+    override getDomainExtentsNice(): [boolean, boolean] {
+        return [this.min == null && this.nice, this.max == null && this.nice];
     }
 
     override updateScale(): void {
@@ -66,8 +90,8 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             const maxTickCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
             const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
             const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
-            const tickParams: _ModuleSupport.ScaleTickParams<number> = {
-                nice,
+            const tickParams: ScaleTickParams<number> = {
+                nice: [nice, nice],
                 interval: step,
                 tickCount,
                 minTickCount,
@@ -118,22 +142,22 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
                 }
             }
             if (!collisionDetected) {
-                labelData.forEach((datum, i) => {
+                for (const [i, datum] of labelData.entries()) {
                     if (i % step > 0) {
                         datum.hidden = true;
                         datum.box = undefined;
                     }
-                });
+                }
                 return;
             }
         }
 
-        labelData.forEach((datum, i) => {
+        for (const [i, datum] of labelData.entries()) {
             if (i > 0) {
                 datum.hidden = true;
                 datum.box = undefined;
             }
-        });
+        }
     }
 
     override tickFormatParams(
@@ -141,7 +165,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         _ticks: number[],
         fractionDigits?: number
     ): _ModuleSupport.AxisTickFormatParams {
-        return { type: 'number', fractionDigits };
+        return { type: 'number', visibleDomain: undefined, fractionDigits };
     }
 
     override datumFormatParams(
@@ -162,6 +186,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
             domain,
             boundSeries,
             fractionDigits,
+            visibleDomain: undefined,
         };
     }
 }

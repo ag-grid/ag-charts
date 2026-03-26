@@ -116,18 +116,13 @@ export function tsCollect(tsTree, tsBindings, collectors, recurse = true) {
                 let res = false;
                 try {
                     res = c.matches(node);
-                } catch (error) {
+                } catch {
                     return false;
                 }
                 return res;
             })
             .forEach((c) => {
-                try {
-                    c.apply(tsBindings, node);
-                } catch (error) {
-                    // eslint-disable-next-line no-console
-                    console.error(error);
-                }
+                c.apply(tsBindings, node);
             });
         if (recurse) {
             tsCollect(node, tsBindings, collectors, recurse);
@@ -627,8 +622,6 @@ export function addBindingImports(
     const workingImports: Record<string, { namedImport: string; imports: string[] }> = {};
     const namespacedImports = [];
 
-    const chartsEnterprise = bindingImports.some((i) => i.module.includes('ag-charts-enterprise'));
-
     bindingImports.forEach((i: BindingImport) => {
         const path = convertImportPath(i.module, convertToPackage);
         if (!i.module.includes('_typescript') || !ignoreTsImports) {
@@ -679,10 +672,6 @@ export function addBindingImports(
     });
     if (hasEnterpriseModules && convertToPackage) {
         imports.push(`import 'ag-grid-enterprise';`);
-    }
-
-    if (chartsEnterprise) {
-        imports.push(`import 'ag-charts-enterprise';`);
     }
 }
 

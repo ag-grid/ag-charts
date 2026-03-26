@@ -1,14 +1,14 @@
-import { Locator } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+
+import type { AgInitialFocus } from 'ag-charts-types';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('keyboard-nav', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
-    const testUrls = toExamplePageUrls('accessibility', 'keyboard-navigation');
-
-    for (const { framework, url } of testUrls) {
+    for (const { framework, url } of toExamplePageUrls('accessibility', 'keyboard-navigation')) {
         test.describe(`for ${framework}`, () => {
             test('basic keyboard navigation', async ({ page }) => {
                 await gotoExample(page, url);
@@ -51,6 +51,50 @@ test.describe('keyboard-nav', () => {
             });
         });
     }
+
+    test('Home/End keys', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        await page.locator('input').first().click();
+        await page.keyboard.press('Tab');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+
+        await page.keyboard.press('End');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('last-datum-focus.png');
+
+        await page.keyboard.press('Home');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('1st-datum-focus.png');
+    });
+
+    test('Home/End keys (with viewport support)', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('large-dataset-interactivity', 'ordered-data', 'vanilla').url);
+
+        await page.mouse.click(400, 300);
+        await page.keyboard.press('ArrowLeft');
+        await repeat(20, async () => await page.keyboard.down('+'));
+
+        await page.keyboard.press('End');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-end-focus.png');
+
+        await page.keyboard.press('Home');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('large-dataset-home-focus.png');
+    });
+
+    test('keyboard nav ignores highlight-disabled series', async ({ page }) => {
+        await gotoExample(
+            page,
+            toExamplePageUrl('accessibility-test', 'keyboard-navigation-highlight-disabled-series', 'vanilla').url
+        );
+
+        const canvasCenter = page.locator(SELECTORS.canvasCenter);
+        await page.locator('input').first().click();
+
+        await page.keyboard.press('Tab');
+        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-focus.png');
+
+        await page.keyboard.press('ArrowDown');
+        await expect(canvasCenter).toHaveScreenshot('highlight-disabled-series-other-series-focus.png');
+    });
 
     test('AG-13051 kbm hover combo', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
@@ -122,15 +166,15 @@ test.describe('keyboard-nav', () => {
         await gotoExample(page, toExamplePageUrl('accessibility-test', 'AG-13668-panToBBox', 'vanilla').url);
         await page.mouse.click(400, 300, { button: 'left' });
 
-        repeat(5, async () => await page.keyboard.press('+'));
+        await repeat(5, async () => await page.keyboard.press('+'));
         await page.keyboard.press('ArrowLeft');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-0-focused.png');
 
-        repeat(4, async () => await page.keyboard.press('ArrowRight'));
+        await repeat(4, async () => await page.keyboard.press('ArrowRight'));
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-4-focused.png');
 
         await page.keyboard.press('ArrowRight');
-        repeat(3, async () => await page.keyboard.press('ArrowLeft'));
+        await repeat(3, async () => await page.keyboard.press('ArrowLeft'));
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
     });
 
@@ -476,5 +520,151 @@ test.describe('keyboard-nav', () => {
         await page.getByText('Next Legend Page').first().click();
         await expect(page.getByText('Previous Legend Page')).toHaveAttribute('aria-disabled', 'false');
         await expect(page.getByText('Next Legend Page')).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    test('CRT-969 short aria labels', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('background-image', 'background-image', 'vanilla').url);
+
+        const elems = page.locator('.ag-charts-series-area [id]');
+        await expect(elems).toHaveCount(2);
+        const label1 = elems.nth(0);
+        const label2 = elems.nth(1);
+
+        await page.mouse.click(400, 300);
+        await expect(label1).toHaveText('56.9');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('22.5');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label1).toHaveText('6.8');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('8.5');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label1).toHaveText('2.6');
+
+        await page.keyboard.press('ArrowRight');
+        await expect(label2).toHaveText('1.9');
+    });
+
+    test.describe('AG-16523 activatesFocusIndicator:false should not remove focus indicator', () => {
+        /**
+         * activatesFocusIndicator:false means that...
+         *
+         * (1)  ...if the focus is currently hidden, then this keyboard-action will not summon the focus indicator.
+         * (2)  It does not mean that is should hide a focus indicator that is already.
+         *
+         * We are testing (2), with the "Zoom-In" and "Undo" actions.
+         *
+         * Related ticket: AG-13041
+         */
+        test.beforeEach(async ({ page }) => {
+            const { url } = toExamplePageUrl('accessibility-test', 'activatesFocusIndicator-false', 'vanilla');
+            await gotoExample(page, url);
+
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Tab');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+
+            // Click chart:
+            // (clear focus-indicator, because we entered "pointer-mode")
+            await page.mouse.click(400, 300);
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-hidden.png');
+
+            // Blur the chart:
+            await page.keyboard.press('Tab');
+            await expect(page).toHaveScreenshot('AG-16523-blurred.png');
+        });
+
+        test('zoom-in', async ({ page }) => {
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Shift+Tab');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+
+            // Adjust zoom:
+            // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
+            await page.keyboard.press('+');
+            await expect(page).toHaveScreenshot('AG-16523-zoomed-focus-visible.png');
+        });
+
+        test('undo', async ({ page }) => {
+            // Delete the annotations:
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('ArrowDown');
+            await page.keyboard.press('Space');
+
+            // Focus on chart series-area:
+            // (focus-indicator MUST be show, because focus was triggered by keyboard)
+            await page.keyboard.press('Shift+Tab');
+            await expect(page).toHaveScreenshot('AG-16523-deleted-focus-visible.png');
+
+            // Undo zoom:
+            // (focus-indicator MUST be shown, because we're still in "keyboard-mode")
+            await page.keyboard.press('ControlOrMeta+z');
+            await expect(page).toHaveScreenshot('AG-16523-init-focus-visible.png');
+        });
+    });
+
+    test('CRT-1047 legend focus indicator updates when font family changes', async ({ page }) => {
+        await gotoExample(
+            page,
+            toExamplePageUrl('accessibility-test', 'keyboard-navigation-change-font-family', 'vanilla').url
+        );
+
+        // Tab through to the legend
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+
+        // Move to the 2nd legend item
+        await page.keyboard.press('ArrowRight');
+
+        // Change the font
+        await page.getByTestId('changeFontFamily').click();
+
+        // Tab through to the legend
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Tab');
+
+        // Should already be on the 2nd legend item
+
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('CRT-1047-after-change-font.png');
+    });
+
+    test.describe('initial-focus', () => {
+        async function selectOption(page: Page, initialFocus: AgInitialFocus): Promise<void> {
+            await page.selectOption('#myInitialFocus', initialFocus);
+            await page.locator('#above-chart').focus();
+            await page.keyboard.press('Tab');
+        }
+
+        test.beforeEach(async ({ page }) => {
+            await gotoExample(page, toExamplePageUrl('accessibility-test', 'initial-focus', 'vanilla').url);
+        });
+
+        test('data-start', async ({ page }) => {
+            await selectOption(page, 'data-start');
+            await expect(page).toHaveScreenshot('initial-focus-data-start.png');
+        });
+
+        test('data-end', async ({ page }) => {
+            await selectOption(page, 'data-end');
+            await expect(page).toHaveScreenshot('initial-focus-data-end.png');
+        });
+
+        test('viewport-start', async ({ page }) => {
+            await selectOption(page, 'viewport-start');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+        });
+
+        test('viewport-end', async ({ page }) => {
+            await selectOption(page, 'viewport-end');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-end.png');
+        });
     });
 });

@@ -75,7 +75,7 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                testee.removeChild(child);
+                child.remove();
                 expect(testee.getBBox()).not.toBe(result);
             });
 

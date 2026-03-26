@@ -1,0 +1,1 @@
+../../external/prompts/commands/product-requirement-analysis.md

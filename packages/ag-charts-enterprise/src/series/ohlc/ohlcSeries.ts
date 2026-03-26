@@ -1,14 +1,20 @@
 import { type AgOhlcSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcNode } from './ohlcNode';
-import { OhlcSeriesBase } from './ohlcSeriesBase';
-import type { OhlcNodeDatum } from './ohlcSeriesBase';
+import { type OhlcNodeDatum, OhlcSeriesBase, type OhlcSeriesBaseTypes } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-const { applyShapeStyle } = _ModuleSupport;
+/**
+ * Consolidated type interface for OhlcSeries.
+ */
+interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
+    readonly node: OhlcNode;
+    readonly options: AgOhlcSeriesOptions;
+    readonly properties: OhlcSeriesProperties;
+}
 
-export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, OhlcSeriesProperties> {
-    static readonly className = 'ohlc';
+export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
+    static override readonly className = 'ohlc';
     static readonly type = 'ohlc' as const;
 
     override properties = new OhlcSeriesProperties();
@@ -23,11 +29,15 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcNode>;
+=======
+        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
+>>>>>>> latest
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
-            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemId);
+            datum.style = this.getItemStyle(datum.datumIndex, isHighlight, undefined, datum.itemType);
         });
     }
 
@@ -35,33 +45,36 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
         datumSelection,
         isHighlight,
     }: {
+<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcNode>;
+=======
+        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
+>>>>>>> latest
         isHighlight: boolean;
     }) {
-        const { contextNodeData } = this;
+        const { contextNodeData, properties } = this;
         if (!contextNodeData) {
             return;
         }
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const { up, down } = properties.item;
 
-        datumSelection.each((node, datum) => {
+        const series = this;
+        datumSelection.each(function updateOhlcNode(node, datum) {
             const { centerX, width, y, height, yOpen, yClose, crisp } = datum;
+            const baseStyle = datum.isRising ? up : down;
 
-            node.centerX = centerX;
-            node.width = width;
-            node.y = y;
-            node.height = height;
-            node.yOpen = yOpen;
-            node.yClose = yClose;
-            node.crisp = crisp;
+            node.setStaticProperties(centerX, width, y, height, yOpen, yClose, crisp);
 
             const style =
                 datum.style ??
-                contextNodeData.styles[datum.itemId][
-                    this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
+                contextNodeData.styles[datum.itemType][
+                    series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)
                 ];
 
-            applyShapeStyle(node, style);
+            node.setStyleProperties(style);
+
+            node.strokeAlignment = baseStyle.strokeWidth;
         });
     }
 
@@ -80,7 +93,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, AgOhlcSeriesOptions, Oh
             legendItemName,
         } = this.properties;
 
-        if (!data?.length || !xKey || legendType !== 'category') {
+        if (!data?.data.length || !xKey || legendType !== 'category') {
             return [];
         }
 

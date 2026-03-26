@@ -1,18 +1,23 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer } from 'ag-charts-core';
-import type { AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
+import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
+import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
+import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
+import { LonLatBBox } from '../map-util/lonLatBbox';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { TopologySeries } from '../map-util/topologySeries';
+import type { ITopology } from '../map-util/topologyTypes';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const {
     getMissCount,
     getLabelStyles,
+    buildGradientLegendDatum,
+    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
@@ -21,29 +26,38 @@ const {
     Selection,
     Text,
     Transformable,
-    mergeDefaults,
 } = _ModuleSupport;
 
 interface MapLineNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
-export class MapLineSeries extends TopologySeries<
-    MapLineNodeDatum,
-    AgMapLineSeriesOptions,
-    MapLineSeriesProperties,
-    MapLineNodeLabelDatum,
-    MapLineNodeDataContext
-> {
-    static readonly className = 'MapLineSeries';
+interface LineDataValues {
+    readonly idValue: string;
+    readonly colorValue: number | undefined;
+    readonly sizeValue: number | undefined;
+    readonly labelValue: string | undefined;
+}
+
+export class MapLineSeries
+    extends TopologySeries<
+        MapLineNodeDatum,
+        AgMapLineSeriesOptions,
+        MapLineSeriesProperties,
+        MapLineNodeLabelDatum,
+        MapLineNodeDataContext
+    >
+    implements ITopology
+{
+    static override readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 
     scale: _ModuleSupport.MercatorScale | undefined;
 
-    public topologyBounds: _ModuleSupport.LonLatBBox | undefined;
+    public topologyBounds: LonLatBBox | undefined;
 
     override properties = new MapLineSeriesProperties();
 
-    private _chartTopology?: _ModuleSupport.FeatureCollection = undefined;
+    private _chartTopology?: FeatureCollection = undefined;
 
     public override getNodeData(): MapLineNodeDatum[] | undefined {
         return this.contextNodeData?.nodeData;
@@ -63,13 +77,24 @@ export class MapLineSeries extends TopologySeries<
     public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
         this.nodeFactory()
     );
+<<<<<<< HEAD
     private labelSelection = Selection.select<_ModuleSupport.Text<_ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>>>(
         this.labelGroup,
         Text
     );
     private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.highlightGroup, () =>
         this.nodeFactory()
+=======
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
+        Selection.select(this.labelGroup, Text);
+    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
+>>>>>>> latest
     );
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
+        Selection.select(this.highlightLabelGroup, Text);
+    private placedLabelData: PlacedLabel<MapLineNodeLabelDatum>[] = [];
 
     public contextNodeData?: MapLineNodeDataContext;
 
@@ -130,12 +155,12 @@ export class MapLineSeries extends TopologySeries<
         const { data, topology, sizeScale, colorScale } = this;
         const { topologyIdKey, idKey, sizeKey, colorKey, labelKey, sizeDomain, colorRange } = this.properties;
 
-        const featureById = new Map<string, _ModuleSupport.Feature>();
-        topology?.features.forEach((feature) => {
+        const featureById = new Map<string, Feature>();
+        for (const feature of topology?.features.values() ?? []) {
             const property = feature.properties?.[topologyIdKey];
-            if (property == null || !containsType(feature.geometry, GeometryType.LineString)) return;
+            if (property == null || !containsType(feature.geometry, GeometryType.LineString)) continue;
             featureById.set(property, feature);
-        });
+        }
 
         const sizeScaleType = this.sizeScale.type;
         const colorScaleType = this.colorScale.type;
@@ -149,18 +174,14 @@ export class MapLineSeries extends TopologySeries<
                     includeProperty: false,
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
-                ...(labelKey != null ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(sizeKey != null ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
-                ...(colorKey != null ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(labelKey == null ? [] : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
+                ...(sizeKey == null ? [] : [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })]),
+                ...(colorKey == null ? [] : [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })]),
             ],
         });
 
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<Feature | undefined>(this, `featureValue`, processedData);
+        this.topologyBounds = featureValues.reduce<LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -172,11 +193,10 @@ export class MapLineSeries extends TopologySeries<
             sizeScale.domain = sizeDomain ?? processedSize;
         }
 
-        if (colorRange != null && this.isColorScaleValid()) {
+        if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            colorScale.domain = processedData.domain.values[colorKeyIdx];
-            colorScale.range = colorRange;
-            colorScale.update();
+            const domain = processedData.domain.values[colorKeyIdx];
+            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
         }
 
         if (topology == null) {
@@ -204,11 +224,13 @@ export class MapLineSeries extends TopologySeries<
 
     private getLabelDatum(
         datum: any,
+        datumIndex: number,
+        idValue: string | undefined,
         labelValue: string | undefined,
-        projectedGeometry: _ModuleSupport.Geometry | undefined,
+        projectedGeometry: Geometry | undefined,
         measurer: ITextMeasurer
     ): MapLineNodeLabelDatum | undefined {
-        if (labelValue == null || projectedGeometry == null) return;
+        if (labelValue == null || projectedGeometry == null || idValue == null) return;
 
         const lineString = largestLineString(projectedGeometry);
         if (lineString == null) return;
@@ -238,7 +260,7 @@ export class MapLineSeries extends TopologySeries<
         );
         if (labelText == null) return;
 
-        const labelSize = measurer.measureText(String(labelText));
+        const labelSize = measurer.measureLines(String(labelText));
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
@@ -250,76 +272,55 @@ export class MapLineSeries extends TopologySeries<
             label: { width, height, text: labelText },
             anchor: undefined,
             placement: undefined,
+            datumIndex,
+            idValue,
         };
     }
 
-    override createNodeData() {
-        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
-        const { idKey, sizeKey, colorKey, labelKey, label, legendItemName } = properties;
+    private resolveColumn<T>(
+        key: string | undefined,
+        columnId: string,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): T[] | undefined {
+        if (key == null || this.dataModel == null) return undefined;
+        return this.dataModel.resolveColumnById<T>(this, columnId, processedData);
+    }
 
-        if (dataModel == null || processedData == null) return;
+    private resolveLineDataColumns(processedData: _ModuleSupport.ProcessedData<any>) {
+        const { sizeKey, colorKey, labelKey } = this.properties;
 
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
-            this,
-            `featureValue`,
-            processedData
-        );
-        const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
-        const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        return {
+            idValues: this.dataModel!.resolveColumnById<string>(this, 'idValue', processedData),
+            featureValues: this.dataModel!.resolveColumnById<Feature | undefined>(this, 'featureValue', processedData),
+            labelValues: this.resolveColumn<string>(labelKey, 'labelValue', processedData),
+            sizeValues: this.resolveColumn<number>(sizeKey, 'sizeValue', processedData),
+            colorValues: this.resolveColumn<number>(colorKey, 'colorValue', processedData),
+        };
+    }
 
-        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
-        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
-        const measurer = cachedTextMeasurer(label);
+    private prepareProjectedLineGeometries(
+        idValues: string[],
+        featureValues: (Feature | undefined)[],
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): Map<string, Geometry> {
+        const projectedGeometries = new Map<string, Geometry>();
 
-        const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.dataSources.get(this.id)?.forEach((_datum, datumIndex) => {
-            const id: string | undefined = idValues[datumIndex];
-            const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
-            const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
+        for (const [datumIndex] of processedData.dataSources.get(this.id)?.data.entries() ?? []) {
+            const id = idValues[datumIndex];
+            const geometry = featureValues[datumIndex]?.geometry;
+            const projectedGeometry =
+                geometry != null && this.scale != null ? projectGeometry(geometry, this.scale) : undefined;
+
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
             }
-        });
+        }
 
-        const nodeData: MapLineNodeDatum[] = [];
-        const labelData: MapLineNodeLabelDatum[] = [];
-        const missingGeometries: string[] = [];
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
-            const idValue = idValues[datumIndex];
-            const colorValue = colorValues?.[datumIndex];
-            const sizeValue = sizeValues?.[datumIndex];
-            const labelValue = labelValues?.[datumIndex];
+        return projectedGeometries;
+    }
 
-            const projectedGeometry = projectedGeometries.get(idValue);
-            if (projectedGeometry == null) {
-                missingGeometries.push(idValue);
-            }
-
-            const labelDatum = this.getLabelDatum(datum, labelValue, projectedGeometry, measurer);
-            if (labelDatum != null) {
-                labelData.push(labelDatum);
-            }
-
-            nodeData.push({
-                series: this,
-                itemId: idKey,
-                datum,
-                datumIndex,
-                idValue,
-                labelValue,
-                colorValue,
-                sizeValue,
-                projectedGeometry,
-                legendItemName,
-                style: this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false),
-            });
-        });
+    private warnMissingGeometries(missingGeometries: string[]): void {
+        if (missingGeometries.length === 0) return;
 
         const missingGeometriesCap = 10;
         if (missingGeometries.length > missingGeometriesCap) {
@@ -327,9 +328,81 @@ export class MapLineSeries extends TopologySeries<
             missingGeometries.length = missingGeometriesCap;
             missingGeometries.push(`(+${excessItems} more)`);
         }
-        if (missingGeometries.length > 0) {
-            Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+
+        Logger.warnOnce(`some data items do not have matches in the provided topology`, missingGeometries);
+    }
+
+    override createNodeData() {
+        const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
+        const { label, legendItemName, colorKey } = properties;
+
+        if (dataModel == null || processedData == null) return;
+
+        if (!this.visible) {
+            return { itemId: seriesId, nodeData: [], labelData: [] };
         }
+
+        const columns = this.resolveLineDataColumns(processedData);
+
+        const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
+        sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
+        const measurer = cachedTextMeasurer(label);
+
+        const projectedGeometries = this.prepareProjectedLineGeometries(
+            columns.idValues,
+            columns.featureValues,
+            processedData
+        );
+
+        const nodeData: MapLineNodeDatum[] = [];
+        const labelData: MapLineNodeLabelDatum[] = [];
+        const missingGeometries: string[] = [];
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+
+        for (const [datumIndex, datum] of rawData.entries()) {
+            const dataValues: LineDataValues = {
+                idValue: columns.idValues[datumIndex],
+                colorValue: columns.colorValues?.[datumIndex],
+                sizeValue: columns.sizeValues?.[datumIndex],
+                labelValue: columns.labelValues?.[datumIndex],
+            };
+
+            const projectedGeometry = projectedGeometries.get(dataValues.idValue);
+            if (projectedGeometry == null) {
+                missingGeometries.push(dataValues.idValue);
+            }
+
+            if (colorKey != null && dataValues.colorValue == null) {
+                continue;
+            }
+
+            const labelDatum = this.getLabelDatum(
+                datum,
+                datumIndex,
+                dataValues.idValue,
+                dataValues.labelValue,
+                projectedGeometry,
+                measurer
+            );
+            if (labelDatum != null) {
+                labelData.push(labelDatum);
+            }
+
+            nodeData.push({
+                series: this,
+                datum,
+                datumIndex,
+                ...dataValues,
+                projectedGeometry,
+                legendItemName,
+                style: this.getItemStyle(
+                    { datumIndex, datum, colorValue: dataValues.colorValue, sizeValue: dataValues.sizeValue },
+                    false
+                ),
+            });
+        }
+
+        this.warnMissingGeometries(missingGeometries);
 
         return {
             itemId: seriesId,
@@ -352,34 +425,24 @@ export class MapLineSeries extends TopologySeries<
 
         this.contentGroup.visible = this.visible;
         this.labelGroup.visible = this.visible;
+        const drawingMode = this.ctx.chartService.highlight?.drawingMode ?? 'overlay';
 
-        let highlightedDatum: MapLineNodeDatum | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
-
-        const { legendItemName } = this.properties;
-        const matchingLegendItemName =
-            legendItemName != null &&
-            highlightedDatum?.datum == null &&
-            legendItemName === highlightedDatum?.legendItemName;
-
-        if (
-            highlightedDatum != null &&
-            ((highlightedDatum.series !== this && !matchingLegendItemName) || highlightedDatum.datum == null)
-        ) {
-            highlightedDatum = undefined;
-        }
-
+        const highlightedDatum = this.getHighlightedDatum();
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumStyles({ datumSelection, isHighlight: false });
-        this.updateDatumNodes({ datumSelection, isHighlight: false });
+        this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
-        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true, drawingMode });
+
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection(highlightedDatum);
     }
 
     private updateDatumSelection(opts: {
@@ -396,14 +459,16 @@ export class MapLineSeries extends TopologySeries<
         const { properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
-        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const style = mergeDefaults(highlightStyle, properties.getStyle());
+        const baseStyle = properties.getStyle();
 
-        if (!isHighlight && colorValue != null) {
-            style.stroke = this.isColorScaleValid()
+        if (colorValue != null) {
+            baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
         }
+
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const style = mergeDefaults(highlightStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
@@ -434,7 +499,6 @@ export class MapLineSeries extends TopologySeries<
         return {
             seriesId,
             datum,
-            highlighted: isHighlight,
             highlightState,
             ...style,
         };
@@ -454,9 +518,11 @@ export class MapLineSeries extends TopologySeries<
 
     private updateDatumNodes({
         datumSelection,
+        drawingMode,
     }: {
         datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { projectedGeometry, style } = nodeDatum;
@@ -470,26 +536,39 @@ export class MapLineSeries extends TopologySeries<
             geoGeometry.projectedGeometry = projectedGeometry;
 
             geoGeometry.setProperties(style);
+            geoGeometry.drawingMode = drawingMode;
         });
     }
 
-    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[]) {
+    public override updatePlacedLabelData(labelData: PlacedLabel<MapLineNodeLabelDatum>[]) {
+        this.placedLabelData = labelData;
         this.labelSelection = this.labelSelection.update(labelData, (text) => {
             text.pointerEvents = _ModuleSupport.PointerEvents.None;
         });
-        this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.updateLabelNodes({ labelSelection: this.labelSelection, isHighlight: false });
+        this.updateHighlightLabelSelection();
     }
 
+<<<<<<< HEAD
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>,
             _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
         >;
+=======
+    private updateLabelNodes({
+        isHighlight,
+        labelSelection,
+    }: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>>;
+        isHighlight: boolean;
+>>>>>>> latest
     }) {
         const { properties } = this;
-        const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, { x, y, width, height, text }, datumIndex) => {
-            const style = getLabelStyles(this, undefined, properties, properties.label, false, activeHighlight);
+        const activeHighlight = this.getHighlightedDatum();
+        labelSelection.each((label, placedLabel) => {
+            const { x, y, width, height, text, datum: labelDatum } = placedLabel;
+            const style = getLabelStyles(this, undefined, properties, properties.label, isHighlight, activeHighlight);
             const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = style;
             label.visible = true;
             label.x = x + width / 2;
@@ -502,9 +581,24 @@ export class MapLineSeries extends TopologySeries<
             label.fontFamily = fontFamily;
             label.textAlign = 'center';
             label.textBaseline = 'middle';
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            const datumIndex = labelDatum?.datumIndex;
+            label.fillOpacity = this.getHighlightStyle(isHighlight, datumIndex).opacity ?? 1;
             label.setBoxing(style);
         });
+    }
+
+    private updateHighlightLabelSelection(highlightedDatum: MapLineNodeDatum | undefined = this.getHighlightedDatum()) {
+        const highlightId = highlightedDatum?.idValue;
+        const highlightLabels =
+            highlightId == null || !this.isLabelEnabled()
+                ? []
+                : this.placedLabelData.filter((label) => label.datum.idValue === highlightId);
+
+        this.highlightLabelSelection = this.highlightLabelSelection.update(highlightLabels);
+        if (highlightLabels.length === 0) {
+            this.highlightLabelSelection.cleanup();
+        }
+        this.updateLabelNodes({ labelSelection: this.highlightLabelSelection, isHighlight: true });
     }
 
     resetAnimation() {
@@ -528,7 +622,7 @@ export class MapLineSeries extends TopologySeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private _previousDatumMidPoint:
@@ -541,9 +635,9 @@ export class MapLineSeries extends TopologySeries<
         }
 
         const projectedGeometry = (datum as MapLineNodeDatum).projectedGeometry;
-        const lineString = projectedGeometry != null ? largestLineString(projectedGeometry) : undefined;
-        const center = lineString != null ? lineStringCenter(lineString)?.point : undefined;
-        const point = center != null ? { x: center[0], y: center[1] } : undefined;
+        const lineString = projectedGeometry == null ? undefined : largestLineString(projectedGeometry);
+        const center = lineString == null ? undefined : lineStringCenter(lineString)?.point;
+        const point = center == null ? undefined : { x: center[0], y: center[1] };
 
         this._previousDatumMidPoint = { datum, point };
 
@@ -558,7 +652,9 @@ export class MapLineSeries extends TopologySeries<
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
-            stroke = this.colorScale.convert(colorValue);
+            if (colorValue != null) {
+                stroke = this.colorScale.convert(colorValue);
+            }
         }
 
         return {
@@ -573,6 +669,7 @@ export class MapLineSeries extends TopologySeries<
                 enabled: false,
             },
             line: {
+                enabled: true,
                 stroke,
                 strokeWidth,
                 strokeOpacity,
@@ -589,20 +686,20 @@ export class MapLineSeries extends TopologySeries<
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idKey, idName, colorKey, colorRange, showInLegend } = this.properties;
+        const {
+            title,
+            legendItemName,
+            idKey,
+            idName,
+            colorKey,
+            colorRange,
+            colorScale: colorScaleProps,
+            showInLegend,
+        } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
-            const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
-            const legendDatum: _ModuleSupport.GradientLegendDatum = {
-                legendType: 'gradient',
-                enabled: visible,
-                seriesId,
-                series: this.getFormatterContext('color'),
-                colorRange,
-                colorDomain,
-            };
-            return [legendDatum];
+        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
@@ -644,16 +741,20 @@ export class MapLineSeries extends TopologySeries<
         } = properties;
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const sizeValue =
-            sizeKey != null
-                ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]
-                : undefined;
+            sizeKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
@@ -674,7 +775,7 @@ export class MapLineSeries extends TopologySeries<
             data.push({ label: labelName, fallbackLabel: labelKey, value: content ?? labelValue });
         }
         if (sizeValue != null && sizeKey != null) {
-            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: sizeValue,
@@ -687,11 +788,12 @@ export class MapLineSeries extends TopologySeries<
                 domain,
                 boundSeries: this.getFormatterContext('size'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? String(sizeValue) });
         }
         if (colorValue != null && colorKey != null) {
-            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData);
+            const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;
             const content = formatManager.format(this.callWithContext.bind(this), {
                 type: 'number',
                 value: colorValue,
@@ -704,6 +806,7 @@ export class MapLineSeries extends TopologySeries<
                 domain,
                 boundSeries: this.getFormatterContext('color'),
                 fractionDigits: undefined,
+                visibleDomain: undefined,
             });
             data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
         }

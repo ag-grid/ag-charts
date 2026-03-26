@@ -79,4 +79,4 @@ const options: AgPolarChartOptions = {
   ],
 }
 
-const chart = AgCharts.create(options)
+AgCharts.create(options)

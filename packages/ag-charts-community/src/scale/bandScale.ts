@@ -1,8 +1,9 @@
+import type { ScaleAlignment } from 'ag-charts-core';
 import { Logger, clamp } from 'ag-charts-core';
 
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { ScaleAlignment } from './scale';
+import { unpackDomainMinMax } from './scaleUtil';
 
 /**
  * Maps a discrete domain to a continuous numeric range.
@@ -22,7 +23,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     @Invalidating
     round = false;
 
-    private _bandwidth: number = 1;
+    protected _bandwidth: number = 1;
     override get bandwidth(): number {
         this.refresh();
         return this._bandwidth;
@@ -34,13 +35,13 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return this._step;
     }
 
-    private _inset: number = 1;
+    protected _inset: number = 1;
     override get inset(): number {
         this.refresh();
         return this._inset;
     }
 
-    private _rawBandwidth: number = 1;
+    protected _rawBandwidth: number = 1;
     get rawBandwidth(): number {
         this.refresh();
         return this._rawBandwidth;
@@ -82,6 +83,11 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
 
     abstract readonly bands: readonly D[];
 
+    /** Override in subclass to provide band count without triggering full band materialization */
+    protected getBandCountForUpdate(): number {
+        return this.bands.length;
+    }
+
     protected refresh() {
         if (!this.invalid) return;
 
@@ -93,19 +99,23 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         }
     }
 
-    convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment }): number {
+    convert(d: D, options?: { clamp?: boolean; alignment?: ScaleAlignment; alignmentExclusive?: boolean }): number {
         this.refresh();
-        const i = this.findIndex(d, options?.alignment);
-        if (i == null || i < 0 || i >= this.bands.length) {
-            return NaN;
+        const i = this.findIndex(d, options?.alignment, options?.alignmentExclusive);
+        if (i == null || i < 0 || i >= this.getBandCountForUpdate()) {
+            return Number.NaN;
         }
         return this.ordinalRange(i);
+    }
+
+    override getDomainMinMax() {
+        return unpackDomainMinMax(this.domain);
     }
 
     protected invertNearestIndex(position: number) {
         this.refresh();
 
-        const bandCount = this.bands.length;
+        const bandCount = this.getBandCountForUpdate();
 
         if (bandCount === 0) return -1;
 
@@ -115,7 +125,7 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         let closestIndex = 0;
 
         while (low <= high) {
-            const mid = ((high + low) / 2) | 0;
+            const mid = Math.trunc((high + low) / 2);
             const p = this.ordinalRange(mid);
             const distance = Math.abs(p - position);
 
@@ -139,8 +149,8 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
     update() {
         const [r0, r1] = this.range;
         let { _paddingInner: paddingInner } = this;
-        const { _paddingOuter: paddingOuter, bands } = this;
-        const bandCount = bands.length;
+        const { _paddingOuter: paddingOuter } = this;
+        const bandCount = this.getBandCountForUpdate();
         if (bandCount === 0) return;
 
         const rangeDistance = r1 - r0;
@@ -178,5 +188,5 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         return clamp(min, inset + step * i, max);
     }
 
-    abstract findIndex(value: D, alignment?: ScaleAlignment): number | undefined;
+    abstract findIndex(value: D, alignment?: ScaleAlignment, alignmentExclusive?: boolean): number | undefined;
 }

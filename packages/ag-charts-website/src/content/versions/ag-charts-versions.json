@@ -1,5 +1,114 @@
 [
     {
+        "version": "13.2.0",
+        "date": "March 25th, 2026",
+        "highlights": [
+            {
+                "text": "Server Side Rendering",
+                "path": "./server-side-rendering/"
+            },
+            {
+                "text": "Range Buttons",
+                "path": "./range-controls/"
+            },
+            {
+                "text": "Flash On Update",
+                "path": "./flash-on-update/"
+            },
+            {
+                "text": "RTL Text and Layout",
+                "path": "./rtl/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-13-2"
+    },
+    {
+        "version": "13.1.0",
+        "date": "February 11th, 2026",
+        "highlights": [
+            {
+                "text": "Series Bar Width Customisation",
+                "path": "./bars/#fixed-width"
+            },
+            {
+                "text": "Actual vs Target Bars",
+                "path": "./bars/#actual-vs-target-bars"
+            },
+            {
+                "text": "Scrollbars",
+                "path": "./scrollbar"
+            },
+            {
+                "text": "Active Item State and Event",
+                "path": "./api-state/#active"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-13-1"
+    },
+    {
+        "version": "13.0.1",
+        "date": "January 22nd, 2026"
+    },
+    {
+        "version": "13.0.0",
+        "date": "December 10th, 2025",
+        "highlights": [
+            {
+                "text": "Bundle Size Reduction",
+                "path": "./module-registry"
+            },
+            {
+                "text": "High Frequency Data Updates",
+                "path": "./high-frequency-data"
+            },
+            {
+                "text": "Zoom On Data Change",
+                "path": "./zoom/#on-data-change"
+            },
+            {
+                "text": "Simplified Axis Configuration",
+                "path": "./axes-configuration/"
+            },
+            {
+                "text": "Improved Highlighting Defaults",
+                "path": "./series-highlighting"
+            },
+            {
+                "text": "Dynamic Context Menu Items",
+                "path": "./context-menu/#dynamic-items"
+            }
+        ],
+        "landingPageHighlight": "Reduced bundle size and optimised performance for high frequency data updates.",
+        "notesPath": "./upgrade-to-ag-charts-13"
+    },
+    {
+        "version": "12.3.1",
+        "date": "October 29th, 2025"
+    },
+    {
+        "version": "12.3.0",
+        "date": "October 22nd, 2025",
+        "highlights": [
+            {
+                "text": "Axes Crossing Point",
+                "path": "./axes-position/#axis-crossing-point"
+            },
+            {
+                "text": "Sankey Layout Options",
+                "path": "./sankey-series/#node-layout"
+            },
+            {
+                "text": "Difference Area Chart",
+                "path": "./range-area-series/#inverted-style"
+            },
+            {
+                "text": "Multi Style Labels",
+                "path": "./fonts/#label-formatters-with-multi-style-text"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-12-3"
+    },
+    {
         "version": "12.2.0",
         "date": "September 10th, 2025",
         "highlights": [

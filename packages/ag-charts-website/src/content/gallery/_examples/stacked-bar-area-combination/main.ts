@@ -1,7 +1,18 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AreaSeriesModule,
+    BarSeriesModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, BarSeriesModule, LegendModule, NumberAxisModule, UnitTimeAxisModule]);
 const data = getData();
 
 type ValueKey = keyof Omit<(typeof data)[number], 'year'>;
@@ -92,8 +103,8 @@ const options: AgCartesianChartOptions = {
             strokeWidth: 2,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
             position: 'right',
             label: {
@@ -106,9 +117,8 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             min: new Date(1974, 0, 0),
             max: new Date(2024, 12, 0),
             tick: {
@@ -119,7 +129,7 @@ const options: AgCartesianChartOptions = {
             },
             interval: { step: { unit: 'year', step: 4 } },
         },
-    ],
+    },
     legend: {
         position: 'top',
     },

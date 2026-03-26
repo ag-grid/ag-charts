@@ -5,9 +5,11 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { RequireOptional } from 'ag-charts-core';
+import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
 
 import {
     BaseFunnelSeries,
+    type BaseFunnelSeriesTypes,
     type Bounds,
     type FunnelAnimationData,
     type FunnelNodeDatum,
@@ -15,20 +17,20 @@ import {
 } from './baseFunnelSeries';
 import { FunnelProperties } from './funnelProperties';
 
-const {
-    ChartAxisDirection,
-    resetBarSelectionsFn,
-    prepareBarAnimationFunctions,
-    midpointStartingBarPosition,
-    createDatumId,
-    Rect,
-    motion,
-    applyShapeStyle,
-    mergeDefaults,
-} = _ModuleSupport;
+const { resetBarSelectionsFn, prepareBarAnimationFunctions, midpointStartingBarPosition, createDatumId, Rect, motion } =
+    _ModuleSupport;
 
-export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNodeDatum>, AgFunnelSeriesOptions> {
-    static readonly className = 'FunnelSeries';
+/**
+ * Consolidated type interface for FunnelSeries.
+ */
+interface FunnelSeriesTypes extends BaseFunnelSeriesTypes {
+    readonly node: _ModuleSupport.Rect<FunnelNodeDatum>;
+    readonly options: AgFunnelSeriesOptions;
+    readonly properties: FunnelProperties;
+}
+
+export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
+    static override readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
     override properties = new FunnelProperties();
@@ -76,7 +78,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         if (!label.enabled) return;
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
         const text = this.getLabelText<AgFunnelSeriesLabelFormatterParams>(
             yDatum,
             datum,
@@ -118,7 +120,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
                     return this.callWithContext(itemStyler, {
                         seriesId,
                         datum,
-                        highlighted: isHighlight,
                         highlightState: highlightStateString,
                         stageKey,
                         valueKey,
@@ -155,7 +156,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect<FunnelNod
 
         datumSelection.each((rect, datum) => {
             const style = this.getItemStyle(datum, isHighlight);
-            applyShapeStyle(rect, style, fillBBox);
+            rect.setStyleProperties(style, fillBBox);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
             rect.crisp = datum.crisp;

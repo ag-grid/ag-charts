@@ -1,25 +1,52 @@
 /**
- * Loops through an array of items right (starting from 0 till the middle item)
- * and left (starting from 0, continuing with the last item till the middle item).
- * Breaks if the iterator returns a truthy value.
- * @param items Array of items.
- * @param step Step to increment.
- * @param iterator Iterator function that accepts an item and the next item.
- * @returns `true` if the `iterator` returned `true`, or `false` if it never happened.
+ * Visit item pairs while walking away from index 0 in both directions around a circular list.
+ * The visitor receives `(previous, current)` pairs and may stop early by returning `true`.
+ *
+ * Order:
+ * - Forward: 0 -> step -> 2*step -> ... -> middle (inclusive)
+ * - Backward: 0 -> lastStep -> lastStep-step -> ... -> just above the middle
+ *
+ * @param items Items to walk.
+ * @param step Step size for each hop.
+ * @param visitPair Visitor called with `(previous, current)` pairs.
+ * @returns `true` if the visitor stopped the walk.
  */
-export function loopSymmetrically<T>(items: T[], step: number, iterator: (prev: T, next: T) => any) {
-    const loop = (start: number, end: number, loopStep: number, loopIterator: (prev: T, next: T) => any) => {
-        let prev = items[0];
-        for (let i = start; loopStep > 0 ? i <= end : i > end; i += loopStep) {
-            const curr = items[i];
-            if (loopIterator(prev, curr)) return true;
-            prev = curr;
+export function walkPairsOutward<T>(
+    items: T[],
+    step: number,
+    visitPair: (previous: T, current: T) => boolean | void
+): boolean {
+    const middleIndex = Math.floor(items.length / 2);
+    return (
+        walkPairsByStep(items, step, middleIndex, step, visitPair) ||
+        walkPairsByStep(items, items.length - step, middleIndex, -step, visitPair)
+    );
+}
+
+/**
+ * Visit `(previous, current)` pairs by stepping through a single range.
+ *
+ * @param items Items to walk.
+ * @param startIndex First index to visit.
+ * @param endIndex End boundary (inclusive for positive steps).
+ * @param step Step size for each hop.
+ * @param visitPair Visitor called with `(previous, current)` pairs.
+ * @returns `true` if the visitor stopped the walk.
+ */
+function walkPairsByStep<T>(
+    items: T[],
+    startIndex: number,
+    endIndex: number,
+    step: number,
+    visitPair: (previous: T, current: T) => boolean | void
+): boolean {
+    let previous = items[0];
+    for (let i = startIndex; step > 0 ? i <= endIndex : i > endIndex; i += step) {
+        const current = items[i];
+        if (visitPair(previous, current)) {
+            return true;
         }
-        return false;
-    };
-
-    const midIndex = Math.floor(items.length / 2);
-
-    if (loop(step, midIndex, step, iterator)) return true;
-    return loop(items.length - step, midIndex, -step, iterator);
+        previous = current;
+    }
+    return false;
 }

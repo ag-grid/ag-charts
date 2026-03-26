@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts, AgTreemapSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AgTreemapSeriesOptions,
+    ContextMenuModule,
+    ModuleRegistry,
+    TreemapSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([TreemapSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,

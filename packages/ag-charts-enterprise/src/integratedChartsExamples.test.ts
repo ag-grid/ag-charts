@@ -43,8 +43,8 @@ describe('Integrated Charts Examples', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             index++;
 
-            it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const startingOptions: AgChartOptions = EXAMPLES[Object.keys(EXAMPLES)[index - 1]]?.options ?? {};
+            it(`from ${Object.keys(EXAMPLES).at(index - 2)} to ${exampleName} it should render to canvas as expected`, async () => {
+                const startingOptions: AgChartOptions = EXAMPLES[Object.keys(EXAMPLES).at(index - 2)!]?.options ?? {};
                 prepareEnterpriseTestOptions(startingOptions);
 
                 const options: AgChartOptions = { ...example.options };
@@ -69,7 +69,7 @@ describe('Integrated Charts Examples', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            for (const _ of [0, 1]) {
+            for (let i = 0; i < 2; i++) {
                 for (const example of examples) {
                     const updatedOptions = prepareEnterpriseTestOptions({ ...example.options });
                     await chart.update(updatedOptions);

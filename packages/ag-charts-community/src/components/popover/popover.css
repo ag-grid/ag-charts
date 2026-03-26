@@ -1,7 +1,9 @@
 .ag-charts-popover {
     position: absolute;
-    border: var(--ag-charts-border);
+    border-color: var(--ag-charts-border-color);
     border-radius: var(--ag-charts-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-border-width);
     background: var(--ag-charts-panel-background-color);
     color: var(--ag-charts-chrome-text-color);
     font-family: var(--ag-charts-chrome-font-family);

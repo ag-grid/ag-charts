@@ -1,0 +1,46 @@
+.container {
+    display: flex;
+    height: 100vh; /* full viewport height */
+}
+
+.example-controls {
+    flex-direction: column;
+    display: flex;
+    padding: 10px;
+    border-right: 1px solid #ccc;
+    max-height: 100vh;
+}
+
+#myChart {
+    flex: 1;
+    padding: 10px;
+}
+
+.data-table-container {
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.data-table {
+    border-collapse: collapse;
+    table-layout: auto;
+    width: fit-content;
+}
+
+.data-table thead th {
+    background: #eee;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+    box-sizing: border-box;
+}
+input[type='number'] {
+    width: 80px;
+}

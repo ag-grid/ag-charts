@@ -1,6 +1,7 @@
 // Source: https://en.wikipedia.org/wiki/List_of_busiest_passenger_flight_routes
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ChordSeriesModule, ContextMenuModule, ModuleRegistry } from 'ag-charts-enterprise';
 
+ModuleRegistry.registerModules([ChordSeriesModule]);
 const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
 
 const options: AgChartOptions = {
@@ -24,7 +25,6 @@ const options: AgChartOptions = {
         { from: 'LAX', to: 'LHR', passengers: 1645002 },
     ],
     tooltip: {
-        enabled: true,
         position: {
             anchorTo: 'pointer',
             placement: ['right', 'left', 'top', 'bottom'],
@@ -50,7 +50,7 @@ const options: AgChartOptions = {
                     const value = Number(datum[sizeKey!]);
                     const maxValue = 7566000;
                     const minValue = 1645002;
-                    const numberValue = !isNaN(value) ? value : 0;
+                    const numberValue = !Number.isNaN(value) ? value : 0;
                     const opacity = 0.5 + 0.6 * ((numberValue - minValue) / (maxValue - minValue));
                     return {
                         fillOpacity: opacity,
@@ -68,7 +68,6 @@ const options: AgChartOptions = {
                     return {
                         data: [
                             { label: 'Route', value: `${datum.from} → ${datum.to}` },
-                            passengers,
                             { label: 'Traffic', value: `${(size / 1e6).toFixed(2)}M passengers/year` },
                         ],
                     };

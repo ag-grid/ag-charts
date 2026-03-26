@@ -1,14 +1,14 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartAutoSizedSecondaryLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
-import type { FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
-export type AgHeatmapSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgHeatmapSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgHeatmapSeriesOptionsKeys<TDatum> &
     Required<AgHeatmapSeriesStyle>;
@@ -39,7 +39,7 @@ export interface AgHeatmapSeriesThemeableOptions<TDatum = DatumDefault, TContext
     verticalAlign?: VerticalAlign;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
     title?: string;
-    /** Function used to return formatting for individual heatmap cells, based on the given parameters. If the current cell is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual heatmap cells, based on the given parameters.*/
     itemStyler?: Styler<AgHeatmapSeriesItemStylerParams<TDatum, TContext>, AgHeatmapSeriesStyle>;
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgHeatmapSeriesTooltipRendererParams<TDatum, TContext>>;
@@ -50,7 +50,7 @@ export interface AgHeatmapSeriesOptionsKeys<TDatum = DatumDefault> {
     xKey: DatumKey<TDatum>;
     /** The key to use to retrieve y-values from the data. */
     yKey: DatumKey<TDatum>;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` configs) will be used to determine the cell colour. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the cell colour. */
     colorKey?: DatumKey<TDatum>;
 }
 
@@ -65,11 +65,17 @@ export interface AgHeatmapSeriesOptionsNames {
 
 export interface AgHeatmapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgHeatmapSeriesOptionsKeys<TDatum>,
         AgHeatmapSeriesOptionsNames,
         AgHeatmapSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Heatmap Series. */
     type: 'heatmap';
-    /** The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'. */
+    /**
+     * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into. For example, if the colour domain is `[-5, 5]` and `colorRange` is `['red', 'green']`, a `colorKey` value of `-5` will be assigned the 'red' colour, `5` - 'green' colour and `0` a blend of 'red' and 'green'.
+     * @deprecated v13.3.0 Use `colorScale.fills` instead.
+     */
     colorRange?: string[];
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }

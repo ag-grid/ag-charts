@@ -39,11 +39,6 @@ function getImports(componentFileNames: string[], bindings): string[] {
         ...i,
         imports: i.imports.filter((imp) => imp !== 'AgCharts'),
     }));
-    const chartImport = getChartImports(chartImports, bindings.usesChartApi);
-
-    if (chartImport) {
-        imports.push(chartImport);
-    }
 
     if (chartImports.length > 0) {
         addBindingImports(chartImports, imports, false, true);
@@ -116,7 +111,7 @@ function getAllMethods(bindings: any, suppressOptionsClone: boolean): [string[],
         return body;
     });
 
-    const methodNames = bindings.externalEventHandlers.concat(bindings.instanceMethods).map((event) => event.name);
+    const methodNames = bindings.externalEventHandlers.map((event) => event.name);
 
     return [externalEventHandlers, instanceMethods, globalMethods, methodNames];
 }
@@ -143,7 +138,7 @@ export async function vanillaToVue3(
     // placeholders are for when a chart id is set - for example <div id="myChart"></div>
     if (placeholders.length <= 1) {
         const options = properties.find((p) => p.name === 'options');
-        const { propertyAssignments, propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
+        const { propertyVars, propertyAttributes, propertyNames } = getPropertyBindings(
             bindings,
             placeholders[0],
             options
@@ -249,6 +244,13 @@ export async function vanillaToVue3(
         mainFile = mainFile.replace(
             /this.\$refs.agCharts.chart.(\w*)\(options/g,
             'agCharts.value.chart.$1(options.value'
+        );
+        // Split multi-variable declarations containing 'chart' to avoid breaking syntax
+        mainFile = mainFile.replace(/\b(let|const|var)\s+chart\s*,\s*(\w+)/g, '$1 chart;\n    $1 $2');
+        // Replace `chart` references but not in variable declarations or strings
+        mainFile = mainFile.replace(
+            /(['"])(?:\\.|(?!\1).)*\1|\b(?<!\blet\s)(?<!\bconst\s)(?<!\bvar\s)(?<!\.)\bchart\b/g,
+            (match) => (match === 'chart' ? 'agCharts.value.chart' : match)
         );
     }
 

@@ -1,8 +1,8 @@
-import type { EventEmitter } from 'ag-charts-core';
+import type { ChartAxisDirection, EventEmitter } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
+import type { ModuleMap } from '../../module/moduleMap';
 import type { BBox } from '../../scene/bbox';
-import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { UpdateService } from '../updateService';
@@ -16,7 +16,6 @@ type GroupId = string | symbol;
 export type SyncAxisLike = {
     boundSeries: ISeries<any, any, any>[];
     direction: ChartAxisDirection;
-    keys: string[];
     reverse?: boolean;
     nice: boolean;
     min?: number;
@@ -31,7 +30,7 @@ export type SyncChartLike = {
     axes: SyncAxisLike[];
     series: ISeries<any, any, any>[];
     syncStatus: SyncStatus;
-    modulesManager: { getModule<R>(module: string): R | undefined };
+    modulesManager: ModuleMap;
     seriesAreaBoundingBox: BBox;
     tooltip: { enabled: boolean };
     ctx: {
@@ -47,6 +46,7 @@ export type SyncChartLike = {
         removeThisDatum: unknown,
         purpose: 'aria-label' | 'tooltip'
     ): TooltipContent[];
+    onSyncActiveClear(): void;
 };
 
 type ChartDomainState = {
@@ -62,7 +62,7 @@ export type SyncDerivedDomain = {
 export type SyncGroupState = {
     members: Set<SyncChartLike>;
     domains?: { [key in 'x' | 'y']?: SyncDerivedDomain };
-    domainsByKey?: { [key: string]: SyncDerivedDomain };
+    domainsById?: { [key: string]: SyncDerivedDomain };
     domainsByPosition?: { [key: string]: SyncDerivedDomain };
 };
 

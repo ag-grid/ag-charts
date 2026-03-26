@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -78,8 +97,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Billboard',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'top',
             paddingInner: 0.4,
@@ -102,9 +121,8 @@ const options: AgCartesianChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             interval: { values: [0] },
             label: {
                 enabled: false,
@@ -116,7 +134,7 @@ const options: AgCartesianChartOptions = {
                 enabled: false,
             },
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

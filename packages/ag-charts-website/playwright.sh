@@ -111,7 +111,7 @@ if [ "$1" == "--host" ] ; then
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
     ${EXTRA_DOCKER_ARGS} \
     --name ${container_name} \
-    mcr.microsoft.com/playwright:v1.45.0-jammy \
+    mcr.microsoft.com/playwright:v1.57.0-jammy \
     /bin/bash -l playwright.sh $@
 
   docker logs -f ${container_name} &

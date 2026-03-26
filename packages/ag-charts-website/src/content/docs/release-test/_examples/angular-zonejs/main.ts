@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 function checkAngularZone(handler: string) {
     if ((globalThis as any).Zone?.current?.name !== 'angular') {
@@ -67,10 +67,6 @@ const options: AgCartesianChartOptions = {
             checkAngularZone('doubleClick');
         },
     },
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
     legend: {
         listeners: {
             legendItemClick: () => {

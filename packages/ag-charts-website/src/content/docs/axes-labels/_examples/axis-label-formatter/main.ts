@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -15,22 +17,20 @@ const options: AgChartOptions<DataType> = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: {
                 formatter: ({ value }) => (value === 'Windows' ? '== Windows ==' : value),
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 formatter: ({ value }) => `${value * 100}%`,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

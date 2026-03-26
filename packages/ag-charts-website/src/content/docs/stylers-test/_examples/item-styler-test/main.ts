@@ -7,6 +7,7 @@ import {
     AgHierarchyChartOptions,
     AgPolarChartOptions,
     AgTopologyChartOptions,
+    ContextMenuModule,
 } from 'ag-charts-enterprise';
 
 import {
@@ -107,7 +108,6 @@ function createItemStyler(type: string) {
 
         console.log(`[${type} itemStyler]`, {
             highlightState: params.highlightState,
-            highlighted: params.highlighted,
             seriesId: params.seriesId,
             datum: params.datum,
             ...params,
@@ -170,10 +170,10 @@ const barLineAreaOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'category' },
+        y: { type: 'number' },
+    },
 };
 
 const scatterBubbleOptions: AgCartesianChartOptions = {
@@ -220,10 +220,10 @@ const scatterBubbleOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        { type: 'number', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'number' },
+        y: { type: 'number' },
+    },
 };
 
 const pieDonutOptions: AgPolarChartOptions = {
@@ -456,10 +456,6 @@ const histogramOptions: AgCartesianChartOptions = {
             // Note: Histogram series does not support itemStyler
         },
     ],
-    axes: [
-        { type: 'number', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
 };
 
 const boxPlotOptions: AgCartesianChartOptions = {
@@ -487,10 +483,6 @@ const boxPlotOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('boxPlot2'),
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
 };
 
 const heatmapOptions: AgCartesianChartOptions = {
@@ -511,10 +503,6 @@ const heatmapOptions: AgCartesianChartOptions = {
             yName: 'Heatmap 2',
             itemStyler: createItemStyler('heatmap2'),
         },
-    ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'category', position: 'left' },
     ],
 };
 
@@ -559,10 +547,6 @@ const rangeSeriesOptions: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
 };
 
 const waterfallOptions: AgCartesianChartOptions = {
@@ -592,10 +576,6 @@ const waterfallOptions: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
     ],
 };
 
@@ -650,10 +630,9 @@ const ohlcOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('ohlc2'),
         },
     ],
-    axes: [
-        { type: 'time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'time' },
+    },
 };
 
 const candlestickOptions: AgCartesianChartOptions = {
@@ -679,10 +658,9 @@ const candlestickOptions: AgCartesianChartOptions = {
             itemStyler: createItemStyler('candlestick2'),
         },
     ],
-    axes: [
-        { type: 'time', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+    axes: {
+        x: { type: 'time' },
+    },
 };
 
 const pyramidOptions: AgChartOptions = {

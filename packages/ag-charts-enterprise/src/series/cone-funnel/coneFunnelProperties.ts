@@ -6,11 +6,11 @@ import type {
     AgConeFunnelSeriesTooltipRendererParams,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
-const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel, Property } = _ModuleSupport;
-
+const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel } = _ModuleSupport;
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
     placement: string | undefined;

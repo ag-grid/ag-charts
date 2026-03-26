@@ -35,10 +35,10 @@ export interface AgBaseCartesianAxisOptions<
     CrosshairLabelType = AgCrosshairLabel<any, ContextDefault>,
     TContext = ContextDefault,
 > extends AgBaseAxisOptions<LabelType, TContext> {
-    /** An array of keys determining which series are charted on this axis. */
-    keys?: string[];
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
+    /** Value on the first perpendicular axis' domain where this axis should intersect. */
+    crossAt?: AgCartesianAxisCrossAt;
     /** Add cross-lines or regions corresponding to data values. */
     crossLines?: AgCartesianCrossLineOptions[];
     /** Sets the axis thickness regardless of its content. */
@@ -54,6 +54,17 @@ export interface AgBaseCartesianAxisOptions<
     title?: AgAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
     crosshair?: AgCrosshairOptions<CrosshairLabelType>;
+}
+
+export interface AgCartesianAxisCrossAt {
+    /** The value on the perpendicular axis' domain where this axis should intersect. */
+    value: number | Date | string | string[];
+    /**
+     * Whether the axis should remain visible when the cross position is outside the perpendicular axis domain.
+     *
+     * Default: `true`
+     */
+    sticky?: boolean;
 }
 
 export interface AgTimeAxisParentLevel<TContext = ContextDefault> {
@@ -96,6 +107,20 @@ export interface AgBaseCartesianAxisLabelOptions<TContext = ContextDefault> exte
 
 export interface AgGroupedCategoryAxisLabelOptions<TContext = ContextDefault>
     extends Omit<AgBaseAxisLabelOptions<TContext>, 'itemStyler'> {
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'on-space'`
+     */
+    wrapping?: TextWrap;
+    /**
+     * If truncate is enabled, the text will be truncated to fit available space and an ellipsis (`...`) will be added at the end of the text.
+     */
+    truncate?: boolean;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }
@@ -106,9 +131,20 @@ export interface AgGroupedCategoryAxisLabelStylerParams<TContext = ContextDefaul
     readonly depth: number;
 }
 
+export type AgCartesianAxesOptions<TContext = ContextDefault> = Record<string, AgCartesianAxisOptions<TContext>> & {
+    x?: AgCartesianAxisOptions<TContext>;
+    y?: AgCartesianAxisOptions<TContext>;
+};
+
 export interface AgBaseCartesianChartOptions<TDatum = DatumDefault, TContext = ContextDefault> {
-    /** Axis configurations. */
-    axes?: AgCartesianAxisOptions<TContext>[];
+    /** Axis configurations.
+     *
+     * Axes are referenced using a dictionary of axis definitions, where each axis is identified by a key.
+     * The default keys are `x` and `y` for cartesian axes, or `radius` and `angle` for polar axes.
+     *
+     * See: [Axis Configuration](/r/axes-configuration/)
+     */
+    axes?: AgCartesianAxesOptions<TContext>;
     /** Series configurations. */
     series?: AgCartesianSeriesOptions<TDatum, TContext>[];
     /** Annotations configurations. */
@@ -151,20 +187,34 @@ export interface AgGroupedCategoryDepthLabelOptions<TContext = ContextDefault>
 export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
 
 export interface AgGroupedCategoryDepthOptions<TContext = ContextDefault> {
+    /** Configuration for the axis labels at this depth level. */
     label?: AgGroupedCategoryDepthLabelOptions<TContext>;
+    /** Configuration for the axis ticks at this depth level. */
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
 type AgAxisIntervalPlacement = 'on' | 'between';
 
 export interface AgAxisCategoryIntervalOptions extends AgAxisBaseIntervalOptions {
+    /**
+     * Placement of ticks and labels relative to the category.
+     *
+     * Default: `'between'`
+     */
     placement?: AgAxisIntervalPlacement;
 }
 
 export interface AgAxisDiscreteTimeIntervalOptions
     extends AgAxisContinuousIntervalOptions<AgTimeInterval | AgTimeIntervalUnit | number> {
+    /**
+     * Placement of ticks and labels relative to the time interval.
+     *
+     * Default: `'between'`
+     */
     placement?: AgAxisIntervalPlacement;
 }
+
+export type AgBandAlignment = 'justify' | 'start' | 'center' | 'end';
 
 export interface AgCategoryAxisOptions<TContext = ContextDefault>
     extends AgBaseCartesianAxisOptions<
@@ -172,7 +222,7 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
         AgBaseCrosshairLabel<TContext>,
         TContext
     > {
-    type: 'category';
+    type?: 'category';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisCategoryIntervalOptions;
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -183,6 +233,18 @@ export interface AgCategoryAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
+    bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
@@ -196,7 +258,7 @@ export interface AgGroupedCategoryAxisOptions<TContext = ContextDefault>
         >,
         'tick'
     > {
-    type: 'grouped-category';
+    type?: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
@@ -226,7 +288,7 @@ export interface AgTimeAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<Date | number, AgTimeInterval | AgTimeIntervalUnit | number> {
-    type: 'time';
+    type?: 'time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
 }
@@ -241,7 +303,7 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgBaseContinuousAxisOptions<Date | number> {
-    type: 'unit-time';
+    type?: 'unit-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** The size of each band. */
@@ -256,6 +318,18 @@ export interface AgUnitTimeAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
+    bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
@@ -264,7 +338,7 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
         AgCrosshairLabel<AgTimeAxisFormattableLabelFormat, TContext>,
         TContext
     > {
-    type: 'ordinal-time';
+    type?: 'ordinal-time';
     /** Options for labels and ticks for the parent level intervals. */
     parentLevel?: AgTimeAxisParentLevel<TContext>;
     /** Configuration for the axis ticks interval. */
@@ -277,6 +351,18 @@ export interface AgOrdinalTimeAxisOptions<TContext = ContextDefault>
     groupPaddingInner?: Ratio;
     /** Configuration for the axis band highlight. */
     bandHighlight?: AgBandHighlightOptions;
+    /**
+     * The alignment of bands when used with bar-like series with fixed widths.
+     *
+     * Default: `'justify'`
+     */
+    bandAlignment?: AgBandAlignment;
+    /**
+     * Set to `true` to prevent bars with `null`, `undefined` or missing values from taking up space in each category.
+     *
+     * Default: `false`
+     */
+    skipNullBars?: boolean;
 }
 
 export interface AgNumberAxisOptions<TContext = ContextDefault>
@@ -289,7 +375,7 @@ export interface AgNumberAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
-    type: 'number';
+    type?: 'number';
 }
 
 export interface AgLogAxisOptions<TContext = ContextDefault>
@@ -302,7 +388,7 @@ export interface AgLogAxisOptions<TContext = ContextDefault>
             'interval'
         >,
         AgContinuousAxisOptions<number, number> {
-    type: 'log';
+    type?: 'log';
     /** The base of the logarithm used. */
     base?: number;
 }
@@ -318,19 +404,19 @@ export type AgCartesianAxisOptions<TContext = ContextDefault> =
     | AgUnitTimeAxisOptions<TContext>
     | AgGroupedCategoryAxisOptions<TContext>;
 
-export type AgCartesianAxisType<TContext = ContextDefault> = AgCartesianAxisOptions<TContext>['type'];
+export type AgCartesianAxisType<TContext = ContextDefault> = NonNullable<AgCartesianAxisOptions<TContext>['type']>;
 
-type AgCartesianAxisThemeSpecialOptions = 'position' | 'type' | 'crossLines';
 /** This is the configuration shared by all types of axis. */
 export interface AgCartesianAxisThemeOptions<T> {
     /** An object with axis theme overrides for the `top` positioned axes. Same configs apply here as one level above. For example, to rotate labels by 45 degrees in 'top' positioned axes one can use `top: { label: { rotation: 45 } } }`. */
-    top?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
+    // eslint-disable-next-line sonarjs/use-type-alias
+    top?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `right` positioned axes. Same configs apply here as one level above. */
-    right?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
+    right?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `bottom` positioned axes. Same configs apply here as one level above. */
-    bottom?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
+    bottom?: Omit<T, 'position' | 'type' | 'crossLines'>;
     /** An object with axis theme overrides for the `left` positioned axes. Same configs apply here as one level above. */
-    left?: Omit<T, AgCartesianAxisThemeSpecialOptions>;
+    left?: Omit<T, 'position' | 'type' | 'crossLines'>;
 }
 
 export interface AgBaseCartesianThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -340,6 +426,7 @@ export interface AgBaseCartesianThemeOptions<TDatum = DatumDefault, TContext = C
 }
 
 export interface AgCartesianAxesCrossLineThemeOptions<LabelType = AgBaseCrossLineLabelOptions> {
+    /** Theme configuration for Cross Lines. */
     crossLines?: AgCrossLineThemeOptions<LabelType>;
 }
 

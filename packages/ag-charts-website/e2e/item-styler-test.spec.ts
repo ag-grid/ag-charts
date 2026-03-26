@@ -2,7 +2,7 @@ import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
 
 test.describe('item-styler-test', () => {
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     const url = toExamplePageUrl('stylers-test', 'item-styler-test', 'vanilla').url;
 
@@ -102,9 +102,9 @@ test.describe('item-styler-test', () => {
             // Verify no undefined values for highlightState in styler params
             const undefinedHighlightStateLogs = itemStylerLogs.filter(
                 (log) =>
-                    log.text.includes('highlightState: undefined') ||
-                    log.text.includes('highlightState:undefined') ||
-                    log.text.includes('"highlightState":undefined') ||
+                    log.text.includes('highlightState: undefined') ??
+                    log.text.includes('highlightState:undefined') ??
+                    log.text.includes('"highlightState":undefined') ??
                     log.text.includes('"highlightState": undefined')
             );
 

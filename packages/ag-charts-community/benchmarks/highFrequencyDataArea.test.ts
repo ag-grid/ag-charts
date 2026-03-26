@@ -1,0 +1,112 @@
+import { describe as jestDescribe } from '@jest/globals';
+
+import type { AgCartesianChartOptions } from 'ag-charts-types';
+
+import { benchmark, setupBenchmark } from './benchmark';
+import { isAtOrAfterVersion } from './compatibility';
+
+const describeWhenSupported = isAtOrAfterVersion(12, 3, 0) ? jestDescribe : jestDescribe.skip;
+
+describeWhenSupported('high-frequency data area benchmark', () => {
+    const ctx = setupBenchmark<AgCartesianChartOptions>('high-freq-area');
+
+    type Datum = {
+        timestamp: number;
+        value: number;
+    };
+
+    const INITIAL_POINTS = 100_000;
+    const BATCH_SIZE = 100;
+    const DATA_INTERVAL_MS = 250;
+    const START_TIMESTAMP = Date.UTC(2024, 0, 1, 0, 0, 0);
+
+    class HighFrequencyAreaDataGenerator {
+        private index = 0;
+
+        reset() {
+            this.index = 0;
+        }
+
+        take(count: number): Datum[] {
+            const batch: Datum[] = [];
+            for (let i = 0; i < count; i++) {
+                batch.push(this.next());
+            }
+            return batch;
+        }
+
+        private next(): Datum {
+            const index = this.index++;
+            const timestamp = START_TIMESTAMP + index * DATA_INTERVAL_MS;
+            const trend = Math.sin(index / 240) * 40 + Math.cos(index / 80) * 25;
+            const volatility = Math.sin(index / 15) * 5;
+            const baseline = 1_000 + index * 0.02;
+
+            return {
+                timestamp,
+                value: Number((baseline + trend + volatility).toFixed(2)),
+            };
+        }
+    }
+
+    const areaDataGenerator = new HighFrequencyAreaDataGenerator();
+
+    let data: Datum[] = [];
+
+    function createSeedData(count: number): Datum[] {
+        areaDataGenerator.reset();
+        return areaDataGenerator.take(count);
+    }
+
+    function createBatch(count: number): Datum[] {
+        return areaDataGenerator.take(count);
+    }
+
+    beforeEach(() => {
+        data = createSeedData(INITIAL_POINTS);
+    });
+
+    describe('applyTransaction updates', () => {
+        beforeEach(async () => {
+            ctx.options.data = data;
+            await ctx.create();
+        });
+
+        benchmark(
+            '10x append batch (1k points total)',
+            ctx.repeatCount(10),
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
+            async () => {
+                const append = createBatch(BATCH_SIZE);
+                data = data.concat(append);
+                await (ctx.chart as any).applyTransaction({ append });
+            },
+            30_000
+        );
+
+        benchmark(
+            '1x remove batch (100 points)',
+            ctx.repeatCount(1),
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
+            async () => {
+                const remove = data.slice(0, BATCH_SIZE);
+                data = data.slice(BATCH_SIZE);
+                await (ctx.chart as any).applyTransaction({ remove });
+            },
+            15_000
+        );
+
+        benchmark(
+            '10x rolling window update (append + remove)',
+            ctx.repeatCount(10),
+            { expectedRelativeMB: 0.5, expectedCanvasCount: 3, autoSnapshot: false },
+            async () => {
+                const remove = data.slice(0, BATCH_SIZE);
+                const append = createBatch(BATCH_SIZE);
+                data = data.slice(BATCH_SIZE).concat(append);
+                await (ctx.chart as any).applyTransaction({ append, remove });
+            },
+            30_000
+        );
+    });
+});

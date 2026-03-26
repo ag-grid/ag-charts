@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -11,38 +20,33 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'heatmap',
-
             xKey: 'month',
             xName: 'Month',
-
             yKey: 'week',
             yName: 'Week',
-
             colorKey: 'steps',
             colorName: 'Steps',
-
             strokeWidth: 1,
         },
     ],
     gradientLegend: {
         enabled: false,
     },
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'category',
             label: {
                 enabled: false,
             },
         },
-        {
+        x: {
             position: 'top',
             type: 'category',
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    HistogramSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -45,7 +53,7 @@ const options: AgChartOptions = {
 
                     return {
                         title: `${binStart} - ${binEnd} in³`,
-                        content: `Average MPG: ${meanValue.toFixed(1)}`,
+                        data: [{ label: 'Frequency', value: `${meanValue.toFixed(1)} vehicles` }],
                     };
                 },
             },
@@ -56,9 +64,8 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             gridLine: {
@@ -85,8 +92,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             reverse: true,
             title: {
@@ -113,7 +119,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         position: {
             xOffset: 20,

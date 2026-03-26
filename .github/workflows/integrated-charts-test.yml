@@ -1,0 +1,88 @@
+name: Integrated Charts Test
+
+on:
+    workflow_dispatch: {}
+    schedule:
+        - cron: '0 6 * * 1-5' # Weekday mornings UTC
+
+env:
+    NX_NO_CLOUD: true
+    AG_SKIP_NATIVE_DEP_VERSION_CHECK: 1
+
+permissions:
+    contents: read
+
+jobs:
+    test-ag-grid-integration:
+        runs-on: ubuntu-24.04
+        timeout-minutes: 60
+        steps:
+            - name: Checkout ag-charts
+              uses: actions/checkout@v4
+
+            - name: Setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  yarn_postinstall: false
+
+            - name: Build ag-charts packages
+              run: |
+                  yarn nx run-many -t build -p ag-charts-types,ag-charts-locale,ag-charts-core,ag-charts-community,ag-charts-enterprise
+
+            - name: Pack ag-charts tarballs
+              id: pack
+              run: |
+                  TARBALL_DIR=$(mktemp -d)
+                  for pkg in ag-charts-types ag-charts-locale ag-charts-core ag-charts-community ag-charts-enterprise; do
+                      cd packages/$pkg
+                      TARBALL=$(npm pack --pack-destination "$TARBALL_DIR" 2>/dev/null | tail -1)
+                      echo "${pkg}_tarball=${TARBALL_DIR}/${TARBALL}" >> $GITHUB_OUTPUT
+                      cd ../..
+                  done
+                  echo "tarball_dir=${TARBALL_DIR}" >> $GITHUB_OUTPUT
+
+            - name: Clone ag-grid
+              run: |
+                  git clone --depth 1 --branch latest https://github.com/ag-grid/ag-grid.git /tmp/ag-grid
+
+            - name: Replace ag-charts deps with local tarballs
+              run: |
+                  node tools/integration/set-charts-dep-paths.js /tmp/ag-grid "${{ steps.pack.outputs.tarball_dir }}"
+
+            - name: Install ag-grid dependencies
+              working-directory: /tmp/ag-grid
+              run: |
+                  npm run bootstrap
+
+            - name: Build ag-grid-enterprise
+              working-directory: /tmp/ag-grid
+              env:
+                  NODE_ENV: production
+              run: |
+                  yarn nx build ag-grid-enterprise
+
+            - name: Build with Real Implementation
+              working-directory: /tmp/ag-grid
+              env:
+                  NODE_ENV: production
+              run: |
+                  ./scripts/ci/substituteAgChartsTypesScene.sh
+                  yarn nx build ag-grid-enterprise --skip-nx-cache
+
+            - name: Slack Notification (failure)
+              if: failure()
+              uses: rtCamp/action-slack-notify@v2
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: failure
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_TITLE: Integrated Charts Pre-Integration Test Failed
+                  SLACK_MESSAGE: >
+                      The ag-grid integration build check failed. AG Charts changes
+                      on the `latest` branch are likely to break the next Charts
+                      Pre-Integration Build in TeamCity.
+                      ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  SLACK_CHANNEL: '#charts_teamcity_status'

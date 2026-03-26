@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgChartInstance } from 'ag-charts-types';
+import type { AgChartInstance } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
 import { SIMPLE_COLUMN_CHART_EXAMPLE, SIMPLE_PIE_CHART_EXAMPLE } from '../test/examples';

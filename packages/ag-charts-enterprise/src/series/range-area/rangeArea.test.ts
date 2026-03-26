@@ -1,18 +1,26 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
+    type AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
-    AgRangeAreaSeriesLabelPlacement,
+    type AgRangeAreaSeriesLabelPlacement,
+    type AgRangeAreaSeriesStyle,
+    type AgRangeAreaSeriesStylerParams,
+    type AgSeriesMarkerStyle,
+    type AgSeriesMarkerStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    type MockRangeAreaStyler,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -23,6 +31,10 @@ describe('RangeAreaSeries', () => {
 
     let chart: any;
     const ctx = setupMockCanvas();
+
+    function lowAndHigh<T>(p: T): { low: T; high: T } {
+        return { low: p, high: p };
+    }
 
     afterEach(() => {
         if (chart) {
@@ -124,12 +136,14 @@ describe('RangeAreaSeries', () => {
                     enabled: true,
                     formatter: ({ value }) => `${value}°C`,
                 },
-                strokeWidth: 2,
                 fill: '#E7E8E9',
-                stroke: '#2A5783',
-                marker: {
-                    enabled: true,
-                },
+                item: lowAndHigh({
+                    strokeWidth: 2,
+                    stroke: '#2A5783',
+                    marker: {
+                        enabled: true,
+                    },
+                }),
             },
         ],
     };
@@ -212,18 +226,18 @@ describe('RangeAreaSeries', () => {
     it(`should render a range-area chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -235,16 +249,16 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -256,17 +270,17 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -282,16 +296,16 @@ describe('RangeAreaSeries', () => {
                 ...datum,
                 month: invalidDataIndices.includes(index) ? `invalid` : datum.month,
             })),
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -315,17 +329,17 @@ describe('RangeAreaSeries', () => {
                 ...datum,
                 month: invalidDataIndices.includes(index) ? `invalid` : datum.month,
             })),
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -345,16 +359,16 @@ describe('RangeAreaSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options);
 
@@ -538,10 +552,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -596,10 +610,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -654,10 +668,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -721,10 +735,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -775,10 +789,10 @@ describe('RangeAreaSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -787,6 +801,830 @@ describe('RangeAreaSeries', () => {
 
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('AG-15782 styler', () => {
+        type D = { month: string; gain_low: number; gain_high: number; loss_low: number; loss_high: number };
+        type C = unknown;
+        type M = MockRangeAreaStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', gain_low: 1200, gain_high: 1500, loss_low: 800, loss_high: 1100 },
+            { month: 'February', gain_low: 1500, gain_high: 1650, loss_low: 950, loss_high: 1450 },
+            { month: 'March', gain_low: 1700, gain_high: 1920, loss_low: 1600, loss_high: 1815 },
+        ];
+
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRangeAreaSeriesStylerParams<D, C>): AgRangeAreaSeriesStyle | undefined => {
+                    if (params.yLowKey === 'gain_low')
+                        return {
+                            fill: 'cyan',
+                            item: lowAndHigh({
+                                lineDash: [4, 4],
+                                lineDashOffset: 5,
+                                stroke: 'blue',
+                                strokeWidth: 2.5,
+                                marker: {},
+                            }),
+                        };
+                    else if (params.yLowKey === 'loss_low')
+                        return {
+                            fill: 'magenta',
+                            fillOpacity: 0.5,
+                            item: lowAndHigh({
+                                marker: {
+                                    fill: 'indigo',
+                                    strokeWidth: 2.5,
+                                    size: 20,
+                                },
+                            }),
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'gain context' };
+                c2 = { name: 'loss context' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                context: c1,
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                fill: 'cyan',
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'range-area',
+                                context: c2,
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: styler.frozen,
+                                item: lowAndHigh({
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                    },
+                                }),
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgSeriesMarkerStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    if (params.datum.month === 'February') {
+                        if (params.seriesId === 'gain-series') {
+                            return { fill: 'gold' };
+                        } else {
+                            return { fill: 'grey' };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<AgCartesianChartOptions<D, C>>({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                id: 'gain-series',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                fill: 'lime', // ignored
+                                marker: {
+                                    itemStyler,
+                                },
+                                item: lowAndHigh({
+                                    marker: {
+                                        size: 15,
+                                    },
+                                }),
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'range-area',
+                                id: 'loss-series',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                fill: 'olive', // ignored
+                                marker: {
+                                    itemStyler,
+                                },
+                                item: lowAndHigh({
+                                    stroke: 'navy', // not ignored
+                                    strokeWidth: 7, // not ignored
+                                    marker: {
+                                        fill: 'lime', // ignored
+                                        fillOpacity: 0.5, // not ignored
+                                    },
+                                }),
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'range-area',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+    });
+
+    describe('invertedSegments with invertedStyle', () => {
+        it('should render range-area series with invertedStyle for segments that start inverted', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'Jan', high: 10, low: 20 }, // starts inverted (high < low)
+                    { x: 'Feb', high: 15, low: 25 },
+                    { x: 'Mar', high: 25, low: 15 }, // crosses over (high > low)
+                    { x: 'Apr', high: 30, low: 10 },
+                    { x: 'May', high: 20, low: 30 }, // inverts again (high < low)
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle for segments that start normal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'Jan', high: 20, low: 10 }, // starts normal (high > low)
+                    { x: 'Feb', high: 25, low: 15 },
+                    { x: 'Mar', high: 15, low: 25 }, // crosses over (high < low)
+                    { x: 'Apr', high: 10, low: 30 },
+                    { x: 'May', high: 30, low: 20 }, // back to normal (high > low)
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle and gradient fills', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 5, low: 15 }, // starts inverted
+                    { x: 1, high: 10, low: 20 },
+                    { x: 2, high: 20, low: 10 }, // crosses over
+                    { x: 3, high: 25, low: 5 },
+                    { x: 4, high: 15, low: 25 }, // inverts again
+                    { x: 5, high: 10, low: 30 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        fill: {
+                            type: 'gradient',
+                            colorStops: [{ color: '#4A90E2' }, { color: '#E3F2FD' }],
+                        },
+                        invertedStyle: {
+                            enabled: true,
+                            fill: {
+                                type: 'gradient',
+                                colorStops: [{ color: '#FF5757' }, { color: '#FFE5E5' }],
+                            },
+                            fillOpacity: 0.8,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle and smooth interpolation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 10, low: 30 }, // starts inverted
+                    { x: 1, high: 15, low: 25 },
+                    { x: 2, high: 25, low: 15 }, // crosses to normal
+                    { x: 3, high: 30, low: 10 },
+                    { x: 4, high: 20, low: 25 }, // crosses to inverted
+                    { x: 5, high: 15, low: 30 },
+                    { x: 6, high: 28, low: 18 }, // crosses to normal
+                    { x: 7, high: 35, low: 12 },
+                    { x: 8, high: 18, low: 32 }, // crosses to inverted
+                    { x: 9, high: 12, low: 35 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'smooth',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle and step interpolation', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 10, low: 30 }, // starts inverted
+                    { x: 1, high: 15, low: 25 },
+                    { x: 2, high: 25, low: 15 }, // crosses to normal
+                    { x: 3, high: 30, low: 10 },
+                    { x: 4, high: 20, low: 25 }, // crosses to inverted
+                    { x: 5, high: 15, low: 30 },
+                    { x: 6, high: 28, low: 18 }, // crosses to normal
+                    { x: 7, high: 35, low: 12 },
+                    { x: 8, high: 18, low: 32 }, // crosses to inverted
+                    { x: 9, high: 12, low: 35 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'step',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle with time and smooth interpolation', async () => {
+            const continuousData = [
+                { date: new Date(2023, 0, 1), high: 8, low: 18 }, // starts inverted
+                { date: new Date(2023, 0, 15), high: 12, low: 22 },
+                { date: new Date(2023, 1, 1), high: 20, low: 15 }, // crosses over
+                { date: new Date(2023, 1, 15), high: 25, low: 10 },
+                { date: new Date(2023, 2, 1), high: 22, low: 28 }, // crosses back
+                { date: new Date(2023, 2, 15), high: 18, low: 32 },
+                { date: new Date(2023, 3, 1), high: 30, low: 20 }, // crosses over again
+                { date: new Date(2023, 3, 15), high: 35, low: 15 },
+            ];
+
+            const options: AgChartOptions = {
+                data: continuousData,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'date',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                            fillOpacity: 0.8,
+                        },
+                        interpolation: {
+                            type: 'smooth',
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle inherited from series styles', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { category: 'A', high: 12, low: 22 }, // starts inverted
+                    { category: 'B', high: 18, low: 28 },
+                    { category: 'C', high: 28, low: 18 }, // crosses over
+                    { category: 'D', high: 32, low: 12 },
+                    { category: 'E', high: 20, low: 30 }, // inverts again
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'category',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fillOpacity: 0.1,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle that never inverts', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 25, low: 15 },
+                    { x: 1, high: 30, low: 20 },
+                    { x: 2, high: 28, low: 18 },
+                    { x: 3, high: 35, low: 25 },
+                    { x: 4, high: 32, low: 22 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render range-area series with invertedStyle that is always inverted', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, high: 15, low: 25 },
+                    { x: 1, high: 20, low: 30 },
+                    { x: 2, high: 18, low: 28 },
+                    { x: 3, high: 25, low: 35 },
+                    { x: 4, high: 22, low: 32 },
+                ],
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        invertedStyle: {
+                            fill: 'rgb(255, 87, 87)',
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('AG-15773 itemStyler itemType', () => {
+        it('should render high and low markers differently', async () => {
+            type D = { month: string; low: number; high: number };
+            const options: AgChartOptions<D> = {
+                data: [
+                    { month: 'January', low: 1200, high: 1500 },
+                    { month: 'February', low: 1500, high: 1650 },
+                    { month: 'March', low: 1700, high: 1920 },
+                    { month: 'April', low: 1800, high: 2100 },
+                    { month: 'May', low: 2000, high: 2300 },
+                    { month: 'June', low: 2450, high: 2100 },
+                    { month: 'July', low: 2600, high: 2300 },
+                    { month: 'August', low: 2200, high: 2550 },
+                    { month: 'September', low: 2000, high: 2400 },
+                    { month: 'October', low: 1900, high: 2250 },
+                    { month: 'November', low: 1750, high: 2100 },
+                    { month: 'December', low: 1600, high: 1950 },
+                ],
+                legend: { item: { line: { length: 50 } } },
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'month',
+                        yLowKey: 'low',
+                        yHighKey: 'high',
+                        marker: {
+                            size: 25,
+                            itemStyler: (params) => {
+                                switch (params.itemType) {
+                                    case 'high':
+                                        return { fill: 'lime', stroke: 'forestgreen', shape: 'star' };
+                                    case 'low':
+                                        return { fill: 'fuchsia', stroke: 'purple', shape: 'heart' };
+                                    default:
+                                        return {};
+                                }
+                            },
+                        },
+                    },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+            await compare();
+        });
+
+        test('marker enabled', async () => {
+            type Ks = 'a' | 'A' | 'b' | 'B' | 'c' | 'C' | 'd' | 'D' | 'e' | 'E' | 'f' | 'F' | 'g' | 'G';
+            type D = { x: string } & { [K in Ks]: number };
+            const data: D[] = [
+                { x: 'West', a: 1, A: 2, b: 3, B: 4, c: 5, C: 6, d: 7, D: 8, e: 9, E: 10, f: 11, F: 12, g: 13, G: 14 },
+                { x: 'East', a: 1, A: 2, b: 3, B: 4, c: 5, C: 6, d: 7, D: 8, e: 9, E: 10, f: 11, F: 12, g: 13, G: 14 },
+            ];
+            const opts: AgChartOptions<D> = {
+                data,
+                series: [
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'a',
+                        yHighKey: 'A',
+                        yName: 'default',
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'b',
+                        yHighKey: 'B',
+                        yName: 'high markers only',
+                        item: { high: { marker: { enabled: true } } },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'c',
+                        yHighKey: 'C',
+                        yName: 'low markers only',
+                        item: { low: { marker: { enabled: true } } },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'd',
+                        yHighKey: 'D',
+                        yName: 'both (implied)',
+                        marker: {},
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'e',
+                        yHighKey: 'E',
+                        yName: 'both (explicit)',
+                        marker: { enabled: true },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'f',
+                        yHighKey: 'F',
+                        yName: 'none (explicit)',
+                        marker: { enabled: false },
+                    },
+                    {
+                        type: 'range-area',
+                        xKey: 'x',
+                        yLowKey: 'g',
+                        yHighKey: 'G',
+                        yName: 'override off',
+                        marker: { enabled: true },
+                        item: { low: { marker: { enabled: false } } },
+                    },
+                ],
+            };
+            chart = AgCharts.create(prepareEnterpriseTestOptions(opts));
+            await compare();
+        });
+    });
+
+    it('should dim non-highlight markers with cutout in range area', async () => {
+        const options: AgChartOptions = {
+            data: [
+                { category: 'Jan', low: 1, high: 5 },
+                { category: 'Feb', low: 2, high: 7 },
+                { category: 'Mar', low: 3, high: 6 },
+                { category: 'Apr', low: 4, high: 8 },
+            ],
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'category',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                    item: {
+                        low: { marker: { enabled: true, size: 28 } },
+                        high: { marker: { enabled: true, size: 28 } },
+                    },
+                    highlight: {
+                        unhighlightedItem: {
+                            fillOpacity: 0.4,
+                            strokeOpacity: 0.4,
+                        },
+                    },
+                },
+            ],
+        };
+
+        chart = AgCharts.create(prepareEnterpriseTestOptions(options));
+
+        await waitForChartStability(chart);
+        await hoverAction(200, 220)(chart);
+        await waitForChartStability(chart);
+        await compare();
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [
+                    { x: 'West', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                    { x: 'East', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                ],
+                series: [
+                    { type: 'range-area', xKey: 'x', yLowKey: 's1L', yHighKey: 's1H', yName: 'series 1' },
+                    { type: 'range-area', xKey: 'x', yLowKey: 's2L', yHighKey: 's2H', yName: 'series 2' },
+                    { type: 'range-area', xKey: 'x', yLowKey: 's3L', yHighKey: 's3H', yName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('null category key', () => {
+        const RANGE_AREA_NULL_CATEGORY_KEY_DATA = [
+            { month: 'Jan', high: 9, low: 4 },
+            { month: null, high: 11, low: 5 },
+            { month: 'Mar', high: 14, low: 7 },
+        ];
+
+        const RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RANGE_AREA_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_AREA_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const RANGE_AREA_UNDEFINED_CATEGORY_KEY_DATA = [
+            { month: 'Jan', high: 9, low: 4 },
+            { month: undefined, high: 11, low: 5 },
+            { month: 'Mar', high: 14, low: 7 },
+        ];
+
+        const RANGE_AREA_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { month: 'Jan', high: 9, low: 4 },
+            { month: null, high: 10, low: 5 },
+            { month: undefined, high: 11, low: 5 },
+            { month: 'Apr', high: 14, low: 7 },
+        ];
+
+        const RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RANGE_AREA_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        const RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RANGE_AREA_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-area',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RangeAreaSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_AREA_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_AREA_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });

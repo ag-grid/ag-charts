@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    AreaSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -87,29 +106,27 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             crosshair: {
                 enabled: true,
                 lineDash: [3, 3],
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 enabled: false,
             },
             label: {
-                format: '#{p}',
+                format: '#{.2p}',
             },
             title: {
                 text: 'Percentage of Total Energy',
             },
         },
-    ],
+    },
     legend: {
         item: {
             showSeriesStroke: false,

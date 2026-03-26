@@ -1,15 +1,19 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from 'ag-charts-community';
-import { cartesianChartAssertions, repeat, reverseAxes, waitForChartStability } from 'ag-charts-community-test';
 import {
     type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
     INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
+    cartesianChartAssertions,
     extractImageData,
+    repeat,
+    reverseAxes,
     setupMockCanvas,
     setupMockConsole,
+    waitForChartStability,
 } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -23,7 +27,10 @@ import { prepareEnterpriseTestOptions } from '../test/utils';
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation, avoidCollisions: false } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({
+            ...axis,
+            label: { ...axis.label, rotation, avoidCollisions: false },
+        })),
     };
 }
 
@@ -45,7 +52,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -61,7 +68,7 @@ const EXAMPLES: Record<string, TestCase> = {
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: {
             options: INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE,
             assertions: cartesianChartAssertions({
-                axisTypes: ['grouped-category', 'number'],
+                axisTypes: { x: 'grouped-category', y: 'number' },
                 seriesTypes: repeat('bar', 3),
             }),
             compare: ['grouped-category'],
@@ -74,7 +81,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
 ): Record<string, TestCase<T>> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -91,7 +98,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }

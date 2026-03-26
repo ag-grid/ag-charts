@@ -42,17 +42,13 @@ const options: AgChartOptions = {
       xKey: "year",
       yKey: "exportedTonnes",
       yName: "Beef exports",
+      yKeyAxis: 'ySecondary',
     },
   ],
-  axes: [
-    {
-      type: "category",
-      position: "bottom",
-    },
-    {
+  axes: {
+    y: {
       type: "number",
       position: "left",
-      keys: ["male", "female"],
       title: {
         text: "Number of cattle",
       },
@@ -62,10 +58,9 @@ const options: AgChartOptions = {
         },
       },
     },
-    {
+    ySecondary: {
       type: "number",
       position: "right",
-      keys: ["exportedTonnes"],
       title: {
         text: "Exports (tonnes)",
       },
@@ -75,7 +70,7 @@ const options: AgChartOptions = {
         },
       },
     },
-  ],
+  },
   legend: {
     item: {
       marker: {
@@ -86,4 +81,4 @@ const options: AgChartOptions = {
   },
 }
 
-const chart = AgCharts.create(options)
+AgCharts.create(options)

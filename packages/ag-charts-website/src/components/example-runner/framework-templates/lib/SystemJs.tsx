@@ -133,7 +133,15 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             <script src={systemJsPath} />
             <script
                 dangerouslySetInnerHTML={{
-                    __html: `System.import('${startFile}').catch(function(err) { console.error(err); });`,
+                    __html: `
+            System.import('ag-charts-community')
+                .then(function() {
+                    return System.import('${startFile}');
+                })
+                .catch(function(err) {
+                    console.error(err.originalErr ?? err);
+                });
+        `,
                 }}
             />
         </>

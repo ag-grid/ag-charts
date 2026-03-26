@@ -2,6 +2,7 @@
 
 set -eu
 
+test_type=${test_type:-framework}
 editor=false
 mode=docker
 interactive=false
@@ -29,6 +30,7 @@ function snapshot_versions {
 while getopts ":eniupc" opt; do
   case $opt in
     i)
+      interactive=true
       editor=true
       mode=native
       ;;
@@ -49,11 +51,6 @@ while getopts ":eniupc" opt; do
       update=true
       passthrough_opts="${passthrough_opts} -u"
       ;;
-    i)
-      interactive=true
-      passthrough_opts="${passthrough_opts} -i"
-      it_opts=-it
-      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       exit 1
@@ -66,8 +63,12 @@ while getopts ":eniupc" opt; do
 done
 shift $((OPTIND - 1))
 
-version=$1
 project=${2:-/project}
+if [[ ${test_type} == "ssr" ]] ; then
+    version=${1:-}
+else
+    version=$1
+fi
 
 if declare -F init_fw >/dev/null ; then
     init_fw
@@ -102,13 +103,22 @@ else
 fi
 
 if ${editor} ; then
-    code . &
+    if [ -n "${EDITOR:-}" ] ; then
+        ${EDITOR} . &
+    elif command -v cursor &>/dev/null ; then
+        cursor . &
+    elif command -v code &>/dev/null ; then
+        code . &
+    else
+        echo ">>> no editor found, install cursor, code, or set EDITOR environment variable"
+        exit 1
+    fi
 fi
 
 if [[ ${mode} == "docker" ]] ; then
     echo ">>> docker run ..."
     port_spec=
-    if ${interactive} ; then
+    if ${interactive} && [[ ${test_type} == "framework" ]] ; then
         port_spec="-p ${dev_port}:${dev_port}"
     fi
     mkdir -p ./npm-cache
@@ -120,79 +130,118 @@ if [[ ${mode} == "docker" ]] ; then
     exitCode=$?
 
     if ${update} ; then
-        cp -R */e2e/*-snapshots ${project_dir}/e2e/
-        cp */e2e/*.txt ${project_dir}/e2e/ || true
+        if [[ ${test_type} == "ssr" ]] ; then
+            cp -R e2e/*-snapshots ${project_dir}/e2e/
+        else
+            cp -R */e2e/*-snapshots ${project_dir}/e2e/
+            cp */e2e/*.txt ${project_dir}/e2e/ || true
+        fi
     fi
 
     exit ${exitCode}
 fi
 
-echo ">>> git config"
-git config --global init.defaultBranch latest
-git config --global user.email "me@ag-grid.com"
-git config --global user.name "myself"
-
 npm config set cache ${project}/.npm-cache
-install_fw
 
-if ${production} ; then
-    echo ">>> npm i ag-charts-${fw} (production)"
-    npm i ag-charts-${fw} @playwright/test@${playwright_version}
+if [[ ${test_type} == "ssr" ]] ; then
+    install_fw
+    echo ">>> npm i ${ssr_test_deps}"
+    npm i ${ssr_test_deps}
+    echo ">>> npm i ag-charts packages"
+    tgz_files=""
+    for pkg in ${ssr_packages} ; do
+        tgz_files="${tgz_files} ./${pkg}.tgz"
+    done
+    npm i ${tgz_files}
 else
-    echo ">>> npm i ../ag-charts*.tgz"
-    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@${playwright_version}
-fi
-git config --global --add safe.directory $(pwd)
-git add .
-git commit -m "Initial commit"
+    echo ">>> git config"
+    git config --global init.defaultBranch latest
+    git config --global user.email "me@ag-grid.com"
+    git config --global user.name "myself"
 
-patch_dir=../patches
+    install_fw
+
+    if ${production} ; then
+        echo ">>> npm i ag-charts-${fw} (production)"
+        npm i ag-charts-${fw} @playwright/test@${playwright_version}
+    else
+        echo ">>> npm i ../ag-charts*.tgz"
+        npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-core.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@${playwright_version}
+    fi
+    git config --global --add safe.directory $(pwd)
+    git add .
+    git commit -m "Initial commit"
+fi
+
+if [[ ${test_type} == "ssr" ]] ; then
+    patch_dir=./patches
+else
+    patch_dir=../patches
+fi
 if [[ "${patch_subdir:-}" != "" ]] ; then
     patch_dir=${patch_dir}/${patch_subdir}
 fi
-for filename in ${patch_dir}/* ; do
-    if [ ! -f "$filename" ] ; then
-        continue
+
+if [[ ${test_type} == "ssr" ]] ; then
+    # SSR: copy patch files directly to project root
+    echo ">>> copying SSR test files..."
+    cp ${patch_dir}/* ./
+else
+    # Framework: apply patches to existing project files
+    for filename in ${patch_dir}/* ; do
+        if [ ! -f "$filename" ] ; then
+            continue
+        fi
+
+        ext=${filename##*.}
+
+        if [[ ${ext} == 'sed' ]] ; then
+            target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename ${filename%.*})" -type f)
+            echo ">>> Modifying ${target}"
+            sed_inplace -f $filename $(pwd)/$target
+        else
+            target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename $filename)" -type f)
+            echo ">>> Updating ${target}"
+            cp $filename $target
+        fi
+    done
+
+    mv ../e2e ../playwright.config.ts ./
+
+    export FW_VERSION=${version}
+    export FW_TYPE=${fw}
+    export FW_DEV_PORT=${dev_port}
+    if ${production} ; then
+        export FW_VERSION=production-$FW_VERSION
     fi
-
-    ext=${filename##*.}
-
-    if [[ ${ext} == 'sed' ]] ; then
-        target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename ${filename%.*})" -type f)
-        echo ">>> Modifying ${target}"
-        sed_inplace -f $filename $(pwd)/$target
-    else
-        target=$(find . -not \( -path ./node_modules -prune \) -name "$(basename $filename)" -type f)
-        echo ">>> Updating ${target}"
-        cp $filename $target
+    if [[ "${patch_subdir:-}" != "" ]] ; then
+        export FW_PATCH_TYPE=${patch_subdir}
     fi
-done
-
-mv ../e2e ../playwright.config.ts ./
-
-export FW_VERSION=${version}
-export FW_TYPE=${fw}
-export FW_DEV_PORT=${dev_port}
-if ${production} ; then
-    export FW_VERSION=production-$FW_VERSION
-fi
-if [[ "${patch_subdir:-}" != "" ]] ; then
-    export FW_PATCH_TYPE=${patch_subdir}
 fi
 
 build_fw
-if ${interactive} ; then
-    serve_fw
-    npx playwright test $(${update} && echo "-u" || echo "") || echo "Tests failed"
-    /bin/bash -il
+if [[ ${test_type} == "ssr" ]] ; then
+    run_ssr_test
 else
-    echo ">>> playwright test"
-    npx playwright test $(${update} && echo "-u" || echo "")
+    if ${interactive} ; then
+        serve_fw
+        npx playwright test $(${update} && echo "-u" || echo "") || echo "Tests failed"
+        /bin/bash -il
+    else
+        echo ">>> playwright test"
+        npx playwright test $(${update} && echo "-u" || echo "")
+    fi
 fi
 
-snapshot_versions
+if [[ ${test_type} == "framework" ]] ; then
+    snapshot_versions
+fi
 
 if [[ ${mode} == 'native' && ${update} == 'true' ]] ; then
-    cp -R */e2e/*-snapshots ${project_dir}/e2e/
-    cp */e2e/*.txt ${project_dir}/e2e/ || true
+    if [[ ${test_type} == "ssr" ]] ; then
+        cp -R e2e/*-snapshots ${project_dir}/e2e/
+    else
+        cp -R */e2e/*-snapshots ${project_dir}/e2e/
+        cp */e2e/*.txt ${project_dir}/e2e/ || true
+    fi
 fi

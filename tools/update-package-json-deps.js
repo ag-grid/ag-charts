@@ -13,6 +13,7 @@ const packageDirectories = [
     ...JSON.parse(fs.readFileSync('package.json').toString())?.workspaces?.packages,
     '.',
     './packages/ag-charts-angular/projects/ag-charts-angular',
+    './examples/server-side-rendering',
 ];
 for (const packageDir of packageDirectories) {
     const packageJsonFilename = `${packageDir}/package.json`;

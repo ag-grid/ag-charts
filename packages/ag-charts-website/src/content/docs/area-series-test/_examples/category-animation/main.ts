@@ -1,4 +1,4 @@
-import { AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 import { AgChartOptions } from 'ag-charts-types';
 
 const data = [
@@ -26,17 +26,6 @@ const options: AgChartOptions = {
                 formatter: ({ value }) => String(value),
             },
             // visible: false
-        },
-    ],
-    axes: [
-        {
-            position: 'left',
-            type: 'number',
-            keys: ['iphone'],
-        },
-        {
-            position: 'bottom',
-            type: 'category',
         },
     ],
 };

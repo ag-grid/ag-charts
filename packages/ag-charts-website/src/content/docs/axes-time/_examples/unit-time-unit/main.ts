@@ -1,8 +1,32 @@
-import { AgCartesianChartOptions, AgCharts, AgUnitTimeAxisThemeOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } = {
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NavigatorModule,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Influenza Cases',
@@ -37,10 +61,9 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
             stacked: true,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             unit: {
                 unit: 'day',
                 step: 7,
@@ -50,10 +73,7 @@ const options: AgCartesianChartOptions & { axes: AgUnitTimeAxisThemeOptions[] } 
                 enabled: false,
             },
         },
-        {
-            type: 'number',
-        },
-    ],
+    },
     zoom: {
         enabled: true,
     },

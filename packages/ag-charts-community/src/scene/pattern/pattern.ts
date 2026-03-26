@@ -3,10 +3,11 @@ import {
     Logger,
     type RequiredInternalAgPatternColor,
     createSvgElement,
+    getDOMMatrix,
+    normalizeAngle360FromDegrees,
 } from 'ag-charts-core';
 import type { AgPatternName, CssColor } from 'ag-charts-types';
 
-import { normalizeAngle360FromDegrees } from '../../util/angle';
 import { HdpiOffscreenCanvas } from '../canvas/hdpiOffscreenCanvas';
 import { ExtendedPath2D } from '../extendedPath2D';
 import { PATTERNS } from './patterns';
@@ -121,14 +122,15 @@ export class Pattern implements Omit<RequiredInternalAgPatternColor, 'type'> {
         const cos = Math.cos(angle) * scale;
         const sin = Math.sin(angle) * scale;
 
-        pattern.setTransform(new DOMMatrix([cos, sin, -sin, cos, tx, ty]));
+        const DOMMatrixCtor = getDOMMatrix();
+        pattern.setTransform(new DOMMatrixCtor([cos, sin, -sin, cos, tx, ty]));
     }
 
     private _cache:
         | { ctx: CanvasRenderingContext2D; pattern: CanvasPattern | undefined; pixelRatio: number }
         | undefined = undefined;
     createPattern(ctx: CanvasRenderingContext2D, pixelRatio: number): CanvasPattern | undefined {
-        if (this._cache != null && this._cache.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
+        if (this._cache?.ctx === ctx && this._cache.pixelRatio === pixelRatio) {
             return this._cache.pattern;
         }
 

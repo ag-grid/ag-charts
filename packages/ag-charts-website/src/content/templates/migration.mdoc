@@ -13,7 +13,7 @@
 # * `{% metaTag tags=[...] %}` - add meta tags to the page for search engines
 
 title: 'Upgrade to AG Charts !x.x!'
-description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+description: "See what's new in AG Charts v!x.x! View a full list of breaking changes, behaviour changes and deprecations. Read the release post for feature highlights."
 migrationVersion: '!x.x.x!'
 ---
 
@@ -33,8 +33,6 @@ DO NOT TOUCH.
 
 {% documentationArchiveSection version=migrationVersionPatch() /%}
 
-## <!-- Release specific section -->
-
 ## Breaking Changes
 
 <!-- If breaking changes do *not* exist, add the following: -->
@@ -47,7 +45,7 @@ There are no breaking changes in AG Charts version {% migrationVersion() %}.
 The full list of breaking changes across all features for version {% migrationVersion() %}.
 
 {% expandingSection headerText="Breaking Changes" %}
-AG Charts version {% migrationVersion() %} includes the following breaking changes:
+This release includes the following breaking changes:
 
 ### Breaking changes section Name
 
@@ -69,6 +67,8 @@ The full list of behaviour changes across all features for version {% migrationV
 
 {% expandingSection headerText="Behaviour Changes" %}
 
+This release includes the following behaviour changes:
+
 ### Behaviour Changes section Name
 
 - item...
@@ -85,7 +85,7 @@ There are no deprecated APIs removed in AG Charts version {% migrationVersion() 
 
 <!-- Otherwise: -->
 <!--
-The following APIs have been deprecated since at least !PREV_x.x! and have now been removed.
+The following APIs have been deprecated since version !PREV_x.x! and have now been removed.
 
 {% expandingSection headerText="Removed Deprecated APIs" %}
 

@@ -1,7 +1,24 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    LegendModule,
+    NumberAxisModule,
+    WaterfallSeriesModule,
+    CategoryAxisModule,
+]);
 const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -62,32 +79,10 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                     },
                 },
             },
-            tooltip: {
-                renderer: ({ datum, yKey, title }) => {
-                    const change = (datum[yKey] as number) ?? 0;
-                    const closePrice = datum.closePrice;
-                    return {
-                        title: title,
-                        data: [
-                            {
-                                label: 'Daily Change',
-                                value: `${change > 0 ? '+' : ''}${change.toFixed(2)}%`,
-                            },
-                            {
-                                label: 'Close Price',
-                                value: `£${closePrice.toLocaleString('en-GB', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                })}`,
-                            },
-                        ],
-                    };
-                },
-            },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'right',
             type: 'number',
             title: {
@@ -138,14 +133,13 @@ const options: AgChartOptions<ReturnType<typeof getData>[0]> = {
                 formatter: ({ value }) => `${value > 0 ? '+' : ''}${value.toFixed(1)}%`,
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         position: {
             floating: true,

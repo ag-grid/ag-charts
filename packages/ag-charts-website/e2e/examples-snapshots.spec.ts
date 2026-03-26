@@ -52,7 +52,7 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
 };
 
 test.describe('examples snapshots', () => {
-    const config = setupIntrinsicAssertions();
+    const config = setupIntrinsicAssertions(test);
 
     const examples = getExamples();
 

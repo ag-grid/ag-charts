@@ -1,7 +1,9 @@
-import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBubbleSeriesOptions, AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BubbleSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -49,10 +51,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -62,9 +63,8 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },
@@ -74,13 +74,13 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function updateFontSize(event: any) {
-    var value = +event.target.value;
+    const value = Number(event.target.value);
 
     (options.series![0] as AgBubbleSeriesOptions).label!.fontSize = value;
     (options.series![1] as AgBubbleSeriesOptions).label!.fontSize = value;

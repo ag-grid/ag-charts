@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    BoxPlotSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const data = getData();
 
 // Calculate overall median for reference line
@@ -44,9 +54,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'category',
             paddingInner: 0.6,
             paddingOuter: 0.3,
@@ -74,8 +83,7 @@ const options: AgCartesianChartOptions = {
                 wrapping: 'always',
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'number',
             nice: true,
             gridLine: {
@@ -125,6 +133,6 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 AgCharts.create(options);

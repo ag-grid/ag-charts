@@ -1,6 +1,6 @@
+import { toRadians } from 'ag-charts-core';
 import type { AgPatternName } from 'ag-charts-types';
 
-import { toRadians } from '../../util/angle';
 import type { ExtendedPath2D } from '../extendedPath2D';
 import { align } from '../util/pixel';
 

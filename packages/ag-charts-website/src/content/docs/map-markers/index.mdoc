@@ -15,7 +15,7 @@ To create a Map Marker Series, use the `map-marker` series type and provide data
 A Map Marker Series should be combined with a [Map Shape Background Series](./map-shapes/#background-shapes).
 {% /note %}
 
-```js
+```js format="snippet"
 data: data,
 topology: topology,
 series: [
@@ -24,7 +24,7 @@ series: [
         type: 'map-marker',
         idKey: 'name',
     },
-],
+]
 ```
 
 In this configuration:
@@ -33,7 +33,6 @@ In this configuration:
 -   `idKey` defines the property key in the data that will be matched against the property value in the topology.
     See [Connecting Data to Topology](./map-topology/#connecting-data-to-topology) for more details.
 -   The `map-shape-background` series has its topology defined on the series level.
--   The `map-shape-background` series is rendered behind the `map-marker` series due to their order in the series array.
 
 ## Map Marker Position from Data
 
@@ -41,7 +40,7 @@ Instead of using a topology file, the Map Marker Series can use geographic data 
 
 {% chartExampleRunner title="Marker Series" name="marker-series" type="generated" /%}
 
-```js
+```js format="snippet"
 data: data,
 series: [
     // ...
@@ -50,7 +49,7 @@ series: [
         latitudeKey: 'lat',
         longitudeKey: 'lon',
     },
-],
+]
 ```
 
 In this configuration:
@@ -64,19 +63,21 @@ In this configuration:
 
 To vary the size of the marker to denote the magnitude of the data values use `sizeKey`, `size` and `maxSize`.
 
-```js
-series: [
-    // ...
-    {
-        type: 'map-marker',
-        latitudeKey: 'lat',
-        longitudeKey: 'lon',
-        sizeKey: 'count',
-        sizeName: 'Count',
-        size: 3,
-        maxSize: 50,
-    },
-],
+```js format="snippet"
+{
+    series: [
+        // ...
+        {
+            type: 'map-marker',
+            latitudeKey: 'lat',
+            longitudeKey: 'lon',
+            sizeKey: 'count',
+            sizeName: 'Count',
+            size: 3,
+            maxSize: 50,
+        },
+    ],
+}
 ```
 
 In this configuration:

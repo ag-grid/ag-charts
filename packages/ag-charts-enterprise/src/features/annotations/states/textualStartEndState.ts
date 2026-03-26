@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
@@ -9,8 +10,6 @@ import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProperties>
     extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
@@ -53,7 +52,7 @@ export abstract class TextualStartEndStateMachine<
     protected node?: Node;
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point, visible: true });
             ctx.create(datum);
@@ -72,6 +71,7 @@ export abstract class TextualStartEndStateMachine<
 
         const onStopEditing = () => {
             ctx.hideTextInput();
+            this.node?.setTextInputBBox();
             if (this.datum) this.datum.visible = true;
             ctx.deselect();
         };
@@ -81,7 +81,7 @@ export abstract class TextualStartEndStateMachine<
             ctx.update();
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
+        const onEndHover = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
             datum?.set({ end: point });
             node?.toggleActive(true);

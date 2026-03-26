@@ -15,7 +15,7 @@
 -   **Optional Name Properties**: `xName`, `yName`, `yLowName`, `yHighName`
 -   **Styling Options**: `marker`, `label`
 -   **Data Handling**: `connectMissingData`
--   **Label Formatter**: Custom formatting function with `itemId` parameter
+-   **Label Formatter**: Custom formatting function with `itemType` parameter
 
 ### Examples Referenced
 
@@ -37,7 +37,7 @@
 
 -   `AgRangeAreaSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/rangeAreaOptions.ts`
 -   `AgRangeAreaSeriesLabelOptions` and related types
--   `AgRangeAreaSeriesTooltipRendererParams` with `itemId` field
+-   `AgRangeAreaSeriesTooltipRendererParams` with `itemType` field
 
 ### Implementation Files to Check
 
@@ -102,7 +102,7 @@
 
 -   Markers enabled with `size: 7`
 -   Labels enabled with `padding: 17`
--   Label formatter uses `itemId` to distinguish 'low' vs 'high'
+-   Label formatter uses `itemType` to distinguish 'low' vs 'high'
 -   Formatter shows "L: value" or "H: value"
 
 **Expected Behaviors:**
@@ -150,7 +150,7 @@ No existing technical-review-exceptions.md file found for this page.
 ### Priority 1: API Contract Validation
 
 1. Verify all documented properties exist in `AgRangeAreaSeriesOptions`
-2. Check that `itemId` parameter exists in label formatter params and can be 'low' or 'high'
+2. Check that `itemType` parameter exists in label formatter params and can be 'low' or 'high'
 3. Validate that this is an enterprise-only feature
 4. Cross-check default values from implementation
 
@@ -170,7 +170,7 @@ No existing technical-review-exceptions.md file found for this page.
     - Verify no console errors
 4. **range-area-labels**:
     - Validate marker and label rendering
-    - Test label formatter with itemId
+    - Test label formatter with itemType
     - Check label positioning
 
 ### Priority 3: Interactive Testing
@@ -213,9 +213,9 @@ No existing technical-review-exceptions.md file found for this page.
 ### range-area-labels
 
 -   **Task**: Test marker and label customization
--   **Expected from docs**: Markers at size 7, labels with custom formatter using itemId
+-   **Expected from docs**: Markers at size 7, labels with custom formatter using itemType
 -   **Validate**: Markers visible, labels show L/H prefixes, proper positioning
--   **Check for**: Label formatter receives correct itemId values, no overlapping issues
+-   **Check for**: Label formatter receives correct itemType values, no overlapping issues
 
 ## Success Criteria
 

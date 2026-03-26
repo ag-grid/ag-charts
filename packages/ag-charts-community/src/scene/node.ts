@@ -1,13 +1,18 @@
-import { Logger, createId, createSvgElement } from 'ag-charts-core';
+import {
+    DeclaredSceneChangeDetection,
+    Logger,
+    assignIfNotStrictlyEqual,
+    createId,
+    createSvgElement,
+    objectsEqual,
+} from 'ag-charts-core';
 
-import { objectsEqual } from '../util/object';
 import { BBox } from './bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection } from './changeDetectable';
 import type { ImageLoader } from './image/imageLoader';
 import type { LayersManager } from './layersManager';
 import { type ZIndex } from './zIndex';
 
-export { SceneChangeDetection };
+export { SceneChangeDetection } from 'ag-charts-core';
 
 export enum PointerEvents {
     All,
@@ -16,6 +21,7 @@ export enum PointerEvents {
 
 export type RenderContext = {
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+    direction: CanvasDirection;
     width: number;
     height: number;
     devicePixelRatio: number;
@@ -52,6 +58,7 @@ export type ChildNodeCounts = {
 export interface IScene {
     layersManager: LayersManager;
     imageLoader: ImageLoader;
+    isRtl: boolean;
 }
 
 const MAX_ERROR_COUNT = 5;
@@ -61,6 +68,8 @@ const MAX_ERROR_COUNT = 5;
  * Each node can have zero or one parent and belong to zero or one scene.
  */
 export abstract class Node<TDatum = unknown> {
+    static readonly className: string = 'AbstractNode';
+
     private static _nextSerialNumber = 0;
     // eslint-disable-next-line sonarjs/public-static-readonly
     public static _debugEnabled = false;
@@ -129,21 +138,23 @@ export abstract class Node<TDatum = unknown> {
      */
     protected isContainerNode: boolean = false;
 
-    @SceneChangeDetection<Node>()
+    @DeclaredSceneChangeDetection()
     visible: boolean = true;
+    declare __visible: boolean; // optimised field accessor
 
-    @SceneObjectChangeDetection<Node>({
+    @DeclaredSceneChangeDetection({
         equals: objectsEqual,
-        changeCb: (target) => target.onZIndexChange(),
+        changeCb: Node.handleNodeZIndexChange,
     })
     zIndex: ZIndex = 0;
+    declare __zIndex: ZIndex;
 
     protected batchLevel = 0;
     private batchDirty = false;
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
-        this.tag = options?.tag ?? NaN;
+        this.tag = options?.tag ?? Number.NaN;
         this.zIndex = options?.zIndex ?? 0;
         this.scene = options?.scene;
 
@@ -218,7 +229,7 @@ export abstract class Node<TDatum = unknown> {
         return this.childNodeCounts;
     }
 
-    /** Guaranteed isolated render - if there is any failure, the Cavans2D context is returned to its prior state. */
+    /** Guaranteed isolated render - if there is any failure, the Canvas2D context is returned to its prior state. */
     isolatedRender(renderCtx: RenderContext): void {
         renderCtx.ctx.save();
         try {
@@ -262,12 +273,13 @@ export abstract class Node<TDatum = unknown> {
     }
 
     *traverseUp(includeSelf?: boolean): Generator<Node, void, unknown> {
-        let node: Node | undefined = this;
         if (includeSelf) {
-            yield node;
+            yield this;
         }
-        while ((node = node.parentNode)) {
+        let node = this.parentNode;
+        while (node) {
             yield node;
+            node = node.parentNode;
         }
     }
 
@@ -285,31 +297,53 @@ export abstract class Node<TDatum = unknown> {
     }
 
     remove() {
+        // eslint-disable-next-line unicorn/prefer-dom-node-remove
         this.parentNode?.removeChild(this);
     }
 
     destroy(): void {
-        this.parentNode?.removeChild(this);
+        if (this.parentNode) {
+            this.remove();
+        }
     }
 
     batchedUpdate(fn: () => void) {
         this.batchLevel++;
-        fn();
-        this.batchLevel--;
-        if (this.batchLevel === 0 && this.batchDirty) {
-            this.markDirty();
-            this.batchDirty = false;
+        try {
+            fn();
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
         }
     }
 
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
-        Object.assign(this, styles);
-        this.batchLevel--;
+        try {
+            assignIfNotStrictlyEqual(this, styles);
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
+        }
+        return this;
+    }
 
-        if (this.batchLevel === 0 && this.batchDirty) {
-            this.markDirty();
-            this.batchDirty = false;
+    setPropertiesWithKeys<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys: readonly string[]) {
+        this.batchLevel++;
+        try {
+            assignIfNotStrictlyEqual(this, styles, keys);
+        } finally {
+            this.batchLevel--;
+            if (this.batchLevel === 0 && this.batchDirty) {
+                this.markDirty();
+                this.batchDirty = false;
+            }
         }
         return this;
     }
@@ -365,7 +399,7 @@ export abstract class Node<TDatum = unknown> {
     private markDebugProperties(property: string) {
         const sources = this._debugDirtyProperties?.get(property) ?? [];
         const caller =
-            new Error().stack?.split('\n').filter((line) => {
+            new Error('Stack trace for property change tracking').stack?.split('\n').filter((line) => {
                 return (
                     line !== 'Error' &&
                     !line.includes('.markDebugProperties') &&
@@ -383,24 +417,33 @@ export abstract class Node<TDatum = unknown> {
 
         if (!this._debugDirtyProperties.has('__first__')) {
             // Construction cases aren't interesting - we only really care about update cases.
-            this._debugDirtyProperties.forEach((sources, property) => {
+            for (const [property, sources] of this._debugDirtyProperties.entries()) {
                 if (sources.length > 1) {
-                    // eslint-disable-next-line no-console
-                    console.groupCollapsed(
-                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`
+                    Logger.logGroup(
+                        `Property changed multiple times before render: ${this.constructor.name}.${property} (${sources.length}x)`,
+                        () => {
+                            for (const source of sources) {
+                                Logger.log(source);
+                            }
+                        }
                     );
-                    // eslint-disable-next-line no-console
-                    sources.forEach((source) => console.log(source));
-                    // eslint-disable-next-line no-console
-                    console.groupEnd();
                 }
-            });
+            }
         }
         this._debugDirtyProperties.clear();
     }
 
+    private static handleNodeZIndexChange(this: void, target: Node): void {
+        target.onZIndexChange();
+    }
+
     protected onZIndexChange() {
         this.parentNode?.markDirtyChildrenOrder();
+    }
+
+    /** Override in subclasses that carry a font (Text) or contain font-bearing children (Group). */
+    resolveFont(): string | undefined {
+        return undefined;
     }
 
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

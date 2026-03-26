@@ -1,7 +1,25 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BubbleSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -16,10 +34,9 @@ const options: AgCartesianChartOptions = {
             xName: 'Planet Radius',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Equilibrium Temperature [K]',
             },
@@ -29,9 +46,8 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Planet Radius [Earth Radius]',
             },
@@ -41,7 +57,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

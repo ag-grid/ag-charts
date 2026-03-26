@@ -1,24 +1,19 @@
-import { createId } from 'ag-charts-core';
+import { BaseProperties, Property, type Scale, clampArray, createId, findMinMax, toRadians } from 'ag-charts-core';
 import type {
     AgCartesianAxisPosition,
     AgCartesianCrossLineLabelOptions,
     AgCrossLineLabelPosition,
-    FontStyle,
-    FontWeight,
+    Padding,
 } from 'ag-charts-types';
 
 import { BandScale } from '../../scale/bandScale';
-import { type Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import { Range } from '../../scene/shape/range';
 import { TransformableText } from '../../scene/shape/text';
-import { toRadians } from '../../util/angle';
-import { clampArray, findMinMax } from '../../util/number';
-import { BaseProperties, Property } from '../../util/properties';
+import { LabelStyle } from '../label';
 import { rangeAlignment } from '../rangeAlignment';
-import { FONT_SIZE } from '../themes/constants';
 import { type CrossLine, type CrossLineType, validateCrossLineValue } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 
@@ -111,36 +106,15 @@ const verticalRangeAnchors: Record<AgCrossLineLabelPosition, Anchor> = {
     inside: { rangeH: 0, rangeV: 0, labelH: 0, labelV: 0 },
 };
 
-class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCrossLineLabelOptions {
+class CartesianCrossLineLabel extends LabelStyle implements AgCartesianCrossLineLabelOptions {
     @Property
-    enabled?: boolean;
+    enabled!: boolean;
+
+    @Property
+    override padding: Padding = 5;
 
     @Property
     text?: string;
-
-    @Property
-    fontStyle?: FontStyle;
-
-    @Property
-    fontWeight?: FontWeight;
-
-    @Property
-    fontSize: number = FONT_SIZE.LARGE;
-
-    @Property
-    fontFamily: string = 'Verdana, sans-serif';
-
-    /**
-     * The padding between the label and the line.
-     */
-    @Property
-    padding: number = 5;
-
-    /**
-     * The color of the labels.
-     */
-    @Property
-    color?: string = 'rgba(87, 87, 87, 1)';
 
     @Property
     position?: CrossLineLabelPosition;
@@ -197,6 +171,7 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     scale?: Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
+    gridPadding: number = 0;
     position: AgCartesianAxisPosition = 'top';
 
     get defaultLabelPosition(): AgCrossLineLabelPosition {
@@ -206,8 +181,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     readonly rangeGroup = new Group({ name: this.id });
     readonly lineGroup = new Group({ name: this.id });
     readonly labelGroup = new Group({ name: this.id });
-    private readonly crossLineRange = new Range();
-    private readonly crossLineLabel = new TransformableText();
+    private readonly crossLineRange = this.lineGroup.appendChild(new Range());
+    private readonly crossLineLabel = this.labelGroup.appendChild(new TransformableText());
 
     private data: NodeData | undefined = undefined;
     private startLine: boolean = false;
@@ -215,10 +190,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
     constructor() {
         super();
-
-        this.lineGroup.append(this.crossLineRange);
-        this.labelGroup.append(this.crossLineLabel);
-
         this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 
@@ -271,9 +242,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         if (type === 'line') {
             const offset = bandwidth / 2;
             yStart = scale.convert(value as any) + offset;
-            yEnd = NaN;
+            yEnd = Number.NaN;
             clampedYStart = scale.convert(value as any, { clamp: true }) + offset;
-            clampedYEnd = NaN;
+            clampedYEnd = Number.NaN;
 
             if (clampedYStart >= clippedRange1 || clampedYStart <= clippedRange0) {
                 return;
@@ -323,19 +294,22 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     private updateNodes() {
-        const { position, data: [r0, r1] = [0, 0], gridLength } = this;
+        const { position, data: [r0, r1] = [0, 0], gridLength, gridPadding } = this;
 
         const dr = Number.isFinite(r1) ? r1 - r0 : 0;
+        // Mirror the grid line padding pattern (see cartesianAxis.ts calculateTickLayout).
+        const direction = position === 'bottom' || position === 'right' ? -1 : 1;
+        const crossStart = Math.min(direction * gridPadding, direction * (gridLength + gridPadding));
 
         let bounds: BBox;
         switch (position) {
             case 'top':
             case 'bottom':
-                bounds = new BBox(r0, position === 'top' ? 0 : -gridLength, dr, gridLength);
+                bounds = new BBox(r0, crossStart, dr, gridLength);
                 break;
             case 'left':
             case 'right':
-                bounds = new BBox(position === 'left' ? 0 : -gridLength, r0, gridLength, dr);
+                bounds = new BBox(crossStart, r0, gridLength, dr);
         }
 
         this.updateRangeNode(bounds);
@@ -385,12 +359,12 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         if (!label.text) return;
 
-        crossLineLabel.fontStyle = label.fontStyle;
-        crossLineLabel.fontWeight = label.fontWeight;
-        crossLineLabel.fontSize = label.fontSize;
-        crossLineLabel.fontFamily = label.fontFamily;
         crossLineLabel.fill = label.color;
         crossLineLabel.text = label.text;
+        crossLineLabel.textAlign = 'center';
+        crossLineLabel.textBaseline = 'middle';
+        crossLineLabel.setFont(label);
+        crossLineLabel.setBoxing(label);
     }
 
     private get anchor(): Anchor {
@@ -408,21 +382,31 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     private positionLabel(bounds: BBox) {
-        const { crossLineLabel, label, anchor } = this;
+        const {
+            crossLineLabel,
+            label: { padding, rotation },
+            anchor,
+        } = this;
 
-        crossLineLabel.rotation = toRadians(label.rotation ?? 0);
-        crossLineLabel.textBaseline = 'middle';
-        crossLineLabel.textAlign = 'center';
+        crossLineLabel.rotation = toRadians(rotation ?? 0);
 
         const bbox = crossLineLabel.getBBox();
         if (!bbox) return;
         const { width, height } = bbox;
 
-        const xOffset = label.padding + width / 2;
-        const yOffset = label.padding + height / 2;
+        const xPaddingDiff = typeof padding === 'number' ? 0 : (padding.right ?? 0) - (padding.left ?? 0);
+        const yPaddingDiff = typeof padding === 'number' ? 0 : (padding.bottom ?? 0) - (padding.top ?? 0);
 
-        const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH;
-        const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV;
+        let xOffset = width / 2;
+        let yOffset = height / 2;
+
+        if (typeof padding === 'number' && !crossLineLabel.hasBoxing()) {
+            xOffset += padding;
+            yOffset += padding;
+        }
+
+        const x = bounds.x + (bounds.width * (anchor.rangeH + 1)) / 2 - xOffset * anchor.labelH - xPaddingDiff / 2;
+        const y = bounds.y + (bounds.height * (anchor.rangeV + 1)) / 2 - yOffset * anchor.labelV - yPaddingDiff / 2;
 
         crossLineLabel.x = x;
         crossLineLabel.y = y;
@@ -451,14 +435,20 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     }
 
     calculatePadding(into: Partial<Record<AgCrossLineLabelPosition, number>>) {
-        const { label, anchor } = this;
+        const {
+            label: { padding },
+            anchor,
+        } = this;
 
         const size = this.computeLabelSize();
         if (!size) return;
         const { width, height } = size;
 
-        const xOffset = label.padding + width;
-        const yOffset = label.padding + height;
+        const xPadding = typeof padding === 'number' ? padding * 2 : (padding.left ?? 0) + (padding.right ?? 0);
+        const yPadding = typeof padding === 'number' ? padding * 2 : (padding.top ?? 0) + (padding.bottom ?? 0);
+
+        const xOffset = xPadding + width;
+        const yOffset = yPadding + height;
         const horizontal = this.position === 'left' || this.position === 'right';
 
         if (horizontal) {

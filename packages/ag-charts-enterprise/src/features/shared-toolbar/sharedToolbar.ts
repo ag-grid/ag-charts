@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance } from 'ag-charts-core';
 
 import type { SharedToolbarSection } from './sharedToolbarTypes';
 
@@ -20,7 +21,7 @@ export interface SharedToolbarWithSection<
     layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
 }
 
-export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class SharedToolbar extends AbstractModuleInstance {
     static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
 
     private readonly container: HTMLElement;
@@ -57,7 +58,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
         this.cleanup.register(() => {
             if (!this.sharedToolbar) return;
-            this.container.removeChild(this.sharedToolbar.getElement());
+            this.sharedToolbar.getElement().remove();
             this.sharedToolbar.destroy();
             this.sharedToolbar = undefined;
         });
@@ -69,7 +70,7 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
         const sharedToolbar = this.sharedToolbar!;
 
         const withSection = {
-            layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => {
+            layout: (layoutBox: _ModuleSupport.BBox, padding: number = 0) => {
                 // Only perform the layout for the first section to call to prevent multiple shrinkings per update
                 if (
                     this.firstLayoutSection != null &&
@@ -81,15 +82,16 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
                 this.firstLayoutSection = section;
 
                 const width = sharedToolbar.getBounds().width;
+                const { isRtl } = this.ctx.domManager;
                 sharedToolbar.setBounds({
-                    x: layoutBox.x,
+                    x: isRtl ? layoutBox.x + layoutBox.width - width : layoutBox.x,
                     y: layoutBox.y,
                     width: width,
                 });
 
-                layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing + (padding ?? 0) });
+                layoutBox.shrink(width + sharedToolbar.horizontalSpacing + padding, isRtl ? 'right' : 'left');
             },
-            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap & string>(
+            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap>(
                 eventType: K,
                 handler: (event: _ModuleSupport.ToolbarEventMap<ButtonOptions>[K]) => void
             ) => {

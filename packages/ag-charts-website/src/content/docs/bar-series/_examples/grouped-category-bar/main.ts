@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, GroupedCategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, GroupedCategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -43,15 +45,13 @@ const options: AgChartOptions = {
             yName: 'Services',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             label: { rotation: 0 },
             depthOptions: [{}, { label: { fontWeight: 'bold' } }],
         },
-        { type: 'number', position: 'left' },
-    ],
+    },
 };
 
 AgCharts.create(options);

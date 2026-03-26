@@ -1,7 +1,16 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getCoffeeIndustryData, getFoodIndustryData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -113,9 +122,8 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             min: -6000,
@@ -155,8 +163,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Franchise Growth Rate (%)',
@@ -193,7 +200,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     legend: {
         item: {
             marker: {

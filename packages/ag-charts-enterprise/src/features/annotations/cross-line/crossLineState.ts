@@ -1,12 +1,11 @@
-import { type Direction, _ModuleSupport } from 'ag-charts-community';
+import { type Direction } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import { AnnotationType, type Point } from '../annotationTypes';
+import { AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: CrossLineProperties) => void;
@@ -22,7 +21,7 @@ export class CrossLineStateMachine extends StateMachine<
     protected node?: CrossLineScene;
 
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
-        const onClick = ({ point }: { point: Point }) => {
+        const onClick = ({ point }: { point: DataPoint }) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 

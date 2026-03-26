@@ -1,15 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
 import { getGroupingValue } from '../utils/scale';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: ParallelChannelProperties) => void;
@@ -34,7 +31,7 @@ export class ParallelChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     constructor(ctx: ParallelChannelStateMachineContext) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
             ctx.create(datum);
@@ -53,7 +50,7 @@ export class ParallelChannelStateMachine extends StateMachine<
             });
         };
 
-        const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
+        const actionEndUpdate = ({ offset, context }: { offset: Point; context: AnnotationContext }) => {
             const { datum, snapping } = this;
             if (!datum) return;
 
@@ -68,7 +65,7 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightUpdate = ({ point }: { point: Point }) => {
+        const actionHeightUpdate = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
 
             const endY = getGroupingValue(datum?.end.y);
@@ -94,7 +91,7 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightFinish = ({ point }: { point: Point }) => {
+        const actionHeightFinish = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
 
             const endY = getGroupingValue(datum?.end.y);

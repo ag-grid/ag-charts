@@ -4,70 +4,75 @@ title: 'Series Highlighting'
 
 Highlighting the hovered data item or series allows for easier differentiation, especially in charts with many series and data points.
 
-{% chartExampleRunner title="Overlapping Series" name="lines" type="generated" /%}
+{% chartExampleRunner title="Simple Highlight" name="stacked-bars" type="generated" /%}
 
 In the above example:
 
--   The hovered item - in this case the marker - is highlighted.
--   The series containing the hovered item is also highlighted.
--   All other series are dimmed.
+-   Hovering a bar segment will highlight it. The other segments in that series are partially dimmed.
+-   Hovering a bar segment in one series will dim the other series.
+-   Hovering a legend item will dim the other series.
 
-By default, only item highlighting is activated. The above example has custom configuration applied, as detailed below.
+Highlighting is enabled by default. Use `highlight.enabled = false` on each series to disable.
 
 ## Bring to Front
 
-Bringing the highlighted series to the front makes it stand out, especially when multiple series overlap.
+By default, the highlighted series is brought to the front to make it stand out, especially when multiple series overlap.
 
-{% chartExampleRunner title="Front to Front" name="bring-to-front" type="generated" /%}
+{% chartExampleRunner title="Bring to Front" name="bring-to-front" type="generated" /%}
 
-The `bringToFront` property is disabled by default, and can be enabled in the `highlight` options.
+The `bringToFront` property is enabled by default, and can be disabled in the `highlight` options if the default rendering order should be preserved.
 
-```js
-highlight: {
-    bringToFront: true,
+```js format="snippet"
+{
+    highlight: {
+        bringToFront: false,
+    },
 }
 ```
 
 In the above example:
 
--   Hovering any series in the chart or legend will render it above all the other series.
+-   By default, hovering any series in the chart or legend will render it above all the other series.
+-   This behaviour can be toggled using the buttons to see the difference when `bringToFront` is disabled.
 
 ## Customisation
 
+The highlight styles of each series can be customised with the `highlight` options.
+
 {% chartExampleRunner title="Area Series with Custom Highlight Style" name="basic-area" type="generated" /%}
 
-```js
-highlight: {
-    // Attributes that apply to the currently highlighted item.
-    highlightedItem: {
-        fill: 'yellow',
-        stroke: 'gold',
-        strokeWidth: 2,
-    },
-    // Attributes that apply to the unhighlighted items within the highlighted series.
-    unhighlightedItem: {
-        fill: 'maroon',
-        strokeWidth: 0,
-    },
-    // Attributes that apply to the entire series containing the highlighted item.
-    highlightedSeries: {
-        fill: 'red',
-        stroke: 'maroon',
-        strokeWidth: 2,
-    },
-    // Attributes that apply to all other series.
-    unhighlightedSeries: {
-        opacity: 0.2,
+```js format="snippet"
+{
+    highlight: {
+        // Attributes that apply to the currently highlighted item.
+        highlightedItem: {
+            fill: 'yellow',
+            stroke: 'gold',
+            strokeWidth: 2,
+        },
+        // Attributes that apply to the unhighlighted items within the highlighted series.
+        unhighlightedItem: {
+            fill: 'maroon',
+            strokeWidth: 0,
+        },
+        // Attributes that apply to the entire series containing the highlighted item.
+        highlightedSeries: {
+            fill: 'red',
+            stroke: 'maroon',
+            strokeWidth: 2,
+        },
+        // Attributes that apply to all other series.
+        unhighlightedSeries: {
+            opacity: 0.2,
+        },
     },
 }
 ```
 
-In this configuration, the highlight style of the markers and series are customised.
+In this example:
 
-Note the following when a marker is highlighted:
-
--   The hovered marker is highlighted using the `highlightedItem` configuration. This changes the `fill` to `gold`, the `stroke` to `yellow`, and the `strokeWidth` to `2`.
--   The non-hovered markers within the hovered series are styled using the `unhighlightedItem` configuration. This changes the `fill` to to `maroon`, and removes the stroke by setting the `strokeWidth` to `0`.
+-   The hovered marker is highlighted using the `highlightedItem` configuration. This changes the `fill` to `yellow`, the `stroke` to `gold`, and the `strokeWidth` to `2`.
+-   The non-hovered markers within the hovered series are styled using the `unhighlightedItem` configuration. This changes the `fill` to `maroon`, and removes the stroke by setting the `strokeWidth` to `0`.
 -   The hovered series is highlighted using the `highlightedSeries` configuration. This changes the `fill` and `stroke` to shades of red, with a `strokeWidth` of `2`.
 -   The non-highlighted series are dimmed with an applied opacity of `0.2` using the `unhighlightedSeries` configuration.
 
@@ -82,7 +87,8 @@ property which can be used to dynamically customise the chart style based on the
 
 {% chartExampleRunner title="Dynamic Highlight" name="balance-sheet" type="generated" /%}
 
-```js
+```js format="snippet"
+{
     label: {
         itemStyler: (params) => {
             switch (params.highlightState) {
@@ -97,6 +103,7 @@ property which can be used to dynamically customise the chart style based on the
             }
         },
     },
+}
 ```
 
 In this example:

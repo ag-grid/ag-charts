@@ -1,7 +1,23 @@
-import { AgCharts, AgSparklineOptions } from 'ag-charts-community';
+import { AgCharts, AgSparklineOptions, LegendModule } from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { data } from './data';
 
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 function marketCapData(marketCap: number) {
     return [{ index: 0, marketCap }];
 }

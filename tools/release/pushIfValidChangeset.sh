@@ -19,5 +19,5 @@ then
 fi
 
 git add .
-git commit -am "Release $RELEASE_VERSION Prep"
-git push -u origin "$RELEASE_BRANCH"
+git commit -am "Release $RELEASE_VERSION Prep"  --no-verify
+git push -u origin "$RELEASE_BRANCH"  --no-verify

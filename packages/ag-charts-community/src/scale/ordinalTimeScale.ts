@@ -1,10 +1,19 @@
+import {
+    type DomainWithMetadata,
+    type NormalizedDomain,
+    ScaleAlignment,
+    type ScaleTickParams,
+    type ScaleTickResult,
+    datesSortOrder,
+    sortAndUniqueDates,
+} from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import { ContinuousScale } from './continuousScale';
-import { DiscreteTimeScale } from './discreteTimeScale';
-import { type NormalizedDomain, ScaleAlignment, type ScaleTickParams, type ScaleTickResult } from './scale';
+import { DiscreteTimeScale, type UniformityCheck, checkUniformityBySampling } from './discreteTimeScale';
 import { getDateTicksForInterval } from './timeScale';
+
+const APPROXIMATE_THRESHOLD = 1000;
 
 export class OrdinalTimeScale extends DiscreteTimeScale {
     readonly type = 'ordinal-time';
@@ -16,12 +25,16 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 
     private _domain: Date[] = [];
     private isReversed: boolean = false;
+    private _uniformityCache: UniformityCheck | undefined;
+
     override set domain(domain: Date[]) {
         if (domain === this._domain) return;
 
         this.invalid = true;
         this._domain = domain;
         this._bands = undefined;
+        this._numericBands = undefined;
+        this._uniformityCache = undefined;
         this.isReversed = domainReversed(domain);
     }
     override get domain(): Date[] {
@@ -34,24 +47,72 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         return this._bands;
     }
 
-    override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
-        const sortedDomains = domains.filter((domain) => domain.length > 0);
+    private _numericBands: number[] | undefined;
+    protected override get numericBands(): number[] {
+        this._numericBands ??= this.bands.map((d) => d.valueOf());
+        return this._numericBands;
+    }
 
-        if (sortedDomains.length === 0) {
+    override getUniformityCache(visibleRange?: [number, number]): UniformityCheck | undefined {
+        const { bands } = this;
+        const n = bands.length;
+
+        // For full range or no visible range, use cached whole-domain check
+        if (!visibleRange || (visibleRange[0] === 0 && visibleRange[1] === 1)) {
+            if (n > APPROXIMATE_THRESHOLD && this._uniformityCache === undefined) {
+                this._uniformityCache = checkUniformityBySampling(bands);
+            }
+            return this._uniformityCache;
+        }
+
+        // For partial visible range, sample within that range (no caching)
+        const startIdx = Math.floor(visibleRange[0] * n);
+        const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
+        return checkUniformityBySampling(bands, startIdx, endIdx);
+    }
+
+    override normalizeDomains(...domains: DomainWithMetadata<Date>[]): NormalizedDomain<Date> {
+        const nonEmptyDomains = domains.filter((d) => d.domain.length > 0);
+
+        if (nonEmptyDomains.length === 0) {
             return { domain: [], animatable: false };
-        } else if (sortedDomains.length === 1) {
-            let domain = sortedDomains[0];
-            const sortOrder = datesSortOrder(domain);
+        }
+
+        // Check if all domains are the same array reference (common in Financial Charts)
+        const firstDomain = nonEmptyDomains[0].domain;
+        const allSame = nonEmptyDomains.every((d) => d.domain === firstDomain);
+
+        if (nonEmptyDomains.length === 1 || allSame) {
+            const input = nonEmptyDomains[0];
+            let domain = input.domain;
+
+            // OPTIMIZATION: Use pre-computed metadata when available to skip O(n) datesSortOrder scan
+            let sortOrder: 1 | -1 | undefined;
+            let isUnique = false;
+
+            if (input.sortMetadata?.sortOrder === undefined) {
+                // Fallback to scanning when metadata not available
+                sortOrder = datesSortOrder(domain);
+            } else {
+                sortOrder = input.sortMetadata.sortOrder;
+                isUnique = input.sortMetadata.isUnique ?? false;
+            }
+
             if (sortOrder === -1) {
                 domain = domain.slice().reverse();
             } else if (sortOrder == null) {
-                domain = sortAndUniqueDates(domain.slice());
+                // Need to sort; skip deduplication if we know data is unique
+                domain = isUnique
+                    ? domain.slice().sort((a, b) => a.valueOf() - b.valueOf())
+                    : sortAndUniqueDates(domain.slice());
             }
+            // If sortOrder === 1, domain is already in ascending order - use as-is
             return { domain, animatable: true };
         }
 
+        // Multiple domains - must merge and sort, metadata not applicable
         return {
-            domain: sortAndUniqueDates(sortedDomains.flat()),
+            domain: sortAndUniqueDates(nonEmptyDomains.map((d) => d.domain).flat()),
             animatable: true,
         };
     }
@@ -63,16 +124,20 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         { extend = false, dropInitial = false } = {}
     ): ScaleTickResult<Date> | undefined {
         const { interval, maxTickCount, tickCount = maxTickCount } = params;
-        const { bands } = this;
+        const { bands, reversed } = this;
 
         if (!bands.length) return;
+
+        if (reversed) {
+            visibleRange = [1 - visibleRange[1], 1 - visibleRange[0]];
+        }
 
         this.refresh();
 
         if (interval == null) {
             const { ticks, tickOffset, tickEvery } = this.getDefaultTicks(domain, tickCount, visibleRange, extend);
             let firstTickIndex = ticks.length > 0 ? this.findIndex(ticks[0]) : undefined;
-            firstTickIndex = firstTickIndex != null ? Math.floor((firstTickIndex - tickOffset) / tickEvery) : undefined;
+            firstTickIndex = firstTickIndex == null ? undefined : Math.floor((firstTickIndex - tickOffset) / tickEvery);
             return { ticks, count: undefined, firstTickIndex };
         }
 
@@ -80,10 +145,10 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
         let stop: number;
         if (domain && domain.length >= 2) {
             start = domain[0].valueOf();
-            stop = domain[domain.length - 1].valueOf();
+            stop = domain.at(-1)!.valueOf();
         } else {
             start = bands[0].valueOf();
-            stop = bands[bands.length - 1].valueOf();
+            stop = bands.at(-1)!.valueOf();
         }
 
         const [r0, r1] = this.range;
@@ -198,5 +263,5 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
 }
 
 function domainReversed(domain: Date[]): boolean {
-    return domain.length > 0 && domain[0] > domain[domain.length - 1];
+    return domain.length > 0 && domain[0] > domain.at(-1)!;
 }

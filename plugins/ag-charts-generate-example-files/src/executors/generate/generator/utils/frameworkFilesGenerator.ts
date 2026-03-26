@@ -1,15 +1,48 @@
+import { readFileSync } from 'fs';
 import prettier from 'prettier';
 
 import { ANGULAR_GENERATED_MAIN_FILE_NAME } from '../constants';
 import { vanillaToAngular } from '../transformation-scripts/chart-vanilla-to-angular';
 import { vanillaToReactFunctional } from '../transformation-scripts/chart-vanilla-to-react-functional';
 import { vanillaToReactFunctionalTs } from '../transformation-scripts/chart-vanilla-to-react-functional-ts';
+import { vanillaToTypescript } from '../transformation-scripts/chart-vanilla-to-typescript';
 import { vanillaToVue3 } from '../transformation-scripts/chart-vanilla-to-vue3';
 import { readAsJsFile } from '../transformation-scripts/parser-utils';
-import type { InternalFramework } from '../types';
-import type { FileContents } from '../types';
+import type { FileContents, InternalFramework } from '../types';
 import { deepCloneObject } from './deepCloneObject';
 import { getBoilerPlateFiles, getEntryFileName, getMainFileName } from './fileUtils';
+
+/**
+ * Get the version from package.json, stripping any beta suffix
+ */
+function getPackageVersion(packageName: string): string {
+    const path = `${process.cwd()}/packages/${packageName}/package.json`;
+    const packageJsonStr = readFileSync(path, 'utf-8');
+    const packageJson = JSON.parse(packageJsonStr);
+    const version = packageJson.version;
+    // Strip any `-beta.XXXXXXX` suffix
+    return version.split('-')[0];
+}
+
+/**
+ * Get commented UMD script tags for staging and production URLs
+ * Only used in dev mode for vanilla examples
+ */
+const getUmdScriptTags = (isEnterprise: boolean): string => {
+    const stagingUrl = isEnterprise
+        ? 'https://charts-staging.ag-grid.com/dev/ag-charts-enterprise/dist/umd/ag-charts-enterprise.js'
+        : 'https://charts-staging.ag-grid.com/dev/ag-charts-community/dist/umd/ag-charts-community.js';
+
+    const packageName = isEnterprise ? 'ag-charts-enterprise' : 'ag-charts-community';
+    const version = getPackageVersion(packageName);
+
+    const productionUrl = isEnterprise
+        ? `https://cdn.jsdelivr.net/npm/ag-charts-enterprise@${version}/dist/umd/ag-charts-enterprise.js`
+        : `https://cdn.jsdelivr.net/npm/ag-charts-community@${version}/dist/umd/ag-charts-community.js`;
+
+    return `<!-- <script src="${stagingUrl}"></script> -->
+<!-- <script src="${productionUrl}"></script> -->`;
+};
 
 interface FrameworkFiles {
     files: FileContents;
@@ -43,7 +76,7 @@ type ConfigGenerator = ({
     indexHtml: string;
     isEnterprise: boolean;
     bindings: any;
-    typedBindings: any;
+    typedBindings: { imports: { module: string[]; imports: string[] }[] };
     otherScriptFiles: FileContents;
     styleFileNames: string[];
     transformEntryFile?: TransformEntryFile;
@@ -53,11 +86,20 @@ type ConfigGenerator = ({
 
 // noinspection TypeScriptValidateTypes
 export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator> = {
-    vanilla: async ({ entryFile, indexHtml, typedBindings, otherScriptFiles, transformEntryFile, isDev }) => {
+    vanilla: async ({
+        entryFile,
+        indexHtml,
+        isEnterprise,
+        typedBindings,
+        otherScriptFiles,
+        transformEntryFile,
+        isDev,
+    }) => {
         const internalFramework: InternalFramework = 'vanilla';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
-        let mainJs = readAsJsFile(entryFile);
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
+        // Strip ModuleRegistry calls (including multi-line) - vanilla uses UMD bundle with pre-registered modules
+        let mainJs = readAsJsFile(entryFile).replace(/ModuleRegistry\.registerModules\([\s\S]*?\);/m, '');
 
         const localeImports = typedBindings.imports
             .filter((i: any) => i.module.includes('ag-charts-locale'))
@@ -67,20 +109,9 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         }
 
         // Chart classes that need scoping
-        const chartsExports = new Set([
-            'time',
-            'AgCharts',
-            'VERSION',
-            'Marker',
-            'AG_CHARTS_LOCALE_EN_US',
-            '_Scene',
-            '_Theme',
-            '_Scale',
-            '_Util',
-            '_ModuleSupport',
-        ]);
+        const chartsExports = new Set(['time', 'AgCharts', 'VERSION', 'Marker', 'AG_CHARTS_LOCALE_EN_US']);
         const chartImports = typedBindings.imports
-            .filter((i: any) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
+            .filter((i) => i.module.includes('ag-charts-community') || i.module.includes('ag-charts-enterprise'))
             .flatMap((imp) => imp.imports)
             .filter((imp) => chartsExports.has(imp));
         if (chartImports.length > 0) {
@@ -102,24 +133,43 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             });
         }
 
+        // Inject commented UMD script tags for dev builds
+        let processedIndexHtml = indexHtml;
+        if (isDev) {
+            const umdScriptTags = getUmdScriptTags(isEnterprise);
+            // Check if tags are already present (idempotent)
+            if (!indexHtml.includes('<!-- Staging UMD build -->')) {
+                // Inject before closing </head> tag if present, otherwise before closing </html>, otherwise append
+                if (indexHtml.includes('</head>')) {
+                    processedIndexHtml = indexHtml.replace('</head>', `${umdScriptTags}\n</head>`);
+                } else if (indexHtml.includes('</html>')) {
+                    processedIndexHtml = indexHtml.replace('</html>', `${umdScriptTags}\n</html>`);
+                } else {
+                    processedIndexHtml = indexHtml + '\n' + umdScriptTags;
+                }
+            }
+        }
+
         return {
             files: {
                 ...otherScriptFiles,
                 [entryFileName]: mainJs,
-                'index.html': indexHtml,
+                'index.html': processedIndexHtml,
             },
             scriptFiles: Object.keys(otherScriptFiles).concat(entryFileName),
             entryFileName,
             mainFileName,
         };
     },
-    typescript: async ({ entryFile, indexHtml, otherScriptFiles, bindings, transformEntryFile, isDev }) => {
+    typescript: async ({ indexHtml, otherScriptFiles, bindings, typedBindings, transformEntryFile, isDev }) => {
         const internalFramework: InternalFramework = 'typescript';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
 
         const { externalEventHandlers } = bindings;
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
+
+        let mainTs = vanillaToTypescript(deepCloneObject(typedBindings));
 
         // Attach external event handlers
         let externalEventHandlersCode;
@@ -134,15 +184,12 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
             ].join('\n');
         }
 
-        let mainTs = externalEventHandlersCode ? `${entryFile}${externalEventHandlersCode}` : entryFile;
-
-        const chartAPI = 'AgCharts';
-        if (!mainTs.includes(`chart = ${chartAPI}`)) {
-            mainTs = mainTs.replace(`${chartAPI}.create(options);`, `const chart = ${chartAPI}.create(options);`);
+        if (externalEventHandlersCode) {
+            mainTs = `${mainTs}\n${externalEventHandlersCode}`;
         }
 
         if (transformEntryFile) {
-            mainTs = transformEntryFile({ entryFile: mainTs, chartAPI });
+            mainTs = transformEntryFile({ entryFile: mainTs, chartAPI: 'AgCharts' });
         }
 
         if (!isDev) {
@@ -174,8 +221,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         suppressOptionsClone,
     }) => {
         const internalFramework = 'reactFunctional';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexJsx = await vanillaToReactFunctional(
@@ -219,8 +266,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
         suppressOptionsClone,
     }) => {
         const internalFramework: InternalFramework = 'reactFunctionalTs';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let indexTsx = await vanillaToReactFunctionalTs(
@@ -255,8 +302,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
     },
     angular: async ({ typedBindings, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
         const internalFramework: InternalFramework = 'angular';
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let appComponent = await vanillaToAngular(deepCloneObject(typedBindings), [], suppressOptionsClone);
@@ -289,6 +336,8 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
     },
     vue3: async ({ bindings, indexHtml, otherScriptFiles, isDev, transformEntryFile, suppressOptionsClone }) => {
         const internalFramework: InternalFramework = 'vue3';
+        const entryFileName = getEntryFileName(internalFramework);
+        const mainFileName = getMainFileName(internalFramework);
         const boilerPlateFiles = await getBoilerPlateFiles(isDev, internalFramework);
 
         let mainJs = await vanillaToVue3(deepCloneObject(bindings), [], suppressOptionsClone);
@@ -303,9 +352,6 @@ export const frameworkFilesGenerator: Record<InternalFramework, ConfigGenerator>
                 embeddedLanguageFormatting: 'off',
             });
         }
-
-        const entryFileName = getEntryFileName(internalFramework)!;
-        const mainFileName = getMainFileName(internalFramework)!;
 
         return {
             files: {

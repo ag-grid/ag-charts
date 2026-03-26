@@ -2,6 +2,8 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
     lineDashOptionsDef,
@@ -9,20 +11,15 @@ import {
     number,
     positiveNumber,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     union,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, AgHistogramSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesThemeableOptions> = {
     showInMiniChart: boolean,
@@ -35,6 +32,10 @@ export const histogramSeriesThemeableOptionsDef: OptionsDefs<AgHistogramSeriesTh
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    areaPlot: boolean,
+    aggregation: union('count', 'sum', 'mean'),
+    bins: arrayOf(arrayOf(number)),
+    binCount: positiveNumber,
 };
 
 export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = {
@@ -43,10 +44,8 @@ export const histogramSeriesOptionsDef: OptionsDefs<AgHistogramSeriesOptions> = 
     type: required(constant('histogram')),
     xKey: required(string),
     yKey: string,
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
-    areaPlot: boolean,
-    aggregation: union('count', 'sum', 'mean'),
-    bins: arrayOf(arrayOf(number)),
-    binCount: positiveNumber,
 };

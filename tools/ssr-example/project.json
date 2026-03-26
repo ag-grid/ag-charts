@@ -1,0 +1,67 @@
+{
+  "name": "ssr-example-ci",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "root": "tools/ssr-example",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["ag-charts-server-side:build", "ag-charts-community:build"],
+      "options": {
+        "cwd": "examples/server-side-rendering",
+        "commands": ["tsx examples/01-basic-render.ts", "tsx examples/02-jpeg-output.ts"]
+      }
+    },
+    "validate-examples": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["ag-charts-enterprise:build:types", "ag-charts-server-side:build:types"],
+      "inputs": [
+        "{workspaceRoot}/examples/server-side-rendering/examples/**/*.ts",
+        "{workspaceRoot}/examples/server-side-rendering/tsconfig.typecheck.json",
+        "tsDeclarations"
+      ],
+      "cache": true,
+      "options": {
+        "command": "npx tsc -p examples/server-side-rendering/tsconfig.typecheck.json"
+      }
+    },
+    "docker": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "options": { "command": "{projectRoot}/docker-run.sh basic --skip-build" }
+    },
+    "docker:jpeg": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "options": { "command": "{projectRoot}/docker-run.sh jpeg --skip-build" }
+    },
+    "docker:server": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "ag-charts-types:pack",
+        "ag-charts-locale:pack",
+        "ag-charts-core:pack",
+        "ag-charts-community:pack",
+        "ag-charts-enterprise:pack",
+        "ag-charts-server-side:pack"
+      ],
+      "cache": false,
+      "options": { "command": "{projectRoot}/docker-run.sh server --skip-build" }
+    }
+  },
+  "implicitDependencies": ["ag-charts-server-side-example"],
+  "tags": ["example", "ci"]
+}

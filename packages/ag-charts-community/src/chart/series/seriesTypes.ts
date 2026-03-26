@@ -1,11 +1,18 @@
-import type { Point } from 'ag-charts-core';
+import type {
+    AreMutuallyExclusive,
+    ChartAxisDirection,
+    DomainWithMetadata,
+    PlacedLabel,
+    Point,
+    PointLabelDatum,
+    SizedPoint,
+} from 'ag-charts-core';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
-import type { SizedPoint } from '../../scene/point';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { TypedEvent } from '../../util/observable';
-import type { ChartAxisDirection } from '../chartAxisDirection';
+import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
 
@@ -15,6 +22,11 @@ interface ChartAxisLike {
 }
 
 export type DatumIndexType = number | object | undefined;
+export type ItemId = string;
+export type ItemType = 'positive' | 'negative' | 'total' | 'subtotal' | 'up' | 'down' | 'low' | 'high';
+
+// Assert that DatumIndexType and ItemId share no types in common:
+true satisfies AreMutuallyExclusive<DatumIndexType, ItemId>;
 
 export type SeriesNodeEventTypes =
     | 'nodeContextMenuAction'
@@ -28,6 +40,8 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly event: Event;
     readonly datum: unknown;
     readonly seriesId: string;
+    readonly itemId: string | number;
+    readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
 }
 
@@ -50,10 +64,13 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     getCategoryValue(datumIndex: TDatumIndex): any;
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
+    isHighlightEnabled(): boolean;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
-    getDomain(direction: ChartAxisDirection): any[];
-    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[];
+    getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] | [];
+    getMinimumRangeSeries(ranges: number[]): void;
+    getMinimumRangeChart(ranges: number[]): number;
     getZoomRangeFittingItems(
         xVisibleRange: [number, number],
         yVisibleRange: [number, number] | undefined,
@@ -66,12 +83,14 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     ): number;
     dataCount(): number;
     shouldFlipXY?: () => boolean;
+    getKeyAxis(direction: ChartAxisDirection): string | undefined;
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
     getFormatterContext(
         direction: ChartAxisDirection
     ): Array<{ seriesId: string; key: string; name: string | undefined }>;
+    resolveKeyDirection(direction: ChartAxisDirection): ChartAxisDirection;
     datumMidPoint?<T extends SeriesNodeDatum<TDatumIndex>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
@@ -80,6 +99,9 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     tooltipEnabled?: boolean;
     // @todo(AG-13777) - Remove this function (see CartesianSeries.ts)
     minTimeInterval(): number | undefined;
+    isPointInArea?(x: number, y: number): boolean;
+    findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
+    readonly data?: DataSet<any>;
 }
 
 /**
@@ -88,7 +110,8 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
  */
 export interface SeriesNodeDatum<I extends DatumIndexType> {
     readonly series: ISeries<I, any, any>;
-    readonly itemId?: any;
+    readonly itemId?: ItemId;
+    readonly itemType?: ItemType;
     readonly datum: unknown;
     readonly datumIndex: I;
     readonly point?: Readonly<Point> & SizedPoint;

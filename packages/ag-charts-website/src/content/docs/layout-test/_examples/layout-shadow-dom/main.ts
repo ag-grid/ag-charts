@@ -21,13 +21,11 @@ const options: AgCartesianChartOptions = {
     // Series: Defines which chart type and data to use
     series: [
         { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' },
-        { type: 'line', xKey: 'month', yKey: 'avgTemp' },
+        { type: 'line', xKey: 'month', yKey: 'avgTemp', yKeyAxis: 'ySecondary' },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
-        { type: 'number', position: 'right', keys: ['avgTemp'] },
-    ],
+    axes: {
+        ySecondary: { type: 'number' },
+    },
 };
 
 AgCharts.create(options);

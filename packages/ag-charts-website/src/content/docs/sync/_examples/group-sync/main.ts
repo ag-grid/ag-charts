@@ -1,7 +1,32 @@
-import { AgCartesianChartOptions, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    SyncModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { costsProductA, costsProductB, salesProductA, salesProductB } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    SyncModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const commonOptions: AgCartesianChartOptions = {
     minWidth: 0,
     minHeight: 0,
@@ -14,14 +39,9 @@ const commonOptions: AgCartesianChartOptions = {
 };
 
 const topChartAxis: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: { enabled: false },
             line: { enabled: false },
             crosshair: {
@@ -29,22 +49,17 @@ const topChartAxis: AgCartesianChartOptions = {
                 label: { enabled: false },
             },
         },
-    ],
+    },
 };
 
 const bottomChartAxis: AgCartesianChartOptions = {
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             label: { autoRotate: false },
             crosshair: { enabled: true },
         },
-    ],
+    },
 };
 
 const chartOptions1: AgChartOptions = {

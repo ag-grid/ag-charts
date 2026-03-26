@@ -1,4 +1,5 @@
 import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -14,7 +15,7 @@ export const arrowUpPoints: Array<[number, number]> = [
     [0.75, 1],
     [0.25, 1],
     [0.25, 0.5],
-    [0.0, 0.5],
+    [0, 0.5],
 ];
 
 function arrowUp(params: AgMarkerShapeFnParams) {
@@ -37,7 +38,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
         this.append([this.shape]);
     }
 
-    protected override getHandleCoords(datum: ArrowUpProperties, point: _ModuleSupport.Vec2): _ModuleSupport.Vec2 {
+    protected override getHandleCoords(datum: ArrowUpProperties, point: Point): Point {
         const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         const handleCoords = super.getHandleCoords(datum, point);
         handleCoords.y -= halfSize;

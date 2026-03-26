@@ -1,7 +1,16 @@
-import { AgCharts, AgPolarChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgPolarChartOptions,
+    AngleCategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    RadarAreaSeriesModule,
+    RadiusNumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([AngleCategoryAxisModule, RadarAreaSeriesModule, RadiusNumberAxisModule]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -39,8 +48,8 @@ const options: AgPolarChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        radius: {
             type: 'radius-number',
             shape: 'circle',
             interval: { step: 0.1 },
@@ -48,7 +57,7 @@ const options: AgPolarChartOptions = {
                 enabled: false,
             },
         },
-        {
+        angle: {
             type: 'angle-category',
             line: {
                 enabled: false,
@@ -60,7 +69,7 @@ const options: AgPolarChartOptions = {
                 enabled: true,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

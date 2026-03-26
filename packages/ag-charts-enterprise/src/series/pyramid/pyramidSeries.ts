@@ -2,16 +2,28 @@ import {
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, type Writeable, cachedTextMeasurer, calcLineHeight } from 'ag-charts-core';
+import {
+    type ChartAnimationPhase,
+    type DomainWithMetadata,
+    type Point,
+    StateMachine,
+    type Writeable,
+    cachedTextMeasurer,
+    isArray,
+    measureTextSegments,
+    mergeDefaults,
+    toPlainText,
+    toTextString,
+} from 'ag-charts-core';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
 import { applyPyramidDatum, preparePyramidAnimationFunctions } from './pyramidUtil';
 
 const {
-    StateMachine,
     valueProperty,
     SeriesNodePickMode,
     createDatumId,
@@ -20,15 +32,13 @@ const {
     Selection,
     Text,
     PointerEvents,
-    applyShapeStyle,
-    mergeDefaults,
     fromToMotion,
     seriesLabelFadeInAnimation,
     getLabelStyles,
 } = _ModuleSupport;
 
 type PyramidNodeLabelDatum = Readonly<Point> & {
-    readonly text: string;
+    readonly text: TextOrSegments;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
@@ -67,7 +77,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeLabelDatum,
     PyramidNodeDataContext
 > {
-    static readonly className = 'PyramidSeries';
+    static override readonly className = 'PyramidSeries';
     static readonly type = 'pyramid' as const;
 
     override properties = new PyramidProperties();
@@ -86,8 +96,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     );
     private stageLabelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text> =
         Selection.select(this.stageLabelGroup, Text);
+<<<<<<< HEAD
     private highlightDatumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector> = Selection.select(
         this.highlightGroup,
+=======
+    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
+        Selection.select(this.highlightLabelGroup, Text);
+    private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
+        this.highlightNodeGroup,
+>>>>>>> latest
         () => this.nodeFactory()
     );
 
@@ -122,9 +139,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
         this.stageLabelGroup.pointerEvents = PointerEvents.None;
-    }
 
-    override addChartEventListeners(): void {
         this.cleanup.register(this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)));
     }
 
@@ -136,7 +151,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return this.contextNodeData?.nodeData;
     }
 
-    override resetAnimation(phase: _ModuleSupport.ChartAnimationPhase): void {
+    override resetAnimation(phase: ChartAnimationPhase): void {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -161,9 +176,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const validation = (_value: unknown, _datum: unknown, index: number) =>
             visible && legendManager.getItemEnabled({ seriesId, itemId: index });
         const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(stageKey, xScaleType, { id: 'xValue' }),
+                valueProperty(stageKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps, validation, invalidValue: 0 }),
             ],
         });
@@ -196,10 +212,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
-        const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData);
-        const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData);
+        const xDomain = dataModel.getDomain(this, 'xValue', 'value', processedData).domain;
+        const yDomain = dataModel.getDomain(this, 'yValue', 'value', processedData).domain;
 
+        const isRtl = this.ctx.domManager.isRtl;
         const textMeasurer = cachedTextMeasurer(stageLabel);
+        const placeLeft = (stageLabel.placement === 'after') === isRtl;
 
         let textAlign: CanvasTextAlign;
         let textBaseline: CanvasTextBaseline;
@@ -207,7 +225,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             textAlign = 'center';
             textBaseline = stageLabel.placement === 'before' ? 'bottom' : 'top';
         } else {
-            textAlign = stageLabel.placement === 'after' ? 'left' : 'right';
+            textAlign = placeLeft ? 'right' : 'left';
             textBaseline = 'middle';
         }
 
@@ -216,15 +234,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let maxLabelHeight = 0;
         let yTotal = 0;
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((datum, datumIndex) => {
+        const rawData = processedData.dataSources.get(this.id)?.data ?? [];
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             yTotal += yValue;
 
-            if (stageLabelData == null) return;
+            if (stageLabelData == null) continue;
 
             const text = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
                 xValue,
@@ -233,23 +253,25 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 'x',
                 xDomain,
                 this.properties.stageLabel,
-                { datum, value: yValue, stageKey, valueKey }
+                { datum, value: yValue, stageKey, valueKey },
+                this.properties.allowNullKeys ?? false
             );
 
-            const { width } = textMeasurer.measureText(text);
-            const height = text.split('\n').length * calcLineHeight(label.fontSize);
+            const { width, height } = isArray(text)
+                ? measureTextSegments(text, label)
+                : textMeasurer.measureLines(toTextString(text));
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
             stageLabelData.push({
-                x: NaN,
-                y: NaN,
+                x: Number.NaN,
+                y: Number.NaN,
                 text,
                 textAlign,
                 textBaseline,
                 visible: enabled,
             });
-        });
+        }
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
@@ -266,12 +288,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             );
         } else {
             const horizontalInset = maxLabelWidth + stageLabel.spacing;
-            bounds = new BBox(
-                stageLabel.placement === 'after' ? 0 : horizontalInset,
-                0,
-                seriesRectWidth - horizontalInset,
-                seriesRectHeight
-            );
+            bounds = new BBox(placeLeft ? horizontalInset : 0, 0, seriesRectWidth - horizontalInset, seriesRectHeight);
         }
 
         if (aspectRatio != null && aspectRatio !== 0) {
@@ -295,10 +312,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     ? bounds.y - stageLabel.spacing
                     : bounds.y + bounds.height + stageLabel.spacing;
         } else {
-            labelX =
-                stageLabel.placement === 'after'
-                    ? bounds.x + bounds.width + stageLabel.spacing
-                    : bounds.x - stageLabel.spacing;
+            labelX = placeLeft ? bounds.x - stageLabel.spacing : bounds.x + bounds.width + stageLabel.spacing;
         }
 
         const availableWidth = bounds.width - (horizontal ? totalSpacing : 0);
@@ -309,8 +323,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
-        rawData.forEach((datum, datumIndex) => {
+        let stageLabelIndex = 0;
+        for (const [datumIndex, datum] of rawData.entries()) {
             const xValue = xValues[datumIndex];
+            // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+            if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
 
             const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
@@ -327,7 +344,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const y = bounds.y + yOffset;
 
             if (stageLabelData != null) {
-                const stageLabelDatum = stageLabelData[datumIndex] as Writeable<PyramidNodeLabelDatum>;
+                const stageLabelDatum = stageLabelData[stageLabelIndex++] as Writeable<PyramidNodeLabelDatum>;
                 stageLabelDatum.x = labelX ?? x;
                 stageLabelDatum.y = labelY ?? y;
             }
@@ -383,7 +400,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             nodeData.push({
                 series: this,
-                itemId: valueKey,
                 datum,
                 datumIndex,
                 index: datumIndex,
@@ -405,7 +421,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             });
 
             yStart = yEnd;
-        });
+        }
 
         return {
             itemId: seriesId,
@@ -426,7 +442,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         this.checkResize(seriesRect);
 
-        const { datumSelection, labelSelection, stageLabelSelection, highlightDatumSelection } = this;
+        const {
+            datumSelection,
+            labelSelection,
+            stageLabelSelection,
+            highlightDatumSelection,
+            highlightLabelSelection,
+        } = this;
 
         this.updateSelections();
 
@@ -453,10 +475,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.updateLabelNodes({
             labelSelection: stageLabelSelection,
             labelProperties: this.properties.stageLabel,
+            checkActiveHighlight: true,
+        });
+
+        const highlightLabelData = this.getHighlightLabelData(labelData, highlightedDatum) ?? [];
+        this.highlightLabelSelection = highlightLabelSelection.update(highlightLabelData);
+        this.updateLabelNodes({
+            labelSelection: this.highlightLabelSelection,
+            labelProperties: this.properties.label,
+            isHighlight: true,
         });
 
         this.highlightDatumSelection = this.updateDatumSelection({
-            nodeData: highlightedDatum != null ? [highlightedDatum] : [],
+            nodeData: highlightedDatum == null ? [] : [highlightedDatum],
             datumSelection: highlightDatumSelection,
         });
         this.updateDatumStyles({ datumSelection: highlightDatumSelection, isHighlight: true });
@@ -518,7 +549,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             datum,
             stageKey,
             valueKey,
-            highlighted: isHighlight,
             highlightState,
             ...style,
             fill,
@@ -552,7 +582,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             : undefined;
 
         datumSelection.each((connector, nodeDatum) => {
-            applyShapeStyle(connector, nodeDatum.style, fillBBox);
+            connector.setStyleProperties(nodeDatum.style, fillBBox);
 
             applyPyramidDatum(connector, nodeDatum);
 
@@ -577,25 +607,35 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
+        isHighlight?: boolean;
+        checkActiveHighlight?: boolean;
     }) {
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
-        opts.labelSelection.each((label, nodeDatum, datumIndex) => {
+        const { labelSelection, labelProperties, isHighlight = false, checkActiveHighlight = false } = opts;
+
+        labelSelection.each((label, nodeDatum, datumIndex) => {
             const { visible, x, y, text, textAlign, textBaseline } = nodeDatum;
+            const datumIsHighlighted =
+                isHighlight || (checkActiveHighlight && activeHighlight?.datumIndex === datumIndex);
+            const highlightStyle = this.getHighlightStyle(datumIsHighlighted, datumIndex);
+
             const style = getLabelStyles(
                 this,
                 undefined,
                 this.properties,
-                opts.labelProperties,
-                false,
+                labelProperties,
+                datumIsHighlighted,
                 activeHighlight
             );
+
             const { color: fill, fontSize, fontStyle, fontWeight, fontFamily } = style;
             label.visible = visible;
             label.x = x;
             label.y = y;
             label.text = text;
             label.fill = fill;
-            label.fillOpacity = this.getHighlightStyle(false, datumIndex).opacity ?? 1;
+            label.opacity = (highlightStyle.opacity ?? 1) * (style.fillOpacity ?? 1);
+            label.fillOpacity = (highlightStyle.opacity ?? 1) * (style.fillOpacity ?? 1);
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
             label.fontSize = fontSize;
@@ -604,6 +644,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             label.textBaseline = textBaseline;
             label.setBoxing(style);
         });
+    }
+
+    protected getHighlightLabelData(
+        _labelData: PyramidNodeLabelDatum[],
+        highlightedItem?: PyramidNodeDatum
+    ): PyramidNodeLabelDatum[] | undefined {
+        if (highlightedItem?.label) {
+            return [{ ...highlightedItem.label }];
+        }
+
+        return undefined;
     }
 
     protected override computeFocusBounds(
@@ -625,38 +676,29 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (!dataModel || !processedData) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return;
 
         const label = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
             xValue,
             datum,
             stageKey,
             'x',
-            dataModel.getDomain(this, 'xValue', 'value', processedData),
+            dataModel.getDomain(this, 'xValue', 'value', processedData).domain,
             this.properties.stageLabel,
             { datum, value: xValue, stageKey, valueKey }
         );
-        const value = this.getLabelText<AgPyramidSeriesLabelFormatterParams>(
-            yValue,
-            datum,
-            valueKey,
-            'y',
-            dataModel.getDomain(this, 'yValue', 'value', processedData),
-            this.properties.stageLabel,
-            { datum, value: yValue, stageKey, valueKey }
-        );
 
         const format = this.getItemStyle({ datumIndex, datum }, false);
-
         return this.formatTooltipWithContext(
             tooltip,
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [{ label, value }],
+                data: [{ label: toPlainText(label), value: toPlainText(yValue) }],
             },
             {
                 seriesId,
@@ -669,15 +711,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override getSeriesDomain(): any[] {
-        return [NaN, NaN];
+    override getSeriesDomain(): DomainWithMetadata<any> {
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     override pickNodeClosestDatum({ x, y }: Point): _ModuleSupport.SeriesNodePickMatch | undefined {
@@ -692,7 +731,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
+        return minDatum == null ? undefined : { datum: minDatum, distance: Math.sqrt(minDistanceSquared) };
     }
 
     private legendItemSymbol(datumIndex: number) {
@@ -726,27 +765,27 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         const { showInLegend } = this.properties;
-
-        const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        rawData.forEach((_datum, datumIndex) => {
-            const stageValue = stageValues[datumIndex];
+        return (processedData.dataSources.get(this.id)?.data ?? [])
+            .map((datum, datumIndex): _ModuleSupport.CategoryLegendDatum | undefined => {
+                const stageValue = stageValues[datumIndex];
+                const allowNullKeys = this.properties.allowNullKeys ?? false;
+                if (stageValue == null && !allowNullKeys) return;
 
-            legendData.push({
-                legendType: 'category',
-                id: seriesId,
-                itemId: datumIndex,
-                seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
-                label: { text: stageValue },
-                symbol: this.legendItemSymbol(datumIndex),
-                hideInLegend: !showInLegend,
-            });
-        });
-
-        return legendData;
+                return {
+                    legendType: 'category',
+                    id: seriesId,
+                    datum,
+                    itemId: datumIndex,
+                    seriesId,
+                    enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                    label: { text: String(stageValue) },
+                    symbol: this.legendItemSymbol(datumIndex),
+                    hideInLegend: !showInLegend,
+                };
+            })
+            .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
     }
 
     protected animateReset() {

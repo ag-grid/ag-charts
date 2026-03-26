@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Property, SceneChangeDetection } from 'ag-charts-core';
 
-const { Property, SceneChangeDetection, BBox, ExtendedPath2D } = _ModuleSupport;
-
+const { BBox, ExtendedPath2D } = _ModuleSupport;
 export class RangeHandle extends _ModuleSupport.Path {
     static override readonly className = 'RangeHandle';
 

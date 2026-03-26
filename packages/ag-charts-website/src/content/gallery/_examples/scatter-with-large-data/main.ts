@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { chromosomes, getData } from './data';
 
+ModuleRegistry.registerModules([ScatterSeriesModule, CategoryAxisModule, NumberAxisModule]);
 const data = getData();
 const options: AgChartOptions = {
     title: {
@@ -49,9 +58,8 @@ const options: AgChartOptions = {
             placement: ['right', 'left', 'top', 'bottom'],
         },
     },
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             nice: false,
             min: -40,
@@ -98,14 +106,13 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'category',
             title: {
                 text: 'Chromosome',
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             if (params.type !== 'number') return;

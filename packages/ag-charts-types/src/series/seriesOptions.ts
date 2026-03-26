@@ -1,23 +1,6 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity, PixelSize } from '../chart/types';
+import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
-
-export type AgSeriesHighlightMarkerStyle = FillOptions & StrokeOptions;
-
-export interface AgSeriesHighlightSeriesStyle {
-    enabled?: boolean;
-    /** The opacity of the whole series (area line, area fill, labels and markers, if any) when another chart series or another stack level in the same area series is highlighted by hovering a data point or a legend item. Use `undefined` or `1` for no dimming. */
-    dimOpacity?: Opacity;
-    /** The stroke width of the area line when one of the markers is tapped or hovered over, or when a tooltip is shown for a data point, even when series markers are disabled. Use `undefined` for no highlight. */
-    strokeWidth?: PixelSize;
-}
-
-export interface AgSeriesHighlightStyle {
-    /** Highlight style used for an individual item within a series. */
-    item?: AgSeriesHighlightMarkerStyle;
-    /** Highlight style used for whole series when a series or legend item is hovered. */
-    series?: AgSeriesHighlightSeriesStyle;
-}
 
 export interface AgMultiSeriesHighlightOptions<
     ItemHighlightStyleOptions,
@@ -29,7 +12,7 @@ export interface AgMultiSeriesHighlightOptions<
     unhighlightedSeries?: SeriesHighlightStyleOptions;
     /** Show this series in front when highlighted.
      *
-     * Default: `false`
+     * Default: `true`
      */
     bringToFront?: boolean;
 }
@@ -54,8 +37,6 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault>
     cursor?: string;
     /** Context object to use in callbacks. */
     context?: TContext;
-    /** @deprecated Configuration for highlighting when a series or legend item is hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Range from a node that a click triggers the listener. */
@@ -73,8 +54,11 @@ export interface AgBaseCartesianThemeableOptions<TDatum, TContext = ContextDefau
 }
 
 export interface AgSeriesSegmentation<SegmentOptions = AgSeriesShapeSegmentOptions> {
+    /** Whether segmentation is enabled. */
     enabled?: boolean;
+    /** The axis key used for segmentation. */
     key: 'x' | 'y';
+    /** Configuration for each segment. */
     segments: SegmentOptions[];
 }
 

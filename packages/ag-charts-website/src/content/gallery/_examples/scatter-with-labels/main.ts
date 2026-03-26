@@ -1,7 +1,19 @@
-import { AgCartesianChartOptions, AgCharts, AgScatterSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgScatterSeriesTooltipRendererParams,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { NameData, getData } from './data';
 
+ModuleRegistry.registerModules([AnimationModule, CrosshairModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
 const data = getData();
 
 const options: AgCartesianChartOptions<NameData> = {
@@ -74,9 +86,8 @@ const options: AgCartesianChartOptions<NameData> = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             title: {
                 text: 'Popularity Index →',
@@ -106,8 +117,7 @@ const options: AgCartesianChartOptions<NameData> = {
                 formatter: ({ value }) => (value === 0 ? 'Rare' : value === 100 ? 'Popular' : `${value}`),
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Trend Score',
@@ -137,7 +147,7 @@ const options: AgCartesianChartOptions<NameData> = {
                 formatter: ({ value }) => (value === 0 ? 'Declining' : value === 10 ? 'Rising' : `${value}`),
             },
         },
-    ],
+    },
     legend: {
         position: {
             placement: 'right-bottom',
@@ -158,7 +168,6 @@ const options: AgCartesianChartOptions<NameData> = {
     },
     tooltip: {
         enabled: true,
-        delay: 100,
         position: {
             anchorTo: 'pointer',
         },

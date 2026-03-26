@@ -32,6 +32,7 @@ export class DatumUnion<
             }
             const first = nodes[0];
             const last =
+<<<<<<< HEAD
                 nodes.toReversed().find((n: TNode): boolean => {
                     const unsafeDatum: unknown = n.datum?.datum;
                     if (unsafeDatum != null && typeof unsafeDatum === 'object') {
@@ -43,6 +44,9 @@ export class DatumUnion<
                     }
                     return false;
                 }) ?? nodes[nodes.length - 1];
+=======
+                nodes.toReversed().find((n) => n.datum.datum.value > n.datum.datum.segmentStart) ?? nodes.at(-1)!;
+>>>>>>> latest
 
             this.node.datum = this.datum = first.datum;
             nodeUpdater(this.node, first, last);

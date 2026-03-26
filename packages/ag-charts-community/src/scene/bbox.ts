@@ -1,8 +1,7 @@
-import { type BoxBounds, boxContains, boxesEqual, clamp } from 'ag-charts-core';
+import type { DistantObject, NearestResult } from 'ag-charts-core';
+import { type BoxBounds, boxContains, boxesEqual, clamp, nearestSquared } from 'ag-charts-core';
 
 import { type Interpolating, interpolate } from '../util/interpolating';
-import type { DistantObject, NearestResult } from '../util/nearest';
-import { nearestSquared } from '../util/nearest';
 
 // For small data structs like a bounding box, objects are superior to arrays
 // in terms of performance (by 3-4% in Chrome 71, Safari 12 and by 20% in Firefox 64).
@@ -23,7 +22,7 @@ type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | '
 
 export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
     static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
-    static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
+    static readonly NaN = Object.freeze(new BBox(Number.NaN, Number.NaN, Number.NaN, Number.NaN)) as BBox;
 
     static fromObject({ x, y, width, height }: BoxBounds) {
         return new BBox(x, y, width, height);
@@ -89,6 +88,15 @@ export class BBox implements BoxBounds, DistantObject, Interpolating<BBox> {
 
     containsPoint(x: number, y: number): boolean {
         return boxContains(this, x, y);
+    }
+
+    intersectsWith(other: BBox): boolean {
+        return !(
+            this.x + this.width <= other.x ||
+            other.x + other.width <= this.x ||
+            this.y + this.height <= other.y ||
+            other.y + other.height <= this.y
+        );
     }
 
     intersection(other: BBox) {

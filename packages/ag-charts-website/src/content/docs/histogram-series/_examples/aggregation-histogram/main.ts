@@ -1,7 +1,26 @@
-import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgHistogramSeriesOptions,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -21,25 +40,23 @@ const options: AgCartesianChartOptions = {
             aggregation: 'sum', //default
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Age band (years)' },
             interval: { step: 2 },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Total winnings (USD)' },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function changeAggregation(aggType: 'count' | 'sum' | 'mean') {
     (options.series![0] as AgHistogramSeriesOptions).aggregation = aggType;
-    options.axes![1].title!.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
+    options.axes!.y!.title!.text = aggType == 'count' ? 'Number of winners' : 'Total winnings (USD)';
     chart.update(options);
 }

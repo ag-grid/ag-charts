@@ -1,11 +1,28 @@
+import type {
+    AxisID,
+    Callback,
+    CallbackParam,
+    ChartAnimationPhase,
+    DomainWithMetadata,
+    Point,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import {
-    type AnyFn,
+    ChartAxisDirection,
+    ChartUpdateType,
     CleanupRegistry,
-    type Point,
-    type RequireOptional,
+    ObserveChanges,
+    Property,
     WeakCache,
-    createId,
+    ZIndexMap,
+    callWithContext,
+    clampArray,
+    deepFreeze,
+    findMinMax,
+    findRangeExtent,
     isArray,
+    mergeDefaults,
 } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
@@ -16,40 +33,30 @@ import type {
     CssColor,
     DateFormatterStyle,
     FormatterParams,
+    FormatterPropertyType,
     TextOrSegments,
 } from 'ag-charts-types';
 
 import type { AxisLayout } from '../../core/eventsHub';
-import type { AxisBandDatum, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
-import type { AxisOptionModule } from '../../module/axisOptionModule';
-import type { ModuleInstance } from '../../module/baseModule';
+import type { AxisBandDatum, AxisBandMeasurement, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
 import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { type TextBoxingProperties, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { callWithContext } from '../../util/callbackCache';
-import { clampArray, findMinMax, findRangeExtent } from '../../util/number';
-import { deepFreeze, mergeDefaults } from '../../util/object';
-import { Property } from '../../util/properties';
-import { ObserveChanges } from '../../util/proxy';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
-import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -74,8 +81,6 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
     range: number[];
 }
 
-type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
-
 export enum AxisGroupZIndexMap {
     TickLines,
     // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -87,6 +92,7 @@ export type AxisTickFormatParams =
     | {
           type: 'number';
           fractionDigits: number | undefined;
+          visibleDomain?: [number, number];
       }
     | {
           type: 'date';
@@ -113,10 +119,11 @@ interface TickLayout<D, TickLayoutMeta> {
 interface TickLayoutCache<D, TickLayoutMeta> {
     domain: D[];
     rangeExtent: number;
-    nice: boolean;
+    nice: [boolean, boolean];
     gridLength: number;
     visibleRange: [number, number];
     initialPrimaryTickCount: AxisPrimaryTickCount | undefined;
+    scrollbarKey: string;
     tickLayout: TickLayout<D, TickLayoutMeta>;
 }
 
@@ -127,13 +134,32 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
     return (
         a.domain === b.domain &&
         a.rangeExtent === b.rangeExtent &&
-        a.nice === b.nice &&
+        a.nice[0] === b.nice[0] &&
+        a.nice[1] === b.nice[1] &&
         a.gridLength === b.gridLength &&
         a.visibleRange[0] === b.visibleRange[0] &&
         a.visibleRange[1] === b.visibleRange[1] &&
+        a.scrollbarKey === b.scrollbarKey &&
         a.initialPrimaryTickCount?.unzoomed === b.initialPrimaryTickCount?.unzoomed &&
         a.initialPrimaryTickCount?.zoomed === b.initialPrimaryTickCount?.zoomed
     );
+}
+
+function computeBand<D, I>(
+    scale: BandScale<D, I>,
+    range: readonly [number, number],
+    value: D
+): [number, number, number] {
+    const bandwidth = scale.bandwidth ?? 0;
+    const step = scale.step ?? 0;
+    const offset = (step - bandwidth) / 2;
+
+    const position = scale.convert(value);
+
+    const start = position - offset;
+    const end = position + bandwidth + offset;
+
+    return [position, clampArray(start, range), clampArray(end, range)];
 }
 
 /**
@@ -155,21 +181,23 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    readonly id = createId(this);
+    id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
         const { CrossLineConstructor } = this.constructor as typeof Axis;
-        this._crossLines.forEach((crossLine) => this.detachCrossLine(crossLine));
+        for (const crossLine of this._crossLines) {
+            this.detachCrossLine(crossLine);
+        }
         this._crossLines = value.map((crossLine) => {
             const instance = new CrossLineConstructor();
             instance.set(crossLine);
             return instance;
         });
-        this._crossLines.forEach((crossLine) => {
+        for (const crossLine of this._crossLines) {
             this.attachCrossLine(crossLine);
             this.initCrossLine(crossLine);
-        });
+        }
     }
     get crossLines() {
         return this._crossLines;
@@ -186,12 +214,10 @@ export abstract class Axis<
     reverse: boolean = false;
 
     @Property
-    keys: string[] = [];
-
-    @Property
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
+    private allowNull = false;
 
     @Property
     readonly title = new AxisTitle();
@@ -220,10 +246,12 @@ export abstract class Axis<
 
     layoutConstraints: ChartAxis['layoutConstraints'] = {
         stacked: true,
-        align: 'start',
+        align: 'justify',
         width: 100,
         unit: 'percent',
     };
+
+    requiredRange?: number;
 
     boundSeries: ISeries<DatumIndexType, unknown, unknown>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -294,12 +322,13 @@ export abstract class Axis<
 
     readonly translation = { x: 0, y: 0 };
 
-    protected readonly layout: Pick<AxisLayout, 'label'> = {
+    protected readonly layout: Pick<AxisLayout, 'label'> & Partial<Pick<AxisLayout, 'labelThickness' | 'scrollbar'>> = {
         label: {
             fractionDigits: 0,
             spacing: this.label.spacing,
             format: this.label.format,
         },
+        labelThickness: 0,
     };
 
     protected axisContext: AxisContext | undefined = undefined;
@@ -311,9 +340,12 @@ export abstract class Axis<
         readonly scale: S
     ) {
         this.range = this.scale.range.slice() as [number, number];
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) {
+            this.initCrossLine(crossLine);
+        }
         this.cleanup.register(
-            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e))
+            this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
         );
     }
 
@@ -330,15 +362,21 @@ export abstract class Axis<
         const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 
-        if (title != null) {
+        if (title) {
             this.moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX: event.currentX, canvasY: event.currentY, showArrow: false },
                 [{ type: 'structured', title }]
             );
             this.isHovering = true;
-        } else if (this.isHovering) {
-            this.moduleCtx.tooltipManager.removeTooltip(this.id);
+        } else {
+            this.endHovering();
+        }
+    }
+
+    private endHovering() {
+        if (this.isHovering) {
+            this.moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
             this.isHovering = false;
         }
     }
@@ -350,9 +388,9 @@ export abstract class Axis<
     }
 
     private detachCrossLine(crossLine: CrossLine) {
-        this.crossLineRangeGroup.removeChild(crossLine.rangeGroup);
-        this.crossLineLineGroup.removeChild(crossLine.lineGroup);
-        this.crossLineLabelGroup.removeChild(crossLine.labelGroup);
+        crossLine.rangeGroup.remove();
+        crossLine.lineGroup.remove();
+        crossLine.labelGroup.remove();
     }
 
     destroy() {
@@ -375,9 +413,9 @@ export abstract class Axis<
         } = this;
 
         this.setScaleRange(this.visibleRange);
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             crossLine.clippedRange = [r0, r1];
-        });
+        }
     }
 
     setCrossLinesVisible(visible: boolean) {
@@ -395,13 +433,13 @@ export abstract class Axis<
         groups.crossLineLabelNode.appendChild(this.crossLineLabelGroup);
     }
 
-    detachAxis(groups: AxisGroups) {
-        groups.gridNode.removeChild(this.gridGroup);
-        groups.axisNode.removeChild(this.axisGroup);
-        groups.labelNode.removeChild(this.labelGroup);
-        groups.crossLineRangeNode.removeChild(this.crossLineRangeGroup);
-        groups.crossLineLineNode.removeChild(this.crossLineLineGroup);
-        groups.crossLineLabelNode.removeChild(this.crossLineLabelGroup);
+    detachAxis() {
+        this.gridGroup.remove();
+        this.axisGroup.remove();
+        this.labelGroup.remove();
+        this.crossLineRangeGroup.remove();
+        this.crossLineLineGroup.remove();
+        this.crossLineLabelGroup.remove();
     }
 
     attachLabel(axisLabelNode: Node) {
@@ -441,7 +479,9 @@ export abstract class Axis<
         if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
-        this.crossLines.forEach((crossLine) => this.initCrossLine(crossLine));
+        for (const crossLine of this.crossLines) {
+            this.initCrossLine(crossLine);
+        }
     }
 
     protected onGridVisibilityChange() {}
@@ -459,9 +499,7 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.tickLineGroup.visible = this.tick.enabled;
         this.gridLineGroup.visible = this.gridLine.enabled;
-        this.tickLabelGroup.visible = this.label.enabled;
 
         this.updateLabels();
         this.updateCrossLines();
@@ -512,51 +550,70 @@ export abstract class Axis<
         return tick.enabled ? tick.size : 0;
     }
 
+    protected getTickSpacing(tick: AxisTick = this.tick) {
+        if (!tick.enabled) return 0;
+
+        const scrollbar = this.chartLayout?.scrollbars?.[this.id];
+        if (!scrollbar?.enabled || scrollbar.placement !== 'inner') return 0;
+
+        return scrollbar.tickSpacing ?? 0;
+    }
+
     processData() {
         // Invalidate layout cache
         this.invalidateLayoutCache();
 
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
-        const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
+        const domains = visibleSeries.map((series) => series.getDomain(direction));
         this.setDomains(...domains);
     }
 
+    getDomainExtentsNice(): [boolean, boolean] {
+        return [this.nice, this.nice];
+    }
+
     protected animatable = true;
-    setDomains(...domains: D[][]) {
-        let domain: D[];
+    setDomains(...domains: DomainWithMetadata<D>[]) {
+        let normalizedDomain: DomainWithMetadata<D>;
         let animatable: boolean;
         if (domains.length > 0) {
-            ({ domain, animatable } = this.scale.normalizeDomains(...domains));
+            const result = this.scale.normalizeDomains(...domains);
+            // After normalization, ordinal time domains are always sorted ascending
+            normalizedDomain = { domain: result.domain, sortMetadata: { sortOrder: 1 } };
+            animatable = result.animatable;
         } else {
             // Series (or all series in a group) hidden
             // There could be multiple axes, so we still consider this to be animatable
-            domain = [];
+            normalizedDomain = { domain: [] };
             animatable = true;
         }
 
-        this.dataDomain = this.normaliseDataDomain(domain);
+        this.dataDomain = this.normaliseDataDomain(normalizedDomain);
+        this.allowNull = this.dataDomain.domain.some(function (v) {
+            return v == null;
+        });
 
         if (this.reverse) {
-            this.dataDomain.domain.reverse();
+            this.dataDomain = { ...this.dataDomain, domain: this.dataDomain.domain.toReversed() };
         }
 
         this.animatable = animatable;
     }
 
     protected chartLayout?: ChartLayout;
-
     private unzoomedTickLayoutCache: TickLayoutCache<D, TickLayoutMeta> | undefined;
-    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount) {
+    calculateDomain(initialPrimaryTickCount?: AxisPrimaryTickCount, scrollbarKey: string = 'none') {
         const {
             dataDomain: { domain },
             range,
-            nice,
             scale,
             gridLength,
         } = this;
         const rangeExtent = findRangeExtent(range);
         const visibleRange = [0, 1] as [number, number];
+
+        const nice = this.getDomainExtentsNice();
 
         this.updateScale();
 
@@ -571,12 +628,13 @@ export abstract class Axis<
                 gridLength,
                 visibleRange,
                 initialPrimaryTickCount,
+                scrollbarKey,
             })
         ) {
             const scaleRange = scale.range;
             this.setScaleRange([0, 1]);
 
-            const niceMode = nice ? NiceMode.TickAndDomain : NiceMode.Off;
+            const niceMode = nice.map((n) => (n ? NiceMode.TickAndDomain : NiceMode.Off));
             unzoomedTickLayout = this.calculateTickLayout(domain, niceMode, [0, 1], initialPrimaryTickCount);
 
             scale.range = scaleRange;
@@ -588,6 +646,7 @@ export abstract class Axis<
                 gridLength,
                 visibleRange,
                 initialPrimaryTickCount,
+                scrollbarKey,
                 tickLayout: unzoomedTickLayout,
             };
         } else {
@@ -611,10 +670,13 @@ export abstract class Axis<
         bbox?: BBox;
     } {
         this.chartLayout = chartLayout;
+        const scrollbarKey = this.getScrollbarLayoutCacheKey(chartLayout);
 
-        const { visibleRange, nice } = this;
+        const { visibleRange } = this;
         const unzoomed = visibleRange[0] === 0 && visibleRange[1] === 1;
-        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount);
+        const { unzoomedTickLayout, domain } = this.calculateDomain(initialPrimaryTickCount, scrollbarKey);
+
+        const nice = this.getDomainExtentsNice();
 
         let tickLayout: TickLayout<D, TickLayoutMeta>;
         if (unzoomed) {
@@ -622,7 +684,7 @@ export abstract class Axis<
         } else {
             const { range, gridLength } = this;
             const rangeExtent = findRangeExtent(range);
-            const niceMode = nice ? NiceMode.TicksOnly : NiceMode.Off;
+            const niceMode = nice.map((n) => (n ? NiceMode.TicksOnly : NiceMode.Off));
             const { tickLayoutCache } = this;
             if (
                 tickLayoutCache == null ||
@@ -633,6 +695,7 @@ export abstract class Axis<
                     gridLength,
                     visibleRange,
                     initialPrimaryTickCount,
+                    scrollbarKey,
                 })
             ) {
                 tickLayout = this.calculateTickLayout(domain, niceMode, visibleRange, initialPrimaryTickCount);
@@ -644,6 +707,7 @@ export abstract class Axis<
                     gridLength,
                     visibleRange,
                     initialPrimaryTickCount,
+                    scrollbarKey,
                     tickLayout,
                 };
             } else {
@@ -677,11 +741,17 @@ export abstract class Axis<
         this.tickLayout = undefined;
     }
 
+    private getScrollbarLayoutCacheKey(chartLayout?: ChartLayout): string {
+        const scrollbar = chartLayout?.scrollbars?.[this.id];
+        if (!scrollbar?.enabled) return 'none';
+        return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
+    }
+
     abstract layoutCrossLines(): void;
 
     abstract calculateTickLayout(
         domain: D[],
-        niceMode: NiceMode,
+        niceMode: NiceMode[],
         visibleRange: [number, number],
         primaryTickCount?: AxisPrimaryTickCount
     ): {
@@ -698,9 +768,10 @@ export abstract class Axis<
 
     protected updateCrossLines() {
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
+            crossLine.gridPadding = this.gridPadding;
             crossLine.update(crosslinesVisible);
-        });
+        }
     }
 
     protected updatePosition() {
@@ -769,7 +840,7 @@ export abstract class Axis<
             legendItemName: undefined,
             key: undefined,
             source: 'axis-label',
-            property: this.direction,
+            property: this.getFormatterProperty(),
             domain,
             boundSeries,
         };
@@ -777,9 +848,13 @@ export abstract class Axis<
         const currentLabel = primaryLabel ?? label;
         const specifier = primary ? label.format : undefined;
 
+        // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
+        const { allowNull } = this;
+
         const options = {
             specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
             truncateDate,
+            allowNull,
         };
 
         return (value: any, index: number): TextOrSegments => {
@@ -814,7 +889,9 @@ export abstract class Axis<
         datum: undefined,
         key: undefined,
         domain: undefined,
-        label?: AxisFormattableLabel<Params, FormatterParams<any>>
+        label?: AxisFormattableLabel<Params, FormatterParams<any>>,
+        params?: undefined,
+        allowNull?: boolean
     ): string;
     formatDatum<Params extends object>(
         contextProvider: { context?: unknown } | undefined,
@@ -838,11 +915,13 @@ export abstract class Axis<
         key?: string,
         domain?: any[],
         label?: AxisFormattableLabel<any>,
-        params?: any
+        params?: any,
+        allowNull?: boolean
     ): TextOrSegments {
-        if (input == null) return '';
+        // Handle null/undefined values with empty string unless allowNull is true (for formatter access)
+        if (input == null && !allowNull) return '';
 
-        const { moduleCtx, direction, dataDomain } = this;
+        const { moduleCtx, dataDomain } = this;
         domain ??= dataDomain.domain;
         const { formatManager } = moduleCtx;
         const boundSeries = this.formatterBoundSeries.get();
@@ -872,7 +951,7 @@ export abstract class Axis<
                 seriesId,
                 legendItemName,
                 key,
-                property: direction,
+                property: this.getFormatterProperty(),
                 domain,
                 boundSeries,
             },
@@ -885,8 +964,8 @@ export abstract class Axis<
         const f = this.createCallWithContext(contextProvider);
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
-            formatManager.format(f, formatParams) ??
-            this.label.formatValue(f, formatParams, NaN) ??
+            formatManager.format(f, formatParams, { allowNull }) ??
+            this.label.formatValue(f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
@@ -899,6 +978,7 @@ export abstract class Axis<
     private initCrossLine(crossLine: CrossLine) {
         crossLine.scale = this.scale;
         crossLine.gridLength = this.gridLength;
+        crossLine.gridPadding = this.gridPadding;
     }
 
     protected hasVisibleSeries() {
@@ -918,20 +998,39 @@ export abstract class Axis<
         return deepFreeze(boundSeries.flatMap((series) => series.getFormatterContext(direction)));
     });
 
+    private getFormatterProperty(): FormatterPropertyType {
+        const { direction, boundSeries } = this;
+        let resolvedDirection = direction;
+        for (const series of boundSeries) {
+            const seriesResolvedDirection = series.resolveKeyDirection(direction);
+            if (seriesResolvedDirection !== direction) {
+                resolvedDirection = seriesResolvedDirection;
+                break;
+            }
+        }
+
+        return resolvedDirection;
+    }
+
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
         return { domain, direction, boundSeries, defaultValue: this.title?.text };
     }
 
-    protected normaliseDataDomain(d: D[]): { domain: D[]; clipped: boolean } {
-        return { domain: [...d], clipped: false };
+    protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {
+        return { domain: [...d.domain], clipped: false };
+    }
+
+    protected getLayoutTranslation(): { x: number; y: number } {
+        return this.translation;
     }
 
     getLayoutState(): AxisLayout {
         return {
             id: this.id,
             rect: this.getBBox(),
+            translation: this.getLayoutTranslation(),
             gridPadding: this.gridPadding,
             seriesAreaPadding: this.seriesAreaPadding,
             tickSize: this.getTickSize(),
@@ -942,10 +1041,14 @@ export abstract class Axis<
         };
     }
 
-    private readonly moduleMap: AxisModuleMap = new ModuleMap();
+    private readonly moduleMap = new ModuleMap();
 
-    getModuleMap(): AxisModuleMap {
+    getModuleMap() {
         return this.moduleMap;
+    }
+
+    getUpdateTypeOnResize() {
+        return ChartUpdateType.PERFORM_LAYOUT;
     }
 
     createModuleContext(): ModuleContextWithParent<AxisContext> {
@@ -966,14 +1069,17 @@ export abstract class Axis<
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
-                    seriesKeys.forEach((key) => keys.add(key));
+                    for (const key of seriesKeys) {
+                        keys.add(key);
+                    }
                     return keys;
                 }, new Set<string>()),
             seriesIds: () => this.boundSeries.map((series) => series.id),
             scaleInvert: (val) => scale.invert(val, true),
             scaleInvertNearest: (val) => scale.invert(val, true),
-            formatScaleValue: (value, source, label) =>
-                this.formatDatum(
+            formatScaleValue: (value, source, label) => {
+                const { allowNull } = this;
+                return this.formatDatum(
                     undefined,
                     value,
                     source,
@@ -982,12 +1088,16 @@ export abstract class Axis<
                     undefined,
                     undefined,
                     undefined,
-                    label
-                ),
+                    label,
+                    undefined,
+                    allowNull
+                );
+            },
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
+            measureBand: (value) => this.measureBand(value),
         };
     }
 
@@ -996,25 +1106,20 @@ export abstract class Axis<
             return;
         }
 
-        const { scale, range } = this;
+        const { scale, range, id } = this;
 
         const value = scale.invert(this.isVertical() ? point.y : point.x, true);
+        const [position, start, end] = computeBand(scale, range, value);
+        return { id, value, band: [start, end], position };
+    }
 
-        const bandwidth = scale.bandwidth ?? 0;
-        const step = scale.step ?? 0;
-        const offset = (step - bandwidth) / 2;
+    measureBand(value: string): AxisBandMeasurement | undefined {
+        if (!BandScale.is(this.scale)) {
+            return;
+        }
 
-        const position = scale.convert(value);
-
-        const start = position - offset;
-        const end = position + bandwidth + offset;
-
-        return {
-            id: this.id,
-            value,
-            band: [clampArray(start, range), clampArray(end, range)],
-            position,
-        };
+        const [, start, end] = computeBand(this.scale, this.range, value);
+        return { band: [start, end] };
     }
 
     private isVertical() {
@@ -1025,19 +1130,19 @@ export abstract class Axis<
         return this.reverse;
     }
 
-    protected cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    protected cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.moduleCtx;
-        return callbackCache.call([this, chartService], fn, ...params);
+        return callbackCache.call([this, chartService], fn, params);
     }
 
-    private uncachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    private uncachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { chartService } = this.moduleCtx;
-        return callWithContext([this, chartService], fn, ...params);
+        return callWithContext([this, chartService], fn, params);
     }
 
     private createCallWithContext(contextProvider: { context?: unknown } | undefined) {
         const { chartService } = this.moduleCtx;
-        return <F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> =>
-            callWithContext([contextProvider, this, chartService], fn, ...params);
+        return <F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> =>
+            callWithContext([contextProvider, this, chartService], fn, params);
     }
 }

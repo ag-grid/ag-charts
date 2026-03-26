@@ -3,10 +3,39 @@ import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    TimeAxisModule,
+    UnitTimeAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 // @ts-expect-error Undocumented option
 window.agChartsDebug = 'scene:stats';
 
@@ -42,17 +71,12 @@ const options: AgCartesianChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-        },
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             parentLevel: { enabled: true },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -92,7 +116,6 @@ function setAxes(type: string) {
         case 'time':
             axis = {
                 type,
-                position: 'bottom',
                 nice: false,
             };
             break;
@@ -100,13 +123,11 @@ function setAxes(type: string) {
         case 'unit-time':
             axis = {
                 type,
-                position: 'bottom',
             };
             break;
         case 'ordinal-time-parent':
             axis = {
                 type: 'ordinal-time',
-                position: 'bottom',
                 parentLevel: { enabled: true },
             };
             break;
@@ -114,7 +135,7 @@ function setAxes(type: string) {
             return;
     }
 
-    options.axes = [{ type: 'number', position: 'left' }, axis];
+    options.axes = { x: axis };
     chart.update(options);
 }
 

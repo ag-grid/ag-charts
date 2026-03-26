@@ -1,19 +1,28 @@
-import { type BoxBounds, cachedTextMeasurer, countFractionDigits, rotatePoint } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    type Scale,
+    ScaleAlignment,
+    type ScaleTickParams,
+    cachedTextMeasurer,
+    countFractionDigits,
+    estimateTickCount,
+    findMinMax,
+    findRangeExtent,
+    getTickTimeInterval,
+    intervalMilliseconds,
+    lowestGranularityForInterval,
+    normalizeAngle360FromDegrees,
+    rotatePoint,
+} from 'ag-charts-core';
 import type { PaddingOptions } from 'ag-charts-types';
 
 import { CategoryScale } from '../../scale/categoryScale';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { type Scale, ScaleAlignment, type ScaleTickParams } from '../../scale/scale';
 import { TimeScale } from '../../scale/timeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
-import { normalizeAngle360FromDegrees } from '../../util/angle';
-import { findMinMax, findRangeExtent } from '../../util/number';
 import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
-import { estimateTickCount, getTickTimeInterval } from '../../util/ticks';
-import { intervalMilliseconds } from '../../util/time';
-import { lowestGranularityForInterval } from '../../util/timeFormatDefaults';
 import { expandLabelPadding } from '../label';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
@@ -129,8 +138,12 @@ function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterva
     const rangeExtent = findRangeExtent(range);
     const zoomExtent = findRangeExtent(visibleRange);
 
-    if (CategoryScale.is(scale)) {
-        const maxTickCount = domain.length;
+    // Ordinal scales with a large number of categories can be slow to generate ticks for.
+    // Therefore, we limit the number of ticks generated for such scales.
+    if (CategoryScale.is(scale) || (OrdinalTimeScale.is(scale) && domain.length < 1000)) {
+        const maxTickCount = CategoryScale.is(scale)
+            ? domain.length
+            : Math.min(domain.length, Math.max(1, Math.floor(rangeExtent / (zoomExtent * defaultTickMinSpacing))));
         const estimatedTickCount = Math.ceil(rangeExtent / (zoomExtent * label.fontSize));
         return {
             tickCount: Math.min(estimatedTickCount, maxTickCount),
@@ -160,7 +173,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
     const previousTicks = previousTickData.rawTicks;
     const maxIterations = tickCount - minTickCount;
 
-    // First guess - generate ticks at current index
+    // First guess - generate ticks at the current index
     const countParams = { minTickCount, maxTickCount, tickCount: countTicks(index) };
 
     let nextTicks = calculateRawTicks(options, tickGenerationType, countParams);
@@ -170,7 +183,7 @@ function buildTickData<TScale extends Scale<TDatum, number, TickInterval<TScale>
         let lowerBound = index;
         let upperBound = maxIterations;
         while (lowerBound <= upperBound) {
-            index = ((lowerBound + upperBound) / 2) | 0;
+            index = Math.trunc((lowerBound + upperBound) / 2);
             countParams.tickCount = countTicks(index);
             const nextTicksCandidate = calculateRawTicks(options, tickGenerationType, countParams);
 
@@ -237,13 +250,15 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     } = options;
 
     const domainParams: ScaleTickParams<any> = {
-        nice: niceMode === NiceMode.TickAndDomain,
+        nice: niceMode.map((n) => n === NiceMode.TickAndDomain),
         interval: interval.step,
         ...countParams,
     };
 
-    const tickParams = { ...domainParams };
-    tickParams.nice ||= niceMode === NiceMode.TicksOnly;
+    const tickParams = {
+        ...domainParams,
+        nice: niceMode.map((n) => n === NiceMode.TickAndDomain || n === NiceMode.TicksOnly),
+    };
 
     let secondaryAxisTicks: { domain: TDatum[]; ticks: number[] } | undefined;
     if (
@@ -255,10 +270,9 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
         secondaryAxisTicks = calculateNiceSecondaryAxis(scale, domain, primaryTickCount, reverse, visibleRange);
     }
 
-    const niceDomain =
-        niceMode === NiceMode.TickAndDomain
-            ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
-            : domain;
+    const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
+        ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
+        : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;
     let rawTickCount: number | undefined;
@@ -309,8 +323,8 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
                         (generatePrimaryTicks && (TimeScale.is(scale) || OrdinalTimeScale.is(scale))))
                 ) {
                     const dates = niceDomain as (Date | number)[];
-                    const start = Math.min(dates[0].valueOf(), dates[dates.length - 1].valueOf());
-                    const end = Math.max(dates[0].valueOf(), dates[dates.length - 1].valueOf());
+                    const start = Math.min(dates[0].valueOf(), dates.at(-1)!.valueOf());
+                    const end = Math.max(dates[0].valueOf(), dates.at(-1)!.valueOf());
                     timeInterval = getTickTimeInterval(start, end, tickCount, minTickCount, maxTickCount, {
                         weekStart: primaryLabel == null ? sunday : undefined,
                         primaryOnly: true,

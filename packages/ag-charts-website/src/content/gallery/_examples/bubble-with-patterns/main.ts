@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {
@@ -68,18 +76,16 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Revenue (millions)' },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Employees (hundreds)' },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

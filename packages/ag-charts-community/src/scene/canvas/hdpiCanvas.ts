@@ -1,17 +1,14 @@
-import { createElement, getWindow } from 'ag-charts-core';
-
-import { ObserveChanges } from '../../util/proxy';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
 
 export interface CanvasOptions {
+    canvasElement: HTMLCanvasElement;
+    pixelRatio: number;
     width?: number;
     height?: number;
-    pixelRatio?: number;
     willReadFrequently?: boolean;
-    canvasElement?: HTMLCanvasElement;
 }
 
 /**
@@ -22,20 +19,19 @@ export class HdpiCanvas {
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
 
-    @ObserveChanges<HdpiCanvas>((target) => target.onEnabledChange())
-    enabled: boolean = true;
-
     width: number = 600;
     height: number = 300;
     pixelRatio: number;
 
+    private direction: CanvasDirection = 'ltr';
+
     constructor(options: CanvasOptions) {
-        const { width, height, canvasElement, willReadFrequently = false } = options;
+        const { width, height, willReadFrequently = false } = options;
 
-        this.pixelRatio = options.pixelRatio ?? getWindow('devicePixelRatio') ?? 1;
+        this.element = options.canvasElement;
+        this.pixelRatio = options.pixelRatio;
 
-        // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
-        this.element = canvasElement ?? createElement('canvas');
+        // Immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         // Safari needs a width and height set before calling getContext or the output can appear blurry
         // Must also be `display: block` so the height doesn't get increased by `inline-block` layout
         this.element.style.display = 'block';
@@ -45,13 +41,14 @@ export class HdpiCanvas {
         this.element.height = Math.round((height ?? this.height) * this.pixelRatio);
 
         this.context = this.element.getContext('2d', { willReadFrequently })!;
+        this.context.direction = this.direction;
 
-        this.onEnabledChange(); // Force `display: block` style
         this.resize(width ?? 0, height ?? 0, this.pixelRatio);
 
         debugContext(this.context);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents -- OffscreenCanvasRenderingContext2D is intentionally `any` for Angular 13+ compatibility (AG-6969)
     drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
         return context.drawImage(this.context.canvas, dx, dy);
     }
@@ -76,6 +73,12 @@ export class HdpiCanvas {
         this.pixelRatio = pixelRatio;
     }
 
+    setDirection(isRtl: boolean) {
+        this.direction = isRtl ? 'rtl' : 'ltr';
+        this.element.dir = this.direction;
+        this.context.direction = this.direction;
+    }
+
     clear() {
         clearContext(this);
     }
@@ -95,11 +98,6 @@ export class HdpiCanvas {
     reset() {
         this.context.reset();
         this.context.verifyDepthZero?.();
-    }
-
-    private onEnabledChange() {
-        if (this.element) {
-            this.element.style.display = this.enabled ? '' : 'none';
-        }
+        this.context.direction = this.direction;
     }
 }

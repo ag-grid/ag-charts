@@ -10,7 +10,10 @@ export default getViteConfig({
     test: {
         globals: true,
         environment: 'node',
-        include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
+        include: [
+            'src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+            'scripts/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+        ],
         reporters: ['default'],
         coverage: { reportsDirectory: '../../coverage/ag-charts-website', provider: 'v8' },
     },

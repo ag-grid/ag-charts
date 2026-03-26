@@ -1,11 +1,11 @@
-import {
-    type ColorSpace,
-    type InternalAgColorType,
-    Logger,
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
+import type {
+    ColorSpace,
+    InternalAgColorType,
+    RequiredInternalAgGradientColor,
+    RequiredInternalAgImageFill,
+    RequiredInternalAgPatternColor,
 } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property, mergeDefaults } from 'ag-charts-core';
 import type {
     AgColorRepeat,
     AgColorType,
@@ -23,8 +23,6 @@ import type {
     HighlightState as PublicHighlightState,
 } from 'ag-charts-types';
 
-import { mergeDefaults } from '../../util/object';
-import { BaseProperties, PropertiesArray, Property } from '../../util/properties';
 import type { SeriesTooltip } from './seriesTooltip';
 
 export enum HighlightState {
@@ -42,6 +40,27 @@ export const highlightStates = [
     HighlightState.OtherSeries,
     HighlightState.OtherItem,
 ];
+
+export type HighlightStyleOptionKey =
+    | 'highlightedItem'
+    | 'unhighlightedItem'
+    | 'highlightedSeries'
+    | 'unhighlightedSeries';
+
+export function getHighlightStyleOptionKeys(highlightState: HighlightState): HighlightStyleOptionKey[] {
+    switch (highlightState) {
+        case HighlightState.Item:
+            return ['highlightedItem', 'highlightedSeries'];
+        case HighlightState.OtherItem:
+            return ['unhighlightedItem', 'highlightedSeries'];
+        case HighlightState.Series:
+            return ['highlightedSeries'];
+        case HighlightState.OtherSeries:
+            return ['unhighlightedSeries'];
+        case HighlightState.None:
+            return [];
+    }
+}
 
 type HighlightMixins = {
     fill: AgColorType;
@@ -105,7 +124,7 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     range: 'tooltip' | 'node' = 'tooltip';
 
     @Property
-    bringToFront: boolean = false;
+    bringToFront: boolean = true;
 
     @Property
     readonly highlightedItem: HighlightOptions<TOpts> = {};
@@ -119,52 +138,11 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
     readonly unhighlightedSeries: HighlightOptions<TOpts> = {};
 
-    private getItemHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
-        switch (highlightState) {
-            case HighlightState.Item:
-                return this.highlightedItem;
-            case HighlightState.OtherItem:
-                return this.unhighlightedItem;
-            case HighlightState.Series:
-                return this.highlightedSeries;
-            case HighlightState.OtherSeries:
-                return this.unhighlightedSeries;
-        }
-    }
-
-    private getSeriesHighlightStyle(highlightState: HighlightState): HighlightOptions<TOpts> | undefined {
-        switch (highlightState) {
-            case HighlightState.Item:
-            case HighlightState.OtherItem:
-            case HighlightState.Series:
-                return this.highlightedSeries;
-            case HighlightState.OtherSeries:
-                return this.unhighlightedSeries;
-        }
-    }
-
     getStyle(highlightState: HighlightState): HighlightOptions<TOpts> {
-        return mergeDefaults<HighlightOptions<TOpts>>(
-            this.getItemHighlightStyle(highlightState),
-            this.getSeriesHighlightStyle(highlightState)
-        );
+        const keys = getHighlightStyleOptionKeys(highlightState);
+        if (keys.length === 0) return {};
+        return mergeDefaults<HighlightOptions<TOpts>>(...keys.map((key) => this[key]));
     }
-}
-
-class SeriesHighlightStyle extends BaseProperties {
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    dimOpacity?: number;
-
-    @Property
-    enabled?: boolean;
-}
-
-class TextHighlightStyle extends BaseProperties {
-    @Property
-    color?: string = 'black';
 }
 
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
@@ -324,28 +302,6 @@ export class FillImageDefaults
     fit: AgImageFillFit = 'contain';
 }
 
-export class HighlightStyle extends BaseProperties {
-    constructor(public deprecated = true) {
-        super();
-    }
-
-    @Property
-    readonly item = new SeriesItemHighlightStyle();
-
-    @Property
-    readonly series = new SeriesHighlightStyle();
-
-    @Property
-    readonly text = new TextHighlightStyle();
-
-    override set(properties: object) {
-        if (this.deprecated) {
-            Logger.warnOnce('highlightStyle is deprecated, use highlight instead.');
-        }
-        return super.set(properties);
-    }
-}
-
 export abstract class SeriesProperties<T extends object> extends BaseProperties<T> {
     @Property
     id?: string;
@@ -369,18 +325,22 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Property
     readonly highlight: HighlightProperties<T> = new HighlightProperties();
 
-    @Property
-    readonly highlightStyle = new HighlightStyle();
-
     abstract tooltip: SeriesTooltip<never>;
 
-    // user pass-through option: no validation-decorator required.
+    // User pass-through option: no validation-decorator required.
     context?: unknown;
+
+    // Internal option to allow null values as discrete keys (undocumented).
+    allowNullKeys?: boolean;
 
     override handleUnknownProperties(unknownKeys: Set<unknown>, properties: T) {
         if ('context' in properties) {
             this.context = properties.context;
             unknownKeys.delete('context');
+        }
+        if ('allowNullKeys' in properties) {
+            this.allowNullKeys = (properties as { allowNullKeys?: boolean }).allowNullKeys;
+            unknownKeys.delete('allowNullKeys');
         }
     }
 }

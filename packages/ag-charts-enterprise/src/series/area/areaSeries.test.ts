@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     extractImageData,
     scrollAction,

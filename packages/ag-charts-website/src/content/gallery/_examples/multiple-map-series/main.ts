@@ -1,4 +1,14 @@
-import { AgCharts, AgTopologyChartOptions } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgTopologyChartOptions,
+    ContextMenuModule,
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ModuleRegistry,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { backgroundTopology } from './backgroundTopology';
 import { DataType, FerryDataType } from './data';
@@ -9,6 +19,13 @@ import { flightTopology } from './flightTopology';
 import { islandData } from './islandData';
 import { islandTopology } from './islandTopology';
 
+ModuleRegistry.registerModules([
+    LegendModule,
+    MapLineSeriesModule,
+    MapMarkerSeriesModule,
+    MapShapeBackgroundSeriesModule,
+    ZoomModule,
+]);
 const sizeDomain = [500, 0];
 
 const options: AgTopologyChartOptions<DataType> = {
@@ -146,7 +163,6 @@ const options: AgTopologyChartOptions<DataType> = {
             anchorTo: 'pointer',
             placement: ['top', 'bottom', 'right', 'left'],
         },
-        delay: 100,
     },
 };
 

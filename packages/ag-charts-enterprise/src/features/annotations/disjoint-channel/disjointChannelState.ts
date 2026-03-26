@@ -1,15 +1,12 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { isNumber } from 'ag-charts-core';
+import { Debug, type Point, StateMachine, StateMachineProperty, isNumber } from 'ag-charts-core';
 
-import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
 import { getGroupingValue } from '../utils/scale';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: DisjointChannelProperties) => void;
@@ -34,7 +31,7 @@ export class DisjointChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     constructor(ctx: DisjointChannelStateMachineContext) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             ctx.create(datum);
@@ -46,7 +43,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             node?.toggleHandles({ topLeft: true, topRight: false, bottomLeft: false, bottomRight: false });
         };
 
-        const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
+        const actionEndUpdate = ({ offset, context }: { offset: Point; context: AnnotationContext }) => {
             const { datum, snapping } = this;
             if (!datum) return;
 
@@ -59,7 +56,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightUpdate = ({ point }: { point: Point }) => {
+        const actionHeightUpdate = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
 
             const endY = getGroupingValue(datum?.end.y);
@@ -88,7 +85,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightFinish = ({ point }: { point: Point }) => {
+        const actionHeightFinish = ({ point }: { point: DataPoint }) => {
             const { datum, node } = this;
 
             const endY = getGroupingValue(datum?.end.y);

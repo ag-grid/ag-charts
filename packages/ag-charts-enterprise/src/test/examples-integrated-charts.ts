@@ -332,16 +332,16 @@ const COMMON = {
 
 const COLUMN_BASIC: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -375,16 +375,16 @@ const COLUMN_BASIC: AgCartesianChartOptions = {
 
 const COLUMN_STACKED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -418,17 +418,17 @@ const COLUMN_STACKED: AgCartesianChartOptions = {
 
 const COLUMN_STACKED_NORMALISED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
             label: {},
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -465,16 +465,16 @@ const COLUMN_STACKED_NORMALISED: AgCartesianChartOptions = {
 
 const BAR_BASIC: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -511,16 +511,16 @@ const BAR_BASIC: AgCartesianChartOptions = {
 
 const BAR_STACKED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -557,17 +557,17 @@ const BAR_STACKED: AgCartesianChartOptions = {
 
 const BAR_STACKED_NORMALISED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
             label: {},
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -616,16 +616,16 @@ const BAR_DUPLICATE_VALUES: AgCartesianChartOptions = {
         silver: 1,
         bronze: 2,
     }),
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -943,16 +943,16 @@ const DONUT_BASIC: AgPolarChartOptions = {
 
 const LINE_BASIC: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'line',
@@ -980,16 +980,16 @@ const LINE_BASIC: AgCartesianChartOptions = {
 
 const SCATTER_BASIC: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'scatter',
@@ -1020,30 +1020,30 @@ const BUBBLE_BASIC: AgCartesianChartOptions = {
             labelName: 'Age',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
 };
 
 const AREA_BASIC: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'area',
@@ -1074,16 +1074,16 @@ const AREA_BASIC: AgCartesianChartOptions = {
 
 const AREA_STACKED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'area',
@@ -1114,16 +1114,16 @@ const AREA_STACKED: AgCartesianChartOptions = {
 
 const AREA_STACKED_NORMALISED: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'area',
@@ -1157,16 +1157,16 @@ const AREA_STACKED_NORMALISED: AgCartesianChartOptions = {
 
 const HISTOGRAM: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'histogram',
@@ -1180,20 +1180,19 @@ const HISTOGRAM: AgCartesianChartOptions = {
 
 const COMBO_LINE: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{}],
             },
         },
-        {
+        y: {
             type: 'number',
-            keys: ['gold', 'silver', 'bronze'],
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -1223,20 +1222,19 @@ const COMBO_LINE: AgCartesianChartOptions = {
 
 const COMBO_AREA: AgCartesianChartOptions = {
     ...COMMON,
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
             gridLine: {
                 style: [{}],
             },
         },
-        {
+        y: {
             type: 'number',
-            keys: ['gold', 'silver', 'bronze'],
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'area',
@@ -1397,16 +1395,16 @@ const CROSSFILTER_BAR: AgCartesianChartOptions = {
             'sale-filtered-out': 0,
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
             position: 'left',
         },
-        {
+        x: {
             type: 'number',
             position: 'bottom',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -1505,16 +1503,16 @@ const CROSSFILTER_COLUMN: AgCartesianChartOptions = {
             'sale-filtered-out': null,
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
             position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
             position: 'left',
         },
-    ],
+    },
     series: [
         {
             type: 'bar',
@@ -1805,16 +1803,16 @@ const CATEGORY_LINE_ANIMATION: AgCartesianChartOptions = {
             yKey: 'android',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
         },
-        {
+        x: {
             position: 'bottom',
             type: 'category',
         },
-    ],
+    },
 
     // @ts-expect-error Not part of the public API.
     mode: 'integrated' as const,
@@ -1849,7 +1847,7 @@ const RADAR_LINE_BASIC: AgPolarChartOptions = {
             individual: 61473,
         },
     ],
-    axes: [{ type: 'angle-category' }, { type: 'radius-number' }],
+    axes: { angle: { type: 'angle-category' }, radius: { type: 'radius-number' } },
     series: [
         {
             type: 'radar-line',

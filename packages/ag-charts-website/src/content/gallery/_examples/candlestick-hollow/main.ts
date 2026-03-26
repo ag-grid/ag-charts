@@ -1,7 +1,26 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CandlestickSeriesModule,
+    CrosshairModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ZoomModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -73,10 +92,9 @@ const options: AgChartOptions = {
     zoom: {
         enabled: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: { step: 'year' },
             line: {
                 enabled: false,
@@ -101,7 +119,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             interval: { step: 10000 },
@@ -143,7 +161,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
     tooltip: {
         position: {
             anchorTo: 'pointer',

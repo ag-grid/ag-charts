@@ -10,7 +10,9 @@ import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
+    computeLegendBBox,
     deproxy,
     extractImageData,
     hoverAction,
@@ -90,12 +92,34 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series[0] as MapMarkerSeries;
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
             const node = seriesImpl?.['contextNodeData']?.nodeData[i];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
             highlightManager.updateHighlight(chart.id, node as any);
             await compare();
+        });
+    });
+
+    // CRT-1078: Hovering a legend item in a map marker chart produces a highlight with
+    // datum == null. Without the fix, getHighlightedDatum() passes this through and the
+    // render cycle crashes accessing point.x on the undefined datum.
+    describe('legend hover with null datum (CRT-1078)', () => {
+        it('should not crash when hovering the legend item', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                legend: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Hover over the legend item — triggers a highlight with datum == null.
+            // Without the fix this crashes the render cycle.
+            const { x, y } = computeLegendBBox(chart);
+            await hoverAction(x + 10, y + 10)(chart);
+            await waitForChartStability(chart);
         });
     });
 
@@ -223,7 +247,7 @@ describe('MapMarkerSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -277,7 +301,105 @@ describe('MapMarkerSeries', () => {
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
+        });
+    });
+
+    describe('colorScale', () => {
+        const COLOR_EXAMPLE: AgChartOptions = {
+            ...SIMPLIFIED_EXAMPLE,
+            series: [{ type: 'map-shape-background' }, { type: 'map-marker', idKey: 'name', colorKey: 'population' }],
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [0, 100_000_000] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 1_000_000, name: 'Low' },
+                                { color: 'yellow', stop: 5_000_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
         });
     });
 

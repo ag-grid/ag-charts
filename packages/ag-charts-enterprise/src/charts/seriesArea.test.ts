@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,

@@ -29,6 +29,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Module Registry",
+                            "path": "module-registry"
+                        },
+                        {
+                            "type": "item",
                             "title": "Enterprise Licence Key",
                             "path": "license-install"
                         },
@@ -36,6 +41,12 @@
                             "type": "item",
                             "title": "Migration",
                             "path": "migration"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Server-Side Rendering",
+                            "path": "server-side-rendering",
+                            "isEnterprise": true
                         }
                     ]
                 },
@@ -78,8 +89,39 @@
             "children": [
                 {
                     "type": "group",
-                    "title": "Axis Configuration",
+                    "title": "Data",
                     "children": [
+                        {
+                            "type": "item",
+                            "title": "Data Configuration",
+                            "path": "data-configuration"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Large Datasets",
+                            "path": "large-dataset-interactivity"
+                        },
+                        {
+                            "type": "item",
+                            "title": "High-Frequency Update",
+                            "path": "high-frequency-data"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Transactions",
+                            "path": "transactions"
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "title": "Axes",
+                    "children": [
+                        {
+                            "type": "item",
+                            "title": "Axis Configuration",
+                            "path": "axes-configuration"
+                        },
                         {
                             "type": "item",
                             "title": "Axis Types",
@@ -94,6 +136,11 @@
                             "type": "item",
                             "title": "Axis Domain",
                             "path": "axes-domain"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Axis Position",
+                            "path": "axes-position"
                         },
                         {
                             "type": "item",
@@ -144,6 +191,11 @@
                         },
                         {
                             "type": "item",
+                            "title": "Series Bars",
+                            "path": "bars"
+                        },
+                        {
+                            "type": "item",
                             "title": "Series Fills",
                             "path": "fills"
                         },
@@ -180,11 +232,6 @@
                             "type": "item",
                             "title": "Accessibility",
                             "path": "accessibility"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Large Datasets",
-                            "path": "large-dataset-interactivity"
                         },
                         {
                             "type": "item",
@@ -226,8 +273,26 @@
                         },
                         {
                             "type": "item",
+                            "title": "Flash On Update",
+                            "path": "flash-on-update",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Navigator",
                             "path": "navigator",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Range Controls",
+                            "path": "range-controls",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
+                            "title": "Scrollbar",
+                            "path": "scrollbar",
                             "isEnterprise": true
                         },
                         {
@@ -267,6 +332,11 @@
                             "type": "item",
                             "title": "Layout",
                             "path": "layout"
+                        },
+                        {
+                            "type": "item",
+                            "title": "RTL Text & Layout",
+                            "path": "rtl"
                         },
                         {
                             "type": "item",

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { mapValues } from 'ag-charts-core';
 import type {
     AgBaseChartOptions,
     AgCartesianAxisPosition,
@@ -26,7 +27,7 @@ import {
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, label: { ...axis.label, rotation } })),
     };
 }
 
@@ -48,7 +49,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
+        axes: mapValues(opts.axes ?? {}, (axis) => ({ ...axis, position: positionFlip(axis.position) })) ?? undefined,
     };
 }
 
@@ -62,22 +63,22 @@ const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
         NUMBER_AXIS_LOG2_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'log' }, seriesTypes: ['line'] }),
             compare: ['log'],
         },
         NUMBER_AXIS_LOG10_EXAMPLE: {
             options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'log' }, seriesTypes: ['line'] }),
             compare: ['log'],
         },
         LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: {
             options: axesExamples.LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'log' }, seriesTypes: ['line'] }),
             compare: ['log'],
         },
         LOG_AXIS_TICK_VALUES: {
             options: axesExamples.LOG_AXIS_TICK_VALUES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'log' }, seriesTypes: ['line'] }),
         },
     }),
 };
@@ -87,7 +88,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
 ): Record<string, TestCase<T>> {
     const result = { ...baseCases };
 
-    Object.entries(baseCases).forEach(([name, baseCase]) => {
+    for (const [name, baseCase] of Object.entries(baseCases)) {
         // Add manual rotation.
         result[name + '_MANUAL_ROTATION'] = {
             ...baseCase,
@@ -104,7 +105,7 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
             ...baseCase,
             options: reverseAxes(baseCase.options, true),
         };
-    });
+    }
 
     return result;
 }
@@ -179,12 +180,12 @@ describe('Log Axis interval property handling', () => {
                     yKey: 'share',
                 },
             ],
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                 },
-                {
+                y: {
                     type: 'log',
                     position: 'left',
                     min: 10,
@@ -195,7 +196,7 @@ describe('Log Axis interval property handling', () => {
                         format: '.0f',
                     },
                 },
-            ],
+            },
         };
 
         prepareTestOptions(options);
@@ -205,12 +206,12 @@ describe('Log Axis interval property handling', () => {
         // Update to log axis without interval property
         const updatedOptions: AgCartesianChartOptions = {
             ...options,
-            axes: [
-                {
+            axes: {
+                x: {
                     type: 'category',
                     position: 'bottom',
                 },
-                {
+                y: {
                     type: 'log',
                     position: 'left',
                     min: 10,
@@ -219,7 +220,7 @@ describe('Log Axis interval property handling', () => {
                     },
                     base: 2,
                 },
-            ],
+            },
         };
 
         // This should not produce any warnings

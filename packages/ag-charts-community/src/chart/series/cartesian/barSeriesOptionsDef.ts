@@ -2,31 +2,31 @@ import {
     type OptionsDefs,
     barHighlightOptionsDef,
     boolean,
+    callback,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
+    errorBarOptionsDefs,
+    errorBarThemeableOptionsDefs,
     fillOptionsDef,
     lineDashOptionsDef,
     multiSeriesHighlightOptionsDef,
     number,
     positiveNumber,
+    positiveNumberNonZero,
+    ratio,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     undocumented,
     union,
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, AgBarSeriesStyle, AgBarSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    errorBarOptionsDefs,
-    errorBarThemeableOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef);
 
@@ -58,6 +58,8 @@ export const barSeriesThemeableOptionsDef: OptionsDefs<AgBarSeriesThemeableOptio
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 // @ts-expect-error undocumented option
@@ -70,6 +72,8 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
     type: required(constant('bar')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
     direction: union('horizontal', 'vertical'),
@@ -82,6 +86,10 @@ export const barSeriesOptionsDef: OptionsDefs<AgBarSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
+barSeriesOptionsDef.yFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
 barSeriesOptionsDef.pickOutsideVisibleMinorAxis = undocumented(boolean);
 // @ts-expect-error undocumented option
 barSeriesOptionsDef.focusPriority = undocumented(number);
+// @ts-expect-error undocumented option
+barSeriesOptionsDef.simpleItemStyler = undocumented(callback);

@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { LineSeriesModule, ModuleRegistry, NumberAxisModule, UnitTimeAxisModule } from 'ag-charts-community';
 
 import { getLoungeData, getOfficeData } from './data';
 
+ModuleRegistry.registerModules([LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -23,19 +25,17 @@ const options: AgChartOptions = {
             yName: 'Office',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             label: {
                 format: '#{.1f} °C',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

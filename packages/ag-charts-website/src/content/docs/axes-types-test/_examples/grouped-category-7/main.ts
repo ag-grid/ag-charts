@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -14,26 +14,21 @@ const options: AgCartesianChartOptions = {
             xKey: 'category',
             yKey: 'a_value',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
         {
             type: 'bar',
             xKey: 'category',
             yKey: 'b_value',
             stacked: true,
-            label: {},
+            label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
         },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+    },
     legend: {
         enabled: false,
     },

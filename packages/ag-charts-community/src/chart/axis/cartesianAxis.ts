@@ -1,4 +1,15 @@
-import { arraysEqual, calcLineHeight, countLines, diffArrays, isPlainObject } from 'ag-charts-core';
+import type { ChartAnimationPhase, Scale } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    Property,
+    StateMachine,
+    arraysEqual,
+    calcLineHeight,
+    countLines,
+    diffArrays,
+    findMinMax,
+    isPlainObject,
+} from 'ag-charts-core';
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -7,7 +18,6 @@ import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
-import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
@@ -15,16 +25,12 @@ import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
 import { Rect } from '../../scene/shape/rect';
 import { TransformableText } from '../../scene/shape/text';
-import { findMinMax } from '../../util/number';
-import { Property } from '../../util/properties';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
-import { StateMachine } from '../../util/stateMachine';
 import { Caption } from '../caption';
-import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartLayout } from '../chartAxis';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
+import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
 import type {
     AxisFillDatum,
@@ -78,7 +84,15 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     @Property
     position!: AgCartesianAxisPosition;
 
+    @Property
+    crossAt?: { value: D; sticky?: boolean };
+
+    readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
+
     minimumTimeGranularity: AgTimeIntervalUnit | undefined = undefined;
+
+    // Used to define the range the axis line will occupy, e.g. when bandAlignment is not 'justify'.
+    lineRange?: [number, number];
 
     protected animationManager: AnimationManager;
 
@@ -142,8 +156,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected override onGridVisibilityChange(): void {
-        this.gridLineGroupSelection.clear();
-        this.gridFillGroupSelection.clear();
+        // Do nothing, the grid lines and fills are updated in the update method.
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
@@ -197,14 +210,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     layoutCrossLines(): void {
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        this.crossLines.forEach((crossLine) => {
+        for (const crossLine of this.crossLines) {
             crossLine.calculateLayout?.(crosslinesVisible);
-        });
+        }
     }
 
     override calculateTickLayout(
         domain: D[],
-        niceMode: NiceMode,
+        niceMode: NiceMode[],
         visibleRange: [number, number],
         initialPrimaryTickCount?: AxisPrimaryTickCount
     ): {
@@ -218,15 +231,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         layout: GeneratedTicks;
     } {
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+        const labelX =
+            sideFlag * (this.getTickSize() + this.getTickSpacing() + this.label.spacing + this.seriesAreaPadding);
+        const scrollbar = this.chartLayout?.scrollbars?.[this.id];
+        const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         if (
-            niceMode === NiceMode.Off &&
+            niceMode[0] === NiceMode.Off &&
+            niceMode[1] === NiceMode.Off &&
             this.label.enabled === false &&
             this.tick.enabled === false &&
             this.gridLine.enabled === false
         ) {
-            const { bbox, spacing } = this.tickBBox(domain, [], []);
+            const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
             const layout: GeneratedTicks = {
                 ticks: [],
@@ -266,7 +283,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             sideFlag,
             labelOffset: labelX,
             primaryTickCount: initialPrimaryTickCount,
-            axisRotation: this.horizontal ? -0.5 * Math.PI : 0,
+            axisRotation: this.horizontal ? Math.PI / -2 : 0,
             isVertical: this.direction === ChartAxisDirection.Y,
             sizeLimit: this.chartLayout?.sizeLimit,
             inRange: (translation: number) => this.inRange(translation, 0.001),
@@ -296,7 +313,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { ticks, tickDomain, rawTicks, rawTickCount, fractionDigits, timeInterval, niceDomain } = tickData;
 
-        const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult));
+        const labels = ticks.map((d) => this.getTickLabelProps(d, tickGenerationResult, scrollbarThickness));
 
         const { position, gridPadding, gridLength } = this;
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
@@ -305,8 +322,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const gridLines = this.calculateGridLines(ticks, p1, p2);
         const gridFills = this.calculateGridFills(ticks, p1, p2);
-        const tickLines = this.calculateTickLines(ticks, direction);
-        const { bbox, spacing } = this.tickBBox(tickDomain, ticks, labels);
+        const tickLines = this.calculateTickLines(ticks, direction, scrollbarThickness);
+        const { bbox, spacing } = this.measureAxisLayout(tickDomain, ticks, labels, scrollbar, scrollbarThickness);
         const layout: GeneratedTicks = { ticks, gridLines, gridFills, tickLines, labels, spacing };
 
         return { ticks: rawTicks, rawTickCount, tickDomain, niceDomain, fractionDigits, timeInterval, bbox, layout };
@@ -381,21 +398,31 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return { tickId, x1, y1, x2, y2, fill, fillOpacity };
     }
 
-    protected calculateTickLines(ticks: TickDatum[], direction: number): AxisLineDatum[] {
-        return ticks.map((tick) => this.calculateTickLine(tick, tick.index, direction, ticks));
+    protected calculateTickLines(
+        ticks: TickDatum[],
+        direction: number,
+        scrollbarThickness: number = 0
+    ): AxisLineDatum[] {
+        return ticks.map((tick) => this.calculateTickLine(tick, tick.index, direction, ticks, scrollbarThickness));
     }
 
     protected calculateTickLine(
         { isPrimary, tickId, translation: offset }: Pick<TickDatum, 'isPrimary' | 'tickId' | 'translation'>,
         _index: number,
         direction: number,
-        _ticks: TickDatum[]
+        _ticks: TickDatum[],
+        scrollbarThickness: number = 0
     ): AxisLineDatum {
         const { horizontal, tick, primaryTick } = this;
 
-        const datumTick = isPrimary && primaryTick?.enabled ? primaryTick : tick;
-        const h = -direction * this.getTickSize(datumTick);
-        const [x1, y1, x2, y2] = horizontal ? [offset, 0, offset, h] : [0, offset, h, offset];
+        const datumTick = isPrimary && primaryTick ? primaryTick : tick;
+        const tickSize = this.getTickSize(datumTick);
+        const tickSpacing = this.getTickSpacing(datumTick);
+        const tickOffset = -direction * (scrollbarThickness + tickSpacing);
+        const h = -direction * tickSize;
+        const [x1, y1, x2, y2] = horizontal
+            ? [offset, tickOffset, offset, tickOffset + h]
+            : [tickOffset, offset, tickOffset + h, offset];
         const { stroke, width: strokeWidth } = datumTick;
         const lineDash = undefined;
 
@@ -408,9 +435,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const previousTicksIds = Array.from(this.tickLabelGroupSelection.nodes(), (node) => node.unsafeDatum.tickId);
 
         super.update();
-
-        this.tickLineGroup.visible = this.tick.enabled || (this.primaryTick?.enabled ?? false);
-        this.tickLabelGroup.visible = this.label.enabled || (this.primaryTick?.enabled ?? false);
 
         const { tickLayout } = this;
         this.updateTitle(this.scale.domain, tickLayout?.spacing ?? 0);
@@ -442,9 +466,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getAxisTransform() {
         return {
-            translationX: Math.floor(this.translation.x),
-            translationY: Math.floor(this.translation.y),
+            translationX: Math.floor(this.translation.x + this.crossAxisTranslation.x),
+            translationY: Math.floor(this.translation.y + this.crossAxisTranslation.y),
         };
+    }
+
+    protected override getLayoutTranslation(): { x: number; y: number } {
+        const { translationX, translationY } = this.getAxisTransform();
+        return { x: translationX, y: translationY };
+    }
+
+    override getLayoutState() {
+        const layout = super.getLayoutState();
+        return { ...layout, position: this.position };
     }
 
     protected override updatePosition(): void {
@@ -457,29 +491,43 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.headingLabelGroup.datum = axisTransform;
     }
 
+    setAxisVisible(visible: boolean) {
+        this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLabelGroup.visible = visible && (this.label.enabled || (this.primaryTick?.enabled ?? false));
+        this.lineNodeGroup.visible = visible;
+        this.headingLabelGroup.visible = visible;
+    }
+
     private getAxisLineCoordinates() {
         const { horizontal } = this;
-        const [c1, c2] = findMinMax(this.range);
+        const [c1, c2] = findMinMax(this.lineRange ?? this.range);
 
         return horizontal ? { x1: c1, x2: c2, y1: 0, y2: 0 } : { x1: 0, x2: 0, y1: c1, y2: c2 };
     }
 
-    private getTickLineBBox(datum: TickDatum) {
+    private getTickLineBBox(datum: TickDatum, scrollbarThickness: number) {
         const { translation } = datum;
         const { position, primaryTick } = this;
         let tickSize = this.getTickSize();
         if (primaryTick?.enabled) {
             tickSize = Math.max(tickSize, this.getTickSize(primaryTick));
         }
+        const direction = position === 'bottom' || position === 'right' ? -1 : 1;
+        const tickSpacing = this.getTickSpacing(this.tick);
+        const tickOffset = -direction * (scrollbarThickness + tickSpacing);
+        const start = tickOffset;
+        const end = tickOffset - direction * (tickSize + tickSpacing);
+        const min = Math.min(start, end);
+        const max = Math.max(start, end);
         switch (position) {
             case 'top':
-                return new BBox(translation, -tickSize, translation, tickSize);
+                return new BBox(translation, min, 0, max - min);
             case 'bottom':
-                return new BBox(translation, 0, translation, tickSize);
+                return new BBox(translation, min, 0, max - min);
             case 'left':
-                return new BBox(-tickSize, translation, tickSize, translation);
+                return new BBox(min, translation, max - min, 0);
             case 'right':
-                return new BBox(0, translation, tickSize, translation);
+                return new BBox(min, translation, max - min, 0);
         }
     }
 
@@ -501,11 +549,69 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected titleBBox(domain: D[], spacing: number) {
         const { tempCaption } = this;
+        const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
+        tempCaption.computeTextWrap(axisLength, this.thickness ?? Infinity);
         return tempCaption.node.getBBox();
     }
 
-    private tickBBox(domain: D[], ticks: TickDatum[], labels: LabelNodeDatum[]) {
+    protected getScrollbarThickness(scrollbar?: ScrollbarLayout): number {
+        if (!scrollbar?.enabled) return 0;
+        return scrollbar.placement === 'inner' ? scrollbar.spacing + scrollbar.thickness : 0;
+    }
+
+    protected resolveScrollbarLayout(
+        scrollbar: ScrollbarLayout | undefined,
+        labelThickness: number
+    ): (ScrollbarLayout & { offset: number }) | undefined {
+        if (!scrollbar) return;
+
+        const { position } = this;
+        const direction = position === 'top' || position === 'left' ? -1 : 1;
+
+        if (scrollbar.placement === 'inner') {
+            const offset = direction === 1 ? scrollbar.spacing : -scrollbar.spacing - scrollbar.thickness;
+            return { ...scrollbar, offset };
+        }
+
+        const offset =
+            direction === 1
+                ? labelThickness + scrollbar.spacing
+                : -labelThickness - scrollbar.spacing - scrollbar.thickness;
+
+        return { ...scrollbar, offset };
+    }
+
+    protected applyScrollbarLayout(
+        boxes: BBox[],
+        labelThickness: number,
+        scrollbar: ScrollbarLayout | undefined
+    ): { spacing: number; scrollbarLayout: (ScrollbarLayout & { offset: number }) | undefined } {
+        const scrollbarLayout = this.resolveScrollbarLayout(scrollbar, labelThickness);
+
+        let spacing = labelThickness;
+        if (scrollbarLayout) {
+            const { offset, thickness, placement } = scrollbarLayout;
+            if (placement === 'outer') {
+                spacing += scrollbarLayout.spacing + thickness;
+            }
+            if (this.horizontal) {
+                boxes.push(new BBox(0, offset, 0, thickness));
+            } else {
+                boxes.push(new BBox(offset, 0, thickness, 0));
+            }
+        }
+
+        return { spacing, scrollbarLayout };
+    }
+
+    private measureAxisLayout(
+        domain: D[],
+        ticks: TickDatum[],
+        labels: LabelNodeDatum[],
+        scrollbar: ScrollbarLayout | undefined,
+        scrollbarThickness: number
+    ) {
         const { tick, primaryTick, label, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
         const boxes: BBox[] = [];
 
@@ -513,7 +619,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         if (tick.enabled || primaryTick?.enabled) {
             for (const datum of ticks) {
-                boxes.push(this.getTickLineBBox(datum));
+                boxes.push(this.getTickLineBBox(datum, scrollbarThickness));
             }
         }
 
@@ -540,7 +646,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                     0,
                     calcLineHeight(label.fontSize) + inexactMeasurementPadding,
                     1,
-                    this.getTickSize(tick) + label.spacing + seriesAreaPadding
+                    this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
                 )
             );
 
@@ -551,7 +657,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 boxes.push(
                     new BBox(
                         0,
-                        this.getTickSize(primaryTick ?? tick) + primaryLabel.spacing + seriesAreaPadding,
+                        this.getTickSize(primaryTick ?? tick) +
+                            this.getTickSpacing(primaryTick ?? tick) +
+                            primaryLabel.spacing +
+                            seriesAreaPadding,
                         1,
                         maxLines * calcLineHeight(primaryLabel.fontSize) + inexactMeasurementPadding
                     )
@@ -559,10 +668,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
-        let spacing = 0;
+        const combined = BBox.merge(boxes);
+        const labelThickness = horizontal ? combined.height : combined.width;
+        const { spacing, scrollbarLayout } = this.applyScrollbarLayout(boxes, labelThickness, scrollbar);
+        this.layout.labelThickness = labelThickness;
+        this.layout.scrollbar = scrollbarLayout;
+
         if (title.enabled) {
-            const combined = BBox.merge(boxes);
-            spacing = horizontal ? combined.height : combined.width;
             boxes.push(this.titleBBox(domain, spacing));
         }
 
@@ -594,15 +706,19 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.fontStyle = title.fontStyle;
         caption.fontWeight = title.fontWeight;
         caption.wrapping = title.wrapping;
-
-        const padding = (title.spacing ?? 0) + spacing;
+        caption.truncate = title.truncate;
+        caption.maxWidth = title.maxWidth;
+        caption.maxHeight = title.maxHeight;
 
         const { range } = this;
         const midOffset = (range[0] + range[1]) / 2;
+        const padding = title.spacing + spacing;
+
         let x: number;
         let y: number;
         let rotation: number;
         let textBaseline: CanvasTextBaseline;
+
         switch (this.position) {
             case 'top':
                 x = midOffset;
@@ -619,13 +735,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             case 'left':
                 x = -padding;
                 y = midOffset;
-                rotation = -0.5 * Math.PI;
+                rotation = Math.PI / -2;
                 textBaseline = 'bottom';
                 break;
             case 'right':
                 x = padding;
                 y = midOffset;
-                rotation = 0.5 * Math.PI;
+                rotation = Math.PI / 2;
                 textBaseline = 'bottom';
                 break;
         }
@@ -648,7 +764,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private getTickLabelProps(
         datum: TickDatum,
-        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
+        tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline },
+        scrollbarThickness: number
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
@@ -658,7 +775,13 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { range } = scale;
         const sideFlag = this.label.getSideFlag();
         const borderOffset = expandLabelPadding(label)[this.position];
-        const labelOffset = sideFlag * (this.getTickSize(tick) + label.spacing + seriesAreaPadding) - borderOffset;
+        let labelOffset =
+            sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -
+            borderOffset;
+
+        if (scrollbarThickness) {
+            labelOffset += sideFlag * scrollbarThickness;
+        }
         const visible = text !== '';
 
         const x = horizontal ? translation : labelOffset;
@@ -726,6 +849,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         caption.node.text = titleProps.text;
         caption.node.textBaseline = titleProps.textBaseline;
         caption.node.datum = titleProps;
+
+        if (titleProps.visible) {
+            const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
+            caption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+        }
     }
 
     protected updateLabels() {

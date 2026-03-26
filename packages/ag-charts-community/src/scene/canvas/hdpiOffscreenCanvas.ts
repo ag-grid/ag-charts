@@ -1,3 +1,5 @@
+import { getOffscreenCanvas } from 'ag-charts-core';
+
 import { clearContext, debugContext } from './canvasUtil';
 
 interface CanvasOptions {
@@ -10,6 +12,13 @@ interface CanvasOptions {
 
 function canvasDimensions(width: number, height: number, pixelRatio: number) {
     return [Math.floor(width * pixelRatio), Math.floor(height * pixelRatio)] as const;
+}
+
+let fallbackCanvas: OffscreenCanvas | undefined;
+function getFallbackCanvas(): OffscreenCanvas {
+    const OffscreenCanvasCtor = getOffscreenCanvas();
+    fallbackCanvas ??= new OffscreenCanvasCtor(1, 1);
+    return fallbackCanvas;
 }
 
 /**
@@ -32,7 +41,8 @@ export class HdpiOffscreenCanvas {
         this.pixelRatio = pixelRatio;
 
         const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
-        this.canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
+        const OffscreenCanvasCtor = getOffscreenCanvas();
+        this.canvas = new OffscreenCanvasCtor(canvasWidth, canvasHeight);
 
         this.context = this.canvas.getContext('2d', { willReadFrequently })!;
         this.context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
@@ -45,6 +55,10 @@ export class HdpiOffscreenCanvas {
     }
 
     transferToImageBitmap(): ImageBitmap {
+        // Return fallback for invalid dimensions to prevent rendering errors
+        if (this.canvas.width < 1 || this.canvas.height < 1) {
+            return getFallbackCanvas().transferToImageBitmap();
+        }
         return this.canvas.transferToImageBitmap();
     }
 

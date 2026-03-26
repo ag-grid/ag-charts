@@ -1,4 +1,4 @@
-import { CleanupRegistry, attachListener, getWindow } from 'ag-charts-core';
+import { CleanupRegistry, attachListener } from 'ag-charts-core';
 
 const LONG_TAP_DURATION_MS = 500; /* milliseconds */
 const LONG_TAP_INTERRUPT_MIN_TOUCHMOVE_PXPX = 100; /* px²*/
@@ -52,7 +52,7 @@ export class TouchDragger {
     }
 
     private findInitialFinger(...touchLists: TouchList[]): Touch | undefined {
-        const touches: Touch[] = touchLists.map((touchList) => Array.from(touchList)).flat();
+        const touches: Touch[] = touchLists.flatMap((touchList) => Array.from(touchList));
         return Array.from(touches).find((v) => v.identifier === this.initialTouch.identifier);
     }
 
@@ -88,7 +88,7 @@ export class TouchDragger {
             const contextMenuEvent = new PointerEvent('contextmenu', {
                 bubbles: true,
                 cancelable: true,
-                view: getWindow(),
+                view: target.ownerDocument.defaultView,
                 clientX,
                 clientY,
                 pointerType: 'touch',

@@ -10,15 +10,76 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { BaseProperties, HierarchySeriesProperties, HighlightStyle, makeSeriesTooltip, Property, Label } =
-    _ModuleSupport;
-
+const { HierarchySeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {
     @Property
     spacing: number = 0;
+}
+
+class TreemapSeriesGroupHighlightStyle extends BaseProperties {
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
+
+    @Property
+    opacity?: number;
+}
+
+class TreemapSeriesGroupHighlight extends BaseProperties {
+    @Property
+    readonly highlightedItem = new TreemapSeriesGroupHighlightStyle();
+
+    @Property
+    readonly unhighlightedItem = new TreemapSeriesGroupHighlightStyle();
+}
+
+class TreemapSeriesTileHighlightStyle extends BaseProperties {
+    @Property
+    fill?: string;
+
+    @Property
+    fillOpacity?: number;
+
+    @Property
+    stroke?: string;
+
+    @Property
+    strokeWidth?: number;
+
+    @Property
+    strokeOpacity?: number;
+
+    @Property
+    opacity?: number;
+}
+
+class TreemapSeriesTileHighlight extends BaseProperties {
+    @Property
+    readonly highlightedBranch = new TreemapSeriesTileHighlightStyle();
+
+    @Property
+    readonly highlightedItem = new TreemapSeriesTileHighlightStyle();
+
+    @Property
+    readonly unhighlightedItem = new TreemapSeriesTileHighlightStyle();
+
+    @Property
+    readonly unhighlightedBranch = new TreemapSeriesTileHighlightStyle();
 }
 
 class TreemapSeriesGroup extends BaseProperties {
@@ -54,6 +115,9 @@ class TreemapSeriesGroup extends BaseProperties {
 
     @Property
     readonly label = new TreemapGroupLabel();
+
+    @Property
+    readonly highlight = new TreemapSeriesGroupHighlight();
 }
 
 class TreemapSeriesTile extends BaseProperties {
@@ -92,65 +156,9 @@ class TreemapSeriesTile extends BaseProperties {
 
     @Property
     readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
-}
-
-class TreemapSeriesGroupHighlightStyle extends BaseProperties {
-    @Property
-    fill?: string;
 
     @Property
-    fillOpacity?: number;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-
-    @Property
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
-}
-
-class TreemapSeriesTileHighlightStyle extends BaseProperties {
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-
-    @Property
-    readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
-
-    @Property
-    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
-}
-
-class TreemapSeriesHighlightStyle extends HighlightStyle {
-    constructor() {
-        super(false);
-    }
-
-    @Property
-    readonly group = new TreemapSeriesGroupHighlightStyle();
-
-    @Property
-    readonly tile = new TreemapSeriesTileHighlightStyle();
-
-    getStyle(isLeaf: boolean) {
-        return isLeaf ? this.tile : this.group;
-    }
+    readonly highlight = new TreemapSeriesTileHighlight();
 }
 
 export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemapSeriesOptions> {
@@ -165,9 +173,6 @@ export class TreemapSeriesProperties extends HierarchySeriesProperties<AgTreemap
 
     @Property
     itemStyler?: Styler<AgTreemapSeriesItemStylerParams<unknown>, AgTreemapSeriesStyle>;
-
-    @Property
-    override readonly highlightStyle = new TreemapSeriesHighlightStyle();
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgTreemapSeriesTooltipRendererParams<any>>();

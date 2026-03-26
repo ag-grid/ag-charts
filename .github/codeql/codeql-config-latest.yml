@@ -1,0 +1,30 @@
+paths:
+    - 'packages/ag-charts-community/src'
+    - 'packages/ag-charts-community/dist'
+    - 'packages/ag-charts-core/src'
+    - 'packages/ag-charts-core/dist'
+    - 'packages/ag-charts-enterprise/src'
+    - 'packages/ag-charts-enterprise/dist'
+    - 'packages/ag-charts-locale/src'
+    - 'packages/ag-charts-locale/dist'
+    - 'packages/ag-charts-angular/src'
+    - 'packages/ag-charts-angular/dist'
+    - 'packages/ag-charts-react/src'
+    - 'packages/ag-charts-react/dist'
+    - 'packages/ag-charts-vue3/src'
+    - 'packages/ag-charts-vue3/dist'
+    - 'packages/ag-charts-types/src'
+    - 'packages/ag-charts-types/dist'
+paths-ignore:
+    - '**/*.test.js'
+    - '**/*.test.ts'
+    - '**/*.test.tsx'
+    - '**/__tests__/**'
+    - '**/test/**'
+    - '**/test-harness/**'
+    - '**/node_modules/**'
+query-filters:
+    - exclude:
+          problem.severity:
+              - warning
+              - recommendation

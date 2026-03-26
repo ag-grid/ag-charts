@@ -7,10 +7,11 @@ import {
     arrayOfDefs,
     attachDescription,
     boolean,
-    callback,
+    borderOptionsDef,
     callbackDefs,
     callbackOf,
     color,
+    constant,
     date,
     defined,
     fillOptionsDef,
@@ -20,21 +21,27 @@ import {
     lessThan,
     lineDashOptionsDef,
     number,
+    numberFormatValidator,
     object,
     optionsDefs,
     or,
+    padding,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
     required,
     string,
     strokeOptionsDef,
+    textOrSegments,
     themeOperator,
+    timeInterval,
+    timeIntervalUnit,
     undocumented,
     union,
 } from 'ag-charts-core';
 import type {
     AgAxisBaseIntervalOptions,
+    AgAxisCaptionOptions,
     AgAxisDiscreteTimeIntervalOptions,
     AgAxisGridStyle,
     AgBandHighlightOptions,
@@ -48,37 +55,30 @@ import type {
     AgBaseCrosshairLabel,
     AgCartesianAxisLabelOptions,
     AgCartesianCrossLineOptions,
+    AgCategoryAxisOptions,
     AgContinuousAxisOptions,
     AgCrosshairLabel,
     AgCrosshairLabelRendererResult,
     AgCrosshairOptions,
+    AgGroupedCategoryAxisOptions,
+    AgGroupedCategoryDepthOptions,
+    AgLogAxisOptions,
+    AgNumberAxisOptions,
     AgTimeAxisFormattableLabelFormat,
     AgTimeAxisFormattableLabelUnitFormat,
+    AgTimeAxisOptions,
     AgTimeAxisParentLevel,
-    AgTimeInterval,
+    AgUnitTimeAxisOptions,
 } from 'ag-charts-types';
-
-import { numberFormatValidator, textOrSegments } from './commonOptionsDefs';
-
-export const timeIntervalUnit = union('millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year');
-
-const timeIntervalDefs: OptionsDefs<AgTimeInterval> = {
-    unit: required(timeIntervalUnit),
-    step: positiveNumberNonZero,
-    epoch: date,
-    utc: boolean,
-};
-
-// @ts-expect-error undocumented option - required for interop
-timeIntervalDefs.every = callback;
-
-export const timeInterval = optionsDefs<AgTimeInterval>(timeIntervalDefs, 'a time interval object');
 
 export const commonCrossLineLabelOptionsDefs: OptionsDefs<AgBaseCrossLineLabelOptions> = {
     enabled: boolean,
     text: string,
-    padding: number,
+    padding: padding,
+    border: borderOptionsDef,
+    cornerRadius: number,
     ...fontOptionsDef,
+    ...fillOptionsDef,
 };
 
 export const commonCrossLineOptionsDefs = attachDescription<AgBaseCrossLineOptions>(
@@ -136,7 +136,7 @@ export const commonAxisLabelOptionsDefs: OptionsDefs<AgBaseAxisLabelOptions> = {
     avoidCollisions: boolean,
     minSpacing: positiveNumber,
     spacing: positiveNumber,
-    formatter: callback,
+    formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgBaseAxisLabelStyleOptions>({
         ...fontOptionsDef,
         ...labelBoxOptionsDef,
@@ -217,22 +217,31 @@ commonAxisOptionsDefs.layoutConstraints = undocumented({
     width: required(positiveNumber),
 });
 
+export const commonAxisCaptionOptionsDefs: OptionsDefs<AgAxisCaptionOptions> = {
+    enabled: boolean,
+    text: textOrSegments,
+    spacing: positiveNumber,
+    maxWidth: positiveNumber,
+    maxHeight: positiveNumber,
+    wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+    truncate: boolean,
+    formatter: callbackOf(textOrSegments),
+    ...fontOptionsDef,
+};
+
 export const cartesianAxisOptionsDefs: OptionsDefs<
     Omit<AgBaseCartesianAxisOptions<any>, 'type' | 'label' | 'primaryLabel' | 'crosshair'>
 > = {
     ...commonAxisOptionsDefs,
-    keys: arrayOf(string),
+    title: commonAxisCaptionOptionsDefs,
+    crossAt: {
+        value: required(or(number, date, string, arrayOf(string))),
+        sticky: boolean,
+    },
     crossLines: arrayOfDefs(cartesianCrossLineOptionsDefs, 'a cross-line options array'),
     position: union('top', 'right', 'bottom', 'left'),
     thickness: positiveNumber,
     maxThicknessRatio: ratio,
-    title: {
-        enabled: boolean,
-        text: textOrSegments,
-        spacing: positiveNumber,
-        formatter: callback,
-        ...fontOptionsDef,
-    },
 };
 
 // @ts-expect-error undocumented option
@@ -312,6 +321,8 @@ export function continuousAxisOptions(
     return {
         min: and(validDatum, lessThan('max')),
         max: and(validDatum, greaterThan('min')),
+        preferredMin: and(validDatum, lessThan('preferredMax'), lessThan('max')),
+        preferredMax: and(validDatum, greaterThan('preferredMin'), greaterThan('min')),
         nice: boolean,
         interval: {
             step: supportTimeInterval
@@ -330,4 +341,100 @@ export const discreteTimeAxisIntervalOptionsDefs: OptionsDefs<AgAxisDiscreteTime
     minSpacing: and(positiveNumber, lessThan('maxSpacing')),
     maxSpacing: and(positiveNumber, greaterThan('minSpacing')),
     placement: union('on', 'between'),
+};
+
+export const categoryAxisOptionsDefs: OptionsDefs<AgCategoryAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    type: constant('category'),
+    label: cartesianAxisLabelOptionsDefs,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
+    crosshair: cartesianAxisCrosshairOptions(),
+    bandAlignment: union('justify', 'start', 'center', 'end'),
+    bandHighlight: cartesianAxisBandHighlightOptions,
+    interval: {
+        ...commonAxisIntervalOptionsDefs,
+        placement: union('on', 'between'),
+    },
+    skipNullBars: boolean,
+};
+
+export const groupedCategoryAxisOptionsDefs: OptionsDefs<AgGroupedCategoryAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    type: constant('grouped-category'),
+    label: cartesianAxisLabelOptionsDefs,
+    crosshair: cartesianAxisCrosshairOptions(),
+    bandHighlight: cartesianAxisBandHighlightOptions,
+    paddingInner: ratio,
+    groupPaddingInner: ratio,
+    depthOptions: arrayOfDefs<AgGroupedCategoryDepthOptions>(
+        {
+            label: {
+                enabled: boolean,
+                avoidCollisions: boolean,
+                wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+                truncate: boolean,
+                rotation: number,
+                spacing: number,
+                ...fontOptionsDef,
+                ...labelBoxOptionsDef,
+            },
+            tick: {
+                enabled: boolean,
+                stroke: color,
+                width: positiveNumber,
+            },
+        },
+        'depth options objects array'
+    ),
+};
+
+export const numberAxisOptionsDefs: OptionsDefs<AgNumberAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    ...continuousAxisOptions(number),
+    type: constant('number'),
+    label: cartesianNumericAxisLabel,
+    crosshair: cartesianAxisCrosshairOptions(true),
+};
+
+export const logAxisOptionsDefs: OptionsDefs<AgLogAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    ...continuousAxisOptions(number),
+    type: constant('log'),
+    base: and(
+        positiveNumberNonZero,
+        attachDescription((value) => value !== 1, 'not equal to 1')
+    ),
+    label: cartesianNumericAxisLabel,
+    crosshair: cartesianAxisCrosshairOptions(true),
+};
+
+export const timeAxisOptionsDefs: OptionsDefs<AgTimeAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    ...continuousAxisOptions(or(number, date), true),
+    type: constant('time'),
+    label: cartesianTimeAxisLabel,
+    parentLevel: cartesianTimeAxisParentLevel,
+    crosshair: cartesianAxisCrosshairOptions(true, true),
+};
+
+export const unitTimeAxisOptionsDefs: OptionsDefs<AgUnitTimeAxisOptions> = {
+    ...cartesianAxisOptionsDefs,
+    type: constant('unit-time'),
+    unit: or(timeInterval, timeIntervalUnit),
+    label: cartesianTimeAxisLabel,
+    parentLevel: cartesianTimeAxisParentLevel,
+    paddingInner: ratio,
+    paddingOuter: ratio,
+    groupPaddingInner: ratio,
+    crosshair: cartesianAxisCrosshairOptions(true, true),
+    bandAlignment: union('justify', 'start', 'center', 'end'),
+    bandHighlight: cartesianAxisBandHighlightOptions,
+    skipNullBars: boolean,
+    min: and(or(number, date), lessThan('max')),
+    max: and(or(number, date), greaterThan('min')),
+    preferredMin: and(or(number, date), lessThan('preferredMax'), lessThan('max')),
+    preferredMax: and(or(number, date), greaterThan('preferredMin'), greaterThan('min')),
+    interval: discreteTimeAxisIntervalOptionsDefs,
 };

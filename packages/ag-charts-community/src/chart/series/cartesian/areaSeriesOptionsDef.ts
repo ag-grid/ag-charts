@@ -2,29 +2,27 @@ import {
     type OptionsDefs,
     boolean,
     callbackDefs,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
+    interpolationOptionsDefs,
     lineDashOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
     required,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefsWithArea,
+    undocumented,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, AgAreaSeriesStylerResult, AgAreaSeriesThemeableOptions } from 'ag-charts-types';
-
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    interpolationOptionsDefs,
-    markerOptionsDefs,
-    markerStyleOptionsDefs,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 
@@ -42,7 +40,7 @@ export const areaSeriesThemeableOptionsDef: OptionsDefs<AgAreaSeriesThemeableOpt
     label: seriesLabelOptionsDefs,
     styler: areaStyler,
     marker: markerOptionsDefs,
-    tooltip: tooltipOptionsDefs,
+    tooltip: tooltipOptionsDefsWithArea,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
@@ -59,9 +57,15 @@ export const areaSeriesOptionsDef: OptionsDefs<AgAreaSeriesOptions> = {
     type: required(constant('area')),
     xKey: required(string),
     yKey: required(string),
+    xKeyAxis: string,
+    yKeyAxis: string,
     xName: string,
     yName: string,
+    legendItemName: string,
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
 };
+
+// @ts-expect-error undocumented option
+areaSeriesOptionsDef.selectedKey = undocumented(string);

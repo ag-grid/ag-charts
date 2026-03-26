@@ -1,6 +1,7 @@
 .ag-charts-color-picker {
     width: 190px;
     padding: 8px;
+    direction: ltr;
     cursor: default;
 
     --h: 0;
@@ -274,7 +275,8 @@
 .ag-charts-color-picker__color-label {
     width: 16px;
     height: 16px;
-    margin: 7px 0px 7px 7px;
+    margin: 7px 0;
+    margin-inline-start: 7px;
     color: transparent;
     /* Linear gradient required to overlay colour over image */
     background:

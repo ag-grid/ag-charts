@@ -1,7 +1,7 @@
 import type { Point } from 'ag-charts-core';
+import { SceneChangeDetection, SceneObjectChangeDetection } from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
-import { SceneChangeDetection, SceneObjectChangeDetection } from '../changeDetectable';
 import { SectorBox } from '../sectorBox';
 import {
     arcCircleIntersectionAngle,
@@ -23,8 +23,8 @@ class Arc {
         public a1: number
     ) {
         if (this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 
@@ -43,8 +43,8 @@ class Arc {
         if (a == null || !this.isValid() || a < this.a0) return;
         this.a0 = a;
         if (Number.isNaN(a) || this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 
@@ -52,8 +52,8 @@ class Arc {
         if (a == null || !this.isValid() || a > this.a1) return;
         this.a1 = a;
         if (Number.isNaN(a) || this.a0 >= this.a1) {
-            this.a0 = NaN;
-            this.a1 = NaN;
+            this.a0 = Number.NaN;
+            this.a1 = Number.NaN;
         }
     }
 }
@@ -264,7 +264,34 @@ export class Sector<D = any> extends Path<D> {
 
         path.clear();
 
-        if ((innerRadius === 0 && outerRadius === 0) || innerRadius > outerRadius) {
+        const innerAngleOffset = this.getAngleOffset(innerRadius);
+        const adjustedSweep = sweepAngle - 2 * innerAngleOffset;
+        const radialLength = outerRadius - innerRadius;
+        const innerCornerDistance =
+            innerRadius > 0 && adjustedSweep > 0 ? 2 * innerRadius * Math.sin(adjustedSweep / 2) : 0;
+        const outerCornerDistance =
+            outerRadius > 0 && adjustedSweep > 0 ? 2 * outerRadius * Math.sin(adjustedSweep / 2) : 0;
+
+        // Ensure the corner radii don't exceed the radial length or inner/outer edge distance.
+        startOuterCornerRadius = Math.floor(
+            Math.max(0, Math.min(startOuterCornerRadius, outerCornerDistance / 2, radialLength / 2))
+        );
+        endOuterCornerRadius = Math.floor(
+            Math.max(0, Math.min(endOuterCornerRadius, outerCornerDistance / 2, radialLength / 2))
+        );
+        startInnerCornerRadius = Math.floor(
+            Math.max(0, Math.min(startInnerCornerRadius, innerCornerDistance / 2, radialLength / 2))
+        );
+        endInnerCornerRadius = Math.floor(
+            Math.max(0, Math.min(endInnerCornerRadius, innerCornerDistance / 2, radialLength / 2))
+        );
+
+        const isInvalid =
+            (innerRadius === 0 && outerRadius === 0) ||
+            innerRadius > outerRadius ||
+            innerCornerDistance < 0 ||
+            outerCornerDistance <= 0;
+        if (isInvalid) {
             return;
         } else if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
             return;
@@ -291,7 +318,6 @@ export class Sector<D = any> extends Path<D> {
             return;
         }
 
-        const innerAngleOffset = this.getAngleOffset(innerRadius);
         const outerAngleOffset = this.getAngleOffset(outerRadius);
 
         const outerAngleExceeded = sweepAngle < 2 * outerAngleOffset;
@@ -302,7 +328,6 @@ export class Sector<D = any> extends Path<D> {
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
-        const radialLength = outerRadius - innerRadius;
         const maxRadialLength = Math.max(
             startOuterCornerRadius,
             startInnerCornerRadius,
@@ -440,8 +465,12 @@ export class Sector<D = any> extends Path<D> {
             true
         );
 
-        if (innerAngleExceeded) {
-            // Draw a wedge on a cartesian co-ordinate with radius `sweep`
+        if (innerAngleExceeded && hasInnerSweep) {
+            // For donuts with small angles, don't set an explicit start point.
+            // The first outer arc will implicitly set the start, and closePath() will
+            // draw a minimal line on the outer edge instead of a spike to the inner radius.
+        } else if (innerAngleExceeded) {
+            // Draw a wedge for pie charts (no inner radius) on a cartesian co-ordinate with radius `sweep`
             // Inset from bottom - i.e. y = innerRadius
             // Inset the top - i.e. y = (x - x0) * tan(sweep)
             // Form a right angle from the wedge with hypotenuse x0 and an opposite side of innerRadius
@@ -452,7 +481,7 @@ export class Sector<D = any> extends Path<D> {
             const x =
                 sweepAngle < Math.PI * 0.5
                     ? (radialEdgeInset * (1 + Math.cos(sweepAngle))) / Math.sin(sweepAngle)
-                    : NaN;
+                    : Number.NaN;
             // r = sqrt(x**2 + y**2)
             let r: number;
             if (x > 0 && x < outerRadius) {

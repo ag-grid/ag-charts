@@ -178,6 +178,10 @@ Load the AG Charts library and create a blank container div:
 </html>
 ```
 
+{% note %}
+If you're using TypeScript you need to import and register the modules you want to use. See the [NPM Installation](./installation/#npm-installation) docs for more information.
+{% /note %}
+
 ### Instantiate the JavaScript Chart
 
 Create the Chart inside of your container div using `create`.
@@ -191,6 +195,8 @@ const chart = agCharts.AgCharts.create(options);
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `container`, `data` and `series` properties:
 
 ```js
 // Chart Options
@@ -213,6 +219,27 @@ const options = {
 
 {% /if %}
 
+<!-- Module Install (All frameworks, excluding JS) -->
+
+{% if isNotJavascriptFramework() %}
+
+### Module Install
+
+Register the `AllCommunityModule` to access all Community features:
+
+```js
+import { AllCommunityModule, ModuleRegistry } from 'ag-charts-community';
+
+// Enable all Community features
+ModuleRegistry.registerModules([AllCommunityModule]);
+```
+
+{% note %}
+To minimize bundle size, only register the modules you want to use. See the [Modules](./module-registry/) page for more information.
+{% /note %}
+
+{% /if %}
+
 <!-- REACT Create -->
 
 {% if isFramework("react") %}
@@ -226,7 +253,9 @@ import { AgCharts } from 'ag-charts-react';
 
 ### Define Chart Data and Series
 
-```js
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
+
+```tsx format="reactHooks"
 const ChartExample = () => {
     // Chart Options: Control & configure the chart
     const [chartOptions, setChartOptions] = useState({
@@ -251,10 +280,10 @@ const ChartExample = () => {
 
 Return the `AgCharts` component with the `chartOptions` as a prop:
 
-```jsx
+```jsx format="reactHooks"
 return (
-  // AgCharts component with options passed as prop
-  <AgCharts options={chartOptions} />
+    // AgCharts component with options passed as prop
+    <AgCharts options={chartOptions} />
 );
 ```
 
@@ -266,7 +295,7 @@ return (
 
 ### Import the Angular Chart
 
-```js
+```ts format="snippet"
 // Angular Chart Component
 import { AgCharts } from 'ag-charts-angular';
 // Chart Options Type Interface
@@ -275,32 +304,34 @@ import { AgChartOptions } from 'ag-charts-community';
 
 ### Define Chart Data and Series
 
-```jsx
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
+
+```ts format="snippet"
 // Angular Chart Component
 @Component({
-  selector: 'app-root',
-  standalone: true,
-  imports: [AgCharts],
-  template:``,
+    selector: 'app-root',
+    standalone: true,
+    imports: [AgCharts],
+    template: ``,
 })
 export class AppComponent {
-  // Chart Options
-  public chartOptions: AgChartOptions;
-  constructor() {
-    this.chartOptions = {
-      // Data: Data to be displayed in the chart
-      data: [
-        { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
-        { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
-        { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
-        { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
-        { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
-        { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
-      ],
-      // Series: Defines which chart type and data to use
-      series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }]
-    };
-  }
+    // Chart Options
+    public chartOptions: AgChartOptions;
+    constructor() {
+        this.chartOptions = {
+            // Data: Data to be displayed in the chart
+            data: [
+                { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },
+                { month: 'Mar', avgTemp: 6.3, iceCreamSales: 302000 },
+                { month: 'May', avgTemp: 16.2, iceCreamSales: 800000 },
+                { month: 'Jul', avgTemp: 22.8, iceCreamSales: 1254000 },
+                { month: 'Sep', avgTemp: 14.5, iceCreamSales: 950000 },
+                { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
+            ],
+            // Series: Defines which chart type and data to use
+            series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+        };
+    }
 }
 ```
 
@@ -308,13 +339,11 @@ export class AppComponent {
 
 Chart options are set as an `ag-charts` component attribute.
 
-```js
-template:
-  `<ag-charts
-    style="height: 100%"
-    [options]="chartOptions">
-   </ag-charts>`,
+```tsx
+@Component({
+    template: ` <ag-charts style="height: 100%" [options]="chartOptions"></ag-charts> `,
 })
+class AppComponent {}
 ```
 
 {% /if %}
@@ -341,6 +370,8 @@ template:
 ```
 
 ### Define Chart Data and Series
+
+All configuration is done via the [`options`](/options/) object. At a minimum, you need to provide the `data` and `series` properties:
 
 ```html
 <script>

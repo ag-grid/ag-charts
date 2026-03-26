@@ -1,8 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { entries, getWindow } from 'ag-charts-core';
+import { type BoxBounds, ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries } from 'ag-charts-core';
 
-import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
-import { UNIT_MAX, UNIT_MIN, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+import type { ZoomCoords } from './zoomTypes';
+import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+
+type State = _ModuleSupport.CoreZoomState;
+type StateRetrieval = _ModuleSupport.CoreZoomStateSafeRetrieval;
 
 export interface ZoomPanUpdate {
     type: 'update';
@@ -25,6 +28,8 @@ const decelerationValues = {
 };
 
 export class ZoomPanner {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {
         const { deceleration } = this;
@@ -37,7 +42,7 @@ export class ZoomPanner {
     private onUpdate: ((e: ZoomPanUpdate) => void) | undefined;
 
     private coords?: ZoomCoords;
-    private direction?: _ModuleSupport.ChartAxisDirection;
+    private direction?: ChartAxisDirection;
 
     private coordsMonitorTimeout: NodeJS.Timeout | undefined;
     private zoomCoordsHistoryIndex = 0;
@@ -54,7 +59,7 @@ export class ZoomPanner {
 
     stopInteractions() {
         if (this.inertiaHandle != null) {
-            cancelAnimationFrame(this.inertiaHandle);
+            this.ctx.agDocument.cancelAnimationFrame(this.inertiaHandle);
             this.inertiaHandle = undefined;
         }
     }
@@ -69,7 +74,7 @@ export class ZoomPanner {
         });
     }
 
-    start(direction?: _ModuleSupport.ChartAxisDirection) {
+    start(direction?: ChartAxisDirection) {
         this.direction = direction;
         this.coordsMonitorTimeout = setInterval(this.recordCurrentZoomCoords.bind(this), 16);
     }
@@ -108,7 +113,7 @@ export class ZoomPanner {
             const velocity = Math.hypot(xVelocity, yVelocity);
             const angle = Math.atan2(yVelocity, xVelocity);
             const t0 = performance.now();
-            this.inertiaHandle = getWindow().requestAnimationFrame((t) => {
+            this.inertiaHandle = this.ctx.agDocument.requestAnimationFrame((t) => {
                 this.animateInertia(t, t, t0, velocity, angle);
             });
         }
@@ -142,7 +147,7 @@ export class ZoomPanner {
         // If we won't advance more than one pixel, stop inertial panning
         if (s1 >= maxS - 1) return;
 
-        this.inertiaHandle = requestAnimationFrame((nextT) => {
+        this.inertiaHandle = this.ctx.agDocument.requestAnimationFrame((nextT) => {
             this.animateInertia(nextT, t, t0, velocity, angle);
         });
     }
@@ -156,31 +161,34 @@ export class ZoomPanner {
     }
 
     private isPanningX() {
-        return this.direction == null || this.direction === _ModuleSupport.ChartAxisDirection.X;
+        return this.direction == null || this.direction === ChartAxisDirection.X;
     }
 
     private isPanningY() {
-        return this.direction == null || this.direction === _ModuleSupport.ChartAxisDirection.Y;
+        return this.direction == null || this.direction === ChartAxisDirection.Y;
     }
 
-    translateZooms(bbox: _ModuleSupport.BBox, currentZooms: AxisZoomStates, deltaX: number, deltaY: number) {
+    translateZooms(bbox: BoxBounds, currentZooms: StateRetrieval, deltaX: number, deltaY: number) {
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), bbox.y + bbox.height - Math.abs(deltaY));
 
         const offsetX = Math.sign(deltaX) * offset.x;
         const offsetY = -Math.sign(deltaY) * offset.y;
 
-        const newZooms: AxisZoomStates = {};
+        const newZooms: State = {};
 
-        for (const [axisId, { direction, zoom: currentZoom }] of entries(currentZooms)) {
+        for (const [axisId, currentZoom] of entries(currentZooms)) {
+            if (currentZoom == null) continue;
             // Skip panning axes that are fully zoomed out to prevent floating point issues
-            if (currentZoom && currentZoom.min === UNIT_MIN && currentZoom.max === UNIT_MAX) {
+            if (currentZoom.min === UNIT_MIN && currentZoom.max === UNIT_MAX) {
                 continue;
             }
+            const { direction } = currentZoom;
 
             let zoom = definedZoomState({ [direction]: currentZoom });
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), offsetY * dy(zoom)));
 
-            newZooms[axisId] = { direction, zoom: zoom[direction as _ModuleSupport.CartesianAxisDirection] };
+            const { min, max } = zoom[direction];
+            newZooms[axisId] = { direction, min, max };
         }
 
         return newZooms;

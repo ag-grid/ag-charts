@@ -1,6 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    ContextMenuModule,
+]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),

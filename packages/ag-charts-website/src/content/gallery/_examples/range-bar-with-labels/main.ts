@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BandHighlightModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+]);
 const data = getData();
 
 // Calculate statistics for reference lines
@@ -87,16 +104,15 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             paddingInner: 0.4,
             bandHighlight: {
                 enabled: true,
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             gridLine: {
@@ -130,7 +146,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             ],
         },
-    ],
+    },
     seriesArea: {
         padding: {
             right: 25,

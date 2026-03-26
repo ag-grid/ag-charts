@@ -1,25 +1,29 @@
-import { type AgSeriesMarkerStyle, _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import {
+    type AgRangeAreaSeriesItemType,
+    type AgSeriesMarkerStyle,
+    type TextOrSegments,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import { type Point, areScalingEqual, isScaleValid } from 'ag-charts-core';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
 const {
     CollapseMode,
-    isScaleValid,
     pairUpSpans,
     prepareAreaFillAnimationFns,
     plotInterpolatedLinePathStroke,
     prepareLinePathPropertyAnimation,
-    areScalingEqual,
 } = _ModuleSupport;
 
 export interface RangeAreaLabelDatum extends Readonly<Point> {
     datumIndex: number;
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId?: string;
+    readonly itemId?: never;
+    readonly itemType: AgRangeAreaSeriesItemType;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     style?: AgSeriesMarkerStyle;
 }
@@ -27,20 +31,27 @@ export interface RangeAreaLabelDatum extends Readonly<Point> {
 interface RangeAreaFillPathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
     readonly phantomSpans: _ModuleSupport.LinePathSpan[];
-    readonly itemId: string;
+    readonly itemType: AgRangeAreaSeriesItemType;
 }
 
 interface RangeAreaStrokePathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
-    readonly itemId: string;
+    readonly itemType: AgRangeAreaSeriesItemType;
 }
+
+export type RangeAreaItemId = `${string}-${string}`;
 
 export interface RangeAreaContext
     extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
+    readonly itemId: RangeAreaItemId;
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
     lowStrokeData: RangeAreaStrokePathDatum;
-    styles: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    styles: {
+        low: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+        high: _ModuleSupport.SeriesNodeStyleContext<AgSeriesMarkerStyle>;
+    };
+    intersectionSegments?: _ModuleSupport.Segment[];
 }
 
 function prepareRangeAreaPathStrokeAnimationFns(

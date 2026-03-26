@@ -1,0 +1,60 @@
+{
+    "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+    "version": "0.2",
+    "language": "en-GB",
+    "import": ["@cspell/dict-en-gb/cspell-ext.json"],
+    "ignorePaths": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/.nx/**",
+        "**/coverage/**",
+        "**/__snapshots__/**",
+        "**/__image_snapshots__/**",
+        "**/package-lock.json",
+        "**/yarn.lock",
+        "**/*.min.js",
+        "**/*.map",
+        "**/_examples/**",
+        "**/generated-example-contents.json",
+        "**/docs/*-test/**"
+    ],
+    "useGitignore": true,
+    "ignoreRegExpList": ["/id=\"[A-Za-z0-9_-]{11}\"/g"],
+    "dictionaryDefinitions": [
+        {
+            "name": "ag-charts-terms",
+            "path": "./packages/ag-charts-website/dictionaries/ag-charts-terms.txt",
+            "addWords": true
+        }
+    ],
+    "dictionaries": ["ag-charts-terms"],
+    "overrides": [
+        {
+            "filename": "**/*.mdoc",
+            "languageId": "markdown"
+        },
+        {
+            "filename": "**/*.astro",
+            "languageId": "html"
+        },
+        {
+            "filename": "**/packages/ag-charts-website/**/*.{mdoc,md,astro,json}",
+            "language": "en-GB",
+            "dictionaries": ["en-gb", "ag-charts-terms"]
+        },
+        {
+            "filename": "**/landing-pages/*.json",
+            "words": ["whats"]
+        }
+    ],
+    "languageSettings": [
+        {
+            "languageId": "markdown",
+            "locale": "en-GB"
+        },
+        {
+            "languageId": "typescript,javascript",
+            "dictionaries": ["typescript", "node", "ag-charts-terms"]
+        }
+    ]
+}

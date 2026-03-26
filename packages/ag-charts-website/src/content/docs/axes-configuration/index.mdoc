@@ -1,0 +1,75 @@
+---
+title: 'Axis Configuration'
+description: 'Learn how to configure and customise axes in $framework charts, including automatic axis selection, axis customisation, and binding axes to series.'
+---
+
+This page provides an overview of axis configuration in AG Charts, including automatic axis selection, customisation basics, and how to bind axes to series.
+
+## Automatic Axis Selection
+
+In most cases, AG Charts will automatically select an appropriate axis type based on the data and series type used in the chart.
+
+This automatic selection removes the need for explicit axis configuration in many scenarios.
+
+## Customising Axes
+
+Axes are referenced using a dictionary of axis definitions, where each axis is identified by a key.
+The default keys are `x` and `y` for cartesian axes, or `radius` and `angle` for polar axes.
+
+Only the configured chart axes and options must be provided. It is recommended to provide the `type` to allow type-checking and improved options validation.
+When using [Secondary Axes](./axes-secondary), it is recommended to specify `position` to prevent ambiguity.
+
+{% chartExampleRunner title="Customising Axes" name="axis-configuration" type="generated" /%}
+
+```js format="snippet"
+{
+    axes: {
+        x: {
+            type: 'category',
+            label: { fontSize: 15 },
+        },
+        y: {
+            type: 'number',
+            title: { text: 'Sales (USD)' },
+        },
+    },
+}
+```
+
+In this example:
+
+-   The axes are using the default `x` and `y` keys, and are automatically linked to the series.
+-   The `x` axis is customised with a larger font size, and the `y` axis is customised with a title.
+-   All other axis options use the defaults.
+
+## Secondary and Named Axes
+
+While `x` and `y` are the default axis keys for cartesian charts, you can define axes with custom keys.
+This allows for creating secondary axes or using more descriptive names for readability.
+
+{% chartExampleRunner title="Secondary Axes" name="multiple-axes" type="generated" /%}
+
+For detailed information on creating and configuring secondary axes, see the [Secondary Axes](./axes-secondary/) page.
+
+## Polar Axes
+
+For radial and polar charts, the angle and radius axes replace the traditional x and y axes. These use the `angle` and `radius` keys by default.
+
+```js format="snippet"
+{
+    axes: {
+        angle: {
+            type: 'angle-category',
+        },
+        radius: {
+            type: 'radius-number',
+        },
+    },
+}
+```
+
+Refer to the individual series documentation such as [Radar Area](./radar-area-series/) or [Radial Bar](./radial-bar-series/), for specific axis configuration details.
+
+## Customisation
+
+For a comprehensive list of all axis configuration options, see the [Axis Types API Reference](./axes-types/#api-reference).

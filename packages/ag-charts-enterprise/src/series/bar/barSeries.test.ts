@@ -1,13 +1,20 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgCartesianChartOptions, AgChartInstance, AgCharts } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('BarSeries', () => {
     setupMockConsole();
-    setupMockCanvas();
+    const ctx = setupMockCanvas();
 
     let chart: AgChartInstance;
 
@@ -16,7 +23,15 @@ describe('BarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
+        jest.restoreAllMocks();
     });
+
+    const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
+        await waitForChartStability(chart);
+
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot(defaults);
+    };
 
     describe('with data-per-series', () => {
         const options: AgCartesianChartOptions = {
@@ -53,6 +68,209 @@ describe('BarSeries', () => {
 
             const remainingAnimationTime = animationManager.getRemainingTime('initial');
             expect(remainingAnimationTime).toBeGreaterThan(6000);
+        });
+    });
+
+    describe('fixed widths', () => {
+        const data = [
+            { quarter: "Q1'18", iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: "Q2'18", iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: "Q3'18", iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: "Q4'18", iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
+        const timeData = [
+            { quarter: new Date(2018, 0), iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: new Date(2018, 3), iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: new Date(2018, 6), iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: new Date(2018, 9), iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
+
+        const zeroPadding = {
+            paddingInner: 0,
+            paddingOuter: 0,
+            groupPaddingInner: 0,
+        };
+
+        describe('scrollbar', () => {
+            const cases: [string, any, any][] = [
+                [
+                    'grouped series',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100 },
+                    ],
+                    zeroPadding,
+                ],
+                [
+                    'grouped series with default padding',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100 },
+                    ],
+                    {},
+                ],
+                [
+                    'grouped series with unfixed widths',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100 },
+                    ],
+                    zeroPadding,
+                ],
+                [
+                    'stacked series',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200, stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100, stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50, stackGroup: 'two' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100, stackGroup: 'two' },
+                    ],
+                    zeroPadding,
+                ],
+                [
+                    'stacked series with default padding',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200, stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100, stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50, stackGroup: 'two' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100, stackGroup: 'two' },
+                    ],
+                    {},
+                ],
+                [
+                    'stacked series with unfixed widths',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 100, stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'one' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'two' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100, stackGroup: 'two' },
+                    ],
+                    zeroPadding,
+                ],
+                [
+                    'horizontal',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 200, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 100, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 50, direction: 'horizontal' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 100, direction: 'horizontal' },
+                    ],
+                    {},
+                ],
+            ];
+
+            it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+                const options: AgCartesianChartOptions = {
+                    data,
+                    series: seriesOptions,
+                    axes: {
+                        x: axisOptions,
+                    },
+                    scrollbar: { enabled: true },
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+
+        describe('time axes', () => {
+            const cases: [string, any, any][] = [
+                [
+                    'unit-time',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                    ],
+                    { type: 'unit-time', bandAlignment: 'start' },
+                ],
+                [
+                    'ordinal-time',
+                    [
+                        { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 20 },
+                        { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                    ],
+                    { type: 'ordinal-time', bandAlignment: 'start' },
+                ],
+            ];
+
+            it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+                const options: AgCartesianChartOptions = {
+                    data: timeData,
+                    series: seriesOptions,
+                    axes: {
+                        x: axisOptions,
+                    },
+                    scrollbar: { enabled: true },
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+    });
+
+    describe('skip null bars', () => {
+        const cases = ['unit-time', 'ordinal-time'] as const;
+
+        it.each(cases)('%s', async (axisType) => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    {
+                        quarter: new Date(2024, 0, 1),
+                        software: 5100,
+                        hardware: 3400,
+                        services: 3500,
+                        investments: undefined,
+                    },
+                    {
+                        quarter: new Date(2024, 3, 1),
+                        software: 5400,
+                        hardware: null,
+                        services: 3200,
+                        investments: 3100,
+                    },
+                    {
+                        quarter: new Date(2024, 6, 1),
+                        software: null,
+                        hardware: 3800,
+                        services: undefined,
+                        investments: 2500,
+                    },
+                    {
+                        quarter: new Date(2024, 9, 1),
+                        software: 5700,
+                        hardware: null,
+                        services: undefined,
+                        investments: null,
+                    },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'hardware' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'investments' },
+                ],
+                axes: {
+                    x: {
+                        type: axisType,
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
         });
     });
 });

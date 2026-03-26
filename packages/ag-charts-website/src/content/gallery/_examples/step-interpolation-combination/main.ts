@@ -1,7 +1,17 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    GroupedCategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([GroupedCategoryAxisModule, LineSeriesModule, NumberAxisModule, RangeAreaSeriesModule]);
 const data = getData();
 
 const options: AgCartesianChartOptions = {
@@ -65,10 +75,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'grouped-category',
-            position: 'bottom',
             depthOptions: [
                 { label: { enabled: false } },
                 {
@@ -78,14 +87,13 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             interval: {
                 values: [0, 150, 300],
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

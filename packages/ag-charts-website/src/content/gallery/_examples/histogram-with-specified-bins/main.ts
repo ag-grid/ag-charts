@@ -1,7 +1,18 @@
-import { AgCartesianChartOptions, AgCharts, AgHistogramSeriesOptions } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgHistogramSeriesOptions,
+    ContextMenuModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([CrosshairModule, HistogramSeriesModule, LegendModule, NumberAxisModule]);
 type GradeBoundaries = {
     U: [number, number];
     E: [number, number];
@@ -63,9 +74,8 @@ const options: AgCartesianChartOptions<DataType> = {
                 fill: index % 3 === 1 ? { type: 'pattern' } : undefined,
             }) satisfies AgHistogramSeriesOptions<DataType>
     ),
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'number',
             nice: false,
             title: {
@@ -91,8 +101,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 },
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Frequency Density',
@@ -109,7 +118,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 ],
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 240,
         maxWidth: 280,

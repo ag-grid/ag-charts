@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgChartTheme, AgChartThemeName } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-import { ExampleSubstitutions } from 'ag-charts-generate-example-files';
+import { jsonWalk } from 'ag-charts-core';
+import type { ExampleSubstitutions } from 'ag-charts-generate-example-files';
 
 export function patchOptions(
     options: AgChartOptions,
@@ -51,11 +51,12 @@ export function patchOptions(
         },
     } as AgChartTheme;
 
-    (options as any as AgCartesianChartOptions).axes?.forEach((axis) => {
+    for (const id of Object.keys((options as any as AgCartesianChartOptions).axes ?? {})) {
+        const axis = (options as any as AgCartesianChartOptions).axes[id];
         if (typeof axis.title !== 'undefined') {
             axis.title = { enabled: false };
         }
-    });
+    }
 
     if (api === 'createGauge') {
         delete options.title;
@@ -91,19 +92,29 @@ const DEFAULT_SUBSTITUTIONS: ExampleSubstitutions = {
     '${baseWWWUrl}': `${process.cwd()}/packages/ag-charts-website/public`,
 };
 
+function safeSet(obj, key, value) {
+    const desc = Object.getOwnPropertyDescriptor(obj, key);
+
+    if (!desc || desc.writable || desc.set) {
+        obj[key] = value;
+    } else {
+        console.warn(`Skipped read-only property: ${key}`);
+    }
+}
+
 const maybeApplySubstitutions = (node: unknown) => {
     if (typeof node === 'object') {
-        _ModuleSupport.jsonWalk(node, (nodes) => {
+        jsonWalk(node, (nodes) => {
             for (const key of Object.keys(nodes)) {
                 const value = nodes[key];
                 if (typeof value === 'string') {
                     // Inline static string case.
-                    nodes[key] = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    const newValue = applySubstitutions(value, DEFAULT_SUBSTITUTIONS);
+                    safeSet(nodes, key, newValue);
                 } else if (typeof value === 'function') {
                     // Callback function case (apply substitutions to the result).
-                    nodes[key] = (...args) => {
-                        return maybeApplySubstitutions(value(...args));
-                    };
+                    const newValue = (...args) => maybeApplySubstitutions(value(...args));
+                    safeSet(nodes, key, newValue);
                 }
             }
         });

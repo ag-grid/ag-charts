@@ -1,4 +1,4 @@
-import { clamp } from 'ag-charts-core';
+import { clamp, readIntegratedWrappedValue } from 'ag-charts-core';
 
 function visibleTickRange<T = any>(
     ticks: T[],
@@ -39,4 +39,12 @@ export function filterVisibleTicks<T = any>(
         count: ticks.length,
         firstTickIndex: t0,
     };
+}
+
+export function unpackDomainMinMax<D>(domain: D[]): [D, D] | [undefined, undefined] {
+    // Integrated Charts wrappers datum values in a ChartValueWrapper object.
+    // `readIntegratedWrappedValue` reads `ChartValueWrapper.value` when applicable.
+    const min: D | undefined = readIntegratedWrappedValue(domain.at(0));
+    const max: D | undefined = readIntegratedWrappedValue(domain.at(-1));
+    return min != undefined && max != undefined ? [min, max] : [undefined, undefined];
 }

@@ -1,54 +1,17 @@
-import type {
-    AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgGaugeOptions,
-    AgPolarChartOptions,
-    AgPolarSeriesOptions,
-    AgStandaloneChartOptions,
-    AgStandaloneSeriesOptions,
-    AgTopologyChartOptions,
-    AgTopologySeriesOptions,
-} from 'ag-charts-types';
+import { ModuleRegistry } from 'ag-charts-core';
+import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 
-import { chartTypes } from '../factory/chartTypes';
-import {
-    isEnterpriseCartesian,
-    isEnterprisePolar,
-    isEnterpriseStandalone,
-    isEnterpriseTopology,
-} from '../factory/expectedEnterpriseModules';
+import { getSeriesExpectedChartType } from '../factory/expectedModules';
 
-export type SeriesOptionsTypes =
-    | AgCartesianSeriesOptions
-    | AgPolarSeriesOptions
-    | AgTopologySeriesOptions
-    | AgStandaloneSeriesOptions
-    | AgGaugeOptions;
-
-export type SeriesType = SeriesOptionsTypes['type'];
-
-function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
-    const { series } = input;
-    return series?.[0]?.type ?? 'line';
+export function detectChartType(input: AgChartOptions): string {
+    const mainSeriesType = input.series?.[0]?.type ?? 'line';
+    return (
+        ModuleRegistry.getSeriesModule(mainSeriesType)?.chartType ??
+        getSeriesExpectedChartType(mainSeriesType) ??
+        'unknown'
+    );
 }
 
 export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
-}
-
-export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
-}
-
-export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopologyChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
-}
-
-export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgStandaloneChartOptions {
-    const specifiedType = optionsType(input);
-    return chartTypes.isStandalone(specifiedType) || isEnterpriseStandalone(specifiedType);
+    return detectChartType(input) === 'cartesian';
 }

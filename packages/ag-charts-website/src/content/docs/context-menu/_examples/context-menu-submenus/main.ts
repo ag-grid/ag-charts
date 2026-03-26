@@ -1,8 +1,30 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { DataType } from './data';
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: { text: 'GDP Growth (1995–2024)' },
@@ -59,10 +81,10 @@ const options: AgCartesianChartOptions<DataType> = {
         { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'China' },
         { type: 'line', marker: { size: 14 }, tooltip: { range: 'exact' }, xKey: 'year', yKey: 'India' },
     ],
-    axes: [
-        { type: 'number', position: 'left', title: { text: 'GDP (Trillions USD)' } },
-        { type: 'category', position: 'bottom', title: { text: 'Year' }, label: { autoRotate: false } },
-    ],
+    axes: {
+        y: { type: 'number', title: { text: 'GDP (Trillions USD)' } },
+        x: { type: 'category', title: { text: 'Year' }, label: { autoRotate: false } },
+    },
 };
 
 AgCharts.create(options);

@@ -133,7 +133,7 @@ describe('AgChart', () => {
         expect(chart.container).toBeInstanceOf(HTMLElement);
         expect(chart.width).toBe(500);
         expect(chart.height).toBe(500);
-        expect(chart.data.length).toBe(4);
+        expect(chart.data.data.length).toBe(4);
         expect(chart.padding.top).toBe(30);
         expect(chart.padding.right).toBe(40);
         expect(chart.padding.bottom).toBe(50);
@@ -397,19 +397,19 @@ describe('AgChart', () => {
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     title: {
                         text: 'Hello',
                     },
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                 },
-            ],
+            },
         });
         await waitForChartStability(chartProxy);
 
@@ -427,8 +427,8 @@ describe('AgChart', () => {
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
-            axes: [
-                {
+            axes: {
+                y: {
                     type: 'number',
                     position: 'left',
                     title: {
@@ -451,11 +451,11 @@ describe('AgChart', () => {
                         ],
                     },
                 },
-                {
+                x: {
                     type: 'number',
                     position: 'bottom',
                 },
-            ],
+            },
         });
         await waitForChartStability(chartProxy);
 

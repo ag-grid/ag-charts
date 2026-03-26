@@ -1,84 +1,98 @@
 import {
     type OptionsDefs,
+    and,
     arrayOf,
+    autoSizedLabelOptionsDefs,
     barHighlightOptionsDef,
     boolean,
     callbackDefs,
     color,
+    colorScaleOptionsDef,
     colorUnion,
+    commonSeriesThemeableOptionsDefs,
     fillOptionsDef,
     highlightOptionsDef,
+    interpolationOptionsDefs,
+    lessThanOrEqual,
     lineDashOptionsDef,
     lineHighlightOptionsDef,
+    markerOptionsDefs,
+    markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
+    numberFormatValidator,
     positiveNumber,
+    positiveNumberNonZero,
     ratio,
+    seriesLabelOptionsDefs,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    tooltipOptionsDefs,
     union,
+    without,
 } from 'ag-charts-core';
-import type {
-    AgBoxPlotHighlightStyleOptions,
-    AgBoxPlotSeriesStyle,
-    AgBoxPlotSeriesThemeableOptions,
-    AgCandlestickHighlightStyleOptions,
-    AgCandlestickSeriesItemOptions,
-    AgCandlestickSeriesThemeableOptions,
-    AgChordSeriesLinkStyle,
-    AgChordSeriesNodeStyle,
-    AgChordSeriesThemeableOptions,
-    AgConeFunnelSeriesThemeableOptions,
-    AgFunnelSeriesStyle,
-    AgFunnelSeriesThemeableOptions,
-    AgHeatmapSeriesStyle,
-    AgHeatmapSeriesThemeableOptions,
-    AgMapLineBackgroundThemeableOptions,
-    AgMapLineSeriesStyle,
-    AgMapLineSeriesThemeableOptions,
-    AgMapMarkerSeriesThemeableOptions,
-    AgMapShapeBackgroundThemeableOptions,
-    AgMapShapeSeriesStyle,
-    AgMapShapeSeriesThemeableOptions,
-    AgNightingaleSeriesThemeableOptions,
-    AgOhlcSeriesItemOptions,
-    AgOhlcSeriesThemeableOptions,
-    AgPyramidSeriesStyle,
-    AgPyramidSeriesThemeableOptions,
-    AgRadarAreaSeriesThemeableOptions,
-    AgRadarSeriesThemeableOptions,
-    AgRadialBarSeriesThemeableOptions,
-    AgRadialColumnSeriesThemeableOptions,
-    AgRadialSeriesStyle,
-    AgRangeAreaSeriesThemeableOptions,
-    AgRangeBarSeriesStyle,
-    AgRangeBarSeriesThemeableOptions,
-    AgSankeySeriesLinkStyle,
-    AgSankeySeriesNodeStyle,
-    AgSankeySeriesThemeableOptions,
-    AgSeriesHighlightStyle,
-    AgSunburstSeriesStyle,
-    AgSunburstSeriesThemeableOptions,
-    AgTreemapSeriesStyle,
-    AgTreemapSeriesThemeableOptions,
-    AgWaterfallSeriesItemOptions,
-    AgWaterfallSeriesStyle,
-    AgWaterfallSeriesThemeableOptions,
+import {
+    type AgBoxPlotHighlightStyleOptions,
+    type AgBoxPlotSeriesStyle,
+    type AgBoxPlotSeriesThemeableOptions,
+    type AgCandlestickHighlightStyleOptions,
+    type AgCandlestickSeriesItemOptions,
+    type AgCandlestickSeriesThemeableOptions,
+    type AgChordSeriesLinkStyle,
+    type AgChordSeriesNodeStyle,
+    type AgChordSeriesThemeableOptions,
+    type AgConeFunnelSeriesThemeableOptions,
+    type AgFunnelSeriesStyle,
+    type AgFunnelSeriesThemeableOptions,
+    type AgHeatmapSeriesStyle,
+    type AgHeatmapSeriesThemeableOptions,
+    type AgMapLineBackgroundThemeableOptions,
+    type AgMapLineSeriesStyle,
+    type AgMapLineSeriesThemeableOptions,
+    type AgMapMarkerSeriesThemeableOptions,
+    type AgMapShapeBackgroundThemeableOptions,
+    type AgMapShapeSeriesStyle,
+    type AgMapShapeSeriesThemeableOptions,
+    type AgNightingaleSeriesThemeableOptions,
+    type AgOhlcSeriesItemOptions,
+    type AgOhlcSeriesThemeableOptions,
+    type AgPyramidSeriesStyle,
+    type AgPyramidSeriesThemeableOptions,
+    type AgRadarAreaSeriesStyle,
+    type AgRadarAreaSeriesThemeableOptions,
+    type AgRadarSeriesStyle,
+    type AgRadarSeriesThemeableOptions,
+    type AgRadialBarSeriesThemeableOptions,
+    type AgRadialColumnSeriesThemeableOptions,
+    type AgRadialSeriesStyle,
+    type AgRangeAreaSeriesItemLineThemeableOptions,
+    type AgRangeAreaSeriesLineStyle,
+    type AgRangeAreaSeriesLineThemeableOptions,
+    type AgRangeAreaSeriesStyle,
+    type AgRangeAreaSeriesThemeableOptions,
+    type AgRangeBarSeriesStyle,
+    type AgRangeBarSeriesThemeableOptions,
+    type AgSankeySeriesLinkStyle,
+    type AgSankeySeriesNodeStyle,
+    type AgSankeySeriesThemeableOptions,
+    type AgSunburstSeriesStyle,
+    type AgSunburstSeriesThemeableOptions,
+    type AgTreemapSeriesStyle,
+    type AgTreemapSeriesThemeableOptions,
+    type AgWaterfallSeriesItemOptions,
+    type AgWaterfallSeriesStyle,
+    type AgWaterfallSeriesThemeableOptions,
 } from 'ag-charts-types';
 
-import { without } from '../../util/object';
 import { commonAxisLabelOptionsDefs } from '../axesOptionsDefs';
-import {
-    autoSizedLabelOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    interpolationOptionsDefs,
-    markerOptionsDefs,
-    numberFormatValidator,
-    seriesLabelOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../commonOptionsDefs';
+
+const hierarchyHighlightStyleOptionsDef = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    opacity: ratio,
+};
 
 export const boxPlotStyleOptionsDef: OptionsDefs<AgBoxPlotSeriesStyle> = {
     ...fillOptionsDef,
@@ -99,27 +113,32 @@ export const boxPlotHighlightStyleOptionsDef: OptionsDefs<AgBoxPlotHighlightStyl
     opacity: ratio,
 };
 
+const boxPlotStyler = callbackDefs<AgBoxPlotSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+    whisker: {
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    },
+    cap: {
+        lengthRatio: ratio,
+    },
+});
+
 export const boxPlotSeriesThemeableOptionsDef: OptionsDefs<AgBoxPlotSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     showInMiniChart: boolean,
-    itemStyler: callbackDefs<AgBoxPlotSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-        whisker: {
-            ...strokeOptionsDef,
-            ...lineDashOptionsDef,
-        },
-        cap: {
-            lengthRatio: ratio,
-        },
-    }),
+    styler: boxPlotStyler,
+    itemStyler: boxPlotStyler,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...boxPlotStyleOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(boxPlotHighlightStyleOptionsDef, boxPlotHighlightStyleOptionsDef),
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 const candlestickSeriesItemOptionsDef: OptionsDefs<AgCandlestickSeriesItemOptions> = {
@@ -286,6 +305,7 @@ export const ohlcSeriesThemeableOptionsDef: OptionsDefs<AgOhlcSeriesThemeableOpt
 };
 
 export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemeableOptions> = {
+    colorScale: colorScaleOptionsDef,
     maxStrokeWidth: positiveNumber,
     itemStyler: callbackDefs<AgMapLineSeriesStyle>({
         ...strokeOptionsDef,
@@ -297,11 +317,6 @@ export const mapLineSeriesThemeableOptionsDef: OptionsDefs<AgMapLineSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(lineHighlightOptionsDef, lineHighlightOptionsDef),
 };
 
@@ -312,6 +327,7 @@ export const mapLineBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapLineBa
 
 export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesThemeableOptions> = {
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     maxSize: positiveNumber,
     sizeDomain: arrayOf(positiveNumber),
     label: {
@@ -321,18 +337,12 @@ export const mapMarkerSeriesThemeableOptionsDef: OptionsDefs<AgMapMarkerSeriesTh
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
-    // TODO Remove in next major version
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
 export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThemeableOptions> = {
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     padding: positiveNumber,
     itemStyler: callbackDefs<AgMapShapeSeriesStyle>({
         ...fillOptionsDef,
@@ -345,13 +355,6 @@ export const mapShapeSeriesThemeableOptionsDef: OptionsDefs<AgMapShapeSeriesThem
     ...fillOptionsDef,
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
-    // TODO Remove in next major version
-    highlightStyle: {
-        // eslint-disable-next-line sonarjs/deprecation
-        ...(commonSeriesThemeableOptionsDefs.highlightStyle as OptionsDefs<AgSeriesHighlightStyle>),
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-    },
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
 };
 
@@ -362,14 +365,17 @@ export const mapShapeBackgroundSeriesThemeableOptionsDef: OptionsDefs<AgMapShape
     ...lineDashOptionsDef,
 };
 
+export const radialSeriesStylerDef = callbackDefs<AgRadialSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
+
 export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -408,6 +414,12 @@ export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemea
 export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesThemeableOptions> = {
     connectMissingData: boolean,
     marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarAreaSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -420,6 +432,11 @@ export const radarAreaSeriesThemeableOptionsDef: OptionsDefs<AgRadarAreaSeriesTh
 export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemeableOptions> = {
     connectMissingData: boolean,
     marker: markerOptionsDefs,
+    styler: callbackDefs<AgRadarSeriesStyle>({
+        marker: markerStyleOptionsDefs,
+        ...strokeOptionsDef,
+        ...lineDashOptionsDef,
+    }),
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -430,12 +447,8 @@ export const radarLineSeriesThemeableOptionsDef: OptionsDefs<AgRadarSeriesThemea
 
 export const radialBarSeriesThemeableOptionsDef: OptionsDefs<AgRadialBarSeriesThemeableOptions> = {
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -449,12 +462,8 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     cornerRadius: positiveNumber,
     columnWidthRatio: ratio,
     maxColumnWidthRatio: ratio,
-    itemStyler: callbackDefs<AgRadialSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: radialSeriesStylerDef,
+    itemStyler: radialSeriesStylerDef,
     label: seriesLabelOptionsDefs,
     tooltip: tooltipOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
@@ -462,6 +471,29 @@ export const radialColumnSeriesThemeableOptionsDef: OptionsDefs<AgRadialColumnSe
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
+
+const rangeAreaSeriesLineThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesLineThemeableOptions<unknown, unknown>> = {
+    marker: markerOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const rangeAreaSeriesItemLineThemeableOptionsDef: OptionsDefs<
+    AgRangeAreaSeriesItemLineThemeableOptions<unknown, unknown>
+> = {
+    marker: {
+        enabled: boolean,
+        ...markerStyleOptionsDefs,
+    },
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+};
+
+const rangeAreaSeriesLineStyleDef: OptionsDefs<AgRangeAreaSeriesLineStyle> = {
+    marker: markerStyleOptionsDefs,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
 };
 
 export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesThemeableOptions> = {
@@ -473,28 +505,44 @@ export const rangeAreaSeriesThemeableOptionsDef: OptionsDefs<AgRangeAreaSeriesTh
         placement: union('inside', 'outside'),
         spacing: positiveNumber,
     },
-    marker: markerOptionsDefs,
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     ...commonSeriesThemeableOptionsDefs,
     ...fillOptionsDef,
-    ...strokeOptionsDef,
-    ...lineDashOptionsDef,
+    ...rangeAreaSeriesLineThemeableOptionsDef,
+    item: {
+        low: { ...rangeAreaSeriesItemLineThemeableOptionsDef },
+        high: { ...rangeAreaSeriesItemLineThemeableOptionsDef },
+    },
+    styler: callbackDefs<AgRangeAreaSeriesStyle>({
+        ...fillOptionsDef,
+        item: {
+            low: { ...rangeAreaSeriesLineStyleDef },
+            high: { ...rangeAreaSeriesLineStyleDef },
+        },
+    }),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
     segmentation: shapeSegmentation,
+    invertedStyle: {
+        enabled: boolean,
+        ...fillOptionsDef,
+    },
 };
+
+const rangeBarStyleCallback = callbackDefs<AgRangeBarSeriesStyle>({
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    ...lineDashOptionsDef,
+    cornerRadius: positiveNumber,
+});
 
 export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     grouped: boolean,
     showInMiniChart: boolean,
     cornerRadius: positiveNumber,
-    itemStyler: callbackDefs<AgRangeBarSeriesStyle>({
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
-        ...lineDashOptionsDef,
-        cornerRadius: positiveNumber,
-    }),
+    styler: rangeBarStyleCallback,
+    itemStyler: rangeBarStyleCallback,
     label: {
         ...seriesLabelOptionsDefs,
         placement: union('inside', 'outside'),
@@ -508,6 +556,8 @@ export const rangeBarSeriesThemeableOptionsDef: OptionsDefs<AgRangeBarSeriesThem
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
     segmentation: shapeSegmentation,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
 };
 
 export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeableOptions> = {
@@ -516,6 +566,8 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     label: {
         ...seriesLabelOptionsDefs,
         spacing: positiveNumber,
+        placement: union('left', 'right', 'center'),
+        edgePlacement: union('inside', 'outside'),
     },
     link: {
         itemStyler: callbackDefs<AgSankeySeriesLinkStyle>({
@@ -530,7 +582,10 @@ export const sankeySeriesThemeableOptionsDef: OptionsDefs<AgSankeySeriesThemeabl
     node: {
         width: positiveNumber,
         spacing: positiveNumber,
+        minSpacing: and(positiveNumber, lessThanOrEqual('spacing')),
         alignment: union('left', 'center', 'right', 'justify'),
+        verticalAlignment: union('top', 'bottom', 'center'),
+        sort: union('data', 'ascending', 'descending', 'auto'),
         itemStyler: callbackDefs<AgSankeySeriesNodeStyle>({
             ...fillOptionsDef,
             ...strokeOptionsDef,
@@ -548,6 +603,7 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     sectorSpacing: positiveNumber,
     cornerRadius: positiveNumber,
     padding: positiveNumber,
@@ -564,16 +620,11 @@ export const sunburstSeriesThemeableOptionsDef: OptionsDefs<AgSunburstSeriesThem
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
-    // TODO Remove in next major version
-    highlightStyle: {
-        label: {
-            color: color,
-        },
-        secondaryLabel: {
-            color: color,
-        },
-        ...fillOptionsDef,
-        ...strokeOptionsDef,
+    highlight: {
+        highlightedItem: hierarchyHighlightStyleOptionsDef,
+        highlightedBranch: hierarchyHighlightStyleOptionsDef,
+        unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+        unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
     },
 };
 
@@ -581,6 +632,7 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
     fills: arrayOf(colorUnion),
     strokes: arrayOf(color),
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
     itemStyler: callbackDefs<AgTreemapSeriesStyle>({
         ...fillOptionsDef,
         ...strokeOptionsDef,
@@ -591,6 +643,10 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
         cornerRadius: positiveNumber,
         textAlign: union('left', 'center', 'right'),
         interactive: boolean,
+        highlight: {
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+        },
         label: {
             ...seriesLabelOptionsDefs,
             spacing: positiveNumber,
@@ -619,31 +675,17 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             wrapping: union('never', 'always', 'hyphenate', 'on-space'),
             overflowStrategy: union('ellipsis', 'hide'),
         },
+        highlight: {
+            highlightedItem: hierarchyHighlightStyleOptionsDef,
+            highlightedBranch: hierarchyHighlightStyleOptionsDef,
+            unhighlightedItem: hierarchyHighlightStyleOptionsDef,
+            unhighlightedBranch: hierarchyHighlightStyleOptionsDef,
+        },
         ...fillOptionsDef,
         ...strokeOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
     ...without(commonSeriesThemeableOptionsDefs, ['highlight', 'showInLegend']),
-    // TODO Remove in next major version
-    highlightStyle: {
-        group: {
-            label: {
-                color: color,
-            },
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-        tile: {
-            label: {
-                color: color,
-            },
-            secondaryLabel: {
-                color: color,
-            },
-            ...fillOptionsDef,
-            ...strokeOptionsDef,
-        },
-    },
 };
 
 const waterfallSeriesItemOptionsDef: OptionsDefs<AgWaterfallSeriesItemOptions<any>> = {
@@ -681,5 +723,7 @@ export const waterfallSeriesThemeableOptionsDef: OptionsDefs<AgWaterfallSeriesTh
         ...lineDashOptionsDef,
     },
     tooltip: tooltipOptionsDefs,
+    width: positiveNumberNonZero,
+    widthRatio: ratio,
     ...commonSeriesThemeableOptionsDefs,
 };

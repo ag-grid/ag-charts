@@ -1,6 +1,6 @@
-import { Property } from '../util/properties';
+import { ChangeDetectableProperties, Property } from 'ag-charts-core';
+
 import { SceneChangeDetection } from './node';
-import { ChangeDetectableProperties } from './util/changeDetectableProperties';
 
 export class DropShadow extends ChangeDetectableProperties {
     @Property

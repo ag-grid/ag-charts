@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -28,19 +28,17 @@ const options: AgChartOptions = {
     legend: {
         enabled: true,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Total visitors',
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

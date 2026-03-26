@@ -11,6 +11,7 @@ import {
     type Chart,
     GALLERY_EXAMPLES,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     TREEMAP_SERIES_LABELS,
     clickAction,
     deproxy,
@@ -21,6 +22,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { deepClone } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { TreemapSeries } from './treemapSeries';
@@ -119,6 +121,54 @@ describe('TreemapSeries', () => {
                 await compare();
             });
         }
+
+        it(`for TREEMAP_SERIES_LABELS it should render to canvas with group labels disabled`, async () => {
+            const options = deepClone(TREEMAP_SERIES_LABELS);
+            (options as any).series[0].group.label = { enabled: false };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('Label itemStyler', () => {
+        it('should style labels via itemStyler', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Group',
+                        children: [
+                            { name: 'Alpha', size: 6 },
+                            { name: 'Beta', size: 4 },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'size',
+                        tile: {
+                            label: {
+                                enabled: true,
+                                itemStyler: () => ({ color: 'lime' }),
+                            },
+                        },
+                        group: {
+                            label: {
+                                enabled: true,
+                                itemStyler: () => ({ color: 'lime' }),
+                            },
+                        },
+                    },
+                ],
+                animation: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     const testPointerEvents = (testParams: {
@@ -154,9 +204,15 @@ describe('TreemapSeries', () => {
                 series: [
                     {
                         tooltip,
-                        highlightStyle: {
-                            tile: { fill: 'lime' },
-                            group: { fill: 'lime' },
+                        tile: {
+                            highlight: {
+                                highlightedItem: { fill: 'lime' },
+                            },
+                        },
+                        group: {
+                            highlight: {
+                                highlightedItem: { fill: 'lime' },
+                            },
                         },
                         listeners,
                         ...nodeClickRangeParams,
@@ -236,7 +292,7 @@ describe('TreemapSeries', () => {
 
             // Check the tooltip is hidden (hover over top-left corner)
             await hoverAction(8, 8)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -299,7 +355,7 @@ describe('TreemapSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+            getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -423,6 +479,104 @@ describe('TreemapSeries', () => {
             prepareEnterpriseTestOptions(options as AgChartOptions);
 
             chart = deproxy(AgCharts.create(options as AgChartOptions));
+            await compare();
+        });
+    });
+
+    describe('colorScale', () => {
+        const TREEMAP_BASE = {
+            ...GALLERY_EXAMPLES.TREEMAP_WITH_COLOR_RANGE_EXAMPLE.options,
+            animation: { enabled: false },
+        };
+
+        it('should render with continuous colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with explicit domain colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'green' }, { color: 'white' }, { color: 'purple' }],
+                            domain: [-10, 10] as [number, number],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render with discrete named stops colorScale', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: -2, name: 'Loss' },
+                                { color: 'yellow', stop: 2, name: 'Flat' },
+                                { color: 'green', name: 'Gain' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
             await compare();
         });
     });

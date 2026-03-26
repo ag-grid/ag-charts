@@ -2,10 +2,12 @@ import {
     type OptionsDefs,
     arrayOf,
     boolean,
-    callback,
     callbackDefs,
+    callbackOf,
     color,
     colorUnion,
+    commonSeriesOptionsDefs,
+    commonSeriesThemeableOptionsDefs,
     constant,
     fillOptionsDef,
     fontOptionsDef,
@@ -16,10 +18,14 @@ import {
     positiveNumber,
     ratio,
     required,
+    shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
     strokeOptionsDef,
+    textOrSegments,
+    tooltipOptionsDefs,
     undocumented,
+    without,
 } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
@@ -28,14 +34,6 @@ import type {
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
 } from 'ag-charts-types';
-
-import { without } from '../../../util/object';
-import {
-    commonSeriesOptionsDefs,
-    commonSeriesThemeableOptionsDefs,
-    shadowOptionsDefs,
-    tooltipOptionsDefs,
-} from '../../commonOptionsDefs';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 
@@ -67,7 +65,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         offset: number,
         minAngle: positiveNumber,
         avoidCollisions: boolean,
-        formatter: callback,
+        formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
             enabled: boolean,
@@ -81,7 +79,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
         enabled: boolean,
         positionOffset: number,
         positionRatio: ratio,
-        formatter: callback,
+        formatter: callbackOf(textOrSegments),
         format: string,
         itemStyler: callbackDefs<AgChartLabelStyleOptions>({
             enabled: boolean,
@@ -128,6 +126,8 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
 };
 
 // @ts-expect-error undocumented option
+pieSeriesOptionsDef.angleFilterKey = undocumented(string);
+// @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultColorRange = undocumented(arrayOf(arrayOf(color)));
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.defaultPatternFills = undocumented(arrayOf(color));
@@ -137,3 +137,7 @@ pieSeriesOptionsDef.title._enabledFromTheme = undocumented(boolean);
 pieSeriesOptionsDef.calloutLabel._enabledFromTheme = undocumented(boolean);
 // @ts-expect-error undocumented option
 pieSeriesOptionsDef.sectorLabel._enabledFromTheme = undocumented(boolean);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.angleKeyAxis = undocumented(string);
+// @ts-expect-error undocumented option
+pieSeriesOptionsDef.radiusKeyAxis = undocumented(string);

@@ -61,7 +61,8 @@ const getHiddenPages = async () => {
     return docsHiddenPages;
 };
 
-const getIgnoredPages = () => {
+// eslint-disable-next-line @typescript-eslint/require-await
+const getIgnoredPages = async () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),

@@ -1,18 +1,35 @@
 import {
-    type AnyFn,
+    BaseProperties,
+    Border,
+    type Callback,
+    type CallbackParam,
+    ChartUpdateType,
     CleanupRegistry,
+    FONT_SIZE,
     type ITextMeasurer,
+    LineSplitter,
     Logger,
+    ObserveChanges,
+    Property,
     type RequiredInternalAgGradientColor,
     type RequiredInternalAgImageFill,
     type RequiredInternalAgPatternColor,
+    ZIndexMap,
     cachedTextMeasurer,
+    callWithContext,
     clamp,
     createId,
+    deepClone,
+    expandLegendPosition,
+    isImageFill,
+    isPatternFill,
     isTextTruncated,
+    objectsEqual,
+    toPlainText,
     truncateLine,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
     AgChartLegendDoubleClickEvent,
@@ -29,9 +46,18 @@ import type {
     PixelSize,
 } from 'ag-charts-types';
 
+<<<<<<< HEAD
 import type { HighlightNodeDatum, LegendChangeEvent } from '../../core/eventsHub';
 import type { Node } from '../../module-support';
 import type { LayoutContext } from '../../module/baseModule';
+=======
+import type {
+    ActiveLoadMementoEvent,
+    HighlightNodeDatum,
+    LegendChangeEvent,
+    LegendChangePartialEvent,
+} from '../../core/eventsHub';
+>>>>>>> latest
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -39,32 +65,47 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
 import { Transformable } from '../../scene/transformable';
-import { isImageFill, isPatternFill } from '../../scene/util/fill';
-import { Border } from '../../util/border';
-import { callWithContext } from '../../util/callbackCache';
-import { deepClone } from '../../util/json';
-import { objectsEqual } from '../../util/object';
-import { BaseProperties, Property } from '../../util/properties';
-import { ObserveChanges } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
-import { ChartUpdateType } from '../chartUpdateType';
+import type { ChartService } from '../chartService';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
-import { LayoutElement } from '../layout/layoutManager';
+import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
-import { applyShapeStyle, getShapeStyle } from '../series/shapeUtil';
-import { FONT_SIZE } from '../themes/constants';
+import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
-import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
-import { expandLegendPosition } from './legendUtil';
+
+type SeriesType = ChartService['series'][number];
+
+function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDatum): HighlightNodeDatum {
+    switch (typeof legendDatum.itemId) {
+        case 'number':
+            return {
+                series,
+                itemId: undefined,
+                datum: undefined,
+                datumIndex: legendDatum.itemId,
+                legendItemName: legendDatum.legendItemName,
+            };
+        case 'string':
+            return {
+                series,
+                itemId: legendDatum.itemId,
+                datum: undefined,
+                datumIndex: undefined,
+                legendItemName: legendDatum.legendItemName,
+            };
+        default:
+            return legendDatum.itemId satisfies never;
+    }
+}
 
 class LegendLabel extends BaseProperties {
     @Property
@@ -212,11 +253,12 @@ export class Legend extends BaseProperties {
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
+    private paginationItemsOffsetX = 0;
     private maxPageSize: [number, number] = [0, 0];
     /** Item index to track on re-pagination, so current page updates appropriately. */
     private paginationTrackingIndex: number = 0;
 
-    private readonly truncatedItems: Set<string> = new Set();
+    private readonly truncatedItems: Set<string | number> = new Set();
 
     private _data: CategoryLegendDatum[] = [];
     set data(value: CategoryLegendDatum[]) {
@@ -261,7 +303,7 @@ export class Legend extends BaseProperties {
         }
     })
     @Property
-    enabled: boolean = true;
+    enabled: boolean = false;
 
     @Property
     position: AgChartLegendPosition = 'bottom';
@@ -314,13 +356,12 @@ export class Legend extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
-    private pendingHighlightDatum?: HighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
 
         this.pagination = new Pagination(
-            (type: ChartUpdateType) => ctx.updateService.update(type),
+            () => ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER }),
             (page) => this.updatePageNumber(page)
         );
         this.pagination.attachPagination(this.group);
@@ -329,7 +370,10 @@ export class Legend extends BaseProperties {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
         this.cleanup.register(
+            ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
+            ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
             ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
+            ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
@@ -343,8 +387,18 @@ export class Legend extends BaseProperties {
     }
 
     private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
-        if (!this.enabled) return;
         this.data = legendData.filter((datum) => !datum.hideInLegend);
+    }
+
+    private onLegendDataChangePartial(event: LegendChangePartialEvent) {
+        this.itemSelection.each(({ proxyButton }, { itemId }) => {
+            if (proxyButton == null) return;
+            for (const eventElem of event.legendData) {
+                if (eventElem.itemId === itemId) {
+                    proxyButton.setChecked(eventElem.enabled);
+                }
+            }
+        });
     }
 
     public destroy() {
@@ -371,6 +425,26 @@ export class Legend extends BaseProperties {
 
     private updateGroupVisibility() {
         this.group.visible = this.enabled && this.visible && this.data.length > 0;
+    }
+
+    private updateItemSelection(): void {
+        const data = [...this.data];
+        if (this.reverseOrder) {
+            data.reverse();
+        }
+        this.itemSelection.update(data);
+    }
+
+    private isInteractive(): boolean {
+        const {
+            toggleSeries,
+            listeners: { legendItemClick, legendItemDoubleClick },
+        } = this;
+        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+    }
+
+    private checkInteractionState(): boolean {
+        return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
 
     attachLegend(scene: Scene) {
@@ -411,11 +485,7 @@ export class Legend extends BaseProperties {
             maxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
         } = this.item;
-        const data = [...this.data];
-        if (this.reverseOrder) {
-            data.reverse();
-        }
-        this.itemSelection.update(data);
+        this.updateItemSelection();
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -426,17 +496,19 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const { markerWidth, anyLineEnabled } = this.calculateMarkerWidth();
+        const { isRtl } = this.ctx.domManager;
 
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
+            markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
-            const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
+            const text = toPlainText(labelText, '<unknown>').replace(LineSplitter, ' ');
             markerLabel.text = this.truncate(text, maxLength, maxItemWidth, paddedSymbolWidth, measurer, id);
 
             bboxes.push(markerLabel.getTextMeasureBBox());
@@ -445,7 +517,7 @@ export class Legend extends BaseProperties {
         width = Math.max(1, width);
         height = Math.max(1, height);
 
-        if (!isFinite(width)) {
+        if (!Number.isFinite(width)) {
             return {};
         }
 
@@ -563,12 +635,12 @@ export class Legend extends BaseProperties {
             marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
             marker.size = itemMarker.size;
             // Clone the marker symbol styles to prevent mutations affecting the series.
-            applyShapeStyle(marker, this.getMarkerStyles(deepClone(symbol)));
+            marker.setStyleProperties(this.getMarkerStyles(deepClone(symbol)));
         }
 
         line.visible = anyLineEnabled;
         if (line.visible) {
-            applyShapeStyle(line, this.getLineStyles(symbol));
+            line.setStyleProperties(this.getLineStyles(symbol));
         }
 
         markerLabel.length = markerWidth;
@@ -585,7 +657,7 @@ export class Legend extends BaseProperties {
         this.containerNode.width = 0;
         this.containerNode.height = 0;
 
-        applyShapeStyle(this.containerNode, containerStyles);
+        this.containerNode.setStyleProperties(containerStyles);
         this.containerNode.cornerRadius = containerStyles.cornerRadius;
 
         // Shrink the desired legend size by the container, since the items layout is constrained by the inner
@@ -602,7 +674,7 @@ export class Legend extends BaseProperties {
         maxItemWidth: number,
         paddedMarkerWidth: number,
         measurer: ITextMeasurer,
-        id: string
+        id: string | number
     ): string {
         let addEllipsis = false;
         if (text.length > maxCharLength) {
@@ -633,7 +705,10 @@ export class Legend extends BaseProperties {
         const orientation = this.getOrientation();
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
+        const { isRtl } = this.ctx.domManager;
+
         this.pagination.orientation = orientation;
+        this.pagination.isRtl = isRtl;
 
         this.pagination.translationX = 0;
         this.pagination.translationY = 0;
@@ -645,7 +720,7 @@ export class Legend extends BaseProperties {
         );
 
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
-        this.pagination.currentPage = clamp(0, newCurrentPage, pages.length - 1);
+        this.pagination.currentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
 
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
         const paginationComponentPadding = 8;
@@ -655,11 +730,20 @@ export class Legend extends BaseProperties {
         let paginationX = 0;
         let paginationY = -paginationBBox.y - this.item.marker.size / 2;
         if (paginationVertical) {
+            if (isRtl) paginationX = width - paginationBBox.width + paginationBBox.x;
             paginationY += legendItemsHeight + paginationComponentPadding;
+        } else if (isRtl) {
+            paginationX = -paginationBBox.x;
+            paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         } else {
             paginationX += -paginationBBox.x + legendItemsWidth + paginationComponentPadding;
             paginationY += (legendItemsHeight - paginationBBox.height) / 2;
         }
+
+        this.paginationItemsOffsetX =
+            isRtl && !paginationVertical && this.pagination.visible
+                ? paginationBBox.width + paginationComponentPadding
+                : 0;
 
         this.pagination.translationX = paginationX;
         this.pagination.translationY = paginationY;
@@ -771,7 +855,9 @@ export class Legend extends BaseProperties {
 
         const itemHeight = columns[0].bboxes[0].height + paddingY;
 
+        const { isRtl } = this.ctx.domManager;
         const rowSumColumnWidths: number[] = [];
+        const pageWidth = columns.reduce((sum, col) => sum + col.columnWidth, 0);
 
         itemSelection.each((markerLabel, _, i) => {
             if (i < visibleStart || i > visibleEnd) {
@@ -792,27 +878,31 @@ export class Legend extends BaseProperties {
 
             markerLabel.visible = true;
             const column = columns[columnIndex];
-
-            if (!column) {
-                return;
-            }
+            if (!column) return;
 
             // Round off for pixel grid alignment to work properly.
             y = Math.floor(itemHeight * rowIndex);
-            x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+
+            if (isRtl) {
+                x = Math.floor(pageWidth - (rowSumColumnWidths[rowIndex] ?? 0));
+            } else {
+                x = Math.floor(rowSumColumnWidths[rowIndex] ?? 0);
+            }
 
             rowSumColumnWidths[rowIndex] = (rowSumColumnWidths[rowIndex] ?? 0) + column.columnWidth;
 
-            markerLabel.translationX = x;
+            markerLabel.translationX = x + this.paginationItemsOffsetX;
             markerLabel.translationY = y;
         });
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { itemSelection, group, pagination, pages, toggleSeries: interactive } = this;
+        const { itemSelection, group, pagination, pages } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
-        const { startIndex, endIndex } = pages[pageNumber];
+        const page = pages[pageNumber];
+        if (!page) return;
+        const { startIndex, endIndex } = page;
         if (startIndex === 0) {
             // Stay on first page on pagination update.
             this.paginationTrackingIndex = 0;
@@ -828,9 +918,9 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive });
+        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
 
-        this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     update() {
@@ -846,8 +936,9 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        this.ctx.contextMenuRegistry.setVisible('toggle-series-visibility', this.toggleSeries);
-        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', this.toggleSeries);
+        const action = this.toggleSeries ? 'show' : 'hide';
+        this.ctx.contextMenuRegistry.toggle('toggle-series-visibility', action);
+        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -954,15 +1045,25 @@ export class Legend extends BaseProperties {
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
         this.doClick(params.event, datum, proxyButton);
+        this.clearHighlight();
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
         this.doDoubleClick(params.event, this.findNode(params).datum);
+        this.clearHighlight();
     }
 
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
+        if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
+<<<<<<< HEAD
         const legendItem: CategoryLegendDatum = node.datum!;
+=======
+        const legendItem: CategoryLegendDatum = node.datum;
+
+        this.clearHighlight();
+
+>>>>>>> latest
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
         } else {
@@ -972,7 +1073,8 @@ export class Legend extends BaseProperties {
         const toggleOtherSeriesVisible =
             this.ctx.chartService.series.length > 1 &&
             this.ctx.chartService.series[0]?.getLegendData('category')[0]?.hideToggleOtherSeries !== true;
-        this.ctx.contextMenuRegistry.setVisible('toggle-other-series', toggleOtherSeriesVisible);
+        const action = toggleOtherSeriesVisible ? 'show' : 'hide';
+        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
@@ -992,7 +1094,7 @@ export class Legend extends BaseProperties {
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {
         const {
             listeners: { legendItemClick },
-            ctx: { chartService, highlightManager },
+            ctx: { chartService },
             preventHidingAll,
             toggleSeries,
         } = this;
@@ -1035,22 +1137,12 @@ export class Legend extends BaseProperties {
             });
         }
 
-        if (newEnabled) {
-            highlightManager.updateHighlight(this.id, {
-                series,
-                itemId,
-                datum: undefined,
-                datumIndex: undefined,
-                legendItemName,
-            });
-        } else {
-            highlightManager.updateHighlight(this.id);
-        }
+        this.updateHighlight(newEnabled, datum, series);
 
         this.ctx.legendManager.update();
-        this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, {
-            forceNodeDataRefresh: true,
-            skipAnimations: datum.skipAnimations ?? false,
+        this.ctx.eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PROCESS_DATA,
+            opts: { forceNodeDataRefresh: true, skipAnimations: datum.skipAnimations ?? false },
         });
 
         return true;
@@ -1120,7 +1212,10 @@ export class Legend extends BaseProperties {
         }
 
         this.ctx.legendManager.update();
-        this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
+        this.ctx.eventsHub.emit('chart:request-update', {
+            type: ChartUpdateType.PROCESS_DATA,
+            opts: { forceNodeDataRefresh: true },
+        });
 
         return true;
     }
@@ -1138,6 +1233,7 @@ export class Legend extends BaseProperties {
     }
 
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+        if (this.checkInteractionState()) return;
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
         this.pagination.setPage(node.pageIndex);
@@ -1150,41 +1246,102 @@ export class Legend extends BaseProperties {
                 { type: 'structured', title: this.getItemLabel(datum) },
             ]);
         } else {
-            this.ctx.tooltipManager.removeTooltip(this.id);
+            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
         }
 
-        if (datum?.enabled && series) {
-            this.updateHighlight({
-                series,
-                itemId: datum?.itemId,
-                datum: undefined,
-                datumIndex: undefined,
-                legendItemName: datum?.legendItemName,
-            });
-        } else {
-            this.updateHighlight();
-        }
+        this.updateHighlight(datum?.enabled, datum, series);
     }
 
     onLeave() {
-        this.ctx.tooltipManager.removeTooltip(this.id);
-        this.updateHighlight();
+        if (this.checkInteractionState()) return;
+        this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+        this.clearHighlight();
     }
 
-    private updateHighlight(datum?: HighlightNodeDatum) {
-        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
-            this.ctx.highlightManager.updateHighlight(this.id, datum);
-        } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
-            // Updating the highlight can interrupt animations, so only clear the highlight if the chart
-            // is in a state when highlighting is possible.
-            this.pendingHighlightDatum = datum;
-            this.ctx.animationManager.onBatchStop(() => {
-                this.ctx.highlightManager.updateHighlight(this.id, this.pendingHighlightDatum);
-            });
+    private clearHighlight(): void {
+        this.updateHighlight(undefined, undefined, undefined);
+    }
+
+    private updateHighlight(
+        enabled: boolean | undefined,
+        legendDatum: CategoryLegendDatum | undefined,
+        series: SeriesType | undefined,
+        event?: ActiveLoadMementoEvent
+    ): void {
+        if (this.checkInteractionState()) return;
+        type InternalUpdateOpts = {
+            readonly itemId: NonNullable<CategoryLegendDatum['itemId']>;
+            readonly nodeDatum: HighlightNodeDatum;
+        };
+
+        const updateActive = (opts: InternalUpdateOpts | undefined): boolean => {
+            if (opts === undefined) {
+                return this.ctx.activeManager.clear();
+            } else {
+                const seriesId = opts.nodeDatum.series.id;
+                const itemId = opts.itemId;
+                return this.ctx.activeManager.update({ type: 'legend', seriesId, itemId }, undefined);
+            }
+        };
+
+        const updateManagers = (opts: InternalUpdateOpts | undefined): void => {
+            const defaultPrevented: boolean = updateActive(opts);
+            if (!defaultPrevented) {
+                this.ctx.highlightManager.updateHighlight(this.id, opts?.nodeDatum);
+            }
+        };
+
+        const highlightNodeDatum = (opts: InternalUpdateOpts | undefined): void => {
+            if (this.ctx.interactionManager.isState(InteractionState.Default) || event?.initialState) {
+                updateManagers(opts);
+            } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
+                // Updating the highlight can interrupt animations, so defer both setting and
+                // clearing highlights until the current animation batch completes.
+                this.ctx.animationManager.onBatchStop(() => {
+                    updateManagers(opts);
+                });
+            } else if (opts === undefined) {
+                updateManagers(opts);
+            }
+        };
+
+        if (enabled === true && series !== undefined && legendDatum !== undefined) {
+            const itemId = legendDatum.itemId;
+            const nodeDatum = toHighlightNodeDatum(series, legendDatum);
+            highlightNodeDatum({ itemId, nodeDatum });
+        } else {
+            highlightNodeDatum(undefined);
+        }
+    }
+
+    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
+        if (activeItem?.type === 'series-node') {
+            this.ctx.highlightManager.updateHighlight(this.id, undefined);
+        }
+    }
+
+    private onActiveLoadMemento(event: ActiveLoadMementoEvent): void {
+        const { activeItem } = event;
+        if (activeItem?.type !== 'legend') {
+            return this.ctx.highlightManager.updateHighlight(this.id, undefined);
+        }
+
+        const datum = this.data.find((d) => d.seriesId === activeItem.seriesId && d.itemId === activeItem.itemId);
+        const series = this.ctx.chartService.series.find((s) => s.id === activeItem.seriesId);
+        if (series === undefined) {
+            Logger.warn(`Cannot find seriesId: "${activeItem.seriesId}"`);
+            event.reject();
+        } else if (datum === undefined) {
+            const json = JSON.stringify({ seriesId: activeItem.seriesId, itemId: activeItem.itemId });
+            Logger.warn(`cannot find legend item: ${json}`);
+            event.reject();
+        } else {
+            this.updateHighlight(datum.enabled, datum, series, event);
         }
     }
 
     private onLocaleChanged() {
+        this.updateItemSelection();
         this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
@@ -1256,7 +1413,7 @@ export class Legend extends BaseProperties {
 
             if (!floating) {
                 let shrinkAmount: number;
-                let shrinkDirection: NonNullable<Parameters<(typeof layoutBox)['shrink']>[1]>;
+                let shrinkDirection: NonNullable<Parameters<BBox['shrink']>[1]>;
                 switch (placement) {
                     case 'top':
                     case 'top-right':
@@ -1303,17 +1460,9 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const {
-            ctx,
-            itemSelection,
-            pagination,
-            pages: newPages,
-            toggleSeries,
-            group,
-            listeners: { legendItemClick, legendItemDoubleClick },
-        } = this;
+        const { ctx, itemSelection, pagination, pages: newPages, group } = this;
         const visible = this.visible && this.enabled;
-        const interactive = toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+        const interactive = this.isInteractive();
         this.domProxy.update({
             visible,
             interactive,
@@ -1383,8 +1532,8 @@ export class Legend extends BaseProperties {
         return [legendWidth, legendHeight];
     }
 
-    private cachedCallWithContext<F extends AnyFn>(fn: F, ...params: Parameters<F>): ReturnType<F> | undefined {
+    private cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call([this, chartService], fn, ...params);
+        return callbackCache.call([this, chartService], fn, params);
     }
 }

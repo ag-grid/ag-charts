@@ -1,0 +1,12 @@
+#myPointerPos {
+    pointer-events: none;
+    font-family: Monospace;
+    background: white;
+    foreground: black;
+}
+
+.tooltip {
+    display: grid;
+    padding: 6px;
+    gap: 3px;
+}

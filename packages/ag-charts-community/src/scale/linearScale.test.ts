@@ -1,6 +1,6 @@
-import { tickFormat } from '../util/ticks';
+import { type ScaleTickParams, tickFormat } from 'ag-charts-core';
+
 import { LinearScale } from './linearScale';
-import { ScaleTickParams } from './scale';
 
 describe('LinearScale', () => {
     test('domain', () => {
@@ -131,7 +131,7 @@ describe('LinearScale', () => {
             scale.domain = domain;
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -146,7 +146,7 @@ describe('LinearScale', () => {
             scale.domain = [0, 100];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: 30,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -165,7 +165,7 @@ describe('LinearScale', () => {
             scale.domain = [0, 100];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: 10,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -181,7 +181,7 @@ describe('LinearScale', () => {
 
     test('scale.tickFormat', () => {
         const tickFormatParams: ScaleTickParams<number> = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -269,7 +269,8 @@ describe('LinearScale', () => {
             return format(n);
         };
 
-        expect(singlePointFormat(0.1234567890123456, ' ')).toEqual('0.123456789012');
+        // Format specifier ' ' uses the space sign option which prefixes positives with a space.
+        expect(singlePointFormat(0.1234567890123456, ' ')).toEqual(' 0.123456789012');
         expect(singlePointFormat(67.7, 'd')).toEqual('68');
         expect(singlePointFormat(0.678, '.2p')).toEqual('68%');
         expect(singlePointFormat(123, 'f')).toEqual('123');
@@ -280,7 +281,7 @@ describe('LinearScale', () => {
         expect(singlePointFormat(12345.67890123, 'f')).toEqual('12345.7');
         expect(singlePointFormat(1234567.890123, 'f')).toEqual('1234568');
         expect(singlePointFormat(1234.567890123, 'f')).toEqual('1234.57');
-        expect(singlePointFormat(1234.567890123, ' ')).toEqual('1234.56789012');
+        expect(singlePointFormat(1234.567890123, ' ')).toEqual(' 1234.56789012');
     });
 
     describe('empty domain', () => {

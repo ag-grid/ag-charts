@@ -44,8 +44,9 @@ function makeMouseEvent<T extends TMouseEvent>(
     clientY: number,
     bubbles = true
 ): MouseEvent {
-    const { offsetX, offsetY } = testTarget;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY });
+    const { offsetX, offsetY, target } = testTarget;
+    const view = target.ownerDocument.defaultView!;
+    const event = new MouseEvent(type, { bubbles, clientX, clientY, view });
     Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     return event;
 }
@@ -87,7 +88,7 @@ export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) 
         bubbleChain = [bubbleChain[0]];
     }
 
-    bubbleChain.forEach((currentTarget) => {
+    for (const currentTarget of bubbleChain) {
         Object.defineProperty(event, 'target', {
             value: target,
             writable: true,
@@ -101,7 +102,7 @@ export function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) 
         currentTarget.dispatchEvent(event);
         delete (event as any).target;
         delete (event as any).currentTarget;
-    });
+    }
 }
 
 export enum WheelDeltaMode {
@@ -114,11 +115,23 @@ type WheelEventData = {
     deltaX: number;
     deltaY: number;
     deltaMode: WheelDeltaMode;
+    cancelable?: boolean;
 };
 
-export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
+export function wheelEvent(
+    mockEvent: MockEvent,
+    { deltaX, deltaY, deltaMode, cancelable }: WheelEventData
+): WheelEvent {
     const { offsetX, offsetY, clientX, clientY } = mockEvent;
-    const event = new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+    const event = new WheelEvent('wheel', {
+        bubbles: true,
+        cancelable: cancelable ?? true,
+        clientX,
+        clientY,
+        deltaX,
+        deltaY,
+        deltaMode,
+    });
     Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     return event;
 }
@@ -135,10 +148,10 @@ export function touchAverage(touches: MockTouch[]): Pick<MockTouch, 'clientX' | 
     expect(touches.length).not.toBe(0);
     let sumX = 0,
         sumY = 0;
-    touches.forEach((t) => {
+    for (const t of touches) {
         sumX += t.clientX;
         sumY += t.clientY;
-    });
+    }
     return { clientX: sumX / touches.length, clientY: sumY / touches.length };
 }
 

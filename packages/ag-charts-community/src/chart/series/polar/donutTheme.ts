@@ -1,5 +1,6 @@
-import type { ExtensibleTheme } from '../../../module/coreModules';
-import { LABEL_BOXING_DEFAULTS, singleSeriesHighlightStyle } from '../../themes/util';
+import { LABEL_BOXING_DEFAULTS, PART_WHOLE_HIGHLIGHT_STYLE } from 'ag-charts-core';
+import type { ExtensibleTheme } from 'ag-charts-types';
+
 import { pieTheme } from './pieTheme';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
@@ -19,6 +20,6 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
                 spacing: 2,
             },
         } as any,
-        highlight: singleSeriesHighlightStyle(),
+        highlight: PART_WHOLE_HIGHLIGHT_STYLE,
     },
 };

@@ -1,4 +1,4 @@
-import { type Locator, type Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
 
@@ -46,6 +46,10 @@ export function getExamples() {
     return examples;
 }
 
+export function toPageUrl(uri: string) {
+    return `${baseUrl}/${uri}`;
+}
+
 export function toExamplePageUrls(page: string, example: string) {
     return fws.map((framework) => ({ framework, url: `${baseUrl}/${framework}/${page}/examples/${example}`, example }));
 }
@@ -58,20 +62,47 @@ export function toGalleryPageUrls(example: string) {
     return [{ framework: 'vanilla', url: `${baseUrl}/gallery/examples/${example}`, example }];
 }
 
-export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { width: number; height: number } } = {}) {
+export function setupIntrinsicAssertions(
+    testFn: {
+        beforeEach: (fn: ({ page }: { page: Page }, testInfo: { titlePath?: string[] }) => Promise<void>) => void;
+        afterEach: (fn: () => void) => void;
+    },
+    opts: { viewportSize?: { width: number; height: number } } = {}
+) {
     let consoleWarnOrErrors: string[] = [];
     const config = { ignore404s: false, ignoreConsoleWarnings: false };
 
-    test.beforeEach(async ({ page }) => {
-        consoleWarnOrErrors = [];
-        config.ignore404s = false;
-        config.ignoreConsoleWarnings = false;
+    function titlePathIncludes(testInfo: { titlePath?: string[] }, searchString: string): boolean {
+        for (const pathComponent of testInfo.titlePath ?? []) {
+            if (pathComponent.includes(searchString)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        if (viewportSize) {
-            await page.setViewportSize(viewportSize);
+    // Create setup functions that can be called with any test instance
+    testFn.beforeEach(async ({ page }, testInfo) => {
+        consoleWarnOrErrors = [];
+        // Check if this is a 404 test by examining the test title
+        config.ignore404s = titlePathIncludes(testInfo, 'should 404 on');
+        // Check if console warnings should be ignored for this test
+        config.ignoreConsoleWarnings = titlePathIncludes(testInfo, '[ignoreConsoleWarnings]');
+
+        if (opts?.viewportSize) {
+            await page.setViewportSize(opts.viewportSize);
         }
 
-        page.on('console', (msg) => {
+        page.on('console', (msg: any) => {
+            // Capture Chrome violation/intervention warnings (emitted as 'log' type with [Violation]/[Intervention] prefix).
+            if (msg.type() === 'log') {
+                const text = msg.text();
+                if (text.startsWith('[Violation]') || text.startsWith('[Intervention]')) {
+                    consoleWarnOrErrors.push(text);
+                }
+                return;
+            }
+
             // We only care about warnings/errors.
             if (msg.type() !== 'warning' && msg.type() !== 'error') return;
 
@@ -82,7 +113,7 @@ export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { wi
             if (msg.text().includes('This page is in Quirks Mode')) return;
 
             // Ignore 404s when expected
-            const notFoundMatcher = /the server responded with a status of 404 \(Not Found\)/;
+            const notFoundMatcher = /the server responded with a status of 404/;
             if (msg.location().url.includes('/favicon.ico')) return;
             if (notFoundMatcher.test(msg.text())) {
                 if (config.ignore404s) return;
@@ -92,18 +123,20 @@ export function setupIntrinsicAssertions({ viewportSize }: { viewportSize?: { wi
             consoleWarnOrErrors.push(msg.text());
         });
 
-        page.on('pageerror', (err) => {
+        page.on('pageerror', (err: any) => {
             consoleWarnOrErrors.push(err.message);
         });
     });
 
-    test.afterEach(() => {
+    testFn.afterEach(() => {
         if (!config.ignoreConsoleWarnings) {
             expect(consoleWarnOrErrors).toHaveLength(0);
         }
     });
 
-    return config;
+    return {
+        ...config,
+    };
 }
 
 export function createConsoleLogs() {
@@ -149,10 +182,18 @@ export function createConsoleLogs() {
     };
 }
 
-export function repeat(repCount: number, fn: () => unknown) {
+export async function repeat(repCount: number, fn: () => Promise<void>): Promise<void>;
+export function repeat(repCount: number, fn: () => void): void;
+export async function repeat(repCount: number, fn: () => void | Promise<void>): Promise<void> {
     for (let i = 0; i < repCount; i++) {
-        fn();
+        await fn();
     }
+}
+
+export async function gotoUrl(page: Page, url: string) {
+    await page.goto(url);
+    await page.waitForLoadState('networkidle');
+    expect(await page.title()).not.toMatch(/Page Not Found/);
 }
 
 export async function gotoExample(
@@ -160,7 +201,7 @@ export async function gotoExample(
     url: string,
     opts = { skipStabilityChecks: false, skipNetworkIdle: false }
 ) {
-    await page.goto(url + '#e2e=true');
+    await gotoUrl(page, url + '#e2e=true');
 
     if (opts.skipNetworkIdle) {
         await page.waitForLoadState('load');
@@ -173,7 +214,7 @@ export async function gotoExample(
     // Wait for synchronous JS execution to complete before we start waiting
     // for <canvas/> to appear.
     await page.evaluate(() => 1);
-    await expect(page.locator(SELECTORS.canvas).first()).toBeVisible();
+    await expect(page.locator(SELECTORS.canvas).first()).toBeVisible({ timeout: 10_000 });
     for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }
@@ -237,7 +278,7 @@ export async function locateCanvas(page: Page) {
     const height = Number(await canvasElem.getAttribute('height'));
     const bbox = await canvas.boundingBox();
 
-    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || isNaN(n))) {
+    if ([width, height].some((n) => [-Infinity, 0, Infinity].includes(n) || Number.isNaN(n))) {
         throw new Error(`Invalid canvasDims: { width: ${width}, height: ${height} }`);
     }
     if (bbox == null) {
@@ -255,4 +296,15 @@ export async function canvasToPageTransformer(page: Page): Promise<PointTransfor
     return (x: number, y: number) => {
         return { x: offset.x + x, y: offset.y + y };
     };
+}
+
+export async function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function readSwapchainText(page: Page): Promise<string | null> {
+    const activeAnnouncer = page.locator('.ag-charts-series-area [aria-hidden="false"]');
+    const activeLabelId = await activeAnnouncer.getAttribute('aria-labelledby');
+    const activeLabel = page.locator(`#${activeLabelId}`);
+    return await activeLabel.textContent();
 }

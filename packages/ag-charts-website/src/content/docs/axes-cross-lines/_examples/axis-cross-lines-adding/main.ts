@@ -1,7 +1,9 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -12,9 +14,8 @@ const options: AgChartOptions = {
             yKey: 'temp',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
             title: {
                 text: 'Month',
@@ -26,8 +27,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Temperature (°C)',
@@ -39,7 +39,7 @@ const options: AgChartOptions = {
                 },
             ],
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

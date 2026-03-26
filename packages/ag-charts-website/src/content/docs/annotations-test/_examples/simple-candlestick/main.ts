@@ -1,6 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnnotationsModule,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnnotationsModule,
+    CandlestickSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    ContextMenuModule,
+]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -25,19 +46,14 @@ const options: AgChartOptions = {
             closeKey: 'close',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             crosshair: {
                 snap: true,
             },
         },
-        {
-            type: 'ordinal-time',
-            position: 'bottom',
-        },
-    ],
+    },
     annotations: {
         enabled: true,
     },

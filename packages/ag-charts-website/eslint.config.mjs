@@ -11,13 +11,21 @@ export default [
         rules: reactHooksPlugin.configs.recommended.rules,
     },
     {
-        ignores: ['.astro/', '**/_examples/', 'scripts/showcase-github/tmp/', '**/.angular'],
+        ignores: [
+            '.astro/',
+            '**/_examples/',
+            'scripts/',
+            '**/.angular',
+            '**/benchmarkHarness.ts',
+            '**/benchmarkUtils.ts',
+        ],
     },
     {
         rules: {
             'no-eval': 'error',
             'no-console': 'error',
             'import-x/consistent-type-specifier-style': 'off',
+            '@typescript-eslint/no-redundant-type-constituents': 'warn',
         },
     },
     {
@@ -81,6 +89,7 @@ export default [
             '*.mjs',
             'public/example-runner/**/*.{js,ts}',
             'e2e/fixture.ts',
+            'e2e/generated/**',
             'tools/compare-gallery-thumbnails.js',
             'update-algolia.js',
         ],

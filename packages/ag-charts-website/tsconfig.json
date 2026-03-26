@@ -48,5 +48,10 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "types": ["vitest/globals"]
-  }
+  },
+  "references": [
+    {
+      "path": "./tsconfig.lint.json"
+    }
+  ]
 }

@@ -1,6 +1,8 @@
 import type { _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
+import { BaseProperties, type StateMachine } from 'ag-charts-core';
 
-import type { AnnotationContext, AnnotationType, Constructor, Point } from './annotationTypes';
+import type { AnnotationContext, AnnotationType, Constructor, DataPoint } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -83,21 +85,21 @@ export type AnnotationScene =
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
-    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number, hovered?: number) => number | undefined;
-    getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
+    hoverAtCoords: (coords: Point, active?: number, hovered?: number) => number | undefined;
+    getNodeAtCoords: (coords: Point, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
     startInteracting: () => void;
     stopInteracting: () => void;
 
-    translate: (index: number, translation: _ModuleSupport.Vec2) => void;
+    translate: (index: number, translation: Point) => void;
     copy: (index: number) => AnnotationProperties | undefined;
     paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
     delete: (index: number) => void;
     deleteAll: () => void;
-    validatePoint: (point: Point, options?: { overflowContinuous: boolean }) => boolean;
+    validatePoint: (point: DataPoint, options?: { overflowContinuous: boolean }) => boolean;
 
     getAnnotationType: (index: number) => AnnotationType | undefined;
 
@@ -118,11 +120,16 @@ export interface AnnotationsStateMachineContext {
     update: () => void;
 }
 
+<<<<<<< HEAD
 export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BaseProperties, Scene extends AnnotationScene> {
+=======
+export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationSceneNode> {
+>>>>>>> latest
     type: AnnotationType;
     isDatum: (value: unknown) => value is Datum;
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
+<<<<<<< HEAD
     update: (
         node: AnnotationSceneNode<Datum>,
         datum: _ModuleSupport.BaseProperties,
@@ -138,16 +145,29 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         node: AnnotationSceneNode<unknown>,
         datum: _ModuleSupport.BaseProperties,
         copiedDatum: _ModuleSupport.BaseProperties,
+=======
+    update: (node: AnnotationSceneNode, datum: BaseProperties, context: AnnotationContext) => void;
+    translate: (
+        node: AnnotationSceneNode,
+        datum: BaseProperties,
+        translation: Point,
+        context: AnnotationContext
+    ) => void;
+    copy: (
+        node: AnnotationSceneNode,
+        datum: BaseProperties,
+        copiedDatum: BaseProperties,
+>>>>>>> latest
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (
         ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
-    ) => _ModuleSupport.StateMachine<any, any>;
+    ) => StateMachine<any, any>;
     dragState: (
         ctx: AnnotationsStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
-    ) => _ModuleSupport.StateMachine<any, any>;
+    ) => StateMachine<any, any>;
 }
 
 export interface AnnotationsStateMachineHelperFns {

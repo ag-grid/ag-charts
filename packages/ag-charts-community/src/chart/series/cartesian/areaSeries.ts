@@ -1,11 +1,27 @@
-import type { Point, RequireOptional } from 'ag-charts-core';
-import { isDefined } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DomainWithMetadata,
+    InternalAgColorType,
+    Point,
+    RequireOptional,
+} from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    DebugMetrics,
+    SeriesContentZIndexMap,
+    SeriesZIndexMap,
+    extent,
+    isContinuous,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 import {
     type AgAreaSeriesLabelFormatterParams,
     type AgAreaSeriesMarkerItemStylerParams,
     type AgAreaSeriesOptions,
     type AgAreaSeriesStylerParams,
     type AgAreaSeriesStylerResult,
+    type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
@@ -17,24 +33,20 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
-import type { Path } from '../../../scene/shape/path';
+import { Path } from '../../../scene/shape/path';
 import type { SegmentedPath } from '../../../scene/shape/segmentedPath';
 import type { Text } from '../../../scene/shape/text';
-import type { CallbackParamRules } from '../../../util/callbackCache';
-import { extent } from '../../../util/extent';
-import { simpleMemorize2 } from '../../../util/memo';
-import { mergeDefaults } from '../../../util/object';
-import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { NumberAxis } from '../../axis/numberAxis';
-import { ChartAxisDirection } from '../../chartAxisDirection';
+import type { ChartAxis } from '../../chartAxis';
 import type { DataController } from '../../data/dataController';
-import type { DataModel, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from '../../data/dataModel';
+import type { DataModel, DatumPropertyDefinition, ProcessedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
+import type { PropertyDefinition } from '../../data/dataModelTypes';
 import {
     animationValidation,
+    createDatumId,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,
@@ -45,14 +57,17 @@ import { getLabelStyles } from '../../labelUtil';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
-import { type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
-import { type AreaSeriesDataAggregationFilter, aggregateAreaData } from './areaAggregation';
+import {
+    type AreaSeriesDataAggregationFilter,
+    aggregateAreaDataFromDataModel,
+    aggregateAreaDataFromDataModelPartial,
+} from './areaAggregation';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -61,13 +76,17 @@ import {
     plotAreaPathFill,
     prepareAreaPathAnimation,
 } from './areaUtil';
-import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
+import type {
+    CartesianAnimationDataOf,
+    CartesianMarkerLikeContext,
+    CartesianSeriesTypes,
+} from './cartesianSeriesTypes';
 import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
@@ -77,10 +96,12 @@ import {
     markerSwipeScaleInAnimation,
     resetMarkerFn,
     resetMarkerPositionFn,
+    resetMarkerSelectionsDirect,
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
+<<<<<<< HEAD
 const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
 const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
 
@@ -90,6 +111,9 @@ type AreaAnimationData = CartesianAnimationData<
     LabelSelectionDatum,
     AreaSeriesNodeDataContext
 >;
+=======
+type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
+>>>>>>> latest
 
 interface StackRange {
     leading: number;
@@ -104,8 +128,12 @@ interface AreaSeriesStackContext {
     strokeSpans: LinePathSpan[];
 }
 
-const memoizedAggregateAreaData = simpleMemorize2(aggregateAreaData);
+/** Context object caching expensive lookups for createNodeData(). */
+interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<MarkerSelectionDatum> {
+    // Override yKey to be required (base interface has it optional)
+    readonly yKey: string;
 
+<<<<<<< HEAD
 export class AreaSeries extends CartesianSeries<
     MarkerSelectionDatum,
     Marker<MarkerSelectionDatum>,
@@ -116,13 +144,73 @@ export class AreaSeries extends CartesianSeries<
     AreaSeriesStackContext
 > {
     static readonly className = 'AreaSeries';
+=======
+    // Additional data arrays specific to area series
+    readonly yRawValues: any[];
+    readonly yCumulativeValues: any[];
+    readonly selectedValues: boolean[] | undefined;
+    readonly invalidData: boolean[] | undefined;
+
+    // Aggregation
+    readonly indices: Uint32Array | undefined;
+
+    // Pre-computed flags
+    readonly isContinuousY: boolean;
+    readonly labelsEnabled: boolean;
+    readonly normalizedTo: number | undefined;
+
+    // Property caches (in addition to base xKey, yKey, xName, yName)
+    readonly legendItemName: string | undefined;
+    readonly markerSize: number;
+    readonly markerFill: InternalAgColorType | undefined;
+    readonly markerStroke: string | undefined;
+    readonly markerStrokeWidth: number;
+    readonly yDomain: any[];
+
+    // Mutable state (in addition to nodes, nodeIndex from base)
+    labelData: LabelSelectionDatum[];
+}
+
+/**
+ * Scratch object for marker/label datum creation.
+ * Pre-allocated once and mutated in loops to avoid GC pressure.
+ */
+interface AreaNodeDatumScratch {
+    datum: any;
+    xDatum: any;
+    yDatum: any;
+    yCumulative: number;
+    selected: boolean | undefined;
+    x: number;
+    y: number;
+    validPoint: boolean;
+}
+
+/**
+ * Consolidated type interface for AreaSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface AreaSeriesTypes extends CartesianSeriesTypes {
+    readonly node: Marker;
+    readonly options: AgAreaSeriesOptions;
+    readonly properties: AreaSeriesProperties;
+    readonly datum: MarkerSelectionDatum;
+    readonly label: LabelSelectionDatum;
+    readonly context: AreaSeriesNodeDataContext;
+    readonly stackContext: AreaSeriesStackContext;
+    readonly createNodeDataContext: AreaSeriesCreateNodeDatumContext;
+}
+
+export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
+    static override readonly className = 'AreaSeries';
+>>>>>>> latest
     static readonly type = 'area' as const;
 
     override properties = new AreaSeriesProperties();
 
     override connectsToYAxis = true;
 
-    private dataAggregationFilters: AreaSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -153,13 +241,11 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    override get hasData(): boolean {
-        return this.getHasData('xValue');
-    }
-
     override renderToOffscreenCanvas(): boolean {
+        const hasMarkers = (this.contextNodeData?.nodeData?.length ?? 0) > 0;
         return (
             super.renderToOffscreenCanvas() ||
+            (hasMarkers && this.getDrawingMode(false) === 'cutout') ||
             (this.contextNodeData != null &&
                 (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
                     this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
@@ -179,7 +265,7 @@ export class AreaSeries extends CartesianSeries<
     ): void {
         super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesContentNode?.removeChild(this.backgroundGroup);
+        this.backgroundGroup.remove();
     }
 
     protected override attachPaths([fill, stroke]: Path[]) {
@@ -190,9 +276,9 @@ export class AreaSeries extends CartesianSeries<
     }
 
     protected override detachPaths([fill, stroke]: Path[]) {
-        this.backgroundGroup.removeChild(fill);
+        fill.remove();
 
-        this.contentGroup.removeChild(stroke);
+        stroke.remove();
     }
 
     private isStacked() {
@@ -229,7 +315,7 @@ export class AreaSeries extends CartesianSeries<
         if (this.data == null) return;
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, selectedKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -250,10 +336,11 @@ export class AreaSeries extends CartesianSeries<
             common.forceValue = 0;
         }
 
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const props: PropertyDefinition<any, any>[] = [
-            keyProperty(xKey, xScaleType, { id: 'xValue' }),
+            keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
             valueProperty(yKey, yScaleType, { id: `yValueRaw`, ...common }),
-            ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' })] : []),
+            ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: 'selectedRaw' })]),
         ];
 
         if (stacked) {
@@ -261,7 +348,6 @@ export class AreaSeries extends CartesianSeries<
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
-                    'current',
                     { id: `yValueCumulative`, ...common, groupId: idMap.marker },
                     yScaleType
                 )
@@ -284,7 +370,7 @@ export class AreaSeries extends CartesianSeries<
             groupByData: !stacked,
         });
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -311,9 +397,9 @@ export class AreaSeries extends CartesianSeries<
         return processData.type === 'grouped' ? 'yValueCumulative' : this.yValueKey();
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { dataModel, processedData, axes } = this;
-        if (!dataModel || !processedData) return [];
+        if (!dataModel || !processedData) return { domain: [] };
 
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -324,7 +410,7 @@ export class AreaSeries extends CartesianSeries<
                 return keys;
             }
 
-            return fixNumericExtent(extent(keys));
+            return { domain: fixNumericExtent(extent(keys.domain)) };
         }
 
         const yExtent = this.domainForClippedRange(
@@ -335,11 +421,11 @@ export class AreaSeries extends CartesianSeries<
 
         if (yAxis instanceof NumberAxis && !(yAxis instanceof LogAxis)) {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
-                ? [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]]
+                ? [Math.min(yExtent[0], 0), Math.max(yExtent[1], 0)]
                 : [];
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         } else {
-            return fixNumericExtent(yExtent);
+            return { domain: fixNumericExtent(yExtent) };
         }
     }
 
@@ -381,18 +467,55 @@ export class AreaSeries extends CartesianSeries<
         );
     }
 
-    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>) {
+    private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
+        this.aggregationManager.markStale(processedData.input.count);
+
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const { scale } = xAxis;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
-        const domain = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        const targetRange = this.estimateTargetRange();
 
-        return memoizedAggregateAreaData(scale.type, xValues, yValues, domain);
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateAreaDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateAreaDataFromDataModel(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this.yCumulativeKey(processedData),
+                    this,
+                    existingFilters
+                ),
+            targetRange,
+        });
+
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
+    }
+
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale?.range) {
+            const [r0, r1] = xAxis.scale.range;
+            return Math.abs(r1 - r0);
+        }
+        return this.ctx.scene?.canvas?.width ?? 800;
     }
 
     private fillSpans: LinePathSpan[] = [];
@@ -420,6 +543,8 @@ export class AreaSeries extends CartesianSeries<
         const { scale: yScale } = yAxis;
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
+        const connectMissingData = !this.isStacked() && this.properties.connectMissingData;
+        const invalidData = processedData.invalidData?.get(this.id);
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
         const yValues = dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData);
@@ -478,6 +603,7 @@ export class AreaSeries extends CartesianSeries<
 
         const fillSpans: LinePathSpan[] = [];
         const strokeSpans: LinePathSpan[] = [];
+        let phantomIndex = 0;
         for (let metaIndex = m0; metaIndex < m1; metaIndex += 1) {
             const startIndex = metaIndices[metaIndex];
             const endIndex = metaIndices[metaIndex + 1];
@@ -485,35 +611,61 @@ export class AreaSeries extends CartesianSeries<
             const startDatumIndex = indices[startIndex];
             const endDatumIndex = indices[endIndex];
 
-            const xValue0 = xValues[startDatumIndex];
-            const xValue1 = xValues[endDatumIndex];
-            const yValue0 = yValues[startDatumIndex];
-            const yValue1 = yValues[endDatumIndex];
+            const spanInvalid =
+                !connectMissingData &&
+                this.hasInvalidDatumsInRange(invalidData, yValues, startDatumIndex, endDatumIndex);
 
-            const midPoints: Point[] = [];
-            for (let i = startIndex + 1; i < endIndex; i++) {
+            const phantomSpanDatum = phantomSpans[phantomIndex++];
+            if (spanInvalid) {
+                fillSpans.push(phantomSpanDatum);
+                strokeSpans.push(phantomSpanDatum);
+                continue;
+            }
+
+            const bucketPoints: LineSpanPointDatum[] = [];
+            for (let i = startIndex; i <= endIndex; i++) {
                 const datumIndex = indices[i];
-                midPoints.push({
-                    x: xScale.convert(xValues[datumIndex]) + xOffset,
-                    y: yScale.convert(yValues[datumIndex]),
+                if (invalidData?.[datumIndex]) continue;
+
+                const yValue = yValues[datumIndex];
+                if (!Number.isFinite(yValue)) continue;
+
+                const xDatum = xValues[datumIndex];
+                bucketPoints.push({
+                    point: {
+                        x: xScale.convert(xDatum) + xOffset,
+                        y: yScale.convert(yValue),
+                    },
+                    xDatum,
+                    yDatum: yValue,
                 });
             }
+
+            if (bucketPoints.length < 2) {
+                fillSpans.push(phantomSpanDatum);
+                strokeSpans.push(phantomSpanDatum);
+                continue;
+            }
+
+            const startPoint = bucketPoints[0];
+            const endPoint = bucketPoints.at(-1)!;
+            const midPoints: Point[] = bucketPoints.slice(1, -1).map((p) => p.point);
 
             const span: LinePathSpan['span'] = {
                 type: 'multi-line',
                 moveTo: false,
-                x0: xScale.convert(xValue0) + xOffset,
-                y0: yScale.convert(yValue0),
-                x1: xScale.convert(xValue1) + xOffset,
-                y1: yScale.convert(yValue1),
+                x0: startPoint.point.x,
+                y0: startPoint.point.y,
+                x1: endPoint.point.x,
+                y1: endPoint.point.y,
                 midPoints,
             };
             const spanDatum: LinePathSpan = {
                 span,
-                xValue0,
-                xValue1,
-                yValue0,
-                yValue1,
+                xValue0: startPoint.xDatum,
+                xValue1: endPoint.xDatum,
+                yValue0: startPoint.yDatum,
+                yValue1: endPoint.yDatum,
             };
 
             fillSpans.push(spanDatum);
@@ -528,6 +680,29 @@ export class AreaSeries extends CartesianSeries<
             fillSpans,
             strokeSpans,
         };
+    }
+
+    private hasInvalidDatumsInRange(
+        invalidData: ReadonlyArray<boolean> | undefined,
+        yValues: any[],
+        startIndex: number,
+        endIndex: number
+    ): boolean {
+        const rangeStart = Math.min(startIndex, endIndex);
+        const rangeEnd = Math.max(startIndex, endIndex);
+
+        for (let datumIndex = rangeStart; datumIndex <= rangeEnd; datumIndex++) {
+            if (invalidData?.[datumIndex]) {
+                return true;
+            }
+
+            const yValue = yValues[datumIndex];
+            if (!Number.isFinite(yValue)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private stackYValueData(): AreaSeriesStackContext | undefined {
@@ -669,7 +844,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         if (topSpanPoints.length !== 0) {
-            const previousStack = topStack[topStack.length - 1];
+            const previousStack = topStack.at(-1)!;
             const trailingIndex = startIndex + topStack.length;
             const trailingPoint: LineSpanPointDatum = {
                 point: {
@@ -706,7 +881,11 @@ export class AreaSeries extends CartesianSeries<
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = this.dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
+
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
         if (dataAggregationFilter) {
             return this.stackAggregatedData(dataAggregationFilter);
@@ -715,178 +894,301 @@ export class AreaSeries extends CartesianSeries<
         }
     }
 
-    override createNodeData() {
-        const { axes, data, processedData, dataModel, dataAggregationFilters } = this;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!xAxis || !yAxis || !data || !dataModel || !processedData) return;
+    /**
+     * Creates the context object with cached lookups for createNodeData().
+     * All expensive operations (data resolution, scale lookups) are performed once here.
+     */
+    protected override createNodeDatumContext(
+        xAxis: ChartAxis,
+        yAxis: ChartAxis
+    ): AreaSeriesCreateNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
 
         const {
             xKey,
             xName,
-            yFilterKey,
+            selectedKey,
             yKey,
             yName,
+            legendItemName,
             marker,
             label,
             fill: seriesFill,
             stroke: seriesStroke,
+            normalizedTo,
         } = this.properties;
+
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
 
-        const xOffset = (xScale.bandwidth ?? 0) / 2;
-
         const stacked = processedData.type === 'grouped';
-
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yRawValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-        const yCumulativeValues = stacked
-            ? dataModel.resolveColumnById(this, `yValueCumulative`, processedData)
-            : yRawValues;
-        const yFilterValues =
-            yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
-
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
-        const labelData: LabelSelectionDatum[] = [];
-        const markerData: MarkerSelectionDatum[] = [];
-        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
-
-        let crossFiltering = false;
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-        const invalidData = processedData.invalidData?.get(this.id);
 
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
-        let startIndex = 0;
-        let endIndex = 0;
-        const indices = dataAggregationFilter?.indices;
-        [startIndex, endIndex] = this.visibleRangeIndices('xValue', xAxis.range, indices);
-        startIndex = Math.max(startIndex - 2, 0);
-        endIndex = Math.min(endIndex + 2, indices?.length ?? xValues.length);
-        // @todo(AG-13575) Remove this if block
-        if (processedData.input.count < 1e3) {
-            startIndex = 0;
-            endIndex = processedData.input.count;
-        }
+        // Ensure we have the aggregation level needed for the current range
+        this.aggregationManager.ensureLevelForRange(range);
 
-        const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
-            let currY;
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
 
-            // if not normalized, the invalid data points will be processed as `undefined` in processData()
-            // if normalized, the invalid data points will be processed as 0 rather than `undefined`
-            // check if unprocessed datum is valid as we only want to show markers for valid points
-            if (
-                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
-            ) {
-                currY = yEnd;
-            }
+        const existingNodeData = this.contextNodeData?.nodeData;
+        const canIncrementallyUpdate =
+            existingNodeData != null && this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
-            return {
-                x: xScale.convert(xDatum) + xOffset,
-                y: yScale.convert(currY),
-                size: marker.size,
-            };
-        };
-
-        const handleDatum = (datumIndex: number) => {
-            const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
-
-            const seriesDatum = rawData[datumIndex];
-            const yDatum = yRawValues[datumIndex];
-            const yValueCumulative = yCumulativeValues[datumIndex];
-
-            const validPoint = Number.isFinite(yDatum) && invalidData?.[datumIndex] !== true;
-
-            // marker data
-            const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
-
-            const selected = yFilterValues != null ? yFilterValues[datumIndex] === yDatum : undefined;
-            if (selected === false) {
-                crossFiltering = true;
-            }
-
-            if (validPoint && marker) {
-                markerData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum: seriesDatum,
-                    datumIndex,
-                    midPoint: { x: point.x, y: point.y },
-                    cumulativeValue: +yValueCumulative,
-                    yValue: yDatum,
-                    xValue: xDatum,
-                    yKey,
-                    xKey,
-                    point,
-                    fill: marker.fill ?? seriesFill,
-                    stroke: marker.stroke ?? seriesStroke,
-                    strokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
-                    selected,
-                });
-            }
-
-            // label data
-            if (label.enabled && validPoint) {
-                const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
-                    yDatum,
-                    seriesDatum,
-                    yKey,
-                    'y',
-                    yDomain,
-                    label,
-                    { value: yDatum, datum: seriesDatum, xKey, yKey, xName, yName }
-                );
-
-                labelData.push({
-                    series: this,
-                    itemId: yKey,
-                    datum: seriesDatum,
-                    datumIndex,
-                    x: point.x,
-                    y: point.y,
-                    labelText,
-                });
-            }
-        };
-
-        for (let i = startIndex; i < endIndex; i += 1) {
-            const datumIndex = indices?.[i] ?? i;
-            if (xValues[datumIndex] == null) continue;
-            handleDatum(datumIndex);
-        }
-
-        const segments = calculateSegments(
-            this.properties.segmentation,
+        return {
+            // Axes (from template method parameters)
             xAxis,
             yAxis,
+
+            // Data arrays (resolved once)
+            rawData: processedData.dataSources.get(this.id)?.data ?? [],
+            xValues: dataModel.resolveKeysById(this, 'xValue', processedData),
+            yRawValues: dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            yCumulativeValues: stacked
+                ? dataModel.resolveColumnById(this, 'yValueCumulative', processedData)
+                : dataModel.resolveColumnById(this, 'yValueRaw', processedData),
+            selectedValues:
+                selectedKey == null ? undefined : dataModel.resolveColumnById(this, 'selectedRaw', processedData),
+            invalidData: processedData.invalidData?.get(this.id),
+
+            // Scales (cached)
+            xScale,
+            yScale,
+            xOffset: (xScale.bandwidth ?? 0) / 2,
+            yOffset: 0,
+
+            // Aggregation
+            indices: dataAggregationFilter?.indices,
+
+            // Pre-computed flags
+            isContinuousY,
+            labelsEnabled: label.enabled,
+            normalizedTo,
+            canIncrementallyUpdate,
+            animationEnabled: !this.ctx.animationManager.isSkipped(),
+
+            // Property caches
+            xKey,
+            yKey,
+            xName,
+            yName,
+            legendItemName,
+            markerSize: marker.size,
+            markerFill: marker.fill ?? seriesFill,
+            markerStroke: marker.stroke ?? seriesStroke,
+            markerStrokeWidth: marker.strokeWidth ?? this.properties.strokeWidth,
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y).domain,
+
+            // Mutable state (nodes instead of markerData to match base interface)
+            nodes: canIncrementallyUpdate ? existingNodeData : [],
+            labelData: [],
+            nodeIndex: 0,
+        };
+    }
+
+    /**
+     * Computes the marker coordinate for a datum.
+     * Uses cached context values to avoid repeated lookups.
+     */
+    private computeMarkerCoordinate(ctx: AreaSeriesCreateNodeDatumContext, scratch: AreaNodeDatumScratch): void {
+        let currY: number | undefined;
+
+        // if not normalized, the invalid data points will be processed as `undefined` in processData()
+        // if normalized, the invalid data points will be processed as 0 rather than `undefined`
+        // check if unprocessed datum is valid as we only want to show markers for valid points
+        if (
+            isDefined(ctx.normalizedTo)
+                ? ctx.isContinuousY && isContinuous(scratch.yDatum)
+                : !Number.isNaN(scratch.yDatum)
+        ) {
+            currY = scratch.yCumulative;
+        }
+
+        scratch.x = ctx.xScale.convert(scratch.xDatum) + ctx.xOffset;
+        scratch.y = ctx.yScale.convert(currY);
+
+        if (!Number.isFinite(scratch.x)) {
+            scratch.validPoint = false;
+        }
+    }
+
+    /**
+     * Processes a single datum and updates the context's marker/label data.
+     * Uses scratch object to avoid allocations in tight loops.
+     */
+    private handleDatum(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        scratch: AreaNodeDatumScratch,
+        datumIndex: number
+    ): void {
+        // Populate scratch from context arrays
+        scratch.xDatum = ctx.xValues[datumIndex];
+        if (scratch.xDatum === undefined && !this.properties.allowNullKeys) return;
+
+        scratch.datum = ctx.rawData[datumIndex];
+        scratch.yDatum = ctx.yRawValues[datumIndex];
+        scratch.yCumulative = +ctx.yCumulativeValues[datumIndex];
+        scratch.validPoint = Number.isFinite(scratch.yDatum) && ctx.invalidData?.[datumIndex] !== true;
+
+        // Compute marker coordinates
+        this.computeMarkerCoordinate(ctx, scratch);
+
+        scratch.selected = ctx.selectedValues?.[datumIndex];
+
+        // Marker data (using ctx.nodes to match base interface)
+        if (scratch.validPoint) {
+            const canReuseNode = ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length;
+
+            if (canReuseNode) {
+                // Update existing node in place
+                const existingNode = ctx.nodes[ctx.nodeIndex] as {
+                    -readonly [K in keyof MarkerSelectionDatum]: MarkerSelectionDatum[K];
+                };
+                existingNode.datum = scratch.datum;
+                existingNode.datumIndex = datumIndex;
+                existingNode.midPoint = { x: scratch.x, y: scratch.y };
+                existingNode.cumulativeValue = scratch.yCumulative;
+                existingNode.yValue = scratch.yDatum;
+                existingNode.xValue = scratch.xDatum;
+                existingNode.point = { x: scratch.x, y: scratch.y, size: ctx.markerSize };
+                existingNode.selected = scratch.selected;
+            } else {
+                ctx.nodes.push({
+                    series: this,
+                    datum: scratch.datum,
+                    datumIndex,
+                    midPoint: { x: scratch.x, y: scratch.y },
+                    cumulativeValue: scratch.yCumulative,
+                    yValue: scratch.yDatum,
+                    xValue: scratch.xDatum,
+                    yKey: ctx.yKey,
+                    xKey: ctx.xKey,
+                    point: { x: scratch.x, y: scratch.y, size: ctx.markerSize },
+                    fill: ctx.markerFill,
+                    stroke: ctx.markerStroke,
+                    strokeWidth: ctx.markerStrokeWidth,
+                    selected: scratch.selected,
+                });
+            }
+            ctx.nodeIndex++;
+        }
+
+        // Label data (only if enabled - skip expensive getLabelText when disabled)
+        if (ctx.labelsEnabled && scratch.validPoint) {
+            const labelText = this.getLabelText<AgAreaSeriesLabelFormatterParams>(
+                scratch.yDatum,
+                scratch.datum,
+                ctx.yKey,
+                'y',
+                ctx.yDomain,
+                this.properties.label,
+                {
+                    value: scratch.yDatum,
+                    datum: scratch.datum,
+                    xKey: ctx.xKey,
+                    yKey: ctx.yKey,
+                    xName: ctx.xName,
+                    yName: ctx.yName,
+                    legendItemName: ctx.legendItemName,
+                }
+            );
+
+            ctx.labelData.push({
+                series: this,
+                datum: scratch.datum,
+                datumIndex,
+                x: scratch.x,
+                y: scratch.y,
+                labelText,
+            });
+        }
+    }
+
+    // ============================================================================
+    // Template Method Hooks
+    // ============================================================================
+
+    /**
+     * Populates the node data array by iterating over visible data.
+     */
+    protected override populateNodeData(ctx: AreaSeriesCreateNodeDatumContext): void {
+        // Pre-allocate scratch object for mutations
+        const scratch: AreaNodeDatumScratch = {
+            datum: undefined,
+            xDatum: undefined,
+            yDatum: undefined,
+            yCumulative: 0,
+            selected: undefined,
+            x: 0,
+            y: 0,
+            validPoint: false,
+        };
+
+        // Calculate visible range
+        let [startIndex, endIndex] = this.visibleRangeIndices('xValue', ctx.xAxis.range, ctx.indices);
+        startIndex = Math.max(startIndex - 2, 0);
+        endIndex = Math.min(endIndex + 2, ctx.indices?.length ?? ctx.xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (this.processedData!.input.count < 1e3) {
+            startIndex = 0;
+            endIndex = this.processedData!.input.count;
+        }
+
+        // Process visible datums
+        for (let i = startIndex; i < endIndex; i += 1) {
+            const datumIndex = ctx.indices?.[i] ?? i;
+            this.handleDatum(ctx, scratch, datumIndex);
+        }
+    }
+
+    /**
+     * Initializes the result context object with default values.
+     * Called before populate phase to allow early return for invisible series.
+     *
+     * Note: We use the actual fillSpans/strokeSpans/phantomSpans because createStackContext()
+     * runs BEFORE createNodeData() and populates these instance fields. They are valid
+     * even in the early return case when !visible.
+     */
+    protected override initializeResult(ctx: AreaSeriesCreateNodeDatumContext): AreaSeriesNodeDataContext {
+        const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
+
+        return {
+            itemId: ctx.yKey,
+            // Use actual spans from createStackContext() - valid even for early return
+            fillData: { spans: this.fillSpans, phantomSpans: this.phantomSpans },
+            strokeData: { spans: this.strokeSpans },
+            labelData: ctx.labelData,
+            nodeData: ctx.nodes,
+            scales: this.calculateScaling(),
+            visible: this.visible,
+            stackVisible: visibleSameStackCount > 0,
+            crossFiltering: this.properties.selectedKey != null,
+            styles: getMarkerStyles(this, this.properties, this.properties.marker),
+            segments: undefined,
+        };
+    }
+
+    /**
+     * Assembles the final result with computed fields.
+     * Note: fillData/strokeData are already set in initializeResult() from instance fields.
+     */
+    protected override assembleResult(
+        ctx: AreaSeriesCreateNodeDatumContext,
+        result: AreaSeriesNodeDataContext
+    ): AreaSeriesNodeDataContext {
+        // Calculate segments (only computed field needed beyond what initializeResult provides)
+        result.segments = calculateSegments(
+            this.properties.segmentation,
+            ctx.xAxis,
+            ctx.yAxis,
             this.chart!.seriesRect!,
             this.ctx.scene,
             false
         );
 
-        const context: AreaSeriesNodeDataContext = {
-            itemId: yKey,
-            fillData: { itemId: yKey, spans: this.fillSpans, phantomSpans: this.phantomSpans },
-            strokeData: { itemId: yKey, spans: this.strokeSpans },
-            labelData,
-            nodeData: markerData,
-            scales: this.calculateScaling(),
-            visible: this.visible,
-            stackVisible: visibleSameStackCount > 0,
-            crossFiltering,
-            styles: getMarkerStyles(this, marker),
-            segments,
-        };
-
-        return context;
+        return result;
     }
 
     protected override isPathOrSelectionDirty(): boolean {
@@ -899,10 +1201,9 @@ export class AreaSeries extends CartesianSeries<
             visible,
             animationEnabled,
         } = opts;
-        const crossFiltering = this.contextNodeData?.crossFiltering === true;
         const segments = this.contextNodeData?.segments;
 
-        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(false));
+        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
         strokePaths.setProperties({
@@ -913,7 +1214,7 @@ export class AreaSeries extends CartesianSeries<
             pointerEvents: PointerEvents.None,
             stroke,
             strokeWidth,
-            strokeOpacity: strokeOpacity * (crossFiltering ? CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR : 1),
+            strokeOpacity,
             lineDash,
             lineDashOffset,
             opacity,
@@ -921,15 +1222,7 @@ export class AreaSeries extends CartesianSeries<
         });
         strokePaths.datum = segments;
 
-        applyShapeStyle(
-            fillPaths,
-            {
-                fill,
-                stroke: undefined,
-                fillOpacity: fillOpacity * (crossFiltering ? CROSS_FILTER_AREA_FILL_OPACITY_FACTOR : 1),
-            },
-            this.getShapeFillBBox()
-        );
+        fillPaths.setStyleProperties({ fill, stroke: undefined, fillOpacity }, this.getShapeFillBBox());
 
         fillPaths.setProperties({
             segments,
@@ -990,7 +1283,7 @@ export class AreaSeries extends CartesianSeries<
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker, styler } = properties;
 
-        const markerStyle = styler ? this.getStyle(false).marker : undefined;
+        const markerStyle = styler ? this.getStyle().marker : undefined;
 
         const markersEnabled =
             contextNodeData?.crossFiltering === true ||
@@ -1001,7 +1294,12 @@ export class AreaSeries extends CartesianSeries<
             datumSelection.cleanup();
         }
 
-        return datumSelection.update(markersEnabled ? nodeData : []);
+        const data = markersEnabled ? nodeData : [];
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to match nodes by id
+            return datumSelection.update(data);
+        }
+        return datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
     protected override updateDatumStyles(opts: {
@@ -1015,7 +1313,7 @@ export class AreaSeries extends CartesianSeries<
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(isHighlight, highlightState);
+                const stylerStyle = this.getStyle(highlightState);
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
@@ -1043,6 +1341,7 @@ export class AreaSeries extends CartesianSeries<
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<MarkerSelectionDatum, Marker<MarkerSelectionDatum>>;
         isHighlight: boolean;
+        drawingMode: AgDrawingMode;
     }) {
         const { contextNodeData } = this;
         if (!contextNodeData) {
@@ -1054,11 +1353,13 @@ export class AreaSeries extends CartesianSeries<
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
+        const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
+
         datumSelection.each((node, datum) => {
-            const style =
-                datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const style = datum.style ?? contextNodeData.styles[state];
             this.applyMarkerStyle(style, node, datum.point, fillBBox, { selected: datum.selected });
+            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
         });
 
         if (!isHighlight) {
@@ -1104,10 +1405,7 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    makeStylerParams(
-        highlighted: boolean,
-        highlightStateEnum?: HighlightState
-    ): AgAreaSeriesStylerParams<unknown, unknown> {
+    makeStylerParams(highlightStateEnum?: HighlightState): AgAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
             this.properties;
@@ -1128,7 +1426,6 @@ export class AreaSeries extends CartesianSeries<
                 lineDashOffset: marker.lineDashOffset,
             },
             highlightState,
-            highlighted,
             fill,
             fillOpacity,
             lineDash,
@@ -1152,8 +1449,8 @@ export class AreaSeries extends CartesianSeries<
 
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
-        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData);
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData);
+        const xDomain = dataModel.getDomain(this, `xValue`, 'key', processedData).domain;
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -1166,25 +1463,27 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private makeLabelFormatterParams(): AgAreaSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName } = this.properties;
-        return { xKey, xName, yKey, yName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
+        const { xKey, xName, yKey, yName, legendItemName } = this.properties;
+        return { xKey, xName, yKey, yName, legendItemName } satisfies RequireOptional<AgAreaSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip, legendItemName } = properties;
+        const allowNullKeys = properties.allowNullKeys ?? false;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data?.[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
@@ -1198,13 +1497,14 @@ export class AreaSeries extends CartesianSeries<
         return this.formatTooltipWithContext(
             tooltip,
             {
-                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
+                heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName, allowNullKeys),
                 symbol: this.legendItemSymbol(),
                 data: [
                     {
                         label: yName,
                         fallbackLabel: yKey,
                         value: this.getAxisValueText(yAxis, 'tooltip', yValue, datum, yKey, legendItemName),
+                        missing: isTooltipValueMissing(yValue),
                     },
                 ],
             },
@@ -1223,7 +1523,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(false);
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle();
         const useAreaFill = !marker.enabled || marker.fill == null;
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
@@ -1247,6 +1547,7 @@ export class AreaSeries extends CartesianSeries<
                 enabled: marker.enabled || strokeWidth <= 0,
             },
             line: {
+                enabled: true,
                 stroke,
                 strokeOpacity,
                 strokeWidth,
@@ -1285,6 +1586,11 @@ export class AreaSeries extends CartesianSeries<
         ];
     }
 
+    protected override resetDatumAnimation(data: AreaAnimationData): void {
+        // Use direct reset for datum selection to bypass resetMotion callback overhead
+        resetMarkerSelectionsDirect([data.datumSelection]);
+    }
+
     override animateEmptyUpdateReady(animationData: AreaAnimationData) {
         const { datumSelection, labelSelection, contextData, paths } = animationData;
         const { animationManager } = this.ctx;
@@ -1292,7 +1598,12 @@ export class AreaSeries extends CartesianSeries<
         this.updateAreaPaths(paths, contextData);
         pathSwipeInAnimation(this, animationManager, ...paths);
         resetMotion([datumSelection], resetMarkerPositionFn);
-        markerSwipeScaleInAnimation(this, animationManager, datumSelection);
+        markerSwipeScaleInAnimation(
+            this,
+            animationManager,
+            { ...this.getAnimationDrawingModes(), phase: 'initial' },
+            datumSelection
+        );
         seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
     }
 
@@ -1329,7 +1640,7 @@ export class AreaSeries extends CartesianSeries<
             // Added series to existing chart case - fade in series.
             update();
 
-            markerFadeInAnimation(this, animationManager, 'added', datumSelection);
+            markerFadeInAnimation(this, animationManager, 'added', this.getAnimationDrawingModes(), datumSelection);
             pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
             pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
@@ -1350,7 +1661,7 @@ export class AreaSeries extends CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, undefined, datumSelection);
+        markerFadeInAnimation(this, animationManager, undefined, this.getAnimationDrawingModes(), datumSelection);
 
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
         pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
@@ -1383,7 +1694,6 @@ export class AreaSeries extends CartesianSeries<
     }
 
     public getStyle(
-        highlighted: boolean,
         highlightState?: HighlightState
     ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
@@ -1391,7 +1701,7 @@ export class AreaSeries extends CartesianSeries<
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlighted, highlightState);
+            const stylerParams = this.makeStylerParams(highlightState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -1425,7 +1735,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
-        const stylerStyle = this.getStyle(false);
+        const stylerStyle = this.getStyle();
         const params = this.makeItemStylerParams(
             this.dataModel!,
             this.processedData!,
@@ -1441,6 +1751,22 @@ export class AreaSeries extends CartesianSeries<
             undefined,
             stylerStyle
         );
+    }
+
+    public override isPointInArea(x: number, y: number): boolean {
+        let fillPath: Path | undefined;
+        for (const child of this.backgroundGroup.children()) {
+            if (child instanceof Path) {
+                fillPath = child;
+                break;
+            }
+        }
+
+        if (!fillPath?.getBBox().containsPoint(x, y)) {
+            return false;
+        }
+
+        return fillPath.isPointInPath(x, y);
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

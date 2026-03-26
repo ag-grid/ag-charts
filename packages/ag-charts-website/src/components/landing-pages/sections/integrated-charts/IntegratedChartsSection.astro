@@ -1,0 +1,35 @@
+---
+/**
+ * IntegratedChartsSection.astro - AG Grid Integrated Charts showcase section
+ *
+ * Displays the automated integrated charts demo showing AG Grid + AG Charts integration.
+ */
+import type {
+    IntegratedChartsSection as IntegratedChartsSectionType,
+    LandingPageContent,
+} from '@ag-website-shared/components/landing-pages/types';
+import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
+import styles from './IntegratedChartsSection.module.scss';
+
+interface Props {
+    section: IntegratedChartsSectionType;
+    pageContent: LandingPageContent;
+}
+
+const { section, pageContent } = Astro.props;
+---
+
+<LandingPageSection
+    id="integrated-charts"
+    tag={section.tag}
+    heading={section.heading}
+    headingHtml={section.headingHtml}
+    subHeading={section.subHeading}
+    subHeadingHtml={section.subHeadingHtml}
+    showBackgroundGradient={section.showBackgroundGradient}
+>
+    <div class={styles.integratedChartsDemo}>
+        <AutomatedIntegratedChartsWithPackages client:visible visibilityThreshold={0.8} />
+    </div>
+</LandingPageSection>

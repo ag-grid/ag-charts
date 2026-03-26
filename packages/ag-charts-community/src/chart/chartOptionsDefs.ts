@@ -1,17 +1,24 @@
 import {
     type OptionsDefs,
     array,
-    arrayLength,
     arrayOfDefs,
     boolean,
+    commonChartOptionsDefs,
     defined,
     geoJson,
     htmlElement,
+    object,
+    or,
+    positiveNumber,
+    required,
+    strictUnion,
     string,
     undocumented,
     union,
 } from 'ag-charts-core';
 import type {
+    AgActiveItemState,
+    AgActiveState,
     AgCartesianChartOptions,
     AgInitialStateLegendOptions,
     AgPolarChartOptions,
@@ -19,18 +26,28 @@ import type {
     AgTopologyChartOptions,
 } from 'ag-charts-types';
 
-import { commonChartOptionsDefs } from './commonOptionsDefs';
+export const initialStatePickedOptionsDef: OptionsDefs<AgActiveState> = {
+    activeItem: {
+        type: required(strictUnion<AgActiveItemState['type']>()('series-node', 'legend')),
+        seriesId: string,
+        itemId: required(or(string, positiveNumber)),
+    },
+    frozen: boolean,
+};
 
 // These options are being validated by other modules
-const commonChartOptions = {
+export const commonChartOptions = {
     mode: undocumented(union('integrated', 'standalone')),
+    withinStudio: undocumented(boolean),
     container: htmlElement,
     context: () => true,
     theme: defined,
     series: array,
     annotations: defined,
     navigator: defined,
+    scrollbar: defined,
     initialState: {
+        active: initialStatePickedOptionsDef,
         chartType: string,
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(
@@ -49,21 +66,24 @@ const commonChartOptions = {
 export const cartesianChartOptionsDefs: OptionsDefs<AgCartesianChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
-    axes: arrayLength(2),
+    axes: object,
     data: array,
+    dataIdKey: string,
 };
 
 export const polarChartOptionsDefs: OptionsDefs<AgPolarChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
-    axes: arrayLength(2),
+    axes: object,
     data: array,
+    dataIdKey: string,
 };
 
 export const topologyChartOptionsDefs: OptionsDefs<AgTopologyChartOptions> = {
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
+    dataIdKey: string,
     topology: geoJson,
 };
 
@@ -71,4 +91,5 @@ export const standaloneChartOptionsDefs: OptionsDefs<AgStandaloneChartOptions> =
     ...commonChartOptionsDefs,
     ...commonChartOptions,
     data: array,
+    dataIdKey: string,
 };

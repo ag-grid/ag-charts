@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { asteroid, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -29,24 +37,22 @@ const options: AgCartesianChartOptions = {
     animation: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: { text: 'Longitude' },
             interval: {
                 step: 0.1,
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: { text: 'Latitude' },
             interval: {
                 step: 0.1,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

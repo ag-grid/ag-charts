@@ -7,7 +7,7 @@ import type {
     TextAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { generateUUID } from 'ag-charts-core';
+import { BaseProperties, FONT_SIZE, Property, generateUUID } from 'ag-charts-core';
 
 import type {
     AnnotationOptionsColorPickerType,
@@ -17,8 +17,6 @@ import type {
     LineTextPosition,
 } from './annotationTypes';
 import type { PointType } from './utils/scale';
-
-const { BaseProperties, FONT_SIZE, Property } = _ModuleSupport;
 
 /**************
  * Components *
@@ -77,7 +75,7 @@ export interface AxisLabelFormatterParams {
 /*******************************
  * Annotations specific mixins *
  *******************************/
-export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
+export function Annotation<U extends Constructor<BaseProperties>>(Parent: U) {
     abstract class AnnotationInternal extends Writeable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
         id = generateUUID();

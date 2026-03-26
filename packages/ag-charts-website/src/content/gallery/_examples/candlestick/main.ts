@@ -1,7 +1,24 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CandlestickSeriesModule,
+    ContextMenuModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+} from 'ag-charts-enterprise';
 
-import { DataType, getData } from './data';
+import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    CandlestickSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+]);
 const dateFormatter = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -144,10 +161,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             interval: { step: 'month' },
             line: {
                 enabled: false,
@@ -165,7 +181,7 @@ const options: AgChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -173,7 +189,7 @@ const options: AgChartOptions = {
             },
             interval: { step: 500 },
         },
-    ],
+    },
     tooltip: {
         range: 'exact',
         position: {

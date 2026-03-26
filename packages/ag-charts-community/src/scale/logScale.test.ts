@@ -7,7 +7,7 @@ describe('LogScale', () => {
             scale.domain = [100, 1000000];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: undefined,
                 tickCount: undefined as number | undefined,
                 minTickCount: 0,
@@ -31,7 +31,7 @@ describe('LogScale', () => {
             scale.domain = [-1000, -10];
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -117,7 +117,7 @@ describe('LogScale', () => {
             const scale = new LogScale();
 
             const ticks = {
-                nice: true,
+                nice: [true, true],
                 interval,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -155,7 +155,7 @@ describe('LogScale', () => {
         scale.domain = [10, 1000];
 
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: undefined,
             minTickCount: 0,
@@ -167,17 +167,25 @@ describe('LogScale', () => {
     });
 
     test('nice', () => {
+        const ticks = {
+            nice: [true, true],
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+
         {
             const scale = new LogScale();
             scale.domain = [57, 775];
-            expect(scale.niceDomain(null! /* Tick params aren't used */)).toEqual([10, 1000]);
+            expect(scale.niceDomain(ticks)).toEqual([10, 1000]);
         }
 
         {
             const scale = new LogScale();
             scale.domain = [Math.E * 1.234, Math.E * 5.783];
             scale.base = Math.E;
-            const domain = scale.niceDomain(null! /* Tick params aren't used */);
+            const domain = scale.niceDomain(ticks);
             expect(Math.log(domain[0])).toEqual(1);
             expect(Math.log(domain[1])).toEqual(3);
         }
@@ -188,7 +196,7 @@ describe('LogScale', () => {
         scale.domain = [100, 1000000];
 
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 4,
             minTickCount: 0,

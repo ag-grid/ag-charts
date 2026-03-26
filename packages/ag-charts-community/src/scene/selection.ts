@@ -1,4 +1,5 @@
-import { Debug } from '../util/debug';
+import { Debug } from 'ag-charts-core';
+
 import { Group } from './group';
 import { Node } from './node';
 
@@ -91,6 +92,18 @@ export class Selection<TDatum, TChild extends Node<TDatum>> {
             this.debug(`Selection - update() called with pending garbage`, data);
         }
 
+        // Handle transition: switching TO ID mode with existing untracked nodes.
+        if (getDatumId && this._nodesMap.size === 0 && this._nodes.length > 0) {
+            for (const node of this._nodes) {
+                this.garbageBin.add(node);
+            }
+        }
+
+        // Handle transition: switching FROM ID mode to index-based mode.
+        if (!getDatumId && this._nodesMap.size > 0) {
+            this._nodesMap.clear();
+        }
+
         if (getDatumId) {
             const dataMap = new Map<ValidId, number>();
             const duplicateMap = new Map<ValidId, number>();
@@ -148,21 +161,29 @@ export class Selection<TDatum, TChild extends Node<TDatum>> {
             return this;
         }
 
-        this._nodes = this._nodes.filter((node) => {
-            if (this.garbageBin.has(node)) {
-                this._nodesMap.delete(node);
-                this.garbageBin.delete(node);
+        const selection = this;
+
+        function removeGarbage(node: TChild): boolean {
+            if (selection.garbageBin.has(node)) {
+                selection._nodesMap.delete(node);
+                selection.garbageBin.delete(node);
                 node.destroy();
                 return false;
             }
             return true;
-        });
+        }
+
+        this._nodes = this._nodes.filter(removeGarbage);
 
         return this;
     }
 
     clear() {
         this.update([]);
+        for (const node of this._nodesMap.keys()) {
+            this.garbageBin.add(node);
+        }
+        this._nodesMap.clear();
         return this;
     }
 
@@ -171,10 +192,19 @@ export class Selection<TDatum, TChild extends Node<TDatum>> {
     }
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
+<<<<<<< HEAD
         for (const entry of this._nodes.entries()) {
             const datum = entry[1].datum!;
             iterate(entry[1], datum, entry[0]);
         }
+=======
+        const nodes = this._nodes;
+        this.parentNode.batchedUpdate(function selectionEach() {
+            for (const entry of nodes.entries()) {
+                iterate(entry[1], entry[1].datum, entry[0]);
+            }
+        });
+>>>>>>> latest
         return this;
     }
 
@@ -208,5 +238,9 @@ export class Selection<TDatum, TChild extends Node<TDatum>> {
 
     get length() {
         return this._nodes.length;
+    }
+
+    batchedUpdate(fn: () => void) {
+        this.parentNode.batchedUpdate(fn);
     }
 }

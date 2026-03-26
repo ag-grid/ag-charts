@@ -20,8 +20,10 @@
     font-weight: var(--ag-charts-chrome-font-weight);
     color: var(--ag-charts-tooltip-text-color);
     background: var(--ag-charts-tooltip-background-color);
-    border: var(--ag-charts-tooltip-border);
+    border-color: var(--ag-charts-border-color);
     border-radius: var(--ag-charts-tooltip-border-radius);
+    border-style: solid;
+    border-width: var(--ag-charts-tooltip-border-width);
     box-shadow: var(--ag-charts-popup-shadow);
 }
 

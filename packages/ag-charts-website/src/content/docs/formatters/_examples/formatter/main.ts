@@ -1,7 +1,27 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BubbleSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    TimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BubbleSeriesModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    TimeAxisModule,
+    ContextMenuModule,
+]);
 const magnitudeFormatter = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     maximumFractionDigits: 1,
@@ -51,22 +71,20 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'time',
             title: {
                 text: 'Date',
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'number',
             title: {
                 text: 'Magnitude',
             },
         },
-    ],
+    },
     formatter: {
         x: (params) => {
             if (params.type !== 'date') return;

@@ -4,7 +4,15 @@ import {
     AgChartLegendDoubleClickEvent,
     AgCharts,
 } from 'ag-charts-community';
+import {
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 let options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -41,10 +49,7 @@ let options: AgCartesianChartOptions = {
             yKey: 'diesel',
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom' },
-        { type: 'number', position: 'left' },
-    ],
+
     legend: {
         listeners: {
             legendItemClick: ({ seriesId, itemId }: AgChartLegendClickEvent) => {

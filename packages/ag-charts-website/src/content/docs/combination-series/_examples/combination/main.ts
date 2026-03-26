@@ -1,15 +1,30 @@
 import {
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
-    AgCartesianSeriesTooltipRendererParams,
     AgCharts,
     AgLineSeriesOptions,
+} from 'ag-charts-community';
+import {
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AreaSeriesModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    LegendModule,
+]);
 const WOMEN: AgBarSeriesOptions = {
     type: 'bar',
     xKey: 'year',
@@ -31,6 +46,7 @@ const PORTIONS: AgLineSeriesOptions = {
     xKey: 'year',
     yKey: 'portions',
     yName: 'Portions',
+    yKeyAxis: 'ySecondary',
 };
 
 const BAR_AND_LINE: AgCartesianSeriesOptions[] = [
@@ -52,30 +68,22 @@ const options: AgCartesianChartOptions = {
         text: 'Fruit & Vegetable Consumption',
     },
     series: BAR_AND_LINE,
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            // primary y axis
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ] as AgCartesianAxisOptions[],
+    },
 };
 
 const chart = AgCharts.create(options);

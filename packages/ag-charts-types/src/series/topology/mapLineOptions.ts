@@ -1,13 +1,12 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, DatumDefault, DatumKey, GeoJSON, Opacity, PixelSize } from '../../chart/types';
-import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { AgColorScale, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type {
     AgBaseSeriesOptions,
     AgBaseSeriesThemeableOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
 } from '../seriesOptions';
 
 export type AgMapLineSeriesTooltipRendererParams<
@@ -17,8 +16,6 @@ export type AgMapLineSeriesTooltipRendererParams<
     AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames &
     AgMapLineSeriesStyle;
-
-export type AgMapLineSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & StrokeOptions;
 
 export type AgMapLineSeriesStyle = StrokeOptions & LineDashOptions;
 
@@ -31,10 +28,10 @@ export type AgMapLineSeriesLabel<TDatum, TContext = ContextDefault> = AgChartLab
 export type AgMapLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgMapLineSeriesOptionsKeys<TDatum> &
     AgMapLineSeriesOptionsNames;
 
-export type AgMapLineSeriesItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-> = DatumCallbackParams<TDatum> &
+export type AgMapLineSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault> = DatumCallbackParams<
+    TDatum,
+    HighlightState
+> &
     ContextCallbackParams<TContext> &
     AgMapLineSeriesOptionsKeys<TDatum> &
     Required<AgMapLineSeriesStyle>;
@@ -44,7 +41,7 @@ export interface AgMapLineSeriesOptionsKeys<TDatum = DatumDefault> {
     idKey?: DatumKey<TDatum>;
     /** The key to use to retrieve size values from the data, used to control the width of the stroke. */
     sizeKey?: DatumKey<TDatum>;
-    /** The name of the node key containing the colour value. This value (along with `colorRange` config) will be used to determine the colour of the stroke. */
+    /** The name of the node key containing the colour value. This value (along with `colorScale` config) will be used to determine the colour of the stroke. */
     colorKey?: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels on top of lines. */
     labelKey?: DatumKey<TDatum>;
@@ -74,8 +71,8 @@ export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext
     tooltip?: AgSeriesTooltip<AgMapLineSeriesTooltipRendererParams<TDatum, TContext>>;
     /** A callback function for adjusting the styles of a particular Map line based on the input parameters. */
     itemStyler?: Styler<AgMapLineSeriesItemStylerParams<TDatum, TContext>, AgMapLineSeriesStyle>;
-    /** @deprecated Style overrides when a node is hovered. */
-    highlightStyle?: AgMapLineSeriesHighlightStyle<TDatum>;
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgMapLineHighlightStyleOptions, AgMapLineHighlightStyleOptions>;
 }

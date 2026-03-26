@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
 const subjects = ['Math', 'English', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 
 const options: AgChartOptions = {
@@ -36,10 +45,9 @@ const options: AgChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'category',
-            position: 'left',
             line: {
                 enabled: false,
             },
@@ -60,14 +68,14 @@ const options: AgChartOptions = {
                 },
             })),
         },
-        {
+        x: {
             type: 'number',
             position: 'top',
             gridLine: {
                 enabled: false,
             },
         },
-    ],
+    },
 };
 
 AgCharts.create(options);

@@ -3,27 +3,70 @@ import {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
     AgCharts,
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    CandlestickSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NavigatorModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 
-import { getBubbleData, getData, getStackedData } from './data';
+import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    BubbleSeriesModule,
+    CandlestickSeriesModule,
+    CrosshairModule,
+    HistogramSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    ScatterSeriesModule,
+    TimeAxisModule,
+    ZoomModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+]);
 
 let dataLabel = '1K';
 let seriesType = 'Line';
 let datapoints = 1e3;
 
-const timeAxes: AgCartesianAxisOptions[] = [
-    { type: 'number', position: 'left' },
-    { type: 'ordinal-time', position: 'bottom', parentLevel: { enabled: true } },
-];
+const timeAxes: Record<string, AgCartesianAxisOptions> = {
+    x: { type: 'ordinal-time', parentLevel: { enabled: true } },
+};
 
-const numberAxes: AgCartesianAxisOptions[] = [
-    { type: 'number', position: 'left' },
-    { type: 'number', position: 'bottom' },
-];
+const numberAxes: Record<string, AgCartesianAxisOptions> = {
+    x: { type: 'number' },
+};
 
+const baseData = getData(1e6);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(datapoints),
+    data: baseData.slice(-datapoints),
     title: { text: `${seriesType} with ${dataLabel} datapoints` },
     animation: { enabled: false },
     zoom: {
@@ -64,19 +107,17 @@ function setSeries(type: string, label: string) {
                 {
                     type,
                     xKey: 'timestamp',
-                    yKey: 'close',
+                    yKey: 'high',
                 },
             ];
-            options.data = getData(datapoints);
             break;
         case 'stacked-bar':
         case 'stacked-area':
             const stackedType = type === 'stacked-bar' ? 'bar' : 'area';
             options.series = [
-                { type: stackedType, xKey: 'timestamp', yKey: 'series1', stacked: true },
-                { type: stackedType, xKey: 'timestamp', yKey: 'series2', stacked: true },
+                { type: stackedType, xKey: 'timestamp', yKey: 'open', stacked: true },
+                { type: stackedType, xKey: 'timestamp', yKey: 'close', stacked: true },
             ];
-            options.data = getStackedData(datapoints);
             break;
 
         case 'range-area':
@@ -89,8 +130,6 @@ function setSeries(type: string, label: string) {
                     yHighKey: 'high',
                 },
             ];
-            options.data = getData(datapoints);
-
             break;
         case 'candlestick':
         case 'ohlc':
@@ -104,7 +143,6 @@ function setSeries(type: string, label: string) {
                     closeKey: 'close',
                 },
             ];
-            options.data = getData(datapoints);
             break;
         case 'scatter':
             options.series = [
@@ -116,7 +154,6 @@ function setSeries(type: string, label: string) {
                     strokeOpacity: 0.2,
                 },
             ];
-            options.data = getBubbleData(datapoints);
             break;
         case 'bubble':
             options.series = [
@@ -129,14 +166,24 @@ function setSeries(type: string, label: string) {
                     strokeOpacity: 0.2,
                 },
             ];
-            options.data = getBubbleData(datapoints);
-
+            break;
+        case 'histogram':
+            options.series = [
+                {
+                    type,
+                    xKey: 'close',
+                },
+            ];
             break;
         default:
             return;
     }
 
-    if (type == 'bubble' || type == 'scatter') {
+    const newDatapoints = (options.series?.[0] as any)?.stacked ? datapoints / 2 : datapoints;
+    if (options.data?.length !== newDatapoints) {
+        options.data = baseData.slice(-newDatapoints);
+    }
+    if (type == 'bubble' || type == 'scatter' || type == 'histogram') {
         options.zoom!.axes = 'xy';
         options.zoom!.autoScaling!.enabled = false;
         options.navigator!.enabled = false;
@@ -153,18 +200,9 @@ function setSeries(type: string, label: string) {
 }
 
 function setData(points: number, label: string) {
-    switch (seriesType) {
-        case 'Stacked Bar':
-        case 'Stacked Area':
-            options.data = getStackedData(points);
-            break;
-        case 'Scatter':
-        case 'Bubble':
-            options.data = getBubbleData(points);
-            break;
-        default:
-            options.data = getData(points);
-            break;
+    const newDatapoints = (options.series?.[0] as any)?.stacked ? points / 2 : points;
+    if (options.data?.length !== newDatapoints) {
+        options.data = baseData.slice(-newDatapoints);
     }
     dataLabel = label;
     datapoints = points;

@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { AgCharts } from 'ag-charts-community';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
-    AgCartesianAxisOptions,
+    AgCartesianAxesOptions,
     AgCartesianAxisPosition,
     AgCartesianChartOptions,
     AgChartOptions,
 } from 'ag-charts-community';
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -17,6 +17,7 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { mapValues } from 'ag-charts-core';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
@@ -38,14 +39,14 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({ ...axis, position: positionFlip(axis?.position) })) ?? undefined,
+        axes: mapValues(opts['axes'] ?? {}, (axis) => ({ ...axis, position: positionFlip(axis?.position) })),
     };
 }
 
 function applyCrosshairSnap<T extends AgCartesianChartOptions>(opts: T, snap: boolean): T {
     return {
         ...opts,
-        axes: opts['axes']?.map((axis) => ({
+        axes: mapValues(opts['axes'] ?? {}, (axis) => ({
             ...axis,
             crosshair: {
                 ...axis.crosshair,
@@ -99,54 +100,52 @@ const BASE_OPTIONS: AgCartesianChartOptions = {
     ],
 };
 
-const SIMPLE_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SIMPLE_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    x: {
         position: 'bottom',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
-const CATEGORY_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const CATEGORY_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    x: {
         position: 'bottom',
         type: 'category',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
-const SECONDARY_AXIS_OPTIONS: AgCartesianAxisOptions[] = [
-    {
+const SECONDARY_AXIS_OPTIONS: AgCartesianAxesOptions = {
+    y: {
         position: 'left',
         type: 'number',
-        keys: ['y1', 'y3'],
         crosshair: CROSSHAIR_OPTIONS,
     },
-    {
+    ySecondary: {
         position: 'left',
         type: 'number',
-        keys: ['y2'],
         crosshair: {
             ...CROSSHAIR_OPTIONS,
             stroke: '#73C0DE',
         },
     },
-    {
+    x: {
         position: 'bottom',
         type: 'number',
         crosshair: CROSSHAIR_OPTIONS,
     },
-];
+};
 
 const SIMPLE_LINE_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
@@ -163,6 +162,7 @@ const SIMPLE_COLUMN_OPTIONS: AgCartesianChartOptions = {
 const LINE_SECONDARY_AXIS_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: SECONDARY_AXIS_OPTIONS,
+    series: BASE_OPTIONS.series?.map((s) => ({ ...s, yKeyAxis: 'yKey' in s && s.yKey === 'y2' ? 'ySecondary' : 'y' })),
 };
 
 const STACKED_COLUMN_OPTIONS: AgCartesianChartOptions = {
@@ -200,18 +200,18 @@ const GROUPED_BAR_OPTIONS: AgCartesianChartOptions = {
         { x: 3, y1: 75, y2: 2000, y3: 72 },
     ],
     tooltip: { range: 'exact' },
-    axes: [
-        {
+    axes: {
+        x: {
             position: 'bottom',
             type: 'number',
             crosshair: CROSSHAIR_OPTIONS,
         },
-        {
+        y: {
             position: 'left',
             type: 'category',
             crosshair: CROSSHAIR_OPTIONS,
         },
-    ],
+    },
     series: BASE_OPTIONS.series?.map((s) => ({
         ...s,
         type: 'bar',
@@ -342,7 +342,7 @@ describe('Crosshair', () => {
             { month: 'Jul', subscriptions: 300, services: 255, products: 100 },
             { month: 'Aug', subscriptions: 270, services: 305, products: 210 },
             { month: 'Sep', subscriptions: 260, services: 280, products: 250 },
-            { month: 'Oct', subscriptions: 385, services: 250, products: NaN },
+            { month: 'Oct', subscriptions: 385, services: 250, products: Number.NaN },
             { month: 'Nov', subscriptions: 320, services: 265, products: 215 },
             { month: 'Dec', subscriptions: 330, services: 255, products: 220 },
         ];
@@ -380,5 +380,105 @@ describe('Crosshair', () => {
         await waitForChartStability(chart);
         await hoverAction(260, 140)(chart);
         await compare();
+    });
+
+    it('AG-16729 should display crosshair with snap when highlight.enabled is false', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 100 },
+                { x: 'B', y: 200 },
+                { x: 'C', y: 150 },
+                { x: 'D', y: 300 },
+            ],
+            series: [
+                {
+                    type: 'bar',
+                    xKey: 'x',
+                    yKey: 'y',
+                    highlight: { enabled: false },
+                },
+            ],
+            axes: {
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crosshair: { ...CROSSHAIR_OPTIONS, snap: true },
+                },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crosshair: { ...CROSSHAIR_OPTIONS, snap: true },
+                },
+            },
+            tooltip: { range: 'exact' },
+        };
+
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 300)(chart);
+        await compare();
+    });
+
+    it('AG-16613 should handle null category values with crosshair', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { year: null, population: 5315511894 },
+                { year: '2000', population: 6132455985 },
+            ],
+            series: [
+                {
+                    type: 'line',
+                    yKey: 'population',
+                    xKey: 'year',
+                    allowNullKeys: true,
+                } as any,
+            ],
+            axes: {
+                y: {
+                    type: 'number',
+                    crosshair: { enabled: true, snap: true },
+                },
+                x: {
+                    type: 'category',
+                    crosshair: { enabled: true, snap: true },
+                },
+            },
+            formatter: {
+                y: ({ value }: any) => {
+                    const num = Number(value);
+                    return `${(num / 1e9).toFixed(1)}bn`;
+                },
+            },
+        };
+
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const visibleLabels = (axisId: string) =>
+            Array.from(
+                document.querySelectorAll<HTMLElement>(
+                    `.ag-charts-crosshair-label[data-axis-id="${axisId}"]:not(.ag-charts-crosshair-label--hidden)`
+                )
+            );
+
+        const labelTexts = (axisId: string) => visibleLabels(axisId).map((el) => el.textContent?.trim());
+
+        // Hover over the null category (first data point)
+        await hoverAction(100, 200)(chart);
+        await compare();
+        expect(visibleLabels('x').length).toBeGreaterThan(0);
+        expect(visibleLabels('y').length).toBeGreaterThan(0);
+        expect(labelTexts('x')).toEqual(expect.arrayContaining(['']));
+
+        // Hover over a non-null category (second data point)
+        await hoverAction(600, 200)(chart);
+        await compare();
+        expect(visibleLabels('x').length).toBeGreaterThan(0);
+        expect(visibleLabels('y').length).toBeGreaterThan(0);
+        expect(labelTexts('x')).toEqual(expect.arrayContaining([expect.stringContaining('2000')]));
     });
 });

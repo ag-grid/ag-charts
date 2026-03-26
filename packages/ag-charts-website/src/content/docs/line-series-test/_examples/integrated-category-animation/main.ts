@@ -1,4 +1,4 @@
-import { AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 import { AgCartesianChartOptions } from 'ag-charts-types';
 
 function week(id: number) {
@@ -43,16 +43,6 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => String(value),
             },
             // visible: false
-        },
-    ],
-    axes: [
-        {
-            position: 'left',
-            type: 'number',
-        },
-        {
-            position: 'bottom',
-            type: 'category',
         },
     ],
 };

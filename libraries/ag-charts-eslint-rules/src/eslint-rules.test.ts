@@ -32,3 +32,4 @@ function testRule(ruleNameSuffix: string) {
 
 testRule('change-detection');
 testRule('require-explicit-generic');
+testRule('validate-module-registration');

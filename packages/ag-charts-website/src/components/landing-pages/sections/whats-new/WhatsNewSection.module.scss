@@ -1,0 +1,16 @@
+@use 'design-system' as *;
+
+.whatsNewVersions {
+    --versions-gap: #{$spacing-size-4};
+
+    container-type: inline-size;
+    display: flex;
+    gap: var(--versions-gap);
+    margin-top: $spacing-size-8;
+    margin-bottom: $spacing-size-8;
+    overflow-x: hidden;
+
+    @media screen and (max-width: $breakpoint-hero-small) {
+        flex-direction: column;
+    }
+}

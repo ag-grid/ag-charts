@@ -1,7 +1,17 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BoxPlotSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ScatterSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getBoxPlotData, getOutliersData } from './data';
 
+ModuleRegistry.registerModules([BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

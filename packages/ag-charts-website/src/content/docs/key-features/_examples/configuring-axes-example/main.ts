@@ -1,7 +1,15 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    CategoryAxisModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -23,18 +31,13 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            // primary y axis
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
@@ -42,16 +45,14 @@ const options: AgCartesianChartOptions = {
                 formatter: ({ value }) => value + '%',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

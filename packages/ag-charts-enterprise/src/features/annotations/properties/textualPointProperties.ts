@@ -1,11 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { BaseProperties, Property } from 'ag-charts-core';
 
 import { Annotation, Font, Handle, Label, Point } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, type Padding } from '../annotationTypes';
 import type { AnnotationTextAlignment, AnnotationTextPosition } from '../text/util';
 import { convertPoint } from '../utils/values';
-
-const { BaseProperties, Property } = _ModuleSupport;
 
 export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(BaseProperties))))) {
     @Property
@@ -41,7 +39,7 @@ export class TextualPointProperties extends Annotation(Point(Handle(Label(Font(B
 
     getText() {
         const isPlaceholder = this.text.length == 0;
-        const text = !isPlaceholder ? this.text : this.placeholderText ?? '';
+        const text = isPlaceholder ? this.placeholderText ?? '' : this.text;
         return {
             text,
             isPlaceholder,

@@ -1,7 +1,16 @@
 import { type AgRadialColumnSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { type OptionsDefs, boolean, constant, number, required, string } from 'ag-charts-core';
+import {
+    type OptionsDefs,
+    boolean,
+    commonSeriesOptionsDefs,
+    constant,
+    number,
+    required,
+    string,
+    undocumented,
+} from 'ag-charts-core';
 
-const { commonSeriesOptionsDefs, radialColumnSeriesThemeableOptionsDef } = _ModuleSupport;
+const { radialColumnSeriesThemeableOptionsDef } = _ModuleSupport;
 
 export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptions> = {
     ...commonSeriesOptionsDefs,
@@ -11,8 +20,14 @@ export const radialColumnSeriesOptionsDef: OptionsDefs<AgRadialColumnSeriesOptio
     radiusKey: required(string),
     angleName: string,
     radiusName: string,
+    legendItemName: string,
     grouped: boolean,
     stacked: boolean,
     stackGroup: string,
     normalizedTo: number,
 };
+
+// @ts-expect-error undocumented option
+radialColumnSeriesOptionsDef.angleKeyAxis = undocumented(string);
+// @ts-expect-error undocumented option
+radialColumnSeriesOptionsDef.radiusKeyAxis = undocumented(string);

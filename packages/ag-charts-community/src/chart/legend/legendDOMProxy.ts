@@ -1,4 +1,5 @@
-import { type BoxBounds, type StrictHTMLElement, createElement, createElementId } from 'ag-charts-core';
+import { type BoxBounds, type StrictHTMLElement, createElementId, toPlainText } from 'ag-charts-core';
+import type { TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -16,8 +17,13 @@ import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
+<<<<<<< HEAD
 type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
+=======
+type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
+type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): TextOrSegments | undefined };
+>>>>>>> latest
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
@@ -54,7 +60,12 @@ export class LegendDOMProxy {
     private prevButton?: ButtonWidget;
     private nextButton?: ButtonWidget;
 
-    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
+    private shouldApplyHoverOnFocus(button: SwitchWidget): boolean {
+        const element = button.getElement();
+        return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
+    }
+
+    public constructor(ctx: ModuleContext, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: `${idPrefix}-toolbar`,
@@ -67,7 +78,7 @@ export class LegendDOMProxy {
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
         });
-        this.itemDescription = createElement('p');
+        this.itemDescription = ctx.agDocument.createElement('p');
         this.itemDescription.style.display = 'none';
         this.itemDescription.id = createElementId();
         this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
@@ -87,8 +98,13 @@ export class LegendDOMProxy {
             markerLabel.proxyButton?.destroy();
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
+<<<<<<< HEAD
                 textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
                 ariaChecked: !!markerLabel.datum!.enabled,
+=======
+                textContent: this.getItemAriaText(lm, toPlainText(datumReader.getItemLabel(datum)), index, count),
+                ariaChecked: !!markerLabel.datum.enabled,
+>>>>>>> latest
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
             });
@@ -102,7 +118,11 @@ export class LegendDOMProxy {
             button.addListener('mouseleave', () => itemListener.onLeave());
             button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev, markerLabel));
             button.addListener('blur', () => itemListener.onLeave());
-            button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            button.addListener('focus', (ev) =>
+                this.shouldApplyHoverOnFocus(button)
+                    ? itemListener.onHover(ev.sourceEvent, markerLabel)
+                    : itemListener.onLeave()
+            );
             // Enable touch long-tap context menus:
             //
             // We don't actually need to listen for drag events. However, on of the quirks of `Widget` is that it only
@@ -133,12 +153,12 @@ export class LegendDOMProxy {
         const groupBBox = Transformable.toCanvas(group);
         this.itemList.setBounds(groupBBox);
 
-        const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getBBox().height));
+        const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getTextMeasureBBox().height));
         itemSelection.each((l, _datum) => {
             if (l.proxyButton) {
                 const visible = l.pageIndex === pagination.currentPage;
 
-                const { x, y, height, width } = Transformable.toCanvas(l);
+                const { x, y, height, width } = Transformable.toCanvas(l, l.getTextMeasureBBox());
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
                 const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
@@ -159,35 +179,14 @@ export class LegendDOMProxy {
         this.paginationGroup.setHidden(!pagination.visible);
 
         if (init && 'ctx' in params) {
-            const { ctx, oldPages, newPages } = params;
+            const { oldPages, newPages } = params;
             const oldNeedsButtons = (oldPages?.length ?? newPages.length) > 1;
             const newNeedsButtons = newPages.length > 1;
             if (oldNeedsButtons !== newNeedsButtons) {
                 if (newNeedsButtons) {
-                    this.prevButton = ctx.proxyInteractionService.createProxyElement({
-                        type: 'button',
-                        textContent: { id: 'ariaLabelLegendPagePrevious' },
-                        tabIndex: 0,
-                        parent: this.paginationGroup,
-                    });
-                    this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
-                    this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
-                    this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
-
-                    this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
-                        type: 'button',
-                        textContent: { id: 'ariaLabelLegendPageNext' },
-                        tabIndex: 0,
-                        parent: this.paginationGroup,
-                    });
-                    this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
-                    this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
-                    this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+                    this.createPaginationButtons(params);
                 } else {
-                    this.nextButton?.destroy();
-                    this.prevButton?.destroy();
-                    this.nextButton = undefined;
-                    this.prevButton = undefined;
+                    this.destroyPaginationButtons();
                 }
             }
             this.paginationGroup.setAriaHidden(newNeedsButtons ? undefined : true);
@@ -208,6 +207,42 @@ export class LegendDOMProxy {
             this.nextButton.setCursor(pagination.getCursor('next'));
             this.prevButton.setCursor(pagination.getCursor('previous'));
         }
+    }
+
+    private createPaginationButtons(params: LegendDOMProxyUpdateParams) {
+        const { ctx, pagination } = params;
+
+        // Only create buttons if they don't exist to prevent duplicate event listeners
+        if (!this.prevButton) {
+            this.prevButton = ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                textContent: { id: 'ariaLabelLegendPagePrevious' },
+                tabIndex: 0,
+                parent: this.paginationGroup,
+            });
+            this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
+            this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
+            this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+        }
+
+        if (!this.nextButton) {
+            this.nextButton = ctx.proxyInteractionService.createProxyElement({
+                type: 'button',
+                textContent: { id: 'ariaLabelLegendPageNext' },
+                tabIndex: 0,
+                parent: this.paginationGroup,
+            });
+            this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
+            this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
+            this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+        }
+    }
+
+    private destroyPaginationButtons() {
+        this.nextButton?.destroy();
+        this.prevButton?.destroy();
+        this.nextButton = undefined;
+        this.prevButton = undefined;
     }
 
     private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
@@ -233,7 +268,7 @@ export class LegendDOMProxy {
         itemSelection.each(({ proxyButton }, datum, index) => {
             const button = proxyButton?.getElement();
             if (button != null) {
-                const label = datumReader.getItemLabel(datum);
+                const label = toPlainText(datumReader.getItemLabel(datum));
                 button.textContent = this.getItemAriaText(localeManager, label, index, count);
             }
         });

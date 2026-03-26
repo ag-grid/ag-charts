@@ -1,13 +1,18 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type InternalAgColorType, createId } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    ChartUpdateType,
+    type InternalAgColorType,
+    Property,
+    ZIndexMap,
+    createId,
+} from 'ag-charts-core';
 
 const {
     Range,
     TranslatableGroup,
     BBox,
-    Property,
-    ZIndexMap,
-    ChartAxisDirection,
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
@@ -15,7 +20,8 @@ const {
     InteractionState,
 } = _ModuleSupport;
 
-export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
+export class BandHighlight extends AbstractModuleInstance {
+    static readonly className = 'BandHighlight';
     readonly id = createId(this);
 
     @Property
@@ -72,7 +78,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
             if (this.bandHighlightGroup.visible && !isSeriesAreaChild) {
                 this.hideBand();
-                this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.PERFORM_LAYOUT);
+                this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
             }
         });
 
@@ -91,7 +97,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
             eventsHub.on('layout:complete', (event) => this.layout(event)),
             eventsHub.on('series:focus-change', () => this.onKeyPress()),
             eventsHub.on('zoom:pan-start', () => this.clearAllHighlight()),
-            eventsHub.on('zoom:change', () => this.clearAllHighlight()),
+            eventsHub.on('zoom:change-complete', () => this.clearAllHighlight()),
             eventsHub.on('dom:resize', () => this.clearAllHighlight()),
             eventsHub.on('axis:change', () => this.axisChange())
         );
@@ -123,7 +129,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     }
 
     private clearAllHighlight() {
-        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
+        if (!this.ctx.interactionManager.isState(InteractionState.Hoverable)) return;
 
         this.onHighlightChange();
     }
@@ -135,7 +141,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
     }
 
     private onHoverLikeEvent(event: _ModuleSupport.HoverLikeEvent): void {
-        const requiredState = this.isHover(event) ? InteractionState.Clickable : InteractionState.AnnotationsMoveable;
+        const requiredState = this.isHover(event) ? InteractionState.Hoverable : InteractionState.AnnotationsMoveable;
         if (!this.ctx.interactionManager.isState(requiredState)) return;
         this.handleHoverHighlight(event);
     }
@@ -153,8 +159,7 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
-        const axisLayout = axes.find((a) => a.id === axisId);
-
+        const axisLayout = axes[axisId];
         if (!axisLayout) return;
 
         this.axisLayout = axisLayout;
@@ -205,13 +210,13 @@ export class BandHighlight extends _ModuleSupport.BaseModuleInstance implements 
 
         this.activeAxisHighlight = axisBandDatum;
 
-        if (!this.activeAxisHighlight) {
-            this.hideBand();
-        } else {
+        if (this.activeAxisHighlight) {
             this.showBand();
+        } else {
+            this.hideBand();
         }
 
-        this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
 
     private updateBandPosition() {

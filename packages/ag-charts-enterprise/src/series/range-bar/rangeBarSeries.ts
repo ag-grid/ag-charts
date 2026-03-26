@@ -2,18 +2,39 @@ import {
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
+    type AgRangeBarSeriesStylerParams,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { Point, RequireOptional } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_SPAN,
+    type CallbackParamRules,
+    ChartAxisDirection,
+    DebugMetrics,
+    type DomainWithMetadata,
+    type Mutable,
+    type Point,
+    type RequireOptional,
+    areScalingEqual,
+    findMinMax,
+    mergeDefaults,
+} from 'ag-charts-core';
 
-import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
+import {
+    type RangeBarSeriesDataAggregationFilter,
+    aggregateRangeBarDataFromDataModel,
+    aggregateRangeBarDataFromDataModelPartial,
+} from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
 
 const {
     SeriesNodePickMode,
     valueProperty,
     keyProperty,
-    ChartAxisDirection,
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
@@ -22,6 +43,7 @@ const {
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
     resetBarSelectionsFn,
+    resetBarSelectionsDirect,
     fixNumericExtent,
     seriesLabelFadeInAnimation,
     resetLabelFn,
@@ -29,47 +51,110 @@ const {
     computeBarFocusBounds,
     visibleRangeIndices,
     createDatumId,
-    ContinuousScale,
     Rect,
     PointerEvents,
     motion,
-    applyShapeStyle,
-    findMinMax,
-    areScalingEqual,
     processedDataIsAnimatable,
-    AGGREGATION_SPAN,
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    AGGREGATION_INDEX_Y_MAX,
-    AGGREGATION_INDEX_Y_MIN,
-    mergeDefaults,
-    simpleMemorize2,
     getItemStyles,
     calculateSegments,
+    toHighlightString,
+    HighlightState,
+    AggregationManager,
+    upsertNodeDatum,
 } = _ModuleSupport;
-
-const memoizedAggregateRangeBarData = simpleMemorize2(aggregateRangeBarData);
-
-type Bounds = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
 
 interface RangeBarNodeLabelDatum extends Readonly<Point> {
     datumIndex: number;
-    text: string;
+    text: TextOrSegments;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
-    itemId: string;
+    itemType: 'high' | 'low';
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
+}
+
+type RangeBarItemId = `${string}-${string}`;
+
+/**
+ * Shared context for creating/updating RangeBarNodeDatum instances.
+ * Instantiated once per createNodeData() call and reused across all datum operations
+ * to minimize memory allocations. Only contains values that are expensive to compute
+ * or resolve - cheap property lookups use `this` directly in methods.
+ */
+interface RangeBarSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<RangeBarNodeDatum> {
+    // Data arrays (resolved from dataModel - worth caching)
+    readonly yLowValues: any[];
+    readonly yHighValues: any[];
+
+    // Computed positioning (involves scale conversions - worth caching)
+    readonly barWidth: number;
+    readonly groupOffset: number;
+    readonly barOffset: number;
+
+    // Pre-computed values
+    readonly barAlongX: boolean;
+    readonly crisp: boolean;
+
+    // Property keys (constant across all datums - worth caching)
+    readonly yLowKey: string;
+    readonly yHighKey: string;
+
+    // Label configuration (checked before expensive label text computation)
+    readonly labelEnabled: boolean;
+    readonly labelPlacement: 'inside' | 'outside';
+    readonly labelPadding: number;
+
+    // Incremental update support
+    readonly dataAggregationFilter: RangeBarSeriesDataAggregationFilter | undefined;
+}
+
+/**
+ * Prepared state for node datum creation/update.
+ * Reused as scratch object to avoid allocations in tight loops.
+ */
+interface PreparedRangeBarNodeDatumState {
+    datum: any;
+    xValue: any;
+    yLowValue: number;
+    yHighValue: number;
+    rawLowValue: any;
+    rawHighValue: any;
+}
+
+/**
+ * Parameters for node datum creation/update.
+ * Reused as scratch object to avoid allocations in tight loops.
+ */
+interface NodeDatumParams {
+    nodeDatumScratch: PreparedRangeBarNodeDatumState;
+    labelParamsScratch: LabelUpdateParams;
+    datumIndex: number;
+    groupedDataIndex: number;
+    x: number;
+    width: number;
+    yLow: number;
+    yHigh: number;
+    crisp: boolean;
+}
+
+/**
+ * Scratch object for label update parameters.
+ * Reused to avoid allocations in tight loops.
+ */
+interface LabelUpdateParams {
+    labels: RangeBarNodeLabelDatum[];
+    datumIndex: number;
+    rectX: number;
+    rectY: number;
+    rectWidth: number;
+    rectHeight: number;
+    yLowValue: number;
+    yHighValue: number;
+    datum: any;
 }
 
 interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>, Readonly<Point> {
     readonly index: number;
-    readonly itemId: string;
     readonly yLowKey: string;
     readonly yHighKey: string;
     readonly yLowValue: number;
@@ -85,11 +170,7 @@ interface RangeBarNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum
     style?: Required<AgRangeBarSeriesStyle>;
 }
 
-type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<
-    _ModuleSupport.Rect,
-    RangeBarNodeDatum,
-    RangeBarNodeLabelDatum
->;
+type RangeBarAnimationData = _ModuleSupport.AbstractBarSeriesAnimationData<RangeBarSeriesTypes>;
 
 class RangeBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -108,23 +189,32 @@ class RangeBarSeriesNodeEvent<
 
 interface RangeBarSeriesNodeDataContext
     extends _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum> {
+    itemId: RangeBarItemId;
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
 }
 
-export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
-    _ModuleSupport.Rect<RangeBarNodeDatum>,
-    AgRangeBarSeriesOptions,
-    RangeBarProperties,
-    RangeBarNodeDatum,
-    RangeBarNodeLabelDatum,
-    RangeBarSeriesNodeDataContext
-> {
-    static readonly className = 'RangeBarSeries';
+/**
+ * Consolidated type interface for RangeBarSeries.
+ * Defines all type parameters in one place for the series.
+ */
+interface RangeBarSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
+    readonly node: _ModuleSupport.Rect<RangeBarNodeDatum>;
+    readonly options: AgRangeBarSeriesOptions;
+    readonly properties: RangeBarProperties;
+    readonly datum: RangeBarNodeDatum;
+    readonly label: RangeBarNodeLabelDatum;
+    readonly context: RangeBarSeriesNodeDataContext;
+    readonly stackContext: never;
+    readonly createNodeDataContext: RangeBarSeriesNodeDatumContext;
+}
+
+export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSeriesTypes> {
+    static override readonly className = 'RangeBarSeries';
     static readonly type = 'range-bar' as const;
 
     override properties = new RangeBarProperties();
 
-    private dataAggregationFilters: RangeBarSeriesDataAggregationFilter[] | undefined = undefined;
+    private readonly aggregationManager = new AggregationManager<RangeBarSeriesDataAggregationFilter>();
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
@@ -157,17 +247,18 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
 
         const extraProps = [];
+        if (this.needsDataModelDiff() && this.processedData) {
+            extraProps.push(diff(this.id, this.processedData));
+        }
         if (!this.ctx.animationManager.isSkipped()) {
-            if (this.processedData) {
-                extraProps.push(diff(this.id, this.processedData));
-            }
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = this.visible ? {} : { forceValue: 0 };
+        const visibleProps = this.visible ? {} : { forceValue: Number.NaN };
+        const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
+                keyProperty(xKey, xScaleType, { id: 'xValue', allowNullKey }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
                 valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: null, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
@@ -179,7 +270,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
-        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+        this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
     }
@@ -188,32 +279,51 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
+        this.aggregationManager.markStale(processedData.input.count);
+
         if (processedData.type !== 'ungrouped') return;
         if (processedDataIsAnimatable(processedData)) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null) return;
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
-        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+        const targetRange = this.estimateTargetRange();
 
-        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const domain = processedData.domain.keys[index];
+        this.aggregationManager.aggregate({
+            computePartial: (existingFilters) =>
+                aggregateRangeBarDataFromDataModelPartial(
+                    xAxis.scale.type,
+                    dataModel,
+                    processedData,
+                    this,
+                    targetRange,
+                    existingFilters
+                ),
+            computeFull: (existingFilters) =>
+                aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
+            targetRange,
+        });
 
-        return memoizedAggregateRangeBarData(
-            xAxis.scale.type,
-            xValues,
-            yHighValues,
-            yLowValues,
-            domain,
-            processedData.reduced?.smallestKeyInterval
-        );
+        const filters = this.aggregationManager.filters;
+        if (filters && filters.length > 0) {
+            DebugMetrics.record(
+                `${this.type}:aggregation`,
+                filters.map((f) => f.maxRange)
+            );
+        }
     }
 
-    override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
+    private estimateTargetRange(): number {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis?.scale == null) return 0;
+
+        const [r0, r1] = xAxis.scale.range;
+        return Math.abs(r1 - r0);
+    }
+
+    override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
         const { processedData, dataModel } = this;
-        if (!processedData || !dataModel) return [];
+        if (!processedData || !dataModel) return { domain: [] };
 
         const {
             keys: [keys],
@@ -222,296 +332,695 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
-                return keys;
+                const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
+                return { domain: keys, sortMetadata };
             }
-            return this.padBandExtent(keys);
+            return { domain: this.padBandExtent(keys) };
         } else {
             const yExtent = this.domainForClippedRange(direction, ['yHighValue', 'yLowValue'], 'xValue');
             const fixedYExtent = findMinMax(yExtent);
-            return fixNumericExtent(fixedYExtent);
+            return { domain: fixNumericExtent(fixedYExtent) };
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [number, number]) {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yHighValue', 'yLowValue'], 'xValue', visibleRange);
     }
 
-    override createNodeData() {
-        const { data, dataModel, groupScale, processedData, visible } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+    /**
+     * Creates shared context for node datum creation/update operations.
+     * This context is instantiated once and reused across all datum operations
+     * to minimize memory allocations. Only caches values that are expensive to
+     * compute - cheap property lookups use `this` directly.
+     */
+    protected override createNodeDatumContext(
+        xAxis: _ModuleSupport.ChartAxis,
+        yAxis: _ModuleSupport.ChartAxis
+    ): RangeBarSeriesNodeDatumContext | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return undefined;
 
-        if (!(data && xAxis && yAxis && dataModel && processedData?.dataSources && this.chart?.seriesRect)) return;
+        const rawData = processedData.dataSources?.get(this.id)?.data;
+        if (rawData == null) return undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { xKey, yLowKey, yHighKey, strokeWidth } = this.properties;
-
-        const itemId = `${yLowKey}-${yHighKey}`;
-
-        const segments = calculateSegments(
-            this.properties.segmentation,
-            xAxis,
-            yAxis,
-            this.chart.seriesRect,
-            this.ctx.scene
-        );
-
-        const context: RangeBarSeriesNodeDataContext = {
-            itemId,
-            nodeData: [],
-            labelData: [],
-            scales: this.calculateScaling(),
-            groupScale: this.getScaling(this.groupScale),
-            visible: this.visible,
-            styles: getItemStyles(this.getItemStyle.bind(this)),
-            segments,
-        };
-        if (!visible) return context;
-
-        const rawData = processedData.dataSources.get(this.id) ?? [];
-
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
-        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
-
-        const { barWidth: effectiveBarWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xScale) ? effectiveBarWidth * -0.5 : 0;
-        const groupOffset = groupScale.convert(String(groupIndex));
-
-        const defaultCrisp = checkCrisp(
+        const crisp = checkCrisp(
             xAxis?.scale,
             xAxis?.visibleRange,
             this.smallestDataInterval,
             this.largestDataInterval
         );
 
-        const xPosition = (datumIndex: number) =>
-            Math.round(xScale.convert(xValues[datumIndex])) + groupOffset + barOffset;
-
-        const handleDatum = (
-            datumIndex: number,
-            groupedDataIndex: number,
-            x: number,
-            width: number,
-            yLow: number,
-            yHigh: number,
-            crisp: boolean
-        ) => {
-            const datum = rawData[datumIndex];
-            const xDatum = xValues[datumIndex];
-            if (xDatum == null) return;
-
-            const rawLowValue = yLowValues[datumIndex];
-            const rawHighValue = yHighValues[datumIndex];
-
-            if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return;
-
-            const [yLowValue, yHighValue] =
-                rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
-
-            const y = Math.round(yScale.convert(yHigh));
-            const bottomY = Math.round(yScale.convert(yLow));
-            const height = Math.max(strokeWidth, Math.abs(bottomY - y));
-
-            const rect: Bounds = {
-                x: barAlongX ? Math.min(y, bottomY) : x,
-                y: barAlongX ? x : Math.min(y, bottomY),
-                width: barAlongX ? height : width,
-                height: barAlongX ? width : height,
-            };
-
-            const nodeMidPoint = {
-                x: rect.x + rect.width / 2,
-                y: rect.y + rect.height / 2,
-            };
-
-            const labelData: RangeBarNodeLabelDatum[] = this.createLabelData({
-                datumIndex,
-                rect,
-                barAlongX,
-                yLowValue,
-                yHighValue,
-                datum: datum,
-                series: this,
-            });
-
-            const nodeDatum: RangeBarNodeDatum = {
-                index: groupedDataIndex,
-                series: this,
-                itemId,
-                datum,
-                datumIndex,
-                xValue: xDatum,
-                yLowValue: rawLowValue,
-                yHighValue: rawHighValue,
-                yLowKey,
-                yHighKey,
-                xKey,
-                x: rect.x,
-                y: rect.y,
-                width: rect.width,
-                height: rect.height,
-                midPoint: nodeMidPoint,
-                crisp,
-                labels: labelData,
-            };
-
-            context.nodeData.push(nodeDatum);
-            context.labelData.push(...labelData);
-        };
-
-        const { dataAggregationFilters } = this;
         const [r0, r1] = xScale.range;
         const range = Math.abs(r1 - r0);
 
-        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+        // Ensure we have the needed aggregation level (force deferred computation if necessary)
+        this.aggregationManager.ensureLevelForRange(range);
 
-        if (dataAggregationFilter != null) {
-            const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(1, maxRange, xAxis.range, (index) => {
-                const aggIndex = index * AGGREGATION_SPAN;
-                const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
-                const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-                if (xMinIndex === -1) return;
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-                return [xPosition(midDatumIndex), xPosition(xMaxIndex) + effectiveBarWidth];
-            });
+        const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-            for (let i = start; i < end; i += 1) {
-                const aggIndex = i * AGGREGATION_SPAN;
-                const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
-                const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
-                const yMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
-                const yMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+        const canIncrementallyUpdate =
+            this.contextNodeData?.nodeData != null &&
+            (processedData.changeDescription != null ||
+                !processedDataIsAnimatable(processedData) ||
+                dataAggregationFilter != null);
 
-                if (xMinIndex === -1) continue;
+        const { groupOffset, barOffset, barWidth } = this.getBarDimensions();
 
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-
-                const xValue = xValues[midDatumIndex];
-                if (xValue == null) continue;
-
-                const x = xPosition(midDatumIndex);
-                const width = Math.abs(xPosition(xMinIndex) - xPosition(xMaxIndex)) + effectiveBarWidth;
-                const yLow = yLowValues[yMinIndex];
-                const yHigh = yHighValues[yMaxIndex];
-
-                handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
-            }
-        } else if (processedData.type === 'ungrouped') {
-            const invalidData = processedData.invalidData?.get(this.id);
-            let [start, end] = this.visibleRangeIndices('xValue', xAxis.range);
-            // @todo(AG-13575) Remove this if block
-            if (processedData.input.count < 1e3) {
-                start = 0;
-                end = processedData.input.count;
-            }
-
-            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                if (invalidData?.[datumIndex] === true) continue;
-
-                const x = xPosition(datumIndex);
-                const width = effectiveBarWidth;
-                const yLow = yLowValues[datumIndex];
-                const yHigh = yHighValues[datumIndex];
-
-                handleDatum(datumIndex, 0, x, width, yLow, yHigh, defaultCrisp);
-            }
-        } else {
-            for (const { datumIndex, groupIndex: groupDataIndex } of dataModel.forEachGroupDatum(this, processedData)) {
-                const x = xPosition(datumIndex);
-                const width = effectiveBarWidth;
-                const yLow = yLowValues[datumIndex];
-                const yHigh = yHighValues[datumIndex];
-
-                handleDatum(datumIndex, groupDataIndex, x, width, yLow, yHigh, defaultCrisp);
-            }
-        }
-
-        return context;
+        return {
+            xAxis,
+            yAxis,
+            rawData,
+            xValues: dataModel.resolveKeysById(this, `xValue`, processedData),
+            yLowValues: dataModel.resolveColumnById(this, `yLowValue`, processedData),
+            yHighValues: dataModel.resolveColumnById(this, `yHighValue`, processedData),
+            xScale,
+            yScale,
+            groupOffset,
+            barOffset,
+            barWidth,
+            barAlongX,
+            crisp,
+            dataAggregationFilter,
+            animationEnabled,
+            xKey: this.properties.xKey,
+            yLowKey: this.properties.yLowKey,
+            yHighKey: this.properties.yHighKey,
+            labelEnabled: this.properties.label.enabled,
+            labelPlacement: this.properties.label.placement,
+            labelPadding:
+                (this.properties.label.spacing +
+                    (typeof this.properties.label.padding === 'number' ? this.properties.label.padding : 0)) *
+                (this.properties.label.placement === 'outside' ? 1 : -1),
+            canIncrementallyUpdate,
+            nodes: canIncrementallyUpdate ? this.contextNodeData.nodeData : [],
+            nodeIndex: 0,
+        };
     }
 
-    private createLabelData({
-        datumIndex,
-        rect,
-        barAlongX,
-        yLowValue,
-        yHighValue,
-        datum,
-        series,
-    }: {
-        datumIndex: number;
-        rect: Bounds;
-        barAlongX: boolean;
-        yLowValue: number;
-        yHighValue: number;
-        datum: any;
-        series: RangeBarSeries;
-    }): RangeBarNodeLabelDatum[] {
-        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, label } = this.properties;
-        const labelParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName };
+    /**
+     * Validates and prepares state needed for node creation/update.
+     * Returns undefined if datum should be skipped.
+     */
+    private prepareNodeDatumState(
+        ctx: RangeBarSeriesNodeDatumContext,
+        scratch: PreparedRangeBarNodeDatumState,
+        datumIndex: number
+    ): PreparedRangeBarNodeDatumState | undefined {
+        const datum = ctx.rawData[datumIndex];
+        const xValue = ctx.xValues[datumIndex];
+        if (xValue === undefined && !this.properties.allowNullKeys) return undefined;
 
-        const { placement } = label;
-        const spacing = label.spacing + (typeof label.padding === 'number' ? label.padding : 0);
-        const paddingDirection = placement === 'outside' ? 1 : -1;
-        const labelPadding = spacing * paddingDirection;
+        const rawLowValue = ctx.yLowValues[datumIndex];
+        const rawHighValue = ctx.yHighValues[datumIndex];
 
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return undefined;
 
-        const yLowLabel: RangeBarNodeLabelDatum = {
-            datumIndex,
-            x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
-            y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
-            textAlign: barAlongX ? 'left' : 'center',
-            textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
-                yLowValue,
-                datum,
-                yLowKey,
-                'y',
-                yDomain,
-                label,
-                { itemId: 'low', value: yLowValue, ...labelParams }
-            ),
-            itemId: 'low',
-            datum,
-            series,
+        const [yLowValue, yHighValue] =
+            rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
+
+        // Populate scratch with validated, computed values
+        scratch.datum = datum;
+        scratch.xValue = xValue;
+        scratch.yLowValue = yLowValue;
+        scratch.yHighValue = yHighValue;
+        scratch.rawLowValue = rawLowValue;
+        scratch.rawHighValue = rawHighValue;
+
+        return scratch;
+    }
+
+    /**
+     * Creates a minimal skeleton node - actual values set by updateNodeDatum.
+     */
+    private createSkeletonNodeDatum(ctx: RangeBarSeriesNodeDatumContext, params: NodeDatumParams): RangeBarNodeDatum {
+        const scratch = params.nodeDatumScratch;
+        return {
+            index: params.groupedDataIndex,
+            series: this,
+            datum: scratch.datum,
+            datumIndex: params.datumIndex,
+            xValue: scratch.xValue,
+            yLowValue: 0, // Will be updated by updateNodeDatum
+            yHighValue: 0, // Will be updated by updateNodeDatum
+            yLowKey: ctx.yLowKey,
+            yHighKey: ctx.yHighKey,
+            xKey: ctx.xKey,
+            x: 0, // Will be updated by updateNodeDatum
+            y: 0, // Will be updated by updateNodeDatum
+            width: 0, // Will be updated by updateNodeDatum
+            height: 0, // Will be updated by updateNodeDatum
+            midPoint: { x: 0, y: 0 }, // Will be updated by updateNodeDatum
+            crisp: params.crisp,
+            labels: [], // Will be updated by updateNodeDatum
         };
-        const yHighLabel: RangeBarNodeLabelDatum = {
-            datumIndex,
-            x: rect.x + (barAlongX ? rect.width + labelPadding : rect.width / 2),
-            y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
-            textAlign: barAlongX ? 'right' : 'center',
-            textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
-                yHighValue,
-                datum,
-                yHighKey,
-                'y',
-                yDomain,
-                label,
-                { itemId: 'high', value: yHighValue, ...labelParams }
-            ),
-            itemId: 'high',
-            datum,
-            series,
+    }
+
+    /**
+     * Creates a new node: skeleton + update.
+     */
+    private createNodeDatum(
+        ctx: RangeBarSeriesNodeDatumContext,
+        params: NodeDatumParams,
+        _itemId: RangeBarItemId,
+        strokeWidth: number
+    ): RangeBarNodeDatum | undefined {
+        const prepared = this.prepareNodeDatumState(ctx, params.nodeDatumScratch, params.datumIndex);
+        if (!prepared) return undefined;
+
+        const nodeData = this.createSkeletonNodeDatum(ctx, params);
+        this.updateNodeDatum(ctx, nodeData, params, strokeWidth, prepared);
+
+        return nodeData;
+    }
+
+    /**
+     * Updates node properties in-place.
+     * Shared by both create (skeleton + update) and incremental update paths.
+     */
+    private updateNodeDatum(
+        ctx: RangeBarSeriesNodeDatumContext,
+        node: RangeBarNodeDatum,
+        params: NodeDatumParams,
+        strokeWidth: number,
+        prepared?: PreparedRangeBarNodeDatumState
+    ): void {
+        prepared ??= this.prepareNodeDatumState(ctx, params.nodeDatumScratch, params.datumIndex);
+        if (!prepared) return;
+
+        const mutableNode = node as Mutable<RangeBarNodeDatum>;
+
+        // Update main node properties
+        mutableNode.index = params.groupedDataIndex;
+        mutableNode.datum = prepared.datum;
+        mutableNode.datumIndex = params.datumIndex;
+        mutableNode.xValue = prepared.xValue;
+        mutableNode.yLowValue = prepared.rawLowValue;
+        mutableNode.yHighValue = prepared.rawHighValue;
+        mutableNode.crisp = params.crisp;
+
+        // Compute bounds
+        const y = Math.round(ctx.yScale.convert(params.yHigh));
+        const bottomY = Math.round(ctx.yScale.convert(params.yLow));
+        const height = Math.max(strokeWidth, Math.abs(bottomY - y));
+
+        const rect = {
+            x: ctx.barAlongX ? Math.min(y, bottomY) : params.x,
+            y: ctx.barAlongX ? params.x : Math.min(y, bottomY),
+            width: ctx.barAlongX ? height : params.width,
+            height: ctx.barAlongX ? params.width : height,
         };
 
-        if (placement === 'outside') {
-            yLowLabel.textAlign = barAlongX ? 'right' : 'center';
-            yLowLabel.textBaseline = barAlongX ? 'middle' : 'top';
+        mutableNode.x = rect.x;
+        mutableNode.y = rect.y;
+        mutableNode.width = rect.width;
+        mutableNode.height = rect.height;
 
-            yHighLabel.textAlign = barAlongX ? 'left' : 'center';
-            yHighLabel.textBaseline = barAlongX ? 'middle' : 'bottom';
+        // Update midPoint in place
+        const mutableMidPoint = mutableNode.midPoint as Mutable<Point>;
+        mutableMidPoint.x = rect.x + rect.width / 2;
+        mutableMidPoint.y = rect.y + rect.height / 2;
+
+        // Update clipBBox in place (if it exists)
+        const existingClipBBox = mutableNode.clipBBox;
+        if (existingClipBBox) {
+            existingClipBBox.x = rect.x;
+            existingClipBBox.y = rect.y;
+            existingClipBBox.width = rect.width;
+            existingClipBBox.height = rect.height;
         }
-        return [yLowLabel, yHighLabel];
+        // Note: clipBBox is not created for RangeBarSeries as it's not used for rendering
+
+        // Update labels in place to avoid array allocations
+        // Only compute label text if labels are enabled (expensive getLabelText calls)
+        const labelParams = params.labelParamsScratch;
+        labelParams.labels = mutableNode.labels as RangeBarNodeLabelDatum[];
+        labelParams.datumIndex = params.datumIndex;
+        labelParams.rectX = rect.x;
+        labelParams.rectY = rect.y;
+        labelParams.rectWidth = rect.width;
+        labelParams.rectHeight = rect.height;
+        labelParams.yLowValue = prepared.yLowValue;
+        labelParams.yHighValue = prepared.yHighValue;
+        labelParams.datum = prepared.datum;
+        this.updateLabelData(ctx, labelParams);
+    }
+
+    /**
+     * Creates node data using aggregation filters for large datasets.
+     */
+    private createNodeDataWithAggregation(
+        ctx: RangeBarSeriesNodeDatumContext,
+        xPosition: (index: number) => number,
+        nodeDatumParamsScratch: NodeDatumParams,
+        itemId: RangeBarItemId,
+        strokeWidth: number,
+        dataAggregationFilter: RangeBarSeriesDataAggregationFilter
+    ): void {
+        const { maxRange, indexData, midpointIndices } = dataAggregationFilter;
+        const [start, end] = visibleRangeIndices(1, maxRange, ctx.xAxis.range, (index) => {
+            const aggIndex = index * AGGREGATION_SPAN;
+            const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+            const midDatumIndex = midpointIndices[index];
+            if (midDatumIndex === -1) return;
+            return [xPosition(midDatumIndex), xPosition(xMaxIndex) + ctx.barWidth];
+        });
+
+        for (let i = start; i < end; i += 1) {
+            const aggIndex = i * AGGREGATION_SPAN;
+            const xMinIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MIN];
+            const xMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_X_MAX];
+            const yMinIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MIN];
+            const yMaxIndex = indexData[aggIndex + AGGREGATION_INDEX_Y_MAX];
+
+            const midDatumIndex = midpointIndices[i];
+            if (midDatumIndex === -1) continue;
+
+            const xValue = ctx.xValues[midDatumIndex];
+            if (xValue === undefined && !this.properties.allowNullKeys) continue;
+
+            // Populate scratch object with aggregated values
+            nodeDatumParamsScratch.datumIndex = midDatumIndex;
+            nodeDatumParamsScratch.groupedDataIndex = 0;
+            nodeDatumParamsScratch.x = xPosition(midDatumIndex);
+            nodeDatumParamsScratch.width = Math.abs(xPosition(xMinIndex) - xPosition(xMaxIndex)) + ctx.barWidth;
+            nodeDatumParamsScratch.yLow = ctx.yLowValues[yMinIndex];
+            nodeDatumParamsScratch.yHigh = ctx.yHighValues[yMaxIndex];
+            nodeDatumParamsScratch.crisp = false;
+
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
+        }
+    }
+
+    /**
+     * Creates node data for simple (ungrouped) data processing.
+     */
+    private createNodeDataSimple(
+        ctx: RangeBarSeriesNodeDatumContext,
+        xPosition: (index: number) => number,
+        nodeDatumParamsScratch: NodeDatumParams,
+        itemId: RangeBarItemId,
+        strokeWidth: number,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ): void {
+        const invalidData = processedData.invalidData?.get(this.id);
+        let [start, end] = this.visibleRangeIndices('xValue', ctx.xAxis.range);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.input.count < 1e3) {
+            start = 0;
+            end = processedData.input.count;
+        }
+
+        for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+            if (invalidData?.[datumIndex] === true) continue;
+
+            // Populate scratch object
+            nodeDatumParamsScratch.datumIndex = datumIndex;
+            nodeDatumParamsScratch.groupedDataIndex = 0;
+            nodeDatumParamsScratch.x = xPosition(datumIndex);
+            nodeDatumParamsScratch.width = ctx.barWidth;
+            nodeDatumParamsScratch.yLow = ctx.yLowValues[datumIndex];
+            nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
+            nodeDatumParamsScratch.crisp = ctx.crisp;
+
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
+        }
+    }
+
+    /**
+     * Creates node data for grouped data processing.
+     */
+    private createNodeDataGrouped(
+        ctx: RangeBarSeriesNodeDatumContext,
+        xPosition: (index: number) => number,
+        nodeDatumParamsScratch: NodeDatumParams,
+        itemId: RangeBarItemId,
+        strokeWidth: number
+    ): void {
+        const processedData = this.processedData! as _ModuleSupport.GroupedData<any>;
+        for (const { datumIndex, groupIndex: groupDataIndex } of this.dataModel!.forEachGroupDatum(
+            this,
+            processedData
+        )) {
+            // Populate scratch object
+            nodeDatumParamsScratch.datumIndex = datumIndex;
+            nodeDatumParamsScratch.groupedDataIndex = groupDataIndex;
+            nodeDatumParamsScratch.x = xPosition(datumIndex);
+            nodeDatumParamsScratch.width = ctx.barWidth;
+            nodeDatumParamsScratch.yLow = ctx.yLowValues[datumIndex];
+            nodeDatumParamsScratch.yHigh = ctx.yHighValues[datumIndex];
+            nodeDatumParamsScratch.crisp = ctx.crisp;
+
+            // Use shared utility for create/update logic
+            upsertNodeDatum(
+                ctx,
+                nodeDatumParamsScratch,
+                (c, p) => this.createNodeDatum(c, p, itemId, strokeWidth),
+                (c, n, p) => this.updateNodeDatum(c, n, p, strokeWidth)
+            );
+        }
+    }
+
+    protected override populateNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
+        const { processedData } = this;
+        if (!processedData) return;
+
+        const { yLowKey, yHighKey, strokeWidth } = this.properties;
+        const itemId = `${yLowKey}-${yHighKey}` as const;
+
+        // Helper for x position calculation (uses context)
+        const xPosition = (datumIndex: number) => {
+            const x = ctx.xScale.convert(ctx.xValues[datumIndex]);
+            if (!Number.isFinite(x)) return Number.NaN;
+            return Math.round(x) + ctx.groupOffset + ctx.barOffset;
+        };
+
+        // Scratch object for node datum parameters - avoid memory churn whilst minimizing parameter sprawl.
+        const nodeDatumParamsScratch: NodeDatumParams = {
+            nodeDatumScratch: {
+                datum: undefined,
+                xValue: undefined,
+                yLowValue: 0,
+                yHighValue: 0,
+                rawLowValue: undefined,
+                rawHighValue: undefined,
+            },
+            labelParamsScratch: {
+                labels: [],
+                datumIndex: 0,
+                rectX: 0,
+                rectY: 0,
+                rectWidth: 0,
+                rectHeight: 0,
+                yLowValue: 0,
+                yHighValue: 0,
+                datum: undefined,
+            },
+            datumIndex: 0,
+            groupedDataIndex: 0,
+            x: 0,
+            width: 0,
+            yLow: 0,
+            yHigh: 0,
+            crisp: false,
+        };
+
+        // Strategy selection - delegate to specialized methods
+        if (ctx.dataAggregationFilter != null) {
+            this.createNodeDataWithAggregation(
+                ctx,
+                xPosition,
+                nodeDatumParamsScratch,
+                itemId,
+                strokeWidth,
+                ctx.dataAggregationFilter
+            );
+        } else if (processedData.type === 'ungrouped') {
+            this.createNodeDataSimple(ctx, xPosition, nodeDatumParamsScratch, itemId, strokeWidth, processedData);
+        } else {
+            this.createNodeDataGrouped(ctx, xPosition, nodeDatumParamsScratch, itemId, strokeWidth);
+        }
+    }
+
+    protected override finalizeNodeData(ctx: RangeBarSeriesNodeDatumContext): void {
+        // Trim excess nodes if we did incremental updates and have leftover nodes
+        if (ctx.canIncrementallyUpdate && ctx.nodeIndex < ctx.nodes.length) {
+            ctx.nodes.length = ctx.nodeIndex;
+        }
+    }
+
+    protected override initializeResult(ctx: RangeBarSeriesNodeDatumContext): RangeBarSeriesNodeDataContext {
+        const { yLowKey, yHighKey } = this.properties;
+        const itemId = `${yLowKey}-${yHighKey}` as const;
+
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+        const segments =
+            xAxis && yAxis && this.chart?.seriesRect
+                ? calculateSegments(this.properties.segmentation, xAxis, yAxis, this.chart.seriesRect, this.ctx.scene)
+                : undefined;
+
+        return {
+            itemId,
+            nodeData: ctx.nodes,
+            labelData: [],
+            scales: this.calculateScaling(),
+            groupScale: this.getScaling(this.ctx.seriesStateManager.getGroupScale(this)!),
+            visible: this.visible,
+            styles: getItemStyles(this.getItemStyle.bind(this)),
+            segments,
+        };
+    }
+
+    protected override assembleResult(
+        ctx: RangeBarSeriesNodeDatumContext,
+        result: RangeBarSeriesNodeDataContext
+    ): RangeBarSeriesNodeDataContext {
+        // Build label data from nodes
+        for (const node of ctx.nodes) {
+            result.labelData.push(...node.labels);
+        }
+        return result;
+    }
+
+    /**
+     * Updates existing label data in place or creates new labels if needed.
+     * This avoids array allocations during incremental updates.
+     * Uses positional params (no destructuring) for performance in hot path.
+     */
+    private updateLabelData(ctx: RangeBarSeriesNodeDatumContext, params: LabelUpdateParams): void {
+        const labels = params.labels;
+
+        // Skip all label computation if labels are disabled - getLabelText is expensive
+        // Only clear if labels exist (avoid array operation when already empty)
+        if (!ctx.labelEnabled) {
+            if (labels.length > 0) {
+                labels.length = 0;
+            }
+            return;
+        }
+
+        const { xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName, label } = this.properties;
+        const barAlongX = ctx.barAlongX;
+        const placement = ctx.labelPlacement;
+        const labelPadding = ctx.labelPadding;
+
+        // Calculate label positions and alignment using scratch params
+        const rectX = params.rectX;
+        const rectY = params.rectY;
+        const rectWidth = params.rectWidth;
+        const rectHeight = params.rectHeight;
+
+        const yLowX = rectX + (barAlongX ? -labelPadding : rectWidth / 2);
+        const yLowY = rectY + (barAlongX ? rectHeight / 2 : rectHeight + labelPadding);
+
+        let yLowTextAlign: CanvasTextAlign;
+        if (placement === 'outside') {
+            yLowTextAlign = barAlongX ? 'right' : 'center';
+        } else {
+            yLowTextAlign = barAlongX ? 'left' : 'center';
+        }
+
+        let yLowTextBaseline: CanvasTextBaseline;
+        if (placement === 'outside') {
+            yLowTextBaseline = barAlongX ? 'middle' : 'top';
+        } else {
+            yLowTextBaseline = barAlongX ? 'middle' : 'bottom';
+        }
+
+        const yHighX = rectX + (barAlongX ? rectWidth + labelPadding : rectWidth / 2);
+        const yHighY = rectY + (barAlongX ? rectHeight / 2 : -labelPadding);
+
+        let yHighTextAlign: CanvasTextAlign;
+        if (placement === 'outside') {
+            yHighTextAlign = barAlongX ? 'left' : 'center';
+        } else {
+            yHighTextAlign = barAlongX ? 'right' : 'center';
+        }
+
+        let yHighTextBaseline: CanvasTextBaseline;
+        if (placement === 'outside') {
+            yHighTextBaseline = barAlongX ? 'middle' : 'bottom';
+        } else {
+            yHighTextBaseline = barAlongX ? 'middle' : 'top';
+        }
+
+        const datum = params.datum;
+        const yLowValue = params.yLowValue;
+        const yHighValue = params.yHighValue;
+        const datumIndex = params.datumIndex;
+
+        const labelTextParams = { datum, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName, legendItemName };
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y).domain;
+
+        const yLowText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+            yLowValue,
+            datum,
+            yLowKey,
+            'y',
+            yDomain,
+            label,
+            { itemType: 'low', value: yLowValue, ...labelTextParams }
+        );
+
+        const yHighText = this.getLabelText<AgRangeBarSeriesLabelFormatterParams>(
+            yHighValue,
+            datum,
+            yHighKey,
+            'y',
+            yDomain,
+            label,
+            { itemType: 'high', value: yHighValue, ...labelTextParams }
+        );
+
+        // Update or create yLowLabel
+        if (labels.length > 0 && labels[0].itemType === 'low') {
+            // Update existing label in place
+            const yLowLabel = labels[0] as Mutable<RangeBarNodeLabelDatum>;
+            yLowLabel.datumIndex = datumIndex;
+            yLowLabel.x = yLowX;
+            yLowLabel.y = yLowY;
+            yLowLabel.textAlign = yLowTextAlign;
+            yLowLabel.textBaseline = yLowTextBaseline;
+            yLowLabel.text = yLowText;
+            yLowLabel.datum = datum;
+        } else {
+            // Create new label
+            labels[0] = {
+                datumIndex,
+                x: yLowX,
+                y: yLowY,
+                textAlign: yLowTextAlign,
+                textBaseline: yLowTextBaseline,
+                text: yLowText,
+                itemType: 'low',
+                datum,
+                series: this,
+            };
+        }
+
+        // Update or create yHighLabel
+        if (labels.length > 1 && labels[1].itemType === 'high') {
+            // Update existing label in place
+            const yHighLabel = labels[1] as Mutable<RangeBarNodeLabelDatum>;
+            yHighLabel.datumIndex = datumIndex;
+            yHighLabel.x = yHighX;
+            yHighLabel.y = yHighY;
+            yHighLabel.textAlign = yHighTextAlign;
+            yHighLabel.textBaseline = yHighTextBaseline;
+            yHighLabel.text = yHighText;
+            yHighLabel.datum = datum;
+        } else {
+            // Create new label
+            labels[1] = {
+                datumIndex,
+                x: yHighX,
+                y: yHighY,
+                textAlign: yHighTextAlign,
+                textBaseline: yHighTextBaseline,
+                text: yHighText,
+                itemType: 'high',
+                datum,
+                series: this,
+            };
+        }
+
+        // Ensure labels array has exactly 2 items
+        labels.length = 2;
     }
 
     protected override nodeFactory() {
         return new Rect();
+    }
+
+    private getStyle(
+        ignoreStylerCallback: boolean,
+        highlightState?: _ModuleSupport.HighlightState
+    ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            styler,
+        } = this.properties;
+        let stylerResult: AgRangeBarSeriesStyle = {};
+        if (!ignoreStylerCallback && styler) {
+            const stylerParams = this.makeStylerParams(highlightState);
+            stylerResult =
+                this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.cachedCallWithContext(styler, stylerParams) ?? {},
+                    { pick: false }
+                ) ?? {};
+        }
+        return {
+            cornerRadius: stylerResult.cornerRadius ?? cornerRadius,
+            fill: stylerResult.fill ?? fill,
+            fillOpacity: stylerResult.fillOpacity ?? fillOpacity,
+            lineDash: stylerResult.lineDash ?? lineDash,
+            lineDashOffset: stylerResult.lineDashOffset ?? lineDashOffset,
+            opacity: 1,
+            stroke: stylerResult.stroke ?? stroke,
+            strokeOpacity: stylerResult.strokeOpacity ?? strokeOpacity,
+            strokeWidth: stylerResult.strokeWidth ?? strokeWidth,
+        };
+    }
+
+    private makeStylerParams(
+        highlightStateEnum?: _ModuleSupport.HighlightState
+    ): AgRangeBarSeriesStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+        const {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } = this.properties;
+        const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+
+        return {
+            cornerRadius,
+            fill,
+            fillOpacity,
+            highlightState,
+            lineDash,
+            lineDashOffset,
+            seriesId,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            xKey,
+            yLowKey,
+            yHighKey,
+        } satisfies CallbackParamRules<AgRangeBarSeriesStylerParams<unknown, unknown>>;
     }
 
     protected override updateDatumSelection(opts: {
@@ -520,6 +1029,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
+        if (!processedDataIsAnimatable(this.processedData!)) {
+            // Optimised update path, no need to ensure we match up nodes by id.
+            return datumSelection.update(data);
+        }
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
@@ -532,8 +1045,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
-        let style = baseStyle;
+        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
@@ -557,7 +1069,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { id: seriesId, properties, processedData } = this;
         const { xKey, yHighKey, yLowKey } = properties;
 
-        const datum = processedData!.dataSources.get(seriesId)?.[datumIndex];
+        const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
@@ -568,23 +1080,29 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             xKey,
             yHighKey,
             yLowKey,
-            highlighted: isHighlight,
             highlightState: highlightStateString,
             ...style,
             fill,
         };
     }
 
+<<<<<<< HEAD
     protected override updateDatumStyles({
         datumSelection,
         isHighlight,
     }: {
         datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
+=======
+    protected override updateDatumStyles(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
+>>>>>>> latest
         isHighlight: boolean;
     }) {
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                datum.style = this.getItemStyle(datum.datumIndex, isHighlight);
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        opts.datumSelection.each((node, datum) => {
+            if (!opts.datumSelection.isGarbage(node)) {
+                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
             }
         });
     }
@@ -606,16 +1124,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const fillBBox = this.getShapeFillBBox();
 
-        datumSelection.each((rect, datum) => {
+        const series = this;
+        datumSelection.each(function updateRangeBarNode(rect, datum) {
             const style =
                 datum.style ??
-                contextNodeData.styles[this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
-            applyShapeStyle(rect, style, fillBBox);
+                contextNodeData.styles[series.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
+            rect.setStyleProperties(style, fillBBox);
 
-            rect.cornerRadius = style.cornerRadius ?? 0;
-            rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
-
-            rect.crisp = datum.crisp;
+            // Batched static property updates - write directly to backing fields to reduce markDirty() calls
+            rect.setStaticProperties(
+                'overlay',
+                style.cornerRadius ?? 0,
+                style.cornerRadius ?? 0,
+                style.cornerRadius ?? 0,
+                style.cornerRadius ?? 0,
+                categoryAlongX ? datum.width > 0 : datum.height > 0,
+                datum.crisp,
+                undefined
+            );
         });
     }
 
@@ -630,8 +1156,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected updateLabelNodes(opts: {
+<<<<<<< HEAD
         labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text>;
+=======
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeBarNodeLabelDatum>;
+        isHighlight?: boolean;
+>>>>>>> latest
     }) {
+        const { isHighlight = false } = opts;
         const params: RequireOptional<AgRangeBarSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,
             xName: this.properties.xName ?? this.properties.xKey,
@@ -640,12 +1172,21 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yLowName: this.properties.yLowName ?? this.properties.yLowKey,
             yHighKey: this.properties.yHighKey,
             yHighName: this.properties.yHighName ?? this.properties.yHighKey,
+            legendItemName: this.properties.legendItemName,
         };
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         opts.labelSelection.each((textNode, datum) => {
-            textNode.fillOpacity = this.getHighlightStyle(false, datum?.datumIndex).opacity ?? 1;
-            updateLabelNode(this, textNode, params, this.properties.label, datum, false, activeHighlight);
+            textNode.fillOpacity = this.getHighlightStyle(isHighlight, datum?.datumIndex).opacity ?? 1;
+            updateLabelNode(this, textNode, params, this.properties.label, datum, isHighlight, activeHighlight);
         });
+    }
+
+    protected override getHighlightLabelData(labelData: RangeBarNodeLabelDatum[], highlightedItem: RangeBarNodeDatum) {
+        if (highlightedItem.labels?.length) {
+            return highlightedItem.labels;
+        }
+
+        return super.getHighlightLabelData(labelData, highlightedItem);
     }
 
     override getTooltipContent(datumIndex: number): _ModuleSupport.TooltipContent | undefined {
@@ -656,12 +1197,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
-        const datum = processedData.dataSources.get(this.id)?.[datumIndex];
+        const datum = processedData.dataSources.get(this.id)?.data[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
         const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
-        if (xValue == null) return;
+        // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
+        const allowNullKeys = this.properties.allowNullKeys ?? false;
+        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
         const format = this.getItemStyle(datumIndex, false);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
@@ -670,7 +1213,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
+                data: [
+                    {
+                        label: yName,
+                        fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`,
+                        value,
+                        missing:
+                            _ModuleSupport.isTooltipValueMissing(yHighValue) &&
+                            _ModuleSupport.isTooltipValueMissing(yLowValue),
+                    },
+                ],
             },
             {
                 seriesId,
@@ -683,13 +1235,17 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 yHighKey,
                 yLowName,
                 yHighName,
+                legendItemName,
                 ...format,
             }
         );
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
+            false,
+            HighlightState.None
+        );
         return {
             marker: {
                 fill,
@@ -710,8 +1266,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { yName, yLowName, yHighName, yLowKey, yHighKey, showInLegend } = this.properties;
-        const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const { yName, yLowName, yHighName, yLowKey, yHighKey, legendItemName, showInLegend } = this.properties;
+        const legendItemText = legendItemName ?? yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
         return [
@@ -723,15 +1279,27 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbol: this.legendItemSymbol(),
+                legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
     }
 
+    protected override resetDatumAnimation(data: RangeBarAnimationData) {
+        // Use direct reset to bypass resetMotion callback overhead
+        resetBarSelectionsDirect([data.datumSelection]);
+    }
+
     override animateEmptyUpdateReady({ datumSelection, labelSelection }: RangeBarAnimationData) {
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'normal'), 'unknown');
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], fns);
-        seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+        seriesLabelFadeInAnimation(
+            this,
+            'labels',
+            this.ctx.animationManager,
+            labelSelection,
+            this.highlightLabelSelection
+        );
     }
 
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
@@ -742,7 +1310,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.getDatumId.bind(this),
             contextData,
             previousContextData,
-            this.processedData
+            this.processedData,
+            this.processedDataUpdated
         );
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
@@ -760,7 +1329,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         );
 
         if (dataDiff?.changed || !areScalingEqual(contextData.groupScale, previousContextData?.groupScale)) {
-            seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
+            seriesLabelFadeInAnimation(
+                this,
+                'labels',
+                this.ctx.animationManager,
+                labelSelection,
+                this.highlightLabelSelection
+            );
         }
     }
 
@@ -772,13 +1347,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return this.properties.label.enabled;
     }
 
-    protected override onDataChange() {}
-
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.styler != null ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

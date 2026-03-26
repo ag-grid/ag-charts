@@ -1,9 +1,8 @@
-import { clamp } from 'ag-charts-core';
+import { SeriesZIndexMap, clamp } from 'ag-charts-core';
 
 import { Group } from '../../scene/group';
 import { compareZIndex } from '../../scene/zIndex';
 import type { SeriesGrouping } from './seriesStateManager';
-import { SeriesZIndexMap } from './seriesZIndexMap';
 
 interface SeriesConfig {
     internalId: string;
@@ -141,12 +140,12 @@ export class SeriesLayerManager {
         const groupInfo = this.series.get(internalId)?.layerState;
         if (groupInfo) {
             groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== internalId);
-            groupInfo.group.removeChild(contentGroup);
+            contentGroup.remove();
         }
 
         if (groupInfo?.seriesIds.length === 0) {
             // Last member of the layer, cleanup.
-            this.seriesRoot.removeChild(groupInfo.group);
+            groupInfo.group.remove();
             this.groups.get(groupInfo.type)?.delete(groupInfo.id);
             this.groups.get(type)?.delete(internalId);
         } else if (groupInfo != null && groupInfo.seriesIds.length > 0) {
@@ -159,8 +158,8 @@ export class SeriesLayerManager {
     }
 
     public updateLayerCompositing() {
-        this.groups.forEach((groups) => {
-            groups.forEach((groupInfo) => {
+        for (const groups of this.groups.values()) {
+            for (const groupInfo of groups.values()) {
                 const { group, seriesIds } = groupInfo;
 
                 let renderToOffscreenCanvas: boolean;
@@ -175,8 +174,8 @@ export class SeriesLayerManager {
 
                 group.renderToOffscreenCanvas = renderToOffscreenCanvas;
                 group.zIndex = this.getLowestSeriesZIndex(seriesIds);
-            });
-        });
+            }
+        }
     }
 
     private lookupIdx(groupIndex: number | string) {
@@ -197,11 +196,11 @@ export class SeriesLayerManager {
     }
 
     public destroy() {
-        this.groups.forEach((groups) => {
-            groups.forEach((groupInfo) => {
-                this.seriesRoot.removeChild(groupInfo.group);
-            });
-        });
+        for (const groups of this.groups.values()) {
+            for (const groupInfo of groups.values()) {
+                groupInfo.group.remove();
+            }
+        }
 
         this.groups.clear();
         this.series.clear();

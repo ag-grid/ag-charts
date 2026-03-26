@@ -1,5 +1,7 @@
-import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions, LegendModule } from 'ag-charts-community';
+import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -14,28 +16,26 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Market Share (%)',
             },
             nice: true,
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function toggleAxisNice() {
-    (options.axes![1] as AgNumberAxisOptions).nice = !(options.axes![1] as AgNumberAxisOptions).nice;
+    (options.axes!.y! as AgNumberAxisOptions).nice = !(options.axes!.y! as AgNumberAxisOptions).nice;
     chart.update(options);
 }

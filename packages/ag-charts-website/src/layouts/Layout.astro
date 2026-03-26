@@ -1,4 +1,5 @@
 ---
+// cspell:ignore vars
 import { getEntry, type CollectionEntry } from 'astro:content';
 import { getFavIconsData, getAppleTouchIconsData } from '@utils/favicons';
 import SiteHeader from '@ag-website-shared/components/site-header/SiteHeader.astro';
@@ -68,7 +69,7 @@ const isApiLayout = apiMenuItems.some((item) => {
     const currentPath = removeTrailingSlash(path);
     const itemPath = removeTrailingSlash(urlWithBaseUrl(item.path));
 
-    // Hack to ensure API menu never apears on a community page
+    // Hack to ensure API menu never appears on a community page
     if (currentPath.includes('community')) return false;
 
     if (isDynamicFrameworkPath(itemPath)) {

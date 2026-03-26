@@ -4,15 +4,16 @@ import type {
     AgRangeBarSeriesLabelPlacement,
     AgRangeBarSeriesOptions,
     AgRangeBarSeriesStyle,
+    AgRangeBarSeriesStylerParams,
     AgRangeBarSeriesTooltipRendererParams,
     PixelSize,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
+import { Property } from 'ag-charts-core';
 
-const { AbstractBarSeriesProperties, makeSeriesTooltip, Property, DropShadow, Label } = _ModuleSupport;
-
+const { AbstractBarSeriesProperties, makeSeriesTooltip, DropShadow, Label } = _ModuleSupport;
 class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {
     @Property
     placement: AgRangeBarSeriesLabelPlacement = 'inside';
@@ -68,6 +69,9 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
     cornerRadius: number = 0;
 
     @Property
+    styler?: Styler<AgRangeBarSeriesStylerParams<unknown, unknown>, AgRangeBarSeriesStyle>;
+
+    @Property
     itemStyler?: Styler<AgRangeBarSeriesItemStylerParams<unknown>, AgRangeBarSeriesStyle>;
 
     @Property
@@ -78,19 +82,4 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Property
     readonly tooltip = makeSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
-
-    getStyle(): Required<AgRangeBarSeriesStyle> & { opacity: number } {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } = this;
-        return {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            opacity: 1,
-        };
-    }
 }

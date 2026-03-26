@@ -23,10 +23,11 @@ The Unit Time Axis will plot time values with evenly spaced bands for each unit 
 
 For example, with a `month` unit, dates of 01 Jan and 30 Mar will appear as three evenly spaced items representing "January", "February" and "March".
 
-```js
+```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
+    axes: {
+        x: { type: 'unit-time' },
+    },
 }
 ```
 
@@ -43,11 +44,14 @@ The Unit Time Axis assumes that data is provided with one item per unit, and wil
 For some scenarios - such as datasets with missing data points - it may be necessary to specify the `unit` explicitly.
 To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeIntervalUnit` object.
 
-```js
+```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
-    unit:  'day', // every day
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: 'day', // every day
+        },
+    },
 }
 ```
 
@@ -68,14 +72,17 @@ The `AgTimeIntervalUnit` object supports advanced configuration for more complex
 
 {% chartExampleRunner title="Unit Time (Custom Unit)" name="unit-time-unit" type="generated" /%}
 
-```js
+```js format="snippet"
 {
-    type: 'unit-time',
-    position: 'bottom',
-    unit: {
-        unit: 'day',
-        step: 7, //every 7 days (weekly)
-        epoch: new Date(2024, 0, 1), //start the week on Monday
+    axes: {
+        x: {
+            type: 'unit-time',
+            unit: {
+                unit: 'day',
+                step: 7, //every 7 days (weekly)
+                epoch: new Date(2024, 0, 1), //start the week on Monday
+            },
+        },
     },
 }
 ```
@@ -99,10 +106,13 @@ Ordinal Time axes are commonly used for financial data on the x-axis, usually pl
 
 A basic Ordinal Time Axis configuration looks like this:
 
-```js
+```js format="snippet"
 {
-    type: 'ordinal-time',
-    position: 'bottom',
+    axes: {
+        x: {
+            type: 'ordinal-time',
+        },
+    },
 }
 ```
 
@@ -114,10 +124,13 @@ The time axis is similar to the number axis in the sense that it is also used to
 
 Time axes are typically used as x-axes and placed at the bottom of a chart. The simplest time axis config looks like this:
 
-```js
+```js format="snippet"
 {
-    type: 'time',
-    position: 'bottom',
+    axes: {
+        x: {
+            type: 'time',
+        },
+    },
 }
 ```
 
@@ -130,7 +143,7 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 
 {% chartExampleRunner title="Time Axis Interval" name="time-interval" type="generated" /%}
 
-```js
+```js format="snippet"
 {
     interval: {
         step: 'month',
@@ -138,14 +151,14 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 }
 ```
 
-```js
+```js format="snippet"
 {
     interval: {
-            step: {
-                unit: 'day',
-                step: 7,  // every 7 days (weekly)
-                epoch: new Date('2024-01-01') //start the week on a Monday
-            },
+        step: {
+            unit: 'day',
+            step: 7, // every 7 days (weekly)
+            epoch: new Date('2024-01-01'), //start the week on a Monday
+        },
     },
 }
 ```
@@ -175,7 +188,7 @@ It is enabled by default for the [Unit Time Axis](#unit-time), and can be opted 
 
 {% chartExampleRunner title="Parent Level" name="axis-parent-level" type="generated" /%}
 
-```js
+```js format="snippet"
 {
     parentLevel: {
         enabled: true,
@@ -194,7 +207,7 @@ Parent level labels and ticks options are inherited from the axes label and tick
 
 {% chartExampleRunner title="Parent Level Customisation" name="axis-parent-level-customisation" type="generated" /%}
 
-```js
+```js format="snippet"
 {
     tick: {
         width: 0,

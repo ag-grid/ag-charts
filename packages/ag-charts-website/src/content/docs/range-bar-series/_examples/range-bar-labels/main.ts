@@ -1,7 +1,27 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    RangeBarSeriesModule,
+    ContextMenuModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -19,8 +39,8 @@ const options: AgChartOptions = {
             yHighKey: 'high',
             label: {
                 padding: 10,
-                formatter: ({ itemId, value }) => {
-                    return `£${value.toFixed(0)}K ${itemId === 'low' ? '↓' : '↑'}`;
+                formatter: ({ itemType, value }) => {
+                    return `£${value.toFixed(0)}K ${itemType === 'low' ? '↓' : '↑'}`;
                 },
             },
         },

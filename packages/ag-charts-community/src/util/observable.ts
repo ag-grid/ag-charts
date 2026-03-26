@@ -9,7 +9,7 @@ export class Observable {
 
     addEventListener(eventType: string, listener: TypedEventListener): void {
         if (typeof listener !== 'function') {
-            throw new Error('AG Charts - listener must be a Function');
+            throw new TypeError('AG Charts - listener must be a Function');
         }
 
         const eventTypeListeners = this.eventListeners.get(eventType);
@@ -40,6 +40,11 @@ export class Observable {
     }
 
     protected fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
-        this.eventListeners.get(event.type)?.forEach((listener) => listener(event));
+        const listeners = this.eventListeners.get(event.type);
+        if (listeners) {
+            for (const listener of listeners) {
+                listener(event);
+            }
+        }
     }
 }

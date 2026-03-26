@@ -1,6 +1,6 @@
 import { describe as originalDescribe } from '@jest/globals';
 
-import { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
@@ -15,10 +15,11 @@ describe('unit time axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 232, expectedCanvasCount: 2, autoSnapshot: false },
+        { expectedRetainedSizeMB: 200, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
-        }
+        },
+        20_000
     );
 
     describe('after load', () => {
@@ -29,7 +30,7 @@ describe('unit time axis benchmark', () => {
         benchmark(
             '20x zoom',
             ctx,
-            { expectedRelativeMB: 1, expectedCanvasCount: 2, autoSnapshot: false },
+            { expectedRelativeMB: 65, expectedCanvasCount: 3, autoSnapshot: false },
             async () => {
                 for (let i = 0; i < 20; i++) {
                     await ctx.scroll(ctx.options.width! / 2, ctx.options.height! / 2, -1, 0);

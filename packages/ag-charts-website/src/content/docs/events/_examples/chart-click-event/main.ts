@@ -1,5 +1,13 @@
-import { AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgChartClickEvent,
+    AgChartDoubleClickEvent,
+    AgChartOptions,
+    AgCharts,
+    LegendModule,
+} from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -20,16 +28,7 @@ const options: AgChartOptions = {
             yKey: 'units',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            type: 'number',
-            position: 'left',
-        },
-    ],
+
     listeners: {
         click: (_event: AgChartClickEvent) => {
             console.log('[click]');

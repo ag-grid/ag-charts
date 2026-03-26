@@ -1,5 +1,4 @@
-import { AgMarkerShapeFnParams } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -85,6 +84,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding',
+            yKeyAxis: 'yTertiary',
             fillOpacity: 1,
         },
         {
@@ -93,6 +93,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'employees',
             yName: 'Employees',
+            yKeyAxis: 'ySecondary',
             fillOpacity: 1,
         },
         {
@@ -101,46 +102,43 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'researchInstitutions',
             yName: 'Research Institutions',
+            yKeyAxis: 'yQuaternary',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             position: 'left',
             type: 'number',
-            keys: ['startups', 'techCompanies'],
             title: {
                 text: 'Startups and Tech Companies',
             },
         },
-        {
+        ySecondary: {
             position: 'left',
             type: 'number',
-            keys: ['employees'],
             title: {
                 text: 'Number of Employees',
             },
         },
-        {
+        yTertiary: {
             position: 'left',
             type: 'number',
-            keys: ['funding'],
             title: {
                 text: 'Funding',
             },
         },
-        {
+        yQuaternary: {
             position: 'right',
             type: 'number',
-            keys: ['researchInstitutions'],
             title: {
                 text: 'Number of Institutions',
             },
         },
-        {
+        x: {
             position: 'top',
             type: 'grouped-category',
         },
-    ],
+    },
     annotations: {
         enabled: true,
     },

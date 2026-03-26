@@ -1,6 +1,5 @@
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
 import { type AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
@@ -8,9 +7,13 @@ import type { AgChartProxy, Chart } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
+    delay,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    mouseDownAction,
+    mouseMoveAction,
+    mouseUpAction,
     prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
@@ -34,7 +37,7 @@ describe('Tooltip', () => {
 
     describe('Validation', () => {
         it('should show 1 warning for invalid tooltip value', async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { month: 'Jun', sweaters: 50 },
                     { month: 'Jul', sweaters: 70 },
@@ -56,7 +59,7 @@ describe('Tooltip', () => {
         });
 
         it('should show 1 warning for invalid tooltip anchorTo value', async () => {
-            await createChart({
+            chart = await createChart({
                 data: [
                     { month: 'Jun', sweaters: 50 },
                     { month: 'Jul', sweaters: 70 },
@@ -109,7 +112,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip'));
+            const element = Array.from(chart.chart!.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip'));
             expect(element.map((e) => e.textContent).join('')).toEqual('4 1.48');
 
             await nextValue(10, 1.3249187570726666);
@@ -139,18 +142,18 @@ describe('Tooltip', () => {
             chart = await createChart({
                 data: [
                     { x: 'Q1', a: 22, b: 25, L: 3.4 },
-                    { x: 'Q2', a: 18, b: 13, L: 4.0 },
+                    { x: 'Q2', a: 18, b: 13, L: 4 },
                 ],
                 series: [
                     { type: 'bar', xKey: 'x', yKey: 'a' },
                     { type: 'bar', xKey: 'x', yKey: 'b' },
-                    { type: 'line', xKey: 'x', yKey: 'L' },
+                    { type: 'line', xKey: 'x', yKey: 'L', yKeyAxis: 'ySecondary' },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left', keys: ['b', 'a'] },
-                    { type: 'number', position: 'right', keys: ['L'] },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                    ySecondary: { type: 'number', position: 'right' },
+                },
             });
             await testHover(221, 256); // highlight datum Q1 series L
             await testHover(666, 251); // highlight datum Q2 series L
@@ -188,6 +191,717 @@ describe('Tooltip', () => {
             });
             await testHover(58, 28); // no highlight match
             await testHover(140, 140); // match within range <= 20
+        });
+    });
+
+    describe('Symbol', () => {
+        it('should allow disabling symbol', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).not.toContain('ag-charts-tooltip-symbol');
+        });
+
+        it('should allow disabling symbol line only', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).toContain('<path');
+            expect(element?.innerHTML).not.toContain('<line');
+        });
+
+        it('should allow disabling symbol marker only', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { enabled: false } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).not.toContain('<path');
+            expect(element?.innerHTML).toContain('<line');
+        });
+
+        it('should allow customizing symbol fill and shape', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { marker: { fill: 'red', shape: 'square' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('ag-charts-tooltip-symbol');
+            expect(element?.innerHTML).toContain('d="M 4 0 L 16 0 L 16 12 L 4 12 Z"');
+            expect(element?.innerHTML).toContain('fill="red"');
+        });
+
+        it('should render symbol line when user specifies it on non-line series', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: true, stroke: 'red', strokeWidth: 2 } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+            expect(element?.innerHTML).toContain('stroke="red"');
+        });
+
+        it('should default line stroke properties from marker when not specified', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        stroke: 'purple',
+                        strokeWidth: 3,
+                        tooltip: {
+                            renderer() {
+                                return {
+                                    symbol: {
+                                        marker: { stroke: 'purple', strokeWidth: 3 },
+                                        line: { enabled: true },
+                                    },
+                                };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+            expect(element?.innerHTML).toContain('stroke="purple"');
+        });
+
+        it('should default line.enabled to true when user provides line properties', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { stroke: 'orange' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).toContain('<line');
+        });
+
+        it('should not render line when user explicitly sets enabled to false on non-line series', async () => {
+            chart = await createChart({
+                data: [{ step: 0, voltage: 1 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'step',
+                        yKey: 'voltage',
+                        tooltip: {
+                            renderer() {
+                                return { symbol: { line: { enabled: false, stroke: 'red' } } };
+                            },
+                        },
+                    },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            expect(element?.innerHTML).not.toContain('<line');
+        });
+    });
+
+    describe('AG-16613 allowNullKeys', () => {
+        it('should show xValue row for null category key when allowNullKeys is true', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        xName: 'Category',
+                        yKey: 'y',
+                        yName: 'Value',
+                        sizeKey: 'y',
+                        sizeName: 'Size',
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            });
+            // Hover over the middle bubble (null category key)
+            await hoverAction(400, 200)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should show Category row even though value is null
+            expect(content).toContain('Category');
+            expect(content).toContain('Value');
+        });
+
+        it('should call axis formatter with actual null value (not "null" string) when allowNullKeys is true', async () => {
+            const formatterMock = jest.fn((params: { value: unknown }) =>
+                params.value === null ? 'NULL' : String(params.value)
+            );
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: null, y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        position: 'bottom',
+                        label: { formatter: formatterMock },
+                    },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', allowNullKeys: true } as any],
+            });
+            await waitForChartStability(chart);
+
+            // Verify formatter was called with actual null value (not string "null")
+            expect(formatterMock).toHaveBeenCalledWith(expect.objectContaining({ value: null }));
+            // Verify formatter was NOT called with string "null"
+            const calls = formatterMock.mock.calls.map((c: [{ value: unknown }]) => c[0].value);
+            expect(calls).not.toContain('null');
+        });
+    });
+
+    describe('AG-16272 Missing Values', () => {
+        it('should not show rows for series with missing data in shared tooltips', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', y1: 10, y2: 20, y3: null },
+                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yName: 'Series 1' },
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yName: 'Series 2' },
+                    { type: 'bar', xKey: 'x', yKey: 'y3', yName: 'Series 3' },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            // Hover over the first bar group (Q1)
+            await hoverAction(200, 250)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should contain Series 1 and 2, but not Series 3 (missing data)
+            expect(content).toContain('Series 1');
+            expect(content).toContain('Series 2');
+            expect(content).not.toContain('Series 3');
+        });
+
+        it('should not show empty row for missing bubble size', async () => {
+            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            try {
+                chart = await createChart({
+                    data: [
+                        { x: 10, y: 20, size: 30, age: 25 },
+                        { x: 15, y: 25 }, // Missing size and age
+                    ],
+                    series: [
+                        {
+                            type: 'bubble',
+                            xKey: 'x',
+                            xName: 'X Value',
+                            yKey: 'y',
+                            yName: 'Y Value',
+                            sizeKey: 'size',
+                            sizeName: 'Size',
+                            labelKey: 'age',
+                            labelName: 'Age',
+                        },
+                    ],
+                });
+                // Hover the second bubble (at far right, missing size and age)
+                await hoverAction(500, 300)(chart);
+                await waitForChartStability(chart);
+
+                const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+                const content = element?.textContent ?? '';
+                // Should show X and Y, but not Size or Age
+                expect(content).toContain('X Value');
+                expect(content).toContain('Y Value');
+                expect(content).not.toContain('Size');
+                expect(content).not.toContain('Age');
+            } finally {
+                consoleWarnSpy.mockRestore();
+            }
+        });
+
+        it('should show label with empty string value from custom renderer', async () => {
+            chart = await createChart({
+                data: [{ x: 'Q1', y: 10 }],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: {
+                            renderer: () => {
+                                return {
+                                    data: [
+                                        { label: 'label 1', value: '' },
+                                        { label: 'label 2', value: 'value 2' },
+                                    ],
+                                };
+                            },
+                        },
+                    },
+                ],
+            });
+            await hoverAction(400, 300)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should show both labels even though first has empty value
+            expect(content).toContain('label 1');
+            expect(content).toContain('label 2');
+        });
+
+        it('should not show rows for series with non-finite values (NaN, Infinity) in shared tooltips', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'Q1', y1: 10, y2: Number.NaN, y3: Infinity },
+                    { x: 'Q2', y1: 15, y2: 25, y3: 30 },
+                ],
+                series: [
+                    { type: 'line', xKey: 'x', yKey: 'y1', yName: 'Valid Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y2', yName: 'NaN Series' },
+                    { type: 'line', xKey: 'x', yKey: 'y3', yName: 'Infinity Series' },
+                ],
+                tooltip: {
+                    mode: 'shared',
+                },
+            });
+            // Hover near the first data point (Q1) - use a coordinate that should trigger the tooltip
+            await hoverAction(150, 200)(chart);
+            await waitForChartStability(chart);
+
+            const element = Array.from(chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')).at(0);
+            const content = element?.textContent ?? '';
+            // Should contain only Valid Series, not NaN or Infinity series
+            expect(content).toContain('Valid Series');
+            expect(content).not.toContain('NaN Series');
+            expect(content).not.toContain('Infinity Series');
+            // Should not show the formatted NaN or Infinity values
+            expect(content).not.toContain('NaN');
+            expect(content).not.toContain('∞');
+            expect(content).not.toContain('Infinity');
+        });
+    });
+
+    describe('Delayed Tooltip Hiding', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('tooltip removal is immediate by default', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Manually show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Remove tooltip immediately (default)
+            chart.ctx.tooltipManager.removeTooltip('test');
+            await waitForChartStability(chart);
+
+            // Should be immediately hidden (no wait needed)
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('tooltip removal is delayed when delayed=true', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Should still be visible immediately
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait 50ms - still visible (delay is 100ms)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait another 75ms (total 125ms) - now hidden
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('new tooltip cancels pending delayed removal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show first tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'First' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms (less than 100ms delay)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Show new tooltip before delay completes
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 200, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Second' },
+            ]);
+            await waitForChartStability(chart);
+
+            // Should still be visible with new content
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Wait for original delay to complete (another 75ms)
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+
+            // Should STILL be visible (delayed removal was cancelled)
+            expect(chart.tooltip.isVisible()).toBe(true);
+        });
+
+        it('repeated delayed removal calls do not reset countdown', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // First delayed removal call - starts countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms (halfway through 100ms countdown)
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Second delayed removal call - should NOT reset countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait another 25ms (total 75ms from first call, 25ms from second call)
+            jest.advanceTimersByTime(25);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Third delayed removal call - should still NOT reset countdown
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait another 50ms (total 125ms from first call)
+            jest.advanceTimersByTime(50);
+            await waitForChartStability(chart);
+
+            // Should be hidden now (100ms from FIRST call has elapsed)
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+
+        it('immediate removal cancels pending delayed removal', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 15 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        tooltip: { enabled: true },
+                    },
+                ],
+            };
+
+            chart = await createChart(options);
+            await waitForChartStability(chart);
+
+            // Enable fake timers
+            jest.useFakeTimers();
+
+            // Show tooltip
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+                { type: 'structured', title: 'Test' },
+            ]);
+            await waitForChartStability(chart);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request delayed removal
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
+
+            // Wait 50ms
+            jest.advanceTimersByTime(50);
+            expect(chart.tooltip.isVisible()).toBe(true);
+
+            // Request immediate removal before delay completes
+            chart.ctx.tooltipManager.removeTooltip('test', undefined, false);
+            await waitForChartStability(chart);
+
+            // Should be immediately hidden
+            expect(chart.tooltip.isVisible()).toBe(false);
+
+            // Wait for original delay period to verify no double-hide
+            jest.advanceTimersByTime(75);
+            await waitForChartStability(chart);
+
+            // Should still be hidden (no errors)
+            expect(chart.tooltip.isVisible()).toBe(false);
+        });
+    });
+
+    describe('CRT-1038 Drag', () => {
+        it('should update tooltip when click-dragging between data points', async () => {
+            chart = await createChart({
+                data: [
+                    { x: 'A', y: 10 },
+                    { x: 'B', y: 20 },
+                    { x: 'C', y: 15 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                tooltip: { range: 'nearest' },
+            });
+
+            // Hover over first bar to establish tooltip
+            await hoverAction(160, 300)(chart);
+            await waitForChartStability(chart);
+
+            const { agDocument } = chart.ctx;
+            const tooltipElements = () => Array.from(agDocument.body.getElementsByClassName('ag-charts-tooltip'));
+            const tooltipText = () =>
+                tooltipElements()
+                    .map((e) => e.textContent)
+                    .join('');
+
+            const textBeforeDrag = tooltipText();
+            expect(textBeforeDrag).toContain('A');
+
+            // Start drag (mouseDown + delay to establish drag state)
+            await mouseDownAction(160, 300)(chart);
+            await delay(500);
+
+            // Drag to third bar
+            await mouseMoveAction(160, 300)(chart);
+            await mouseMoveAction(640, 300)(chart);
+            await waitForChartStability(chart);
+
+            const textDuringDrag = tooltipText();
+            expect(textDuringDrag).toContain('C');
+            expect(textDuringDrag).not.toEqual(textBeforeDrag);
+
+            await mouseUpAction(640, 300)(chart);
         });
     });
 });

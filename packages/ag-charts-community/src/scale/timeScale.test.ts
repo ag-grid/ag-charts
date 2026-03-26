@@ -1,15 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import { durationDay, durationHour, durationMinute, durationMonth, durationWeek, durationYear } from 'ag-charts-core';
+import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
-import {
-    durationDay,
-    durationHour,
-    durationMinute,
-    durationMonth,
-    durationWeek,
-    durationYear,
-} from '../util/time/duration';
 import { TimeScale } from './timeScale';
 
 describe('TimeScale', () => {
@@ -18,7 +11,7 @@ describe('TimeScale', () => {
         scale.domain = [new Date(new Date(2022, 1, 13)), new Date(new Date(2022, 10, 30))];
         expect(
             scale.niceDomain({
-                nice: true,
+                nice: [true, true],
                 interval: undefined,
                 tickCount: undefined,
                 minTickCount: 0,
@@ -31,7 +24,7 @@ describe('TimeScale', () => {
         const scale = new TimeScale();
         scale.domain = [new Date(2022, 1, 13), new Date(2022, 10, 30)];
         const ticks = {
-            nice: true,
+            nice: [true, true],
             interval: undefined,
             tickCount: 10,
             minTickCount: 0,
@@ -118,7 +111,7 @@ describe('TimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: false,
+                    nice: [false, false],
                     interval: interval,
                     tickCount: undefined,
                     minTickCount: 0,
@@ -184,7 +177,7 @@ describe('TimeScale', () => {
                 scale.domain = domain;
 
                 const ticks = {
-                    nice: false,
+                    nice: [false, false],
                     interval: interval,
                     tickCount: undefined,
                     minTickCount: 0,

@@ -1,7 +1,9 @@
-import { AgCartesianChartOptions, AgCharts, AgScatterSeriesOptions } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, AgScatterSeriesOptions, LegendModule } from 'ag-charts-community';
+import { ModuleRegistry, NumberAxisModule, ScatterSeriesModule } from 'ag-charts-community';
 
 import { femaleHeightWeight, maleHeightWeight } from './height-weight-data';
 
+ModuleRegistry.registerModules([LegendModule, NumberAxisModule, ScatterSeriesModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -43,10 +45,9 @@ const options: AgCartesianChartOptions = {
             label: { enabled: true },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'number',
-            position: 'bottom',
             title: {
                 text: 'Height',
             },
@@ -56,9 +57,8 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Weight',
             },
@@ -68,7 +68,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

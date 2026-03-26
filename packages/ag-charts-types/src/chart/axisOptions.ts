@@ -1,5 +1,5 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
-import type { Formatter, Styler } from './callbackOptions';
+import type { RichFormatter, Styler } from './callbackOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -10,6 +10,7 @@ import type {
     FontWeight,
     PixelSize,
     Ratio,
+    TextWrap,
 } from './types';
 
 export interface AgAxisBoundSeries {
@@ -49,13 +50,32 @@ export interface AgAxisCaptionOptions {
     color?: CssColor;
     /** Spacing between the axis labels and the axis title. */
     spacing?: PixelSize;
+    /** Used to constrain the size of the title along the text direction before wrapping or truncation. */
+    maxWidth?: PixelSize;
+    /** Used to constrain the size of the title across the text direction before wrapping or truncation. */
+    maxHeight?: PixelSize;
+    /**
+     * Text wrapping strategy for long text.
+     * - `'always'` will always wrap text to fit within the `maxWidth`.
+     * - `'hyphenate'` is similar to `'always'`, but inserts a hyphen (`-`) if forced to wrap in the middle of a word.
+     * - `'on-space'` will only wrap on white space. If there is no possibility to wrap a line on space and satisfy the `maxWidth`, the text will be truncated.
+     * - `'never'` disables text wrapping.
+     *
+     * Default: `'always'`
+     */
+    wrapping?: TextWrap;
+    /** Whether the title text should be automatically truncated to fit the available axis length.
+     *
+     * Default: `true`
+     */
+    truncate?: boolean;
     /** Formatter to allow dynamic axis title calculation. */
-    formatter?: Formatter<AgAxisCaptionFormatterParams>;
+    formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
 }
 
 export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
     /** Axis type identifier. */
-    type: string;
+    type?: string;
     /** Context object to use in callbacks. */
     context?: TContext;
     /** Reverse the axis scale domain if `true`. */
@@ -73,17 +93,24 @@ export interface AgBaseAxisOptions<LabelType = any, TContext = ContextDefault> {
 }
 
 export interface AgBaseContinuousAxisOptions<TDatum extends Date | number = number> {
-    /** User override for the automatically determined min value (based on series data). */
+    /** The min value for the axis domain. */
     min?: TDatum;
-    /** User override for the automatically determined max value (based on series data). */
+    /** The max value for the axis domain. */
     max?: TDatum;
+    /** The min value for the axis, unless extended by the series data or `nice` option. */
+    preferredMin?: TDatum;
+    /** The max value for the axis, unless extended by the series data or `nice` option. */
+    preferredMax?: TDatum;
 }
 
 export interface AgContinuousAxisOptions<
     TDatum extends Date | number = number,
     TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
 > extends AgBaseContinuousAxisOptions<TDatum> {
-    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks. */
+    /** If `true`, the range will be rounded up to ensure nice equal spacing between the ticks.
+     *
+     * __Note:__ This does not override the `min` or `max` options.
+     */
     nice?: boolean;
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TInterval>;
@@ -158,6 +185,8 @@ export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
     readonly domain: any[];
     /** Context for this callback. */
     readonly context?: TContext;
+    /** The currently visible domain. [min, max] */
+    readonly visibleDomain?: [number, number];
 }
 
 export interface AgAxisLabelStylerParams<TContext = ContextDefault> extends AgBaseAxisLabelStyleOptions {
@@ -179,7 +208,7 @@ export interface AgBaseAxisLabelOptions<TContext = ContextDefault> extends AgBas
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
-    formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
+    formatter?: RichFormatter<AgAxisLabelFormatterParams<TContext>>;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgAxisLabelStylerParams<TContext>, AgBaseAxisLabelStyleOptions>;
 }

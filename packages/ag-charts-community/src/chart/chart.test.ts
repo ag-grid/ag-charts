@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { ChartAxisDirection } from 'ag-charts-core';
 import type { AgCartesianChartOptions, AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
 
 import { AgCharts } from '../api/agCharts';
+import { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
@@ -10,12 +12,15 @@ import { Sector } from '../scene/shape/sector';
 import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
+import { DataSet } from './data/dataSet';
 import { Marker } from './marker/marker';
 import {
+    MIN_TOOLTIP_HIDE_DELAY,
     clickAction,
     createChart,
     deproxy,
     doubleClickAction,
+    expectWarningsCalls,
     hoverAction,
     prepareTestOptions,
     setupMockCanvas,
@@ -198,9 +203,9 @@ describe('Chart', () => {
                 expect(tooltip?.textContent).toEqual(format(...values));
             });
 
-            // Check the tooltip is hidden
+            // Check the tooltip is hidden (wait for delayed removal to complete)
             await hoverAction(0, 0)(chart);
-            await waitForChartStability(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
             const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
@@ -252,7 +257,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (_, series) => series.highlightGroup.children().next().value,
+        getHighlightNode: (_, series) => series.highlightNodeGroup.children().next().value,
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {
@@ -306,10 +311,10 @@ describe('Chart', () => {
                 yKey: datasets.economy.valueKey,
             },
             chartOptions: {
-                axes: [
-                    { type: 'number', position: 'left' },
-                    { type: 'category', position: 'bottom' },
-                ],
+                axes: {
+                    y: { type: 'number', position: 'left' },
+                    x: { type: 'category', position: 'bottom' },
+                },
             },
             getNodePoint: (item) => [item.point.x, item.point.y],
             getNodeExitPoint: (item) => [item.point.x, item.point.y + 8],
@@ -364,7 +369,7 @@ describe('Chart', () => {
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                for (const child of series.highlightGroup.children()) {
+                for (const child of series.highlightNodeGroup.children()) {
                     if (child.datum?.itemId === highlightedDatum.itemId) {
                         return child;
                     }
@@ -463,6 +468,112 @@ describe('Chart', () => {
                 getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Sector),
             });
         });
+
+        it('should clone supplied data array when using updateDelta()', async () => {
+            const chartOptions = prepareTestOptions<{
+                data: { year: string; gdp: number }[];
+                series: any[];
+            }>({
+                data: [],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'year',
+                        yKey: 'gdp',
+                    },
+                ],
+            });
+
+            const chartProxy = AgCharts.create(chartOptions);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+
+            const sourceData = [
+                { year: '2018', gdp: 10 },
+                { year: '2019', gdp: 20 },
+            ];
+
+            await chartProxy.updateDelta({ data: sourceData });
+            await waitForChartStability(chart);
+
+            expect(chart.data.data).not.toBe(sourceData);
+            const lengthBeforeMutation = chart.data.data.length;
+
+            sourceData.push({ year: '2020', gdp: 30 });
+
+            expect(chart.data.data.length).toBe(lengthBeforeMutation);
+        });
+
+        // AG-16389: updateDelta should not reset data accumulated via applyTransaction
+        it('should preserve applyTransaction data when updateDelta changes series options', async () => {
+            const initialData = [
+                { x: 0, y: 10 },
+                { x: 1, y: 20 },
+            ];
+
+            const options = prepareTestOptions<{
+                data: { x: number; y: number }[];
+                series: any[];
+            }>({
+                data: initialData,
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                        connectMissingData: false,
+                    },
+                ],
+            });
+
+            // Step 1: Create chart with initial data
+            const chartProxy = AgCharts.create(options);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(2);
+
+            // Step 2: updateDelta with increasing length data-set (simulates loading data)
+            await chartProxy.updateDelta({
+                data: [
+                    { x: 0, y: 10 },
+                    { x: 1, y: 20 },
+                    { x: 2, y: 30 },
+                ],
+            });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(3);
+
+            // Step 3: Full update back to initialData (simulates user action that resets data)
+            await chartProxy.updateDelta({ data: initialData });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(2);
+
+            // At this point, DataSet.data and userOptions.data may have different references
+            // Step 4: Use applyTransaction to add more data (streaming scenario)
+            await chartProxy.applyTransaction({
+                add: [
+                    { x: 2, y: 30 },
+                    { x: 3, y: 40 },
+                ],
+            });
+            await waitForChartStability(chart);
+            expect(chart.data.data.length).toBe(4);
+
+            // Step 5: Toggle series option - this should NOT reset the data
+            await chartProxy.updateDelta({
+                series: options.series.map((s) => ({ ...s, connectMissingData: true })),
+            });
+            await waitForChartStability(chart);
+
+            // Data should still have 4 items (not reset to initial 2)
+            expect(chart.data.data.length).toBe(4);
+            expect(chart.data.data).toEqual([
+                { x: 0, y: 10 },
+                { x: 1, y: 20 },
+                { x: 2, y: 30 },
+                { x: 3, y: 40 },
+            ]);
+        });
     });
 
     describe('Chart data inherited by Series', () => {
@@ -499,9 +610,9 @@ describe('Chart', () => {
                     },
                 ],
             });
-            expect(chart.data).toEqual(moreData);
-            expect(chart.series[0].data).toEqual(moreData);
-            expect(chart.series[1].data).toEqual(lessData);
+            expect(chart.data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(lessData));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -520,9 +631,9 @@ describe('Chart', () => {
                 ],
             });
 
-            expect(chart.data).toEqual(moreData);
-            expect(chart.series[0].data).toEqual(lessData);
-            expect(chart.series[1].data).toEqual(moreData);
+            expect(chart.data).toEqual(DataSet.wrap(moreData));
+            expect(chart.series[0].data).toEqual(DataSet.wrap(lessData));
+            expect(chart.series[1].data).toEqual(DataSet.wrap(moreData));
 
             await updateChart(chartProxy, {
                 data: moreData,
@@ -542,6 +653,58 @@ describe('Chart', () => {
 
             expect(chart.series[0].data).toEqual(chart.data);
             expect(chart.series[1].data).toEqual(chart.data);
+        });
+    });
+
+    describe('preSeriesUpdate', () => {
+        const baseOptions: AgCartesianChartOptions = {
+            container: document.body,
+            data: datasets.economy.data,
+            series: [
+                {
+                    type: 'line',
+                    xKey: datasets.economy.categoryKey,
+                    yKey: datasets.economy.valueKey,
+                },
+            ],
+        };
+
+        it('dispatches required range ratio based on seriesRect and direction', async () => {
+            chart = await createChart(baseOptions);
+            const chartAny = chart as any;
+            let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
+
+            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+                capturedEvent = event;
+            });
+
+            chartAny.seriesRect = new BBox(0, 0, 200, 100);
+            chartAny._requiredRange = 50;
+            chartAny._requiredRangeDirection = ChartAxisDirection.Y;
+
+            chartAny.preSeriesUpdate();
+
+            expect(capturedEvent).toBeDefined();
+            expect(capturedEvent?.requiredRangeDirection).toBe(ChartAxisDirection.Y);
+            expect(capturedEvent?.requiredRangeRatio).toBeCloseTo(0.5, 5);
+        });
+
+        it('falls back to 0 when the ratio is NaN', async () => {
+            chart = await createChart(baseOptions);
+            const chartAny = chart as any;
+            let capturedEvent: { requiredRangeRatio: number } | undefined;
+
+            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+                capturedEvent = event;
+            });
+
+            chartAny.seriesRect = new BBox(0, 0, 0, 0);
+            chartAny._requiredRange = 0;
+            chartAny._requiredRangeDirection = ChartAxisDirection.X;
+
+            chartAny.preSeriesUpdate();
+
+            expect(capturedEvent?.requiredRangeRatio).toBe(0);
         });
     });
 
@@ -748,6 +911,648 @@ describe('Chart', () => {
             expect(seriesNodeDoubleClick).toHaveBeenCalledWith(
                 expect.objectContaining({ type: 'seriesNodeDoubleClick' })
             );
+        });
+    });
+
+    describe('AG-16337 listeners undefined update', () => {
+        it('should handle chart-level listeners set to undefined', async () => {
+            const chartClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                    },
+                ],
+                listeners: {
+                    click: chartClick,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listener is registered
+            expect(chart.hasEventListener('click')).toBe(true);
+
+            // Reset mock call count before clearing
+            chartClick.mockClear();
+
+            // Update with listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                listeners: undefined,
+            });
+            await waitForChartStability(chart);
+
+            // Verify listener is cleared
+            expect(chart.hasEventListener('click')).toBe(false);
+
+            // Trigger a click event and verify the cleared listener is not called
+            await clickAction(100, 100)(agChartInstance);
+            await waitForChartStability(chart);
+            expect(chartClick).not.toHaveBeenCalled();
+        });
+
+        it('should handle series-level listeners set to undefined', async () => {
+            const seriesNodeClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listener is registered
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+
+            // Update with series listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify listener is cleared
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+        });
+
+        it('should handle both chart and series listeners set to undefined', async () => {
+            const chartClick = jest.fn();
+            const seriesNodeClick = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+                listeners: {
+                    click: chartClick,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify listeners are registered
+            expect(chart.hasEventListener('click')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+
+            // Reset mock call counts before clearing
+            chartClick.mockClear();
+            seriesNodeClick.mockClear();
+
+            // Update with both listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                listeners: undefined,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify listeners are cleared
+            expect(chart.hasEventListener('click')).toBe(false);
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+
+            // Trigger click events and verify cleared listeners are not called
+            await clickAction(200, 200)(agChartInstance);
+            await waitForChartStability(chart);
+            expect(chartClick).not.toHaveBeenCalled();
+            expect(seriesNodeClick).not.toHaveBeenCalled();
+        });
+
+        it('should preserve internal listeners after clearing user series listeners', async () => {
+            const seriesNodeClick = jest.fn();
+            const seriesVisibilityChange = jest.fn();
+            const options = prepareTestOptions<AgCartesianChartOptions>({
+                data: [
+                    {
+                        xValue: 'category',
+                        yValue: 1,
+                    },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        listeners: {
+                            seriesNodeClick: seriesNodeClick,
+                        },
+                    },
+                ],
+                listeners: {
+                    seriesVisibilityChange: seriesVisibilityChange,
+                },
+            });
+            const agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+
+            // Verify user listener is registered
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(true);
+            // Verify internal listeners are registered
+            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+
+            // Update with series listeners: undefined
+            await agChartInstance.update({
+                ...options,
+                series: [
+                    {
+                        ...options.series![0],
+                        listeners: undefined,
+                    },
+                ],
+            });
+            await waitForChartStability(chart);
+
+            // Verify user listener is cleared
+            expect(chart.series[0].hasEventListener('seriesNodeClick')).toBe(false);
+            // Verify internal listeners are still registered
+            expect(chart.series[0].hasEventListener('groupingChanged')).toBe(true);
+            expect(chart.series[0].hasEventListener('seriesVisibilityChange')).toBe(true);
+        });
+    });
+
+    describe('Transaction validation', () => {
+        let chartProxy: AgChartProxy;
+
+        beforeEach(async () => {
+            const chartOptions = prepareTestOptions<{
+                data: { x: number; y: number }[];
+                series: any[];
+            }>({
+                data: [
+                    { x: 1, y: 10 },
+                    { x: 2, y: 20 },
+                    { x: 3, y: 30 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'x',
+                        yKey: 'y',
+                    },
+                ],
+            });
+
+            chartProxy = AgCharts.create(chartOptions);
+            chart = deproxy(chartProxy);
+            await waitForChartStability(chart);
+        });
+
+        describe('addIndex validation', () => {
+            it('should throw synchronously for unsafe integers beyond MAX_SAFE_INTEGER', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: Number.MAX_SAFE_INTEGER + 1,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for extremely large numbers', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: 1e100,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for NaN', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: Number.NaN,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for Infinity', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: Infinity,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for negative Infinity', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: -Infinity,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for negative numbers', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: -1,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for decimal numbers', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: 1.5,
+                    })
+                ).toThrow('safe non-negative integer');
+            });
+
+            it('should throw synchronously for addIndex without add array', () => {
+                expect(() => chartProxy.applyTransaction({ addIndex: 5 })).toThrow('requires a non-empty "add" array');
+            });
+
+            it('should throw synchronously for addIndex with null add array', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: null as any,
+                        addIndex: 5,
+                    })
+                ).toThrow('requires a non-empty "add" array');
+            });
+
+            it('should throw synchronously for addIndex with empty add array', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [],
+                        addIndex: 5,
+                    })
+                ).toThrow('requires a non-empty "add" array');
+            });
+
+            it('should accept MAX_SAFE_INTEGER', async () => {
+                // Should not throw - will append since way beyond data length
+                await expect(
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: Number.MAX_SAFE_INTEGER,
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                // Verify it was appended
+                expect(chart.data.data).toHaveLength(4);
+                expect(chart.data.data[3]).toEqual({ x: 4, y: 40 });
+            });
+
+            it('should accept valid addIndex at beginning', async () => {
+                await expect(
+                    chartProxy.applyTransaction({
+                        add: [{ x: 0, y: 0 }],
+                        addIndex: 0,
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                expect(chart.data.data).toHaveLength(4);
+                expect(chart.data.data[0]).toEqual({ x: 0, y: 0 });
+            });
+
+            it('should accept valid addIndex in middle', async () => {
+                await expect(
+                    chartProxy.applyTransaction({
+                        add: [{ x: 1.5, y: 15 }],
+                        addIndex: 1,
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                expect(chart.data.data).toHaveLength(4);
+                expect(chart.data.data[1]).toEqual({ x: 1.5, y: 15 });
+            });
+
+            it('should accept valid addIndex at end (append)', async () => {
+                await expect(
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: 3,
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                expect(chart.data.data).toHaveLength(4);
+                expect(chart.data.data[3]).toEqual({ x: 4, y: 40 });
+            });
+
+            it('should accept addIndex beyond data length (append)', async () => {
+                await expect(
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: 100,
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                expect(chart.data.data).toHaveLength(4);
+                expect(chart.data.data[3]).toEqual({ x: 4, y: 40 });
+            });
+        });
+
+        describe('other transaction validation', () => {
+            it('should throw synchronously for non-object transaction', () => {
+                expect(() => chartProxy.applyTransaction(null as any)).toThrow(
+                    'applyTransaction expects a transaction object'
+                );
+            });
+
+            it('should throw synchronously for non-array add', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: { x: 4, y: 40 } as any,
+                    })
+                ).toThrow('"add" must be an array');
+            });
+
+            it('should throw synchronously for non-array remove', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        remove: { x: 1, y: 10 } as any,
+                    })
+                ).toThrow('"remove" must be an array');
+            });
+
+            it('should throw synchronously for non-array update', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        update: { x: 1, y: 10 } as any,
+                    })
+                ).toThrow('"update" must be an array');
+            });
+
+            it('should throw synchronously for invalid addIndex', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        add: [{ x: 4, y: 40 }],
+                        addIndex: -1,
+                    })
+                ).toThrow('"addIndex" must be a safe non-negative integer');
+            });
+
+            it('should throw synchronously for addIndex without add', () => {
+                expect(() =>
+                    chartProxy.applyTransaction({
+                        addIndex: 0,
+                    })
+                ).toThrow('"addIndex" requires a non-empty "add" array');
+            });
+
+            it('should accept empty update array', async () => {
+                await expect(
+                    chartProxy.applyTransaction({
+                        update: [],
+                    })
+                ).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                // Data unchanged
+                expect(chart.data.data).toHaveLength(3);
+            });
+
+            it('should accept empty transaction', async () => {
+                // Empty transaction is allowed but does nothing
+                await expect(chartProxy.applyTransaction({})).resolves.not.toThrow();
+                await waitForChartStability(chart);
+
+                // Data unchanged
+                expect(chart.data.data).toHaveLength(3);
+            });
+        });
+
+        describe('getOptions data synchronization', () => {
+            it('should return updated data in getOptions after add transaction', async () => {
+                const initialOptions = chartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await chartProxy.applyTransaction({
+                    add: [{ x: 4, y: 40 }],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+                expect(updatedOptions.data![3]).toEqual({ x: 4, y: 40 });
+            });
+
+            it('should return updated data in getOptions after remove transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+
+                await chartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(2);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+            });
+
+            it('should return updated data in getOptions after update transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToUpdate = initialData[1];
+                itemToUpdate.y = 25;
+
+                await chartProxy.applyTransaction({
+                    update: [itemToUpdate],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data![1].y).toBe(25);
+            });
+
+            it('should return updated data in getOptions after combined transaction', async () => {
+                const initialData = chartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+                const itemToUpdate = initialData[1];
+                itemToUpdate.y = 25;
+
+                await chartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                    update: [itemToUpdate],
+                    add: [{ x: 4, y: 40 }],
+                });
+                await waitForChartStability(chart);
+
+                const updatedOptions = chartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+                expect(updatedOptions.data![0].y).toBe(25);
+                expect(updatedOptions.data![2]).toEqual({ x: 4, y: 40 });
+            });
+        });
+
+        describe('pie chart transactions', () => {
+            let pieChartProxy: AgChartProxy;
+            let pieChart: Chart;
+
+            beforeEach(async () => {
+                const pieChartOptions = prepareTestOptions<{
+                    data: { category: string; value: number }[];
+                    series: any[];
+                }>({
+                    data: [
+                        { category: 'A', value: 10 },
+                        { category: 'B', value: 20 },
+                        { category: 'C', value: 30 },
+                    ],
+                    series: [
+                        {
+                            type: 'pie',
+                            angleKey: 'value',
+                            calloutLabelKey: 'category',
+                        },
+                    ],
+                });
+
+                pieChartProxy = AgCharts.create(pieChartOptions);
+                pieChart = deproxy(pieChartProxy);
+                await waitForChartStability(pieChart);
+            });
+
+            afterEach(() => {
+                if (pieChartProxy) {
+                    pieChartProxy.destroy();
+                }
+            });
+
+            it('should update pie chart data with add transaction', async () => {
+                const initialOptions = pieChartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await pieChartProxy.applyTransaction({
+                    add: [{ category: 'D', value: 40 }],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+                expect(updatedOptions.data![3]).toEqual({ category: 'D', value: 40 });
+            });
+
+            it('should update pie chart data with remove transaction', async () => {
+                const initialData = pieChartProxy.getOptions().data!;
+                const itemToRemove = initialData[0];
+
+                await pieChartProxy.applyTransaction({
+                    remove: [itemToRemove],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(2);
+                expect(updatedOptions.data!).not.toContainEqual(itemToRemove);
+            });
+
+            it('should update pie chart data with update transaction', async () => {
+                const initialData = pieChartProxy.getOptions().data!;
+                const itemToUpdate = initialData[1];
+                itemToUpdate.value = 25;
+
+                await pieChartProxy.applyTransaction({
+                    update: [itemToUpdate],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(3);
+                expect(updatedOptions.data![1].value).toBe(25);
+            });
+
+            it('should not add empty segments when adding valid data', async () => {
+                const initialOptions = pieChartProxy.getOptions();
+                expect(initialOptions.data).toHaveLength(3);
+
+                await pieChartProxy.applyTransaction({
+                    add: [{ category: 'D', value: 40 }],
+                });
+                await waitForChartStability(pieChart);
+
+                const updatedOptions = pieChartProxy.getOptions();
+                expect(updatedOptions.data).toBeDefined();
+                expect(updatedOptions.data!).toHaveLength(4);
+
+                // Verify all data items have valid values (non-zero)
+                for (const item of updatedOptions.data!) {
+                    expect(item.value).toBeGreaterThan(0);
+                }
+            });
+        });
+    });
+
+    describe('displayNullData option', () => {
+        it('should not generate warnings when using displayNullData', async () => {
+            const options: AgCartesianChartOptions = {
+                container: document.body,
+                data: [
+                    { x: null, y: 1 },
+                    { x: 'a', y: 2 },
+                ],
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+                displayNullData: true,
+            } as any;
+
+            chart = await createChart(options);
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
 });

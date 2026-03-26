@@ -1,59 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import path from 'path';
 import * as SkiaCanvas from 'skia-canvas';
-import { Canvas, DOMMatrix, ExportFormat, FontLibrary } from 'skia-canvas';
+import { Canvas, DOMMatrix, type ExportFormat, FontLibrary } from 'skia-canvas';
+
+import { CANVAS_TO_BUFFER_DEFAULTS, ConfiguredCanvasMixin, applySkiaPatches } from 'ag-charts-core';
 
 // Something is causing this to not be imported as a value
 const { CanvasRenderingContext2D } = SkiaCanvas as any;
+
+// Apply skia-canvas patches for consistent rendering
+applySkiaPatches(CanvasRenderingContext2D, DOMMatrix);
 
 FontLibrary.use('Verdana', [
     path.resolve(__dirname, '../../../fonts/Arimo-Regular.ttf'),
     path.resolve(__dirname, '../../../fonts/Arimo-Bold.ttf'),
 ]);
 
-export class ConfiguredCanvas extends Canvas {
-    constructor(width: number, height: number) {
-        super(width, height);
-        this.gpu = false;
-    }
+// Create configured canvas class using the mixin
+export const ConfiguredCanvas = ConfiguredCanvasMixin(Canvas);
 
-    override toBuffer(format: SkiaCanvas.ExportFormat, options?: SkiaCanvas.RenderOptions): Promise<Buffer> {
-        // @ts-expect-error Incorrect types
-        return super.toBuffer(format, { ...options, msaa: false });
-    }
-
-    transferToImageBitmap() {
-        const { width, height } = this;
-        const bitmap = new ConfiguredCanvas(width, height);
-        bitmap.getContext('2d').drawCanvas(this, 0, 0, width, height);
-        Object.defineProperty(bitmap, 'close', {
-            // no-op
-            value: () => {},
-        });
-        return bitmap;
-    }
-}
-
-// https://github.com/samizdatco/skia-canvas/issues/241
-const superCreateConicGradient = CanvasRenderingContext2D.prototype.createConicGradient;
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'createConicGradient', {
-    value: function (this: CanvasRenderingContext2D, angle: number, x: number, y: number) {
-        return superCreateConicGradient.call(this, angle + Math.PI / 2, x, y);
-    },
-    writable: true,
-    configurable: true,
-});
-
-Object.defineProperty(CanvasRenderingContext2D.prototype, 'fillText', {
-    value: function (this: CanvasRenderingContext2D, text: string, x: number, y: number) {
-        // @ts-expect-error Skia api
-        let path2d = this.outlineText(text);
-        path2d = path2d.transform(new DOMMatrix([1, 0, 0, 1, x, y]));
-        this.fill(path2d);
-    },
-    writable: true,
-    configurable: true,
-});
+export { CANVAS_TO_BUFFER_DEFAULTS } from 'ag-charts-core';
 
 export class MockContext {
     ctx: {
@@ -74,7 +40,7 @@ export class MockContext {
         public height: number,
         public document: Document,
         public realCreateElement: Document['createElement'] = document.createElement,
-        public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
+        public realOffscreenCanvas: typeof globalThis.OffscreenCanvas = globalThis.OffscreenCanvas
     ) {
         const nodeCanvas = new ConfiguredCanvas(width, height);
 
@@ -156,17 +122,11 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         mockCtx = opts;
         mockCtx.reset();
     } else {
-        const { width = 800, height = 600, document = window.document } = opts;
+        const { width = 800, height = 600, document = globalThis.document } = opts;
         mockCtx = new MockContext(width, height, document);
     }
 
     const { width, height, document } = mockCtx;
-
-    if (typeof window === 'undefined') {
-        (global as any)['agChartsSceneRenderModel'] = 'composite';
-    } else {
-        (window as any)['agChartsSceneRenderModel'] = 'composite';
-    }
 
     const realCreateElement = document.createElement;
     mockCtx.realCreateElement = realCreateElement;
@@ -181,7 +141,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
             proxyGetContext2D(mockCtx, nextCanvas, mockedElement);
 
             mockedElement.toDataURL = (mimeType = 'image/png') => {
-                return nextCanvas.toDataURLSync(mimeType.split('/')[1] as ExportFormat);
+                return nextCanvas.toDataURL(mimeType.split('/')[1] as ExportFormat);
             };
 
             return mockedElement;
@@ -192,8 +152,8 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
         return realCreateElement.call(document, element, options);
     };
 
-    if (typeof window !== 'undefined') {
-        (window as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
+    if (typeof globalThis.window !== 'undefined') {
+        (globalThis as any).OffscreenCanvas = class OffscreenCanvas extends ConfiguredCanvas {
             constructor(w: number, h: number) {
                 super(w, h);
                 mockCtx.registerOffscreenCanvasInstance(this as any);
@@ -207,13 +167,11 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
 
 export function teardown(mockContext: MockContext) {
     mockContext.document.createElement = mockContext.realCreateElement!;
-    if (typeof window !== 'undefined') {
-        window.OffscreenCanvas = mockContext.realOffscreenCanvas;
+    if (typeof globalThis.window !== 'undefined') {
+        globalThis.OffscreenCanvas = mockContext.realOffscreenCanvas;
     }
     mockContext.destroy();
 }
-
-export const CANVAS_TO_BUFFER_DEFAULTS = { quality: 1 };
 
 export function extractImageData({
     nodeCanvas,

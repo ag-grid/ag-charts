@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Debug, StateMachine, StateMachineProperty } from 'ag-charts-core';
 
-import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, DataPoint } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
@@ -9,8 +10,6 @@ import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
-
-const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface TextualPointStateMachineContext<Datum extends TextualPointProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -46,7 +45,7 @@ export abstract class TextualPointStateMachine<
     protected node?: Node;
 
     constructor(ctx: TextualPointStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: DataPoint }) => {
             const datum = this.createDatum();
             datum.set({ x: point.x, y: point.y });
             ctx.create(datum);
@@ -67,6 +66,7 @@ export abstract class TextualPointStateMachine<
 
         const onStopEditing = () => {
             ctx.hideTextInput();
+            this.node?.setTextInputBBox();
             if (this.datum) this.datum.visible = true;
             ctx.deselect();
         };

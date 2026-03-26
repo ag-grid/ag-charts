@@ -4,7 +4,7 @@ export function getData() {
     const data: Array<{ year: number; spending: number }> = [];
     for (let i = 0; i < NUM_DATA_POINTS; i++) {
         data.push({
-            year: new Date().getFullYear() - NUM_DATA_POINTS + i,
+            year: 2025 - NUM_DATA_POINTS + i,
             spending: i === 0 ? random() * 100 : data[i - 1].spending + random() * 10 - 5,
         });
     }

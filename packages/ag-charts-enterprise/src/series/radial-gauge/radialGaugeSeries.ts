@@ -1,4 +1,5 @@
 import {
+    type AgActiveItemState,
     type AgRadialGaugeMarkerShape,
     type AgRadialGaugeOptions,
     type AgRadialGaugeTargetPlacement,
@@ -6,17 +7,30 @@ import {
     type FontStyle,
     type FontWeight,
     type TextAlign,
+    type TextOrSegments,
     type VerticalAlign,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type Point, cachedTextMeasurer } from 'ag-charts-core';
+import {
+    type ChartAnimationPhase,
+    type Point,
+    StateMachine,
+    isBetweenAngles,
+    isNumberEqual,
+    mergeDefaults,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    tickFormat,
+    toPlainText,
+    toRadians,
+} from 'ag-charts-core';
 
 import { LinearAngleScale } from '../../axes/angle-number/linearAngleScale';
 import { formatWithContext } from '../../utils/formatter';
 import { DatumUnion } from '../gauge-util/datumUnion';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
-import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
+import { findGaugeNodeDatum, pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
     LabelType,
@@ -39,25 +53,22 @@ const {
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
-    StateMachine,
     createDatumId,
-    normalizeAngle360,
-    normalizeAngle360Inclusive,
-    isBetweenAngles,
     sectorBox,
-    toRadians,
     BBox,
     Group,
     PointerEvents,
     Selection,
     Sector,
     SectorBox,
+    Transformable,
+    TransformableText,
     Text,
     Marker,
-    tickFormat,
-    applyShapeStyle,
-    mergeDefaults,
 } = _ModuleSupport;
+
+type DatumIndexType = _ModuleSupport.DatumIndexType;
+type SeriesNodeDatum<I extends DatumIndexType> = _ModuleSupport.SeriesNodeDatum<I>;
 
 interface TargetLabel {
     enabled: boolean;
@@ -104,9 +115,7 @@ interface RadialGaugeNeedleDatum {
 interface RadialGaugeTickDatum {
     index: number;
     value: number;
-    text: string;
-    width: number;
-    height: number;
+    text: TextOrSegments;
 }
 
 interface RadialGaugeNodeDataContext
@@ -150,7 +159,7 @@ export class RadialGaugeSeries
     >
     implements _ModuleSupport.GaugeSeries
 {
-    static readonly className = 'RadialGaugeSeries';
+    static override readonly className = 'RadialGaugeSeries';
     static readonly type = 'radial-gauge' as const;
 
     public centerX: number = 0;
@@ -201,7 +210,7 @@ export class RadialGaugeSeries
         Selection.select(this.tickGroup, _ModuleSupport.TransformableText);
 
     public datumUnion: DatumUnion<_ModuleSupport.Sector, RadialGaugeNodeDatum> = new DatumUnion();
-    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
+    private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
@@ -287,9 +296,9 @@ export class RadialGaugeSeries
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
         const largerThanHalf = sweepAngle > Math.PI;
         const containsTop = largerThanHalf || isBetweenAngles(1.5 * Math.PI, startAngle, endAngle);
-        const containsRight = largerThanHalf || isBetweenAngles(0.0 * Math.PI, startAngle, endAngle);
+        const containsRight = largerThanHalf || isBetweenAngles(0 * Math.PI, startAngle, endAngle);
         const containsBottom = largerThanHalf || isBetweenAngles(0.5 * Math.PI, startAngle, endAngle);
-        const containsLeft = largerThanHalf || isBetweenAngles(1.0 * Math.PI, startAngle, endAngle);
+        const containsLeft = largerThanHalf || isBetweenAngles(1 * Math.PI, startAngle, endAngle);
 
         let textAlign: TextAlign;
         if (containsLeft && !containsRight) {
@@ -332,7 +341,7 @@ export class RadialGaugeSeries
         const ticks =
             interval.values ??
             scale.ticks({
-                nice: false,
+                nice: [false, false],
                 interval: interval.step,
                 minTickCount,
                 maxTickCount,
@@ -341,33 +350,42 @@ export class RadialGaugeSeries
             [];
         const tickFormatter = tickFormat(ticks, typeof label.format === 'string' ? label.format : undefined);
 
-        const measurer = cachedTextMeasurer(label);
-        const tickData = ticks
-            .map((value, index): RadialGaugeTickDatum | undefined => {
-                let text: string | undefined;
-                if (label.formatter) {
-                    text = formatWithContext(this.ctx, label.formatter, {
-                        value,
-                        index,
-                        domain: scale.domain,
-                        boundSeries: undefined!,
-                    });
-                }
-                text ??= tickFormatter?.(value);
+        const tickData: RadialGaugeTickDatum[] = [];
 
-                if (text == null) return;
+        for (const [index, value] of ticks.entries()) {
+            let text: TextOrSegments | undefined;
+            if (label.formatter) {
+                text = formatWithContext(this.ctx, label.formatter, {
+                    value,
+                    index,
+                    domain: scale.domain,
+                    boundSeries: undefined!,
+                });
+            }
+            text ??= tickFormatter?.(value);
 
-                const { width, height } = measurer.measureText(text);
-                return { index, value, text, width, height };
-            })
-            .filter((value): value is RadialGaugeTickDatum => value != null);
+            if (text == null) continue;
 
-        const maxWidth = tickData.reduce((m, t) => Math.max(m, t.width), 0);
-        const maxHeight = tickData.reduce((m, t) => Math.max(m, t.height), 0);
+            tickData.push({ index, value, text });
+        }
 
-        const labelInset = label.enabled ? Math.max(maxWidth, maxHeight) + label.spacing : 0;
+        const baseRadius = 0.5 * unitBoxSize;
+        const labelInset =
+            label.enabled && outerRadius == null && tickData.length > 0
+                ? this.getTickLabelInset({
+                      tickData,
+                      radius: baseRadius,
+                      centerXOffset,
+                      centerYOffset,
+                      seriesRectWidth,
+                      seriesRectHeight,
+                      spacing: label.spacing,
+                      rotation: toRadians(label.rotation ?? 0),
+                  })
+                : 0;
+
         const radiusBounds = Math.max(
-            0.5 * unitBoxSize - labelInset,
+            baseRadius - labelInset,
             // seriesRect may have negative size
             0
         );
@@ -395,7 +413,7 @@ export class RadialGaugeSeries
     private getTargets(): Target[] {
         const { properties } = this;
         const defaultTarget = properties.defaultTarget;
-        return Array.from(properties.targets).map((target): Target => {
+        return properties.targets.map((target): Target => {
             const {
                 text = defaultTarget.text,
                 value = defaultTarget.value ?? 0,
@@ -460,10 +478,9 @@ export class RadialGaugeSeries
 
         const { value, size, placement, label } = target;
         const { spacing, color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;
-        const lineHeight = undefined;
         const angle = scale.convert(value);
 
-        const quadrant = (normalizeAngle360(angle) / (Math.PI / 2)) | 0;
+        const quadrant = Math.trunc(normalizeAngle360(angle) / (Math.PI / 2));
 
         const offset = size / 2 + spacing;
 
@@ -500,7 +517,7 @@ export class RadialGaugeSeries
             fontWeight,
             fontSize,
             fontFamily,
-            lineHeight,
+            lineHeight: undefined,
         };
     }
 
@@ -702,7 +719,7 @@ export class RadialGaugeSeries
         }
 
         if (needle.enabled) {
-            let needleRadius = needle.radiusRatio != null ? radius * needle.radiusRatio : innerRadius;
+            let needleRadius = needle.radiusRatio == null ? innerRadius : radius * needle.radiusRatio;
             needleRadius = Math.max(needleRadius - needle.spacing, 0);
             const needleAngle = scale.convert(value);
 
@@ -762,6 +779,10 @@ export class RadialGaugeSeries
         };
     }
 
+    override findNodeDatum(itemId: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined {
+        return findGaugeNodeDatum(this, itemId);
+    }
+
     updateSelections(resize: boolean) {
         if (this.nodeDataRefresh || resize) {
             this.contextNodeData = this.createNodeData();
@@ -770,7 +791,7 @@ export class RadialGaugeSeries
     }
 
     private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): RadialGaugeTargetDatum | undefined {
-        if (node != null && node.series === this && (node as RadialGaugeTargetDatum).type === NodeDataType.Target) {
+        if (node?.series === this && (node as RadialGaugeTargetDatum).type === NodeDataType.Target) {
             return node as RadialGaugeTargetDatum;
         }
     }
@@ -822,7 +843,7 @@ export class RadialGaugeSeries
         this.updateLabelNodes({ labelSelection });
 
         this.highlightTargetSelection = this.updateTargetSelection({
-            targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
+            targetData: highlightTargetDatum == null ? [] : [highlightTargetDatum],
             targetSelection: highlightTargetSelection,
         });
         this.updateTargetStyles({ targetSelection: highlightTargetSelection, isHighlight: true });
@@ -867,7 +888,7 @@ export class RadialGaugeSeries
                 ? _ModuleSupport.PointerEvents.All
                 : _ModuleSupport.PointerEvents.None;
 
-            applyShapeStyle(sector, datum.style, fillBBox);
+            sector.setStyleProperties(datum.style, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -876,6 +897,7 @@ export class RadialGaugeSeries
 
             sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
             sector.concentricEdgeInset = sector.strokeWidth / 2;
+            datum.midPoint = sector.getBBox().computeCenter();
 
             if (animationDisabled || sector.previousDatum == null) {
                 sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
@@ -883,7 +905,7 @@ export class RadialGaugeSeries
         });
 
         this.datumUnion.update(datumSelection, this.itemGroup, _ModuleSupport.Sector, (node, first, last) => {
-            node.clipSector ??= new SectorBox(NaN, NaN, NaN, NaN);
+            node.clipSector ??= new SectorBox(Number.NaN, Number.NaN, Number.NaN, Number.NaN);
             node.centerX = first.centerX;
             node.centerY = first.centerY;
             node.outerRadius = node.clipSector.outerRadius = first.outerRadius;
@@ -924,7 +946,7 @@ export class RadialGaugeSeries
             sector.innerRadius = innerRadius;
             sector.outerRadius = outerRadius;
 
-            applyShapeStyle(sector, datum.style, fillBBox);
+            sector.setStyleProperties(datum.style, fillBBox);
 
             sector.startOuterCornerRadius = startCornerRadius;
             sector.startInnerCornerRadius = startCornerRadius;
@@ -960,7 +982,7 @@ export class RadialGaugeSeries
 
             needle.d = RadialGaugeNeedle.defaultPathData;
 
-            applyShapeStyle(needle, {
+            needle.setStyleProperties({
                 fill,
                 fillOpacity,
                 stroke,
@@ -1008,7 +1030,7 @@ export class RadialGaugeSeries
         targetSelection.each((target, datum) => {
             const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
 
-            applyShapeStyle(target, datum.style);
+            target.setStyleProperties(datum.style);
 
             target.size = size;
             target.shape = shape === 'line' ? lineMarker : shape;
@@ -1116,31 +1138,124 @@ export class RadialGaugeSeries
             label.fontStyle = fontStyle;
             label.fontWeight = fontWeight;
 
-            label.textAlign = 'center';
-            label.textBaseline = 'middle';
-
             const angle = scale.convert(datum.value);
+            const { textAlign, textBaseline } = this.getTickLabelAlign(angle);
+            const x0 = centerX + (radius + spacing) * Math.cos(angle);
+            const y0 = centerY + (radius + spacing) * Math.sin(angle);
 
-            const { width, height } = datum;
+            label.textAlign = textAlign;
+            label.textBaseline = textBaseline;
 
-            const originX = Math.abs(radius * Math.cos(angle));
-            const originY = Math.abs(radius * Math.sin(angle));
-            const x0 = Math.min(Math.max(Math.abs(radius / Math.tan(angle)), originX - width / 2), originX + width / 2);
-            const y0 = Math.min(
-                Math.max(Math.abs(radius * Math.tan(angle)), originY - height / 2),
-                originY + height / 2
-            );
-            const outerR = Math.hypot(x0, y0);
-
-            const x = centerX + (outerR + spacing) * Math.cos(angle);
-            const y = centerY + (outerR + spacing) * Math.sin(angle);
-
-            label.x = x;
-            label.y = y;
-            label.rotationCenterX = x;
-            label.rotationCenterY = y;
+            label.x = x0;
+            label.y = y0;
+            label.rotationCenterX = x0;
+            label.rotationCenterY = y0;
             label.rotation = rotation;
         });
+    }
+
+    private getTickLabelAlign(tickAngle: number) {
+        const cos = Math.cos(tickAngle);
+        const sin = Math.sin(tickAngle);
+
+        let textAlign: CanvasTextAlign;
+        let textBaseline: CanvasTextBaseline;
+
+        const isCos0 = isNumberEqual(cos, 0);
+        const isSin0 = isNumberEqual(sin, 0);
+        const isCosPositive = cos > 0 && !isCos0;
+        const isSinPositive = sin > 0 && !isSin0;
+
+        textAlign = 'right';
+        if (isCos0) {
+            textAlign = 'center';
+        } else if (isCosPositive) {
+            textAlign = 'left';
+        }
+
+        textBaseline = 'bottom';
+        if (isSin0) {
+            textBaseline = 'middle';
+        } else if (isSinPositive) {
+            textBaseline = 'top';
+        }
+
+        return { textAlign, textBaseline };
+    }
+
+    private getTickLabelInset(params: {
+        tickData: RadialGaugeTickDatum[];
+        radius: number;
+        centerXOffset: number;
+        centerYOffset: number;
+        seriesRectWidth: number;
+        seriesRectHeight: number;
+        spacing: number;
+        rotation: number;
+    }) {
+        const { tickData, radius, centerXOffset, centerYOffset, seriesRectWidth, seriesRectHeight, spacing, rotation } =
+            params;
+        const { label } = this.properties.scale;
+        const centerX = seriesRectWidth / 2 + centerXOffset * radius;
+        const centerY = seriesRectHeight / 2 + centerYOffset * radius;
+        const tempText = new TransformableText();
+        tempText.fontFamily = label.fontFamily;
+        tempText.fontSize = label.fontSize;
+        tempText.fontStyle = label.fontStyle;
+        tempText.fontWeight = label.fontWeight;
+        tempText.rotation = rotation;
+
+        const minComponent = 1e-6;
+        let inset = 0;
+        for (const datum of tickData) {
+            const angle = this.scale.convert(datum.value);
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const x = centerX + (radius + spacing) * cos;
+            const y = centerY + (radius + spacing) * sin;
+            const { textAlign, textBaseline } = this.getTickLabelAlign(angle);
+
+            tempText.text = datum.text;
+            tempText.x = x;
+            tempText.y = y;
+            tempText.textAlign = textAlign;
+            tempText.textBaseline = textBaseline;
+            tempText.rotationCenterX = x;
+            tempText.rotationCenterY = y;
+
+            const box = rotation ? Transformable.toCanvas(tempText) : tempText.getBBox();
+            if (box == null) continue;
+
+            const minX = box.x;
+            const maxX = box.x + box.width;
+            const minY = box.y;
+            const maxY = box.y + box.height;
+
+            const overflowLeft = Math.max(0, -minX);
+            const overflowRight = Math.max(0, maxX - seriesRectWidth);
+            const overflowTop = Math.max(0, -minY);
+            const overflowBottom = Math.max(0, maxY - seriesRectHeight);
+
+            const dxPerRadius = centerXOffset + cos;
+            if (Math.abs(dxPerRadius) > minComponent) {
+                if (overflowRight > 0 && dxPerRadius > 0) {
+                    inset = Math.max(inset, overflowRight / dxPerRadius);
+                } else if (overflowLeft > 0 && dxPerRadius < 0) {
+                    inset = Math.max(inset, overflowLeft / -dxPerRadius);
+                }
+            }
+
+            const dyPerRadius = centerYOffset + sin;
+            if (Math.abs(dyPerRadius) > minComponent) {
+                if (overflowBottom > 0 && dyPerRadius > 0) {
+                    inset = Math.max(inset, overflowBottom / dyPerRadius);
+                } else if (overflowTop > 0 && dyPerRadius < 0) {
+                    inset = Math.max(inset, overflowTop / -dyPerRadius);
+                }
+            }
+        }
+
+        return inset;
     }
 
     labelsHaveExplicitText() {
@@ -1175,7 +1290,7 @@ export class RadialGaugeSeries
         this.formatLabelText();
     }
 
-    resetAnimation(phase: _ModuleSupport.ChartAnimationPhase) {
+    resetAnimation(phase: ChartAnimationPhase) {
         if (phase === 'initial') {
             this.animationState.transition('reset');
         } else if (phase === 'ready') {
@@ -1261,18 +1376,15 @@ export class RadialGaugeSeries
     }
 
     override dataCount(): number {
-        return NaN; // Not used
+        return Number.NaN; // Not used
     }
 
     override getSeriesDomain() {
-        return [NaN, NaN];
+        return { domain: [Number.NaN, Number.NaN] };
     }
 
-    override getSeriesRange(
-        _direction: _ModuleSupport.ChartAxisDirection,
-        _visibleRange: [any, any]
-    ): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(): [number, number] {
+        return [Number.NaN, Number.NaN];
     }
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {
@@ -1324,7 +1436,7 @@ export class RadialGaugeSeries
         this.labelSelection.each((_label, datum) => {
             const text = getLabelText(this.id, this.ctx, datum);
             if (text != null) {
-                description.push(text);
+                description.push(toPlainText(text));
             }
         });
 

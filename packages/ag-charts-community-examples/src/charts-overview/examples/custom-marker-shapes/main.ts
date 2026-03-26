@@ -138,15 +138,15 @@ const options: AgChartOptions = {
       },
     },
   ],
-  axes: [
-    {
+  axes: {
+    x: {
       position: "bottom",
       type: "category",
       label: {
         rotation: -30,
       },
     },
-    {
+    y: {
       position: "left",
       type: "number",
       title: {
@@ -159,7 +159,7 @@ const options: AgChartOptions = {
         },
       },
     },
-  ],
+  },
 }
 
 AgCharts.create(options)

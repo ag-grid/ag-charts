@@ -1,35 +1,50 @@
-import { type Point, clamp } from 'ag-charts-core';
-import type { AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { Point, Scale, SizedPoint } from 'ag-charts-core';
+import { clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
+import type { AgDrawingMode, AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
-import type { NodeUpdateState } from '../../../motion/fromToMotion';
+import type { ExtraOpts, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
-import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
-import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
-import { findRangeExtent } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
 import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
-import * as easing from './../../../motion/easing';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
+import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
+<<<<<<< HEAD
 type NodeWithOpacity<D> = Node<D> & { opacity: number };
 export function markerFadeInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
     status?: NodeUpdateState,
     ...markerSelections: Selection<D, NodeWithOpacity<D>>[]
+=======
+type NodeWithDrawingMode = Node & { drawingMode?: AgDrawingMode };
+type NodeWithOpacity = NodeWithDrawingMode & { opacity: number };
+type MarkerFadeInOptions = Partial<ExtraOpts<NodeWithOpacity>>;
+type MarkerSwipeScaleInOptions = Partial<ExtraOpts<NodeWithDrawingMode>>;
+export function markerFadeInAnimation<T>(
+    { id }: { id: string },
+    animationManager: AnimationManager,
+    status?: NodeUpdateState,
+    options?: MarkerFadeInOptions,
+    ...markerSelections: Selection<NodeWithOpacity, T>[]
+>>>>>>> latest
 ) {
-    const params = { phase: status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing' };
+    const params = {
+        ...options,
+        phase: options?.phase ?? (status ? NODE_UPDATE_STATE_TO_PHASE_MAPPING[status] : 'trailing'),
+    };
     staticFromToMotion(id, 'markers', animationManager, markerSelections, { opacity: 0 }, { opacity: 1 }, params);
-    markerSelections.forEach((s) => s.cleanup());
+    for (const s of markerSelections) {
+        s.cleanup();
+    }
 }
 
 export function markerScaleInAnimation<D>(
@@ -46,13 +61,20 @@ export function markerScaleInAnimation<D>(
         { scalingX: 1, scalingY: 1 },
         { phase: 'initial' }
     );
-    markerSelections.forEach((s) => s.cleanup());
+    for (const s of markerSelections) {
+        s.cleanup();
+    }
 }
 
 export function markerSwipeScaleInAnimation<D extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
+<<<<<<< HEAD
     ...markerSelections: Selection<D, Node<D>>[]
+=======
+    options?: MarkerSwipeScaleInOptions,
+    ...markerSelections: Selection<NodeWithDrawingMode, T>[]
+>>>>>>> latest
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
     const fromFn = (_: Node, datum: D) => {
@@ -62,11 +84,19 @@ export function markerSwipeScaleInAnimation<D extends CartesianSeriesNodeDatum>(
         //
         // Parallel swipe animations use the function x = easeOut(time). But in this case, we
         // know the x value and need to calculate the time delay. So use the inverse function:
-        let delay = clamp(0, easing.inverseEaseOut(x / seriesWidth), 1);
-        if (isNaN(delay)) {
+        let delay = clamp(0, inverseEaseOut(x / seriesWidth), 1);
+        if (Number.isNaN(delay)) {
             delay = 0;
         }
-        return { scalingX: 0, scalingY: 0, delay, duration: QUICK_TRANSITION, phase: 'initial' as const };
+        return {
+            scalingX: 0,
+            scalingY: 0,
+            delay: options?.delay ?? delay,
+            duration: options?.duration ?? QUICK_TRANSITION,
+            phase: options?.phase ?? ('initial' as const),
+            start: options?.start,
+            finish: options?.finish,
+        };
     };
     const toFn = () => {
         return { scalingX: 1, scalingY: 1 };
@@ -79,12 +109,45 @@ export function resetMarkerFn(_node: NodeWithOpacity<unknown>) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
+<<<<<<< HEAD
 export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
+=======
+/**
+ * Optimised reset for marker selections that bypasses resetMotion callback overhead.
+ * Uses direct backing field writes via Marker.resetAnimationProperties().
+ *
+ * @param selections - Marker selections to reset
+ */
+export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
+    selections: { nodes(): Iterable<Marker>; cleanup(): void; batchedUpdate(fn: () => void): void }[]
+): void {
+    for (const selection of selections) {
+        const nodes = selection.nodes();
+        selection.batchedUpdate(function resetMarkerNodes() {
+            for (const node of nodes) {
+                const datum = node.datum as D | undefined;
+                if (datum?.point == null) continue;
+
+                const { x, y } = datum.point;
+                if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+
+                // Direct method bypasses decorators - writes to __x, __y, etc.
+                // Preserves current size (node.size) to match original resetMotion behaviour
+                node.resetAnimationProperties(x, y, node.size, 1, 1, 1);
+            }
+            // Important: cleanup garbage-collected nodes (same as resetMotion does)
+            selection.cleanup();
+        });
+    }
+}
+
+export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
+>>>>>>> latest
     return {
-        x: datum.point?.x ?? NaN,
-        y: datum.point?.y ?? NaN,
-        scalingCenterX: datum.point?.x ?? NaN,
-        scalingCenterY: datum.point?.y ?? NaN,
+        x: datum.point?.x ?? Number.NaN,
+        y: datum.point?.y ?? Number.NaN,
+        scalingCenterX: datum.point?.x ?? Number.NaN,
+        scalingCenterY: datum.point?.y ?? Number.NaN,
     };
 }
 
@@ -123,8 +186,8 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
 export function markerEnabled(
     dataCount: number,
     scale: Scale<unknown, number, unknown>,
-    marker: Pick<SeriesMarker<unknown>, 'enabled' | 'size'>,
-    markerStyle: { enabled?: boolean; size: number } = marker
+    marker: { enabled: boolean },
+    markerStyle: { enabled?: boolean } = marker
 ) {
     const enabled = markerStyle.enabled ?? marker.enabled;
     if (!enabled) return false;
@@ -140,30 +203,34 @@ type DefaultOverrideStyle = AgSeriesMarkerStyle & { size: number };
 
 interface MarkerSeriesStylerProps<TStylerParams, TStylerResult> {
     properties: {
-        stroke?: string;
-        strokeWidth: number;
-        strokeOpacity: number;
         styler?: SeriesStyler<TStylerParams, TStylerResult>;
     };
     getMarkerStyle<TParams>(
         marker: SeriesMarker<TParams>,
         nodeDatum: object,
         params?: TParams,
-        opts?: { highlightState?: HighlightState; resolveStylerMarkerPath?: 'marker' | 'marker-only' },
+        opts?: { highlightState?: HighlightState },
         defaultOverrideStyle?: DefaultOverrideStyle,
         inheritedStyle?: AgSeriesMarkerStyle
     ): AgSeriesMarkerStyle & { size: number };
 }
 
+type LineProperties = {
+    stroke?: string;
+    strokeWidth: number;
+    strokeOpacity: number;
+};
+
 export function getMarkerStyles<TStylerParams, TStylerResult, TItemStylerParams>(
     series: MarkerSeriesStylerProps<TStylerParams, TStylerResult>,
+    line: LineProperties,
     marker: SeriesMarker<TItemStylerParams>,
     inheritedStyle?: AgSeriesMarkerStyle
 ) {
     inheritedStyle ??= {
-        stroke: series.properties.stroke,
-        strokeOpacity: series.properties.strokeOpacity,
-        strokeWidth: series.properties.strokeWidth,
+        stroke: line.stroke,
+        strokeOpacity: line.strokeOpacity,
+        strokeWidth: line.strokeWidth,
     };
 
     return highlightStates.reduce(

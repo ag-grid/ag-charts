@@ -1,16 +1,26 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import {
-    AgCartesianChartOptions,
+    type AgCartesianChartOptions,
     type AgChartOptions,
     AgCharts,
-    AgRangeBarSeriesLabelPlacement,
+    type AgRangeBarSeriesItemStylerParams,
+    type AgRangeBarSeriesLabelPlacement,
+    type AgRangeBarSeriesStyle,
+    type AgRangeBarSeriesStylerParams,
 } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
+    type MockRangeBarStyler,
+    expectWarningsCalls,
     extractImageData,
+    hoverAction,
+    newFreezableMock,
     setupMockCanvas,
+    setupMockConsole,
     spyOnAnimationManager,
+    testLegendItemName,
     waitForChartStability,
 } from 'ag-charts-community-test';
 import { roundTo } from 'ag-charts-core';
@@ -18,6 +28,7 @@ import { roundTo } from 'ag-charts-core';
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 
 describe('RangeBarSeries', () => {
+    setupMockConsole();
     let chart: any;
     const ctx = setupMockCanvas();
 
@@ -194,10 +205,10 @@ describe('RangeBarSeries', () => {
                 yHighKey: 'high',
             },
         ],
-        axes: [
-            { type: 'time', position: 'left' },
-            { type: 'category', position: 'bottom' },
-        ],
+        axes: {
+            y: { type: 'time', position: 'left' },
+            x: { type: 'category', position: 'bottom' },
+        },
     };
 
     const compare = async (options = IMAGE_SNAPSHOT_DEFAULTS) => {
@@ -212,7 +223,7 @@ describe('RangeBarSeries', () => {
         direction: 'horizontal' | 'vertical'
     ): T {
         if (axes) {
-            axes.forEach((axis) => {
+            for (const axis of Object.values(axes)) {
                 switch (axis.position) {
                     case 'left':
                         axis.position = 'bottom';
@@ -227,7 +238,7 @@ describe('RangeBarSeries', () => {
                         axis.position = 'right';
                         break;
                 }
-            });
+            }
         }
         return {
             ...opts,
@@ -326,18 +337,18 @@ describe('RangeBarSeries', () => {
     it(`should render a range-bar chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -348,18 +359,18 @@ describe('RangeBarSeries', () => {
     it(`should render a horizontal range-bar chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
-            axes: [
-                {
+            axes: {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                y: {
                     position: 'left',
                     type: 'category',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -371,16 +382,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -392,17 +403,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'unit-time',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -415,16 +426,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -437,17 +448,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'unit-time',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -459,16 +470,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -480,17 +491,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_COLUMN_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                     reverse: true,
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -503,16 +514,16 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -525,17 +536,17 @@ describe('RangeBarSeries', () => {
         const options: AgChartOptions = {
             ...RANGE_BAR_OPTIONS,
             data: CONTINUOUS_DATA,
-            axes: [
-                {
+            axes: {
+                y: {
                     position: 'left',
                     type: 'number',
                     reverse: true,
                 },
-                {
+                x: {
                     position: 'bottom',
                     type: 'number',
                 },
-            ],
+            },
         };
         prepareEnterpriseTestOptions(options as any);
 
@@ -589,6 +600,67 @@ describe('RangeBarSeries', () => {
 
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
+    // CRT-1082: Range-bar legend toggle should collapse bars to their midpoint,
+    // not to the chart baseline.
+    describe('legend toggle animation (CRT-1082)', () => {
+        const animate = spyOnAnimationManager();
+
+        const RANGE_BAR_SERIES = {
+            type: 'range-bar' as const,
+            xKey: 'date',
+            yLowKey: 'low',
+            yHighKey: 'high',
+        };
+
+        for (const ratio of [0, 0.1, 0.2, 0.3, 0.5, 0.75, 1]) {
+            it(`should animate legend toggle off at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgCartesianChartOptions = {
+                    ...RANGE_COLUMN_OPTIONS,
+                    series: [
+                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
+                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![1] as any).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
+                await compare();
+            });
+
+            it(`should animate horizontal legend toggle off at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgCartesianChartOptions = {
+                    ...switchSeriesType(RANGE_COLUMN_OPTIONS, 'horizontal'),
+                    series: [
+                        { ...RANGE_BAR_SERIES, yName: 'Series 1' },
+                        { ...RANGE_BAR_SERIES, yName: 'Series 2' },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![1] as any).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
                 await compare();
             });
         }
@@ -793,6 +865,277 @@ describe('RangeBarSeries', () => {
         });
     });
 
+    describe('AG-15782 styler', () => {
+        type D = { month: string; gain_low: number; gain_high: number; loss_low: number; loss_high: number };
+        type C = unknown;
+        type M = MockRangeBarStyler<D, C>;
+        let styler: ReturnType<typeof newFreezableMock<D, C, M>>;
+        const data = [
+            { month: 'January', gain_low: 1200, gain_high: 1500, loss_low: 800, loss_high: 1100 },
+            { month: 'February', gain_low: 1500, gain_high: 1650, loss_low: 950, loss_high: 1450 },
+            { month: 'March', gain_low: 1700, gain_high: 1920, loss_low: 1600, loss_high: 1815 },
+        ];
+        beforeEach(() => {
+            styler = newFreezableMock<D, C, M>(
+                (params: AgRangeBarSeriesStylerParams<D, C>): AgRangeBarSeriesStyle | undefined => {
+                    if (params.yLowKey === 'gain_low')
+                        return {
+                            fill: 'cyan',
+                            lineDash: [3, 3],
+                            lineDashOffset: 5,
+                            stroke: 'blue',
+                            strokeWidth: 7,
+                        };
+                    else if (params.yLowKey === 'loss_low')
+                        return {
+                            fill: 'magenta',
+                            fillOpacity: 0.5,
+                            cornerRadius: 15,
+                        };
+                    return {};
+                }
+            );
+        });
+        describe('init', () => {
+            let c1: C;
+            let c2: C;
+            beforeEach(async () => {
+                c1 = { name: 'gain context' };
+                c2 = { name: 'loss context' };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                context: c1,
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: styler.frozen,
+                                grouped: false,
+                            },
+                            {
+                                type: 'range-bar',
+                                context: c2,
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            describe('callbacks', () => {
+                test('context', () => {
+                    styler.expect().nthCalledWithContext(0, c1);
+                    styler.expect().nthCalledWithContext(1, c2);
+                    styler.expect().toHaveBeenCalledTimes(2);
+                });
+                test('params', () => {
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+        describe('priorities', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgRangeBarSeriesItemStylerParams<D, C>): AgRangeBarSeriesStyle => {
+                    if (params.datum[params.xKey] === 'February') {
+                        if (params.yLowKey === 'gain_low') {
+                            return { fill: 'gold', cornerRadius: 0 };
+                        } else {
+                            return { fill: 'grey', cornerRadius: 0 };
+                        }
+                    }
+                    return {};
+                };
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions<AgCartesianChartOptions<D, C>>({
+                        data,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                fill: 'lime', // ignored
+                                cornerRadius: 45, // ignored only for February
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                fill: 'olive', // ignored
+                                stroke: 'navy', // not ignored
+                                strokeWidth: 3, // not ignored
+                                itemStyler,
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('gradient-pattern', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: () => {
+                                    return { fill: { type: 'gradient' } };
+                                },
+                            },
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: () => {
+                                    return { fill: { type: 'pattern' } };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('stroke-strokeWidth-defaults', () => {
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: () => {
+                                    // check that default `strokeWidth: 2` is resolved.
+                                    return { stroke: 'lime' };
+                                },
+                            },
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: () => {
+                                    // check that theme-default `stroke` is resolved.
+                                    return { strokeWidth: 4 };
+                                },
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
+        describe('highlights', () => {
+            // Manual-test version available at range-bar-series-test#styler-highlight-state
+            beforeEach(async () => {
+                chart = AgCharts.create(
+                    prepareEnterpriseTestOptions({
+                        data,
+                        series: [
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Gain',
+                                yLowKey: 'gain_low',
+                                yHighKey: 'gain_high',
+                                styler: styler.frozen,
+                                grouped: false,
+                            },
+                            {
+                                type: 'range-bar',
+                                xKey: 'month',
+                                yName: 'Loss',
+                                yLowKey: 'loss_low',
+                                yHighKey: 'loss_high',
+                                styler: styler.frozen,
+                            },
+                        ],
+                    })
+                );
+                await waitForChartStability(chart);
+            });
+
+            const miss = { x: 100, y: 100 } as const;
+            const series0datum0 = { x: 178, y: 287 } as const;
+            const series0datum2 = { x: 660, y: 75 } as const;
+            const series1datum0 = { x: 178, y: 450 } as const;
+            const legendItem0 = { x: 375, y: 572 } as const;
+            const legendItem1 = { x: 440, y: 572 } as const;
+
+            describe('single', () => {
+                async function testHover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                }
+                test('miss', async () => testHover(miss));
+                test('series[0].datum[0]', async () => testHover(series0datum0));
+                test('series[0].datum[2]', async () => testHover(series0datum2));
+                test('series[1].datum[0]', async () => testHover(series1datum0));
+                test('legendItem[0]', async () => testHover(legendItem0));
+                test('legendItem[1]', async () => testHover(legendItem1));
+            });
+            describe('sequenced', () => {
+                async function hover(p: { readonly x: number; readonly y: number }) {
+                    await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
+                }
+                test('1', async () => {
+                    await hover(miss);
+                    await hover(series0datum0);
+                    await hover(miss);
+                    await hover(series0datum2);
+                    await hover(miss);
+                    await hover(series1datum0);
+                    await hover(miss);
+                    await hover(legendItem0);
+                    await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
+                    expect(styler.mock.mock.calls).toMatchSnapshot();
+                });
+            });
+        });
+    });
+
     describe('segmentation', () => {
         it('should render range-bar series with segmentation styling on x-axis', async () => {
             const options: AgCartesianChartOptions = {
@@ -819,10 +1162,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -870,10 +1213,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -914,10 +1257,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    y: { type: 'category', position: 'left' },
+                    x: { type: 'number', position: 'bottom' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -983,10 +1326,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1051,10 +1394,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1113,10 +1456,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'number', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1162,10 +1505,10 @@ describe('RangeBarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'time', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'time', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
             prepareEnterpriseTestOptions(options as any);
 
@@ -1174,6 +1517,188 @@ describe('RangeBarSeries', () => {
 
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareEnterpriseTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [
+                    { x: 'West', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                    { x: 'East', s1L: 0, s1H: 1, s2L: 2, s2H: 3, s3L: 4, s3H: 5 },
+                ],
+                series: [
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's1L', yHighKey: 's1H', yName: 'series 1' },
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's2L', yHighKey: 's2H', yName: 'series 2' },
+                    { type: 'range-bar', xKey: 'x', yLowKey: 's3L', yHighKey: 's3H', yName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('null category key', () => {
+        const RANGE_BAR_NULL_CATEGORY_KEY_DATA = [
+            { month: 'Jan', high: 9.2, low: -4.5 },
+            { month: null, high: 11.6, low: -3.7 },
+            { month: 'Mar', high: 14.8, low: 0.5 },
+        ];
+
+        const RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RANGE_BAR_NULL_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = { ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RangeBarSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_BAR_NULL_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('undefined category key', () => {
+        const RANGE_BAR_UNDEFINED_CATEGORY_KEY_DATA = [
+            { month: 'Jan', high: 9.2, low: -4.5 },
+            { month: undefined, high: 11.6, low: -3.7 },
+            { month: 'Mar', high: 14.8, low: 0.5 },
+        ];
+
+        const RANGE_BAR_NULL_AND_UNDEFINED_KEYS_DATA = [
+            { month: 'Jan', high: 9.2, low: -4.5 },
+            { month: null, high: 10.4, low: -3.1 },
+            { month: undefined, high: 11.6, low: -3.7 },
+            { month: 'Apr', high: 14.8, low: 0.5 },
+        ];
+
+        const RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS: AgChartOptions = {
+            data: RANGE_BAR_UNDEFINED_CATEGORY_KEY_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        const RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS: AgChartOptions = {
+            data: RANGE_BAR_NULL_AND_UNDEFINED_KEYS_DATA,
+            axes: {
+                x: { type: 'category', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            series: [
+                {
+                    type: 'range-bar',
+                    xKey: 'month',
+                    yLowKey: 'low',
+                    yHighKey: 'high',
+                },
+            ],
+        };
+
+        it('should reject undefined category key with warning', async () => {
+            const options: AgChartOptions = { ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [undefined] for [RangeBarSeries-1 / xValue] ignored:",
+    "[undefined]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_BAR_UNDEFINED_CATEGORY_KEY_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = {
+                ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS,
+                series: [
+                    {
+                        ...RANGE_BAR_NULL_AND_UNDEFINED_KEYS_OPTIONS.series![0],
+                        allowNullKeys: true,
+                    } as any,
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
         });
     });
 });

@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { EventEmitter } from 'ag-charts-core';
+import { EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -20,8 +20,6 @@ import type {
     MeasurerPropertiesType,
 } from '../annotationsSuperTypes';
 import { isChannelType, isFibonacciType } from '../utils/types';
-
-const { focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
@@ -345,12 +343,20 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createAlignmentRadioGroup(alignment: string, onChange: (value: string) => void) {
+        const dynamicOptions = [
+            ['iconAltTextAlignLeft', 'left'],
+            ['iconAltTextAlignRight', 'right'],
+        ];
+        if (this.ctx.domManager.isRtl) {
+            dynamicOptions.reverse();
+        }
+        const [[startText, startValue], [endText, endValue]] = dynamicOptions;
         return this.createRadioGroup({
             label: 'dialogInputAlign',
             options: [
-                { icon: 'align-left', altText: 'iconAltTextAlignLeft', value: 'left' },
+                { icon: 'align-left', altText: startText, value: startValue },
                 { icon: 'align-center', altText: 'iconAltTextAlignCenter', value: 'center' },
-                { icon: 'align-right', altText: 'iconAltTextAlignRight', value: 'right' },
+                { icon: 'align-right', altText: endText, value: endValue },
             ],
             value: alignment,
             onChange,

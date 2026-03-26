@@ -1,4 +1,4 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { Bounds4 } from 'ag-charts-core';
 
 import type { AnnotationContext, FibonacciBands } from '../annotationTypes';
 
@@ -19,15 +19,15 @@ export enum FibonacciNodeTag {
     HorizontalLine,
 }
 
-type FibonacciRangeLabel = _ModuleSupport.Vec4 & { text: string };
+type FibonacciRangeLabel = Bounds4 & { text: string };
 
-export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
+export interface FibonacciRangeDatum extends Bounds4 {
     id: any;
     tag: FibonacciNodeTag;
     label: FibonacciRangeLabel;
 }
 
-export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _ModuleSupport.Vec4) {
+export function getFibonacciCoords(coords1: Bounds4, coords2?: Bounds4) {
     const { x2, y1, y2 } = coords1;
 
     const trendLineVerticalDistance = y1 - y2;
@@ -50,21 +50,21 @@ export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _Modu
 }
 
 export function createFibonacciRangesData(
-    { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
+    { x1, y1, x2, y2 }: Bounds4,
     context: AnnotationContext,
     reverse: boolean,
     yZero: number,
     bands: FibonacciBands = 10
 ): FibonacciRangeDatum[] {
     const verticalDistance = y1 - y2;
-
     const direction = reverse ? -1 : 1;
-    let startY = yZero;
     const data: FibonacciRangeDatum[] = [];
+    const { yAxis, isRtl } = context;
+    let startY = yZero;
 
-    FIBONACCI_RATIOS_MAP[bands].forEach((ratio, index) => {
+    for (const [index, ratio] of FIBONACCI_RATIOS_MAP[bands].entries()) {
         const endY = yZero + verticalDistance * (ratio / 100) * direction;
-        const yDatumVal = context.yAxis.scaleInvert(endY);
+        const yDatumVal = yAxis.scaleInvert(endY);
 
         data.push({
             id: index,
@@ -74,15 +74,19 @@ export function createFibonacciRangesData(
             y2: endY,
             tag: ratio == 100 ? FibonacciNodeTag.OneLine : FibonacciNodeTag.HorizontalLine,
             label: {
-                x1: Math.min(x1, x2) - FIBONACCI_RANGE_LABEL_PADDING,
+                x1: isRtl
+                    ? Math.max(x1, x2) + FIBONACCI_RANGE_LABEL_PADDING
+                    : Math.min(x1, x2) - FIBONACCI_RANGE_LABEL_PADDING,
                 x2: x2,
                 y1: endY,
                 y2: endY,
-                text: `${(ratio / 100).toFixed(3)} (${yDatumVal.toFixed(2)})`,
+                text: isRtl
+                    ? `(${yDatumVal.toFixed(2)}) ${(ratio / 100).toFixed(3)}`
+                    : `${(ratio / 100).toFixed(3)} (${yDatumVal.toFixed(2)})`,
             },
         });
         startY = endY;
-    });
+    }
 
     return data;
 }

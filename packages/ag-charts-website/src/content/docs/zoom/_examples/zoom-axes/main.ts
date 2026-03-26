@@ -1,7 +1,29 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ZoomModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
@@ -11,18 +33,16 @@ const options: AgCartesianChartOptions = {
     tooltip: {
         enabled: false,
     },
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             interval: {
                 minSpacing: 80,
                 maxSpacing: 120,
             },
         },
-        {
+        x: {
             type: 'number',
-            position: 'bottom',
             nice: false,
             interval: {
                 minSpacing: 80,
@@ -32,7 +52,7 @@ const options: AgCartesianChartOptions = {
                 autoRotate: false,
             },
         },
-    ],
+    },
     data: getData(),
     series: [
         {

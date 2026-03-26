@@ -1,7 +1,27 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     title: {
@@ -47,13 +67,8 @@ const options: AgCartesianChartOptions<DataType> = {
             yName: 'Large Scale Hydro',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
-            type: 'category',
-        },
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
@@ -62,7 +77,7 @@ const options: AgCartesianChartOptions<DataType> = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

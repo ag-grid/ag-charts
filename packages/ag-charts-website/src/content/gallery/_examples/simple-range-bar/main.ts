@@ -1,7 +1,24 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    BandHighlightModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    RangeBarSeriesModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    BandHighlightModule,
+    NumberAxisModule,
+    OrdinalTimeAxisModule,
+    RangeBarSeriesModule,
+]);
 const day = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -55,10 +72,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'ordinal-time',
-            position: 'bottom',
             bandHighlight: {
                 enabled: true,
             },
@@ -80,7 +96,7 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        y: {
             type: 'number',
             position: 'right',
             title: {
@@ -113,7 +129,7 @@ const options: AgCartesianChartOptions = {
                 },
             ],
         },
-    ],
+    },
     animation: {
         enabled: true,
         duration: 800,

@@ -20,11 +20,16 @@ import {
     DATA_ZERO_EXTENT_LOG_AXIS,
 } from '../../test/data';
 import * as examples from '../../test/examples';
-import { MockBarStyler, newFreezableMock } from '../../test/freezableMock';
+import { type MockBarStyler, newFreezableMock } from '../../test/freezableMock';
+import { testLegendItemName } from '../../test/legendItemName';
+import type { CartesianOrPolarTestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_UNHIGHLIGHT_DELAY,
     PATTERN_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -36,7 +41,6 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
-import type { CartesianOrPolarTestCase } from '../../test/utils';
 
 const buildLogAxisTestCase = (
     data: any[],
@@ -44,7 +48,7 @@ const buildLogAxisTestCase = (
 ): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
-        assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['bar'] }),
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'log' }, seriesTypes: ['bar'] }),
         ...extra,
     };
 };
@@ -53,38 +57,38 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
     ...mixinReversedAxesCases({
         COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bar'] }),
         },
         COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.COLUMN_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.GROUPED_COLUMN_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'number' }, seriesTypes: ['bar'] }),
         },
         BAR_TIME_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.BAR_TIME_X_AXIS_NUMBER_Y_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'number', y: 'unit-time' }, seriesTypes: ['bar'] }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
@@ -100,7 +104,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 1),
             }),
         },
@@ -117,21 +121,21 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
                 ],
             } satisfies AgCartesianChartOptions,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 1),
             }),
         },
         STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS: {
             options: examples.STACKED_BAR_NUMBER_X_AXIS_NEGATIVE_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['category', 'number'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS: {
             options: examples.GROUPED_BAR_NUMBER_X_AXIS_NUMBER_Y_AXIS,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'number'],
+                axisTypes: { x: 'number', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
@@ -146,124 +150,142 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         }),
         COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
         },
         COLUMN_SINGLE_DATE_TIME_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_TIME_AXIS,
-            assertions: cartesianChartAssertions({ axisTypes: ['unit-time', 'number'], seriesTypes: ['bar'] }),
+            assertions: cartesianChartAssertions({ axisTypes: { x: 'unit-time', y: 'number' }, seriesTypes: ['bar'] }),
         },
         GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES: {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_CLASHING,
-            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('bar', 5) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 5),
+            }),
         },
         GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.GROUPED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 2),
+            }),
         },
         STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.STACKED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 2) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 2),
+            }),
         },
         STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES: {
             options: examples.STACKED_NORMALIZED_COLUMN_CATEGORY_DATA_PER_SERIES_DIFFERENT_CATEGORIES,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: repeat('bar', 4) }),
+            assertions: cartesianChartAssertions({
+                axisTypes: { x: 'category', y: 'number' },
+                seriesTypes: repeat('bar', 4),
+            }),
         },
         STACKED_COLUMN_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.STACKED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_SERIES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_SERIES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_AXES_BOUND_VERTICAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL: {
             options: examples.GROUPED_COLUMN_AXES_BOUND_HORIZONTAL_GRADIENT_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
         },
         STACKED_COLUMN_PATTERN_FILL: {
             options: examples.STACKED_COLUMN_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
@@ -271,7 +293,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         GROUPED_COLUMN_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
@@ -279,12 +301,36 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         GROUPED_COLUMN_SMALL_PATTERN_FILL: {
             options: examples.GROUPED_COLUMN_SMALL_PATTERN_FILL,
             assertions: cartesianChartAssertions({
-                axisTypes: ['number', 'category'],
+                axisTypes: { x: 'category', y: 'number' },
                 seriesTypes: repeat('bar', 4),
             }),
             imageSnapshotDefaults: PATTERN_SNAPSHOT_DEFAULTS,
         },
     }),
+    BAR_NULL_CATEGORY_KEY: {
+        options: examples.BAR_NULL_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [['AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:', '[null]']],
+    },
+    BAR_NULL_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    BAR_UNDEFINED_CATEGORY_KEY: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+        warnings: [
+            ['AG Charts - invalid value of type [undefined] for [BarSeries-1 / xValue] ignored:', '[undefined]'],
+        ],
+    },
+    BAR_UNDEFINED_CATEGORY_KEY_ALLOWED: {
+        options: examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
+    BAR_NULL_AND_UNDEFINED_KEYS: {
+        options: examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE,
+        assertions: cartesianChartAssertions({ axisTypes: { x: 'category', y: 'number' }, seriesTypes: ['bar'] }),
+    },
 };
 
 const INVALID_DATA_EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
@@ -333,12 +379,14 @@ describe('BarSeries', () => {
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                example.warnings?.forEach((message, index) => {
-                    expect(console.warn).toHaveBeenNthCalledWith(
-                        index + 1,
-                        ...(Array.isArray(message) ? message : [message])
-                    );
-                });
+                if (example.warnings) {
+                    for (const [index, message] of example.warnings.entries()) {
+                        expect(console.warn).toHaveBeenNthCalledWith(
+                            index + 1,
+                            ...(Array.isArray(message) ? message : [message])
+                        );
+                    }
+                }
                 if (!example.warnings?.length) {
                     expect(console.warn).not.toHaveBeenCalled();
                 }
@@ -360,6 +408,120 @@ describe('BarSeries', () => {
                 }
             }
         );
+
+        it('should handle missing values in stacked bar charts without rendering spurious bars', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                        mac: 20,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 30,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                        mac: 20,
+                        ipad: 18,
+                        wearables: 14,
+                        services: null, // Missing value - should not render a bar
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                        mac: 24,
+                        ipad: 14,
+                        wearables: null, // Missing value - should not render a bar
+                        services: 36,
+                    },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services', stacked: true },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Visual snapshot to ensure no spurious bars are rendered
+            await compare();
+        });
+
+        it('should handle missing properties in stacked bar charts without rendering spurious bars', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    {
+                        quarter: "Q1'18",
+                        iphone: 140,
+                        mac: 16,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 20,
+                    },
+                    {
+                        quarter: "Q2'18",
+                        iphone: 124,
+                        mac: 20,
+                        ipad: 14,
+                        wearables: 12,
+                        services: 30,
+                    },
+                    {
+                        quarter: "Q3'18",
+                        iphone: 112,
+                        mac: 20,
+                        ipad: 18,
+                        wearables: 14,
+                        // services: null, // Missing property - should not render a bar
+                    },
+                    {
+                        quarter: "Q4'18",
+                        iphone: 118,
+                        mac: 24,
+                        ipad: 14,
+                        // wearables: null, // Missing property - should not render a bar
+                        services: 36,
+                    },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', yName: 'iPhone', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', yName: 'Mac', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', yName: 'iPad', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', yName: 'Wearables', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services', yName: 'Services', stacked: true },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Visual snapshot to ensure no spurious bars are rendered
+            await compare();
+        });
     });
 
     describe('initial animation', () => {
@@ -572,6 +734,76 @@ describe('BarSeries', () => {
                 await chart.update(options);
 
                 await waitForChartStability(chart);
+                await compare();
+            });
+        }
+    });
+
+    // CRT-1040: Invisible stacked series must still populate nodeData so animation uses the
+    // coordinated 'update' phase rather than the out-of-sync 'remove'/'add' phases.
+    describe('stacked bar legend toggle nodeData (CRT-1040)', () => {
+        const animate = spyOnAnimationManager();
+
+        it('should populate nodeData for invisible stacked series after legend toggle', async () => {
+            animate(1200, 1);
+
+            const options: AgChartOptions = {
+                data: [
+                    { category: 'A', v1: 10, v2: 20 },
+                    { category: 'B', v1: 30, v2: 40 },
+                ],
+                series: [
+                    { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                    { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Toggle second series invisible (simulates legend click)
+            animate(1200, 0.5);
+            (options.series![1] as AgBarSeriesOptions).visible = false;
+            await chart.update(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const invisibleSeries = chartInstance.series[1] as any;
+            const nodeData = invisibleSeries.contextNodeData?.nodeData;
+
+            expect(nodeData).toHaveLength(2);
+            for (const datum of nodeData!) {
+                expect(datum.yValue).toBe(0);
+            }
+        });
+
+        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+            it(`should animate coordinated legend toggle at ${ratio * 100}%`, async () => {
+                animate(1200, 1);
+
+                const options: AgChartOptions = {
+                    data: [
+                        { category: 'A', v1: 10, v2: 20, v3: 15 },
+                        { category: 'B', v1: 30, v2: 40, v3: 25 },
+                        { category: 'C', v1: 20, v2: 10, v3: 35 },
+                    ],
+                    series: [
+                        { type: 'bar', xKey: 'category', yKey: 'v1', stacked: true },
+                        { type: 'bar', xKey: 'category', yKey: 'v2', stacked: true },
+                        { type: 'bar', xKey: 'category', yKey: 'v3', stacked: true },
+                    ],
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                animate(1200, ratio);
+                (options.series![0] as AgBarSeriesOptions).visible = false;
+                await chart.update(options);
+                await waitForChartStability(chart);
+
                 await compare();
             });
         }
@@ -1072,6 +1304,7 @@ describe('BarSeries', () => {
             describe('sequenced', () => {
                 async function hover(p: { readonly x: number; readonly y: number }) {
                     await hoverAction(p.x, p.y)(chart);
+                    await waitForChartStability(chart);
                 }
                 test('1', async () => {
                     await hover(miss);
@@ -1083,6 +1316,8 @@ describe('BarSeries', () => {
                     await hover(miss);
                     await hover(legendItem0);
                     await hover(legendItem1);
+                    // Wait for delayed unhighlights to complete
+                    await waitForChartStability(chart, MIN_UNHIGHLIGHT_DELAY);
                     expect(styler.mock.mock.calls).toMatchSnapshot();
                 });
             });
@@ -1115,10 +1350,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1168,10 +1403,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1213,10 +1448,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1277,10 +1512,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1311,10 +1546,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1372,10 +1607,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1525,10 +1760,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1560,10 +1795,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1595,10 +1830,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1637,10 +1872,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1671,10 +1906,10 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'left' },
-                    { type: 'number', position: 'bottom' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'left' },
+                    y: { type: 'number', position: 'bottom' },
+                },
             };
 
             prepareTestOptions(options);
@@ -1715,15 +1950,776 @@ describe('BarSeries', () => {
                         },
                     },
                 ],
-                axes: [
-                    { type: 'category', position: 'bottom' },
-                    { type: 'number', position: 'left' },
-                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
             };
 
             prepareTestOptions(options);
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('cutout drawing mode', () => {
+        it('should render bar series with cutout highlight drawing mode', async () => {
+            const highlight = {
+                highlightedItem: {
+                    fillOpacity: 0.1,
+                    stroke: 'black',
+                    fill: 'black',
+                },
+            };
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { quarter: 'Q1', sales: 120, expenses: 80 },
+                    { quarter: 'Q2', sales: 100, expenses: 70 },
+                    { quarter: 'Q3', sales: 140, expenses: 90 },
+                    { quarter: 'Q4', sales: 160, expenses: 110 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'sales',
+                        yName: 'Sales',
+                        highlight,
+                    },
+                    {
+                        type: 'bar',
+                        xKey: 'quarter',
+                        yKey: 'expenses',
+                        yName: 'Expenses',
+                        highlight,
+                    },
+                ],
+                highlight: {
+                    drawingMode: 'cutout',
+                },
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+
+            await waitForChartStability(chart);
+            await hoverAction(135, 330)(chart);
+            await compare();
+        });
+    });
+
+    describe('AG-15743 legendItemName', () => {
+        testLegendItemName({
+            create: (o) => (chart = AgCharts.create(prepareTestOptions(o))),
+            compare,
+            chartOptions: {
+                data: [{ x: 'Value', s1: 100, s2: 200, s3: 300 }],
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 's1', yName: 'series 1' },
+                    { type: 'bar', xKey: 'x', yKey: 's2', yName: 'series 2' },
+                    { type: 'bar', xKey: 'x', yKey: 's3', yName: 'series 3' },
+                ],
+            },
+        });
+    });
+
+    describe('horizontal bar with property-based formatter', () => {
+        it('should apply correct formatter to axis labels based on series orientation', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: "Apple's Revenue by Product Category",
+                },
+                subtitle: {
+                    text: 'In Billion U.S. Dollars',
+                },
+                data: [
+                    { quarter: 'Q1', iphone: 140.01 },
+                    { quarter: 'Q2', iphone: 124.32 },
+                    { quarter: 'Q3', iphone: 112.12 },
+                    { quarter: 'Q4', iphone: 96.39 },
+                ],
+                series: [
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'quarter',
+                        yKey: 'iphone',
+                        yName: 'iPhone',
+                    },
+                ],
+                formatter: {
+                    x: ({ value }) => `x${value}x`,
+                    y: ({ value }) => `y${value}y`,
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await compare();
+        });
+
+        it('should apply correct formatter in combo chart with horizontal bars and line series', async () => {
+            const options: AgCartesianChartOptions = {
+                title: {
+                    text: 'Revenue and Growth',
+                },
+                data: [
+                    { quarter: 'Q1', revenue: 140.01, growth: 15.5 },
+                    { quarter: 'Q2', revenue: 124.32, growth: 12.3 },
+                    { quarter: 'Q3', revenue: 112.12, growth: 8.7 },
+                    { quarter: 'Q4', revenue: 96.39, growth: 5.2 },
+                ],
+                series: [
+                    {
+                        type: 'line',
+                        xKey: 'growth',
+                        yKey: 'quarter',
+                        yName: 'Growth %',
+                    },
+                    {
+                        type: 'bar',
+                        direction: 'horizontal',
+                        xKey: 'quarter',
+                        yKey: 'revenue',
+                        yName: 'Revenue',
+                    },
+                ],
+                formatter: {
+                    x: ({ value }) => `x${value}x`,
+                    y: ({ value }) => `y${value}y`,
+                },
+                axes: {
+                    x: {
+                        type: 'number',
+                    },
+                    y: {
+                        type: 'category',
+                    },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            await compare();
+        });
+    });
+
+    describe('incremental updates with aggregation', () => {
+        it('should enable incremental updates when aggregation is active', async () => {
+            // Create data with >1000 points to trigger aggregation (MAX_ANIMATABLE_NODES = 1000)
+            const largeData = Array.from({ length: 1500 }, (_, i) => ({
+                x: i,
+                y: Math.random() * 100,
+            }));
+
+            const options: AgChartOptions = {
+                data: largeData,
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                    },
+                ],
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Get initial node data references
+            const chartInstance = deproxy(chart);
+            const series = chartInstance.series[0] as any;
+            const initialNodeData = series.contextNodeData?.nodeData;
+            expect(initialNodeData).toBeDefined();
+            expect(initialNodeData!.length).toBeGreaterThan(0);
+
+            // Store references to some nodes
+            const firstNode = initialNodeData![0];
+            const middleNode = initialNodeData![Math.floor(initialNodeData!.length / 2)];
+
+            // Update data (same structure, different values) - this should trigger incremental update
+            const updatedData = largeData.map((d) => ({
+                ...d,
+                y: d.y * 1.1, // Slight change to values
+            }));
+
+            await chart.update({
+                ...options,
+                data: updatedData,
+            });
+            await waitForChartStability(chart);
+
+            // Verify nodes were reused (same object references)
+            const updatedChartInstance = deproxy(chart);
+            const updatedSeries = updatedChartInstance.series[0] as any;
+            const updatedNodeData = updatedSeries.contextNodeData?.nodeData;
+            expect(updatedNodeData).toBeDefined();
+            expect(updatedNodeData!.length).toBe(initialNodeData!.length);
+
+            // With aggregation active, incremental updates should reuse node objects
+            // Check that at least some nodes are reused (they should be the same references)
+            expect(updatedNodeData![0]).toBe(firstNode);
+            expect(updatedNodeData![Math.floor(updatedNodeData!.length / 2)]).toBe(middleNode);
+
+            chart.destroy();
+        });
+    });
+
+    describe('fixed width', () => {
+        const data = [
+            { quarter: "Q1'18", iphone: 40, mac: 16, ipad: 14, wearables: 12 },
+            { quarter: "Q2'18", iphone: 24, mac: 20, ipad: 14, wearables: 12 },
+            { quarter: "Q3'18", iphone: 12, mac: 20, ipad: 18, wearables: 14 },
+            { quarter: "Q4'18", iphone: 18, mac: 24, ipad: 14, wearables: 14 },
+        ];
+
+        const zeroPadding = { paddingInner: 0, paddingOuter: 0, groupPaddingInner: 0 };
+
+        const cases: [string, any, any][] = [
+            ['single series', [{ type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 }], zeroPadding],
+            [
+                'grouped series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with groupPaddingInner',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+            [
+                'grouped series with unfixed width at start',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed width in middle',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20 },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed width at end',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
+                ],
+                zeroPadding,
+            ],
+            [
+                'grouped series with unfixed widths and groupPaddingInner',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+            [
+                'grouped series with unfixed widths and default padding',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables' },
+                ],
+                {},
+            ],
+            [
+                'stacked series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30, stackGroup: 'two' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'stacked series with unfixed widths',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'two' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 20, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'stacked series with one unfixed width',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 10, stackGroup: 'one' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stackGroup: 'two' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', width: 30, stackGroup: 'two' },
+                ],
+                {},
+            ],
+            [
+                'ungrouped series',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'ungrouped series width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'ungrouped series width and width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40, widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'grouped series width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.5 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad' },
+                ],
+                {},
+            ],
+            [
+                'mixed grouped and ungrouped series width ratio',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', widthRatio: 0.75, grouped: false },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', stacked: true },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', widthRatio: 0.5, grouped: false },
+                ],
+                {},
+            ],
+            [
+                'axis align start',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'start' },
+            ],
+            [
+                'axis align center',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'center' },
+            ],
+            [
+                'axis align end',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                {
+                    bandAlignment: 'end',
+                },
+            ],
+            [
+                'axis align justify',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', width: 40 },
+                ],
+                { bandAlignment: 'justify' },
+            ],
+            [
+                'horizontal',
+                [
+                    { type: 'bar', xKey: 'quarter', yKey: 'iphone', width: 20, direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'mac', direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'ipad', width: 30, direction: 'horizontal' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'wearables', direction: 'horizontal' },
+                ],
+                { ...zeroPadding, groupPaddingInner: 0.5 },
+            ],
+        ];
+
+        it.each(cases)('%s', async (_, seriesOptions, axisOptions) => {
+            const options: AgCartesianChartOptions = {
+                data: data,
+                series: seriesOptions,
+                axes: {
+                    x: axisOptions,
+                },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('changing width', async () => {
+            const options: AgCartesianChartOptions = {
+                data: data,
+                series: [
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'iphone', width: 20 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'mac' },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'ipad', width: 30 },
+                    { type: 'bar' as const, xKey: 'quarter', yKey: 'wearables' },
+                ],
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            (options.series as any)[0].width = 40;
+            await chart.update(options);
+            await compare();
+        });
+    });
+
+    describe('null category key', () => {
+        it('should reject null category key with warning', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - Unknown option \`axes.x.paddingInner\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.paddingOuter\`, ignoring.",
+  ],
+  [
+    "AG Charts - Unknown option \`axes.x.groupPaddingInner\`, ignoring.",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [BarSeries-1 / xValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+            await compare();
+        });
+
+        it('should accept null category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept undefined category key when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_UNDEFINED_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should treat null and undefined as distinct categories when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.BAR_NULL_AND_UNDEFINED_KEYS_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+
+        it('should accept null category key in stacked bar when allowNullKeys is true', async () => {
+            const options: AgChartOptions = examples.STACKED_BAR_NULL_CATEGORY_KEY_ALLOWED_EXAMPLE;
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
+            await compare();
+        });
+    });
+
+    describe('nodeClick with null category', () => {
+        it('should fire seriesNodeClick with null xValue datum', async () => {
+            const clicks: Array<Record<string, unknown>> = [];
+            const options: AgCartesianChartOptions = {
+                data: [
+                    { x: null, y: 10 },
+                    { x: 'A', y: 20 },
+                    { x: 'B', y: 15 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [
+                    {
+                        type: 'bar',
+                        xKey: 'x',
+                        yKey: 'y',
+                        allowNullKeys: true,
+                        listeners: {
+                            seriesNodeClick: (event: any) => {
+                                clicks.push(event.datum);
+                            },
+                        },
+                    } as any,
+                ],
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Click on the first bar (null category) - approximate center
+            await clickAction(130, 300)(chart);
+            await waitForChartStability(chart);
+
+            expect(clicks.length).toBeGreaterThan(0);
+            expect(clicks[0].x).toBeNull();
+        });
+    });
+
+    describe('skip null bars', () => {
+        const data = [
+            { quarter: "Q1'24", software: 5100, hardware: 3400, services: 3500, investments: undefined },
+            { quarter: "Q2'24", software: 5400, hardware: null, services: 3200, investments: 3100 },
+            { quarter: "Q3'24", software: null, hardware: 3800, investments: 2500 },
+            { quarter: "Q4'24", software: 5700, hardware: null, services: undefined, investments: null },
+        ];
+
+        const directions = ['horizontal', 'vertical'] as const;
+
+        it.each(directions)('%s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'hardware' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'investments' },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it.each(directions)('stacked %s', async (direction) => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'software', stackGroup: 'one' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'hardware', stackGroup: 'one' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'services', stackGroup: 'two' },
+                    { type: 'bar', direction, xKey: 'quarter', yKey: 'investments', stackGroup: 'two' },
+                ],
+                axes: {
+                    [direction === 'horizontal' ? 'y' : 'x']: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('fixed width', async () => {
+            const options: AgCartesianChartOptions = {
+                data,
+                series: [
+                    { type: 'bar', xKey: 'quarter', yKey: 'software' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'hardware', width: 10 },
+                    { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                    { type: 'bar', xKey: 'quarter', yKey: 'investments', width: 50 },
+                ],
+                axes: {
+                    x: {
+                        type: 'category',
+                        skipNullBars: true,
+                    },
+                },
+            };
+            prepareTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        describe('width ratio', () => {
+            const groupings = ['grouped', 'ungrouped'] as const;
+
+            it.each(groupings)('%s', async (grouping) => {
+                const grouped = grouping === 'grouped';
+
+                const options: AgCartesianChartOptions = {
+                    data,
+                    series: [
+                        { type: 'bar', xKey: 'quarter', yKey: 'software', widthRatio: 0.3, grouped },
+                        { type: 'bar', xKey: 'quarter', yKey: 'hardware', widthRatio: 0.7, grouped },
+                        { type: 'bar', xKey: 'quarter', yKey: 'services' },
+                        { type: 'bar', xKey: 'quarter', yKey: 'investments' },
+                    ],
+                    axes: {
+                        x: {
+                            type: 'category',
+                            skipNullBars: true,
+                        },
+                    },
+                };
+                prepareTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+    });
+
+    describe('crossfiltering', () => {
+        const filterLargerData = [
+            { x: 'A', y: 10, yFilter: 20 },
+            { x: 'B', y: 5, yFilter: 15 },
+        ];
+        const filterSmallerData = [
+            { x: 'A', y: 20, yFilter: 10 },
+            { x: 'B', y: 15, yFilter: 5 },
+        ];
+
+        it('unstacked: yKey less than yFilterKey', async () => {
+            // For unstacked bars, filterValidation is not used; phantom nodes always exist.
+            // node.yValue is set to the filter value (yFilter > y in this case).
+            const options = prepareTestOptions({
+                data: filterLargerData,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('unstacked: yKey greater than yFilterKey', async () => {
+            // For unstacked bars, filterValidation is not used; phantom nodes always exist.
+            // node.yValue is set to the filter value (yFilter < y in this case).
+            const options = prepareTestOptions({
+                data: filterSmallerData,
+                series: [{ type: 'bar', xKey: 'x', yKey: 'y', yFilterKey: 'yFilter' } as any],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('stacked: yKey less than yFilterKey', async () => {
+            const stackData = [
+                { x: 'A', y1: 10, y2: 5, yFilter1: 20, yFilter2: 8 },
+                { x: 'B', y1: 8, y2: 7, yFilter1: 15, yFilter2: 12 },
+            ];
+            const options = prepareTestOptions({
+                data: stackData,
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+
+        it('stacked: yKey greater than yFilterKey', async () => {
+            const stackData = [
+                { x: 'A', y1: 20, y2: 15, yFilter1: 10, yFilter2: 8 },
+                { x: 'B', y1: 18, y2: 12, yFilter1: 9, yFilter2: 6 },
+            ];
+            const options = prepareTestOptions({
+                data: stackData,
+                series: [
+                    { type: 'bar', xKey: 'x', yKey: 'y1', yFilterKey: 'yFilter1', stacked: true } as any,
+                    { type: 'bar', xKey: 'x', yKey: 'y2', yFilterKey: 'yFilter2', stacked: true } as any,
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
+    });
+
+    describe('AG-16933 reverse + bandAlignment', () => {
+        it('should maintain reversed domain when processDomains is called multiple times', async () => {
+            const options = prepareTestOptions({
+                data: [
+                    { category: 'A', value: 1 },
+                    { category: 'B', value: 2 },
+                    { category: 'C', value: 3 },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom', reverse: true, bandAlignment: 'start' },
+                    y: { type: 'number', position: 'left' },
+                },
+                series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            } as any);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartObj = deproxy(chart);
+            const categoryAxis = chartObj.axes.find((a: any) => a.type === 'category') as any;
+            expect(categoryAxis.scale.domain).toEqual(['C', 'B', 'A']);
+
+            // Simulate what happens when resize triggers PROCESS_DOMAIN:
+            // processDomains() re-calls axis.processData() → axis.setDomains()
+            (chartObj as any).processDomains();
+
+            // Domain must remain reversed after the second processDomains() call
+            expect(categoryAxis.dataDomain.domain).toEqual(['C', 'B', 'A']);
         });
     });
 });

@@ -1,6 +1,7 @@
-import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from '../util/ticks';
+import type { ScaleTickParams } from 'ag-charts-core';
+import { createTicks, isDenseInterval, niceTicksDomain, range, tickStep } from 'ag-charts-core';
+
 import { ContinuousScale } from './continuousScale';
-import type { ScaleTickParams } from './scale';
 
 /**
  * Maps continuous domain to a continuous range.
@@ -30,7 +31,7 @@ export class LinearScale extends ContinuousScale<number> {
         domain: number[] = this.domain,
         visibleRange?: [number, number]
     ): { ticks: number[]; count: number; firstTickIndex?: number } {
-        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
+        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(Number.isFinite)) {
             return { ticks: [], count: 0, firstTickIndex: 0 };
         }
         const [d0, d1] = domain;
@@ -71,6 +72,6 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return [start, stop];
+        return [ticks.nice[0] ? start : domain[0], ticks.nice[1] ? stop : domain[1]];
     }
 }

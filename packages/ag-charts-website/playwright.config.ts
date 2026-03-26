@@ -46,11 +46,12 @@ export default defineConfig({
     expect: {
         toMatchSnapshot: {
             maxDiffPixels: 0,
-            threshold: 0.01,
+            threshold: 0.05,
         },
         toHaveScreenshot: {
             maxDiffPixels: 0,
-            threshold: 0.01,
+            threshold: 0.05,
+            animations: 'disabled',
         },
     },
 

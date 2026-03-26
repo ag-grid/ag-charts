@@ -6,7 +6,7 @@ import { SELECTORS, createConsoleLogs, gotoExample, setupIntrinsicAssertions, to
 test.describe('release', () => {
     const consoleLogs = createConsoleLogs();
 
-    setupIntrinsicAssertions();
+    setupIntrinsicAssertions(test);
 
     test.describe('for Angular FW', () => {
         test.describe('callbacks should happen in Zone.js zones', () => {

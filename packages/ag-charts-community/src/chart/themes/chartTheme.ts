@@ -1,29 +1,7 @@
-import { entries, isArray } from 'ag-charts-core';
-import type {
-    AgChartTheme,
-    AgChartThemeOptions,
-    AgChartThemeOverrides,
-    AgChartThemePalette,
-    AgChartThemeParams,
-    AgCommonThemeableChartOptions,
-    AgPaletteColors,
-    AgPresetOverrides,
-    AgThemeOverrides,
-    CssColor,
-    WithThemeParams,
-} from 'ag-charts-types';
-
-import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
-import { Color } from '../../util/color';
-import { deepClone, jsonWalk } from '../../util/json';
-import { deepFreeze, mergeDefaults } from '../../util/object';
-import { axisRegistry } from '../factory/axisRegistry';
-import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
-import { legendRegistry } from '../factory/legendRegistry';
-import { seriesRegistry } from '../factory/seriesRegistry';
-import { BASE_FONT_SIZE, CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE_RATIO, POLAR_AXIS_TYPE } from './constants';
-import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
+    BASE_FONT_SIZE,
+    CARTESIAN_AXIS_TYPE,
+    Color,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
@@ -36,9 +14,7 @@ import {
     DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_FINANCIAL_CHARTS_ANNOTATION_COLOR,
-    DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_POLAR_SERIES_STROKE,
-    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
     DEFAULT_TEXTBOX_COLOR,
@@ -46,7 +22,10 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    FONT_SIZE_RATIO,
     IS_DARK_THEME,
+    ModuleRegistry,
+    ModuleType,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -59,31 +38,36 @@ import {
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
-} from './symbols';
-import { LEGEND_CONTAINER_THEME, getSequentialColors } from './util';
+    POLAR_AXIS_TYPE,
+    deepClone,
+    deepFreeze,
+    getSequentialColors,
+    groupBy,
+    isArray,
+    jsonWalk,
+    mergeDefaults,
+} from 'ag-charts-core';
+import type {
+    AgChartAllThemeParams,
+    AgChartPrivateThemeParams,
+    AgChartTheme,
+    AgChartThemeOptions,
+    AgChartThemeOverrides,
+    AgChartThemePalette,
+    AgChartThemeParams,
+    AgPaletteColors,
+    AgPresetOverrides,
+    AgThemeOverrides,
+    CssColor,
+    WithThemeParams,
+} from 'ag-charts-types';
+
+import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
+import type { ChartType } from '../factory/expectedModules';
+import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
-
-type ChartTypeConfig = {
-    seriesTypes: string[];
-    commonOptions: (keyof AgCommonThemeableChartOptions)[];
-};
-
-const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
-    get cartesian(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.cartesianTypes, commonOptions: ['zoom', 'navigator'] };
-    },
-    get polar(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.polarTypes, commonOptions: [] };
-    },
-    get topology(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.topologyTypes, commonOptions: [] };
-    },
-    get standalone(): ChartTypeConfig {
-        return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
-    },
-};
 
 type OverridesKey = keyof AgThemeOverrides;
 
@@ -91,6 +75,34 @@ const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
     'radial-gauge': true,
     'linear-gauge': true,
 };
+
+function hasUserOptionLessThan1(key: string) {
+    return {
+        $some: [
+            {
+                $and: [
+                    {
+                        $or: [
+                            { $isSeriesType: 'line' },
+                            { $isSeriesType: 'scatter' },
+                            { $isSeriesType: 'area' },
+                            { $isSeriesType: 'radar' },
+                            { $isSeriesType: 'rangeArea' },
+                        ],
+                    },
+                    {
+                        $isUserOption: [
+                            `/series/$index/${key}`,
+                            { $lessThan: [{ $path: `/series/$index/${key}` }, 1] },
+                            false,
+                        ],
+                    },
+                ],
+            },
+            { $path: '/series' },
+        ],
+    };
+}
 
 function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
     return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
@@ -108,7 +120,7 @@ export class ChartTheme {
     readonly config: any;
     readonly presets: AgPresetOverrides;
     readonly overrides: AgThemeOverrides | undefined;
-    readonly params: AgChartThemeParams;
+    readonly params: AgChartAllThemeParams;
 
     public static getDefaultColors(): DefaultColors {
         return {
@@ -185,12 +197,21 @@ export class ChartTheme {
 
             crosshairLabelBackgroundColor: { $ref: 'foregroundColor' },
             crosshairLabelTextColor: { $ref: 'chartBackgroundColor' },
+
+            // TODO: Move this to `getPrivateParameters()`
+            separationLinesColor: { $foregroundBackgroundMix: 0.17 },
         };
     }
 
-    private static getAxisDefaults(overrideDefaults: object, { title, time }: { title: boolean; time: boolean }) {
+    private static getPrivateParameters(): Required<WithThemeParams<AgChartPrivateThemeParams>> {
+        return {
+            focusColor: { $mix: [{ $ref: 'backgroundColor' }, { $ref: 'accentColor' }, 0.12] },
+        };
+    }
+
+    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }, customTheme?: object) {
         return mergeDefaults(
-            overrideDefaults,
+            customTheme,
             title && {
                 title: {
                     enabled: false,
@@ -247,16 +268,12 @@ export class ChartTheme {
                     avoidCollisions: true,
                     cornerRadius: 4,
                     border: {
-                        enabled: { $isUserOption: ['../border', true, false] },
+                        enabled: false,
                         strokeWidth: 1,
                         stroke: { $foregroundOpacity: 0.08 },
                     },
                     padding: {
-                        $if: [
-                            { $eq: [{ $path: './border/enabled' }, true] },
-                            { left: 12, right: 12, top: 8, bottom: 8 },
-                            undefined,
-                        ],
+                        $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
                     },
                 },
                 line: {
@@ -304,24 +321,30 @@ export class ChartTheme {
                                 fontSize: { $ref: 'fontSize' },
                                 fontFamily: { $ref: 'fontFamily' },
                                 fontWeight: { $ref: 'fontWeight' },
-                                padding: 5,
+                                padding: {
+                                    $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
+                                },
                                 color: { $ref: 'textColor' },
+                                cornerRadius: 4,
+                                border: {
+                                    enabled: false,
+                                    stroke: { $foregroundOpacity: 0.08 },
+                                    strokeOpacity: 1,
+                                    strokeWidth: 1,
+                                },
                             },
                         },
                         undefined,
                         // TODO: can we just infer this common path?
-                        {
-                            $pathString: [
-                                '/common/axes/$axisType/crossLines',
-                                { axisType: { $path: ['/axes/$index/type'] } },
-                            ],
-                        },
+                        // `axisType` path is relative to the axis that is currently being resolved
+                        // e.g. `/axes/x/crossLines/[variables]` + `../type` = `/axes/x/type`
+                        { $pathString: ['/common/axes/$axisType/crossLines', { axisType: { $path: ['../type'] } }] },
                         {
                             $pathString: [
                                 '/$seriesType/axes/$axisType/crossLines',
                                 {
                                     seriesType: { $path: ['/series/0/type', 'line'] },
-                                    axisType: { $path: ['/axes/$index/type'] },
+                                    axisType: { $path: ['../type'] },
                                 },
                             ],
                         },
@@ -350,7 +373,7 @@ export class ChartTheme {
                     strokeWidth: 1,
                 },
                 cornerRadius: 4,
-                padding: { $if: [{ $eq: [{ $path: './border/enabled' }, true] }, 5, 0] },
+                padding: { $if: [{ $path: './border/enabled' }, 5, 0] },
             },
             keyboard: { enabled: true },
             title: {
@@ -389,74 +412,23 @@ export class ChartTheme {
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
-            legend: {
-                ...LEGEND_CONTAINER_THEME,
-                enabled: {
-                    $and: [
-                        { $greaterThan: [{ $size: { $path: '/series' } }, 1] },
-                        {
-                            $or: [
-                                { $isChartType: 'cartesian' },
-                                { $isChartType: 'standalone' },
-                                {
-                                    $and: [
-                                        { $isChartType: 'polar' },
-                                        { $not: { $isSeriesType: 'pie' } },
-                                        { $not: { $isSeriesType: 'donut' } },
-                                    ],
-                                },
-                            ],
-                        },
-                    ],
-                },
-                position: CARTESIAN_POSITION.BOTTOM,
-                orientation: {
+            highlight: {
+                enabled: true,
+                drawingMode: {
                     $if: [
                         {
                             $or: [
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.LEFT_BOTTOM] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_TOP] },
-                                { $eq: [{ $path: './position/placement' }, CARTESIAN_POSITION.RIGHT_BOTTOM] },
+                                hasUserOptionLessThan1('highlight/highlightedItem/opacity'),
+                                hasUserOptionLessThan1('highlight/unhighlightedItem/opacity'),
+                                hasUserOptionLessThan1('highlight/highlightedSeries/opacity'),
+                                hasUserOptionLessThan1('highlight/unhighlightedSeries/opacity'),
+                                hasUserOptionLessThan1('fillOpacity'),
+                                hasUserOptionLessThan1('marker/fillOpacity'),
                             ],
                         },
-                        'vertical',
-                        'horizontal',
+                        'overlap',
+                        'cutout',
                     ],
-                },
-                spacing: 30,
-                listeners: {},
-                toggleSeries: true,
-                item: {
-                    paddingX: 16,
-                    paddingY: 8,
-                    marker: { size: 15, padding: 8 },
-                    showSeriesStroke: true,
-                    label: {
-                        color: { $ref: 'textColor' },
-                        fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                        fontFamily: { $ref: 'fontFamily' },
-                        fontWeight: { $ref: 'fontWeight' },
-                    },
-                },
-                reverseOrder: false,
-                pagination: {
-                    marker: { size: 12 },
-                    activeStyle: { fill: { $ref: 'foregroundColor' } },
-                    inactiveStyle: { fill: { $ref: 'subtleTextColor' } },
-                    highlightStyle: { fill: { $ref: 'foregroundColor' } },
-                    label: { color: { $ref: 'textColor' } },
-                },
-                fill: {
-                    $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],
                 },
             },
             tooltip: {
@@ -493,9 +465,16 @@ export class ChartTheme {
             },
             overlays: { darkTheme: IS_DARK_THEME },
             listeners: {},
+            // TODO: remove this
             series: {
                 tooltip: {
-                    range: { $path: ['/tooltip/range', 'exact'] },
+                    range: {
+                        $if: [
+                            { $eq: [{ $path: ['/tooltip/range', 'exact'] }, 'area'] },
+                            'exact',
+                            { $path: ['/tooltip/range', 'exact'] },
+                        ],
+                    },
                     position: {
                         anchorTo: { $path: ['/tooltip/position/anchorTo', 'pointer'] },
                         placement: { $path: ['/tooltip/position/placement', undefined] },
@@ -508,105 +487,22 @@ export class ChartTheme {
     }
 
     private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                base: 10,
-                line: { enabled: false },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                groupPaddingInner: 0.1,
-                label: { autoRotate: true, wrapping: 'on-space' },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: false },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
-                label: { spacing: 10, rotation: 270, wrapping: 'on-space' },
-                maxThicknessRatio: 0.5,
-                paddingInner: 0.4,
-                groupPaddingInner: 0.2,
-                crosshair: { enabled: false },
-            },
-            { title: true, time: false }
-        ),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                groupPaddingInner: 0.1,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-                parentLevel: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(
-            {
-                keys: [],
-                groupPaddingInner: 0,
-                label: { autoRotate: false },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                crosshair: { enabled: true },
-            },
-            { title: true, time: true }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-                shape: { $findFirstSiblingNotOperation: undefined },
-            },
-            { title: false, time: false }
-        ),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                label: { spacing: 5 },
-                gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            },
-            { title: false, time: false }
-        ),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ title: false, time: false }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ title: false, time: false }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
+            { title: true, time: false },
+            { title: { spacing: 10 } }
         ),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
-            {
-                positionAngle: 0,
-                line: { enabled: false },
-                shape: { $findFirstSiblingNotOperation: undefined },
-                label: { minSpacing: 5 },
-            },
-            { title: true, time: false }
+            { title: true, time: false },
+            { title: { spacing: 10 } }
         ),
     };
 
@@ -630,7 +526,7 @@ export class ChartTheme {
         );
         this.paletteType = paletteType(palette);
 
-        this.params = mergeDefaults(params, this.getPublicParameters());
+        this.params = mergeDefaults(params, this.getThemeParameters() as AgChartAllThemeParams);
 
         this.config = deepFreeze(deepClone(defaults));
         this.overrides = deepFreeze(overrides);
@@ -638,22 +534,22 @@ export class ChartTheme {
     }
 
     private processOverrides(presets: AgPresetOverrides, overrides: AgThemeOverrides) {
-        chartTypes.seriesTypes.forEach((s) => {
-            const seriesType = s as keyof AgThemeOverrides;
+        for (const s of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+            const seriesType = s.name as keyof AgThemeOverrides;
             const seriesOverrides = overrides[seriesType];
 
             if (isPresetOverridesType(seriesType)) {
                 presets[seriesType] = seriesOverrides as any;
                 delete overrides[seriesType];
             }
-        });
+        }
     }
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
-        for (const [nextType, { seriesTypes }] of entries(CHART_TYPE_CONFIG)) {
-            const typeDefaults = chartDefaults.get(nextType);
-            for (const seriesType of seriesTypes) {
-                config[seriesType as keyof AgChartThemeOverrides] ??= typeDefaults;
+        for (const chartModule of ModuleRegistry.listModulesByType(ModuleType.Chart)) {
+            for (const seriesModule of ModuleRegistry.listModulesByType(ModuleType.Series)) {
+                if (seriesModule.chartType !== chartModule.name) continue;
+                config[seriesModule.name as keyof AgChartThemeOverrides] ??= chartModule.themeTemplate;
             }
         }
         return config;
@@ -662,28 +558,34 @@ export class ChartTheme {
     private getDefaults(): AgChartThemeOverrides {
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
             const result: Record<string, { series?: object; axes?: object }> = {};
-            const chartTypeDefaults = {
-                axes: {},
-                ...legendRegistry.getThemeTemplates(),
-                ...this.getChartDefaults(),
-                ...chartDefaults.get(chartType),
-            };
+            const chartTypeDefaults = mergeDefaults(
+                { axes: {} },
+                ...Array.from(ModuleRegistry.listModulesByType(ModuleType.Plugin), (p) => ({
+                    [p.name]: p.themeTemplate,
+                })),
+                ModuleRegistry.getChartModule(chartType)?.themeTemplate,
+                this.getChartDefaults()
+            );
+
             for (const seriesType of seriesTypes) {
                 result[seriesType] = mergeDefaults(
-                    seriesRegistry.getThemeTemplate(seriesType),
+                    getSeriesThemeTemplate(seriesType),
                     result[seriesType] ?? chartTypeDefaults
                 );
 
                 const { axes } = result[seriesType] as { axes: Record<string, object> };
 
-                for (const axisType of axisRegistry.keys()) {
-                    axes[axisType] = mergeDefaults(
-                        axes[axisType],
-                        axisRegistry.getThemeTemplate(axisType),
-                        (ChartTheme.axisDefault as any)[axisType]
+                for (const axisModule of ModuleRegistry.listModulesByType(ModuleType.Axis)) {
+                    axes[axisModule.name] = mergeDefaults(
+                        axes[axisModule.name],
+                        !axisModule.chartType || axisModule.chartType === chartType
+                            ? getAxisThemeTemplate(axisModule.name)
+                            : null,
+                        (ChartTheme.axisDefault as any)[axisModule.name]
                     );
                 }
 
+                // TODO: remove this
                 if (seriesType === 'map-shape-background' || seriesType === 'map-line-background') {
                     delete (result[seriesType].series as any).tooltip;
                 }
@@ -692,11 +594,13 @@ export class ChartTheme {
             return result;
         };
 
+        const seriesModules = [...ModuleRegistry.listModulesByType(ModuleType.Series)];
+        const seriesByChartType = groupBy(seriesModules, (s) => s.chartType || 'unknown');
+
         return mergeDefaults(
-            getOverridesByType('cartesian', chartTypes.cartesianTypes),
-            getOverridesByType('polar', chartTypes.polarTypes),
-            getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('standalone', chartTypes.standaloneTypes)
+            ...Object.keys(seriesByChartType).map((chartType) =>
+                getOverridesByType(chartType as ChartType, seriesByChartType[chartType]?.map((s) => s.name) ?? [])
+            )
         );
     }
 
@@ -731,15 +635,17 @@ export class ChartTheme {
         return ChartTheme.getDefaultColors();
     }
 
-    getPublicParameters(): Required<WithThemeParams<AgChartThemeParams>> {
-        return ChartTheme.getDefaultPublicParameters();
+    getThemeParameters(): Required<WithThemeParams<AgChartAllThemeParams>> {
+        return {
+            ...ChartTheme.getDefaultPublicParameters(),
+            ...ChartTheme.getPrivateParameters(),
+        };
     }
 
     // Private parameters that are not exposed in the themes API.
     getTemplateParameters() {
         const params = new Map();
         params.set(IS_DARK_THEME, false);
-        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
@@ -775,7 +681,6 @@ export class ChartTheme {
         params.set(DEFAULT_TEXTBOX_COLOR, '#000');
 
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
-        params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
         const defaultColors = this.getDefaultColors();
         params.set(PALETTE_UP_STROKE, this.palette.up?.stroke ?? defaultColors.up.stroke);
@@ -793,4 +698,24 @@ export class ChartTheme {
 
         return params;
     }
+}
+
+function getAxisThemeTemplate(axisType: string) {
+    let themeTemplate = ModuleRegistry.getAxisModule(axisType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
+        if (module.axisTypes?.includes(axisType) ?? true) {
+            themeTemplate = mergeDefaults({ [module.name]: module.themeTemplate }, themeTemplate);
+        }
+    }
+    return themeTemplate;
+}
+
+function getSeriesThemeTemplate(seriesType: string) {
+    let themeTemplate = ModuleRegistry.getSeriesModule(seriesType)?.themeTemplate ?? {};
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.SeriesPlugin)) {
+        if (module.seriesTypes?.includes(seriesType) ?? true) {
+            themeTemplate = mergeDefaults({ series: { [module.name]: module.themeTemplate } }, themeTemplate);
+        }
+    }
+    return themeTemplate;
 }

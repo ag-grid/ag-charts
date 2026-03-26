@@ -1,12 +1,32 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AnimationModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: `World Population`,
+        text: 'World Population',
     },
     series: [
         {
@@ -15,22 +35,20 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
         },
     ],
-    axes: [
-        {
+    axes: {
+        y: {
             type: 'number',
-            position: 'left',
             crosshair: {
                 enabled: true,
             },
         },
-        {
+        x: {
             type: 'category',
-            position: 'bottom',
             crosshair: {
                 enabled: true,
             },
         },
-    ],
+    },
     tooltip: {
         enabled: false,
     },

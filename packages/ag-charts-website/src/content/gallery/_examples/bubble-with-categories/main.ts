@@ -1,7 +1,15 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    BubbleSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { days, getData } from './data';
 
+ModuleRegistry.registerModules([BubbleSeriesModule, CategoryAxisModule]);
 const data = getData();
 
 const options: AgChartOptions = {
@@ -26,9 +34,8 @@ const options: AgChartOptions = {
         size: 0,
         maxSize: 40,
     })),
-    axes: [
-        {
-            position: 'bottom',
+    axes: {
+        x: {
             type: 'category',
             label: {
                 autoRotate: false,
@@ -40,14 +47,13 @@ const options: AgChartOptions = {
                 enabled: false,
             },
         },
-        {
-            position: 'left',
+        y: {
             type: 'category',
             line: {
                 enabled: false,
             },
         },
-    ],
+    },
     seriesArea: {
         padding: {
             top: 20,

@@ -1,7 +1,14 @@
+import type {
+    ContextCallbackParams,
+    DatumItemCallbackParams,
+    HighlightState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { ContextDefault, DatumDefault, DatumKey, PixelSize } from '../../chart/types';
+import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
 import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type {
@@ -9,20 +16,53 @@ import type {
     AgBaseSeriesOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
-    AgSeriesHighlightStyle,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
 } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
+
+export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
+    extends SeriesCallbackParams<HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
+        Required<AgRangeAreaSeriesStyle> {}
+
+export interface AgRangeAreaSeriesLineStyle extends StrokeOptions, LineDashOptions {
+    /** Styling for the markers used in the item.  */
+    marker?: AgSeriesMarkerStyle;
+}
+
+export interface AgRangeAreaSeriesStyleItems {
+    /** Configuration for the `yLowKey` line. */
+    low?: AgRangeAreaSeriesLineStyle;
+    /** Configuration for the `yHighKey` line. */
+    high?: AgRangeAreaSeriesLineStyle;
+}
+
+export interface AgRangeAreaSeriesStyle extends FillOptions {
+    /** Configuration used for the range area series low and high lines. */
+    item?: AgRangeAreaSeriesStyleItems;
+}
+
+export type AgRangeAreaSeriesItemType = 'low' | 'high';
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
-    /** Hovered marker */
-    itemId: 'up' | 'down';
+    /** The type of datum. This can be `high` or `low`. */
+    itemType: AgRangeAreaSeriesItemType;
+}
+
+export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
+    extends AgRangeAreaSeriesOptionsKeys<TDatum>,
+        DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
+        ContextCallbackParams<TContext>,
+        Required<AgSeriesMarkerStyle> {
+    /** The type of datum. This can be `high` or `low`. */
+    itemType: AgRangeAreaSeriesItemType;
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -38,17 +78,58 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 export type AgRangeAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
     AgRangeAreaSeriesOptionsNames;
 
+export interface AgRangeAreaMarker<TDatum, TContext>
+    extends AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, TContext> {
+    /** Function used to return formatting for individual markers, based on the supplied information.*/
+    itemStyler?: Styler<AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
+}
+
+export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends StrokeOptions, LineDashOptions {
+    /** Styling configuration for the markers used in the series.  */
+    marker?: AgRangeAreaMarker<TDatum, TContext>;
+}
+
+export interface AgRangeAreaSeriesItemMarker<TDatum, TContext>
+    extends Omit<AgSeriesMarkerOptions<TDatum, never, TContext>, 'itemStyler'> {}
+
+// statically assert that AgRangeAreaSeriesItemMarker matches AgRangeAreaMarker with `itemStyler` omitted.
+type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+true satisfies AreExact<
+    AgRangeAreaSeriesItemMarker<unknown, unknown>,
+    Omit<AgRangeAreaMarker<unknown, unknown>, 'itemStyler'>
+>;
+
+export interface AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext> extends StrokeOptions, LineDashOptions {
+    /** Styling configuration for the markers used in the series.  */
+    marker?: AgRangeAreaSeriesItemMarker<TDatum, TContext>;
+}
+
+export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
+    /** Configuration for the `yLowKey` line. */
+    low?: AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext>;
+    /** Configuration for `yHighKey` line. */
+    high?: AgRangeAreaSeriesItemLineThemeableOptions<TDatum, TContext>;
+}
+
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions,
-        FillOptions,
-        LineDashOptions,
+    extends FillOptions,
         AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series.  */
-    marker?: AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesOptionsKeys<TDatum>, TContext>;
+    marker?: AgRangeAreaMarker<TDatum, TContext>;
+    /** The colour for the stroke. */
+    stroke?: CssColor;
+    /** The width of the stroke in pixels. */
+    strokeWidth?: PixelSize;
+    /** The opacity of the stroke colour. */
+    strokeOpacity?: Opacity;
+    /** An array specifying the length in pixels of alternating dashes and gaps for the stroke. */
+    lineDash?: PixelSize[];
+    /** The initial offset of the dashed line in pixels. */
+    lineDashOffset?: PixelSize;
+    /** Configuration used for distinct styling of the low and high lines. */
+    item?: AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
-    /** @deprecated Configuration for the range series items when they are hovered over. */
-    highlightStyle?: AgSeriesHighlightStyle;
     /** Configuration for the labels shown on top of data points. */
     label?: AgRangeAreaSeriesLabelOptions<TDatum, AgRangeAreaSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Configuration for the shadow used behind the series items. */
@@ -57,11 +138,19 @@ export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TConte
     tooltip?: AgSeriesTooltip<AgRangeAreaSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Set to `true` to connect across missing data points. */
     connectMissingData?: boolean;
+    /** Function used to return formatting for entire series, based on the given parameters.*/
+    styler?: Styler<AgRangeAreaSeriesStylerParams<TDatum, TContext>, AgRangeAreaSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
     /** Configuration for styling series as separate segments. */
     segmentation?: AgSeriesSegmentation<AgSeriesShapeSegmentOptions>;
+    /** Style options for the fill of areas where the `yHigh` line is below the `yLow` line. */
+    invertedStyle?: AgRangeAreaSeriesInvertedStyle;
 }
+
+export type AgRangeAreaSeriesInvertedStyle = FillOptions & {
+    enabled?: boolean;
+};
 
 export interface AgRangeAreaSeriesOptionsKeys<TDatum = DatumDefault> {
     /** The key to use to retrieve x-values from the data. */
@@ -81,10 +170,13 @@ export interface AgRangeAreaSeriesOptionsNames {
     yHighName?: string;
     /** A human-readable description of the y-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     yName?: string;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
 }
 
 export interface AgRangeAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+        AgBaseCartesianSeriesAxisOptions,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         AgRangeAreaSeriesThemeableOptions<TDatum, TContext> {

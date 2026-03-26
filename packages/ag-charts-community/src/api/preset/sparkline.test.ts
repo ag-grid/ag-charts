@@ -36,7 +36,8 @@ describe('Sparkline Preset', () => {
     };
 
     const prepareSparklineOptions = (opts: AgSparklineOptions) => {
-        const { height: _, ...outputOpts } = prepareTestOptions(opts);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { height, ...outputOpts } = prepareTestOptions(opts);
         return { height: 150, pool: false, ...outputOpts };
     };
 

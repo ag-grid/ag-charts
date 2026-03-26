@@ -1,5 +1,7 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import { AgCartesianChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
+import { BarSeriesModule, CategoryAxisModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
 
+ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: [
@@ -14,17 +16,15 @@ const options: AgCartesianChartOptions = {
             yKey: 'share',
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'category',
-            position: 'bottom',
             title: {
                 text: 'Operating System',
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Market Share (%)',
             },
@@ -32,17 +32,17 @@ const options: AgCartesianChartOptions = {
                 values: [0, 20, 40, 60, 80, 100],
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);
 
 function setTickValues(values: number[]) {
-    options.axes![1].interval!.values = values;
+    options.axes!.y!.interval!.values = values;
     chart.update(options);
 }
 
 function reset() {
-    options.axes![1].interval!.values = undefined;
+    options.axes!.y!.interval!.values = undefined;
     chart.update(options);
 }

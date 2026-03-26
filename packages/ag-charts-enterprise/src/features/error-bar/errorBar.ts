@@ -1,15 +1,27 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
-import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
-import { Logger, type Point, isDefined } from 'ag-charts-core';
+import { _ModuleSupport } from 'ag-charts-community';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    Logger,
+    type PickNodeDatumResult,
+    type Point,
+    type PropertyDefinitionOpts,
+    type Scale,
+    type ScaleType,
+    type SeriesPluginModuleInstance,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 import { ErrorBarProperties } from './errorBarProperties';
 
-const { fixNumericExtent, groupAccumulativeValueProperty, mergeDefaults, valueProperty, ChartAxisDirection } =
-    _ModuleSupport;
+const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
+<<<<<<< HEAD
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<
         ErrorBarNodeDatum,
@@ -32,17 +44,26 @@ function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBo
             ctx.series.type
         }', error bars supported series types: ${AgErrorBarSupportedSeriesTypes.join(', ')}`
     );
+=======
+interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
+    readonly node: _ModuleSupport.Node<any>;
+    readonly options: object;
+    readonly properties: _ModuleSupport.CartesianSeriesProperties<any>;
+    readonly datum: ErrorBarNodeDatum;
+    readonly label: ErrorBarNodeDatum;
+    readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<ErrorBarNodeDatum, ErrorBarNodeDatum>;
+    readonly stackContext: never;
+>>>>>>> latest
 }
+
+type ErrorBoundCartesianSeries = Omit<_ModuleSupport.CartesianSeries<ErrorBoundSeriesTypes>, 'highlightSelection'>;
 
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
-type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
-type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
 type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
-type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['getPropertyDefinitions']>[0];
 
-export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
+export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
     private readonly selection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
@@ -55,7 +76,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     constructor(ctx: _ModuleSupport.SeriesContext) {
         super();
 
-        const series = toErrorBoundCartesianSeries(ctx);
+        const series = ctx.series as ErrorBoundCartesianSeries;
         const { annotationGroup, annotationSelections } = series;
 
         this.cartesianSeries = series;
@@ -72,7 +93,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
-            () => annotationGroup.removeChild(this.groupNode),
+            () => this.groupNode.remove(),
             () => annotationSelections.delete(this.selection)
         );
     }
@@ -120,16 +141,10 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             separateNegative: true,
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
-        const makeErrorProperty = (
-            key: string,
-            id: string,
-            type: 'lower' | 'upper',
-            scaleType?: _ModuleSupport.ScaleType
-        ) => {
+        const makeErrorProperty = (key: string, id: string, type: 'lower' | 'upper', scaleType?: ScaleType) => {
             return groupAccumulativeValueProperty(
                 key,
                 'normal',
-                'current',
                 {
                     id: `${id}-${type}`,
                     groupId: `errorGroup-${groupIndex}-${type}`,
@@ -138,12 +153,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                 scaleType
             );
         };
-        const pushErrorProperties = (
-            lowerKey: string,
-            upperKey: string,
-            id: string,
-            scaleType?: _ModuleSupport.ScaleType
-        ) => {
+        const pushErrorProperties = (lowerKey: string, upperKey: string, id: string, scaleType?: ScaleType) => {
             props.push(
                 ...makeErrorProperty(lowerKey, id, 'lower', scaleType),
                 ...makeErrorProperty(upperKey, id, 'upper', scaleType)
@@ -174,7 +184,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.processedData = event.processedData;
     }
 
-    getDomain(direction: _ModuleSupport.ChartAxisDirection.X | _ModuleSupport.ChartAxisDirection.Y): any[] {
+    getDomain(direction: ChartAxisDirection.X | ChartAxisDirection.Y): any[] {
         const { xLowerKey, xUpperKey, xErrorsID, yLowerKey, yUpperKey, yErrorsID } = this.getMaybeFlippedKeys();
         const hasAxisErrors =
             direction === ChartAxisDirection.X
@@ -186,8 +196,8 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
             if (dataModel != null && processedData != null) {
                 const id = { x: xErrorsID, y: yErrorsID }[direction];
-                const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
-                const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
+                const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData).domain;
+                const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData).domain;
                 const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
                 return fixNumericExtent(domain);
             }
@@ -292,15 +302,16 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         };
     }
 
-    private convert(scale: AnyScale, value: any) {
+    private convert(scale: Scale<any, any, any>, value: any) {
         const offset = (scale.bandwidth ?? 0) / 2;
         return scale.convert(value) + offset;
     }
 
     private update() {
+        this.groupNode.visible = this.cartesianSeries.visible;
         const nodeData = this.getNodeData();
+        this.selection.update(nodeData ?? []);
         if (nodeData != null) {
-            this.selection.update(nodeData);
             this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
     }
@@ -323,11 +334,16 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.groupNode.nearestSquared(point.x, point.y);
     }
 
+<<<<<<< HEAD
     pickNodeMainAxisFirst(
         point: Point,
         majorDirection: _ModuleSupport.ChartAxisDirection
     ): PickNodeDatumResult | undefined {
         let closestDatum: (PickNodeDatumResult & {})['datum'] | undefined;
+=======
+    pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined {
+        let closestDatum;
+>>>>>>> latest
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];
         if (majorDirection === ChartAxisDirection.Y) {
@@ -431,7 +447,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         const { previousHighlight, currentHighlight } = event;
 
-        if (currentHighlight?.series === this.cartesianSeries) {
+        if (currentHighlight?.series === this.cartesianSeries && this.cartesianSeries.isHighlightEnabled()) {
             // Highlight this node:
             this.restyleHighlightChange(currentHighlight, this.getHighlightStyle(), true);
         }

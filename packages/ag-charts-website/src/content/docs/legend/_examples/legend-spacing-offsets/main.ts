@@ -1,7 +1,16 @@
 import { AgCartesianChartOptions, AgChartLegendPositionOptions, AgCharts } from 'ag-charts-community';
+import {
+    BarSeriesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([BarSeriesModule, LegendModule, LineSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPositionOptions } } = {
     container: document.getElementById('myChart'),
     title: {
@@ -38,22 +47,20 @@ const options: AgCartesianChartOptions & { legend: { position: AgChartLegendPosi
             marker: { enabled: true, fill: '#1a1a1a' },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             title: {
                 text: 'Year',
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             title: {
                 text: 'Millions of €',
             },
         },
-    ],
+    },
     legend: {
         spacing: 20,
         position: {

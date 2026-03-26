@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -31,33 +31,26 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
+            yKeyAxis: 'ySecondary',
             tooltip: { enabled: true },
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-        {
-            // primary y axis
+    axes: {
+        y: {
             type: 'number',
             position: 'left',
-            keys: ['women', 'men', 'children', 'adults'],
             title: {
                 text: 'Adults Who Eat 5 A Day (%)',
             },
         },
-        {
-            // secondary y axis
+        ySecondary: {
             type: 'number',
             position: 'right',
-            keys: ['portions'],
             title: {
                 text: 'Portions Consumed (Per Day)',
             },
         },
-    ],
+    },
 };
 
 const chart = AgCharts.create(options);

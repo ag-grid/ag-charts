@@ -1,1 +1,0 @@
-export { RadialColumnSeriesModule } from './radialColumnModule';

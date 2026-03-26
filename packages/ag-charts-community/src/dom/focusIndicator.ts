@@ -1,9 +1,8 @@
-import { createElement, createSvgElement, getWindow } from 'ag-charts-core';
+import { createElement, createSvgElement, setElementBBox } from 'ag-charts-core';
 
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { setElementBBox } from '../util/dom';
 import type { FocusSwapChain } from './focusSwapChain';
 
 export class FocusIndicator {
@@ -12,7 +11,6 @@ export class FocusIndicator {
     private readonly outerPath: SVGPathElement;
     private readonly innerPath: SVGPathElement;
     private readonly div: HTMLDivElement;
-    private hasBeenActivated = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = createElement('div');
@@ -73,13 +71,16 @@ export class FocusIndicator {
     }
 
     private show(child: Element) {
-        this.hasBeenActivated = true;
         this.element.innerHTML = '';
         this.element.append(child);
     }
 
     // Use with caution! The focus must be visible when using the keyboard.
     private focusVisible?: boolean;
+    // Cached `:focus-visible` CSS state. getComputedStyle() is very expensive. So this should only be check for the
+    // :focus-visible pseudo-class when we receive a 'focus' .
+    private focusVisibleStyle: boolean = false;
+
     overrideFocusVisible(focusVisible: boolean | undefined) {
         this.focusVisible = focusVisible;
         const opacity = { true: '1', false: '0', undefined: '' } as const;
@@ -87,13 +88,21 @@ export class FocusIndicator {
         parent?.style.setProperty('opacity', opacity[`${focusVisible}`]);
     }
 
-    // Get the `:focus-visible` CSS state.
-    public isFocusVisible(force = false): boolean {
-        // Short-circuit from an expensive call to `getComputedStyle()` if focus has
-        // never been activated.
-        if (!force && !this.hasBeenActivated) return false;
+    public isFocusVisible(): boolean {
+        return this.focusVisible ?? this.focusVisibleStyle;
+    }
 
+    public onFocus(): boolean {
+        this.overrideFocusVisible(undefined);
         const parent = this.element.parentElement;
-        return parent != null && getWindow().getComputedStyle(parent).opacity === '1';
+        const elWin = this.element.ownerDocument.defaultView!;
+        // !!!SLOW!!! Only call this when you receive a 'focus' event.
+        this.focusVisibleStyle = parent != null && elWin.getComputedStyle(parent).opacity === '1';
+        return this.focusVisibleStyle;
+    }
+
+    public onBlur(): void {
+        this.overrideFocusVisible(undefined);
+        this.focusVisibleStyle = false;
     }
 }

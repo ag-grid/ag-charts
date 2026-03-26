@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -59,13 +59,8 @@ const options: AgCartesianChartOptions = {
             yName: 'Large Scale Hydro',
         },
     ],
-    axes: [
-        {
-            position: 'bottom',
-            type: 'category',
-        },
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
             title: {
                 text: `kilotonnes of oil equivalent (ktoe)`,
@@ -74,7 +69,7 @@ const options: AgCartesianChartOptions = {
                 formatter: (params) => `${params.value / 1000}K`,
             },
         },
-    ],
+    },
     legend: {
         maxHeight: 40,
         maxWidth: 800,

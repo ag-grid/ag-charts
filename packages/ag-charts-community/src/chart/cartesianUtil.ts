@@ -2,7 +2,7 @@ import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { DatumIndexType, ISeries } from './series/seriesTypes';
 
 export function stackCartesianSeries(series: ISeries<DatumIndexType, unknown, unknown>[]) {
-    const seriesGroups = new Map<string, CartesianSeries<any, any, any, any, any, any, unknown>[]>();
+    const seriesGroups = new Map<string, CartesianSeries<any>[]>();
 
     for (const s of series) {
         if (!(s instanceof CartesianSeries)) continue;

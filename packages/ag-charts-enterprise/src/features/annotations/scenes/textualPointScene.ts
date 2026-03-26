@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { BoxBounds, Point } from 'ag-charts-core';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
@@ -28,7 +29,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         const coords = convertPoint(datum, context);
         const bbox = this.getTextBBox(datum, coords, context);
 
-        this.updateLabel(datum, bbox);
+        this.updateLabel(datum, bbox, context);
         this.updateHandle(datum, coords, bbox);
         this.updateShape(datum, bbox);
 
@@ -65,38 +66,35 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return super.getNodeAtCoords(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec2, _context: AnnotationContext) {
+    protected getTextBBox(datum: Datum, coords: Point, _context: AnnotationContext) {
         const { text } = datum.getText();
-
         return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox) {
+    protected updateLabel(datum: Datum, bbox: BoxBounds, context: AnnotationContext) {
         const { text, isPlaceholder } = datum.getText();
+        const labelCoords = this.getLabelCoords(datum, bbox);
 
-        updateTextNode(
-            this.label,
-            text,
-            isPlaceholder,
-            datum,
-            this.getLabelCoords(datum, bbox),
-            this.getTextBaseline(datum)
-        );
+        if (context.isRtl) {
+            labelCoords.x += bbox.width;
+        }
+
+        updateTextNode(this.label, text, isPlaceholder, datum, labelCoords, this.getTextBaseline(datum));
     }
 
-    protected updateShape(_datum: Datum, _bbox: _ModuleSupport.BBox) {
+    protected updateShape(_datum: Datum, _bbox: BoxBounds) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected override updateAnchor(_datum: Datum, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
+    protected override updateAnchor(_datum: Datum, bbox: BoxBounds, context: AnnotationContext) {
         return {
-            x: bbox.x + context.seriesRect.x,
+            x: context.isRtl ? bbox.x - bbox.width + context.seriesRect.x : bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,
             position: this.anchor.position,
         };
     }
 
-    protected getLabelCoords(_datum: Datum, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
+    protected getLabelCoords(_datum: Datum, bbox: BoxBounds): Point {
         return bbox;
     }
 
@@ -104,11 +102,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return datum.position == 'center' ? 'middle' : datum.position;
     }
 
-    protected override getHandleCoords(
-        _datum: Datum,
-        _coords: _ModuleSupport.Vec2,
-        bbox: _ModuleSupport.BBox
-    ): _ModuleSupport.Vec2 {
+    protected override getHandleCoords(_datum: Datum, _coords: Point, bbox: _ModuleSupport.BBox): Point {
         return bbox;
     }
 

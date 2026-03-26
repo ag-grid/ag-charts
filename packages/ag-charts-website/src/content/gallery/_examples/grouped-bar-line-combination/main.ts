@@ -1,7 +1,29 @@
-import { AgCartesianChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    ContextMenuModule,
+    GroupedCategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    GroupedCategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const data = getData();
 
 const bar = ({ x, y, path, size }: AgMarkerShapeFnParams) => {
@@ -140,6 +162,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'startups',
             yName: 'Startups (Count)',
+            yKeyAxis: 'ySecondary',
         },
         {
             type: 'line',
@@ -147,13 +170,13 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding ($M)',
+            yKeyAxis: 'ySecondary',
         },
     ],
-    axes: [
-        {
-            position: 'left',
+    axes: {
+        y: {
             type: 'number',
-            keys: ['researchInstitutions', 'incubators', 'accelerators', 'coWorkingSpaces'],
+            position: 'left',
             title: {
                 text: 'Infrastructure Count',
             },
@@ -169,10 +192,9 @@ const options: AgCartesianChartOptions = {
                 ],
             },
         },
-        {
+        ySecondary: {
             position: 'right',
             type: 'number',
-            keys: ['startups', 'funding'],
             title: {
                 text: 'Startups & Funding',
             },
@@ -187,14 +209,13 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
-        {
-            position: 'bottom',
+        x: {
             type: 'grouped-category',
             bandHighlight: {
                 enabled: true,
             },
         },
-    ],
+    },
     legend: {
         item: {
             paddingX: 12,

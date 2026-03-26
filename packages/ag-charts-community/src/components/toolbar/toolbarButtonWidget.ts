@@ -1,15 +1,16 @@
-import { type BaseAttributeTypeMap, setAttribute } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
     AgAnnotationsToolbarButtonValue,
     AgIconName,
+    AgIconPosition,
     AgRangesButtonValue,
+    AgTimeIntervalUnit,
     AgZoomButtonValue,
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
 
 type ButtonValue =
@@ -18,10 +19,12 @@ type ButtonValue =
     | AgAnnotationOptionsToolbarButtonValue
     | AgAnnotationOptionsToolbarSwitchValue
     | AgZoomButtonValue
-    | AgRangesButtonValue;
+    | AgRangesButtonValue
+    | AgTimeIntervalUnit;
 
 export interface ToolbarButtonWidgetOptions {
     icon?: AgIconName;
+    iconPosition?: AgIconPosition;
     label?: string;
     ariaLabel?: string;
     tooltip?: string;
@@ -64,6 +67,13 @@ const ARIA_HASPOPUP = {
     reset: 'false',
     settings: 'dialog',
     text: 'false',
+    millisecond: 'false',
+    second: 'false',
+    minute: 'false',
+    hour: 'false',
+    day: 'false',
+    month: 'false',
+    year: 'false',
 } as const satisfies ButtonValueHasPopupRule;
 
 function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-haspopup'] {
@@ -73,6 +83,8 @@ function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-
 
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
+    private lastInnerHTML?: string;
+    private lastTooltip?: string;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
@@ -82,18 +94,26 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const { localeManager } = this;
 
         if (options.tooltip) {
-            this.elem.title = localeManager.t(options.tooltip);
+            const tooltip = localeManager.t(options.tooltip);
+            if (tooltip !== this.lastTooltip) {
+                this.elem.title = tooltip;
+                this.lastTooltip = tooltip;
+            }
         }
 
         let innerHTML = '';
 
-        if (options.icon != null) {
+        if (options.icon != null && options.iconPosition !== 'after') {
             innerHTML = `<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
         }
 
         if (options.label != null) {
             const label = localeManager.t(options.label);
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
+        }
+
+        if (options.icon != null && options.iconPosition === 'after') {
+            innerHTML = `${innerHTML}<span class="${getIconClassNames(options.icon)} ag-charts-toolbar__icon"></span>`;
         }
 
         const haspopup = getAriaHasPopupOfValue(options.value);
@@ -105,7 +125,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
             this.setAriaExpanded(false);
         }
 
-        this.elem.innerHTML = innerHTML;
+        // Only update innerHTML if content changed - avoids HTML parsing and style recalculation
+        if (innerHTML !== this.lastInnerHTML) {
+            this.elem.innerHTML = innerHTML;
+            this.lastInnerHTML = innerHTML;
+        }
     }
 
     public setChecked(checked: boolean) {

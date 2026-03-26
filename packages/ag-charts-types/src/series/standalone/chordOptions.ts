@@ -1,4 +1,4 @@
-import type { ContextCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, PixelSize, Ratio } from '../../chart/types';
@@ -15,19 +15,19 @@ export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextD
 }
 
 export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesLinkStyle> {}
 
 export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum>,
+    extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesNodeStyle> {
-    /** Label of the node */
+    /** Label of the node. */
     label: string | undefined;
-    /** Size of the node */
+    /** Size of the node. */
     size: number;
 }
 
@@ -61,7 +61,7 @@ export interface AgChordSeriesLinkStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgChordSeriesLinkOptions<TDatum, TContext = ContextDefault> extends AgChordSeriesLinkStyle {
-    /** Function used to return formatting for individual links, based on the given parameters. If the current link is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual links, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<TDatum, TContext>, AgChordSeriesLinkStyle>;
 }
 
@@ -72,7 +72,7 @@ export interface AgChordSeriesNodeOptions<TDatum, TContext = ContextDefault> ext
     spacing?: PixelSize;
     /** Width of the nodes. */
     width?: PixelSize;
-    /** Function used to return formatting for individual nodes, based on the given parameters. If the current node is highlighted, the `highlighted` property will be set to `true`; make sure to check this if you want to differentiate between the highlighted and un-highlighted states. */
+    /** Function used to return formatting for individual nodes, based on the given parameters.*/
     itemStyler?: Styler<AgChordSeriesNodeItemStylerParams<TDatum, TContext>, AgChordSeriesNodeStyle>;
 }
 
@@ -92,7 +92,7 @@ export interface AgChordSeriesOptionsNames {
 }
 
 interface SizeParams {
-    /* Size of the link, or the computed size of the node */
+    /** Size of the link, or the computed size of the node. */
     size: number;
 }
 

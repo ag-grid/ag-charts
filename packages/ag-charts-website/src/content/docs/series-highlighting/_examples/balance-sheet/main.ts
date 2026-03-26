@@ -1,12 +1,15 @@
+import { AgCartesianChartOptions, AgChartLabelStylerParams, AgCharts } from 'ag-charts-community';
 import {
-    AgCartesianChartOptions,
-    AgChartLabelStyleOptions,
-    AgChartLabelStylerParams,
-    AgCharts,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-community';
 
 import { getData } from './data';
 
+ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Company Financials (Balance Sheet Overview)' },
@@ -61,10 +64,10 @@ const options: AgCartesianChartOptions = {
             yName: 'Liabilities',
         },
     ],
-    axes: [
-        { type: 'category', position: 'bottom', title: { text: 'Year' } },
-        { type: 'number', position: 'left', title: { text: '£ (Millions)' } },
-    ],
+    axes: {
+        x: { type: 'category', title: { text: 'Year' } },
+        y: { type: 'number', title: { text: '£ (Millions)' } },
+    },
     tooltip: {
         enabled: false,
     },

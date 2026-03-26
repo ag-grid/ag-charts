@@ -1,13 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { isNumberEqual } from 'ag-charts-core';
+import { type ScaleTickParams, isDenseInterval, isNumberEqual, range } from 'ag-charts-core';
 
-const { range, isDenseInterval, LinearScale } = _ModuleSupport;
+const { LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
-    static getNiceStepAndTickCount(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[]) {
+    static getNiceStepAndTickCount(ticks: ScaleTickParams<number>, domain: number[]) {
         const [start, stop] = domain;
         let step = LinearScale.getTickStep(start, stop, ticks);
-        const maxTickCount = isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
+        const maxTickCount = Number.isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
         const expectedTickCount = Math.abs(stop - start) / step;
         let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
         if (niceTickCount > maxTickCount) {
@@ -19,13 +19,10 @@ export class LinearAngleScale extends LinearScale {
 
     arcLength: number = 0;
 
-    override ticks(
-        ticks: _ModuleSupport.ScaleTickParams<number>,
-        domain: number[] = this.domain
-    ): { ticks: number[]; count: number } {
+    override ticks(ticks: ScaleTickParams<number>, domain: number[] = this.domain): { ticks: number[]; count: number } {
         const { arcLength } = this;
 
-        if (!domain || domain.length < 2 || domain.some((d) => !isFinite(d)) || arcLength <= 0) {
+        if (!domain || domain.length < 2 || domain.some((d) => !Number.isFinite(d)) || arcLength <= 0) {
             return { ticks: [], count: 0 };
         }
 
@@ -36,7 +33,8 @@ export class LinearAngleScale extends LinearScale {
             const step = Math.abs(interval);
             const availableRange = this.getPixelRange();
             if (!isDenseInterval((d1 - d0) / step, availableRange)) {
-                return range(d0, d1, step);
+                const result = range(d0, d1, step);
+                return { ticks: result.ticks, count: result.count };
             }
         }
 
@@ -48,7 +46,8 @@ export class LinearAngleScale extends LinearScale {
             step = LinearScale.getTickStep(d0, d1, ticks);
         }
 
-        return range(d0, d1, step);
+        const result = range(d0, d1, step);
+        return { ticks: result.ticks, count: result.count };
     }
 
     private hasNiceRange() {
@@ -57,7 +56,7 @@ export class LinearAngleScale extends LinearScale {
         return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
     }
 
-    override niceDomain(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+    override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
         const linearNiceDomain = super.niceDomain(ticks, domain);
 
         if (!this.hasNiceRange()) return linearNiceDomain;

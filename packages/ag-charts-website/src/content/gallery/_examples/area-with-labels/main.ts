@@ -1,7 +1,16 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    AreaSeriesModule,
+    ContextMenuModule,
+    ModuleRegistry,
+    NumberAxisModule,
+    UnitTimeAxisModule,
+} from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
+ModuleRegistry.registerModules([AreaSeriesModule, NumberAxisModule, UnitTimeAxisModule]);
 const labelDates = [
     new Date(2008, 9, 11).valueOf(),
     new Date(2012, 9, 26).valueOf(),
@@ -39,22 +48,20 @@ const options: AgChartOptions<DataType> = {
             },
         },
     ],
-    axes: [
-        {
+    axes: {
+        x: {
             type: 'unit-time',
-            position: 'bottom',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-        {
+        y: {
             type: 'number',
-            position: 'left',
             gridLine: {
                 style: [{ strokeWidth: 1, lineDash: [2, 2] }, { strokeWidth: 0 }],
             },
         },
-    ],
+    },
     formatter: {
         y(params) {
             if (params.source === 'series-label' && !labelDates.includes(params.datum?.date.valueOf() ?? 0)) {

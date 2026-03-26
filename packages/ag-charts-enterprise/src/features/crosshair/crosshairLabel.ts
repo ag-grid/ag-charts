@@ -5,12 +5,12 @@ import type {
     ContextDefault,
     Formatter,
     FormatterParams,
+    TextValue,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, createId, setAttribute } from 'ag-charts-core';
+import { BaseProperties, type Point, Property, createId } from 'ag-charts-core';
 
-const { FormatManager, BaseProperties, Property } = _ModuleSupport;
-
+const { FormatManager } = _ModuleSupport;
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 type StyleValue = string | number | undefined;
 
@@ -45,9 +45,9 @@ export class CrosshairLabelProperties
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(
         callWithContext: (
-            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => string | undefined,
+            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => TextValue | undefined,
             params: AgCrosshairLabelFormatterParams<ContextDefault>
-        ) => string | undefined,
+        ) => TextValue | undefined,
         type: 'number' | 'date' | 'category',
         value: any,
         params: FormatterParams<any>
@@ -55,7 +55,7 @@ export class CrosshairLabelProperties
         const { formatter, format } = this;
         const { domain, boundSeries } = params;
 
-        let result: string | undefined;
+        let result: TextValue | undefined;
         if (formatter != null) {
             const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
             const unit = params.type === 'date' ? params.unit : undefined;
@@ -65,7 +65,7 @@ export class CrosshairLabelProperties
 
         if (format != null) {
             let cachedFormatter = this._cachedFormatter;
-            if (cachedFormatter == null || cachedFormatter.type !== type || cachedFormatter.format !== format) {
+            if (cachedFormatter?.type !== type || cachedFormatter?.format !== format) {
                 cachedFormatter = {
                     type,
                     format,
@@ -77,13 +77,14 @@ export class CrosshairLabelProperties
             result ??= cachedFormatter.formatter?.(value);
         }
 
-        return result != null ? String(result) : undefined;
+        return result == null ? undefined : String(result);
     }
 }
 
 export class CrosshairLabel extends CrosshairLabelProperties {
+    static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
-    private readonly element: HTMLElement;
+    private readonly elementProxy: _ModuleSupport.DOMElementProxy;
 
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
@@ -92,47 +93,38 @@ export class CrosshairLabel extends CrosshairLabelProperties {
     ) {
         super();
 
-        this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
-        this.element.classList.add(DEFAULT_LABEL_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
-        this.element.setAttribute('data-key', key);
-        this.element.setAttribute('data-axis-id', axisId);
+        this.elementProxy = domManager.addDeferredProxyChild('canvas-overlay', `crosshair-label-${this.id}`);
+        this.elementProxy.toggleClass(DEFAULT_LABEL_CLASS, true);
+        this.elementProxy.setAttr('aria-hidden', 'true');
+        this.elementProxy.setAttr('data-key', key);
+        this.elementProxy.setAttr('data-axis-id', axisId);
     }
 
-    show(meta: Point) {
-        const { element } = this;
+    show(meta: Point & { translateX?: string; translateY?: string }) {
+        const left = Math.round(meta.x + this.xOffset);
+        const top = Math.round(meta.y + this.yOffset);
 
-        const left = meta.x + this.xOffset;
-        const top = meta.y + this.yOffset;
+        this.elementProxy.setProperty('left', `${left}px`);
+        this.elementProxy.setProperty('top', `${top}px`);
 
-        element.style.top = `${Math.round(top)}px`;
-        element.style.left = `${Math.round(left)}px`;
+        const translate =
+            meta.translateX || meta.translateY ? `${meta.translateX ?? '0'} ${meta.translateY ?? '0'}` : '';
+        this.elementProxy.setProperty('translate', translate);
 
         this.toggle(true);
     }
 
     setLabelHtml({ html, styles }: { html?: string; styles?: Record<string, StyleValue> }) {
         if (html !== undefined) {
-            this.element.innerHTML = html;
+            this.elementProxy.setInnerHTML(html);
         }
         if (styles !== undefined) {
-            const styleElement = (this.element.children[0] as HTMLElement) ?? this.element;
-            Object.assign(styleElement.style, styles);
+            this.elementProxy.setContentStyles(styles);
         }
-    }
-
-    getBBox(): _ModuleSupport.BBox {
-        const { element } = this;
-        return new _ModuleSupport.BBox(
-            element.clientLeft,
-            element.clientTop,
-            element.clientWidth,
-            element.clientHeight
-        );
     }
 
     toggle(visible?: boolean) {
-        this.element.classList.toggle(`ag-charts-crosshair-label--hidden`, !visible);
+        this.elementProxy.toggleClass('ag-charts-crosshair-label--hidden', !visible);
     }
 
     destroy() {

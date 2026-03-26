@@ -1,0 +1,7 @@
+@use 'design-system' as *;
+
+.demoContainer {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-primary);
+}

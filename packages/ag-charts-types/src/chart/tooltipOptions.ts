@@ -1,5 +1,14 @@
+import type { FillOptions, LineDashOptions, StrokeOptions, TextValue } from '../series/cartesian/commonOptions';
 import type { AgChartCallbackParams, Renderer } from './callbackOptions';
-import type { ContextDefault, DatumDefault, DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
+import type {
+    AgMarkerShape,
+    ContextDefault,
+    DatumDefault,
+    DurationMs,
+    InteractionRange,
+    PixelSize,
+    TextWrap,
+} from './types';
 
 export type AgTooltipMode = 'single' | 'shared' | 'compact';
 
@@ -67,8 +76,29 @@ export interface AgTooltipPositionOptions {
 }
 
 export interface AgTooltipRendererDataRow {
+    /** The label text for this data row. */
     label: string;
-    value: string;
+    /** The value to display for this data row. */
+    value: TextValue;
+}
+
+export interface AgTooltipRendererSymbolMarker extends FillOptions, StrokeOptions, LineDashOptions {
+    /** Whether to show the symbol marker. */
+    enabled?: boolean;
+    /** The shape to use for the markers.*/
+    shape?: AgMarkerShape;
+}
+
+export interface AgTooltipRendererSymbolLine extends StrokeOptions, LineDashOptions {
+    /** Whether to show the symbol line. */
+    enabled?: boolean;
+}
+
+export interface AgTooltipRendererSymbol {
+    /** Configuration for the tooltip markers. */
+    marker?: AgTooltipRendererSymbolMarker;
+    /** Configuration for the tooltip lines. */
+    line?: AgTooltipRendererSymbolLine;
 }
 
 export interface AgTooltipRendererResult {
@@ -76,12 +106,14 @@ export interface AgTooltipRendererResult {
     heading?: string;
     /** Text for the tooltip title. */
     title?: string;
+    /** Symbol for the tooltip. */
+    symbol?: AgTooltipRendererSymbol;
     /** An array of text for the tooltip body. */
     data?: AgTooltipRendererDataRow[];
 }
 
 export interface AgSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends Omit<AgChartCallbackParams<TDatum, TContext>, 'itemId'> {
+    extends Omit<AgChartCallbackParams<TDatum, TContext>, 'itemId' | 'itemType'> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
 }
