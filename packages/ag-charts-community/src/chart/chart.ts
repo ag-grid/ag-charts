@@ -68,6 +68,7 @@ import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
+import type { ChartState } from './chartState';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -789,6 +790,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private async performUpdate(count: number) {
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
+
+        ctx.chartState.flushChanges();
 
         if (this.clearCallbackCacheOnUpdate) {
             this.clearCallbackCacheOnUpdate = false;
@@ -1630,6 +1633,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
         if (
             'legend' in deltaOptions &&
             deltaOptions.legend &&

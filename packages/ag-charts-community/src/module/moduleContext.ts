@@ -1,10 +1,11 @@
-import { AgDocument, type CallbackCache } from 'ag-charts-core';
+import { AgDocument, type CallbackCache, type ReactiveState } from 'ag-charts-core';
 
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
+import type { ChartState } from '../chart/chartState';
 import type { DataService } from '../chart/data/dataService';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { ActiveManager } from '../chart/interaction/activeManager';
@@ -42,6 +43,7 @@ export interface ModuleContext {
     readonly updateService: UpdateService;
 
     readonly axisManager: AxisManager;
+    readonly chartState: ReactiveState<ChartState>;
     readonly legendManager: LegendManager;
 
     readonly activeManager: ActiveManager;
