@@ -272,6 +272,52 @@ describe('OptionsGraph', () => {
     });
 
     describe('location operations', () => {
+        describe('$circular', () => {
+            // See AG-16931
+            it('should resolve `$circular` operations', () => {
+                const themeConfig = {
+                    line: {
+                        one: {
+                            child: {
+                                $some: [{ $eq: [{ $path: '/series/$index/fill' }, 'green'] }, { $path: '/series' }],
+                            },
+                            other: 'one-other-value',
+                        },
+                        series: {
+                            two: { $circular: { $path: '/one/other' } },
+                        },
+                    },
+                };
+                const userOptions = prepareOptions({
+                    series: [
+                        { type: 'line', fill: 'red' },
+                        { type: 'line', fill: 'green', fillOpacity: 0.5 },
+                    ],
+                });
+                const options = new OptionsGraph(themeConfig, userOptions).resolve();
+                expect(options).toStrictEqual({
+                    one: {
+                        child: true,
+                        other: 'one-other-value',
+                    },
+                    series: [
+                        {
+                            type: 'line',
+                            fill: 'red',
+                            two: 'one-other-value',
+                        },
+                        {
+                            type: 'line',
+                            fill: 'green',
+                            fillOpacity: 0.5,
+                            two: 'one-other-value',
+                        },
+                    ],
+                    axes: expect.any(Object),
+                });
+            });
+        });
+
         describe('$palette', () => {
             it('should resolve `$palette` operations', () => {
                 const themeConfig = {
@@ -622,10 +668,12 @@ describe('OptionsGraph', () => {
             });
         });
 
-        it.failing('should resolve `or` operations with `$map`', () => {
+        // TODO: This test is failing since the $or operation does not operate on the resolved value of the $map
+        // operation. The precise reason for this is elusive.
+        it.failing('should resolve `$or` operations with `$map`', () => {
             const themeConfig = {
                 line: {
-                    one: { or: { $map: [{ $value: '$1' }, { $path: './two' }] } },
+                    one: { $or: { $map: [{ $value: '$1' }, { $path: './two' }] } },
                     two: [true, false],
                 },
             };
