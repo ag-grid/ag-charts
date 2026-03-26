@@ -402,6 +402,74 @@ describe('HeatmapSeries', () => {
         });
     });
 
+    describe('legend', () => {
+        it('should render gradient legend with continuous colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render category legend with discrete colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render category legend with named discrete stops', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     describe('null category key', () => {
         it('should render with null category key value', async () => {
             const options = prepareEnterpriseTestOptions({
