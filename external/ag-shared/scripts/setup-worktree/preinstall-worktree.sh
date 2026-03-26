@@ -50,6 +50,7 @@ detect_mode() {
 get_cow_source() {
     # Explicit override (set by claude-worktree-create.sh)
     if [[ -n "${ROOT_WORKTREE_PATH:-}" ]] && [[ -d "${ROOT_WORKTREE_PATH}/node_modules" ]]; then
+        log_info "COW source: ROOT_WORKTREE_PATH=${ROOT_WORKTREE_PATH}"
         echo "$ROOT_WORKTREE_PATH"; return
     fi
 
@@ -58,6 +59,7 @@ get_cow_source() {
     if [[ "$check_path" == *".claude-worktrees"* ]]; then
         local root="${check_path%%/.claude-worktrees/*}"
         if [[ -d "$root/node_modules" ]]; then
+            log_info "COW source: .claude-worktrees root=${root}"
             echo "$root"; return
         fi
     fi
@@ -77,10 +79,13 @@ get_cow_source() {
         main_repo=$(dirname "$(dirname "$(dirname "$gitdir_path")")")
 
         if [[ -d "$main_repo/node_modules" ]]; then
+            log_info "COW source: main repo=${main_repo}"
             echo "$main_repo"; return
         fi
+        log_info "Main repo ${main_repo} has no node_modules, skipping COW"
     fi
 
+    log_info "No COW source found"
     echo ""
 }
 
@@ -164,15 +169,17 @@ try_cow_clone_node_modules() {
 
     # Already have node_modules? Skip.
     if [[ -d "$REPO_ROOT/node_modules" ]]; then
-        log_info "node_modules already exists, skipping COW clone"
+        log_info "node_modules/ already exists, skipping COW clone"
         return 0
     fi
 
     # Verify source has node_modules and matching lockfile
     if [[ ! -d "$source/node_modules" ]]; then
+        log_info "Source ${source}/node_modules not found, skipping COW clone"
         return 1
     fi
     if [[ ! -f "$source/yarn.lock" ]]; then
+        log_info "Source ${source}/yarn.lock not found, skipping COW clone"
         return 1
     fi
     if ! diff -q "$source/yarn.lock" "$REPO_ROOT/yarn.lock" &>/dev/null; then
@@ -250,12 +257,13 @@ main() {
     local mode
     mode=$(detect_mode)
 
+    log_info "Mode: ${mode} (REPO_ROOT=${REPO_ROOT})"
+
     case "$mode" in
         local)
             exit 0
             ;;
         worktree)
-            log_info "Worktree detected, running preinstall setup"
             fix_prompts_symlink || log_error "Failed to fix prompts symlink, continuing"
 
             local source
@@ -266,7 +274,6 @@ main() {
             fi
             ;;
         cloud)
-            log_info "Cloud environment detected, running preinstall setup"
             create_yarnrc
 
             # Cloud mode may also be a worktree (e.g. AG_CLOUD_INSTALL=1 set
@@ -283,6 +290,8 @@ main() {
             fi
             ;;
     esac
+
+    log_info "Preinstall setup complete"
 }
 
 main
