@@ -201,6 +201,9 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
         "fontSize": 14,
         "fontWeight": 600,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 10,
         "shape": "diamond",
@@ -217,17 +220,27 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -682,6 +695,9 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "shape": "square",
@@ -698,17 +714,27 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -1129,6 +1155,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -1143,17 +1172,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -1805,6 +1844,9 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -1819,17 +1861,27 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -2599,6 +2651,9 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -2613,17 +2668,27 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -2922,6 +2987,9 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -2937,17 +3005,27 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -3407,6 +3485,9 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -3421,17 +3502,27 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -4015,6 +4106,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -4029,17 +4123,27 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -4331,6 +4435,9 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -4345,17 +4452,27 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -4658,6 +4775,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -4672,17 +4792,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -4958,6 +5088,9 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -4972,17 +5105,27 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -5260,6 +5403,9 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -5274,17 +5420,27 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -5640,6 +5796,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -5654,17 +5813,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -6031,6 +6200,9 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -6045,17 +6217,27 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -6794,6 +6976,9 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -6808,17 +6993,27 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -8030,6 +8225,9 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -8044,17 +8242,27 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -8336,6 +8544,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -8350,17 +8561,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -9146,6 +9367,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -9160,17 +9384,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -9611,6 +9845,9 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -9625,17 +9862,27 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -10302,6 +10549,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -10316,17 +10566,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -10827,6 +11087,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -10841,17 +11104,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -11032,6 +11305,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -11046,17 +11322,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -11463,6 +11749,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -11477,17 +11766,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -11719,6 +12018,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -11733,17 +12035,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -12081,6 +12393,9 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -12095,17 +12410,27 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -12402,6 +12727,9 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -12416,17 +12744,27 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -13107,6 +13445,9 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -13121,17 +13462,27 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },
@@ -13641,6 +13992,9 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontSize": 12,
         "fontWeight": 400,
       },
+      "line": {
+        "length": 25,
+      },
       "marker": {
         "padding": 8,
         "size": 15,
@@ -13655,17 +14009,27 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "pagination": {
       "activeStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "highlightStyle": {
         "fill": "#181d1f",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "inactiveStyle": {
         "fill": "#707374",
+        "strokeOpacity": 1,
+        "strokeWidth": 1,
       },
       "label": {
         "color": "#181d1f",
+        "fontFamily": "Verdana, sans-serif",
+        "fontSize": 12,
       },
       "marker": {
+        "padding": 8,
+        "shape": "triangle",
         "size": 12,
       },
     },

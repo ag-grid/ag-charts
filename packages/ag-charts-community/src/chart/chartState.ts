@@ -1,4 +1,4 @@
-import type { DeepRequired } from 'ag-charts-core';
+import type { DeepResolved } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from './legend/legendDatum';
@@ -13,8 +13,8 @@ type ResolvedOptionsKeys =
     | 'listeners'
     | 'styleNonce';
 
-type ResolvedOptions<T, K extends string = ResolvedOptionsKeys> = T extends object
-    ? DeepRequired<Omit<T, Extract<keyof T, K>>> & Pick<T, Extract<keyof T, K>>
+export type ResolvedOptions<T, K extends string = ResolvedOptionsKeys> = T extends object
+    ? DeepResolved<Omit<T, Extract<keyof T, K>>> & Pick<T, Extract<keyof T, K>>
     : T;
 
 export interface ChartState {

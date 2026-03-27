@@ -1,7 +1,7 @@
+import type { BoxBounds, PluginModuleInstance } from 'ag-charts-core';
 import {
     type ColorScaleState,
     type GradientColorStop,
-    type PluginModuleInstance,
     deriveNormalizedStops,
     formatColorBinLabel,
 } from 'ag-charts-core';
@@ -10,15 +10,23 @@ import type { AgChartLegendListeners, AgColorScaleColorStop, TextOrSegments } fr
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 
+export interface PaginationFacade {
+    readonly currentPage: number;
+    readonly totalPages: number;
+    readonly visible: boolean;
+    computeCSSBounds(): { prev: BoxBounds; next: BoxBounds };
+    getCursor(node: 'previous' | 'next'): 'pointer' | undefined;
+    onClick(event: MouseEvent | TouchEvent | KeyboardEvent, node: 'previous' | 'next'): void;
+    onMouseHover(node: 'previous' | 'next' | undefined): void;
+}
+
 export interface ChartLegend extends PluginModuleInstance {
     attachLegend(scene: Scene): void;
     destroy(): void;
     data: any;
     listeners?: AgChartLegendListeners;
-    pagination?: {
-        currentPage: number;
-        setPage: (pageNumber: number) => void;
-    };
+    paginationFacade?: Pick<PaginationFacade, 'currentPage' | 'totalPages'>;
+    setPage?: (pageNumber: number) => void;
 }
 
 export type ChartLegendType = 'category' | 'gradient';

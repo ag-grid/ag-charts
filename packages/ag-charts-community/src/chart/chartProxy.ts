@@ -314,12 +314,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         // Sync legend pagination
         const legendPages = [];
         for (const legend of chart.modulesManager.legends()) {
-            legendPages.push(legend.legend.pagination?.currentPage ?? 0);
+            legendPages.push(legend.legend.paginationFacade?.currentPage ?? 0);
         }
         for (const legend of cloneProxy.chart!.modulesManager.legends()) {
             const page = legendPages.shift() ?? 0;
-            if (!legend.legend.pagination) continue;
-            legend.legend.pagination.setPage(page);
+            legend.legend.setPage?.(page);
         }
 
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });

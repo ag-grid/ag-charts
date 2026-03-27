@@ -1,19 +1,15 @@
 import {
-    BaseProperties,
     Border,
     type Callback,
     type CallbackParam,
     ChartUpdateType,
     CleanupRegistry,
-    FONT_SIZE,
+    FILL_GRADIENT_BLANK_DEFAULTS,
+    FILL_IMAGE_BLANK_DEFAULTS,
+    FILL_PATTERN_BLANK_DEFAULTS,
     type ITextMeasurer,
     LineSplitter,
     Logger,
-    ObserveChanges,
-    Property,
-    type RequiredInternalAgGradientColor,
-    type RequiredInternalAgImageFill,
-    type RequiredInternalAgPatternColor,
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
@@ -30,20 +26,12 @@ import {
 } from 'ag-charts-core';
 import type {
     AgActiveItemState,
-    AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
-    AgChartLegendDoubleClickEvent,
-    AgChartLegendLabelFormatterParams,
     AgChartLegendListeners,
+    AgChartLegendOptions,
     AgChartLegendOrientation,
     AgChartLegendPosition,
-    AgMarkerShape,
     AgMarkerShapeFn,
-    FontStyle,
-    FontWeight,
-    Formatter,
-    Padding,
-    PixelSize,
 } from 'ag-charts-types';
 
 import type {
@@ -62,16 +50,17 @@ import { Transformable } from '../../scene/transformable';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartService } from '../chartService';
+import type { ResolvedOptions } from '../chartState';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
 import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
-import { Pagination } from '../pagination/pagination';
+import { Pagination, type PaginationMarkerStyleValues, type PaginationRenderState } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
 import { LegendDOMProxy } from './legendDOMProxy';
-import type { CategoryLegendDatum } from './legendDatum';
+import type { CategoryLegendDatum, PaginationFacade } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
@@ -101,140 +90,7 @@ function toHighlightNodeDatum(series: SeriesType, legendDatum: CategoryLegendDat
     }
 }
 
-class LegendLabel extends BaseProperties {
-    @Property
-    maxLength?: number = undefined;
-
-    @Property
-    color: string = 'black';
-
-    @Property
-    fontStyle?: FontStyle = undefined;
-
-    @Property
-    fontWeight?: FontWeight = undefined;
-
-    @Property
-    fontSize: number = FONT_SIZE.SMALL;
-
-    @Property
-    fontFamily: string = 'Verdana, sans-serif';
-
-    @Property
-    formatter?: Formatter<AgChartLegendLabelFormatterParams>;
-}
-
-class LegendMarker extends BaseProperties {
-    /**
-     * If the marker type is set, the legend will always use that marker type for all its items,
-     * regardless of the type that comes from the `data`.
-     */
-    @Property
-    shape?: AgMarkerShape = undefined;
-
-    @Property
-    size = 15;
-
-    /**
-     * Padding between the marker and the label within each legend item.
-     */
-    @Property
-    padding: number = 8;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    enabled?: boolean;
-}
-
-class LegendLine extends BaseProperties {
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    length?: number;
-}
-
-class LegendItem extends BaseProperties {
-    /** Used to constrain the width of legend items. */
-    @Property
-    maxWidth?: number;
-    /**
-     * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
-     * and as few rows as possible when positioned to top or bottom. This config specifies the amount of horizontal
-     * padding between legend items.
-     */
-    @Property
-    paddingX: number = 16;
-    /**
-     * The legend uses grid layout for its items, occupying as few columns as possible when positioned to left or right,
-     * and as few rows as possible when positioned to top or bottom. This config specifies the amount of vertical
-     * padding between legend items.
-     */
-    @Property
-    paddingY: number = 8;
-
-    @Property
-    showSeriesStroke: boolean = false;
-
-    @Property
-    readonly marker = new LegendMarker();
-
-    @Property
-    readonly label = new LegendLabel();
-
-    @Property
-    readonly line = new LegendLine();
-}
-
-class LegendListeners extends BaseProperties implements AgChartLegendListeners {
-    @Property
-    legendItemClick?: (event: AgChartLegendClickEvent) => void;
-
-    @Property
-    legendItemDoubleClick?: (event: AgChartLegendDoubleClickEvent) => void;
-}
-
-const fillGradientDefaults: RequiredInternalAgGradientColor = {
-    type: 'gradient',
-    bounds: 'item',
-    gradient: 'linear',
-    colorStops: [{ color: 'black' }],
-    rotation: 0,
-    reverse: false,
-    colorSpace: 'rgb',
-};
-
-const fillPatternDefaults: RequiredInternalAgPatternColor = {
-    type: 'pattern',
-    pattern: 'forward-slanted-lines',
-    width: 8,
-    height: 8,
-    padding: 1,
-    fill: 'black',
-    fillOpacity: 1,
-    backgroundFill: 'white',
-    backgroundFillOpacity: 1,
-    stroke: 'black',
-    strokeOpacity: 1,
-    strokeWidth: 1,
-    rotation: 0,
-    scale: 1,
-};
-
-const fillImageDefaults: RequiredInternalAgImageFill = {
-    type: 'image',
-    backgroundFill: 'black',
-    backgroundFillOpacity: 1,
-    rotation: 0,
-    repeat: 'no-repeat',
-    fit: 'contain',
-    width: 8,
-    height: 8,
-};
-
-export class Legend extends BaseProperties {
+export class Legend {
     static readonly className = 'Legend';
 
     readonly id = createId(this);
@@ -246,6 +102,7 @@ export class Legend extends BaseProperties {
         LegendMarkerLabel
     );
     private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
+    private readonly border = new Border(this.containerNode);
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -269,98 +126,62 @@ export class Legend extends BaseProperties {
 
     private readonly contextMenuDatum?: CategoryLegendDatum;
 
-    context!: never;
+    private readonly pagination = new Pagination();
+    private paginationCurrentPage: number = 0;
+    private paginationTotalPages: number = 0;
+    private paginationVisible: boolean = false;
+    private paginationHighlightActive?: 'previous' | 'next';
+    readonly paginationFacade: PaginationFacade;
 
-    @Property
-    toggleSeries: boolean = true;
+    private get opts(): ResolvedOptions<AgChartLegendOptions> {
+        return this.ctx.chartState.getValue('options', 'legend') as ResolvedOptions<AgChartLegendOptions>;
+    }
 
-    @Property
-    readonly pagination: Pagination;
+    get enabled(): boolean {
+        return (this.ctx.chartState.getValue('options', 'legend.enabled') as boolean | undefined) ?? false;
+    }
 
-    @Property
-    readonly item = new LegendItem();
-
-    @Property
-    readonly listeners = new LegendListeners();
-
-    @ObserveChanges<Legend>((target, newValue?: boolean, oldValue?: boolean) => {
-        target.updateGroupVisibility();
-
-        if (newValue === oldValue) {
-            return;
-        }
-
-        const {
-            ctx: { legendManager, stateManager },
-        } = target;
-
-        if (oldValue === false && newValue === true) {
-            stateManager.restoreState(legendManager);
-        }
-    })
-    @Property
-    enabled: boolean = false;
-
-    @Property
-    position: AgChartLegendPosition = 'bottom';
-
-    /** Used to constrain the width of the legend. */
-    @Property
-    maxWidth?: number;
-
-    /** Used to constrain the height of the legend. */
-    @Property
-    maxHeight?: number;
-
-    /** Reverse the display order of legend items if `true`. */
-    @Property
-    reverseOrder?: boolean;
-
-    @Property
-    orientation?: AgChartLegendOrientation;
-
-    @Property
-    preventHidingAll?: boolean;
-
-    @Property
-    border = new Border(this.containerNode);
-
-    @Property
-    cornerRadius: number = 0;
-
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity: number = 1;
-
-    @Property
-    padding: Padding = 4;
-
-    /**
-     * Spacing between the legend and the edge of the chart's element.
-     */
-    @Property
-    spacing: PixelSize = 0; // Default derived from chart theme practically.
-
-    @Property
-    xOffset?: PixelSize;
-
-    @Property
-    yOffset?: PixelSize;
+    get listeners(): AgChartLegendListeners | undefined {
+        return this.opts.listeners;
+    }
 
     private readonly cleanup = new CleanupRegistry();
 
     private readonly domProxy: LegendDOMProxy;
 
     constructor(private readonly ctx: ModuleContext) {
-        super();
-
-        this.pagination = new Pagination(
-            () => ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER }),
-            (page) => this.updatePageNumber(page)
-        );
         this.pagination.attachPagination(this.group);
+
+        // Observe enabled changes for state restoration
+        let prevEnabled: boolean | undefined;
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                const enabled = get('options', 'legend.enabled') as boolean | undefined;
+                if (prevEnabled === false && enabled === true) {
+                    ctx.stateManager.restoreState(ctx.legendManager);
+                }
+                prevEnabled = enabled;
+                this.updateGroupVisibility();
+            })
+        );
+
+        // Stable facade object — closures read current state from Legend fields.
+        const legend = this;
+        this.paginationFacade = {
+            get currentPage() {
+                return legend.paginationCurrentPage;
+            },
+            get totalPages() {
+                return legend.paginationTotalPages;
+            },
+            get visible() {
+                return legend.paginationVisible;
+            },
+            computeCSSBounds: () => this.pagination.computeCSSBounds(),
+            getCursor: (node) => this.getPaginationCursor(node),
+            onClick: (event, node) => this.onPaginationClick(event, node),
+            onMouseHover: (node) => this.onPaginationMouseHover(node),
+        };
 
         const { items } = ctx.contextMenuRegistry.builtins;
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
@@ -405,7 +226,64 @@ export class Legend extends BaseProperties {
     }
 
     private getOrientation(): AgChartLegendOrientation {
-        return this.orientation ?? 'horizontal';
+        return this.opts?.orientation ?? 'horizontal';
+    }
+
+    private buildPaginationRenderState(overrides?: Partial<PaginationRenderState>): PaginationRenderState {
+        const { pagination } = this.opts;
+        return {
+            currentPage: this.paginationCurrentPage,
+            totalPages: this.paginationTotalPages,
+            translationX: 0,
+            translationY: 0,
+            visible: this.paginationVisible,
+            enabled: true,
+            isRtl: this.ctx.domManager.isRtl,
+            orientation: this.getOrientation(),
+            marker: pagination.marker,
+            activeStyle: pagination.activeStyle as PaginationMarkerStyleValues,
+            inactiveStyle: pagination.inactiveStyle as PaginationMarkerStyleValues,
+            highlightStyle: pagination.highlightStyle as PaginationMarkerStyleValues,
+            label: pagination.label as PaginationRenderState['label'],
+            highlightActive: this.paginationHighlightActive,
+            ...overrides,
+        };
+    }
+
+    private updatePaginationRender(overrides?: Partial<PaginationRenderState>) {
+        const state = this.buildPaginationRenderState(overrides);
+        this.pagination.update(state);
+        this.pagination.updateMarkers(state);
+    }
+
+    setPage(pageNumber: number) {
+        pageNumber = clamp(0, pageNumber, Math.max(0, this.paginationTotalPages - 1));
+        if (this.paginationCurrentPage !== pageNumber) {
+            this.paginationCurrentPage = pageNumber;
+            this.updatePageNumber(pageNumber);
+        }
+    }
+
+    onPaginationClick(event: MouseEvent | TouchEvent | KeyboardEvent, node: 'previous' | 'next') {
+        event.preventDefault();
+        const state = this.buildPaginationRenderState();
+        if (node === 'next' && !this.pagination.isNextDisabled(state)) {
+            this.paginationCurrentPage = Math.min(this.paginationCurrentPage + 1, this.paginationTotalPages - 1);
+            this.updatePageNumber(this.paginationCurrentPage);
+        } else if (node === 'previous' && !this.pagination.isPreviousDisabled(state)) {
+            this.paginationCurrentPage = Math.max(this.paginationCurrentPage - 1, 0);
+            this.updatePageNumber(this.paginationCurrentPage);
+        }
+    }
+
+    onPaginationMouseHover(node: 'previous' | 'next' | undefined) {
+        this.paginationHighlightActive = node;
+        this.updatePaginationRender();
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+    }
+
+    getPaginationCursor(node: 'previous' | 'next'): 'pointer' | undefined {
+        return this.pagination.getCursor(node, this.buildPaginationRenderState());
     }
 
     readonly size: [number, number] = [0, 0];
@@ -425,18 +303,15 @@ export class Legend extends BaseProperties {
 
     private updateItemSelection(): void {
         const data = [...this.data];
-        if (this.reverseOrder) {
+        if (this.opts.reverseOrder) {
             data.reverse();
         }
         this.itemSelection.update(data);
     }
 
     private isInteractive(): boolean {
-        const {
-            toggleSeries,
-            listeners: { legendItemClick, legendItemDoubleClick },
-        } = this;
-        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+        const { toggleSeries, listeners } = this.opts ?? {};
+        return toggleSeries || listeners?.legendItemDoubleClick != null || listeners?.legendItemClick != null;
     }
 
     private checkInteractionState(): boolean {
@@ -448,7 +323,7 @@ export class Legend extends BaseProperties {
     }
 
     getItemLabel(datum: CategoryLegendDatum) {
-        const { formatter } = this.item.label;
+        const { formatter } = this.opts.item.label;
         if (formatter) {
             const seriesDatum = datum.datum;
             return this.cachedCallWithContext(formatter, {
@@ -480,13 +355,13 @@ export class Legend extends BaseProperties {
             label,
             maxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
-        } = this.item;
+        } = this.opts.item;
         this.updateItemSelection();
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
 
-        const measurer = cachedTextMeasurer(label);
+        const measurer = cachedTextMeasurer(label as { fontFamily: string; fontSize: number });
 
         const itemMaxWidthPercentage = 0.8;
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
@@ -498,7 +373,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontStyle = fontStyle;
             markerLabel.fontWeight = fontWeight;
             markerLabel.fontSize = fontSize;
-            markerLabel.fontFamily = fontFamily;
+            markerLabel.fontFamily = fontFamily as string;
             markerLabel.isRtl = isRtl;
 
             const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
@@ -534,7 +409,7 @@ export class Legend extends BaseProperties {
         this.pages = pages;
         this.maxPageSize = [maxPageWidth - paddingX, maxPageHeight - paddingY];
 
-        const pageNumber = this.pagination.currentPage;
+        const pageNumber = this.paginationCurrentPage;
         const page = this.pages[pageNumber];
 
         if (this.pages.length < 1 || !page) {
@@ -561,15 +436,15 @@ export class Legend extends BaseProperties {
     }
 
     private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
-        const { showSeriesStroke, marker } = this.item;
-        const markerEnabled = !!marker.enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
+        const { showSeriesStroke, marker } = this.opts.item;
+        const markerEnabled = !!(marker as any).enabled || !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
         const isCustomMarker = this.isCustomMarker(markerEnabled, symbol.marker.shape);
         return { markerEnabled, lineEnabled, isCustomMarker };
     }
 
     private calcSymbolsLengths(symbol: LegendSymbolOptions, markerEnabled: boolean, lineEnabled: boolean) {
-        const { marker, line } = this.item;
+        const { marker, line } = this.opts.item;
 
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
@@ -612,7 +487,7 @@ export class Legend extends BaseProperties {
         markerWidth: number,
         anyLineEnabled: boolean
     ): number {
-        const { marker: itemMarker, paddingX } = this.item;
+        const { marker: itemMarker, paddingX } = this.opts.item;
         const { symbol } = datum;
         let paddedSymbolWidth = paddingX;
 
@@ -698,16 +573,10 @@ export class Legend extends BaseProperties {
         maxPageWidth: number;
         pages: Page[];
     } {
-        const orientation = this.getOrientation();
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
-        const { isRtl } = this.ctx.domManager;
-
-        this.pagination.orientation = orientation;
-        this.pagination.isRtl = isRtl;
-
-        this.pagination.translationX = 0;
-        this.pagination.translationY = 0;
+        // Initial render pass with zero translation to calculate layout
+        this.updatePaginationRender();
 
         const { pages, maxPageHeight, maxPageWidth, paginationBBox, paginationVertical } = this.calculatePagination(
             bboxes,
@@ -715,16 +584,17 @@ export class Legend extends BaseProperties {
             height
         );
 
+        const { isRtl } = this.ctx.domManager;
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
-        this.pagination.currentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
+        this.paginationCurrentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
 
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
+        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.opts.item;
         const paginationComponentPadding = 8;
         const legendItemsWidth = maxPageWidth - itemPaddingX;
         const legendItemsHeight = maxPageHeight - itemPaddingY;
 
         let paginationX = 0;
-        let paginationY = -paginationBBox.y - this.item.marker.size / 2;
+        let paginationY = -paginationBBox.y - this.opts.item.marker.size / 2;
         if (paginationVertical) {
             if (isRtl) paginationX = width - paginationBBox.width + paginationBBox.x;
             paginationY += legendItemsHeight + paginationComponentPadding;
@@ -737,14 +607,11 @@ export class Legend extends BaseProperties {
         }
 
         this.paginationItemsOffsetX =
-            isRtl && !paginationVertical && this.pagination.visible
+            isRtl && !paginationVertical && this.paginationVisible
                 ? paginationBBox.width + paginationComponentPadding
                 : 0;
 
-        this.pagination.translationX = paginationX;
-        this.pagination.translationY = paginationY;
-        this.pagination.update();
-        this.pagination.updateMarkers();
+        this.updatePaginationRender({ translationX: paginationX, translationY: paginationY });
 
         let pageIndex = 0;
         this.itemSelection.each((markerLabel, _, nodeIndex) => {
@@ -761,7 +628,7 @@ export class Legend extends BaseProperties {
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
+        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.opts.item;
 
         const vertPositions: readonly AgChartLegendPosition[] = [
             'left',
@@ -771,7 +638,7 @@ export class Legend extends BaseProperties {
             'right-top',
             'right-bottom',
         ] as const;
-        const { placement } = expandLegendPosition(this.position);
+        const { placement } = expandLegendPosition(this.opts.position);
         const orientation = this.getOrientation();
         const paginationVertical = vertPositions.includes(placement);
 
@@ -786,7 +653,7 @@ export class Legend extends BaseProperties {
             return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
-        const forceResult = this.maxWidth !== undefined && this.maxHeight !== undefined;
+        const forceResult = this.opts.maxWidth !== undefined && this.opts.maxHeight !== undefined;
 
         do {
             if (count++ > 10) {
@@ -813,14 +680,13 @@ export class Legend extends BaseProperties {
             maxPageHeight = layout?.maxPageHeight ?? 0;
 
             const totalPages = pages.length;
-            this.pagination.visible = totalPages > 1;
-            this.pagination.totalPages = totalPages;
+            this.paginationVisible = totalPages > 1;
+            this.paginationTotalPages = totalPages;
 
-            this.pagination.update();
-            this.pagination.updateMarkers();
+            this.updatePaginationRender();
             lastPassPaginationBBox = this.pagination.getBBox();
 
-            if (!this.pagination.visible) {
+            if (!this.paginationVisible) {
                 break;
             }
         } while (!stableOutput(lastPassPaginationBBox));
@@ -829,11 +695,8 @@ export class Legend extends BaseProperties {
     }
 
     private updatePositions(pageNumber: number = 0) {
-        const {
-            item: { paddingY },
-            itemSelection,
-            pages,
-        } = this;
+        const { paddingY } = this.opts.item;
+        const { itemSelection, pages } = this;
 
         if (pages.length < 1 || !pages[pageNumber]) {
             return;
@@ -893,7 +756,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { itemSelection, group, pagination, pages } = this;
+        const { itemSelection, group, pages } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const page = pages[pageNumber];
@@ -910,11 +773,15 @@ export class Legend extends BaseProperties {
             this.paginationTrackingIndex = Math.floor((startIndex + endIndex) / 2);
         }
 
-        this.pagination.update();
-        this.pagination.updateMarkers();
+        this.updatePaginationRender();
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
+        this.domProxy.onPageChange({
+            itemSelection,
+            group,
+            paginationFacade: this.paginationFacade,
+            interactive: this.isInteractive(),
+        });
 
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
     }
@@ -922,7 +789,7 @@ export class Legend extends BaseProperties {
     update() {
         const {
             label: { color },
-        } = this.item;
+        } = this.opts.item;
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.setEnabled(datum.enabled);
             markerLabel.color = color;
@@ -932,7 +799,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const action = this.toggleSeries ? 'show' : 'hide';
+        const action = this.opts.toggleSeries ? 'show' : 'hide';
         this.ctx.contextMenuRegistry.toggle('toggle-series-visibility', action);
         this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
     }
@@ -945,7 +812,7 @@ export class Legend extends BaseProperties {
         return {
             stroke,
             strokeOpacity,
-            strokeWidth: this.item.line.strokeWidth ?? defaultLineStrokeWidth,
+            strokeWidth: this.opts.item.line.strokeWidth ?? defaultLineStrokeWidth,
             lineDash,
         };
     }
@@ -973,19 +840,21 @@ export class Legend extends BaseProperties {
                 stroke,
                 strokeOpacity,
                 fillOpacity,
-                strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+                strokeWidth: this.opts.item.marker.strokeWidth ?? defaultLineStrokeWidth,
                 lineDash,
                 lineDashOffset,
             },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
+            FILL_GRADIENT_BLANK_DEFAULTS,
+            FILL_PATTERN_BLANK_DEFAULTS,
+            FILL_IMAGE_BLANK_DEFAULTS
         );
     }
 
     private getContainerStyles() {
+        // Sync border options from ChartState
+        this.border.set(this.opts.border);
         const { stroke, strokeOpacity, strokeWidth } = this.border;
-        const { cornerRadius, fill, fillOpacity, padding } = this;
+        const { cornerRadius, fill, fillOpacity, padding } = this.opts;
         const isPaddingNumber = typeof padding === 'number';
 
         return getShapeStyle(
@@ -1003,9 +872,9 @@ export class Legend extends BaseProperties {
                 strokeOpacity,
                 strokeWidth: this.border.enabled ? strokeWidth : 0,
             },
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults
+            FILL_GRADIENT_BLANK_DEFAULTS,
+            FILL_PATTERN_BLANK_DEFAULTS,
+            FILL_IMAGE_BLANK_DEFAULTS
         );
     }
 
@@ -1054,7 +923,7 @@ export class Legend extends BaseProperties {
 
         this.clearHighlight();
 
-        if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
+        if (this.opts.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
         } else {
             this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = true;
@@ -1082,12 +951,10 @@ export class Legend extends BaseProperties {
     }
 
     private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): boolean {
-        const {
-            listeners: { legendItemClick },
-            ctx: { chartService },
-            preventHidingAll,
-            toggleSeries,
-        } = this;
+        const { chartService } = this.ctx;
+        const legendItemClick = this.opts?.listeners?.legendItemClick;
+        const preventHidingAll = this.opts?.preventHidingAll;
+        const toggleSeries = this.opts?.toggleSeries;
 
         if (!datum) {
             return false;
@@ -1145,11 +1012,9 @@ export class Legend extends BaseProperties {
     }
 
     private doDoubleClick(event: Event, datum: CategoryLegendDatum | undefined): boolean {
-        const {
-            listeners: { legendItemDoubleClick },
-            ctx: { chartService },
-            toggleSeries,
-        } = this;
+        const { chartService } = this.ctx;
+        const legendItemDoubleClick = this.opts?.listeners?.legendItemDoubleClick;
+        const toggleSeries = this.opts?.toggleSeries;
 
         if (!datum) {
             return false;
@@ -1226,7 +1091,7 @@ export class Legend extends BaseProperties {
         if (this.checkInteractionState()) return;
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
-        this.pagination.setPage(node.pageIndex);
+        this.setPage(node.pageIndex);
 
         const datum: CategoryLegendDatum | undefined = node.datum;
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
@@ -1342,7 +1207,7 @@ export class Legend extends BaseProperties {
     private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
-        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.position);
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.opts.position);
         // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
         const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
         const { x, y, width, height } = layoutBox;
@@ -1356,7 +1221,7 @@ export class Legend extends BaseProperties {
                 return undefined as never;
             }
 
-            const legendSpacing = this.spacing;
+            const legendSpacing = this.opts.spacing;
 
             let translationX: number;
             let translationY: number;
@@ -1450,7 +1315,7 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const { ctx, itemSelection, pagination, pages: newPages, group } = this;
+        const { ctx, itemSelection, pages: newPages, group } = this;
         const visible = this.visible && this.enabled;
         const interactive = this.isInteractive();
         this.domProxy.update({
@@ -1459,7 +1324,7 @@ export class Legend extends BaseProperties {
             ctx,
             itemSelection,
             group,
-            pagination,
+            paginationFacade: this.paginationFacade,
             oldPages,
             newPages,
             datumReader: this,
@@ -1469,7 +1334,7 @@ export class Legend extends BaseProperties {
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {
         const { width, height } = shrinkRect;
-        const { placement } = expandLegendPosition(this.position);
+        const { placement } = expandLegendPosition(this.opts.position);
 
         const aspectRatio = width / height;
         const maxCoefficient = 0.5;
@@ -1494,9 +1359,9 @@ export class Legend extends BaseProperties {
                     aspectRatio < 1
                         ? Math.min(maxCoefficient, minHeightCoefficient * (1 / aspectRatio))
                         : minHeightCoefficient;
-                legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : width;
-                legendHeight = this.maxHeight
-                    ? Math.min(this.maxHeight, height)
+                legendWidth = this.opts.maxWidth ? Math.min(this.opts.maxWidth, width) : width;
+                legendHeight = this.opts.maxHeight
+                    ? Math.min(this.opts.maxHeight, height)
                     : Math.round(height * heightCoefficient);
                 break;
             }
@@ -1511,8 +1376,10 @@ export class Legend extends BaseProperties {
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
-                legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
-                legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+                legendWidth = this.opts.maxWidth
+                    ? Math.min(this.opts.maxWidth, width)
+                    : Math.round(width * widthCoefficient);
+                legendHeight = this.opts.maxHeight ? Math.min(this.opts.maxHeight, height) : height;
                 break;
             }
             default:
@@ -1524,6 +1391,7 @@ export class Legend extends BaseProperties {
 
     private cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
         const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call([this, chartService], fn, params);
+        const caller = { context: this.ctx.chartState.getValue('options', 'context') };
+        return callbackCache.call([caller, chartService], fn, params);
     }
 }
