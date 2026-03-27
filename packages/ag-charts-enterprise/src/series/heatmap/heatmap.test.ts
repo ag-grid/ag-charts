@@ -468,6 +468,57 @@ describe('HeatmapSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should render gradient legend with continuous named stops', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 10, name: 'Low' },
+                                { color: 'yellow', stop: 30, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render gradient legend with discrete named stops', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+                legend: { enabled: false },
+                gradientLegend: { enabled: true, gradient: { preferredLength: 200 } },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('null category key', () => {

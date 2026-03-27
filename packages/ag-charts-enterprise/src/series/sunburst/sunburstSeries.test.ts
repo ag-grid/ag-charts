@@ -767,6 +767,31 @@ describe('SunburstSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should render gradient legend with continuous named stops', async () => {
+            const options: AgChartOptions = {
+                data: COLOR_SUNBURST_DATA,
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 0, name: 'Decline' },
+                                { color: 'yellow', stop: 10, name: 'Stable' },
+                                { color: 'green', name: 'Growth' },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('AG-15448', () => {

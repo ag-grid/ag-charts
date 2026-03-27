@@ -311,6 +311,31 @@ describe('MapLineSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should render gradient legend with continuous named stops', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 50_000, name: 'Low' },
+                                { color: 'yellow', stop: 100_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('Legend Toggling', () => {

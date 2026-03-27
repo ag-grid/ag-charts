@@ -655,6 +655,31 @@ describe('TreemapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should render gradient legend with continuous named stops', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_LEGEND_BASE,
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: -2, name: 'Loss' },
+                                { color: 'yellow', stop: 2, name: 'Flat' },
+                                { color: 'green', name: 'Gain' },
+                            ],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     test('AG-8290 label boxing', async () => {
