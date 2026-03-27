@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" font-family="system-ui, sans-serif">
+  <text x="200" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Step (Orthogonal/Elbow) — With Corner Radius</text>
+
+  <!-- Parent node -->
+  <rect x="150" y="35" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="200" y="60" text-anchor="middle" font-size="12" fill="white">Alice</text>
+
+  <!-- Connectors: orthogonal elbows with rounded corners only on downward break (r=10) -->
+  <!-- Left child: down, sharp left, left, round down, down -->
+  <path d="M200,75 L200,105 L70,105 Q60,105 60,115 L60,130" fill="none" stroke="#888" stroke-width="1.5"/>
+  <!-- Middle child: straight down (no corners needed) -->
+  <path d="M200,75 L200,130" fill="none" stroke="#888" stroke-width="1.5"/>
+  <!-- Right child: down, sharp right, right, round down, down -->
+  <path d="M200,75 L200,105 L330,105 Q340,105 340,115 L340,130" fill="none" stroke="#888" stroke-width="1.5"/>
+
+  <!-- Child nodes -->
+  <rect x="10" y="130" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="60" y="155" text-anchor="middle" font-size="12" fill="white">Bob</text>
+
+  <rect x="150" y="130" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="200" y="155" text-anchor="middle" font-size="12" fill="white">Carol</text>
+
+  <rect x="290" y="130" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="340" y="155" text-anchor="middle" font-size="12" fill="white">Dave</text>
+
+  <text x="200" y="200" text-anchor="middle" font-size="11" fill="#666">Rounded only where horizontal breaks off downward</text>
+  <text x="200" y="215" text-anchor="middle" font-size="11" fill="#666">interpolation: { type: 'step' }, cornerRadius: 10</text>
+</svg>

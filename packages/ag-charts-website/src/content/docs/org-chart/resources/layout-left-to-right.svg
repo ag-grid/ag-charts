@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 300" font-family="system-ui, sans-serif">
+  <text x="260" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Left-to-Right</text>
+
+  <!-- Level 0: CEO -->
+  <rect x="20" y="115" width="100" height="40" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="70" y="140" text-anchor="middle" font-size="12" fill="white">CEO</text>
+
+  <!-- CEO → L1 connectors -->
+  <path d="M120,135 L150,135 L150,55 L180,55" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M120,135 L180,135" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M120,135 L150,135 L150,215 L180,215" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 -->
+  <rect x="180" y="35" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="230" y="60" text-anchor="middle" font-size="12" fill="white">CTO</text>
+
+  <rect x="180" y="115" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="230" y="140" text-anchor="middle" font-size="12" fill="white">CFO</text>
+
+  <rect x="180" y="195" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="230" y="220" text-anchor="middle" font-size="12" fill="white">COO</text>
+
+  <!-- CTO → L2 connectors -->
+  <path d="M280,55 L310,55 L310,35 L340,35" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M280,55 L310,55 L310,75 L340,75" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- CFO → L2 connectors -->
+  <path d="M280,135 L340,135" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 -->
+  <rect x="340" y="15" width="110" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="395" y="40" text-anchor="middle" font-size="11" fill="white">Eng Lead</text>
+
+  <rect x="340" y="55" width="110" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="395" y="80" text-anchor="middle" font-size="11" fill="white">Design Lead</text>
+
+  <rect x="340" y="115" width="110" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="395" y="140" text-anchor="middle" font-size="11" fill="white">Fin Manager</text>
+
+  <text x="260" y="270" text-anchor="middle" font-size="11" fill="#666">direction: 'left-right'</text>
+  <text x="260" y="285" text-anchor="middle" font-size="11" fill="#666">Useful for wide hierarchies and reading flow</text>
+</svg>

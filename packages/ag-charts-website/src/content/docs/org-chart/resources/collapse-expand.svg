@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 260" font-family="system-ui, sans-serif">
+  <!-- EXPANDED STATE -->
+  <text x="200" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Fully Expanded</text>
+
+  <rect x="150" y="35" width="100" height="36" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="200" y="58" text-anchor="middle" font-size="11" fill="white">CEO</text>
+
+  <path d="M200,71 L200,88 L80,88 L80,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M200,71 L200,88 L200,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M200,71 L200,88 L320,88 L320,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <rect x="30" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="80" y="128" text-anchor="middle" font-size="11" fill="white">CTO</text>
+
+  <rect x="150" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="200" y="128" text-anchor="middle" font-size="11" fill="white">CFO</text>
+
+  <rect x="270" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="320" y="128" text-anchor="middle" font-size="11" fill="white">COO</text>
+
+  <path d="M80,141 L80,158 L40,158 L40,175" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M80,141 L80,158 L120,158 L120,175" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M200,141 L200,175" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <rect x="-5" y="175" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="40" y="198" text-anchor="middle" font-size="10" fill="white">Eng Lead</text>
+
+  <rect x="77" y="175" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="122" y="198" text-anchor="middle" font-size="10" fill="white">Design Lead</text>
+
+  <rect x="157" y="175" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="202" y="198" text-anchor="middle" font-size="10" fill="white">Fin Manager</text>
+
+  <text x="200" y="240" text-anchor="middle" font-size="10" fill="#999">6 visible nodes</text>
+
+  <!-- Divider -->
+  <line x1="415" y1="10" x2="415" y2="255" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- COLLAPSED STATE -->
+  <text x="610" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">CTO Collapsed</text>
+
+  <rect x="560" y="35" width="100" height="36" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="610" y="58" text-anchor="middle" font-size="11" fill="white">CEO</text>
+
+  <path d="M610,71 L610,88 L500,88 L500,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M610,71 L610,88 L610,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M610,71 L610,88 L720,88 L720,105" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- CTO collapsed with badge -->
+  <rect x="450" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="500" y="122" text-anchor="middle" font-size="11" fill="white">CTO</text>
+  <!-- Badge -->
+  <rect x="524" y="126" width="24" height="14" rx="7" fill="#e8913a" stroke="none"/>
+  <text x="536" y="136" text-anchor="middle" font-size="8" font-weight="bold" fill="white">+2</text>
+
+  <rect x="560" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="610" y="128" text-anchor="middle" font-size="11" fill="white">CFO</text>
+
+  <rect x="670" y="105" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="720" y="128" text-anchor="middle" font-size="11" fill="white">COO</text>
+
+  <path d="M610,141 L610,175" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <rect x="565" y="175" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="610" y="198" text-anchor="middle" font-size="10" fill="white">Fin Manager</text>
+
+  <text x="610" y="240" text-anchor="middle" font-size="10" fill="#999">4 visible nodes — CTO subtree hidden, badge shows (+2)</text>
+</svg>

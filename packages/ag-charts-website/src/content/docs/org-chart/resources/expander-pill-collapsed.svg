@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 180" font-family="system-ui, sans-serif">
+  <!-- Level 0 -->
+  <rect x="210" y="10" width="100" height="40" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="260" y="28" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Alice Chen</text>
+  <text x="260" y="42" text-anchor="middle" font-size="9" fill="#a8c8e8">CEO</text>
+  <!-- Pill - expanded -->
+  <rect x="243" y="47" width="34" height="18" rx="9" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="260" y="59" text-anchor="middle" font-size="9" fill="#999">&#x25B4;</text>
+
+  <!-- L0 to L1 connectors -->
+  <path d="M260,65 L260,82 L100,82 L100,100" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,65 L260,82 L260,100" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,65 L260,82 L420,82 L420,100" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 - CTO collapsed -->
+  <rect x="50" y="100" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="100" y="118" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="100" y="132" text-anchor="middle" font-size="9" fill="#a8c8e8">CTO</text>
+  <!-- Pill - collapsed (filled with count + chevron) -->
+  <rect x="75" y="137" width="50" height="18" rx="9" fill="#3366CC" stroke="none"/>
+  <text x="100" y="149" text-anchor="middle" font-size="9" font-weight="bold" fill="white">2 &#x25BE;</text>
+
+  <!-- Level 1 - CFO collapsed -->
+  <rect x="210" y="100" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="260" y="118" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Carol Wu</text>
+  <text x="260" y="132" text-anchor="middle" font-size="9" fill="#a8c8e8">CFO</text>
+  <rect x="235" y="137" width="50" height="18" rx="9" fill="#3366CC" stroke="none"/>
+  <text x="260" y="149" text-anchor="middle" font-size="9" font-weight="bold" fill="white">1 &#x25BE;</text>
+
+  <!-- Level 1 - COO leaf -->
+  <rect x="370" y="100" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="420" y="118" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Dan Lee</text>
+  <text x="420" y="132" text-anchor="middle" font-size="9" fill="#a8c8e8">COO</text>
+</svg>

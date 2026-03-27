@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 200" font-family="system-ui, sans-serif">
+  <!-- Level 0 - compact card (title + subtitle only, no image, no labels) -->
+  <rect x="160" y="10" width="100" height="36" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="210" y="25" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Alice Chen</text>
+  <text x="210" y="38" text-anchor="middle" font-size="9" fill="#a8c8e8">CEO</text>
+
+  <!-- Connectors -->
+  <path d="M210,46 L210,65 L100,65 L100,80" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M210,46 L210,65 L320,65 L320,80" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 - compact -->
+  <rect x="50" y="80" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="100" y="95" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="100" y="108" text-anchor="middle" font-size="9" fill="#a8c8e8">CTO</text>
+
+  <rect x="270" y="80" width="100" height="36" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="320" y="95" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Carol Wu</text>
+  <text x="320" y="108" text-anchor="middle" font-size="9" fill="#a8c8e8">CFO</text>
+
+  <!-- L1 → L2 connectors -->
+  <path d="M100,116 L100,132 L55,132 L55,148" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M100,116 L100,132 L145,132 L145,148" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 - compact -->
+  <rect x="10" y="148" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="55" y="163" text-anchor="middle" font-size="10" font-weight="bold" fill="white">Dave Jones</text>
+  <text x="55" y="176" text-anchor="middle" font-size="8" fill="#a8c8e8">Dev Lead</text>
+
+  <rect x="110" y="148" width="90" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="155" y="163" text-anchor="middle" font-size="10" font-weight="bold" fill="white">Eve Park</text>
+  <text x="155" y="176" text-anchor="middle" font-size="8" fill="#a8c8e8">QA Lead</text>
+</svg>

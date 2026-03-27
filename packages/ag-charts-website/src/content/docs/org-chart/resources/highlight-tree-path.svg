@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 260" font-family="system-ui, sans-serif">
+  <text x="250" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Tree-Path Highlighting (CTO hovered)</text>
+
+  <!-- Level 0: CEO — ancestor (highlighted) -->
+  <rect x="200" y="35" width="100" height="40" rx="6" fill="#1a3a5c" stroke="#f0a030" stroke-width="2.5"/>
+  <text x="250" y="58" text-anchor="middle" font-size="12" fill="white">CEO</text>
+  <text x="310" y="52" font-size="9" fill="#e8913a" font-style="italic">ancestor</text>
+
+  <!-- CEO → CTO connector (highlighted) -->
+  <path d="M250,75 L250,95 L100,95 L100,115" fill="none" stroke="#f0a030" stroke-width="2.5"/>
+  <!-- CEO → CFO connector (dimmed) -->
+  <path d="M250,75 L250,95 L250,115" fill="none" stroke="#ddd" stroke-width="1"/>
+  <!-- CEO → COO connector (dimmed) -->
+  <path d="M250,75 L250,95 L400,95 L400,115" fill="none" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Level 1: CTO — hovered (Item) -->
+  <rect x="50" y="115" width="100" height="40" rx="6" fill="#2563eb" stroke="#1d4ed8" stroke-width="2.5"/>
+  <text x="100" y="138" text-anchor="middle" font-size="12" font-weight="bold" fill="white">CTO</text>
+  <text x="160" y="132" font-size="9" fill="#2563eb" font-weight="bold">HOVERED</text>
+
+  <!-- Level 1: CFO — dimmed -->
+  <rect x="200" y="115" width="100" height="40" rx="6" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+  <text x="250" y="138" text-anchor="middle" font-size="12" fill="#aaa">CFO</text>
+  <text x="310" y="132" font-size="9" fill="#bbb" font-style="italic">dimmed</text>
+
+  <!-- Level 1: COO — dimmed -->
+  <rect x="350" y="115" width="100" height="40" rx="6" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+  <text x="400" y="138" text-anchor="middle" font-size="12" fill="#aaa">COO</text>
+  <text x="460" y="132" font-size="9" fill="#bbb" font-style="italic">dimmed</text>
+
+  <!-- CTO → children connectors (highlighted) -->
+  <path d="M100,155 L100,172 L50,172 L50,190" fill="none" stroke="#f0a030" stroke-width="2.5"/>
+  <path d="M100,155 L100,172 L150,172 L150,190" fill="none" stroke="#f0a030" stroke-width="2.5"/>
+
+  <!-- CFO → child connector (dimmed) -->
+  <path d="M250,155 L250,190" fill="none" stroke="#ddd" stroke-width="1"/>
+
+  <!-- Level 2: Eng Lead — descendant (highlighted) -->
+  <rect x="0" y="190" width="100" height="36" rx="6" fill="#4a90c4" stroke="#f0a030" stroke-width="2"/>
+  <text x="50" y="212" text-anchor="middle" font-size="11" fill="white">Eng Lead</text>
+
+  <!-- Level 2: Design Lead — descendant (highlighted) -->
+  <rect x="110" y="190" width="100" height="36" rx="6" fill="#4a90c4" stroke="#f0a030" stroke-width="2"/>
+  <text x="160" y="212" text-anchor="middle" font-size="11" fill="white">Design Lead</text>
+  <text x="220" y="208" font-size="9" fill="#e8913a" font-style="italic">descendants</text>
+
+  <!-- Level 2: Fin Manager — dimmed -->
+  <rect x="210" y="190" width="100" height="36" rx="6" fill="#f0f0f0" stroke="#ddd" stroke-width="1"/>
+  <text x="260" y="212" text-anchor="middle" font-size="11" fill="#aaa">Fin Manager</text>
+
+  <!-- Legend -->
+  <rect x="350" y="195" width="12" height="12" rx="2" fill="#2563eb"/>
+  <text x="368" y="205" font-size="9" fill="#555">Hovered (Item)</text>
+  <rect x="350" y="212" width="12" height="12" rx="2" fill="#1a3a5c" stroke="#f0a030" stroke-width="1.5"/>
+  <text x="368" y="222" font-size="9" fill="#555">Ancestor / Descendant</text>
+  <rect x="350" y="229" width="12" height="12" rx="2" fill="#e8e8e8" stroke="#ccc" stroke-width="1"/>
+  <text x="368" y="239" font-size="9" fill="#555">Dimmed (OtherItem)</text>
+</svg>

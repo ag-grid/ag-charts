@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 220" font-family="system-ui, sans-serif">
+  <!-- COLLAPSED STATE -->
+  <text x="170" y="18" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">Collapsed</text>
+
+  <!-- Parent node -->
+  <rect x="95" y="30" width="150" height="55" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="170" y="52" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="170" y="68" text-anchor="middle" font-size="10" fill="#a8c8e8">CTO</text>
+
+  <!-- Expander pill - collapsed (filled) -->
+  <rect x="143" y="78" width="54" height="22" rx="11" fill="#3366CC" stroke="none"/>
+  <text x="163" y="93" text-anchor="middle" font-size="10" font-weight="bold" fill="white">5</text>
+  <text x="180" y="93" text-anchor="middle" font-size="10" fill="white">▾</text>
+
+  <!-- Annotation -->
+  <line x1="210" y1="89" x2="260" y2="89" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="265" y="86" font-size="10" fill="#666">Pill shows direct child count</text>
+  <text x="265" y="100" font-size="10" fill="#666">Solid fill = hidden content</text>
+
+  <!-- No children visible -->
+  <text x="170" y="130" text-anchor="middle" font-size="10" fill="#999" font-style="italic">5 children hidden</text>
+
+  <!-- Divider -->
+  <line x1="350" y1="10" x2="350" y2="210" stroke="#ddd" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- EXPANDED STATE -->
+  <text x="525" y="18" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">Expanded</text>
+
+  <!-- Parent node -->
+  <rect x="450" y="30" width="150" height="55" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="525" y="52" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="525" y="68" text-anchor="middle" font-size="10" fill="#a8c8e8">CTO</text>
+
+  <!-- Expander pill - expanded (outlined) -->
+  <rect x="508" y="78" width="34" height="22" rx="11" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="525" y="93" text-anchor="middle" font-size="10" fill="#999">▴</text>
+
+  <!-- Annotation -->
+  <line x1="555" y1="89" x2="590" y2="89" stroke="#999" stroke-width="1" stroke-dasharray="3,3"/>
+  <text x="595" y="86" font-size="10" fill="#666">Chevron only</text>
+  <text x="595" y="100" font-size="10" fill="#666">Outlined = content visible</text>
+
+  <!-- Connectors to children -->
+  <path d="M525,100 L525,120 L420,120 L420,140" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M525,100 L525,120 L525,140" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M525,100 L525,120 L630,120 L630,140" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Children -->
+  <rect x="375" y="140" width="90" height="32" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="420" y="158" text-anchor="middle" font-size="10" fill="white">Eng Lead</text>
+
+  <rect x="480" y="140" width="90" height="32" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="525" y="158" text-anchor="middle" font-size="10" fill="white">QA Lead</text>
+
+  <rect x="585" y="140" width="90" height="32" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="630" y="158" text-anchor="middle" font-size="10" fill="white">PM</text>
+
+  <text x="525" y="195" text-anchor="middle" font-size="9" fill="#999">+ 2 more children not shown</text>
+</svg>

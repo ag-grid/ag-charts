@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" font-family="system-ui, sans-serif">
+  <!-- Level 0 -->
+  <rect x="210" y="10" width="100" height="40" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="260" y="28" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Alice Chen</text>
+  <text x="260" y="42" text-anchor="middle" font-size="9" fill="#a8c8e8">CEO</text>
+
+  <!-- Expander pill - expanded -->
+  <rect x="243" y="46" width="34" height="18" rx="9" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="260" y="58" text-anchor="middle" font-size="9" fill="#999">▴</text>
+
+  <!-- L0 → L1 connectors -->
+  <path d="M260,64 L260,80 L100,80 L100,95" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,64 L260,80 L260,95" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,64 L260,80 L420,80 L420,95" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 -->
+  <rect x="50" y="95" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="100" y="113" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="100" y="127" text-anchor="middle" font-size="9" fill="#a8c8e8">CTO</text>
+
+  <!-- Expander pill - expanded -->
+  <rect x="83" y="131" width="34" height="18" rx="9" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="100" y="143" text-anchor="middle" font-size="9" fill="#999">▴</text>
+
+  <rect x="210" y="95" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="260" y="113" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Carol Wu</text>
+  <text x="260" y="127" text-anchor="middle" font-size="9" fill="#a8c8e8">CFO</text>
+
+  <!-- Expander pill - expanded -->
+  <rect x="243" y="131" width="34" height="18" rx="9" fill="none" stroke="#999" stroke-width="1"/>
+  <text x="260" y="143" text-anchor="middle" font-size="9" fill="#999">▴</text>
+
+  <rect x="370" y="95" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="420" y="113" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Dan Lee</text>
+  <text x="420" y="127" text-anchor="middle" font-size="9" fill="#a8c8e8">COO</text>
+  <!-- Leaf - no pill -->
+
+  <!-- L1 → L2 connectors -->
+  <path d="M100,149 L100,165 L50,165 L50,180" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M100,149 L100,165 L150,165 L150,180" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,149 L260,180" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 -->
+  <rect x="0" y="180" width="100" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="50" y="196" text-anchor="middle" font-size="10" font-weight="bold" fill="white">Dave Jones</text>
+  <text x="50" y="209" text-anchor="middle" font-size="8" fill="#a8c8e8">Dev Lead</text>
+
+  <rect x="110" y="180" width="100" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="160" y="196" text-anchor="middle" font-size="10" font-weight="bold" fill="white">Eve Park</text>
+  <text x="160" y="209" text-anchor="middle" font-size="8" fill="#a8c8e8">QA Lead</text>
+
+  <rect x="220" y="180" width="100" height="36" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="270" y="196" text-anchor="middle" font-size="10" font-weight="bold" fill="white">Fay Liu</text>
+  <text x="270" y="209" text-anchor="middle" font-size="8" fill="#a8c8e8">Controller</text>
+
+  <text x="260" y="245" text-anchor="middle" font-size="10" fill="#999">All nodes expanded — 7 visible</text>
+</svg>

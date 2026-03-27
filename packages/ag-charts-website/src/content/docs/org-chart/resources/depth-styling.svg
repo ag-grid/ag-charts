@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" font-family="system-ui, sans-serif">
+  <text x="250" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Per-Depth Styling</text>
+
+  <!-- Depth legend -->
+  <rect x="380" y="40" width="14" height="14" rx="3" fill="#1a3a5c"/>
+  <text x="400" y="52" font-size="10" fill="#555">depths[0]</text>
+  <rect x="380" y="60" width="14" height="14" rx="3" fill="#2d5f8a"/>
+  <text x="400" y="72" font-size="10" fill="#555">depths[1]</text>
+  <rect x="380" y="80" width="14" height="14" rx="3" fill="#4a90c4"/>
+  <text x="400" y="92" font-size="10" fill="#555">depths[2]</text>
+  <rect x="380" y="100" width="14" height="14" rx="3" fill="#7cb8e4"/>
+  <text x="400" y="112" font-size="10" fill="#555">depths[3]</text>
+
+  <!-- Level 0 -->
+  <rect x="170" y="40" width="140" height="44" rx="8" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="240" y="58" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Jane Smith</text>
+  <text x="240" y="74" text-anchor="middle" font-size="10" fill="#a8c8e8">Chief Executive Officer</text>
+
+  <!-- L0 → L1 -->
+  <path d="M240,84 L240,100 L120,100 L120,115" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M240,84 L240,100 L360,100 L360,115" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 -->
+  <rect x="50" y="115" width="140" height="44" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="120" y="133" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Tom Chen</text>
+  <text x="120" y="149" text-anchor="middle" font-size="10" fill="#a8c8e8">CTO</text>
+
+  <rect x="290" y="115" width="140" height="44" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="360" y="133" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Sara Lee</text>
+  <text x="360" y="149" text-anchor="middle" font-size="10" fill="#a8c8e8">CFO</text>
+
+  <!-- L1 → L2 -->
+  <path d="M120,159 L120,175 L60,175 L60,190" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M120,159 L120,175 L180,175 L180,190" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 -->
+  <rect x="-5" y="190" width="130" height="40" rx="7" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="60" y="208" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Alex Park</text>
+  <text x="60" y="222" text-anchor="middle" font-size="9" fill="#d0e4f4">Eng Lead</text>
+
+  <rect x="115" y="190" width="130" height="40" rx="7" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="180" y="208" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Kim Nguyen</text>
+  <text x="180" y="222" text-anchor="middle" font-size="9" fill="#d0e4f4">Design Lead</text>
+
+  <!-- L2 → L3 -->
+  <path d="M60,230 L60,250" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 3 -->
+  <rect x="-5" y="250" width="130" height="30" rx="6" fill="#7cb8e4" stroke="#4a90c4" stroke-width="1.5"/>
+  <text x="60" y="270" text-anchor="middle" font-size="10" fill="#1a3a5c">Dev · 3 reports</text>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" font-family="system-ui, sans-serif">
+  <text x="260" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Top-to-Bottom (Default)</text>
+
+  <!-- Level 0 -->
+  <rect x="210" y="35" width="100" height="40" rx="6" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <text x="260" y="60" text-anchor="middle" font-size="12" fill="white">CEO</text>
+
+  <!-- L0 → L1 connectors -->
+  <path d="M260,75 L260,95 L100,95 L100,115" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,75 L260,115" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,75 L260,95 L420,95 L420,115" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 -->
+  <rect x="50" y="115" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="100" y="140" text-anchor="middle" font-size="12" fill="white">CTO</text>
+
+  <rect x="210" y="115" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="260" y="140" text-anchor="middle" font-size="12" fill="white">CFO</text>
+
+  <rect x="370" y="115" width="100" height="40" rx="6" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <text x="420" y="140" text-anchor="middle" font-size="12" fill="white">COO</text>
+
+  <!-- L1 → L2 connectors (under CTO) -->
+  <path d="M100,155 L100,175 L50,175 L50,195" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M100,155 L100,175 L150,175 L150,195" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- L1 → L2 connectors (under CFO) -->
+  <path d="M260,155 L260,195" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 -->
+  <rect x="0" y="195" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="50" y="218" text-anchor="middle" font-size="11" fill="white">Eng Lead</text>
+
+  <rect x="110" y="195" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="160" y="218" text-anchor="middle" font-size="11" fill="white">Design Lead</text>
+
+  <rect x="220" y="195" width="100" height="40" rx="6" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="270" y="218" text-anchor="middle" font-size="11" fill="white">Fin Manager</text>
+
+  <!-- Depth legend -->
+  <rect x="380" y="200" width="12" height="12" rx="2" fill="#1a3a5c"/>
+  <text x="398" y="211" font-size="10" fill="#555">Depth 0</text>
+  <rect x="380" y="218" width="12" height="12" rx="2" fill="#2d5f8a"/>
+  <text x="398" y="229" font-size="10" fill="#555">Depth 1</text>
+  <rect x="380" y="236" width="12" height="12" rx="2" fill="#4a90c4"/>
+  <text x="398" y="247" font-size="10" fill="#555">Depth 2</text>
+
+  <text x="260" y="270" text-anchor="middle" font-size="11" fill="#666">direction: 'top-down'</text>
+  <text x="260" y="285" text-anchor="middle" font-size="11" fill="#666">Most common orientation for corporate org charts</text>
+</svg>

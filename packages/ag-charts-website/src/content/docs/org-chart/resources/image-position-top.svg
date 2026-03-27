@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 310" font-family="system-ui, sans-serif">
+  <!-- Level 0 -->
+  <rect x="185" y="10" width="150" height="80" rx="8" fill="#1a3a5c" stroke="#0d2137" stroke-width="1.5"/>
+  <rect x="215" y="18" width="90" height="30" rx="4" fill="#2d5f8a" stroke="#4a90c4" stroke-width="1"/>
+  <text x="260" y="38" text-anchor="middle" font-size="8" fill="#a8c8e8">IMG</text>
+  <text x="260" y="62" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Alice Chen</text>
+  <text x="260" y="78" text-anchor="middle" font-size="10" fill="#a8c8e8">CEO</text>
+
+  <!-- Connectors -->
+  <path d="M260,90 L260,115 L120,115 L120,135" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M260,90 L260,115 L400,115 L400,135" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 1 - CTO -->
+  <rect x="45" y="135" width="150" height="80" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <rect x="75" y="143" width="90" height="30" rx="4" fill="#1a3a5c" stroke="#4a90c4" stroke-width="1"/>
+  <text x="120" y="163" text-anchor="middle" font-size="8" fill="#a8c8e8">IMG</text>
+  <text x="120" y="187" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Bob Smith</text>
+  <text x="120" y="203" text-anchor="middle" font-size="10" fill="#a8c8e8">CTO</text>
+
+  <!-- Level 1 - CFO -->
+  <rect x="325" y="135" width="150" height="80" rx="8" fill="#2d5f8a" stroke="#1a3a5c" stroke-width="1.5"/>
+  <rect x="355" y="143" width="90" height="30" rx="4" fill="#1a3a5c" stroke="#4a90c4" stroke-width="1"/>
+  <text x="400" y="163" text-anchor="middle" font-size="8" fill="#a8c8e8">IMG</text>
+  <text x="400" y="187" text-anchor="middle" font-size="12" font-weight="bold" fill="white">Carol Wu</text>
+  <text x="400" y="203" text-anchor="middle" font-size="10" fill="#a8c8e8">CFO</text>
+
+  <!-- L1 → L2 connectors -->
+  <path d="M120,215 L120,235 L70,235 L70,250" fill="none" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M120,215 L120,235 L170,235 L170,250" fill="none" stroke="#aaa" stroke-width="1.5"/>
+
+  <!-- Level 2 -->
+  <rect x="10" y="250" width="120" height="50" rx="8" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="70" y="272" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Dave Jones</text>
+  <text x="70" y="288" text-anchor="middle" font-size="9" fill="#a8c8e8">Dev Lead</text>
+
+  <rect x="140" y="250" width="120" height="50" rx="8" fill="#4a90c4" stroke="#2d5f8a" stroke-width="1.5"/>
+  <text x="200" y="272" text-anchor="middle" font-size="11" font-weight="bold" fill="white">Eve Park</text>
+  <text x="200" y="288" text-anchor="middle" font-size="9" fill="#a8c8e8">QA Lead</text>
+</svg>

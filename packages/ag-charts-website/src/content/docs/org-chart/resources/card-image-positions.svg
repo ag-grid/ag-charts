@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 340" font-family="system-ui, sans-serif">
+  <text x="350" y="20" text-anchor="middle" font-size="14" font-weight="bold" fill="#333">Card Image Positions</text>
+
+  <!-- position: 'left' -->
+  <text x="130" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#555">position: 'left'</text>
+  <rect x="30" y="60" width="200" height="80" rx="8" fill="white" stroke="#ccc" stroke-width="1.5"/>
+  <rect x="40" y="70" width="50" height="60" rx="6" fill="#e0e7ef" stroke="#b0c4de" stroke-width="1"/>
+  <text x="65" y="105" text-anchor="middle" font-size="10" fill="#888">IMG</text>
+  <text x="105" y="82" font-size="12" font-weight="bold" fill="#333">Alice Johnson</text>
+  <text x="105" y="98" font-size="10" fill="#666">Chief Technology Officer</text>
+  <text x="105" y="114" font-size="10" fill="#999">Engineering</text>
+
+  <!-- position: 'top' -->
+  <text x="440" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#555">position: 'top'</text>
+  <rect x="370" y="60" width="140" height="110" rx="8" fill="white" stroke="#ccc" stroke-width="1.5"/>
+  <rect x="385" y="68" width="110" height="40" rx="6" fill="#e0e7ef" stroke="#b0c4de" stroke-width="1"/>
+  <text x="440" y="93" text-anchor="middle" font-size="10" fill="#888">IMG</text>
+  <text x="385" y="122" font-size="11" font-weight="bold" fill="#333">Alice Johnson</text>
+  <text x="385" y="136" font-size="9" fill="#666">CTO</text>
+  <text x="385" y="150" font-size="9" fill="#999">Engineering</text>
+
+  <!-- position: 'right' -->
+  <text x="130" y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#555">position: 'right'</text>
+  <rect x="30" y="190" width="200" height="80" rx="8" fill="white" stroke="#ccc" stroke-width="1.5"/>
+  <rect x="170" y="200" width="50" height="60" rx="6" fill="#e0e7ef" stroke="#b0c4de" stroke-width="1"/>
+  <text x="195" y="235" text-anchor="middle" font-size="10" fill="#888">IMG</text>
+  <text x="40" y="212" font-size="12" font-weight="bold" fill="#333">Alice Johnson</text>
+  <text x="40" y="228" font-size="10" fill="#666">Chief Technology Officer</text>
+  <text x="40" y="244" font-size="10" fill="#999">Engineering</text>
+
+  <!-- position: 'bottom' -->
+  <text x="440" y="180" text-anchor="middle" font-size="11" font-weight="bold" fill="#555">position: 'bottom'</text>
+  <rect x="370" y="190" width="140" height="110" rx="8" fill="white" stroke="#ccc" stroke-width="1.5"/>
+  <text x="385" y="210" font-size="11" font-weight="bold" fill="#333">Alice Johnson</text>
+  <text x="385" y="224" font-size="9" fill="#666">CTO</text>
+  <text x="385" y="238" font-size="9" fill="#999">Engineering</text>
+  <rect x="385" y="248" width="110" height="40" rx="6" fill="#e0e7ef" stroke="#b0c4de" stroke-width="1"/>
+  <text x="440" y="273" text-anchor="middle" font-size="10" fill="#888">IMG</text>
+
+  <!-- No image -->
+  <text x="600" y="50" text-anchor="middle" font-size="11" font-weight="bold" fill="#555">No image</text>
+  <rect x="540" y="60" width="120" height="60" rx="8" fill="white" stroke="#ccc" stroke-width="1.5"/>
+  <text x="550" y="80" font-size="12" font-weight="bold" fill="#333">Alice Johnson</text>
+  <text x="550" y="96" font-size="10" fill="#666">CTO</text>
+  <text x="550" y="112" font-size="10" fill="#999">Engineering</text>
+</svg>
