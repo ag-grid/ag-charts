@@ -1298,6 +1298,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (Object.keys(chartRanges).length === 0) {
             this._requiredRange = 0;
         } else {
+            // IMPORTANT: _requiredRange must only be set here (during PROCESS_RANGE), not during
+            // PERFORM_LAYOUT. The zoom oscillation guard in zoomManager.restoreRequiredRange() depends
+            // on this value being stable across re-layouts to distinguish genuine option changes from
+            // layout-triggered dimension changes. See AG-16803 and AG-17008.
             this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
 

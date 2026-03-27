@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-community-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = Array.from({ length: 12 }, (_, index) => ({
     x: index,
@@ -349,17 +349,19 @@ describe('Scrollbar visibility on barWidth change', () => {
         return (deproxy(proxy!) as any).ctx.zoomManager.getZoom()?.x;
     }
 
-    // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
-    it('shows scrollbar after increasing barWidth beyond available space', async () => {
-        const options: AgCartesianChartOptions = {
-            container: document.body,
-            animation: { enabled: false },
+    function createOptions(seriesOverrides?: Record<string, unknown>): AgCartesianChartOptions {
+        return prepareEnterpriseTestOptions({
             width: 400,
             height: 300,
             data: BAR_DATA,
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', ...seriesOverrides }],
             scrollbar: { enabled: true },
-        };
+        });
+    }
+
+    // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
+    it('shows scrollbar after increasing barWidth beyond available space', async () => {
+        const options = createOptions({ width: 10 });
 
         proxy = AgCharts.create(options);
         await waitForChartStability(proxy);
@@ -368,10 +370,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         expect(getZoomX()?.max).toBe(1);
 
         // Increase barWidth so total required width exceeds the chart width.
-        await proxy.update({
-            ...options,
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
-        });
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
         await waitForChartStability(proxy);
 
         expect(getZoomX()?.max).toBeLessThan(1);
@@ -384,15 +383,7 @@ describe('Scrollbar visibility on barWidth change', () => {
 
     // AG-17008: Successive barWidth changes should each update the zoom correctly.
     it('updates zoom on each successive barWidth change', async () => {
-        const options: AgCartesianChartOptions = {
-            container: document.body,
-            animation: { enabled: false },
-            width: 400,
-            height: 300,
-            data: BAR_DATA,
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
-            scrollbar: { enabled: true },
-        };
+        const options = createOptions();
 
         proxy = AgCharts.create(options);
         await waitForChartStability(proxy);
@@ -401,18 +392,12 @@ describe('Scrollbar visibility on barWidth change', () => {
         expect(getZoomX()?.max).toBe(1);
 
         // First change: set width=10 → still fits.
-        await proxy.update({
-            ...options,
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
-        });
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }] });
         await waitForChartStability(proxy);
         expect(getZoomX()?.max).toBe(1);
 
         // Second change: set width=80 → overflows → scrollbar should appear.
-        await proxy.update({
-            ...options,
-            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
-        });
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
         await waitForChartStability(proxy);
         expect(getZoomX()?.max).toBeLessThan(1);
 
