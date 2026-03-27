@@ -153,7 +153,7 @@ start_dev_server() {
 
     log "Starting dev server on port $port from ${working_dir}..."
     cd "$working_dir"
-    PUBLIC_HTTPS_SERVER=false PORT="$port" npx nx dev ag-charts-website &
+    PUBLIC_SITE_URL="http://localhost:$port" PUBLIC_HTTPS_SERVER=false PORT="$port" npx nx dev ag-charts-website &
     local pid=$!
     cd "$root"
 
