@@ -180,7 +180,10 @@ fix_broken_external_symlinks() {
         real_first_component_path=$(cd "$real_first_component_path" && pwd)
 
         local parent_link="$worktree_parent/$first_component"
-        if [[ ! -e "$parent_link" ]] || [[ "$(readlink "$parent_link" 2>/dev/null)" != "$real_first_component_path" ]]; then
+        if [[ -e "$parent_link" ]] && [[ ! -L "$parent_link" ]]; then
+            # Real directory/file exists — do not replace it with a symlink
+            log_info "Skipping $parent_link: exists as a real path (not a symlink)"
+        elif [[ ! -e "$parent_link" ]] || [[ "$(readlink "$parent_link" 2>/dev/null)" != "$real_first_component_path" ]]; then
             log_info "Creating parent symlink: $parent_link -> $real_first_component_path"
             ln -sf "$real_first_component_path" "$parent_link"
         fi
