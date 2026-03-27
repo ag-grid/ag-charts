@@ -5,7 +5,6 @@ import type {
     AgMultiSeriesHighlightOptions,
     AgSeriesSegmentation,
     LabelBoxOptions,
-    Operation,
     WithThemeParams,
 } from 'ag-charts-types';
 
@@ -376,15 +375,8 @@ export const LABEL_BOXING_DEFAULTS: WithThemeParams<LabelBoxOptions> = {
     },
 };
 
-// @todo(AG-16931): A direct { $path: '/highlight/enabled' } causes the /chart/highlight/drawingMode logic to resolve incorrectly
-// This workaround seems to work. See changes in:-
-// packages/ag-charts-community/src/chart/series/cartesian/__image_snapshots__/scatter-series-test-ts-scatter-series-ag-11673-styler-init-highlight-1-snap.png
-const highlightEnabledDefault: Operation = {
-    $isUserOption: ['/highlight/enabled', { $path: '/highlight/enabled' }, true],
-};
-
 export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: highlightEnabledDefault,
+    enabled: { $circular: { $path: '/highlight/enabled' } },
     unhighlightedItem: {
         opacity: 0.6,
     },
@@ -394,14 +386,14 @@ export const MULTI_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighligh
 };
 
 export const MARKER_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: highlightEnabledDefault,
+    enabled: { $circular: { $path: '/highlight/enabled' } },
     unhighlightedSeries: {
         opacity: 0.2,
     },
 };
 
 export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: highlightEnabledDefault,
+    enabled: { $circular: { $path: '/highlight/enabled' } },
     unhighlightedItem: {
         opacity: 0.2,
     },
@@ -411,7 +403,7 @@ export const PART_WHOLE_HIGHLIGHT_STYLE: WithThemeParams<AgMultiSeriesHighlightO
 };
 
 export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<AgHighlightStyleOptions>> = {
-    enabled: highlightEnabledDefault,
+    enabled: { $circular: { $path: '/highlight/enabled' } },
     unhighlightedItem: {
         opacity: 0.2,
     },

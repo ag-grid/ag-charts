@@ -516,6 +516,7 @@ function switchOperation(graph: OptionsGraphInterface, vertex: VertexInterface, 
 // --- LOCATION ---
 
 enum LocationOperation {
+    Circular = '$circular',
     IsUserOption = '$isUserOption',
     MapPalette = '$mapPalette',
     Palette = '$palette',
@@ -525,6 +526,7 @@ enum LocationOperation {
 }
 
 const locationOperations: Record<LocationOperation, OperationFns> = {
+    $circular: circularOperation,
     $isUserOption: isUserOptionOperation,
     $palette: paletteOperation,
     $mapPalette: mapPaletteOperation,
@@ -538,6 +540,14 @@ const locationOperations: Record<LocationOperation, OperationFns> = {
     },
     $ref: refOperation,
 };
+
+function circularOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [targetVertex] = values;
+    graph.setResolveFresh(true);
+    const resolved = graph.resolveVertexValue(vertex, targetVertex);
+    graph.setResolveFresh(false);
+    return resolved;
+}
 
 function isUserOptionOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
     const [relativePathVertices, thenVertex, elseVertex] = values;

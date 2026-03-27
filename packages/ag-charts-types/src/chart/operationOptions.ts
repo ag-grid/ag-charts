@@ -89,6 +89,7 @@ type ColorOperation =
 type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
 type LocationOperation =
+    | { $circular: Leaf<any> }
     | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
