@@ -160,9 +160,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
-    private lastRestoredRequiredRange?: number;
+    private lastRestoredRequiredRange?: number; // The ratio (_requiredRange / dimension) last applied to zoom
     private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
-    private lastRequiredRange?: number;
+    private lastRequiredRange?: number; // The raw pixel value from processRanges(), used to detect genuine option changes
     private restoreRequiredRangeIterations = 0;
     private independentAxes = false;
     private navigatorModule = false;

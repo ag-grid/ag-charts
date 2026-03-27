@@ -336,12 +336,18 @@ describe('Scrollbar visibility on barWidth change', () => {
     setupMockConsole();
 
     const ctx = setupMockCanvas();
-    let proxy: ReturnType<typeof AgCharts.create>;
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
 
     afterEach(() => {
         proxy?.destroy();
-        proxy = undefined as any;
+        proxy = undefined;
     });
+
+    // getState().zoom is only populated when navigator/zoom modules are enabled, not for scrollbar-only
+    // charts. Use deproxy() for zoom assertions (internal state reads for assertions are level 3 per testing guide).
+    function getZoomX() {
+        return (deproxy(proxy!) as any).ctx.zoomManager.getZoom()?.x;
+    }
 
     // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
     it('shows scrollbar after increasing barWidth beyond available space', async () => {
@@ -358,10 +364,8 @@ describe('Scrollbar visibility on barWidth change', () => {
         proxy = AgCharts.create(options);
         await waitForChartStability(proxy);
 
-        const chart = deproxy(proxy) as any;
-        const zoomBefore = chart.ctx.zoomManager.getZoom();
-        expect(zoomBefore?.x?.min).toBe(0);
-        expect(zoomBefore?.x?.max).toBe(1);
+        expect(getZoomX()?.min).toBe(0);
+        expect(getZoomX()?.max).toBe(1);
 
         // Increase barWidth so total required width exceeds the chart width.
         await proxy.update({
@@ -370,8 +374,7 @@ describe('Scrollbar visibility on barWidth change', () => {
         });
         await waitForChartStability(proxy);
 
-        const zoomAfter = chart.ctx.zoomManager.getZoom();
-        expect(zoomAfter?.x?.max).toBeLessThan(1);
+        expect(getZoomX()?.max).toBeLessThan(1);
 
         expect(extractImageData(ctx)).toMatchImageSnapshot({
             ...IMAGE_SNAPSHOT_DEFAULTS,
@@ -394,11 +397,8 @@ describe('Scrollbar visibility on barWidth change', () => {
         proxy = AgCharts.create(options);
         await waitForChartStability(proxy);
 
-        const chart = deproxy(proxy) as any;
-
         // No fixed width → bars fit → no scrollbar.
-        const zoom0 = chart.ctx.zoomManager.getZoom();
-        expect(zoom0?.x?.max).toBe(1);
+        expect(getZoomX()?.max).toBe(1);
 
         // First change: set width=10 → still fits.
         await proxy.update({
@@ -406,8 +406,7 @@ describe('Scrollbar visibility on barWidth change', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
         });
         await waitForChartStability(proxy);
-        const zoom1 = chart.ctx.zoomManager.getZoom();
-        expect(zoom1?.x?.max).toBe(1);
+        expect(getZoomX()?.max).toBe(1);
 
         // Second change: set width=80 → overflows → scrollbar should appear.
         await proxy.update({
@@ -415,8 +414,7 @@ describe('Scrollbar visibility on barWidth change', () => {
             series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
         });
         await waitForChartStability(proxy);
-        const zoom2 = chart.ctx.zoomManager.getZoom();
-        expect(zoom2?.x?.max).toBeLessThan(1);
+        expect(getZoomX()?.max).toBeLessThan(1);
 
         expect(extractImageData(ctx)).toMatchImageSnapshot({
             ...IMAGE_SNAPSHOT_DEFAULTS,
