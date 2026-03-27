@@ -299,8 +299,14 @@ fi
 
 if [[ -z "$base_results" || ! -f "$base_results" ]]; then
     log "Base benchmark results unavailable, writing partial report..."
-    echo "Base benchmark results unavailable for ${base_ref}" > "$output"
-    echo "Only head results available at ${head_results}" >> "$output"
+    if [[ "$format" == "json" ]]; then
+        cat > "$output" <<ENDJSON
+{"base":"${base_ref#origin/}","compare":"${branch}","rankedByTime":[],"added":[],"removed":[],"errors":["Base benchmark results unavailable for ${base_ref}"]}
+ENDJSON
+    else
+        echo "Base benchmark results unavailable for ${base_ref}" > "$output"
+        echo "Only head results available at ${head_results}" >> "$output"
+    fi
     cat "$output"
     exit 0
 fi
