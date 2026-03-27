@@ -45,6 +45,7 @@ export class AxisTicks {
     readonly label = new AxisLabel();
     readonly scale = new LinearScale();
 
+    namedLabels?: _ModuleSupport.GradientLegendNamedLabel[];
     placement: AgChartLegendPlacement = 'bottom';
     translationX: number = 0;
     translationY: number = 0;
@@ -173,6 +174,10 @@ export class AxisTicks {
     public padding: number = 0;
 
     private generateTicks() {
+        if (this.namedLabels?.length) {
+            return this.generateNamedTicks(this.namedLabels);
+        }
+
         const { minSpacing, maxSpacing } = this.interval;
         const { maxTickCount, minTickCount, tickCount } = estimateTickCount(
             findRangeExtent(this.scale.range),
@@ -191,24 +196,49 @@ export class AxisTicks {
             maxTickCount,
         });
 
-        if (this.placement === 'bottom' || this.placement === 'top') {
-            const measurer = cachedTextMeasurer(this.label);
-
-            const { domain } = this.scale;
-            const reversed = domain[0] > domain[1];
-            const direction = reversed ? -1 : 1;
-            let lastTickPosition = -Infinity * direction;
-            tickData.ticks = tickData.ticks.filter((data) => {
-                if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
-                const { width: labelWidth } = isArray(data.tickLabel)
-                    ? measureTextSegments(data.tickLabel, this.label)
-                    : measurer.measureLines(toTextString(data.tickLabel));
-                lastTickPosition = data.translation + labelWidth * direction;
-                return true;
-            });
-        }
+        this.applyCollisionAvoidance(tickData.ticks);
 
         return tickData;
+    }
+
+    private generateNamedTicks(namedLabels: _ModuleSupport.GradientLegendNamedLabel[]) {
+        const [r0, r1] = this.scale.range;
+        const { domain } = this.scale;
+        const reversed = domain[0] > domain[1];
+        const idGenerator = createIdsGenerator();
+
+        const ticks: TickDatum[] = namedLabels.map(({ position, label }) => {
+            const t = reversed ? 1 - position : position;
+            const translation = r0 + t * (r1 - r0);
+            return { tick: position, tickId: idGenerator(label), tickLabel: label, translation };
+        });
+
+        this.applyCollisionAvoidance(ticks);
+
+        return { rawTicks: ticks.map((t) => t.tick), fractionDigits: 0, ticks };
+    }
+
+    private applyCollisionAvoidance(ticks: TickDatum[]) {
+        if (this.placement !== 'bottom' && this.placement !== 'top') return;
+
+        const measurer = cachedTextMeasurer(this.label);
+        const { domain } = this.scale;
+        const reversed = domain[0] > domain[1];
+        const direction = reversed ? -1 : 1;
+        let lastTickPosition = -Infinity * direction;
+
+        const keep: boolean[] = ticks.map((data) => {
+            if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
+            const { width: labelWidth } = isArray(data.tickLabel)
+                ? measureTextSegments(data.tickLabel, this.label)
+                : measurer.measureLines(toTextString(data.tickLabel));
+            lastTickPosition = data.translation + labelWidth * direction;
+            return true;
+        });
+
+        for (let i = ticks.length - 1; i >= 0; i--) {
+            if (!keep[i]) ticks.splice(i, 1);
+        }
     }
 
     private getTicksData(tickParams: ScaleTickParams<any>) {

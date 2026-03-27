@@ -15,7 +15,7 @@ import {
     type CategoryLegendDatum,
     type ChartLegendType,
     type GradientLegendDatum,
-    buildCategoryColorLegendData,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
 } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
@@ -350,11 +350,19 @@ export abstract class HierarchySeries<
         const enabled = visible && legendManager.getItemEnabled({ seriesId });
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
-            return buildCategoryColorLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);
+            return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);
         }
 
         if (legendType === 'gradient') {
-            return [buildGradientLegendDatum(this.colorScale, seriesId, enabled, this.getFormatterContext('color'))];
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    enabled,
+                    this.getFormatterContext('color')
+                ),
+            ];
         }
 
         return [];

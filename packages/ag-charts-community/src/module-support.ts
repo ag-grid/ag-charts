@@ -304,12 +304,13 @@ export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/cro
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
 export {
-    buildCategoryColorLegendData,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     type CategoryLegendDatum,
     type ChartLegendDatum,
     type ChartLegendType,
     type GradientLegendDatum,
+    type GradientLegendNamedLabel,
 } from './chart/legend/legendDatum';
 export type { LegendSymbolOptions } from './chart/legend/legendSymbol';
 export { isTooltipValueMissing } from './chart/tooltip/tooltip';

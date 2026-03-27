@@ -29,7 +29,7 @@ import { HeatmapSeriesProperties } from './heatmapSeriesProperties';
 const {
     SeriesNodePickMode,
     computeBarFocusBounds,
-    buildCategoryColorLegendData,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     findDiscreteColorBinLabel,
@@ -840,7 +840,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { colorScale: colorScaleProps } = this.properties;
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && colorScaleProps.fills.length > 0) {
-            return buildCategoryColorLegendData(
+            return buildColorCategoryLegendData(
                 this.colorScale,
                 colorScaleProps.fills,
                 this.id,
@@ -851,7 +851,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         if (legendType === 'gradient') {
             return [
-                buildGradientLegendDatum(this.colorScale, this.id, this.visible, this.getFormatterContext('color')),
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    this.id,
+                    this.visible,
+                    this.getFormatterContext('color')
+                ),
             ];
         }
 

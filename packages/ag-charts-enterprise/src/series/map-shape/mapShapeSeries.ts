@@ -35,7 +35,7 @@ import {
 
 const {
     getMissCount,
-    buildCategoryColorLegendData,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -757,10 +757,24 @@ export class MapShapeSeries
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
-            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    this.getFormatterContext('color')
+                ),
+            ];
         } else if (legendType === 'category') {
             if (colorScaleProps.mode === 'discrete' && hasColorScale) {
-                return buildCategoryColorLegendData(this.colorScale, colorScaleProps.fills, seriesId, visible, formatValue);
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    formatValue
+                );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
