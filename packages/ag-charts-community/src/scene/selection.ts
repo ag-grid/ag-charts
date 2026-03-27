@@ -8,7 +8,48 @@ type NodeConstructor<TNode extends Node> = new () => TNode;
 type NodeFactory<TDatum, TNode extends Node<TDatum>> = (datum: TDatum) => TNode;
 type NodeConstructorOrFactory<TDatum, TNode extends Node<TDatum>> = NodeConstructor<TNode> | NodeFactory<TDatum, TNode>;
 
-export class Selection<TDatum, TChild extends Node<TDatum>> {
+/**
+ * `Selection['nodeFactory']` causes some Selections to unintuitively become unassignable to something that looks like
+ * it should be.
+ *
+ * Example:
+ *
+ *     type A = { opacity: number, yValue: number };
+ *     type B = { opacity: number };
+ *     type U = unknown;
+ *     const myA = new Selection<A, Node<A>>(new Group, Rect<A>);
+ *     const myB: Selection<B, Node<B>> = myA;            // error.
+ *     const myU: Selection<U, Node<U>> = myA;            // also an error (same reason).
+ *     const myI: SelectionInterface<B, Node<B>> = myA;   // OK
+ *
+ * Error for `myB` assignment
+ *
+ *     Type 'Selection<A, Node<A>>' is not assignable to type 'Selection<B, Node<B>>'.
+ *      Types of property 'nodeFactory' are incompatible.
+ *        Type 'NodeFactory<A, Node<A>>' is not assignable to type 'NodeFactory<B, Node<B>>'.
+ *          Type 'B' is not assignable to type 'A'.
+ *
+ * Which basically mean: this is unsafe, because `myB` might end up in a situation where you create a `TDatum` that does
+ * not include the `yValue` property, which would break the assumptions that you can make about `myA`.
+ *
+ * However, assignments like `myB` and `myU` are genuine cases that we want to support:
+ *
+ * 1.   `myB` Animation: Partially update a scene-node
+ * 2.   `myU` Highlight: Call `Node.getBBox()` (we do not intend to access `Node.datum`).
+ *
+ * Using `SelectionInterface` works because you are telling Typescript that you only care about the methods `Selection`
+ * (interface) and not about the properties used internally (implementation).
+ */
+export interface SelectionInterface<TDatum, TChild extends Node<TDatum>> {
+    [Symbol.iterator](): IterableIterator<{ node: TChild }>;
+    readonly length: number;
+    nodes(): TChild[];
+    cleanup(): void;
+    isGarbage(node: TChild): boolean;
+    batchedUpdate(fn: () => void): void;
+}
+
+export class Selection<TDatum, TChild extends Node<TDatum>> implements SelectionInterface<TDatum, TChild> {
     static select<N extends Node<any>>(
         parent: Group,
         classOrFactory: NodeConstructorOrFactory<any, N>,

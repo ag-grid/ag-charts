@@ -2,7 +2,7 @@ import { easeOut } from 'ag-charts-core';
 
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { Node } from '../scene/node';
-import type { Selection } from '../scene/selection';
+import type { SelectionInterface } from '../scene/selection';
 import type { Interpolating } from '../util/interpolating';
 import type { AnimationPhase, AnimationValue } from './animation';
 import { deconstructSelectionsOrNodes } from './animation';
@@ -95,7 +95,7 @@ export function fromToMotion<
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
-    selectionsOrNodes: Selection<D, N>[] | N[],
+    selectionsOrNodes: SelectionInterface<D, N>[] | N[],
     fns: FromToFns<D, N, T>,
     getDatumId?: (node: N, datum: D) => string,
     diff?: FromToDiff
@@ -228,7 +228,7 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
-    selectionsOrNodes: Selection<D, N>[] | N[],
+    selectionsOrNodes: SelectionIterator<D, N>[] | N[],
     from: T,
     to: T,
     extraOpts: ExtraOpts<N>
