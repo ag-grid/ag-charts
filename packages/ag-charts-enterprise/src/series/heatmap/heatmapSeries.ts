@@ -128,7 +128,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
  * Defines all type parameters in one place for the series.
  */
 interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Rect;
+    readonly node: _ModuleSupport.Rect<HeatmapNodeDatum>;
     readonly options: AgHeatmapSeriesOptions;
     readonly properties: HeatmapSeriesProperties;
     readonly datum: HeatmapNodeDatum;

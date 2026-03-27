@@ -74,8 +74,9 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
-        this.nodeFactory()
+    public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(
+        this.contentGroup,
+        () => this.nodeFactory()
     );
     private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
         this.labelGroup,
@@ -85,8 +86,10 @@ export class MapLineSeries
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
-    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
-        Selection.select(this.highlightLabelGroup, Text);
+    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
+        this.highlightLabelGroup,
+        Text
+    );
     private placedLabelData: PlacedLabel<MapLineNodeLabelDatum>[] = [];
 
     public contextNodeData?: MapLineNodeDataContext;

@@ -110,8 +110,10 @@ export class MapShapeSeries
         this.highlightNodeGroup,
         () => this.nodeFactory()
     );
-    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> =
-        Selection.select(this.highlightLabelGroup, Text);
+    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(
+        this.highlightLabelGroup,
+        Text
+    );
 
     public contextNodeData?: MapShapeNodeDataContext;
 

@@ -109,10 +109,12 @@ export function preparePieSeriesAnimationFunctions(
         return { startAngle, endAngle, outerRadius, innerRadius, stroke, ...animatableFill };
     };
 
-    const innerCircleFromFn: FromToMotionPropFn<{ radius: number }, Marker, any> = (node, _) => {
+    type D = { radius: number };
+    type T = { size: number, phase?: typeof phase };
+    const innerCircleFromFn: FromToMotionPropFn<D, Marker<D>, T> = (node, _) => {
         return { size: node.unsafePreviousDatum?.radius ?? node.size ?? 0, phase };
     };
-    const innerCircleToFn: FromToMotionPropFn<{ radius: number }, Marker, any> = (_, datum) => {
+    const innerCircleToFn: FromToMotionPropFn<D, Marker<D>, T> = (_, datum) => {
         return { size: datum.radius ?? 0 };
     };
 

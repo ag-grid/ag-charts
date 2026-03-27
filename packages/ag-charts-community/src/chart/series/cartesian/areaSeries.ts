@@ -167,7 +167,7 @@ interface AreaNodeDatumScratch {
  * Defines all type parameters in one place for the series.
  */
 interface AreaSeriesTypes extends CartesianSeriesTypes {
-    readonly node: Marker;
+    readonly node: Marker<MarkerSelectionDatum>;
     readonly options: AgAreaSeriesOptions;
     readonly properties: AreaSeriesProperties;
     readonly datum: MarkerSelectionDatum;

@@ -141,9 +141,9 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
 
     private readonly cleanup = new CleanupRegistry();
     private readonly flashGroup = new Group({ name: 'flash-on-update', zIndex: ZIndexMap.AXIS_BAND_HIGHLIGHT });
-    private readonly chartFlashRect: _ModuleSupport.Rect;
+    private readonly chartFlashRect: _ModuleSupport.Rect<BandFlashDatum>;
     private readonly bandGroup: _ModuleSupport.TranslatableGroup;
-    private readonly bandSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, BandFlashDatum>;
+    private readonly bandSelection: _ModuleSupport.Selection<BandFlashDatum, _ModuleSupport.Rect<BandFlashDatum>>;
     private seriesRect?: _ModuleSupport.BBox;
     private axisCtx?: AxisContext;
     private previousBoundsCache?: Map<string, BoxBounds>;
@@ -156,7 +156,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.chartFlashRect.fillOpacity = 0;
 
         this.bandGroup = this.flashGroup.appendChild(new TranslatableGroup({ name: 'bands-flash-on-update' }));
-        this.bandSelection = Selection.select<_ModuleSupport.Rect, BandFlashDatum>(
+        this.bandSelection = Selection.select<_ModuleSupport.Rect<BandFlashDatum>>(
             this.bandGroup,
             () => new Rect({ name: 'flash-on-update-band' })
         );
@@ -409,13 +409,13 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             return;
         }
 
-        const removeRects: _ModuleSupport.Rect[] = [];
-        const updateRects: _ModuleSupport.Rect[] = [];
-        const addRects: _ModuleSupport.Rect[] = [];
+        const removeRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
+        const updateRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
+        const addRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
 
         for (const rect of allRects) {
-            if (rect.datum.phase === 'remove') removeRects.push(rect);
-            else if (rect.datum.phase === 'add') addRects.push(rect);
+            if (rect.unsafeNonNullDatum.phase === 'remove') removeRects.push(rect);
+            else if (rect.unsafeNonNullDatum.phase === 'add') addRects.push(rect);
             else updateRects.push(rect);
         }
 
@@ -428,7 +428,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
     }
 
-    private animate(rects: _ModuleSupport.Rect[], phase: _ModuleSupport.AnimationPhase): void {
+    private animate(rects: _ModuleSupport.Rect<BandFlashDatum>[], phase: _ModuleSupport.AnimationPhase): void {
         if (rects.length === 0) return;
 
         const { animationManager } = this.ctx;
@@ -472,7 +472,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                     for (const rect of rects) {
                         const from = rect.datum?.prevBounds;
                         if (from) {
-                            const to = rect.datum.bounds;
+                            const to = rect.unsafeNonNullDatum.bounds;
                             rect.x = from.x + (to.x - from.x) * t;
                             rect.y = from.y + (to.y - from.y) * t;
                             rect.width = from.width + (to.width - from.width) * t;

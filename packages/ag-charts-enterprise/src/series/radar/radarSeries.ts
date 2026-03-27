@@ -396,7 +396,7 @@ export abstract class RadarSeries<
     }
 
     protected updateDatumStyles(
-        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();

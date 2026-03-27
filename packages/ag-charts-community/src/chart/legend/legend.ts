@@ -67,6 +67,7 @@ import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
 import { type LayoutContext, LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
+import { Node } from '../../scene/node';
 import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';

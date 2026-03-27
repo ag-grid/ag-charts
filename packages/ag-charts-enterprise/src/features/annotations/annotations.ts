@@ -289,7 +289,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             node: (index: number) => {
-                return this.annotations.at(index) as AnnotationSceneUnion;
+                return this.annotations.at(index);
             },
 
             recordAction: (label: string) => {

@@ -182,7 +182,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         false
     );
     protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomHighlightSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
+    private readonly phantomHighlightSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> = Selection.select(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),
         false
@@ -1539,7 +1539,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
         const align = { textAlign: 'center', textBaseline: 'middle' } as const;
-        const updateSelection = (selection: Selection<Text, PieDonutNodeDatum>) =>
+        const updateSelection = (selection: Selection<PieDonutNodeDatum, Text<PieDonutNodeDatum>>) =>
             selection.each((text, datum) => {
                 const { outerRadius, startAngle, endAngle } = datum;
 

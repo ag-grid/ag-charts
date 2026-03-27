@@ -176,7 +176,7 @@ interface OhlcSeriesBaseNodeDataContext extends _ModuleSupport.AbstractBarSeries
  * Template parameter TNode allows subclasses to specify their node type.
  */
 export interface OhlcSeriesBaseTypes extends _ModuleSupport.AbstractBarSeriesTypes {
-    readonly node: OhlcBaseNode<any>;
+    readonly node: OhlcBaseNode<OhlcNodeDatum>;
     readonly options: AgOhlcSeriesBaseOptions;
     readonly properties: OhlcSeriesBaseProperties<this['options']>;
     readonly datum: OhlcNodeDatum;
@@ -771,8 +771,8 @@ export abstract class OhlcSeriesBase<
 
     protected override resetDatumAnimation(
         data: _ModuleSupport.CartesianAnimationData<
-            TTypes['node'],
             OhlcNodeDatum,
+            TTypes['node'],
             OhlcNodeDatum,
             OhlcSeriesBaseNodeDataContext
         >
@@ -795,7 +795,7 @@ export abstract class OhlcSeriesBase<
     }
 
     protected updateLabelNodes(_opts: {
-        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text<OhlcNodeDatum>>;
         seriesIdx: number;
     }) {
         // Labels unsupported
@@ -803,7 +803,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateLabelSelection(opts: {
         labelData: OhlcNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<OhlcNodeDatum, _ModuleSupport.Text<OhlcNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;

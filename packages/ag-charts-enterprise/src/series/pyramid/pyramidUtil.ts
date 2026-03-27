@@ -25,8 +25,9 @@ export function applyPyramidDatum(
     connector.y3 = y + left / 2;
 }
 
-export function preparePyramidAnimationFunctions<T extends AnimatablePyramidDatum>(direction: Direction) {
-    const fromFn: _ModuleSupport.FromToMotionPropFn<FunnelConnector, AnimatablePyramidDatum, T> = (
+export function preparePyramidAnimationFunctions(direction: Direction) {
+    type T = AnimatablePyramidDatum;
+    const fromFn: _ModuleSupport.FromToMotionPropFn<T, FunnelConnector<T>, T> = (
         _connector,
         datum
     ) => {
@@ -41,7 +42,7 @@ export function preparePyramidAnimationFunctions<T extends AnimatablePyramidDatu
         }
         return { x, y, top, right, bottom, left };
     };
-    const toFn: _ModuleSupport.FromToMotionPropFn<FunnelConnector, AnimatablePyramidDatum, T> = (_connector, datum) => {
+    const toFn: _ModuleSupport.FromToMotionPropFn<T, FunnelConnector<T>, T> = (_connector, datum) => {
         const { x, y, top, right, bottom, left } = datum;
         return { x, y, top, right, bottom, left };
     };

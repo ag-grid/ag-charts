@@ -18,6 +18,7 @@ export type FromToMotionPropFnContext<T> = {
     prevLive?: T;
     nextLive?: T;
 };
+
 export type ExtraOpts<T> = {
     phase: AnimationPhase;
     delay?: number;
@@ -25,13 +26,16 @@ export type ExtraOpts<T> = {
     start?: Partial<T>;
     finish?: Partial<T>;
 };
+
 export type FromToMotionPropFn<
     D,
-    N extends Node,
+    N extends Node<D>,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 > = (node: N, datum: D, state: NodeUpdateState, ctx: FromToMotionPropFnContext<N>) => T & Partial<ExtraOpts<N>>;
+
 export type ApplyFn<
-    N extends Node,
+    D,
+    N extends Node<D>,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 > = (note: N, props: T, status: 'start' | 'update' | 'end') => void;
 
@@ -56,7 +60,7 @@ export interface FromToFns<
 > {
     fromFn: FromToMotionPropFn<D, N, T>;
     toFn: FromToMotionPropFn<D, N, T>;
-    applyFn?: ApplyFn<N, T>;
+    applyFn?: ApplyFn<D, N, T>;
 }
 
 /**
@@ -85,7 +89,7 @@ export interface FromToFns<
  */
 export function fromToMotion<
     D,
-    N extends Node<any>,
+    N extends Node<D>,
     T extends Record<string, string | number | Interpolating | undefined> & Partial<N>,
 >(
     groupId: string,

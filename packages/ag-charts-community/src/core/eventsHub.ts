@@ -32,7 +32,6 @@ import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesType
 import type { UpdateOpts } from '../chart/updateService';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
-import type { Selection } from '../scene/selection';
 import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
@@ -209,8 +208,13 @@ export interface HighlightChangeEvent {
     readonly highlightInViewport: boolean;
 }
 
+interface NodeIterable {
+    [Symbol.iterator](): IterableIterator<{ node: Node<unknown> }>;
+    readonly length: number;
+}
+
 export interface HighlightSelectionUpdatedEvent {
-    readonly highlightSelection: Selection<Node<unknown>, unknown>;
+    readonly highlightSelection: NodeIterable;
 }
 
 export interface LayoutCompleteEvent {

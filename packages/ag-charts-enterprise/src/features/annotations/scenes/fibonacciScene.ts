@@ -252,7 +252,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         if (!textNode) {
             return false;
         }
-        const { text, ...coords } = textNode.datum.label;
+        const { text, ...coords } = textNode.unsafeNonNullDatum.label;
         textNode.setProperties({
             ...fontOptions,
             text,

@@ -317,7 +317,7 @@ export { PHASE_METADATA } from './motion/animation';
 export type { AnimationPhase, AnimationValue } from './motion/animation';
 export { resetMotion } from './motion/resetMotion';
 export { fromToMotion, NODE_UPDATE_STATE_TO_PHASE_MAPPING } from './motion/fromToMotion';
-export type { ApplyFn, FromToFns } from './motion/fromToMotion';
+export type { ExtraOpts, ApplyFn, FromToFns } from './motion/fromToMotion';
 export { pathMotion } from './motion/pathMotion';
 export { DOMManager } from './dom/domManager';
 export { DOMElementProxy } from './dom/domElementProxy';

@@ -9,7 +9,7 @@ import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
  * Consolidated type interface for CandlestickSeries.
  */
 interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
-    readonly node: CandlestickNode;
+    readonly node: CandlestickNode<OhlcNodeDatum>;
     readonly options: AgCandlestickSeriesOptions;
     readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
 }

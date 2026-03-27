@@ -23,7 +23,7 @@ const { Line } = _ModuleSupport;
  * Consolidated type interface for ConeFunnelSeries.
  */
 interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
-    readonly node: _ModuleSupport.Line;
+    readonly node: _ModuleSupport.Line<FunnelNodeDatum>;
     readonly options: AgConeFunnelSeriesOptions;
     readonly properties: ConeFunnelProperties;
 }

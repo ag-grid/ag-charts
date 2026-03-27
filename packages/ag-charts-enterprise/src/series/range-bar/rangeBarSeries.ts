@@ -1103,7 +1103,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;

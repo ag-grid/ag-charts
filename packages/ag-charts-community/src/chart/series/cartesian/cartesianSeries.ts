@@ -46,7 +46,7 @@ import type {
 } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { DatumIndexType, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
@@ -100,7 +100,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: Event,
         datum: SeriesNodeDatum<number>,
-        series: { id: string; properties: { xKey?: string; yKey?: string } }
+        series: ISeries<number, SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -181,12 +181,12 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         new SegmentedGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
-        new TranslatableGroup({ name: `${this.id}-series-labels` })
+        new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })
     );
     private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
     protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<Text<LabelOf<TTypes>>>(this.labelGroup, Text);
 
-    private highlightSelection = Selection.select<NodeOf<TTypes>>(this.highlightNodeGroup, () => this.nodeFactory());
+    private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(this.highlightNodeGroup, () => this.nodeFactory());
     protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>> > = Selection.select<Text<LabelOf<TTypes>>>(
         this.highlightLabelGroup,
         Text

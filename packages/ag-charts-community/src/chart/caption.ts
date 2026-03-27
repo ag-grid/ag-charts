@@ -24,7 +24,7 @@ import type { CaptionLike } from './captionLike';
 
 type CaptionNodeDatum = {
     visible: boolean;
-    text: string | undefined;
+    text: TextOrSegments | undefined;
     textBaseline: string;
     x: number;
     y: number;

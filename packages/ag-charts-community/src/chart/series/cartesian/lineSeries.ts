@@ -88,7 +88,7 @@ import { calculateSegments } from './util';
  * Defines all type parameters in one place for the series.
  */
 interface LineSeriesTypes extends CartesianSeriesTypes {
-    readonly node: Marker;
+    readonly node: Marker<LineNodeDatum>;
     readonly options: AgLineSeriesOptions;
     readonly properties: LineSeriesProperties;
     readonly datum: LineNodeDatum;

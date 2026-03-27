@@ -129,7 +129,7 @@ export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject 
     }
 }
 
-export class OhlcNode extends OhlcBaseNode {
+export class OhlcNode<D = unknown> extends OhlcBaseNode<D> {
     @DeclaredSceneChangeDetection()
     strokeAlignment: number = 0;
     declare __strokeAlignment: number;

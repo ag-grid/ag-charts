@@ -243,7 +243,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private phantomSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+    private phantomSelection: Selection<BarNodeDatum, BarShape<BarNodeDatum>> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
@@ -252,7 +252,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     readonly phantomHighlightGroup = this.highlightGroup.appendChild(
         new Group({ name: `${this.internalId}-highlight-node` })
     );
-    private phantomHighlightSelection: Selection<BarShape, BarNodeDatum> = Selection.select(
+    private phantomHighlightSelection: Selection<BarNodeDatum, BarShape<BarNodeDatum>> = Selection.select(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),
         false
@@ -1239,7 +1239,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected nodeFactory() {
-        return new BarShape();
+        return new BarShape<BarNodeDatum>();
     }
 
     protected override updateSeriesSelections() {
@@ -1253,7 +1253,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     protected override updateHighlightSelectionItem(opts: {
         items?: BarNodeDatum[];
-        highlightSelection: Selection<BarShape<BarNodeDatum>, BarNodeDatum>;
+        highlightSelection: Selection<BarNodeDatum, BarShape<BarNodeDatum>>;
     }) {
         const out = super.updateHighlightSelectionItem(opts);
 
@@ -1651,13 +1651,13 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     protected override resetDatumAnimation(
-        data: CartesianAnimationData<BarShape<BarNodeDatum>, BarNodeDatum, BarNodeDatum, BarSeriesNodeDataContext>
+        data: CartesianAnimationData<BarNodeDatum, BarShape<BarNodeDatum>, BarNodeDatum, BarSeriesNodeDataContext>
     ) {
         // Use direct reset for phantom selection to bypass resetMotion callback overhead
         resetBarSelectionsDirect([data.datumSelection, this.phantomSelection]);
     }
 
-    override animateReadyHighlight(data: Selection<BarShape<BarNodeDatum>, BarNodeDatum>) {
+    override animateReadyHighlight(data: Selection<BarNodeDatum, BarShape<BarNodeDatum>>) {
         // Use direct reset for phantom selection to bypass resetMotion callback overhead
         resetBarSelectionsDirect([data, this.phantomHighlightSelection]);
     }

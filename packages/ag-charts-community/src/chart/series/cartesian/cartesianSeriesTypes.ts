@@ -153,7 +153,7 @@ export interface CartesianSeriesPropertiesBase<T extends object> extends SeriesP
  */
 export interface CartesianSeriesTypes {
     /** Scene graph node type used for rendering data (e.g., Rect, Marker, Path) */
-    readonly node: Node<any>;
+    readonly node: Node<CartesianSeriesNodeDatum>;
     /** Series options type from ag-charts-types */
     readonly options: object;
     /** Series properties class extending CartesianSeriesPropertiesBase */
@@ -220,12 +220,12 @@ export type CreateNodeDataContextOf<T extends CartesianSeriesTypes> = T['createN
  * when you have a CartesianSeriesTypes interface.
  */
 export interface CartesianAnimationDataOf<TTypes extends CartesianSeriesTypes> {
-    datumSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
-    labelSelection: Selection<Text, LabelOf<TTypes>>;
-    annotationSelections: Selection<NodeWithOpacity, DatumOf<TTypes>>[];
+    datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
+    annotationSelections: Selection<DatumOf<TTypes>, NodeWithOpacity<DatumOf<TTypes>>>[];
     contextData: ContextOf<TTypes>;
     previousContextData?: ContextOf<TTypes>;
-    paths: Path[];
+    paths: Path<DatumOf<TTypes>>[];
     seriesRect?: BBox;
     duration?: number;
 }
@@ -233,9 +233,9 @@ export interface CartesianAnimationDataOf<TTypes extends CartesianSeriesTypes> {
 /**
  * Selection type for datum nodes derived from a CartesianSeriesTypes interface.
  */
-export type DatumSelectionOf<TTypes extends CartesianSeriesTypes> = Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
+export type DatumSelectionOf<TTypes extends CartesianSeriesTypes> = Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
 
 /**
  * Selection type for label nodes derived from a CartesianSeriesTypes interface.
  */
-export type LabelSelectionOf<TTypes extends CartesianSeriesTypes> = Selection<Text, LabelOf<TTypes>>;
+export type LabelSelectionOf<TTypes extends CartesianSeriesTypes> = Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;

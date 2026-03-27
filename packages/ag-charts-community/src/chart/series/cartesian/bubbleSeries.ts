@@ -134,7 +134,7 @@ interface BubbleSeriesNodeDataContext
  * Defines all type parameters in one place for the series.
  */
 interface BubbleSeriesTypes extends CartesianSeriesTypes {
-    readonly node: Marker;
+    readonly node: Marker<BubbleScatterNodeDatum>;
     readonly options: AgBubbleSeriesOptions;
     readonly properties: BubbleSeriesProperties;
     readonly datum: BubbleScatterNodeDatum;
@@ -1033,8 +1033,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     protected override updateLabelSelection(opts: {
         labelData: BubbleScatterNodeDatum[];
-        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
-    }): Selection<Text, BubbleScatterNodeDatum> {
+        labelSelection: Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>>;
+    }): Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>> {
         const { labelData, labelSelection } = opts;
         return labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;

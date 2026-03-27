@@ -158,7 +158,7 @@ export class SeriesNodeEvent<
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: { id: string }
+        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
@@ -305,11 +305,11 @@ export abstract class Series<
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group({ name: `${this.internalId}-highlight-node` })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node` })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
-        new Group({
+        new Group<TLabel>({
             name: `${this.internalId}-highlight-label`,
             zIndex: SeriesContentZIndexMap.LABEL,
         })
@@ -321,7 +321,7 @@ export abstract class Series<
     });
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup = new TranslatableGroup({
+    readonly labelGroup = new TranslatableGroup<TLabel>({
         name: `${this.internalId}-series-labels`,
     });
 

@@ -19,8 +19,9 @@ import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
 type NodeWithOpacity<D> = Node<D> & { opacity: number };
-type MarkerFadeInOptions<D> = Partial<ExtraOpts<NodeWithOpacity<D>>>;
+type MarkerFadeInOptions<D> = Partial<ExtraOpts<NodeWithDrawingMode<D>>>;
 type MarkerSwipeScaleInOptions<D> = Partial<ExtraOpts<NodeWithDrawingMode<D>>>;
+
 export function markerFadeInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,

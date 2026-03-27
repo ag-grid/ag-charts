@@ -1005,7 +1005,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     protected override updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text>;
+        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 

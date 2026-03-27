@@ -125,7 +125,7 @@ type AnimatableBarDatum = {
 type RectDatum = {
     crisp: boolean;
 };
-type BarRect = Rect<RectDatum>;
+type BarRect = Rect<AnimatableBarDatum & RectDatum>;
 
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
@@ -133,7 +133,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
 ) {
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
-    const fromFn: FromToMotionPropFn<T, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+    const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
         } else if (status === 'updated' && isRemoved(rect.unsafePreviousDatum)) {
@@ -187,7 +187,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
             };
         }
     };
-    const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+    const applyFn: ApplyFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         // Use aggressive bypass method that writes directly to backing fields
         rect.resetAnimationProperties(datum.x, datum.y, datum.width, datum.height, datum.opacity ?? 1, datum.clipBBox);
         rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);
