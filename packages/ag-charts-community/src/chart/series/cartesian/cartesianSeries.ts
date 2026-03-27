@@ -76,7 +76,10 @@ type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     animationResetFns?: {
         path?: (path: Path<DatumOf<TTypes>>) => Partial<Path<DatumOf<TTypes>>>;
         datum?: (node: NodeOf<TTypes>, datum: DatumOf<TTypes>) => AnimationValue & Partial<NodeOf<TTypes>>;
-        label?: (node: Text<LabelOf<TTypes>>, datum: LabelOf<TTypes>) => AnimationValue & Partial<Text<LabelOf<TTypes>>>;
+        label?: (
+            node: Text<LabelOf<TTypes>>,
+            datum: LabelOf<TTypes>
+        ) => AnimationValue & Partial<Text<LabelOf<TTypes>>>;
     };
 };
 
@@ -184,13 +187,17 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         new TranslatableGroup<LabelOf<TTypes>>({ name: `${this.id}-series-labels` })
     );
     private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
-    protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<Text<LabelOf<TTypes>>>(this.labelGroup, Text);
+    protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
+        Text<LabelOf<TTypes>>
+    >(this.labelGroup, Text);
 
-    private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(this.highlightNodeGroup, () => this.nodeFactory());
-    protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>> > = Selection.select<Text<LabelOf<TTypes>>>(
-        this.highlightLabelGroup,
-        Text
+    private highlightSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
     );
+    protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<
+        Text<LabelOf<TTypes>>
+    >(this.highlightLabelGroup, Text);
 
     public annotationSelections: Set<Selection<DatumOf<TTypes>, NodeWithOpacity<DatumOf<TTypes>>>> = new Set();
 
@@ -1633,7 +1640,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     protected updateLabelSelection(opts: {
         labelData: LabelOf<TTypes>[];
         labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
-    }): Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>> > {
+    }): Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> {
         return opts.labelSelection;
     }
 

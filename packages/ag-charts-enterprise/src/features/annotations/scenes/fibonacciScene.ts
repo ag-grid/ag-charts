@@ -11,7 +11,6 @@ import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 
-
 export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene<Datum> {
     protected readonly trendLine = new CollidableLine<never>();
     public text?: CollidableText<never>;
@@ -273,7 +272,8 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     protected updateText(datum: Datum, coords: Bounds4) {
         const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine<FibonacciRangeDatum>>(
-            FibonacciNodeTag.OneLine)[0];
+            FibonacciNodeTag.OneLine
+        )[0];
 
         if (!oneLine) {
             return;

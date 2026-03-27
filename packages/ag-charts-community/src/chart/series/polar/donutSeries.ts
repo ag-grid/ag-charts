@@ -182,11 +182,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         false
     );
     protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomHighlightSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> = Selection.select(
-        this.phantomHighlightGroup,
-        () => this.nodeFactory(),
-        false
-    );
+    private readonly phantomHighlightSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> =
+        Selection.select(this.phantomHighlightGroup, () => this.nodeFactory(), false);
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
     private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 

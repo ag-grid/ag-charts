@@ -676,7 +676,10 @@ export class MapMarkerSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<PlacedLabel<MapMarkerNodeLabelDatum>, _ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>;
+        labelSelection: _ModuleSupport.Selection<
+            PlacedLabel<MapMarkerNodeLabelDatum>,
+            _ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>
+        >;
         isHighlight: boolean;
     }) {
         const { properties } = this;

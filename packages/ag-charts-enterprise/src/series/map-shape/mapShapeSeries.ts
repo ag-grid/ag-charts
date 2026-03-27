@@ -98,17 +98,10 @@ export class MapShapeSeries
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(
-        this.itemGroup,
-        () => this.nodeFactory()
-    );
-    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(
-        this.itemLabelGroup,
-        Text
-    );
-    private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
+    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
     private highlightLabelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(
         this.highlightLabelGroup,

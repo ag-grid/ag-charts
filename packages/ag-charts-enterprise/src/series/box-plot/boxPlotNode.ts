@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
+
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const { Path, Scalable, ExtendedPath2D, BBox, clippedRoundRect: baseClippedRoundRect } = _ModuleSupport;

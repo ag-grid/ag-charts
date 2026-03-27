@@ -86,14 +86,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 
-    public datumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(
-        this.itemGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
-    private labelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
-        this.itemLabelGroup,
-        Text
-    );
+    private labelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(this.itemLabelGroup, Text);
     private stageLabelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
         this.stageLabelGroup,
         Text
@@ -102,9 +98,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.highlightLabelGroup,
         Text
     );
-    private highlightDatumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
+    private highlightDatumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
 
     public contextNodeData?: PyramidNodeDataContext;
@@ -598,7 +593,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateStageLabelSelection(opts: {
         stageLabelData: PyramidNodeLabelDatum[];
-        stageLabelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
+        stageLabelSelection: _ModuleSupport.Selection<
+            PyramidNodeLabelDatum,
+            _ModuleSupport.Text<PyramidNodeLabelDatum>
+        >;
     }) {
         return opts.stageLabelSelection.update(opts.stageLabelData);
     }

@@ -27,10 +27,7 @@ export function applyPyramidDatum(
 
 export function preparePyramidAnimationFunctions(direction: Direction) {
     type T = AnimatablePyramidDatum;
-    const fromFn: _ModuleSupport.FromToMotionPropFn<T, FunnelConnector<T>, T> = (
-        _connector,
-        datum
-    ) => {
+    const fromFn: _ModuleSupport.FromToMotionPropFn<T, FunnelConnector<T>, T> = (_connector, datum) => {
         const { x, y } = datum;
         let { top, right, bottom, left } = datum;
         if (direction === 'vertical') {

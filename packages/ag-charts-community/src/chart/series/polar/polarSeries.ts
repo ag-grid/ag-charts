@@ -90,11 +90,13 @@ export abstract class PolarSeries<
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(this.highlightNodeGroup, () =>
-        this.nodeFactory()
+    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
     );
-    protected highlightLabelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(this.highlightLabelGroup, () =>
-        this.labelFactory()
+    protected highlightLabelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
+        this.highlightLabelGroup,
+        () => this.labelFactory()
     );
 
     animationResetFns?: {

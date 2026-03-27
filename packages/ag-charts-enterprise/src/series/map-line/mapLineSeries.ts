@@ -74,17 +74,15 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(
-        this.contentGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
+        this.nodeFactory()
     );
     private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
         this.labelGroup,
         Text
     );
-    private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
     private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
         this.highlightLabelGroup,
@@ -549,7 +547,10 @@ export class MapLineSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<PlacedLabel<MapLineNodeLabelDatum>, _ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>;
+        labelSelection: _ModuleSupport.Selection<
+            PlacedLabel<MapLineNodeLabelDatum>,
+            _ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>
+        >;
         isHighlight: boolean;
     }) {
         const { properties } = this;

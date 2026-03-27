@@ -678,7 +678,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>; isHighlight?: boolean }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
+        isHighlight?: boolean;
+    }) {
         const labelEnabled = this.isLabelEnabled();
         const { isHighlight = false } = opts;
 

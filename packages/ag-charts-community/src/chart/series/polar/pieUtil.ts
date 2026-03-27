@@ -110,7 +110,7 @@ export function preparePieSeriesAnimationFunctions(
     };
 
     type D = { radius: number };
-    type T = { size: number, phase?: typeof phase };
+    type T = { size: number; phase?: typeof phase };
     const innerCircleFromFn: FromToMotionPropFn<D, Marker<D>, T> = (node, _) => {
         return { size: node.unsafePreviousDatum?.radius ?? node.size ?? 0, phase };
     };
