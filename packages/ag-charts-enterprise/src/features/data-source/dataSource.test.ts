@@ -65,6 +65,24 @@ const NUMERIC_OPTIONS: AgCartesianChartOptions = {
     series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
 };
 
+const CATEGORY_OPTIONS: AgCartesianChartOptions = {
+    ...BASE_OPTIONS,
+    axes: {
+        x: { type: 'category', position: 'bottom', crosshair: { enabled: false } },
+        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
+const GROUPED_CATEGORY_OPTIONS: AgCartesianChartOptions = {
+    ...BASE_OPTIONS,
+    axes: {
+        x: { type: 'grouped-category', position: 'bottom', crosshair: { enabled: false } },
+        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+    },
+    series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
+};
+
 describe('DataSource', () => {
     setupMockConsole();
 
@@ -235,6 +253,38 @@ describe('DataSource', () => {
                 { x: 7, y: 50 },
             ]);
             await prepareChart({ getData: () => response }, NUMERIC_OPTIONS);
+            await response;
+            await compare();
+        });
+    });
+
+    describe('category data', () => {
+        it('should load category data', async () => {
+            const response = delay(1).then(() => [
+                { x: 'one', y: 0 },
+                { x: 'two', y: 50 },
+                { x: 'three', y: 25 },
+                { x: 'four', y: 75 },
+                { x: 'five', y: 50 },
+                { x: 'six', y: 25 },
+                { x: 'seven', y: 50 },
+            ]);
+            await prepareChart({ getData: () => response }, CATEGORY_OPTIONS);
+            await response;
+            await compare();
+        });
+
+        it('should load grouped category data', async () => {
+            const response = delay(1).then(() => [
+                { x: ['alpha', 'one'], y: 0 },
+                { x: ['alpha', 'two'], y: 50 },
+                { x: ['alpha', 'three'], y: 25 },
+                { x: ['bravo', 'four'], y: 75 },
+                { x: ['charlie', 'five'], y: 50 },
+                { x: ['charlie', 'six'], y: 25 },
+                { x: ['delta', 'seven'], y: 50 },
+            ]);
+            await prepareChart({ getData: () => response }, GROUPED_CATEGORY_OPTIONS);
             await response;
             await compare();
         });
