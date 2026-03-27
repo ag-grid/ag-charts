@@ -260,7 +260,7 @@ if [[ -d "${worktree_dir}" ]]; then
         # Build the website in the worktree
         log "Building ag-charts-website in worktree (timeout: ${BUILD_TIMEOUT}s)..."
         cd "${worktree_dir}"
-        "${TIMEOUT_CMD[@]}" npx nx build ag-charts-website 2>&1 || {
+        ${TIMEOUT_CMD[@]+"${TIMEOUT_CMD[@]}"} npx nx build ag-charts-website 2>&1 || {
             soft_fail_or_exit "Failed to build website in worktree"
         }
         cd "$root"
