@@ -774,7 +774,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             data.push({
                 label: colorName,
                 fallbackLabel: colorKey!,
-                value: binLabel ?? content ?? formatValue(colorValue),
+                value: content ?? binLabel ?? formatValue(colorValue),
             });
         }
 

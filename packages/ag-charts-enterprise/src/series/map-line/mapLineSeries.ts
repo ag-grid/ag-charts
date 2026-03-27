@@ -816,7 +816,7 @@ export class MapLineSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey, value: binLabel ?? content ?? String(colorValue) });
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
         }
 
         const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);

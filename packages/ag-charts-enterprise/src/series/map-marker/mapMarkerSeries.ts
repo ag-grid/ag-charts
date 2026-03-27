@@ -1074,7 +1074,7 @@ export class MapMarkerSeries
                 colorValue,
                 formatValue
             );
-            data.push({ label: colorName, fallbackLabel: colorKey, value: binLabel ?? content ?? String(colorValue) });
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
         }
 
         let heading: string | undefined;

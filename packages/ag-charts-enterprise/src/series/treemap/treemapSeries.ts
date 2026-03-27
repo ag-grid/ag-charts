@@ -908,7 +908,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             data.push({
                 label: colorName,
                 fallbackLabel: colorKey!,
-                value: binLabel ?? content ?? formatValue(datumColor),
+                value: content ?? binLabel ?? formatValue(datumColor),
             });
         }
 
