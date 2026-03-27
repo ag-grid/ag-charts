@@ -212,6 +212,10 @@ kill_port $BASE_PORT
 
 logStarBox "Phase 1: HEAD benchmarks (${branch})"
 
+# Ensure examples are generated (dev server needs them for gallery/homepage)
+log "Generating examples..."
+npx nx generate-examples ag-charts-website 2>&1 || log "generate-examples failed (non-fatal, dev server may still work for benchmarks)"
+
 start_dev_server $HEAD_PORT "$root"
 HEAD_SERVER_PID=$_DEV_SERVER_PID
 run_benchmarks "http://localhost:$HEAD_PORT/charts" "$head_results" || {
