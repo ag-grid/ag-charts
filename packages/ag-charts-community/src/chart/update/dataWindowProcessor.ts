@@ -1,4 +1,4 @@
-import { ChartUpdateType, CleanupRegistry } from 'ag-charts-core';
+import { ChartAxisDirection, ChartUpdateType, CleanupRegistry } from 'ag-charts-core';
 import type { ZoomMinMax } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
@@ -65,7 +65,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private updateWindow(event: UpdateCompleteEvent) {
         if (!this.dataService.isLazy()) return;
 
-        const axis = this.getValidAxis();
+        const axis = this.chart.axes.find(({ direction }) => direction === ChartAxisDirection.X);
 
         let window;
         let shouldRefresh = true;
@@ -82,10 +82,6 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!shouldRefresh) return;
 
         this.dataService.load({ windowStart: window?.min, windowEnd: window?.max });
-    }
-
-    private getValidAxis() {
-        return this.chart.axes.find((axis) => axis.type === 'time');
     }
 
     private shouldRefresh(event: UpdateCompleteEvent, axis: AxisLike, zoom: ZoomMinMax) {
