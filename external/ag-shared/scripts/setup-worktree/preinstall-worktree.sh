@@ -90,18 +90,16 @@ get_cow_source() {
 }
 
 # ---------------------------------------------------------------------------
-# Prompts symlink fix (from setup-worktree.sh)
+# Broken symlink fix for worktrees
 # ---------------------------------------------------------------------------
-
-detect_project_name() {
-    local remote_url
-    remote_url=$(git -C "$REPO_ROOT" remote get-url origin 2>/dev/null || echo "")
-    if [[ -z "$remote_url" ]]; then
-        echo "ag-grid"
-        return
-    fi
-    echo "$remote_url" | sed -E 's|.*[:/]([^/]+)\.git$|\1|; s|.*[:/]([^/]+)$|\1|'
-}
+#
+# Relative symlinks in external/ (e.g. ../../ag-charts-prompts) resolve from
+# the main repo's parent directory. In a worktree at a different filesystem
+# path, these break because ../../ points to the wrong parent.
+#
+# Fix: for each broken symlink in external/, resolve the real target via the
+# main repo, then create a sibling symlink in the worktree's parent directory
+# so the same relative path resolves correctly.
 
 get_main_repo_root() {
     if [[ -f "$REPO_ROOT/.git" ]]; then
@@ -118,35 +116,82 @@ get_main_repo_root() {
     fi
 }
 
-fix_prompts_symlink() {
-    local project_name
-    project_name=$(detect_project_name)
-    local prompts_dir_name="${project_name}-prompts"
+fix_broken_external_symlinks() {
     local main_repo
     main_repo=$(get_main_repo_root)
-    local prompts_dir="$main_repo/../$prompts_dir_name"
 
-    if [[ ! -d "$prompts_dir" ]]; then
-        log_info "$prompts_dir_name not found at $prompts_dir, skipping symlink fix"
+    # Nothing to fix if we are the main repo
+    if [[ "$main_repo" == "$REPO_ROOT" ]]; then
         return 0
     fi
 
-    # Create symlink in worktree parent so relative paths work
-    local real_prompts parent_link
-    real_prompts=$(cd "$prompts_dir" && pwd)
-    parent_link="$(dirname "$REPO_ROOT")/$prompts_dir_name"
+    local worktree_parent
+    worktree_parent="$(dirname "$REPO_ROOT")"
 
-    if [[ ! -e "$parent_link" ]] || [[ "$(readlink "$parent_link" 2>/dev/null)" != "$real_prompts" ]]; then
-        log_info "Creating parent symlink: $parent_link -> $real_prompts"
-        ln -sf "$real_prompts" "$parent_link"
-    fi
+    local main_parent
+    main_parent="$(dirname "$main_repo")"
 
-    # Fix external/prompts symlink if it exists and is broken
-    if [[ -L "$REPO_ROOT/external/prompts" ]] && [[ ! -e "$REPO_ROOT/external/prompts" ]]; then
-        log_info "Fixing external/prompts symlink"
-        rm -f "$REPO_ROOT/external/prompts"
-        ln -sf "../../$prompts_dir_name" "$REPO_ROOT/external/prompts"
-    fi
+    # Scan external/ for broken symlinks
+    local link
+    for link in "$REPO_ROOT/external/"*; do
+        # Skip non-symlinks
+        [[ -L "$link" ]] || continue
+        # Skip symlinks that already resolve
+        [[ ! -e "$link" ]] || continue
+
+        local link_target
+        link_target=$(readlink "$link")
+        local link_name
+        link_name=$(basename "$link")
+
+        # Resolve the real target via the main repo
+        local main_link="$main_repo/external/$link_name"
+        if [[ ! -e "$main_link" ]]; then
+            log_info "Broken symlink $link_name: target does not exist in main repo either, skipping"
+            continue
+        fi
+
+        local real_target
+        real_target=$(cd "$main_repo/external" && cd "$(dirname "$link_target")" && pwd)/$(basename "$link_target")
+        # Strip trailing slash for directories
+        real_target="${real_target%/}"
+
+        if [[ ! -e "$real_target" ]]; then
+            log_info "Broken symlink $link_name: resolved target $real_target does not exist, skipping"
+            continue
+        fi
+
+        # The relative symlink is e.g. ../../some-dir — extract the target directory name
+        # that needs to exist as a sibling of the worktree
+        local relative_dir
+        relative_dir=$(basename "$real_target")
+
+        # If the symlink has intermediate path components (e.g. ../../ag-grid-documentation/docs/),
+        # we need the first component after ../../
+        local first_component
+        first_component=$(echo "$link_target" | sed -E 's|^\.\./\.\./||; s|/.*||')
+
+        local real_first_component_path="$main_parent/$first_component"
+        if [[ ! -e "$real_first_component_path" ]]; then
+            log_info "Broken symlink $link_name: source $real_first_component_path does not exist, skipping"
+            continue
+        fi
+
+        real_first_component_path=$(cd "$real_first_component_path" && pwd)
+
+        local parent_link="$worktree_parent/$first_component"
+        if [[ ! -e "$parent_link" ]] || [[ "$(readlink "$parent_link" 2>/dev/null)" != "$real_first_component_path" ]]; then
+            log_info "Creating parent symlink: $parent_link -> $real_first_component_path"
+            ln -sf "$real_first_component_path" "$parent_link"
+        fi
+
+        # Verify the original symlink now resolves
+        if [[ -e "$link" ]]; then
+            log_info "Fixed broken symlink: external/$link_name"
+        else
+            log_info "Parent symlink created but external/$link_name still broken, skipping"
+        fi
+    done
 }
 
 # ---------------------------------------------------------------------------
@@ -264,7 +309,7 @@ main() {
             exit 0
             ;;
         worktree)
-            fix_prompts_symlink || log_error "Failed to fix prompts symlink, continuing"
+            fix_broken_external_symlinks || log_error "Failed to fix external symlinks, continuing"
 
             local source
             source=$(get_cow_source)
@@ -279,7 +324,7 @@ main() {
             # Cloud mode may also be a worktree (e.g. AG_CLOUD_INSTALL=1 set
             # by claude-worktree-create.sh). Fix symlinks if so.
             if [[ -f "$REPO_ROOT/.git" ]]; then
-                fix_prompts_symlink || log_error "Failed to fix prompts symlink, continuing"
+                fix_broken_external_symlinks || log_error "Failed to fix external symlinks, continuing"
             fi
 
             local source
