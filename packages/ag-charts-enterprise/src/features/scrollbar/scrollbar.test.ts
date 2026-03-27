@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -317,4 +319,108 @@ describe('Scrollbar Placement with Multiple Axes', () => {
             }
         });
     }
+});
+
+const BAR_DATA = [
+    { category: 'A', value: 10 },
+    { category: 'B', value: 20 },
+    { category: 'C', value: 30 },
+    { category: 'D', value: 15 },
+    { category: 'E', value: 25 },
+    { category: 'F', value: 35 },
+    { category: 'G', value: 12 },
+    { category: 'H', value: 28 },
+];
+
+describe('Scrollbar visibility on barWidth change', () => {
+    setupMockConsole();
+
+    const ctx = setupMockCanvas();
+    let proxy: ReturnType<typeof AgCharts.create>;
+
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined as any;
+    });
+
+    // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
+    it('shows scrollbar after increasing barWidth beyond available space', async () => {
+        const options: AgCartesianChartOptions = {
+            container: document.body,
+            animation: { enabled: false },
+            width: 400,
+            height: 300,
+            data: BAR_DATA,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
+            scrollbar: { enabled: true },
+        };
+
+        proxy = AgCharts.create(options);
+        await waitForChartStability(proxy);
+
+        const chart = deproxy(proxy) as any;
+        const zoomBefore = chart.ctx.zoomManager.getZoom();
+        expect(zoomBefore?.x?.min).toBe(0);
+        expect(zoomBefore?.x?.max).toBe(1);
+
+        // Increase barWidth so total required width exceeds the chart width.
+        await proxy.update({
+            ...options,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
+        });
+        await waitForChartStability(proxy);
+
+        const zoomAfter = chart.ctx.zoomManager.getZoom();
+        expect(zoomAfter?.x?.max).toBeLessThan(1);
+
+        expect(extractImageData(ctx)).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-17008-scrollbar-after-barwidth-increase',
+        });
+    });
+
+    // AG-17008: Successive barWidth changes should each update the zoom correctly.
+    it('updates zoom on each successive barWidth change', async () => {
+        const options: AgCartesianChartOptions = {
+            container: document.body,
+            animation: { enabled: false },
+            width: 400,
+            height: 300,
+            data: BAR_DATA,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value' }],
+            scrollbar: { enabled: true },
+        };
+
+        proxy = AgCharts.create(options);
+        await waitForChartStability(proxy);
+
+        const chart = deproxy(proxy) as any;
+
+        // No fixed width → bars fit → no scrollbar.
+        const zoom0 = chart.ctx.zoomManager.getZoom();
+        expect(zoom0?.x?.max).toBe(1);
+
+        // First change: set width=10 → still fits.
+        await proxy.update({
+            ...options,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }],
+        });
+        await waitForChartStability(proxy);
+        const zoom1 = chart.ctx.zoomManager.getZoom();
+        expect(zoom1?.x?.max).toBe(1);
+
+        // Second change: set width=80 → overflows → scrollbar should appear.
+        await proxy.update({
+            ...options,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }],
+        });
+        await waitForChartStability(proxy);
+        const zoom2 = chart.ctx.zoomManager.getZoom();
+        expect(zoom2?.x?.max).toBeLessThan(1);
+
+        expect(extractImageData(ctx)).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-17008-scrollbar-successive-barwidth-changes',
+        });
+    });
 });
