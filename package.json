@@ -183,6 +183,7 @@
     "vitest/**/vite": "6.3.5",
     "@modelcontextprotocol/sdk": "1.26.0",
     "@nx/devkit/**/ejs": "3.1.10",
-    "@nx/devkit/**/ejs/jake": "10.9.4"
+    "@nx/devkit/**/ejs/jake": "10.9.4",
+    "@nx/devkit/**/brace-expansion": "2.0.2"
   }
 }
