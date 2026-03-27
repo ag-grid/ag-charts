@@ -155,13 +155,8 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         });
     }
 
-<<<<<<< HEAD
-    updateText(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
-=======
     updateText(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
->>>>>>> latest
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateChannelText(false, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
     }

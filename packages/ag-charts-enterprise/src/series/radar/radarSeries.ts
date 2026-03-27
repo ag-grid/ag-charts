@@ -421,14 +421,9 @@ export abstract class RadarSeries<
     }
 
     protected updateMarkers(
-<<<<<<< HEAD
-        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker>,
-        isHighlight: boolean
-=======
-        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean,
         drawingMode: AgDrawingMode
->>>>>>> latest
     ) {
         const fillBBox = this.getShapeFillBBox();
         const { contextNodeData } = this;

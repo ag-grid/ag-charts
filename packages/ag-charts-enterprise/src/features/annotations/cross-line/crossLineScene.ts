@@ -13,13 +13,7 @@ import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
-<<<<<<< HEAD
-const { ChartAxisDirection, Vec2, Vec4 } = _ModuleSupport;
-
 export class CrossLineScene extends AnnotationScene<never> {
-=======
-export class CrossLineScene extends AnnotationScene {
->>>>>>> latest
     static override is(value: unknown): value is CrossLineScene {
         return AnnotationScene.isCheck(value, 'cross-line');
     }
@@ -110,13 +104,8 @@ export class CrossLineScene extends AnnotationScene {
         middle.toggleLocked(locked ?? false);
     }
 
-<<<<<<< HEAD
-    private updateText(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
-=======
     private updateText(datum: CrossLineProperties, coords: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
->>>>>>> latest
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }

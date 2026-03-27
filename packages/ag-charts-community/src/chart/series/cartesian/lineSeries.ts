@@ -98,33 +98,10 @@ interface LineSeriesTypes extends CartesianSeriesTypes {
     readonly createNodeDataContext: LineSeriesDatumContext;
 }
 
-<<<<<<< HEAD
-type LineAnimationData = CartesianAnimationData<
-    LineNodeDatum,
-    Marker<LineNodeDatum>,
-    LineNodeDatum,
-    LineSeriesNodeDataContext
->;
-
-type SpanPoints = Array<LineSpanPointDatum[] | { skip: number }>;
-
-const memoizedAggregateLineData = simpleMemorize2(aggregateLineData);
-
-export class LineSeries extends CartesianSeries<
-    LineNodeDatum,
-    Marker<LineNodeDatum>,
-    AgLineSeriesOptions,
-    LineSeriesProperties,
-    LineNodeDatum,
-    LineSeriesNodeDataContext
-> {
-    static readonly className = 'LineSeries';
-=======
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
 export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
->>>>>>> latest
     static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();

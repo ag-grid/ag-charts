@@ -17,25 +17,16 @@ import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
-<<<<<<< HEAD
+type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
 type NodeWithOpacity<D> = Node<D> & { opacity: number };
+type MarkerFadeInOptions<D> = Partial<ExtraOpts<NodeWithOpacity<D>>>;
+type MarkerSwipeScaleInOptions<D> = Partial<ExtraOpts<NodeWithDrawingMode<D>>>;
 export function markerFadeInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
     status?: NodeUpdateState,
+    options?: MarkerFadeInOptions<D>,
     ...markerSelections: Selection<D, NodeWithOpacity<D>>[]
-=======
-type NodeWithDrawingMode = Node & { drawingMode?: AgDrawingMode };
-type NodeWithOpacity = NodeWithDrawingMode & { opacity: number };
-type MarkerFadeInOptions = Partial<ExtraOpts<NodeWithOpacity>>;
-type MarkerSwipeScaleInOptions = Partial<ExtraOpts<NodeWithDrawingMode>>;
-export function markerFadeInAnimation<T>(
-    { id }: { id: string },
-    animationManager: AnimationManager,
-    status?: NodeUpdateState,
-    options?: MarkerFadeInOptions,
-    ...markerSelections: Selection<NodeWithOpacity, T>[]
->>>>>>> latest
 ) {
     const params = {
         ...options,
@@ -69,12 +60,8 @@ export function markerScaleInAnimation<D>(
 export function markerSwipeScaleInAnimation<D extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-<<<<<<< HEAD
-    ...markerSelections: Selection<D, Node<D>>[]
-=======
-    options?: MarkerSwipeScaleInOptions,
-    ...markerSelections: Selection<NodeWithDrawingMode, T>[]
->>>>>>> latest
+    options?: MarkerSwipeScaleInOptions<D>,
+    ...markerSelections: Selection<D, NodeWithDrawingMode<D>>[]
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
     const fromFn = (_: Node, datum: D) => {
@@ -109,9 +96,6 @@ export function resetMarkerFn(_node: NodeWithOpacity<unknown>) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
-<<<<<<< HEAD
-export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
-=======
 /**
  * Optimised reset for marker selections that bypasses resetMotion callback overhead.
  * Uses direct backing field writes via Marker.resetAnimationProperties().
@@ -141,8 +125,7 @@ export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
     }
 }
 
-export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
->>>>>>> latest
+export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
     return {
         x: datum.point?.x ?? Number.NaN,
         y: datum.point?.y ?? Number.NaN,

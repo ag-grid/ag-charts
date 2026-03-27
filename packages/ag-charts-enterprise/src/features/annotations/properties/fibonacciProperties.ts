@@ -4,13 +4,7 @@ import { LabelTextProperties } from '../annotationProperties';
 import type { AnnotationOptionsColorPickerType, FibonacciBands } from '../annotationTypes';
 import { LineTypeProperties } from '../line/lineProperties';
 
-<<<<<<< HEAD
-const { Property } = _ModuleSupport;
-
 export abstract class FibonacciProperties extends LineTypeProperties {
-=======
-export class FibonacciProperties extends LineTypeProperties {
->>>>>>> latest
     @Property
     label = new LabelTextProperties();
 

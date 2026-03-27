@@ -16,31 +16,17 @@ export function resetMotion<D, N extends Node<D>, T extends Partial<N>>(
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
 
     for (const selection of selections) {
-<<<<<<< HEAD
-        for (const node of selection.nodes()) {
-            const from = propsFn(node, node.unsafeDatum);
-
-            node.setProperties(from);
-        }
-
-        selection.cleanup();
-    }
-    for (const node of nodes) {
-        const from = propsFn(node, node.unsafeDatum);
-
-=======
         const selectionNodes = selection.nodes();
         selection.batchedUpdate(function resetMotionNodes() {
             for (const node of selectionNodes) {
-                const from = propsFn(node, node.datum);
+                const from = propsFn(node, node.unsafeDatum);
                 node.setProperties(from);
             }
             selection.cleanup();
         });
     }
     for (const node of nodes) {
-        const from = propsFn(node, node.datum);
->>>>>>> latest
+        const from = propsFn(node, node.unsafeDatum);
         node.setProperties(from);
     }
 }

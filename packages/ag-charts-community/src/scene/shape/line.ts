@@ -6,13 +6,8 @@ import type { NodeOptions, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
-<<<<<<< HEAD
 export class Line<D = unknown> extends Shape<D> implements DistantObject {
-    static readonly className = 'Line';
-=======
-export class Line extends Shape implements DistantObject {
     static override readonly className = 'Line';
->>>>>>> latest
 
     constructor(opts: NodeOptions = {}) {
         super(opts);

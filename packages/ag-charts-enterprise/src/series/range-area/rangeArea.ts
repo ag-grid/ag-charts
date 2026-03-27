@@ -1015,12 +1015,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected updateLabelNodes(opts: {
-<<<<<<< HEAD
-        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text>;
-=======
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RangeAreaLabelDatum, _ModuleSupport.Text<RangeAreaLabelDatum>>;
         isHighlight?: boolean;
->>>>>>> latest
     }) {
         const params: RequireOptional<AgRangeAreaSeriesLabelFormatterParams> = {
             xKey: this.properties.xKey,

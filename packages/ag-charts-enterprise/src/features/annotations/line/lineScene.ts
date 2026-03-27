@@ -69,13 +69,8 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         });
     }
 
-<<<<<<< HEAD
-    private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
-        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
-=======
     private updateText(datum: LineTypeProperties, coords: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
->>>>>>> latest
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }
 

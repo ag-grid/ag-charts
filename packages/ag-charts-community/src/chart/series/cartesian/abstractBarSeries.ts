@@ -48,47 +48,23 @@ export interface AbstractBarSeriesNodeDataContext<
     groupScale: Scaling | undefined;
 }
 
-<<<<<<< HEAD
-export type AbstractBarSeriesAnimationData<
-    TDatum extends CartesianSeriesNodeDatum,
-    TNode extends QuadtreeCompatibleNode<TDatum>,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-> = CartesianAnimationData<TDatum, TNode, TLabel, AbstractBarSeriesNodeDataContext<TDatum, TLabel>>;
-
-export abstract class AbstractBarSeries<
-    TDatum extends CartesianSeriesNodeDatum,
-    TNode extends QuadtreeCompatibleNode<TDatum>,
-    TOpts extends object,
-    TProps extends AbstractBarSeriesProperties<TOpts>,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends AbstractBarSeriesNodeDataContext<TDatum, TLabel> = AbstractBarSeriesNodeDataContext<
-        TDatum,
-        TLabel
-    >,
-> extends CartesianSeries<TDatum, TNode, TOpts, TProps, TLabel, TContext> {
-    /**
-     * Used to get the position of bars within each group.
-     */
-    protected groupScale = new CategoryScale<string>();
-=======
 /**
  * Type constraint for series extending AbstractBarSeries.
  * The node type must be compatible with quadtree hit testing.
  * The properties type must include direction for bar orientation.
  */
 export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
-    readonly node: QuadtreeCompatibleNode;
+    readonly node: QuadtreeCompatibleNode<this['datum']>;
     readonly properties: AbstractBarSeriesProperties<this['options']>;
     readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
 }
 
 export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes> = CartesianAnimationData<
-    NodeOf<TTypes>,
     DatumOf<TTypes>,
+    NodeOf<TTypes>,
     LabelOf<TTypes>,
     ContextOf<TTypes>
 >;
->>>>>>> latest
 
 export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> extends CartesianSeries<TTypes> {
     protected smallestDataInterval?: number = undefined;

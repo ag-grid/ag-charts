@@ -189,14 +189,9 @@ interface PathAnimation {
 
 export function prepareLinePathPropertyAnimation(
     status: NodeUpdateState,
-<<<<<<< HEAD
-    visibleToggleMode: 'fade' | 'none'
-): FromToFns<unknown, Path<unknown>, any> {
-=======
     visibleToggleMode: 'fade' | 'none',
     targetOpacity: number = 1
-): FromToFns<Path, any, unknown> {
->>>>>>> latest
+): FromToFns<unknown, Path<unknown>, any> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {

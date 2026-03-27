@@ -17,13 +17,8 @@ import type { Pagination } from '../pagination/pagination';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
-<<<<<<< HEAD
 type ItemSelection = Selection<CategoryLegendDatum, LegendMarkerLabel>;
-type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
-=======
-type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): TextOrSegments | undefined };
->>>>>>> latest
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget): void;
@@ -98,13 +93,8 @@ export class LegendDOMProxy {
             markerLabel.proxyButton?.destroy();
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
-<<<<<<< HEAD
-                textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
-                ariaChecked: !!markerLabel.datum!.enabled,
-=======
                 textContent: this.getItemAriaText(lm, toPlainText(datumReader.getItemLabel(datum)), index, count),
-                ariaChecked: !!markerLabel.datum.enabled,
->>>>>>> latest
+                ariaChecked: !!markerLabel.unsafeNonNullDatum.enabled,
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
             });

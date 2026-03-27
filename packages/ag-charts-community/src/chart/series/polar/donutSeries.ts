@@ -175,13 +175,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-<<<<<<< HEAD
-    protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
-    private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
-=======
     protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
->>>>>>> latest
+    private readonly phantomSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
@@ -1121,15 +1116,10 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
-<<<<<<< HEAD
-        this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine).forEach((line) => {
-            const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
-=======
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
-            const datum = line.closestDatum() as PieDonutNodeDatum;
+            const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
->>>>>>> latest
             const { length: calloutLength, strokeWidth, color, colors } = this.getCalloutLineStyle(datum, false);
             const calloutStrokeWidth = strokeWidth;
             const calloutColors: string[] = isStringFillArray(colors) ? colors : strokes;
@@ -1374,13 +1364,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
-<<<<<<< HEAD
-        this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel).forEach((text) => {
-            const datum = text.unsafeClosestDatum();
-=======
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
-            const datum: PieDonutNodeDatum = text.closestDatum();
->>>>>>> latest
+            const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);

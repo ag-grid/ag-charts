@@ -77,20 +77,13 @@ export class MapLineSeries
     public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
         this.nodeFactory()
     );
-<<<<<<< HEAD
-    private labelSelection = Selection.select<_ModuleSupport.Text<_ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>>>(
+    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
         this.labelGroup,
         Text
     );
-    private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.highlightGroup, () =>
-        this.nodeFactory()
-=======
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
-        Selection.select(this.labelGroup, Text);
-    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(
         this.highlightNodeGroup,
         () => this.nodeFactory()
->>>>>>> latest
     );
     private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
         Selection.select(this.highlightLabelGroup, Text);
@@ -549,20 +542,12 @@ export class MapLineSeries
         this.updateHighlightLabelSelection();
     }
 
-<<<<<<< HEAD
-    private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>,
-            _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
-        >;
-=======
     private updateLabelNodes({
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>>;
+        labelSelection: _ModuleSupport.Selection<PlacedLabel<MapLineNodeLabelDatum>, _ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>;
         isHighlight: boolean;
->>>>>>> latest
     }) {
         const { properties } = this;
         const activeHighlight = this.getHighlightedDatum();

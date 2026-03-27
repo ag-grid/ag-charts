@@ -113,34 +113,26 @@ export class MapMarkerSeries
 
     private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
-<<<<<<< HEAD
-    private labelSelection = Selection.select<
-        _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
-    >(this.labelGroup, Text, false);
+    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
+        this.labelGroup,
+        Text,
+        false
+    );
+    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>(
+        this.highlightLabelGroup,
+        Text,
+        false
+    );
     private markerSelection = Selection.select<_ModuleSupport.Marker<MapMarkerNodeDatum>>(
-=======
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapMarkerNodeLabelDatum>> =
-        Selection.select(this.labelGroup, Text, false);
-    private highlightLabelSelection: _ModuleSupport.Selection<
-        _ModuleSupport.Text,
-        PlacedLabel<MapMarkerNodeLabelDatum>
-    > = Selection.select(this.highlightLabelGroup, Text, false);
-    private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
->>>>>>> latest
         this.markerGroup,
         Marker,
         false
     );
-<<<<<<< HEAD
     private highlightMarkerSelection = Selection.select<_ModuleSupport.Marker<MapMarkerNodeDatum>>(
-        this.highlightGroup,
+        this.highlightNodeGroup,
         Marker
     );
-=======
-    private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightNodeGroup, Marker);
     private placedLabelData: PlacedLabel<MapMarkerNodeLabelDatum>[] = [];
->>>>>>> latest
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -680,20 +672,12 @@ export class MapMarkerSeries
         this.updateHighlightLabelSelection();
     }
 
-<<<<<<< HEAD
-    private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>,
-            _ModuleSupport.Text<_ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>>
-        >;
-=======
     private updateLabelNodes({
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapMarkerNodeLabelDatum>>;
+        labelSelection: _ModuleSupport.Selection<PlacedLabel<MapMarkerNodeLabelDatum>, _ModuleSupport.Text<PlacedLabel<MapMarkerNodeLabelDatum>>>;
         isHighlight: boolean;
->>>>>>> latest
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

@@ -4,13 +4,8 @@ import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 
 const { Path, BBox } = _ModuleSupport;
 
-<<<<<<< HEAD
-export class OhlcBaseNode<D = unknown> extends Path<D> implements _ModuleSupport.DistantObject {
-    @SceneChangeDetection()
-=======
-export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
+export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject {
     @DeclaredSceneChangeDetection()
->>>>>>> latest
     centerX: number = 0;
     declare __centerX: number;
 

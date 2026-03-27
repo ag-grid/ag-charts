@@ -11,17 +11,10 @@ import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 
-<<<<<<< HEAD
-const { Vec2, Vec4 } = _ModuleSupport;
 
 export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene<Datum> {
     protected readonly trendLine = new CollidableLine<never>();
     public text?: CollidableText<never>;
-=======
-export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene {
-    protected readonly trendLine = new CollidableLine();
-    public text?: CollidableText;
->>>>>>> latest
 
     private readonly rangeFillsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
         name: `${this.id}-range-fills`,
@@ -108,11 +101,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         return linePoints;
     }
 
-<<<<<<< HEAD
-    protected updateLine(datum: Datum, coords?: _ModuleSupport.Vec4, line?: CollidableLine<never>) {
-=======
-    protected updateLine(datum: Datum, coords?: Bounds4, line?: CollidableLine) {
->>>>>>> latest
+    protected updateLine(datum: Datum, coords?: Bounds4, line?: CollidableLine<never>) {
         if (!coords || !line) {
             return;
         }
@@ -256,18 +245,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private checkWithinBounds(
         xAxis: AnnotationAxisContext,
-<<<<<<< HEAD
-        fontOptions: FontOptions,
-        textNode?: CollidableText<FibonacciRangeDatum>
-    ) {
-        if (!textNode?.datum) {
-=======
         fontOptions: TextOptions,
         isRtl: boolean,
-        textNode?: CollidableText
+        textNode?: CollidableText<FibonacciRangeDatum>
     ) {
         if (!textNode) {
->>>>>>> latest
             return false;
         }
         const { text, ...coords } = textNode.datum.label;
@@ -289,15 +271,9 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         return labelLeft >= boundsLeft && labelRight <= boundsRight;
     }
 
-<<<<<<< HEAD
-    protected updateText(datum: Datum, coords: _ModuleSupport.Vec4) {
-        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine<FibonacciRangeDatum>>(
-            FibonacciNodeTag.OneLine
-        )[0];
-=======
     protected updateText(datum: Datum, coords: Bounds4) {
-        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine>(FibonacciNodeTag.OneLine)[0];
->>>>>>> latest
+        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine<FibonacciRangeDatum>>(
+            FibonacciNodeTag.OneLine)[0];
 
         if (!oneLine) {
             return;

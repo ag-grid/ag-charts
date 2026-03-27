@@ -126,22 +126,14 @@ type RectDatum = {
     crisp: boolean;
 };
 type BarRect = Rect<RectDatum>;
-<<<<<<< HEAD
-export function prepareBarAnimationFunctions(
-    initPos: InitialPosition<AnimatableBarDatum>,
-    unknownStatus: NodeUpdateState
-) {
-    const isRemoved = (datum?: AnimatableBarDatum) => datum == null || isNaN(datum.x) || isNaN(datum.y);
-=======
 
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
     unknownStatus: NodeUpdateState
 ) {
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
->>>>>>> latest
 
-    const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+    const fromFn: FromToMotionPropFn<T, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
         } else if (status === 'updated' && isRemoved(rect.unsafePreviousDatum)) {

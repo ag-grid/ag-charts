@@ -6,13 +6,8 @@ import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
 import { Shape } from './shape';
 
-<<<<<<< HEAD
 export class Path<D = unknown> extends Shape<D> implements DistantObject {
-    static readonly className: string = 'Path';
-=======
-export class Path<D = any> extends Shape<D> implements DistantObject {
     static override readonly className: string = 'Path';
->>>>>>> latest
 
     /**
      * Declare a path to retain for later rendering and hit testing

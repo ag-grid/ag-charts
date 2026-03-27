@@ -192,19 +192,13 @@ export class Selection<TDatum, TChild extends Node<TDatum>> {
     }
 
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
-<<<<<<< HEAD
-        for (const entry of this._nodes.entries()) {
-            const datum = entry[1].datum!;
-            iterate(entry[1], datum, entry[0]);
-        }
-=======
         const nodes = this._nodes;
         this.parentNode.batchedUpdate(function selectionEach() {
             for (const entry of nodes.entries()) {
-                iterate(entry[1], entry[1].datum, entry[0]);
+                const datum = entry[1].datum!;
+                iterate(entry[1], datum, entry[0]);
             }
         });
->>>>>>> latest
         return this;
     }
 

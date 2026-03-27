@@ -74,15 +74,9 @@ type CartesianSeriesOpts<TTypes extends CartesianSeriesTypes> = {
     animationAlwaysPopulateNodeData: boolean;
     segmentedDataNodes: boolean;
     animationResetFns?: {
-<<<<<<< HEAD
-        path?: (path: Path<TDatum>) => Partial<Path<TDatum>>;
-        datum?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
-        label?: (node: Text<TLabel>, datum: TLabel) => AnimationValue & Partial<Text<TLabel>>;
-=======
         path?: (path: Path<DatumOf<TTypes>>) => Partial<Path<DatumOf<TTypes>>>;
         datum?: (node: NodeOf<TTypes>, datum: DatumOf<TTypes>) => AnimationValue & Partial<NodeOf<TTypes>>;
-        label?: (node: Text, datum: LabelOf<TTypes>) => AnimationValue & Partial<Text>;
->>>>>>> latest
+        label?: (node: Text<LabelOf<TTypes>>, datum: LabelOf<TTypes>) => AnimationValue & Partial<Text<LabelOf<TTypes>>>;
     };
 };
 
@@ -115,26 +109,12 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
 }
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
-<<<<<<< HEAD
-type CartesianAnimationEvent<
-    TDatum extends CartesianSeriesNodeDatum,
-    TNode extends Node<TDatum>,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-> = {
-    update: CartesianAnimationData<TDatum, TNode, TLabel, TContext>;
-    updateData: undefined;
-    highlight: Selection<TDatum, TNode>;
-    resize: CartesianAnimationData<TDatum, TNode, TLabel, TContext>;
-    clear: CartesianAnimationData<TDatum, TNode, TLabel, TContext>;
-=======
 type CartesianAnimationEvent<TTypes extends CartesianSeriesTypes> = {
-    update: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
+    update: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     updateData: undefined;
-    highlight: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
-    resize: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
-    clear: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
->>>>>>> latest
+    highlight: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    resize: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
+    clear: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>;
     reset: undefined;
     skip: undefined;
     disable: undefined;
@@ -178,18 +158,6 @@ export abstract class CartesianSeriesProperties<T extends object>
 
 export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 100;
 
-<<<<<<< HEAD
-export abstract class CartesianSeries<
-    TDatum extends CartesianSeriesNodeDatum,
-    TNode extends Node<TDatum>,
-    TOpts extends object,
-    TProps extends CartesianSeriesProperties<TOpts>,
-    TLabel extends SeriesNodeDatum<number> = TDatum,
-    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
-    TStackContext = never,
-> extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
-    private _contextNodeData?: TContext;
-=======
 export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> extends DataModelSeries<
     DatumOf<TTypes>,
     OptionsOf<TTypes>,
@@ -198,7 +166,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     ContextOf<TTypes>
 > {
     private _contextNodeData?: ContextOf<TTypes>;
->>>>>>> latest
     get contextNodeData() {
         return this._contextNodeData;
     }
@@ -216,27 +183,16 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({ name: `${this.id}-series-labels` })
     );
-<<<<<<< HEAD
-    private datumSelection: Selection<TDatum, TNode>;
-    protected labelSelection = Selection.select<Text<TLabel>>(this.labelGroup, Text);
+    private datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    protected labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>> = Selection.select<Text<LabelOf<TTypes>>>(this.labelGroup, Text);
 
-    private highlightSelection = Selection.selectNoInference<TDatum, TNode>(this.highlightGroup, () =>
-        this.nodeFactory()
-    );
-
-    public annotationSelections: Set<Selection<TDatum, NodeWithOpacity<TDatum>>> = new Set();
-=======
-    private datumSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
-    protected labelSelection: Selection<Text, LabelOf<TTypes>> = Selection.select(this.labelGroup, Text);
-
-    private highlightSelection = Selection.select(this.highlightNodeGroup, () => this.nodeFactory());
-    protected highlightLabelSelection: Selection<Text, LabelOf<TTypes>> = Selection.select(
+    private highlightSelection = Selection.select<NodeOf<TTypes>>(this.highlightNodeGroup, () => this.nodeFactory());
+    protected highlightLabelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>> > = Selection.select<Text<LabelOf<TTypes>>>(
         this.highlightLabelGroup,
         Text
     );
 
-    public annotationSelections: Set<Selection<NodeWithOpacity, DatumOf<TTypes>>> = new Set();
->>>>>>> latest
+    public annotationSelections: Set<Selection<DatumOf<TTypes>, NodeWithOpacity<DatumOf<TTypes>>>> = new Set();
 
     public seriesBelowStackContext: StackContextOf<TTypes> | undefined = undefined;
 
@@ -245,14 +201,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected quadtree?: QuadtreeNearest<DatumOf<TTypes>>;
 
-<<<<<<< HEAD
-    protected animationState: StateMachine<
-        CartesianAnimationState,
-        CartesianAnimationEvent<TDatum, TNode, TLabel, TContext>
-    >;
-=======
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent<TTypes>>;
->>>>>>> latest
 
     constructor({
         pathsPerSeries = ['path'],
@@ -293,20 +242,13 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             return new SegmentedPath({ name: `${this.id}-${path}` });
         });
 
-        this.datumSelection = Selection.selectNoInference<TDatum, TNode>(
+        this.datumSelection = Selection.selectNoInference<DatumOf<TTypes>, NodeOf<TTypes>>(
             this.dataNodeGroup,
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
         );
 
-<<<<<<< HEAD
-        this.animationState = new StateMachine<
-            CartesianAnimationState,
-            CartesianAnimationEvent<TDatum, TNode, TLabel, TContext>
-        >(
-=======
         this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent<TTypes>>(
->>>>>>> latest
             'empty',
             {
                 empty: {
@@ -1532,15 +1474,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateHighlightSelectionItem(opts: {
-<<<<<<< HEAD
-        items?: TDatum[];
-        highlightSelection: Selection<TDatum, TNode>;
-    }): Selection<TDatum, TNode> {
-=======
         items?: DatumOf<TTypes>[];
-        highlightSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
-    }): Selection<NodeOf<TTypes>, DatumOf<TTypes>> {
->>>>>>> latest
+        highlightSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    }): Selection<DatumOf<TTypes>, NodeOf<TTypes>> {
         const { items, highlightSelection } = opts;
         const nodeData = items ?? [];
 
@@ -1551,27 +1487,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateDatumSelection(opts: {
-<<<<<<< HEAD
-        nodeData: TDatum[];
-        datumSelection: Selection<TDatum, TNode>;
-    }): Selection<TDatum, TNode> {
-        // Override point for sub-classes.
-        return opts.datumSelection;
-    }
-    protected updateDatumNodes(_opts: { datumSelection: Selection<TDatum, TNode>; isHighlight: boolean }): void {
-        // Override point for sub-classes.
-    }
-
-    protected updateDatumStyles(_opts: { datumSelection: Selection<TDatum, TNode>; isHighlight: boolean }): void {
-=======
         nodeData: DatumOf<TTypes>[];
-        datumSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
-    }): Selection<NodeOf<TTypes>, DatumOf<TTypes>> {
+        datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
+    }): Selection<DatumOf<TTypes>, NodeOf<TTypes>> {
         // Override point for sub-classes.
         return opts.datumSelection;
     }
     protected updateDatumNodes(_opts: {
-        datumSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
+        datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }): void {
@@ -1579,10 +1502,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateDatumStyles(_opts: {
-        datumSelection: Selection<NodeOf<TTypes>, DatumOf<TTypes>>;
+        datumSelection: Selection<DatumOf<TTypes>, NodeOf<TTypes>>;
         isHighlight: boolean;
     }): void {
->>>>>>> latest
         // Override point for sub-classes.
     }
 
@@ -1605,13 +1527,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-<<<<<<< HEAD
-    protected resetPathAnimation(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected resetPathAnimation(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         const { path } = this.opts?.animationResetFns ?? {};
 
         if (path) {
@@ -1621,13 +1539,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-<<<<<<< HEAD
-    protected resetDatumAnimation(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected resetDatumAnimation(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         const { datum } = this.opts?.animationResetFns ?? {};
 
         if (datum) {
@@ -1635,13 +1549,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-<<<<<<< HEAD
-    protected resetLabelAnimation(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected resetLabelAnimation(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         const { label } = this.opts?.animationResetFns ?? {};
 
         if (label) {
@@ -1649,13 +1559,9 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-<<<<<<< HEAD
-    protected resetAllAnimation(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected resetAllAnimation(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         // Stop any running animations by prefix convention.
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
@@ -1668,56 +1574,36 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-<<<<<<< HEAD
-    protected animateEmptyUpdateReady(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected animateEmptyUpdateReady(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
-<<<<<<< HEAD
-    protected animateWaitingUpdateReady(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected animateWaitingUpdateReady(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
 
-<<<<<<< HEAD
-    protected animateReadyHighlight(data: Selection<TDatum, TNode>) {
-=======
-    protected animateReadyHighlight(data: Selection<NodeOf<TTypes>, DatumOf<TTypes>>) {
->>>>>>> latest
+    protected animateReadyHighlight(data: Selection<DatumOf<TTypes>, NodeOf<TTypes>>) {
         const { datum } = this.opts?.animationResetFns ?? {};
         if (datum) {
             resetMotion([data], datum);
         }
     }
 
-<<<<<<< HEAD
-    protected animateReadyResize(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-        this.resetAllAnimation(data);
-    }
-
-    protected animateClearingUpdateEmpty(data: CartesianAnimationData<TDatum, TNode, TLabel, TContext>) {
-=======
     protected animateReadyResize(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
         this.resetAllAnimation(data);
     }
 
     protected animateClearingUpdateEmpty(
-        data: CartesianAnimationData<NodeOf<TTypes>, DatumOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
+        data: CartesianAnimationData<DatumOf<TTypes>, NodeOf<TTypes>, LabelOf<TTypes>, ContextOf<TTypes>>
     ) {
->>>>>>> latest
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
     }
@@ -1726,16 +1612,12 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const { _contextNodeData: contextData } = this;
         if (!contextData) return;
 
-<<<<<<< HEAD
-        const animationData: CartesianAnimationData<TDatum, TNode, TLabel, TContext> = {
-=======
         const animationData: CartesianAnimationData<
-            NodeOf<TTypes>,
             DatumOf<TTypes>,
+            NodeOf<TTypes>,
             LabelOf<TTypes>,
             ContextOf<TTypes>
         > = {
->>>>>>> latest
             datumSelection: this.datumSelection,
             labelSelection: this.labelSelection,
             annotationSelections: [...this.annotationSelections],
@@ -1749,24 +1631,14 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     }
 
     protected updateLabelSelection(opts: {
-<<<<<<< HEAD
-        labelData: TLabel[];
-        labelSelection: Selection<TLabel, Text<TLabel>>;
-    }): Selection<TLabel, Text<TLabel>> {
-=======
         labelData: LabelOf<TTypes>[];
-        labelSelection: Selection<Text, LabelOf<TTypes>>;
-    }): Selection<Text, LabelOf<TTypes>> {
->>>>>>> latest
+        labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
+    }): Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>> > {
         return opts.labelSelection;
     }
 
     protected abstract updateLabelNodes(opts: {
-<<<<<<< HEAD
-        labelSelection: Selection<TLabel, Text<TLabel>>;
-=======
-        labelSelection: Selection<Text, LabelOf<TTypes>>;
->>>>>>> latest
+        labelSelection: Selection<LabelOf<TTypes>, Text<LabelOf<TTypes>>>;
         isHighlight?: boolean;
     }): void;
 

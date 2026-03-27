@@ -244,20 +244,11 @@ export function formatLinearGaugeLabels(
         if (labelText == null) {
             return;
         } else if (boundingWidth != null && boundingHeight != null) {
-<<<<<<< HEAD
             const width: number = boundingWidth;
             const height: number = boundingHeight;
             const sizeFittingHeight = () => ({ width, height, meta: null });
-            const labelMeta = formatSingleLabel(labelText, labelDatum, { padding }, sizeFittingHeight);
-=======
-            const sizeFittingHeight = () => ({
-                width: boundingWidth,
-                height: boundingHeight,
-                meta: null,
-            });
 
             const labelMeta = formatSingleLabel(toPlainText(labelText), labelDatum, { padding }, sizeFittingHeight);
->>>>>>> latest
             layout = labelMeta?.[0];
         } else {
             const measurer = cachedTextMeasurer(labelDatum);

@@ -85,11 +85,7 @@ import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
-<<<<<<< HEAD
-type HistogramAnimationData = CartesianAnimationData<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
-=======
 type HistogramAnimationData = CartesianAnimationDataOf<HistogramSeriesTypes>;
->>>>>>> latest
 
 interface CalculatedBin {
     domain: [number, number];
@@ -103,17 +99,6 @@ interface HistogramSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
     styles: SeriesNodeStyleContext<AgHistogramSeriesStyle>;
 }
 
-<<<<<<< HEAD
-export class HistogramSeries extends CartesianSeries<
-    HistogramNodeDatum,
-    Rect<HistogramNodeDatum>,
-    AgHistogramSeriesOptions,
-    HistogramSeriesProperties,
-    HistogramNodeDatum,
-    HistogramSeriesNodeDataContext
-> {
-    static readonly className = 'HistogramSeries';
-=======
 /**
  * Consolidated type interface for HistogramSeries.
  * Defines all type parameters in one place for the series.
@@ -140,7 +125,6 @@ interface HistogramSeriesNodeDatumContext extends CartesianCreateNodeDataContext
 
 export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     static override readonly className = 'HistogramSeries';
->>>>>>> latest
     static readonly type = 'histogram' as const;
 
     override properties = new HistogramSeriesProperties();
@@ -694,11 +678,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         });
     }
 
-<<<<<<< HEAD
-    protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>> }) {
-=======
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum>; isHighlight?: boolean }) {
->>>>>>> latest
+    protected updateLabelNodes(opts: { labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>; isHighlight?: boolean }) {
         const labelEnabled = this.isLabelEnabled();
         const { isHighlight = false } = opts;
 

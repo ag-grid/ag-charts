@@ -17,14 +17,8 @@ interface Numbers {
 
 export function updateLineText(
     id: string,
-<<<<<<< HEAD
     line: CollidableLine<unknown>,
-    coords: _ModuleSupport.Vec4,
-
-=======
-    line: CollidableLine,
     coords: Bounds4,
->>>>>>> latest
     textProperties?: Partial<LineTextProperties>,
     textNode?: CollidableText<unknown>,
     text?: string,

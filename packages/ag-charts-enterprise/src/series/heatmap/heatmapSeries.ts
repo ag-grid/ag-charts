@@ -123,16 +123,6 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
     bottom: -0.5,
 };
 
-<<<<<<< HEAD
-export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
-    HeatmapNodeDatum,
-    _ModuleSupport.Rect<HeatmapNodeDatum>,
-    AgHeatmapSeriesOptions,
-    HeatmapSeriesProperties,
-    HeatmapLabelDatum
-> {
-    static readonly className = 'HeatmapSeries';
-=======
 /**
  * Consolidated type interface for HeatmapSeries.
  * Defines all type parameters in one place for the series.
@@ -150,7 +140,6 @@ interface HeatmapSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
 
 export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesTypes> {
     static override readonly className = 'HeatmapSeries';
->>>>>>> latest
     static readonly type = 'heatmap' as const;
 
     override properties = new HeatmapSeriesProperties();
@@ -708,12 +697,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
     }
 
     protected updateLabelNodes(opts: {
-<<<<<<< HEAD
         labelSelection: _ModuleSupport.Selection<HeatmapLabelDatum, _ModuleSupport.Text<HeatmapLabelDatum>>;
-=======
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
         isHighlight?: boolean;
->>>>>>> latest
     }) {
         const { isHighlight = false } = opts;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

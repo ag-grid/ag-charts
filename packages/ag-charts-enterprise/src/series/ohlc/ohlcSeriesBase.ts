@@ -217,16 +217,8 @@ function resetOhlcSelectionsDirect<D extends OhlcNodeDatum>(
 }
 
 export abstract class OhlcSeriesBase<
-<<<<<<< HEAD
-    TDatum extends OhlcNodeDatum,
-    TNode extends OhlcBaseNode<TDatum>,
-    TOpts extends AgOhlcSeriesBaseOptions,
-    TProps extends OhlcSeriesBaseProperties<TOpts>,
-> extends _ModuleSupport.AbstractBarSeries<TDatum, TNode, TOpts, TProps, OhlcNodeDatum, OhlcSeriesBaseNodeDataContext> {
-=======
     TTypes extends OhlcSeriesBaseTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
->>>>>>> latest
     protected override readonly NodeEvent = OhlcSeriesNodeEvent;
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
@@ -791,11 +783,7 @@ export abstract class OhlcSeriesBase<
 
     protected override updateDatumSelection(opts: {
         nodeData: OhlcNodeDatum[];
-<<<<<<< HEAD
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, TNode>;
-=======
-        datumSelection: _ModuleSupport.Selection<TTypes['node'], OhlcNodeDatum>;
->>>>>>> latest
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, TTypes['node']>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];

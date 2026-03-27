@@ -211,9 +211,6 @@ interface BarSeriesNodeDataContext extends AbstractBarSeriesNodeDataContext<BarN
     segments?: Segment[];
 }
 
-<<<<<<< HEAD
-type BarAnimationData = AbstractBarSeriesAnimationData<BarNodeDatum, BarShape<BarNodeDatum>>;
-=======
 /**
  * Consolidated type interface for BarSeries.
  * Defines all type parameters in one place for the series.
@@ -228,24 +225,11 @@ interface BarSeriesTypes {
     readonly stackContext: never;
     readonly createNodeDataContext: BarSeriesNodeDatumContext;
 }
->>>>>>> latest
 
 type BarAnimationData = AbstractBarSeriesAnimationData<BarSeriesTypes>;
 
-<<<<<<< HEAD
-export class BarSeries extends AbstractBarSeries<
-    BarNodeDatum,
-    BarShape<BarNodeDatum>,
-    AgBarSeriesOptions,
-    BarSeriesProperties,
-    BarNodeDatum,
-    BarSeriesNodeDataContext
-> {
-    static readonly className = 'BarSeries';
-=======
 export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     static override readonly className = 'BarSeries';
->>>>>>> latest
     static readonly type = 'bar' as const;
 
     override properties = new BarSeriesProperties();

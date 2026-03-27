@@ -101,19 +101,7 @@ import {
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 import { calculateSegments } from './util';
 
-<<<<<<< HEAD
-const CROSS_FILTER_AREA_FILL_OPACITY_FACTOR = 0.125;
-const CROSS_FILTER_AREA_STROKE_OPACITY_FACTOR = 0.25;
-
-type AreaAnimationData = CartesianAnimationData<
-    MarkerSelectionDatum,
-    Marker<MarkerSelectionDatum>,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext
->;
-=======
 type AreaAnimationData = CartesianAnimationDataOf<AreaSeriesTypes>;
->>>>>>> latest
 
 interface StackRange {
     leading: number;
@@ -133,18 +121,6 @@ interface AreaSeriesCreateNodeDatumContext extends CartesianMarkerLikeContext<Ma
     // Override yKey to be required (base interface has it optional)
     readonly yKey: string;
 
-<<<<<<< HEAD
-export class AreaSeries extends CartesianSeries<
-    MarkerSelectionDatum,
-    Marker<MarkerSelectionDatum>,
-    AgAreaSeriesOptions,
-    AreaSeriesProperties,
-    LabelSelectionDatum,
-    AreaSeriesNodeDataContext,
-    AreaSeriesStackContext
-> {
-    static readonly className = 'AreaSeries';
-=======
     // Additional data arrays specific to area series
     readonly yRawValues: any[];
     readonly yCumulativeValues: any[];
@@ -203,7 +179,6 @@ interface AreaSeriesTypes extends CartesianSeriesTypes {
 
 export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     static override readonly className = 'AreaSeries';
->>>>>>> latest
     static readonly type = 'area' as const;
 
     override properties = new AreaSeriesProperties();

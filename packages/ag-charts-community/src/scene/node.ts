@@ -181,6 +181,10 @@ export abstract class Node<TDatum = unknown> {
         return this._previousDatum;
     }
 
+    /** @deprecated do not use unsafe non-null assertion (`datum!`), used typed `datum` */
+    get unsafeNonNullDatum(): TDatum {
+        return this.datum!;
+    }
     /** @deprecated do not use `any`, used typed `datum` */
     get unsafeDatum(): any {
         return this.datum;

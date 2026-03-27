@@ -82,25 +82,20 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
     connectorData: FunnelConnectorDatum[];
 }
 
-<<<<<<< HEAD
-export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
-    extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
-=======
 /**
  * Base type interface for funnel series types.
  * Constrains datum, label, context, and properties types while leaving node and options open for subclasses.
  */
 export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
-    readonly node: _ModuleSupport.QuadtreeCompatibleNode;
+    readonly node: _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>;
     readonly properties: BaseFunnelProperties<this['options']>;
     readonly datum: FunnelNodeDatum;
     readonly label: FunnelNodeLabelDatum;
     readonly context: FunnelContext;
 }
 
-export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
-    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
->>>>>>> latest
+export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
+    extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -121,21 +116,8 @@ class FunnelSeriesNodeEvent<
 }
 
 export abstract class BaseFunnelSeries<
-<<<<<<< HEAD
-    TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
-    TOpts extends object,
-> extends _ModuleSupport.AbstractBarSeries<
-    FunnelNodeDatum,
-    TNode,
-    TOpts,
-    BaseFunnelProperties<TOpts>,
-    FunnelNodeLabelDatum,
-    FunnelContext
-> {
-=======
     TTypes extends BaseFunnelSeriesTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
->>>>>>> latest
     // @ts-expect-error xKey/yKey renamed
     protected override readonly NodeEvent = FunnelSeriesNodeEvent;
 
@@ -485,11 +467,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-<<<<<<< HEAD
-        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, TNode>;
-=======
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.NodeOf<TTypes>, FunnelNodeDatum>;
->>>>>>> latest
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.NodeOf<TTypes>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -543,12 +521,8 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
-<<<<<<< HEAD
         labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
-=======
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
         isHighlight?: boolean;
->>>>>>> latest
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
             stageKey: this.properties.stageKey,
@@ -610,16 +584,12 @@ export abstract class BaseFunnelSeries<
     }
 
     protected override resetAllAnimation(
-<<<<<<< HEAD
-        data: _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext>
-=======
         data: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.NodeOf<TTypes>,
             FunnelNodeDatum,
+            _ModuleSupport.NodeOf<TTypes>,
             FunnelNodeLabelDatum,
             FunnelContext
         >
->>>>>>> latest
     ): void {
         super.resetAllAnimation(data);
 

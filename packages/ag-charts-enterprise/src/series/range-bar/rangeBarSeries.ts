@@ -1086,16 +1086,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         };
     }
 
-<<<<<<< HEAD
-    protected override updateDatumStyles({
-        datumSelection,
-        isHighlight,
-    }: {
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
-=======
     protected override updateDatumStyles(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
->>>>>>> latest
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
         isHighlight: boolean;
     }) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -1156,12 +1148,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected updateLabelNodes(opts: {
-<<<<<<< HEAD
-        labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text>;
-=======
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeBarNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RangeBarNodeLabelDatum, _ModuleSupport.Text<RangeBarNodeLabelDatum>>;
         isHighlight?: boolean;
->>>>>>> latest
     }) {
         const { isHighlight = false } = opts;
         const params: RequireOptional<AgRangeBarSeriesLabelFormatterParams> = {

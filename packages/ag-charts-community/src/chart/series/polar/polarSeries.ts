@@ -85,17 +85,12 @@ export abstract class PolarSeries<
         () => this.nodeFactory(),
         false
     );
-<<<<<<< HEAD
-    protected labelSelection = Selection.select<Text<TDatum>>(this.labelGroup, () => this.labelFactory(), false);
-    protected highlightSelection = Selection.selectNoInference<TDatum, TNode>(this.highlightGroup, () =>
-=======
-    protected labelSelection: Selection<Text, TDatum> = Selection.select(
+    protected labelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
         this.labelGroup,
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightNodeGroup, () =>
->>>>>>> latest
+    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(this.highlightNodeGroup, () =>
         this.nodeFactory()
     );
     protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabelGroup, () =>

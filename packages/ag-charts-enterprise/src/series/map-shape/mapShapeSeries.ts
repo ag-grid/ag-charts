@@ -98,24 +98,17 @@ export class MapShapeSeries
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-<<<<<<< HEAD
-    public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.itemGroup, () => this.nodeFactory());
-    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(this.itemLabelGroup, Text);
-    private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(this.highlightGroup, () =>
-        this.nodeFactory()
-=======
-    public datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+    public datumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(
         this.itemGroup,
         () => this.nodeFactory()
     );
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> = Selection.select(
+    private labelSelection = Selection.select<_ModuleSupport.Text<MapShapeNodeLabelDatum>>(
         this.itemLabelGroup,
         Text
     );
-    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapShapeNodeDatum>>(
         this.highlightNodeGroup,
         () => this.nodeFactory()
->>>>>>> latest
     );
     private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> =
         Selection.select(this.highlightLabelGroup, Text);
@@ -602,12 +595,8 @@ export class MapShapeSeries
         datumSelection,
         drawingMode,
     }: {
-<<<<<<< HEAD
         datumSelection: _ModuleSupport.Selection<MapShapeNodeDatum, GeoGeometry<MapShapeNodeDatum>>;
-=======
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
         drawingMode: AgDrawingMode;
->>>>>>> latest
     }) {
         const fillBBox = getTopologyShapeFillBBox(this.scale);
 
@@ -636,17 +625,12 @@ export class MapShapeSeries
         return opts.labelSelection.update(labels);
     }
 
-<<<<<<< HEAD
-    private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
-=======
     private updateLabelNodes({
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<MapShapeNodeLabelDatum, _ModuleSupport.Text<MapShapeNodeLabelDatum>>;
         isHighlight: boolean;
->>>>>>> latest
     }) {
         const { properties } = this;
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();

@@ -108,20 +108,8 @@ class BoxPlotSeriesNodeEvent<
     }
 }
 
-<<<<<<< HEAD
-export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
-    BoxPlotNodeDatum,
-    BoxPlotNode,
-    AgBoxPlotSeriesOptions,
-    BoxPlotSeriesProperties,
-    BoxPlotNodeDatum,
-    BoxPlotSeriesNodeDataContext
-> {
-    static readonly className = 'BoxPlotSeries';
-=======
 export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSeriesTypes> {
     static override readonly className = 'BoxPlotSeries';
->>>>>>> latest
     static readonly type = 'box-plot' as const;
 
     override properties = new BoxPlotSeriesProperties();

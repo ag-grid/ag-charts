@@ -21,39 +21,14 @@ import { ErrorBarProperties } from './errorBarProperties';
 
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
-<<<<<<< HEAD
-type ErrorBoundCartesianSeries = Omit<
-    _ModuleSupport.CartesianSeries<
-        ErrorBarNodeDatum,
-        _ModuleSupport.Node<ErrorBarNodeDatum>,
-        object,
-        _ModuleSupport.CartesianSeriesProperties<any>,
-        ErrorBarNodeDatum
-    >,
-    'highlightSelection'
->;
-
-function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBoundCartesianSeries {
-    for (const supportedType of AgErrorBarSupportedSeriesTypes) {
-        if (supportedType === ctx.series.type) {
-            return ctx.series as ErrorBoundCartesianSeries;
-        }
-    }
-    throw new Error(
-        `AG Charts - unsupported series type '${
-            ctx.series.type
-        }', error bars supported series types: ${AgErrorBarSupportedSeriesTypes.join(', ')}`
-    );
-=======
 interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Node<any>;
+    readonly node: _ModuleSupport.Node<ErrorBarNodeDatum>;
     readonly options: object;
     readonly properties: _ModuleSupport.CartesianSeriesProperties<any>;
     readonly datum: ErrorBarNodeDatum;
     readonly label: ErrorBarNodeDatum;
     readonly context: _ModuleSupport.CartesianSeriesNodeDataContext<ErrorBarNodeDatum, ErrorBarNodeDatum>;
     readonly stackContext: never;
->>>>>>> latest
 }
 
 type ErrorBoundCartesianSeries = Omit<_ModuleSupport.CartesianSeries<ErrorBoundSeriesTypes>, 'highlightSelection'>;
@@ -334,16 +309,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         return this.groupNode.nearestSquared(point.x, point.y);
     }
 
-<<<<<<< HEAD
-    pickNodeMainAxisFirst(
-        point: Point,
-        majorDirection: _ModuleSupport.ChartAxisDirection
-    ): PickNodeDatumResult | undefined {
-        let closestDatum: (PickNodeDatumResult & {})['datum'] | undefined;
-=======
     pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined {
-        let closestDatum;
->>>>>>> latest
+        let closestDatum: (PickNodeDatumResult & {})['datum'] | undefined;
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];
         if (majorDirection === ChartAxisDirection.Y) {

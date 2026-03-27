@@ -14,18 +14,8 @@ interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
     readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
 }
 
-<<<<<<< HEAD
-export class CandlestickSeries extends OhlcSeriesBase<
-    OhlcNodeDatum,
-    CandlestickNode<OhlcNodeDatum>,
-    AgCandlestickSeriesOptions,
-    CandlestickSeriesProperties<AgCandlestickSeriesOptions>
-> {
-    static readonly className = 'CandleStickSeries';
-=======
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     static override readonly className = 'CandleStickSeries';
->>>>>>> latest
     static readonly type = 'candlestick' as const;
 
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
@@ -40,11 +30,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-<<<<<<< HEAD
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
-=======
-        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
->>>>>>> latest
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -56,11 +42,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-<<<<<<< HEAD
-        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickNode<OhlcNodeDatum>>;
-=======
-        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
->>>>>>> latest
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;

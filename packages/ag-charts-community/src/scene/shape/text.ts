@@ -45,13 +45,8 @@ export interface TextBoxingProperties {
     };
 }
 
-<<<<<<< HEAD
 export class Text<D = unknown> extends Shape<D> {
-    static readonly className = 'Text';
-=======
-export class Text<D = any> extends Shape<D> {
     static override readonly className = 'Text';
->>>>>>> latest
 
     private static readonly debug = Debug.create(true, DebugSelectors.SCENE_TEXT);
 

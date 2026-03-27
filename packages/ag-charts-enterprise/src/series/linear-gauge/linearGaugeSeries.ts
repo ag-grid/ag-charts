@@ -182,13 +182,8 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         TransformableText
     );
 
-<<<<<<< HEAD
     public datumUnion: DatumUnion<_ModuleSupport.Rect<LinearGaugeNodeDatum>> = new DatumUnion();
-    private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
-=======
-    public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
     private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
->>>>>>> latest
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 

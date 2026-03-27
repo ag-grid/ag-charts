@@ -96,15 +96,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     );
     private stageLabelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text> =
         Selection.select(this.stageLabelGroup, Text);
-<<<<<<< HEAD
-    private highlightDatumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector> = Selection.select(
-        this.highlightGroup,
-=======
-    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
+    private highlightLabelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text> =
         Selection.select(this.highlightLabelGroup, Text);
-    private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
+    private highlightDatumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector> = Selection.select(
         this.highlightNodeGroup,
->>>>>>> latest
         () => this.nodeFactory()
     );
 

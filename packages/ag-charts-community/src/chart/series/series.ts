@@ -923,13 +923,8 @@ export abstract class Series<
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
-<<<<<<< HEAD
             const datum = node.unsafeClosestDatum();
-            if (datum != null && datum.missing !== true) {
-=======
-            const datum = node.closestDatum();
             if (typeof datum === 'object' && datum != null && datum.missing !== true) {
->>>>>>> latest
                 datums.push(datum);
             }
         }
@@ -947,13 +942,8 @@ export abstract class Series<
         items: Iterable<T>
     ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
-<<<<<<< HEAD
         const datum = match.nearest?.unsafeClosestDatum();
-        if (datum != null && datum.missing !== true) {
-=======
-        const datum = match.nearest?.closestDatum();
         if (typeof datum === 'object' && datum != null && datum.missing !== true) {
->>>>>>> latest
             return { datum, distance: Math.sqrt(match.distanceSquared) };
         }
     }

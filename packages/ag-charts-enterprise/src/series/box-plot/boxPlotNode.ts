@@ -1,21 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { SceneArrayChangeDetection, SceneChangeDetection } from 'ag-charts-core';
-
-<<<<<<< HEAD
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
-const {
-    Path,
-    Scalable,
-    ExtendedPath2D,
-    SceneChangeDetection,
-    SceneArrayChangeDetection,
-    BBox,
-    clippedRoundRect: baseClippedRoundRect,
-} = _ModuleSupport;
-=======
 const { Path, Scalable, ExtendedPath2D, BBox, clippedRoundRect: baseClippedRoundRect } = _ModuleSupport;
->>>>>>> latest
 
 export class BoxPlotNode extends Scalable(Path<BoxPlotNodeDatum>) {
     private readonly wickPath = new ExtendedPath2D();

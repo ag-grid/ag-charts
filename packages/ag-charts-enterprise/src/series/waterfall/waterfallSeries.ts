@@ -80,14 +80,6 @@ interface WaterfallContext extends _ModuleSupport.AbstractBarSeriesNodeDataConte
     styles: Record<AgWaterfallSeriesItemType, _ModuleSupport.SeriesNodeStyleContext<Required<AgWaterfallSeriesStyle>>>;
 }
 
-<<<<<<< HEAD
-type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
-    WaterfallNodeDatum,
-    _ModuleSupport.Rect<WaterfallNodeDatum>,
-    WaterfallNodeDatum,
-    WaterfallContext
->;
-=======
 /** Internal context for createNodeData() - caches expensive lookups */
 interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreateNodeDataContext<WaterfallNodeDatum> {
     readonly categoryAxis: _ModuleSupport.ChartAxis;
@@ -111,7 +103,6 @@ interface WaterfallSeriesNodeDatumContext extends _ModuleSupport.CartesianCreate
     // Mutable state for connector line points (built during populateNodeData)
     pointData: WaterfallNodePointDatum[];
 }
->>>>>>> latest
 
 /** Parameters for creating/updating a WaterfallNodeDatum */
 interface WaterfallNodeDatumParams {
@@ -901,17 +892,12 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         return labelSelection.update(data);
     }
 
-<<<<<<< HEAD
-    protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text>;
-=======
     protected updateLabelNodes({
         labelSelection,
         isHighlight,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text>;
         isHighlight: boolean;
->>>>>>> latest
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {
             itemType: 'positive',

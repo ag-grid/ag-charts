@@ -98,11 +98,7 @@ import {
 } from './markerUtil';
 import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
-<<<<<<< HEAD
-type BubbleScatterAnimationData = CartesianAnimationData<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
-=======
 type BubbleScatterAnimationData = CartesianAnimationDataOf<BubbleSeriesTypes>;
->>>>>>> latest
 
 class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
@@ -133,17 +129,6 @@ interface BubbleSeriesNodeDataContext
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
-<<<<<<< HEAD
-export class BubbleSeries extends CartesianSeries<
-    BubbleScatterNodeDatum,
-    Marker<BubbleScatterNodeDatum>,
-    AgBubbleSeriesOptions,
-    BubbleSeriesProperties,
-    BubbleScatterNodeDatum,
-    BubbleSeriesNodeDataContext
-> {
-    static readonly className: string = 'BubbleSeries';
-=======
 /**
  * Consolidated type interface for BubbleSeries.
  * Defines all type parameters in one place for the series.
@@ -226,7 +211,6 @@ interface PreparedBubbleNodeDatumState {
 
 export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     static override readonly className: string = 'BubbleSeries';
->>>>>>> latest
     static readonly type: string = 'bubble';
 
     protected override readonly NodeEvent = BubbleScatterSeriesNodeEvent;

@@ -246,13 +246,8 @@ export class ErrorBarGroup extends _ModuleSupport.Group {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,
         });
-<<<<<<< HEAD
-        if (nearest !== undefined && !isNaN(distanceSquared)) {
-            return { datum: nearest.unsafeDatum, distanceSquared };
-=======
         if (nearest !== undefined && !Number.isNaN(distanceSquared)) {
-            return { datum: nearest.datum, distanceSquared };
->>>>>>> latest
+            return { datum: nearest.unsafeDatum, distanceSquared };
         }
     }
 }
