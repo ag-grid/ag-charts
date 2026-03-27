@@ -83,6 +83,19 @@ Errors: `ERROR=<message>` on stderr, exit code 1.
 
 `--title`/`--tags` default to values from `.plnkr-meta.json` (written by download).
 
+## Plnkr URL Formats
+
+Use these when sharing links or loading existing content:
+
+| Purpose | URL Pattern |
+|---------|-------------|
+| Editor + preview | `https://plnkr.co/edit/<plunk-id>?preview` |
+| Embed (iframe-friendly) | `https://embed.plnkr.co/<plunk-id>` |
+| Load a GitHub Gist (editor) | `https://plnkr.co/edit/gist:<gist-id>?preview` |
+| Load a GitHub Gist (embed) | `https://embed.plnkr.co/gist/<gist-id>` |
+
+The gist must contain an `index.html` file. Plnkr reads the gist files directly — no upload needed.
+
 ## API Notes
 
 -   No true fork endpoint — "fork" = download + modify + upload as new.
