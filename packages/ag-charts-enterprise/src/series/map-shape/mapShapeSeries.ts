@@ -3,6 +3,7 @@ import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Positi
 import {
     Logger,
     cachedTextMeasurer,
+    findDiscreteColorBinLabel,
     formatValue,
     isArray,
     measureTextSegments,
@@ -849,7 +850,7 @@ export class MapShapeSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+            const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
                 properties.colorScale.fills,
                 colorValue,

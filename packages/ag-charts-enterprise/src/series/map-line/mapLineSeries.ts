@@ -1,6 +1,14 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, formatValue, mergeDefaults } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    cachedTextMeasurer,
+    findDiscreteColorBinLabel,
+    formatValue,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -810,7 +818,7 @@ export class MapLineSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+            const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
                 properties.colorScale.fills,
                 colorValue,

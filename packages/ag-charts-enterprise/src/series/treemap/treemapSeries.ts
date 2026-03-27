@@ -17,6 +17,7 @@ import {
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
+    findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
     isNumberEqual,
@@ -899,7 +900,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+            const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
                 properties.colorScale.fills,
                 datumColor,

@@ -330,12 +330,6 @@ export { BandScale } from './scale/bandScale';
 export { CategoryScale } from './scale/categoryScale';
 export { TimeScale } from './scale/timeScale';
 export { ColorScale } from './scale/colorScale';
-export {
-    type ColorScaleState,
-    type GradientColorStop,
-    deriveNormalizedStops,
-    findDiscreteColorBinLabel,
-} from 'ag-charts-core';
 export { configureColorScale } from './scale/colorScaleUtil';
 export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';

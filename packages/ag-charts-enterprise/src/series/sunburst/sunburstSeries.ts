@@ -8,6 +8,7 @@ import {
     type InternalAgColorType,
     type Point,
     type RequireOptional,
+    findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
     mergeDefaults,
@@ -628,7 +629,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+            const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
                 properties.colorScale.fills,
                 datumColor,

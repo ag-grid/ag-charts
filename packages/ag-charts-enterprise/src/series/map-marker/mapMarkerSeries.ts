@@ -11,6 +11,7 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
+    findDiscreteColorBinLabel,
     formatValue,
     mergeDefaults,
 } from 'ag-charts-core';
@@ -1068,7 +1069,7 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            const binLabel = _ModuleSupport.findDiscreteColorBinLabel(
+            const binLabel = findDiscreteColorBinLabel(
                 this.colorScale,
                 properties.colorScale.fills,
                 colorValue,
