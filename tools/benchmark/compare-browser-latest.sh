@@ -147,6 +147,9 @@ kill_port() {
 
 # --- Start dev server ---
 
+# Sets global _DEV_SERVER_PID. Do NOT call via command substitution $(...) —
+# the subshell would block forever waiting for the background dev server.
+_DEV_SERVER_PID=""
 start_dev_server() {
     local port=$1
     local working_dir=$2
@@ -154,14 +157,13 @@ start_dev_server() {
     log "Starting dev server on port $port from ${working_dir}..."
     cd "$working_dir"
     PUBLIC_SITE_URL="http://localhost:$port" PUBLIC_HTTPS_SERVER=false PORT="$port" npx nx dev ag-charts-website &
-    local pid=$!
+    _DEV_SERVER_PID=$!
     cd "$root"
 
     log "Waiting for dev server at http://localhost:$port..."
     npx wait-on "http-get://localhost:$port/charts/" --timeout 120000
 
-    log "Dev server ready on port $port (PID $pid)"
-    echo "$pid"
+    log "Dev server ready on port $port (PID $_DEV_SERVER_PID)"
 }
 
 # --- Run browser benchmarks ---
@@ -210,7 +212,8 @@ kill_port $BASE_PORT
 
 logStarBox "Phase 1: HEAD benchmarks (${branch})"
 
-HEAD_SERVER_PID=$(start_dev_server $HEAD_PORT "$root")
+start_dev_server $HEAD_PORT "$root"
+HEAD_SERVER_PID=$_DEV_SERVER_PID
 run_benchmarks "http://localhost:$HEAD_PORT/charts" "$head_results" || {
     if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
         logError "Head benchmarks failed"
@@ -265,7 +268,8 @@ if [[ -d "${worktree_dir}" ]]; then
 
     if [[ -n "$base_results" ]]; then
         kill_port $BASE_PORT
-        BASE_SERVER_PID=$(start_dev_server $BASE_PORT "${worktree_dir}")
+        start_dev_server $BASE_PORT "${worktree_dir}"
+        BASE_SERVER_PID=$_DEV_SERVER_PID
 
         run_benchmarks "http://localhost:$BASE_PORT/charts" "$base_results" || {
             if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
