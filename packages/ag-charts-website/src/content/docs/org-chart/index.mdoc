@@ -209,6 +209,15 @@ The `displayMode` property controls how much detail each card shows.
 -   `'compact'` — Shows only the title and subtitle. Labels and images are hidden.
 -   `'auto'` (default) — Automatically switches between full and compact based on available space.
 
+### User-Togglable Cards
+
+When `displayMode` is `'auto'`, nodes with hidden content (labels or image) show a chevron indicator.
+Clicking the chevron toggles that card between compact and full display, allowing end users to
+expand individual cards to reveal additional detail on demand.
+
+This follows the pattern established by [GoJS's static org chart](https://gojs.net/latest/samples/orgChartStatic.html),
+where each card has a PanelExpanderButton (chevron) that reveals or hides extra information within the node.
+
 ## Layout
 
 The `direction` property controls the orientation of the chart.
