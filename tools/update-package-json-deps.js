@@ -35,6 +35,6 @@ for (const packageDir of packageDirectories) {
 
     if (updated) {
         console.log(`Updating ${packageJsonFilename}`);
-        fs.writeFileSync(packageJsonFilename, JSON.stringify(packageJson, null, 2));
+        fs.writeFileSync(packageJsonFilename, JSON.stringify(packageJson, null, 2) + '\n');
     }
 }
