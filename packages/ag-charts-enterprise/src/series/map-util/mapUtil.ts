@@ -2,15 +2,14 @@ import type { _ModuleSupport } from 'ag-charts-community';
 
 import type { GeoGeometry } from './geoGeometry';
 
-type AnimatableMapMarkerDatum = {
+export type AnimatableMapMarkerDatum = {
     scalingX: number;
     scalingY: number;
 };
 
-export function prepareMapMarkerAnimationFunctions() {
-    type D = AnimatableMapMarkerDatum;
+export function prepareMapMarkerAnimationFunctions<D>() {
     type N = _ModuleSupport.Marker<D>;
-    type T = Record<string, number>;
+    type T = AnimatableMapMarkerDatum;
     const fromFn: _ModuleSupport.FromToMotionPropFn<D, N, T> = (marker, _datum, status) => {
         if (status === 'removed') {
             return { scalingX: 1, scalingY: 1 };

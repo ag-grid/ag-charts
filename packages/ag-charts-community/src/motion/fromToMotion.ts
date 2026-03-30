@@ -183,7 +183,7 @@ export function fromToMotion<
     let selectionIndex = 0;
     for (const selection of selections) {
         const selectionNodes = selection.nodes();
-        const liveNodes = selectionNodes.filter((n) => !selection.isGarbage(n));
+        const liveNodes = selectionNodes.filter((n: N) => !selection.isGarbage(n));
         processNodes(liveNodes, selectionNodes);
 
         // Only perform selection cleanup once.
@@ -228,7 +228,7 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
     groupId: string,
     subId: string,
     animationManager: AnimationManager,
-    selectionsOrNodes: SelectionIterator<D, N>[] | N[],
+    selectionsOrNodes: SelectionInterface<D, N>[] | N[],
     from: T,
     to: T,
     extraOpts: ExtraOpts<N>

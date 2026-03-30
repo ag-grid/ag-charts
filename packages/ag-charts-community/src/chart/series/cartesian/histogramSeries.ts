@@ -883,7 +883,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.ctx.animationManager,
             [data.datumSelection],
             fns,
-            (_, datum) => createDatumId(...datum.domain),
+            (node) => createDatumId(...node.unsafeDatum.domain),
             dataDiff
         );
 

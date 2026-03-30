@@ -173,7 +173,7 @@ interface RangeAreaSpanPointDatum {
  * Consolidated type interface for RangeAreaSeries.
  */
 interface RangeAreaSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Marker;
+    readonly node: _ModuleSupport.Marker<RangeAreaMarkerDatum>;
     readonly options: AgRangeAreaSeriesOptions;
     readonly properties: RangeAreaProperties;
     readonly datum: RangeAreaMarkerDatum;
@@ -877,8 +877,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     protected override resetDatumAnimation(
         data: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
+            _ModuleSupport.Marker<RangeAreaMarkerDatum>,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
@@ -889,7 +889,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const { processedData, axes, properties } = this;
@@ -940,7 +940,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
     }) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -970,7 +970,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker>;
+        datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -1296,13 +1296,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     protected nodeFactory() {
-        return new Marker();
+        return new Marker<RangeAreaMarkerDatum>();
     }
 
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
             RangeAreaMarkerDatum,
-            _ModuleSupport.Marker<RangeAreaLabelDatum>,
+            _ModuleSupport.Marker<RangeAreaMarkerDatum>,
             RangeAreaLabelDatum,
             RangeAreaContext
         >
@@ -1338,8 +1338,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.Marker,
             RangeAreaMarkerDatum,
+            _ModuleSupport.Marker<RangeAreaMarkerDatum>,
             RangeAreaLabelDatum,
             RangeAreaContext
         >

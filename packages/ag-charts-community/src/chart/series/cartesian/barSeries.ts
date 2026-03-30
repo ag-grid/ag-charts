@@ -1702,7 +1702,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.ctx.animationManager,
             [datumSelection, phantomSelection],
             fns,
-            (_, datum) => this.getDatumId(datum),
+            (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );
 

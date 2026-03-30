@@ -946,7 +946,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     protected override nodeFactory() {
-        return new Rect();
+        return new Rect<RangeBarNodeDatum>();
     }
 
     private getStyle(
@@ -1025,7 +1025,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<RangeBarNodeDatum, _ModuleSupport.Rect<RangeBarNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -1312,7 +1312,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => this.getDatumId(datum),
+            (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );
 

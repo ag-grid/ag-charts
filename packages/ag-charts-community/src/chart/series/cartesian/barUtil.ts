@@ -150,7 +150,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
                     opacity: 0,
                 };
             } else {
-                source = initPos.calculate(datum, rect.unsafePreviousDatum);
+                source = initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
             }
 
             if (status === 'unknown') {

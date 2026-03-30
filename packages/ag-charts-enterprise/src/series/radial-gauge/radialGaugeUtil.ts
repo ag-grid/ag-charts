@@ -8,14 +8,15 @@ import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeSeriesProper
 
 const { SectorBox } = _ModuleSupport;
 
-interface AnimatableSectorDatum {
+type AnimatableSectorDatum = {
+    itemId: string;
     innerRadius: number;
     outerRadius: number;
     startAngle: number;
     endAngle: number;
-    clipStartAngle: number | undefined;
-    clipEndAngle: number | undefined;
-}
+    clipStartAngle?: number;
+    clipEndAngle?: number;
+};
 
 interface DefinedClipSector {
     clipStartAngle: number;
@@ -31,6 +32,10 @@ type SectorAnimation = {
 type AnimatableNeedleDatum = {
     radius: number;
     angle: number;
+};
+
+type NeedleAnimation = {
+    rotation: number;
 };
 
 interface Ctx {
@@ -67,9 +72,13 @@ function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero:
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean, initialStartAngle: number) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_ModuleSupport.Sector, SectorAnimation, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<
+        AnimatableSectorDatum,
+        _ModuleSupport.Sector<AnimatableSectorDatum>,
+        SectorAnimation
+    > = {
         fromFn(sect, datum) {
-            const previousDatum: AnimatableSectorDatum | undefined = sect.previousDatum;
+            const previousDatum = sect.previousDatum;
             let { startAngle, endAngle } = previousDatum ?? datum;
 
             const previousClipSector =
@@ -131,7 +140,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
         },
     };
 
-    const needle: _ModuleSupport.FromToFns<RadialGaugeNeedle, any, AnimatableNeedleDatum> = {
+    const needle: _ModuleSupport.FromToFns<AnimatableNeedleDatum, RadialGaugeNeedle, NeedleAnimation> = {
         fromFn(needleNode) {
             let { angle: rotation } = needleNode.previousDatum ?? needleNode.datum;
 
@@ -172,7 +181,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<_ModuleSupport.DatumIndexType, any, object, any>,
     ctx: Ctx,
-    selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text>,
+    selection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
     datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }

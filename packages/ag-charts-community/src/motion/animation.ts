@@ -1,10 +1,9 @@
 import { clamp, isPlainObject, linear, objectsEqualWith } from 'ag-charts-core';
 
 import { Node } from '../scene/node';
-import type { Selection, SelectionIterator } from '../scene/selection';
+import type { SelectionInterface } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
-import type { SelectionInterface } from './fromToMotion';
 
 export type AnimationMetadata = {
     animationDuration: number;

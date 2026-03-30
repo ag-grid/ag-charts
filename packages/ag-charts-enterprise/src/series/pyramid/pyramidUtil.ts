@@ -43,7 +43,11 @@ export function preparePyramidAnimationFunctions(direction: Direction) {
         const { x, y, top, right, bottom, left } = datum;
         return { x, y, top, right, bottom, left };
     };
-    const applyFn: _ModuleSupport.ApplyFn<FunnelConnector, AnimatablePyramidDatum> = applyPyramidDatum;
+    const applyFn: _ModuleSupport.ApplyFn<
+        AnimatablePyramidDatum,
+        FunnelConnector<AnimatablePyramidDatum>,
+        T
+    > = applyPyramidDatum;
 
     return { fromFn, toFn, applyFn };
 }

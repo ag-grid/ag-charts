@@ -192,7 +192,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => datum.xValue,
+            (node) => node.unsafeDatum.xValue,
             dataDiff
         );
     }

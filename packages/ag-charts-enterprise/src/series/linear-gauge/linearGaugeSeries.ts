@@ -1223,7 +1223,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(true, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
+        fromToMotion(
+            this.id,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            (sector) => sector.unsafeDatum.itemId
+        );
 
         fromToMotion(this.id, 'label', animationManager, [this.labelSelection], fadeInFns, () => 'primary');
 
@@ -1234,7 +1241,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(false, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
+        fromToMotion(
+            this.id,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            (sector) => sector.unsafeDatum.itemId
+        );
 
         this.animateLabelText();
     }

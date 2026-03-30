@@ -1841,7 +1841,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection, this.phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex)
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
@@ -1887,7 +1887,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex),
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex),
             dataDiff
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
@@ -1932,7 +1932,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex)
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 

@@ -875,7 +875,7 @@ export class MapMarkerSeries
 
     private animateMarkers() {
         const { animationManager } = this.ctx;
-        const fns = prepareMapMarkerAnimationFunctions();
+        const fns = prepareMapMarkerAnimationFunctions<MapMarkerNodeDatum>();
         fromToMotion(this.id, 'markers', animationManager, [this.markerSelection, this.highlightMarkerSelection], fns);
     }
 

@@ -899,7 +899,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             animationManager,
             [this.tickLabelGroupSelection],
             fns.label,
-            (_, d) => d.tickId,
+            (node) => node.unsafeDatum.tickId,
             diff
         );
         fromToMotion(this.id, 'title', animationManager, [this.title.caption.node], fns.label, undefined, diff);

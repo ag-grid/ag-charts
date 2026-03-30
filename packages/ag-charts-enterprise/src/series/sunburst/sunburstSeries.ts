@@ -93,10 +93,10 @@ enum TextNodeTag {
 type ItemStyle = Required<AgSunburstSeriesStyle> & { opacity: number };
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
-    _ModuleSupport.Sector,
+    SunburstNode,
+    _ModuleSupport.Sector<SunburstNode>,
     AgSunburstSeriesOptions,
-    SunburstSeriesProperties,
-    SunburstNode
+    SunburstSeriesProperties
 > {
     static override readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
@@ -106,16 +106,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     override properties = new SunburstSeriesProperties();
 
     private readonly scalingGroup = this.contentGroup.appendChild(new ScalableGroup());
-    private readonly sectorGroup = this.scalingGroup.appendChild(new Group());
-    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group());
-    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group());
+    private readonly sectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly highlightSectorGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
+    private readonly sectorLabelGroup = this.scalingGroup.appendChild(new Group<SunburstNode>());
 
-    readonly datumSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(this.sectorGroup, Sector);
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group, SunburstNode>(
+    readonly datumSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
+        this.sectorGroup,
+        Sector<SunburstNode>
+    );
+    private readonly labelSelection = Selection.select<_ModuleSupport.Group<SunburstNode>>(
         this.sectorLabelGroup,
         Group
     );
-    private readonly highlightSelection = Selection.select<_ModuleSupport.Sector, SunburstNode>(
+    private readonly highlightSelection = Selection.select<_ModuleSupport.Sector<SunburstNode>>(
         this.highlightSectorGroup,
         Sector
     );
@@ -574,7 +577,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
         const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
-            const datum = text.closestDatum();
+            const datum = text.unsafeClosestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
         }
     }
@@ -689,9 +692,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override animateEmptyUpdateReady() {
         fromToMotion<
-            _ModuleSupport.ScalableGroup,
-            Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>,
-            SunburstNode
+            SunburstNode,
+            _ModuleSupport.ScalableGroup<SunburstNode>,
+            Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>
         >(this.id, 'nodes', this.ctx.animationManager, [this.scalingGroup] as any, {
             toFn() {
                 return { scalingX: 1, scalingY: 1 };

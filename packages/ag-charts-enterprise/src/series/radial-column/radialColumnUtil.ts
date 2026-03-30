@@ -33,7 +33,7 @@ export function createAngleMotionCalculator() {
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
             let to = (status === 'removed' ? node : datum)[key];
             if (Number.isNaN(to)) {
-                to = node.previousDatum?.[key] ?? Number.NaN;
+                to = node.unsafePreviousDatum?.[key] ?? Number.NaN;
             }
             const diff = from - to;
             if (Math.abs(diff) > Math.PI) {
@@ -61,8 +61,8 @@ export function fixRadialColumnAnimationStatus(
     if (status === 'updated') {
         if (
             node.previousDatum == null ||
-            Number.isNaN(node.previousDatum.startAngle) ||
-            Number.isNaN(node.previousDatum.endAngle)
+            Number.isNaN(node.unsafePreviousDatum.startAngle) ||
+            Number.isNaN(node.unsafePreviousDatum.endAngle)
         ) {
             return 'added';
         }

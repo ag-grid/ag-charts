@@ -721,14 +721,20 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateLabelSelection(opts: {
         labelData: SankeyNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<SankeyNodeLabelDatum, _ModuleSupport.TransformableText>;
+        labelSelection: _ModuleSupport.Selection<
+            SankeyNodeLabelDatum,
+            _ModuleSupport.TransformableText<SankeyNodeLabelDatum>
+        >;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<SankeyNodeLabelDatum, _ModuleSupport.TransformableText>;
+        labelSelection: _ModuleSupport.Selection<
+            SankeyNodeLabelDatum,
+            _ModuleSupport.TransformableText<SankeyNodeLabelDatum>
+        >;
     }) {
         const activeHighlightDatum = this.getHighlightedDatum();
         opts.labelSelection.each((label, datum) => {
@@ -771,7 +777,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateNodeSelection(opts: {
         nodeData: SankeyNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect<SankeyNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
@@ -854,7 +860,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect>;
+        datumSelection: _ModuleSupport.Selection<SankeyNodeDatum, _ModuleSupport.Rect<SankeyNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -883,7 +889,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected updateLinkSelection(opts: {
         nodeData: SankeyLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink>;
+        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
@@ -961,7 +967,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     protected updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink>;
+        datumSelection: _ModuleSupport.Selection<SankeyLinkDatum, SankeyLink<SankeyLinkDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;

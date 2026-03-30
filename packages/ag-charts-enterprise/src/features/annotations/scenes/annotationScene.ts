@@ -3,7 +3,7 @@ import { ZIndexMap, isObject } from 'ag-charts-core';
 
 import { Handle } from './handle';
 
-export abstract class AnnotationScene<D> extends _ModuleSupport.Group<D> {
+export abstract class AnnotationScene<D = unknown> extends _ModuleSupport.Group<D> {
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }

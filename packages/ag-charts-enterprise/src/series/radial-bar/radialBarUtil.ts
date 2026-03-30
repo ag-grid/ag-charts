@@ -20,8 +20,8 @@ function fixRadialBarAnimationStatus(
     if (status === 'updated') {
         if (
             node.previousDatum == null ||
-            Number.isNaN(node.previousDatum.innerRadius) ||
-            Number.isNaN(node.previousDatum.outerRadius)
+            Number.isNaN(node.unsafePreviousDatum.innerRadius) ||
+            Number.isNaN(node.unsafePreviousDatum.outerRadius)
         ) {
             return 'added';
         }

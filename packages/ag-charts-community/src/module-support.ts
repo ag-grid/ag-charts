@@ -337,6 +337,7 @@ export { Node, PointerEvents } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
+export type { SelectionInterface } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
 export { ColorScaleProperties, getColorStops, StopProperties } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';

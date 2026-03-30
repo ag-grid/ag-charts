@@ -72,7 +72,11 @@ export interface AxisLabelDatum {
     range: number[];
 }
 
+export type AxisGroupTranslation = Pick<AxisGroupDatum, 'translationX' | 'translationY'>;
+
 export type AxisLineDatumCoords = Pick<AxisLineDatum, 'x1' | 'x2' | 'y1' | 'y2'>;
+
+export type AxisLineOpacity = AxisLineDatumCoords & { opacity?: number };
 
 export type AxisGroupDatumTranslation = Pick<AxisGroupDatum, 'translationX' | 'translationY'>;
 
@@ -105,7 +109,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const outOfBounds = (y: number) => {
         return y < min || y > max;
     };
-    const tick: FromToFns<AxisLineDatum, Line<AxisLineDatum>, any> = {
+    const tick: FromToFns<AxisLineDatum, Line<AxisLineDatum>, AxisLineOpacity> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let { x1, x2, y1, y2 } = node;
@@ -191,7 +195,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             };
         },
     };
-    const line: FromToFns<AxisLineDatumCoords, Line<AxisLineDatumCoords>, any> = {
+    const line: FromToFns<AxisLineDatumCoords, Line<AxisLineDatumCoords>, AxisLineDatumCoords> = {
         fromFn(node, datum) {
             // Default to starting at the same position that the node is currently in.
             const { x1, x2, y1, y2 } = node.unsafePreviousDatum ?? datum;
@@ -208,7 +212,11 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             return { x1, x2, y1, y2 };
         },
     };
-    const group: FromToFns<AxisGroupDatumTranslation, TranslatableGroup<AxisGroupDatumTranslation>, any> = {
+    const group: FromToFns<
+        AxisGroupDatumTranslation,
+        TranslatableGroup<AxisGroupDatumTranslation>,
+        AxisGroupTranslation
+    > = {
         fromFn(node, _datum) {
             const { translationX, translationY } = node;
             return {
