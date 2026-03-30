@@ -102,7 +102,6 @@ export default defineConfig({
             ],
         },
         server: {
-            strictPort: true,
             https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
             cors: {
                 /**

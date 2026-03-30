@@ -47,10 +47,12 @@ branch=$(git rev-parse --abbrev-ref HEAD)
 tools_dir="${root}/tools/benchmark"
 worktree_dir="/tmp/ag-charts-base-bench-$$"
 
-HEAD_PORT=4601
-BASE_PORT=4602
+HEAD_PORT=4601  # preferred starting port; actual may differ
+BASE_PORT=4602  # preferred starting port; actual may differ
 HEAD_SERVER_PID=""
+HEAD_ACTUAL_PORT=""
 BASE_SERVER_PID=""
+BASE_ACTUAL_PORT=""
 WORKTREE_CREATED=false
 BUILD_TIMEOUT=1800  # 30 minutes
 
@@ -122,8 +124,8 @@ soft_fail_or_exit() {
 
 cleanup() {
     log "Cleaning up..."
-    stop_dev_server "$HEAD_SERVER_PID" "$HEAD_PORT"
-    stop_dev_server "$BASE_SERVER_PID" "$BASE_PORT"
+    stop_dev_server "$HEAD_SERVER_PID" "${HEAD_ACTUAL_PORT:-$HEAD_PORT}"
+    stop_dev_server "$BASE_SERVER_PID" "${BASE_ACTUAL_PORT:-$BASE_PORT}"
 
     if [[ "$WORKTREE_CREATED" == "true" ]]; then
         log "Removing worktree at ${worktree_dir}..."
@@ -145,25 +147,79 @@ kill_port() {
     fi
 }
 
+# --- Port detection ---
+
+# Find a free port starting from the given number.
+find_free_port() {
+    local start_port=$1
+    node -e "
+        const net = require('net');
+        let port = ${start_port};
+        (function tryPort() {
+            const srv = net.createServer();
+            srv.listen(port, '127.0.0.1', () => {
+                const p = srv.address().port;
+                srv.close(() => { console.log(p); process.exit(0); });
+            });
+            srv.on('error', () => { port++; tryPort(); });
+        })();
+    "
+}
+
 # --- Start dev server ---
 
-# Sets global _DEV_SERVER_PID. Do NOT call via command substitution $(...) —
-# the subshell would block forever waiting for the background dev server.
+# Sets globals: _DEV_SERVER_PID, _DEV_SERVER_URL.
+# Do NOT call via command substitution $(...) — the subshell would block
+# forever waiting for the background dev server.
 _DEV_SERVER_PID=""
+_DEV_SERVER_URL=""
 start_dev_server() {
-    local port=$1
+    local preferred_port=$1
     local working_dir=$2
+
+    # Find an available port starting from the preferred one
+    local port
+    port=$(find_free_port "$preferred_port")
+    if [[ "$port" != "$preferred_port" ]]; then
+        log "Port $preferred_port in use, using $port instead"
+    fi
+
+    local server_log="${reports_dir}/dev-server-${port}.log"
 
     log "Starting dev server on port $port from ${working_dir}..."
     cd "$working_dir"
-    PUBLIC_SITE_URL="http://localhost:$port" PUBLIC_HTTPS_SERVER=false PORT="$port" npx nx dev ag-charts-website &
+    PUBLIC_SITE_URL="http://localhost:$port" PUBLIC_HTTPS_SERVER=false PORT="$port" \
+        npx nx dev ag-charts-website > "$server_log" 2>&1 &
     _DEV_SERVER_PID=$!
     cd "$root"
 
-    log "Waiting for dev server at http://localhost:$port..."
-    npx wait-on "http-get://localhost:$port/charts/" --timeout 120000
+    # Parse Astro's startup output for the actual URL (handles auto-increment edge case)
+    log "Waiting for dev server to start..."
+    local actual_url=""
+    for i in $(seq 1 120); do
+        # Strip ANSI codes, look for "Local    http://..." line from Astro's output
+        actual_url=$(sed 's/\x1b\[[0-9;]*m//g' "$server_log" 2>/dev/null \
+            | grep -oE 'Local[[:space:]]+https?://[^[:space:]]+' \
+            | head -1 \
+            | awk '{print $NF}' || true)
+        if [[ -n "$actual_url" ]]; then
+            break
+        fi
+        sleep 1
+    done
 
-    log "Dev server ready on port $port (PID $_DEV_SERVER_PID)"
+    if [[ -z "$actual_url" ]]; then
+        actual_url="http://localhost:$port/charts"
+        log "Could not detect URL from server output, using default: $actual_url"
+    fi
+
+    _DEV_SERVER_URL="$actual_url"
+
+    # Verify the server is actually responding
+    log "Verifying server at ${_DEV_SERVER_URL}..."
+    npx wait-on "http-get://${_DEV_SERVER_URL#http://}" --timeout 60000
+
+    log "Dev server ready at $_DEV_SERVER_URL (PID $_DEV_SERVER_PID)"
 }
 
 # --- Run browser benchmarks ---
@@ -218,7 +274,9 @@ npx nx generate-examples ag-charts-website 2>&1 || log "generate-examples failed
 
 start_dev_server $HEAD_PORT "$root"
 HEAD_SERVER_PID=$_DEV_SERVER_PID
-run_benchmarks "http://localhost:$HEAD_PORT/charts" "$head_results" || {
+HEAD_URL=$_DEV_SERVER_URL
+HEAD_ACTUAL_PORT=$(echo "$HEAD_URL" | grep -oE ':[0-9]+' | tr -d ':')
+run_benchmarks "$HEAD_URL" "$head_results" || {
     if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
         logError "Head benchmarks failed"
         exit 1
@@ -226,7 +284,7 @@ run_benchmarks "http://localhost:$HEAD_PORT/charts" "$head_results" || {
 }
 
 log "Stopping head dev server..."
-stop_dev_server "$HEAD_SERVER_PID" "$HEAD_PORT"
+stop_dev_server "$HEAD_SERVER_PID" "${HEAD_ACTUAL_PORT:-$HEAD_PORT}"
 HEAD_SERVER_PID=""
 
 # --- BASE BENCHMARKS (worktree) ---
@@ -274,8 +332,10 @@ if [[ -d "${worktree_dir}" ]]; then
         kill_port $BASE_PORT
         start_dev_server $BASE_PORT "${worktree_dir}"
         BASE_SERVER_PID=$_DEV_SERVER_PID
+        BASE_URL=$_DEV_SERVER_URL
+        BASE_ACTUAL_PORT=$(echo "$BASE_URL" | grep -oE ':[0-9]+' | tr -d ':')
 
-        run_benchmarks "http://localhost:$BASE_PORT/charts" "$base_results" || {
+        run_benchmarks "$BASE_URL" "$base_results" || {
             if [[ "${AG_BENCHMARK_SOFT_FAIL:-}" != "true" ]]; then
                 logError "Base benchmarks failed"
                 exit 1
@@ -283,7 +343,7 @@ if [[ -d "${worktree_dir}" ]]; then
         }
 
         log "Stopping base dev server..."
-        stop_dev_server "$BASE_SERVER_PID" "$BASE_PORT"
+        stop_dev_server "$BASE_SERVER_PID" "${BASE_ACTUAL_PORT:-$BASE_PORT}"
         BASE_SERVER_PID=""
     fi
 
