@@ -11,6 +11,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
+import type { KeyboardClickBindingPredicate } from '../../widget/abstractButtonWidget';
 import { ButtonWidget } from '../../widget/buttonWidget';
 import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 
@@ -86,14 +87,19 @@ function isArrowRightPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
     return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowRight';
 }
 
+function falsePredicate(_widgetEvent: KeyboardWidgetEvent): boolean {
+    return false;
+}
+
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
     private lastInnerHTML?: string;
     private lastTooltip?: string;
+    private arrowRightPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
-        this.addKeyboardClickBinding(isArrowRightPredicate);
+        this.addKeyboardClickBinding((ev) => this.arrowRightPredicate(ev));
     }
 
     public update(options: ToolbarButtonWidgetOptions) {
@@ -126,9 +132,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
+            this.arrowRightPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
             this.setAriaExpanded(false);
+            this.arrowRightPredicate = isArrowRightPredicate;
         }
 
         // Only update innerHTML if content changed - avoids HTML parsing and style recalculation
