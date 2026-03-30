@@ -7,9 +7,9 @@ export interface AgDataSourceOptions<TDatum = DatumDefault, TContext = ContextDe
 
 export interface AgDataSourceCallbackParams<TContext = ContextDefault> {
     /** The start of the visible window, if a time axis is available. */
-    windowStart?: Date | number;
+    windowStart?: Date | number | string;
     /** The end of the visible window, if a time axis is available. */
-    windowEnd?: Date | number;
+    windowEnd?: Date | number | string;
     /** Chart context object. */
     context?: TContext;
 }
