@@ -1,52 +1,21 @@
-import { getDocsExamplePages, getDocsPages } from '@components/docs/utils/pageData';
-import * as docsUrlPaths from '@components/docs/utils/urlPaths';
+import { getDocsPages } from '@components/docs/utils/pageData';
 import { getExamplePageUrl } from '@components/docs/utils/urlPaths';
 import { FRAMEWORK_REDIRECT_PATH } from '@constants';
 import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';
-import { isTestPage } from './sitemap';
 import { urlWithBaseUrl } from './urlWithBaseUrl';
 
 function addTrailingSlash(path: string) {
     return path.slice(-1) === '/' ? path : `${path}/`;
 }
 
-const getDocsExamplePaths = async () => {
-    const pages = await getCollection('docs');
-    const docExamplePathsPromises = await getDocsExamplePages({
-        pages,
-    });
-    const docExamples = docExamplePathsPromises.map(({ params }) => {
-        const { internalFramework, pageName, exampleName } = params;
-        return {
-            internalFramework,
-            pageName,
-            exampleName,
-        };
-    });
-    const docExamplePaths = docExamples.flatMap(({ internalFramework, pageName, exampleName }) => {
-        return [
-            docsUrlPaths.getExampleUrl({ internalFramework, pageName, exampleName }),
-            docsUrlPaths.getExampleRunnerExampleUrl({ internalFramework, pageName, exampleName }),
-            docsUrlPaths.getExampleCodeSandboxUrl({ internalFramework, pageName, exampleName }),
-            docsUrlPaths.getExamplePlunkrUrl({ internalFramework, pageName, exampleName }),
-        ];
-    });
-
-    return docExamplePaths;
+const getDocsExamplePaths = () => {
+    return [urlWithBaseUrl('/*/*/examples/')];
 };
 
-const getTestPages = async () => {
-    const pages = await getCollection('docs');
-    const docsTestPages = getDocsPages(pages)
-        .map(({ params }) => {
-            const { framework, pageName } = params;
-            return getExamplePageUrl({ framework, path: pageName });
-        })
-        .filter(isTestPage);
-
-    return docsTestPages.concat(urlWithBaseUrl('/gallery-test'));
+const getTestPages = () => {
+    return [urlWithBaseUrl('/*/*-test/'), urlWithBaseUrl('/gallery-test'), urlWithBaseUrl('/*/benchmarks/')];
 };
 
 const getHiddenPages = async () => {
@@ -62,7 +31,7 @@ const getHiddenPages = async () => {
 };
 
 // eslint-disable-next-line @typescript-eslint/require-await
-const getIgnoredPages = async () => {
+const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
         addTrailingSlash(urlWithBaseUrl('/gallery/examples')),
