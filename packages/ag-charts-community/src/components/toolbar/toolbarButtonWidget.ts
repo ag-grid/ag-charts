@@ -11,8 +11,8 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
-import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import { ButtonWidget } from '../../widget/buttonWidget';
+import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 
 type ButtonValue =
     | 'menu'
