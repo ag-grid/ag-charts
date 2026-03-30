@@ -16,6 +16,7 @@ export interface PreSeriesUpdateEvent {
     readonly type: 'pre-series-update';
     readonly requiredRangeRatio: number;
     readonly requiredRangeDirection: ChartAxisDirection;
+    readonly requiredRange: number;
 }
 
 export interface PreSceneRenderEvent {
@@ -65,11 +66,16 @@ export class UpdateService {
         this.events.emit('pre-dom-update', { type: 'pre-dom-update' });
     }
 
-    public dispatchPreSeriesUpdate(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+    public dispatchPreSeriesUpdate(
+        requiredRangeRatio: number,
+        requiredRangeDirection: ChartAxisDirection,
+        requiredRange: number
+    ) {
         this.events.emit('pre-series-update', {
             type: 'pre-series-update',
             requiredRangeRatio,
             requiredRangeDirection,
+            requiredRange,
         });
     }
 
