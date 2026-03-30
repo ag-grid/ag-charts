@@ -38,6 +38,18 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
 
+## Tooling Health Check
+
+On every conversation start, verify that project skills are available by checking the system-reminder skill list. If **any** of these skills are missing, display a prominent warning before doing anything else:
+
+**Canary skills:** `example`, `dev-server`, `debug`, `git-conventions`, `jira`, `simplify`
+
+**Warning to display (if any canary skill is missing):**
+
+> **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug, git-conventions, jira, simplify) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
+
+Continue assisting the user after displaying the warning, but repeat it on each response until the skills become available.
+
 ## Quick Reference
 
 -   **Default branch:** `latest`
