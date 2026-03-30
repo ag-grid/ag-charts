@@ -319,7 +319,7 @@ if [[ -d "${worktree_dir}" ]]; then
        rsync -a --quiet "${root}/node_modules/" "${worktree_dir}/node_modules/" 2>/dev/null; then
         # Also clone nested workspace node_modules (Yarn 1 nohoist)
         while IFS= read -r nested; do
-            local rel_path="${nested#${root}/}"
+            rel_path="${nested#${root}/}"
             if [[ ! -d "${worktree_dir}/${rel_path}" ]]; then
                 mkdir -p "$(dirname "${worktree_dir}/${rel_path}")"
                 cp -cR "${nested}/" "${worktree_dir}/${rel_path}/" 2>/dev/null || true
