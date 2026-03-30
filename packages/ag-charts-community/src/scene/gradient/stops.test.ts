@@ -215,7 +215,9 @@ describe('stops', () => {
                 ['red', 'green']
             );
 
-            const datum = buildGradientLegendDatum(scale, 'series-1', true, [{ seriesId: 'series-1', key: 'value' }]);
+            const datum = buildGradientLegendDatum(scale, [], 'series-1', true, [
+                { seriesId: 'series-1', key: 'value' },
+            ]);
             expect(datum.legendType).toBe('gradient');
             expect(datum.enabled).toBe(true);
             expect(datum.seriesId).toBe('series-1');

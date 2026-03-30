@@ -198,6 +198,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         const offset = gradient.thickness + (scale.padding ?? 0);
         axisTicks.translationX = vertical ? offset : gradientRectBBox.x;
         axisTicks.translationY = vertical ? gradientRectBBox.y : offset;
+        axisTicks.namedLabels = data.namedLabels;
         const [dMin, dMax] = data.axisDomain;
         axisTicks.scale.domain = positiveAxis ? [dMax, dMin] : [dMin, dMax];
         axisTicks.scale.range = vertical

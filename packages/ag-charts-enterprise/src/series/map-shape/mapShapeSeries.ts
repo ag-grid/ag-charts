@@ -1,6 +1,15 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
-import { Logger, cachedTextMeasurer, isArray, measureTextSegments, mergeDefaults, toPlainText } from 'ag-charts-core';
+import {
+    Logger,
+    cachedTextMeasurer,
+    findDiscreteColorBinLabel,
+    formatValue,
+    isArray,
+    measureTextSegments,
+    mergeDefaults,
+    toPlainText,
+} from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
@@ -27,6 +36,7 @@ import {
 
 const {
     getMissCount,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -748,8 +758,25 @@ export class MapShapeSeries
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
-            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    this.getFormatterContext('color')
+                ),
+            ];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    formatValue
+                );
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -823,7 +850,13 @@ export class MapShapeSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
+            const binLabel = findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? binLabel ?? String(colorValue) });
         }
 
         const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);

@@ -1,3 +1,5 @@
+import type { AgColorScaleColorStop } from 'ag-charts-types';
+
 import { clamp } from '../utils/data/numbers';
 
 /** Colour mode for colour scale operations. */
@@ -183,6 +185,38 @@ export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColo
     }
 
     return domain.map((v, i) => ({ stop: (v - d0) / extent, color: range[i] }));
+}
+
+/** Formats a discrete bin range label from its boundaries. */
+export function formatColorBinLabel(
+    start: number,
+    end: number,
+    index: number,
+    count: number,
+    formatValue: (value: number, maximumFractionDigits?: number) => string
+): string {
+    const bin: ColorScaleBin = { start, end, color: '' };
+    return formatColorScaleBinLabel(bin, index, { length: count } as readonly ColorScaleBin[], formatValue);
+}
+
+/**
+ * Returns the label for the discrete bin containing `value`, derived from the
+ * ColorScale's domain and the original fills.
+ */
+export function findDiscreteColorBinLabel(
+    colorScale: ColorScaleState,
+    fills: AgColorScaleColorStop[],
+    value: number,
+    formatValueFn: (value: number, maximumFractionDigits?: number) => string
+): string | undefined {
+    const { domain, range, mode } = colorScale;
+    if (mode !== 'discrete' || range.length === 0) return undefined;
+
+    // domain has N+1 boundaries for N colours — find which bin the value falls into.
+    let i = 0;
+    while (i < range.length - 1 && value >= domain[i + 1]) i++;
+
+    return fills[i]?.name ?? formatColorBinLabel(domain[i], domain[i + 1], i, range.length, formatValueFn);
 }
 
 export function discreteColorStops(colorStops: GradientColorStop[]): GradientColorStop[] {
