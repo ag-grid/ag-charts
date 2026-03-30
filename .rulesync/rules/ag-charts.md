@@ -7,6 +7,10 @@ globs: ['**/*']
 
 # AI Agent Instructions
 
+## Ambiguity and confidence
+
+**NEVER guess:** This is the number one rule; if requirements, facts or details are ambiguous it is much better to admit this and ask for guidance (with context on why the ambiguity where possible) or do more research to ground things out, than to guess with a risk of being wrong.
+
 ## Project Overview
 
 AG Charts is a TypeScript monorepo providing a canvas-based charting library with community (MIT) and enterprise (commercial) versions. Built with Nx and Yarn, it supports React, Angular, and Vue 3 via framework-agnostic core packages. Rendering uses a high-performance custom scene graph on HTML Canvas, with a modular plugin architecture for extensible chart types.
