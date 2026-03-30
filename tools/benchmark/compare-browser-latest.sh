@@ -310,13 +310,39 @@ if [[ -d "${worktree_dir}" ]]; then
         TIMEOUT_CMD=(gtimeout "$BUILD_TIMEOUT")
     fi
 
-    # Install dependencies in worktree
-    log "Installing dependencies in worktree..."
+    # COW-clone node_modules from HEAD to avoid a full install.
+    # On APFS (macOS) cp -cR is near-instant; falls back to rsync on other FS.
+    # Even if yarn.lock differs, starting from a populated node_modules means
+    # yarn only reconciles the delta rather than resolving/fetching everything.
+    log "COW-cloning node_modules from HEAD..."
+    if cp -cR "${root}/node_modules/" "${worktree_dir}/node_modules/" 2>/dev/null || \
+       rsync -a --quiet "${root}/node_modules/" "${worktree_dir}/node_modules/" 2>/dev/null; then
+        # Also clone nested workspace node_modules (Yarn 1 nohoist)
+        while IFS= read -r nested; do
+            local rel_path="${nested#${root}/}"
+            if [[ ! -d "${worktree_dir}/${rel_path}" ]]; then
+                mkdir -p "$(dirname "${worktree_dir}/${rel_path}")"
+                cp -cR "${nested}/" "${worktree_dir}/${rel_path}/" 2>/dev/null || true
+            fi
+        done < <(find "${root}" -name "node_modules" -type d \
+            -not -path "${root}/node_modules/*" \
+            -not -path "${root}/node_modules" \
+            -maxdepth 3 2>/dev/null)
+        log "COW clone complete"
+    else
+        log "COW clone failed, falling back to full install"
+    fi
+
+    # Install/reconcile dependencies
     cd "${worktree_dir}"
-    log "Trying immutable install..."
-    yarn install --immutable 2>/dev/null || yarn install || {
-        soft_fail_or_exit "Failed to install dependencies in worktree"
-    }
+    if diff -q "${root}/yarn.lock" "${worktree_dir}/yarn.lock" &>/dev/null; then
+        log "yarn.lock matches HEAD, skipping install"
+    else
+        log "yarn.lock differs, reconciling dependencies..."
+        yarn install --prefer-offline || yarn install || {
+            soft_fail_or_exit "Failed to install dependencies in worktree"
+        }
+    fi
 
     if [[ -n "$base_results" ]]; then
         # Build the website in the worktree
