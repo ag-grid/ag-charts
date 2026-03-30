@@ -59,8 +59,7 @@ Load sub-documents progressively based on the review phase.
    - PRD or requirements docs that this design implements
    - Existing code referenced by the document (read key files to ground the review)
 
-3. **Compose the expert panel.** Select domain-specific reviewers based on the document's content.
-   The panel always includes these fixed roles:
+3. **Compose the expert panel.** The panel always includes three fixed roles:
 
    | Role | Always | Purpose |
    |------|--------|---------|
@@ -68,21 +67,30 @@ Load sub-documents progressively based on the review phase.
    | Product Manager | Yes | User value, requirements coverage, scope alignment |
    | Devil's Advocate | Yes (default) | Stress-test assumptions, challenge the approach |
 
-   Then select 2-4 domain experts from the pool below (or invent a fitting role if the document
-   covers a domain not listed). Choose experts whose focus areas match the document's content —
-   the goal is coverage of the key concerns, not maximum headcount.
+   Then **derive 2-4 domain expert roles from the document's content.** Each role should map to
+   a distinct area of expertise that the document demands scrutiny in. The goal is to cover the
+   key concerns the document raises, not to fill slots from a predefined list.
 
-   | Domain Expert | Select When Document Covers |
-   |---------------|-----------------------------|
-   | Performance Engineer | Budgets, benchmarks, hot paths, memory, GC pressure |
-   | Data Model Reviewer | Schema design, data flow, identity, aggregation, indexing |
-   | API Design Reviewer | Public interfaces, type contracts, backwards compatibility |
-   | Rendering Specialist | Scene graph, canvas, animation, visual output |
-   | Interaction Designer | User input, gestures, keyboard, accessibility |
-   | Security Reviewer | Auth, injection, data sanitisation, CSP |
-   | Concurrency Reviewer | Async patterns, race conditions, worker threads |
-   | Compatibility Reviewer | Cross-browser, framework wrappers, SSR |
-   | Diagrams Reviewer | Visual aids, Mermaid syntax, diagram clarity (--diagrams flag) |
+   **How to derive roles:**
+   - Identify the 3-5 most important technical concerns in the document (these often correspond
+     to evaluation criteria, constraints, or sections where options are compared)
+   - For each concern, ask: "what kind of specialist would catch mistakes here?"
+   - Name each role descriptively so the agent understands its focus (e.g., "Memory Layout &
+     GC Pressure Reviewer" rather than just "Performance Reviewer")
+   - Avoid redundancy with the fixed roles — TL already covers architecture, PM covers
+     requirements. Domain experts should go deeper into specific technical areas.
+   - In `--quick` mode, select only the single most critical domain expert
+
+   **Example derivations:**
+
+   | Document About | Derived Roles |
+   |----------------|---------------|
+   | Selection data model with 100K data perf target | Hot-Path Performance Analyst, Data Structure & Identity Reviewer, Aggregation Compatibility Reviewer |
+   | Bundle size reduction | Tree-Shaking & Module Boundary Reviewer, Build Tooling Specialist, API Surface Compatibility Reviewer |
+   | Server-side rendering | Node.js Runtime Compatibility Reviewer, Framework Lifecycle Specialist, Hydration & State Transfer Reviewer |
+   | Accessibility redesign | Assistive Technology Specialist, Keyboard Navigation Reviewer, ARIA Semantics Reviewer |
+
+   If the `--diagrams` flag is passed, also include a Diagrams & Visual Aids Reviewer.
 
 4. **Summarise the panel to the user** before launching agents:
 
