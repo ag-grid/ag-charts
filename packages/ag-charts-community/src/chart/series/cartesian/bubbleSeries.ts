@@ -14,6 +14,7 @@ import {
     clamp,
     dateToNumber,
     extent,
+    findDiscreteColorBinLabel,
     formatValue,
     isArray,
     measureTextSegments,
@@ -40,6 +41,8 @@ import {
 } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
+import { ColorScale } from '../../../scale/colorScale';
+import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
@@ -53,7 +56,13 @@ import { DataModel, type ProcessedData, fixNumericExtent } from '../../data/data
 import { createDatumId, processedDataIsAnimatable, valueProperty } from '../../data/processors';
 import { expandLabelPadding } from '../../label';
 import { getLabelStyles } from '../../labelUtil';
-import type { CategoryLegendDatum } from '../../legend/legendDatum';
+import {
+    type CategoryLegendDatum,
+    type ChartLegendType,
+    type GradientLegendDatum,
+    buildColorCategoryLegendData,
+    buildGradientLegendDatum,
+} from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
@@ -104,16 +113,19 @@ class BubbleScatterSeriesNodeEvent<
     TEvent extends string = SeriesNodeEventTypes,
 > extends CartesianSeriesNodeEvent<TEvent> {
     readonly sizeKey?: string;
+    readonly colorKey?: string;
 
     constructor(type: TEvent, nativeEvent: Event, datum: BubbleScatterNodeDatum, series: BubbleSeries) {
         super(type, nativeEvent, datum, series);
         this.sizeKey = series.properties.sizeKey;
+        this.colorKey = series.properties.colorKey;
     }
 }
 
 export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
     readonly point: Readonly<SizedPoint>;
     readonly sizeValue: any;
+    readonly colorValue: any;
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
     readonly anchor: Point;
@@ -155,6 +167,7 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     readonly sizeDataValues: number[] | undefined;
     readonly labelDataValues: any[] | undefined;
     readonly selectedDataValues: boolean[] | undefined;
+    readonly colorDataValues: number[] | undefined;
 
     // Additional scale (size is BubbleSeries-specific)
     readonly sizeScale: Scale<any, number>;
@@ -162,8 +175,10 @@ interface BubbleSeriesNodeDatumContext extends CartesianMarkerLikeContext<Bubble
     // Property lookups (BubbleSeries-specific)
     readonly sizeKey: string | undefined;
     readonly labelKey: string | undefined;
+    readonly colorKey: string | undefined;
     readonly sizeName: string | undefined;
     readonly labelName: string | undefined;
+    readonly colorName: string | undefined;
     readonly legendItemName: string | undefined;
 
     // Label properties
@@ -189,6 +204,7 @@ interface PreparedBubbleNodeDatumState {
     xDatum: any;
     yDatum: any;
     sizeValue: number | undefined;
+    colorValue: number | undefined;
 
     // Computed coordinates
     x: number;
@@ -220,6 +236,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     private dataAggregation: BubbleAggregation | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
+    readonly colorScale = new ColorScale();
 
     private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
 
@@ -238,11 +255,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 ...DEFAULT_CARTESIAN_DIRECTION_KEYS,
                 label: ['labelKey'],
                 size: ['sizeKey'],
+                color: ['colorKey'],
             },
             propertyNames: {
                 ...DEFAULT_CARTESIAN_DIRECTION_NAMES,
                 label: ['labelName'],
                 size: ['sizeName'],
+                color: ['colorName'],
             },
             categoryKey: undefined,
             pickModes: [
@@ -268,7 +287,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const sizeScaleType = this.sizeScale.type;
-        const { xKey, yKey, sizeKey, selectedKey, labelKey, marker } = this.properties;
+        const colorScaleType = this.colorScale.type;
+        const { xKey, yKey, sizeKey, selectedKey, labelKey, colorKey, marker } = this.properties;
         const allowNullKey = this.properties.allowNullKeys ?? false;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -277,6 +297,9 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 ...(selectedKey == null ? [] : [valueProperty(selectedKey, 'category', { id: `selectedValue` })]),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: `labelValue` })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: `colorValue`, invalidValue: undefined })]
+                    : []),
             ],
         });
 
@@ -287,9 +310,29 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.sizeScale.domain =
             mutableMarkerDomain ?? (sizeKeyIdx == null ? undefined : processedData.domain.values[sizeKeyIdx]) ?? [];
 
+        if (this.isColorScaleValid()) {
+            const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
+            const rawDomain = processedData.domain.values[colorKeyIdx].filter((v: any) => v != null);
+            const domain = extent(rawDomain);
+
+            if (domain != null) {
+                configureColorScale(this.colorScale, this.properties.colorScale, domain, []);
+            }
+        }
+
         this.dataAggregation = this.aggregateData(dataModel, processedData);
 
         this.animationState.transition('updateData');
+    }
+
+    private isColorScaleValid() {
+        if (!this.properties.colorKey) return false;
+
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return false;
+
+        const idx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
+        return processedData.domain.values[idx].some((v: any) => v != null);
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
@@ -443,10 +486,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             sizeKey,
             selectedKey,
             labelKey,
+            colorKey,
             xName,
             yName,
             sizeName,
             labelName,
+            colorName,
             label,
             legendItemName,
             marker,
@@ -489,6 +534,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 selectedKey == null
                     ? undefined
                     : dataModel.resolveColumnById<boolean>(this, `selectedValue`, processedData),
+            colorDataValues:
+                colorKey == null ? undefined : dataModel.resolveColumnById<number>(this, `colorValue`, processedData),
 
             // Scales
             xScale,
@@ -504,10 +551,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             yKey,
             sizeKey,
             labelKey,
+            colorKey,
             xName,
             yName,
             sizeName,
             labelName,
+            colorName,
             legendItemName,
 
             // Label properties
@@ -548,6 +597,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             xDatum: undefined,
             yDatum: undefined,
             sizeValue: undefined,
+            colorValue: undefined,
             x: 0,
             y: 0,
             selected: undefined,
@@ -698,11 +748,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         // Compute marker size
         const markerSize = sizeValue == null ? ctx.sizeScale.range[0] : ctx.sizeScale.convert(sizeValue);
 
+        const colorValue = ctx.colorDataValues?.[datumIndex];
+
         // Populate scratch object
         scratch.datum = datum;
         scratch.xDatum = xDatum;
         scratch.yDatum = yDatum;
         scratch.sizeValue = sizeValue;
+        scratch.colorValue = colorValue;
         scratch.x = x;
         scratch.y = y;
         scratch.selected = selected;
@@ -760,6 +813,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 yName: ctx.yName,
                 sizeName: ctx.sizeName,
                 labelName: ctx.labelName,
+                colorKey: ctx.colorKey,
+                colorName: ctx.colorName,
                 legendItemName: ctx.legendItemName,
             }
         );
@@ -791,6 +846,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             xValue: undefined,
             yValue: undefined,
             sizeValue: undefined,
+            colorValue: undefined,
             capDefaults: { lengthRatioMultiplier: this.properties.marker.getDiameter(), lengthMax: Infinity },
             point: { x: 0, y: 0, size: 0 },
             midPoint: { x: 0, y: 0 },
@@ -823,6 +879,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.xValue = scratch.xDatum;
         mutableNode.yValue = scratch.yDatum;
         mutableNode.sizeValue = scratch.sizeValue;
+        mutableNode.colorValue = scratch.colorValue;
         mutableNode.selected = scratch.selected;
         mutableNode.count = scratch.count;
         mutableNode.dilation = scratch.dilation;
@@ -884,14 +941,20 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const params = { xKey, yKey, sizeKey, labelKey };
+        const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
+        const params = { xKey, yKey, sizeKey, labelKey, colorKey };
+        const colorScaleValid = this.isColorScaleValid();
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
                 const stylerStyle = this.getStyle(highlightState);
+
+                if (colorScaleValid && datum.colorValue != null) {
+                    stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                }
+
                 datum.style = this.getMarkerStyle(
                     marker,
                     datum,
@@ -1061,6 +1124,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 yKey,
                 sizeKey,
                 labelKey,
+                colorKey,
             },
         } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
@@ -1084,6 +1148,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 xKey,
                 yKey,
                 labelKey,
+                colorKey,
             } satisfies ResultRules;
         } else if (this.type === 'scatter') {
             type ResultRules = CallbackParamRules<AgScatterSeriesStylerParams<unknown, unknown>>;
@@ -1102,6 +1167,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 xKey,
                 yKey,
                 labelKey,
+                colorKey,
             } satisfies ResultRules;
         } else {
             // verify that the else branch is unreachable.
@@ -1110,7 +1176,19 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     private makeLabelFormatterParams(): AgBubbleSeriesLabelFormatterParams {
-        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, legendItemName } = this.properties;
+        const {
+            xKey,
+            xName,
+            yKey,
+            yName,
+            sizeKey,
+            sizeName,
+            labelKey,
+            labelName,
+            colorKey,
+            colorName,
+            legendItemName,
+        } = this.properties;
         return {
             xKey,
             xName,
@@ -1120,12 +1198,14 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             sizeName,
             labelKey,
             labelName,
+            colorKey,
+            colorName,
             legendItemName,
         } satisfies RequireOptional<AgBubbleSeriesLabelFormatterParams>;
     }
 
     override getTooltipContent(datumIndex: number): TooltipContent | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties, ctx } = this;
+        const { id: seriesId, dataModel, processedData, axes, properties, ctx, colorScale } = this;
         const { formatManager } = ctx;
         const {
             xKey,
@@ -1136,6 +1216,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             sizeName,
             labelKey,
             labelName,
+            colorKey,
+            colorName,
             title,
             tooltip,
             marker,
@@ -1187,33 +1269,56 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             }
         );
 
+        const addValueRow = (
+            columnId: string,
+            key: string,
+            name: string | undefined,
+            property: FormatterPropertyType
+        ): number | undefined => {
+            const value = dataModel.resolveColumnById<number>(this, columnId, processedData)[datumIndex];
+            if (value == null) return undefined;
+            const domain = dataModel.getDomain(this, columnId, 'value', processedData).domain;
+            const content = formatManager.format(this.callWithContext.bind(this), {
+                type: 'number',
+                value,
+                datum,
+                seriesId,
+                legendItemName,
+                key,
+                source: 'tooltip',
+                property,
+                boundSeries: this.getFormatterContext(property),
+                domain,
+                fractionDigits: undefined,
+                visibleDomain: undefined,
+            });
+            data.push({ label: name, fallbackLabel: key, value: content ?? formatValue(value) });
+            return value;
+        };
+
         if (sizeKey != null) {
-            const value = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            // Only add size row if value is not null/undefined
-            if (value != null) {
-                const domain = dataModel.getDomain(this, `sizeValue`, 'value', processedData).domain;
-                const content = formatManager.format(this.callWithContext.bind(this), {
-                    type: 'number',
-                    value,
-                    datum,
-                    seriesId,
-                    legendItemName,
-                    key: sizeKey,
-                    source: 'tooltip',
-                    property: 'size',
-                    boundSeries: this.getFormatterContext('size'),
-                    domain,
-                    fractionDigits: undefined,
-                    visibleDomain: undefined,
-                });
-                data.push({ label: sizeName, fallbackLabel: sizeKey, value: content ?? formatValue(value) });
+            addValueRow('sizeValue', sizeKey, sizeName, 'size');
+        }
+
+        if (colorKey != null && this.isColorScaleValid()) {
+            const colorValue = addValueRow('colorValue', colorKey, colorName, 'color');
+            if (colorValue != null) {
+                const binLabel = findDiscreteColorBinLabel(
+                    colorScale,
+                    properties.colorScale.fills,
+                    colorValue,
+                    formatValue
+                );
+                if (binLabel != null) {
+                    data.at(-1)!.value = binLabel;
+                }
             }
         }
 
         const activeStyle = this.getMarkerStyle(
             marker,
             { datum, datumIndex },
-            { xKey, yKey, sizeKey, labelKey },
+            { xKey, yKey, sizeKey, labelKey, colorKey },
             { resolveMarkerSubPath: [] }
         );
 
@@ -1236,6 +1341,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 sizeName,
                 labelKey,
                 labelName,
+                colorKey,
+                colorName,
                 legendItemName,
                 ...(activeStyle as RequireOptional<FillOptions & StrokeOptions & LineDashOptions>),
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
@@ -1261,7 +1368,36 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         };
     }
 
-    getLegendData(): CategoryLegendDatum[] {
+    getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] | GradientLegendDatum[] {
+        if (this.isColorScaleValid() && this.dataModel) {
+            const { colorScale: colorScaleProps } = this.properties;
+
+            if (legendType === 'category' && colorScaleProps.mode === 'discrete' && colorScaleProps.fills.length > 0) {
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    this.id,
+                    this.visible,
+                    formatValue,
+                    this.properties.shape
+                );
+            }
+
+            if (legendType === 'gradient') {
+                return [
+                    buildGradientLegendDatum(
+                        this.colorScale,
+                        colorScaleProps.fills,
+                        this.id,
+                        this.visible,
+                        this.getFormatterContext('color')
+                    ),
+                ];
+            }
+        }
+
+        if (legendType !== 'category') return [];
+
         const {
             id: seriesId,
             ctx: { legendManager },
@@ -1340,8 +1476,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     public getFormattedMarkerStyle(datum: BubbleScatterNodeDatum) {
-        const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        return this.getMarkerStyle(marker, datum, { xKey, yKey, sizeKey, labelKey }, { resolveMarkerSubPath: [] });
+        const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
+        return this.getMarkerStyle(
+            marker,
+            datum,
+            { xKey, yKey, sizeKey, labelKey, colorKey },
+            { resolveMarkerSubPath: [] }
+        );
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {
@@ -1350,7 +1491,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         const { styler, itemStyler, marker, label } = this.properties;
-        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler);
+        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler) || this.isColorScaleValid();
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {

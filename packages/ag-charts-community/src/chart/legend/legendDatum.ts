@@ -5,7 +5,7 @@ import {
     deriveNormalizedStops,
     formatColorBinLabel,
 } from 'ag-charts-core';
-import type { AgChartLegendListeners, AgColorScaleColorStop, TextOrSegments } from 'ag-charts-types';
+import type { AgChartLegendListeners, AgColorScaleColorStop, AgMarkerShape, TextOrSegments } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
@@ -137,7 +137,8 @@ export function buildColorCategoryLegendData(
     fills: AgColorScaleColorStop[],
     seriesId: string,
     enabled: boolean,
-    formatValue: (value: number, maximumFractionDigits?: number) => string
+    formatValue: (value: number, maximumFractionDigits?: number) => string,
+    shape: AgMarkerShape = 'square'
 ): CategoryLegendDatum[] {
     const { domain, range } = colorScale;
     if (range.length === 0) return [];
@@ -155,7 +156,7 @@ export function buildColorCategoryLegendData(
             enabled,
             symbol: {
                 marker: {
-                    shape: 'square',
+                    shape,
                     fill: color,
                     fillOpacity: 1,
                     stroke: undefined,

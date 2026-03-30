@@ -4,6 +4,7 @@ exports[`ScatterSeries AG-11673 styler init callbacks params 1`] = `
 [
   [
     {
+      "colorKey": undefined,
       "context": {
         "name": "male context",
       },
@@ -27,6 +28,7 @@ exports[`ScatterSeries AG-11673 styler init callbacks params 1`] = `
   ],
   [
     {
+      "colorKey": undefined,
       "context": {
         "name": "female context",
       },
