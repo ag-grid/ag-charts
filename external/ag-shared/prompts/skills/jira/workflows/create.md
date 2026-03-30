@@ -83,6 +83,8 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
 }
 ```
 
+**When the description references other JIRA tickets** (dependencies, related work, split-from context), you **must** use `contentFormat: "adf"` instead of `"markdown"` and construct the full ADF document with `inlineCard` nodes for each ticket reference. Markdown format cannot produce Smart Links. See the "Description Formatting" section below for the `inlineCard` syntax.
+
 **For Bug and Improvement tickets, also include:**
 
 ```json
