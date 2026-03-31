@@ -106,17 +106,18 @@ function addResolutions(rootPkgJsonPath, tarballs) {
         pkg.resolutions = {};
     }
 
-    let added = 0;
+    let changed = false;
     for (const [name, tarballPath] of Object.entries(tarballs)) {
-        if (!pkg.resolutions[name]) {
-            added++;
+        const value = `file:${tarballPath}`;
+        if (pkg.resolutions[name] !== value) {
+            pkg.resolutions[name] = value;
+            changed = true;
         }
-        pkg.resolutions[name] = `file:${tarballPath}`;
     }
 
-    if (added > 0) {
+    if (changed) {
         fs.writeFileSync(rootPkgJsonPath, JSON.stringify(pkg, null, 2) + '\n');
-        console.log(`Added ${added} resolution(s) to: ${rootPkgJsonPath}`);
+        console.log(`Updated resolutions in: ${rootPkgJsonPath}`);
     }
 }
 
