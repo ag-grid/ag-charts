@@ -979,11 +979,11 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected pickModulesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         for (const mod of this.moduleMap.modules()) {
-            const { datum } = mod.pickNodeExact(point) ?? {};
-            if (datum == null) continue;
-            if (datum?.missing === true) continue;
+            const { unsafeDatum } = mod.pickNodeExact(point)?.unsafeDatum ?? {};
+            if (unsafeDatum == null) continue;
+            if (unsafeDatum?.missing === true) continue;
 
-            return [datum];
+            return [unsafeDatum];
         }
     }
 
@@ -1035,20 +1035,20 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         }
     }
 
-    private pickModulesClosestDatum(point: Point) {
+    private pickModulesClosestDatum(point: Point): { unsafeClosestDatum: any; distance: number } | undefined {
         let minDistanceSquared = Infinity;
-        let closestDatum: SeriesNodeDatum<DatumIndexType> | undefined;
+        let unsafeClosestDatum: any;
 
         for (const mod of this.moduleMap.modules()) {
             const modPick = mod.pickNodeNearest(point);
             if (modPick !== undefined && modPick.distanceSquared < minDistanceSquared) {
                 minDistanceSquared = modPick.distanceSquared;
-                closestDatum = modPick.datum;
+                unsafeClosestDatum = modPick.unsafeDatum;
             }
         }
 
         if (minDistanceSquared != null) {
-            return { datum: closestDatum, distance: Math.sqrt(minDistanceSquared) };
+            return { unsafeClosestDatum, distance: Math.sqrt(minDistanceSquared) };
         }
     }
 
@@ -1065,7 +1065,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const modPick = this.pickModulesClosestDatum(point);
         if (modPick != null && modPick.distance < minDistance) {
             minDistance = modPick.distance;
-            closestDatum = modPick.datum;
+            closestDatum = modPick.unsafeClosestDatum;
         }
 
         if (closestDatum) {
@@ -1142,7 +1142,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             for (const mod of this.moduleMap.modules()) {
                 const modPick = mod.pickNodeMainAxisFirst(point, majorDirection);
                 if (modPick != null && modPick.distanceSquared < closestDistanceSquared) {
-                    closestDatum = modPick.datum;
+                    closestDatum = modPick.unsafeDatum;
                     closestDistanceSquared = modPick.distanceSquared;
                     break;
                 }

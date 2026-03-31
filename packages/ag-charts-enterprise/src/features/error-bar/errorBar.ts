@@ -302,7 +302,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
             // eslint-disable-next-line sonarjs/deprecation
-            return { datum: node.unsafeDatum, distanceSquared: 0 };
+            return { unsafeDatum: node.unsafeDatum, distanceSquared: 0 };
         }
     }
 
@@ -339,7 +339,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
 
         if (unsafeClosestDatum) {
             return {
-                datum: unsafeClosestDatum,
+                unsafeDatum: unsafeClosestDatum,
                 distanceSquared: Math.pow(closestDistance[0], 2) + Math.pow(closestDistance[1], 2),
             };
         }
