@@ -168,6 +168,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     public data: DataSet = DataSet.empty();
 
+    public loading: boolean | undefined = undefined;
+
     @ActionOnSet<Chart>({
         newValue(value) {
             this.resize('width option', { inWidth: value });
