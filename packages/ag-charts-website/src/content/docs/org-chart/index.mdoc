@@ -115,7 +115,7 @@ Each card in the chart can display a `title`, `subtitle`, additional `label` fie
 
 ### Title and Subtitle
 
-The `title` and `subtitle` are always visible, including in compact display mode.
+The `title` and `subtitle` are the primary text fields on each card.
 
 ```js format="snippet"
 {
@@ -150,8 +150,7 @@ Additional information can be displayed using the `label` array. Each entry maps
 }
 ```
 
-Labels are hidden in compact display mode. Each label supports a `styler` callback for per-node
-text customisation.
+Each label supports a `styler` callback for per-node text customisation.
 
 ### Image
 
@@ -178,85 +177,17 @@ shape, size, and position within the card.
 The `position` property controls where the image appears within the card. The `shape` can be
 `'circle'` or `'square'`.
 
-## Display Mode
-
-The `displayMode` property controls how much detail each card shows.
-
-{% tabs omitFromOverview=true %}
-
-{% tabItem id="display-full" label="Full" %}
-{% imageCaption imagePath="resources/display-mode-full.svg" alt="Organisation chart in full display mode showing all card content" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% tabItem id="display-compact" label="Compact" %}
-{% imageCaption imagePath="resources/display-mode-compact.svg" alt="Organisation chart in compact display mode showing title and subtitle only" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% /tabs %}
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            displayMode: 'auto',
-        },
-    ],
-}
-```
-
--   `'full'` — Shows all content: title, subtitle, labels, and image.
--   `'compact'` — Shows only the title and subtitle. Labels and images are hidden.
--   `'auto'` (default) — Automatically switches between full and compact based on available space.
-
-### User-Togglable Cards
-
-When `displayMode` is `'auto'`, nodes with hidden content (labels or image) show a chevron indicator.
-Clicking the chevron toggles that card between compact and full display, allowing end users to
-expand individual cards to reveal additional detail on demand.
-
-This follows the pattern established by [GoJS's static org chart](https://gojs.net/latest/samples/orgChartStatic.html),
-where each card has a PanelExpanderButton (chevron) that reveals or hides extra information within the node.
-
 ## Layout
 
-The `direction` property controls the orientation of the chart.
+The chart uses a vertical (top-to-bottom) layout, with the root node at the top and children arranged
+below.
 
-{% tabs omitFromOverview=true %}
-
-{% tabItem id="layout-vertical" label="Vertical" %}
 {% imageCaption imagePath="resources/layout-top-to-bottom.svg" alt="Organisation chart with vertical (top to bottom) layout" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% tabItem id="layout-horizontal" label="Horizontal" %}
-{% imageCaption imagePath="resources/layout-left-to-right.svg" alt="Organisation chart with horizontal (left to right) layout" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% /tabs %}
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            direction: 'vertical',
-        },
-    ],
-}
-```
-
-The available values are `'vertical'` (default) and `'horizontal'`. In right-to-left (RTL) locales,
-the horizontal layout is automatically mirrored.
 
 ## Connectors
 
 Connectors are the lines drawn between parent and child nodes. They are configured through the `link`
-property.
-
-### Interpolation
-
-The `link.interpolation.type` property controls the shape of the connectors. When using `'step'`
-connectors, the `cornerRadius` property rounds the corners where the horizontal line drops down toward children.
+property and use orthogonal step routing by default.
 
 {% tabs omitFromOverview=true %}
 
@@ -268,15 +199,9 @@ connectors, the `cornerRadius` property rounds the corners where the horizontal 
 {% imageCaption imagePath="resources/connectors-step-rounded.svg" alt="Organisation chart with step connectors using rounded corners" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
 {% /tabItem %}
 
-{% tabItem id="connector-smooth" label="Smooth" %}
-{% imageCaption imagePath="resources/connectors-smooth.svg" alt="Organisation chart with smooth Bezier curve connectors" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% tabItem id="connector-linear" label="Linear" %}
-{% imageCaption imagePath="resources/connectors-linear.svg" alt="Organisation chart with straight diagonal connectors" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
 {% /tabs %}
+
+The `cornerRadius` property rounds the corners where the horizontal line drops down toward children.
 
 ```js format="snippet"
 {
@@ -294,10 +219,6 @@ connectors, the `cornerRadius` property rounds the corners where the horizontal 
 }
 ```
 
--   `'step'` (default) — Orthogonal connectors with right-angle routing. Use `cornerRadius` to round the corners where the horizontal line breaks off downward toward children.
--   `'smooth'` — Bezier curve connectors. The `tension` property (0–1) controls the curve tightness.
--   `'linear'` — Straight diagonal lines between nodes.
-
 ### Connector Styling
 
 Connectors can be styled globally or per-connector using the `link.itemStyler` callback.
@@ -310,10 +231,9 @@ Connectors can be styled globally or per-connector using the `link.itemStyler` c
             link: {
                 stroke: '#999',
                 strokeWidth: 2,
-                lineDash: [4, 2],
                 itemStyler: ({ datum }) => {
-                    if (datum.relationship === 'dotted-line') {
-                        return { lineDash: [4, 2], stroke: '#ccc' };
+                    if (datum.department === 'Engineering') {
+                        return { stroke: '#43A047' };
                     }
                 },
             },
@@ -327,61 +247,25 @@ conditional styling based on relationship data.
 
 ## Collapse and Expand
 
-Nodes with children can be collapsed and expanded. The indicator shows the direct child count when
-collapsed.
+Nodes with children can be collapsed and expanded by clicking. Non-leaf nodes display a visual
+indicator to show that they can be expanded or collapsed.
+
+{% note %}
+The exact visual design of the expand/collapse indicator (badge, pill, or chevron) is still being
+finalised. An indicator will be present at launch to distinguish leaf nodes from non-leaf nodes.
+{% /note %}
 
 {% tabs omitFromOverview=true %}
 
-{% tabItem id="badge-expanded" label="Badge (Expanded)" %}
-{% imageCaption imagePath="resources/expander-badge-expanded.svg" alt="Organisation chart fully expanded with no badges" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% tabItem id="state-expanded" label="Expanded" %}
+{% imageCaption imagePath="resources/state-expanded.svg" alt="Organisation chart with all nodes expanded" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
 {% /tabItem %}
 
-{% tabItem id="badge-collapsed" label="Badge (Collapsed)" %}
-{% imageCaption imagePath="resources/expander-badge-collapsed.svg" alt="Organisation chart with collapsed nodes showing yellow circle badges with child count" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% tabItem id="pill-expanded" label="Pill (Expanded)" %}
-{% imageCaption imagePath="resources/expander-pill-expanded.svg" alt="Organisation chart fully expanded with outlined pill indicators" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-{% /tabItem %}
-
-{% tabItem id="pill-collapsed" label="Pill (Collapsed)" %}
-{% imageCaption imagePath="resources/expander-pill-collapsed.svg" alt="Organisation chart with collapsed nodes showing filled pills with child count" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% tabItem id="state-collapsed" label="Collapsed" %}
+{% imageCaption imagePath="resources/state-collapsed.svg" alt="Organisation chart with collapsed nodes" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
 {% /tabItem %}
 
 {% /tabs %}
-
-### Badge Styling
-
-The collapse/expand badge is a circular indicator positioned at the bottom of the card. When collapsed,
-it displays the direct child count. It is configured through the `badge` property.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            badge: {
-                fill: '#3366CC',
-                stroke: '#3366CC',
-                color: '#FFFFFF',
-                fontSize: 11,
-                cornerRadius: 12,
-                styler: ({ datum, expanded, childCount }) => {
-                    if (expanded) {
-                        return { fill: 'transparent' };
-                    }
-                },
-            },
-        },
-    ],
-}
-```
-
-The `styler` callback receives the node's `datum`, `expanded` state, and `childCount`, allowing
-per-node customisation of the badge.
-
-An alternative pill-shaped expander is also under consideration, with a similar set of configuration
-properties.
 
 ### Initial State
 
@@ -426,36 +310,6 @@ chart.setState({ collapsed: ['finance', 'hr', 'marketing'] });
 When a node is set as the active item programmatically (via `initialState.active`), all its collapsed
 ancestors are automatically expanded and the viewport pans to centre on it. This enables deep-linking
 to a specific person in a large chart.
-
-## Highlighting
-
-Hovering over a node highlights the tree path — the node itself, its ancestors, and its descendants.
-Nodes and connectors outside the highlighted path are dimmed.
-
-{% imageCaption imagePath="resources/highlight-tree-path.svg" alt="Tree path highlighting showing ancestors and descendants" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            highlightStyle: {
-                item: {
-                    fill: '#E3F2FD',
-                    stroke: '#1565C0',
-                    strokeWidth: 2,
-                },
-                unhighlightedBranch: {
-                    opacity: 0.3,
-                },
-            },
-        },
-    ],
-}
-```
-
-The `highlightStyle.item` controls the appearance of highlighted nodes, while
-`highlightStyle.unhighlightedBranch` styles the dimmed nodes outside the path.
 
 ## Tooltips
 
@@ -517,7 +371,7 @@ The `itemStyler` callback provides per-node visual customisation based on data a
     series: [
         {
             type: 'organization',
-            itemStyler: ({ datum, depth, isExpanded, displayMode, highlighted }) => {
+            itemStyler: ({ datum, depth, isExpanded }) => {
                 if (depth === 0) {
                     return { fill: '#1565C0', stroke: '#0D47A1' };
                 }
@@ -535,8 +389,6 @@ The callback receives:
 -   `datum` — The node's data object.
 -   `depth` — The node's depth in the tree.
 -   `isExpanded` — Whether the node is expanded.
--   `displayMode` — The current display mode (`'compact'` or `'full'`).
--   `highlighted` — Whether the node is in the highlighted path.
 
 It can return: `fill`, `stroke`, `strokeWidth`, `opacity`, `cornerRadius`, `lineDash`.
 
@@ -572,10 +424,6 @@ across the hierarchy.
 The viewport automatically centres on the root node when the chart first renders. After expanding or
 collapsing a node, the view adjusts to keep the interacted node visible.
 
-{% note %}
-Zoom (via mouse wheel) is planned for a future release.
-{% /note %}
-
 ## Keyboard Navigation
 
 Organisation Charts support full keyboard navigation. Arrow keys map to the visual layout of the tree:
@@ -589,6 +437,102 @@ Organisation Charts support full keyboard navigation. Arrow keys map to the visu
 | **Enter** | Toggle expand/collapse            |
 
 Screen readers announce the node content and sibling position (e.g. "3 of 5").
+
+## Should-Have (v2)
+
+The following features are planned for a future release.
+
+### Highlighting
+
+Hovering over a node will highlight the tree path — the node itself, its ancestors, and its descendants.
+Nodes and connectors outside the highlighted path will be dimmed.
+
+{% imageCaption imagePath="resources/highlight-tree-path.svg" alt="Tree path highlighting showing ancestors and descendants" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            highlightStyle: {
+                item: {
+                    fill: '#E3F2FD',
+                    stroke: '#1565C0',
+                    strokeWidth: 2,
+                },
+                unhighlightedBranch: {
+                    opacity: 0.3,
+                },
+            },
+        },
+    ],
+}
+```
+
+### Horizontal Layout
+
+A `direction` property will support `'horizontal'` layout (left-to-right), with automatic mirroring
+in right-to-left (RTL) locales.
+
+{% imageCaption imagePath="resources/layout-left-to-right.svg" alt="Organisation chart with horizontal (left to right) layout" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+
+### Display Modes
+
+The `displayMode` property will control how much detail each card shows.
+
+{% tabs omitFromOverview=true %}
+
+{% tabItem id="display-full" label="Full" %}
+{% imageCaption imagePath="resources/display-mode-full.svg" alt="Organisation chart in full display mode showing all card content" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% /tabItem %}
+
+{% tabItem id="display-compact" label="Compact" %}
+{% imageCaption imagePath="resources/display-mode-compact.svg" alt="Organisation chart in compact display mode showing title and subtitle only" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% /tabItem %}
+
+{% /tabs %}
+
+-   `'full'` — Shows all content: title, subtitle, labels, and image.
+-   `'compact'` — Shows only the title and subtitle. Labels and images are hidden.
+-   `'auto'` (default) — Automatically switches between full and compact based on available space.
+
+### Smooth and Linear Connectors
+
+Additional connector interpolation types beyond the default `'step'` routing.
+
+{% tabs omitFromOverview=true %}
+
+{% tabItem id="connector-smooth" label="Smooth" %}
+{% imageCaption imagePath="resources/connectors-smooth.svg" alt="Organisation chart with smooth Bezier curve connectors" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% /tabItem %}
+
+{% tabItem id="connector-linear" label="Linear" %}
+{% imageCaption imagePath="resources/connectors-linear.svg" alt="Organisation chart with straight diagonal connectors" maxWidth="80%" constrained=true centered=true enableDarkModeFilter=true /%}
+{% /tabItem %}
+
+{% /tabs %}
+
+-   `'smooth'` — Bezier curve connectors. The `tension` property (0–1) controls the curve tightness.
+-   `'linear'` — Straight diagonal lines between nodes.
+
+### Per-Level Styling
+
+A `depths` array will allow styling overrides per hierarchy level, enabling colour-coded depth tiers
+for both cards and labels.
+
+### Zoom
+
+Mouse wheel zoom will be supported as a chart-level navigation capability.
+
+## Could-Have (v3)
+
+The following features are under consideration for future releases.
+
+-   **Drag-to-reorganise** — Rearrange the hierarchy by dragging nodes to new parents.
+-   **Secondary relationships** — Dotted-line connectors for multi-reporting structures.
+-   **Multi-parent nodes** — Nodes with more than one parent (e.g. family trees, shared resources).
+-   **Minimap** — An overview panel for navigating large charts.
+-   **Inline editing** — Edit node content directly within the chart.
 
 ## API Reference
 
@@ -621,7 +565,7 @@ interface AgOrganizationSeriesOptions {
         color?: string;
         styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
     };
-    /** Additional text fields, hidden in compact mode. */
+    /** Additional text fields. */
     label?: Array<{
         key: string;
         fontSize?: number;
@@ -646,11 +590,6 @@ interface AgOrganizationSeriesOptions {
         position?: 'top' | 'left' | 'bottom' | 'right';
     };
 
-    /** Tree layout direction. Default: `'vertical'`. */
-    direction?: 'vertical' | 'horizontal';
-    /** Card detail level. Default: `'auto'`. */
-    displayMode?: 'compact' | 'full' | 'auto';
-
     /** Minimum width of each node card (pixels). */
     minWidth?: number;
     /** Maximum width of each node card (pixels). */
@@ -666,42 +605,21 @@ interface AgOrganizationSeriesOptions {
     link?: {
         interpolation?: {
             /** Connector shape. Default: `'step'`. */
-            type?: 'step' | 'smooth' | 'linear';
-            /** Corner rounding where horizontal breaks off downward (pixels). */
+            type?: 'step';
+            /** Corner rounding (pixels). */
             cornerRadius?: number;
-            /** Curve tightness for smooth connectors (0–1). */
-            tension?: number;
         };
         stroke?: string;
         strokeWidth?: number;
         lineDash?: number[];
         /** Per-connector styling callback. */
         itemStyler?: (params: OrganizationLinkStylerParams) => OrganizationLinkStyle;
-        tooltip?: {
-            enabled?: boolean;
-        };
     };
 
     /** Initial expand/collapse state. Same format as getState()/setState(). */
     initialState?: {
         /** Node IDs to collapse. Their subtrees are hidden. All other nodes are expanded by default. */
         collapsed?: Array<string | number>;
-    };
-
-    /** Tree-path highlight styling on hover. */
-    highlightStyle?: {
-        /** Style applied to the hovered node and its ancestors/descendants. */
-        item?: {
-            fill?: string;
-            stroke?: string;
-            strokeWidth?: number;
-        };
-        /** Style applied to nodes outside the highlighted path. */
-        unhighlightedBranch?: {
-            opacity?: number;
-            fill?: string;
-            stroke?: string;
-        };
     };
 
     tooltip?: {
