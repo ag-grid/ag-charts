@@ -234,7 +234,7 @@ export class Annotations extends AbstractModuleInstance {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
                             optionsToolbar.show();
-                            optionsToolbar.setAnchorScene(selectedNode);
+                            optionsToolbar.setAnchorScene(selectedNode as AnnotationSceneUnion);
                         });
                     }
                 } else {
@@ -289,7 +289,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             node: (index: number) => {
-                return this.annotations.at(index);
+                return this.annotations.at(index) as AnnotationSceneUnion;
             },
 
             recordAction: (label: string) => {
@@ -299,7 +299,7 @@ export class Annotations extends AbstractModuleInstance {
             update: () => {
                 this.postUpdateFns.push(() => {
                     const active = this.state.getActive();
-                    const node = active == null ? null : this.annotations.at(active);
+                    const node = active == null ? null : (this.annotations.at(active) as AnnotationSceneUnion);
                     if (node == null) return;
                     this.optionsToolbar.setAnchorScene(node);
                 });
