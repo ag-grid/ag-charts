@@ -269,9 +269,31 @@ describe('DataSource', () => {
                 { x: 'six', y: 25 },
                 { x: 'seven', y: 50 },
             ]);
-            await prepareChart({ getData: () => response }, CATEGORY_OPTIONS);
+
+            let windowStart;
+            let windowEnd;
+
+            await prepareChart(
+                {
+                    getData: (window) => {
+                        windowStart = window.windowStart;
+                        windowEnd = window.windowEnd;
+                        return response;
+                    },
+                },
+                CATEGORY_OPTIONS
+            );
+
             await response;
             await compare();
+
+            expect(windowStart).toEqual(undefined);
+            expect(windowEnd).toEqual(undefined);
+
+            await scrollAction(cx, cy, -1)(chart);
+
+            expect(windowStart).toEqual('four');
+            expect(windowEnd).toEqual('seven');
         });
 
         it('should load grouped category data', async () => {
@@ -284,9 +306,30 @@ describe('DataSource', () => {
                 { x: ['charlie', 'six'], y: 25 },
                 { x: ['delta', 'seven'], y: 50 },
             ]);
-            await prepareChart({ getData: () => response }, GROUPED_CATEGORY_OPTIONS);
+
+            let windowStart;
+            let windowEnd;
+            await prepareChart(
+                {
+                    getData: (window) => {
+                        windowStart = window.windowStart;
+                        windowEnd = window.windowEnd;
+                        return response;
+                    },
+                },
+                GROUPED_CATEGORY_OPTIONS
+            );
+
             await response;
             await compare();
+
+            expect(windowStart).toEqual(undefined);
+            expect(windowEnd).toEqual(undefined);
+
+            await scrollAction(cx, cy, -1)(chart);
+
+            expect(windowStart).toEqual(['bravo', 'four']);
+            expect(windowEnd).toEqual(['delta', 'seven']);
         });
     });
 });
