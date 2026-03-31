@@ -98,6 +98,28 @@ function replaceVersions(pkgJsonPath, tarballs) {
     return modified;
 }
 
+function addResolutions(rootPkgJsonPath, tarballs) {
+    const content = fs.readFileSync(rootPkgJsonPath, 'utf8');
+    const pkg = JSON.parse(content);
+
+    if (!pkg.resolutions) {
+        pkg.resolutions = {};
+    }
+
+    let added = 0;
+    for (const [name, tarballPath] of Object.entries(tarballs)) {
+        if (!pkg.resolutions[name]) {
+            added++;
+        }
+        pkg.resolutions[name] = `file:${tarballPath}`;
+    }
+
+    if (added > 0) {
+        fs.writeFileSync(rootPkgJsonPath, JSON.stringify(pkg, null, 2) + '\n');
+        console.log(`Added ${added} resolution(s) to: ${rootPkgJsonPath}`);
+    }
+}
+
 function main() {
     const [agGridRoot, tarballDir] = process.argv.slice(2);
 
@@ -137,6 +159,13 @@ function main() {
             updatedCount++;
         }
     }
+
+    // Ensure root package.json has resolutions for all ag-charts packages.
+    // This forces yarn to resolve transitive dependencies (e.g. ag-charts-community
+    // depending on ag-charts-core) to the local tarballs rather than looking them
+    // up on the registry, where pre-release versions may not exist.
+    const rootPkgJsonPath = path.join(resolvedRoot, 'package.json');
+    addResolutions(rootPkgJsonPath, tarballs);
 
     console.log(`Updated ${updatedCount} package.json files`);
 }
