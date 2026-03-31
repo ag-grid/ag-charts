@@ -65,7 +65,20 @@ When creating a **Sub-task** (issue type `"Sub-task"` with a `parent` field):
 
 ## Step 3: Create the Ticket
 
-Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, and project from the product file:
+Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, and project from the product file.
+
+### Choose content format
+
+Pick the format **before** writing the description — it determines how you structure the entire payload:
+
+| Description mentions other JIRA tickets? | Format | Why |
+|------------------------------------------|--------|-----|
+| **Yes** (dependencies, related work, parent context) | `contentFormat: "adf"` | Only ADF supports `inlineCard` Smart Links. Markdown cannot render them. |
+| **No** (standalone bug report, no cross-references) | `contentFormat: "markdown"` | Simpler to write; no ticket references to render. |
+
+Most feature, subtask, and tech-debt tickets reference other tickets, so **ADF is the common case**. See the "Description Formatting" section for the `inlineCard` syntax.
+
+### API call structure
 
 ```json
 {
@@ -73,8 +86,8 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
     "projectKey": "<from product file>",
     "issueTypeName": "Bug|Task",
     "summary": "[<Prefix>] Clear, concise title",
-    "description": "Formatted description from template",
-    "contentFormat": "markdown",
+    "description": "<formatted description — ADF document or markdown string>",
+    "contentFormat": "<adf or markdown — see table above>",
     "additional_fields": {
         "components": [{ "name": "<from product file>" }],
         "priority": { "name": "Medium" },
@@ -82,8 +95,6 @@ Use the `mcp__atlassian__createJiraIssue` tool. Substitute component, prefix, an
     }
 }
 ```
-
-**When the description references other JIRA tickets** (dependencies, related work, split-from context), you **must** use `contentFormat: "adf"` instead of `"markdown"` and construct the full ADF document with `inlineCard` nodes for each ticket reference. Markdown format cannot produce Smart Links. See the "Description Formatting" section below for the `inlineCard` syntax.
 
 **For Bug and Improvement tickets, also include:**
 
