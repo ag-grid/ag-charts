@@ -542,10 +542,10 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
 export type ScalableGroup<D = unknown> = ScalableType<Group<D>>;
 export type RotatableGroup<D = unknown> = RotatableType<Group<D>>;
 export type TranslatableGroup<D = unknown> = TranslatableType<Group<D>>;
-export type TransformableGroup<D = unknown> = RotatableType<TranslatableType<D>>;
+export type TransformableGroup<D = unknown> = RotatableType<TranslatableType<Group<D>>>;
 
 type P = ConstructorParameters<typeof Group>[0];
 export const ScalableGroup: new <D = unknown>(p?: P) => ScalableGroup<D> = Scalable(Group<any>);
 export const RotatableGroup: new <D = unknown>(p?: P) => RotatableGroup<D> = Rotatable(Group<any>);
 export const TranslatableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Translatable(Group<any>);
-export const TransformableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Rotatable(Translatable(Group<any>));
+export const TransformableGroup: new <D = unknown>(p?: P) => TransformableGroup<D> = Rotatable(Translatable(Group<any>));
