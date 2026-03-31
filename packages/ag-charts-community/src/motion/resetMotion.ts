@@ -19,6 +19,7 @@ export function resetMotion<D, N extends Node<D>, T extends Partial<N>>(
         const selectionNodes = selection.nodes();
         selection.batchedUpdate(function resetMotionNodes() {
             for (const node of selectionNodes) {
+                // eslint-disable-next-line sonarjs/deprecation
                 const from = propsFn(node, node.unsafeDatum);
                 node.setProperties(from);
             }
@@ -26,6 +27,7 @@ export function resetMotion<D, N extends Node<D>, T extends Partial<N>>(
         });
     }
     for (const node of nodes) {
+        // eslint-disable-next-line sonarjs/deprecation
         const from = propsFn(node, node.unsafeDatum);
         node.setProperties(from);
     }

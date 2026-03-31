@@ -64,6 +64,7 @@ export function prepareConnectorAnimationFunctions(isVertical: boolean, mode: 'n
     ): T & Pick<_ModuleSupport.ExtraOpts<never>, 'phase'> => {
         if (status === 'updated' && isRemoved(datum)) {
             status = 'removed';
+            // eslint-disable-next-line sonarjs/deprecation
         } else if (status === 'updated' && isRemoved(connector.unsafePreviousDatum)) {
             status = 'added';
         }
@@ -74,6 +75,7 @@ export function prepareConnectorAnimationFunctions(isVertical: boolean, mode: 'n
             // Handle series add case, after initial load. This is distinct from legend toggle on.
             source = { ...resetConnectorSelectionsFn(connector, datum), opacity: 0 };
         } else if (status === 'unknown' || status === 'added') {
+            // eslint-disable-next-line sonarjs/deprecation
             source = connectorStartingPosition(datum, connector.unsafePreviousDatum, isVertical, mode);
         } else {
             source = {
@@ -102,6 +104,7 @@ export function prepareConnectorAnimationFunctions(isVertical: boolean, mode: 'n
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             source = { ...resetConnectorSelectionsFn(connector, datum), opacity: 0 };
         } else if (status === 'removed' || isRemoved(datum)) {
+            // eslint-disable-next-line sonarjs/deprecation
             source = connectorStartingPosition(datum, connector.unsafePreviousDatum, isVertical, mode);
         } else {
             source = resetConnectorSelectionsFn(connector, datum);

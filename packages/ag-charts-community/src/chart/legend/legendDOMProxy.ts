@@ -94,6 +94,7 @@ export class LegendDOMProxy {
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
                 textContent: this.getItemAriaText(lm, toPlainText(datumReader.getItemLabel(datum)), index, count),
+                // eslint-disable-next-line sonarjs/deprecation
                 ariaChecked: !!markerLabel.unsafeNonNullDatum.enabled,
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,

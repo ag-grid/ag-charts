@@ -251,6 +251,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         if (!textNode) {
             return false;
         }
+        // eslint-disable-next-line sonarjs/deprecation
         const { text, ...coords } = textNode.unsafeNonNullDatum.label;
         textNode.setProperties({
             ...fontOptions,

@@ -1312,6 +1312,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             this.ctx.animationManager,
             [datumSelections],
             fns,
+            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );

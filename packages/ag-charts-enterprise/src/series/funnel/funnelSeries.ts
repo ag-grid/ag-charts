@@ -192,6 +192,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             this.ctx.animationManager,
             [datumSelections],
             fns,
+            // eslint-disable-next-line sonarjs/deprecation
             (node) => node.unsafeDatum.xValue,
             dataDiff
         );

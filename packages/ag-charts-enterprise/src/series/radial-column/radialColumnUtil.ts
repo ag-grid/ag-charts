@@ -33,6 +33,7 @@ export function createAngleMotionCalculator() {
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
             let to = (status === 'removed' ? node : datum)[key];
             if (Number.isNaN(to)) {
+                // eslint-disable-next-line sonarjs/deprecation
                 to = node.unsafePreviousDatum?.[key] ?? Number.NaN;
             }
             const diff = from - to;
@@ -61,7 +62,9 @@ export function fixRadialColumnAnimationStatus(
     if (status === 'updated') {
         if (
             node.previousDatum == null ||
+            // eslint-disable-next-line sonarjs/deprecation
             Number.isNaN(node.unsafePreviousDatum.startAngle) ||
+            // eslint-disable-next-line sonarjs/deprecation
             Number.isNaN(node.unsafePreviousDatum.endAngle)
         ) {
             return 'added';

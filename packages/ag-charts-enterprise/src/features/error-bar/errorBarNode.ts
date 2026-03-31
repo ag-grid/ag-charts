@@ -247,6 +247,7 @@ export class ErrorBarGroup extends _ModuleSupport.Group {
             children: this.children() as Iterable<ErrorBarNode>,
         });
         if (nearest !== undefined && !Number.isNaN(distanceSquared)) {
+            // eslint-disable-next-line sonarjs/deprecation
             return { datum: nearest.unsafeDatum, distanceSquared };
         }
     }

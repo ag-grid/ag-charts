@@ -545,9 +545,13 @@ export type TranslatableGroup<D = unknown> = TranslatableType<Group<D>>;
 export type TransformableGroup<D = unknown> = RotatableType<TranslatableType<Group<D>>>;
 
 type P = ConstructorParameters<typeof Group>[0];
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ScalableGroup: new <D = unknown>(p?: P) => ScalableGroup<D> = Scalable(Group<any>);
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RotatableGroup: new <D = unknown>(p?: P) => RotatableGroup<D> = Rotatable(Group<any>);
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TranslatableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Translatable(Group<any>);
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TransformableGroup: new <D = unknown>(p?: P) => TransformableGroup<D> = Rotatable(
     Translatable(Group<any>)
 );

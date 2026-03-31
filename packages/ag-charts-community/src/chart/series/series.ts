@@ -923,6 +923,7 @@ export abstract class Series<
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
+            // eslint-disable-next-line sonarjs/deprecation
             const datum = node.unsafeClosestDatum();
             if (typeof datum === 'object' && datum != null && datum.missing !== true) {
                 datums.push(datum);
@@ -942,6 +943,7 @@ export abstract class Series<
         items: Iterable<T>
     ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
+        // eslint-disable-next-line sonarjs/deprecation
         const datum = match.nearest?.unsafeClosestDatum();
         if (typeof datum === 'object' && datum != null && datum.missing !== true) {
             return { datum, distance: Math.sqrt(match.distanceSquared) };

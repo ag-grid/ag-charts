@@ -301,6 +301,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         const { x, y } = point;
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
+            // eslint-disable-next-line sonarjs/deprecation
             return { datum: node.unsafeDatum, distanceSquared: 0 };
         }
     }
@@ -310,7 +311,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined {
-        let closestDatum: (PickNodeDatumResult & {})['datum'] | undefined;
+        let unsafeClosestDatum: any;
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];
         if (majorDirection === ChartAxisDirection.Y) {
@@ -330,14 +331,15 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                 childDistances[0] < closestDistance[0] ||
                 (childDistances[0] == closestDistance[0] && childDistances[1] < closestDistance[1])
             ) {
-                closestDatum = child.unsafeDatum;
+                // eslint-disable-next-line sonarjs/deprecation
+                unsafeClosestDatum = child.unsafeDatum;
                 closestDistance = childDistances;
             }
         }
 
-        if (closestDatum) {
+        if (unsafeClosestDatum) {
             return {
-                datum: closestDatum,
+                datum: unsafeClosestDatum,
                 distanceSquared: Math.pow(closestDistance[0], 2) + Math.pow(closestDistance[1], 2),
             };
         }

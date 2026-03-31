@@ -966,10 +966,10 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const { dataNodeGroup } = this;
         const matches = dataNodeGroup
             .pickNodes(x, y)
-            .filter(
-                (match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } =>
-                    match.unsafeDatum?.missing !== true
-            );
+            .filter((match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } => {
+                // eslint-disable-next-line sonarjs/deprecation
+                return match.unsafeDatum?.missing !== true;
+            });
 
         if (matches.length !== 0) {
             const datums = matches.map((match) => match.datum);

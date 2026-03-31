@@ -134,8 +134,10 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
     const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+        // eslint-disable-next-line sonarjs/deprecation
         if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
+            // eslint-disable-next-line sonarjs/deprecation
         } else if (status === 'updated' && isRemoved(rect.unsafePreviousDatum)) {
             status = 'added';
         }
@@ -150,6 +152,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
                     opacity: 0,
                 };
             } else {
+                // eslint-disable-next-line sonarjs/deprecation
                 source = initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
             }
 
@@ -174,7 +177,9 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
+            // eslint-disable-next-line sonarjs/deprecation
         } else if (status === 'removed' || isRemoved(rect.unsafeDatum)) {
+            // eslint-disable-next-line sonarjs/deprecation
             return initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
             return {

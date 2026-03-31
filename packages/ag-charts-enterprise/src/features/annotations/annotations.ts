@@ -3,7 +3,6 @@ import {
     type AgAnnotationLineStyleType,
     type Direction,
     _ModuleSupport,
-    _Scene,
     _Widget,
 } from 'ag-charts-community';
 import {

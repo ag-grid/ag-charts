@@ -577,6 +577,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
         const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(TransformableText)) {
+            // eslint-disable-next-line sonarjs/deprecation
             const datum = text.unsafeClosestDatum();
             updateText(datum, text, text.tag, datum === highlightedDatum);
         }

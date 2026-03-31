@@ -1031,7 +1031,7 @@ export class Legend extends BaseProperties {
             })[0] ?? {};
         if (datum === undefined || proxyButton === undefined) {
             throw new Error(
-                `AG Charts - Missing required properties { datum: ${datum}, proxyButton: ${JSON.stringify(proxyButton)} }`
+                `AG Charts - Missing required properties { datum: ${JSON.stringify(datum)}, proxyButton: ${JSON.stringify(proxyButton)} }`
             );
         }
         return { datum, proxyButton };
@@ -1051,6 +1051,7 @@ export class Legend extends BaseProperties {
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
+        // eslint-disable-next-line sonarjs/deprecation
         const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();

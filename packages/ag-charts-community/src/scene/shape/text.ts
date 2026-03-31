@@ -551,5 +551,7 @@ export type RotatableText<D = unknown> = RotatableType<Text<D>>;
 export type TransformableText<D = unknown> = RotatableType<TranslatableType<Text<D>>>;
 
 type P = ConstructorParameters<typeof Text>[0];
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const RotatableText: new <D = unknown>(p?: P) => RotatableText<D> = Rotatable(Text<any>);
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 export const TransformableText: new <D = unknown>(p?: P) => TransformableText<D> = Rotatable(Translatable(Text<any>));

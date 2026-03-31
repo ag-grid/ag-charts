@@ -414,7 +414,9 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         const addRects: _ModuleSupport.Rect<BandFlashDatum>[] = [];
 
         for (const rect of allRects) {
+            // eslint-disable-next-line sonarjs/deprecation
             if (rect.unsafeNonNullDatum.phase === 'remove') removeRects.push(rect);
+            // eslint-disable-next-line sonarjs/deprecation
             else if (rect.unsafeNonNullDatum.phase === 'add') addRects.push(rect);
             else updateRects.push(rect);
         }
@@ -472,6 +474,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
                     for (const rect of rects) {
                         const from = rect.datum?.prevBounds;
                         if (from) {
+                            // eslint-disable-next-line sonarjs/deprecation
                             const to = rect.unsafeNonNullDatum.bounds;
                             rect.x = from.x + (to.x - from.x) * t;
                             rect.y = from.y + (to.y - from.y) * t;

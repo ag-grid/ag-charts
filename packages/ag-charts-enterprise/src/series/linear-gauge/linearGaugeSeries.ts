@@ -1229,6 +1229,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             animationManager,
             [this.datumSelection],
             node,
+            // eslint-disable-next-line sonarjs/deprecation
             (sector) => sector.unsafeDatum.itemId
         );
 
@@ -1247,6 +1248,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
             animationManager,
             [this.datumSelection],
             node,
+            // eslint-disable-next-line sonarjs/deprecation
             (sector) => sector.unsafeDatum.itemId
         );
 

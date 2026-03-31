@@ -1702,6 +1702,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.ctx.animationManager,
             [datumSelection, phantomSelection],
             fns,
+            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );
