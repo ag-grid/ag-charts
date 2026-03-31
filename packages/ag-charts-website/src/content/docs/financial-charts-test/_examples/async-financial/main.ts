@@ -6,8 +6,13 @@ ModuleRegistry.registerModules([FinancialChartModule]);
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: { text: 'Acme Inc.' },
+    dataSource: {
+        getData: async ({ windowStart, windowEnd }) => {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return getData();
+        },
+    },
     initialState: {
         annotations: [
             {

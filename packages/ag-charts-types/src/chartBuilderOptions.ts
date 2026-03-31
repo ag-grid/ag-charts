@@ -90,6 +90,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'initialState'
     | 'data'
     | 'dataIdKey'
+    | 'dataSource'
     | 'listeners'
     | 'formatter'
 >;
