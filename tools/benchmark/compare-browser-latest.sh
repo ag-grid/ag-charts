@@ -217,7 +217,9 @@ start_dev_server() {
 
     # Verify the server is actually responding
     log "Verifying server at ${_DEV_SERVER_URL}..."
-    npx wait-on "http-get://${_DEV_SERVER_URL#http://}" --timeout 60000
+    local wait_url="${_DEV_SERVER_URL#https://}"
+    wait_url="${wait_url#http://}"
+    npx wait-on "http-get://${wait_url}" --timeout 60000
 
     log "Dev server ready at $_DEV_SERVER_URL (PID $_DEV_SERVER_PID)"
 }

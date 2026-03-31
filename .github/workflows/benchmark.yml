@@ -46,7 +46,7 @@ jobs:
 
     benchmark:
         runs-on: macos-benchmark
-        timeout-minutes: 60 # ~37 min typical; reduce to 45 once Jest benchmarks are removed
+        timeout-minutes: 60 # Jest ~13m + browser ~20m + build/setup ~15m; reduce once Jest benchmarks are removed
         permissions:
             pull-requests: write
         needs: check-permissions
@@ -191,7 +191,7 @@ jobs:
             - name: Browser Benchmark (table)
               id: browser-benchmark-table
               if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              timeout-minutes: 90
+              timeout-minutes: 20
               run: |
                   ./tools/benchmark/compare-browser-latest.sh origin/${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
@@ -201,7 +201,7 @@ jobs:
             - name: Browser Benchmark (json)
               id: browser-benchmark-json
               if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              timeout-minutes: 90
+              timeout-minutes: 20
               run: |
                   ./tools/benchmark/compare-browser-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 

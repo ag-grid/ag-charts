@@ -12,6 +12,8 @@ const fs = require('fs');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
 
+const { formatPercentageChange } = require('./format-utils');
+
 const argv = yargs(hideBin(process.argv))
     .option('base', {
         type: 'string',
@@ -88,13 +90,6 @@ function timeFormat(timeMs) {
         return Math.floor(timeMs * 1000) / 1000;
     }
     return timeMs;
-}
-
-function formatPercentageChange(pctChange) {
-    if (pctChange === null || pctChange === undefined) {
-        return 'N/A';
-    }
-    return `${pctChange > 0 ? '+' : ''}${pctChange}%`;
 }
 
 // --- Extract results from report ---
@@ -186,7 +181,7 @@ for (const err of compare.errors) {
 }
 
 // Rank by time change
-const rankedByTime = matched.toSorted((a, b) => a.pctTimeChange - b.pctTimeChange);
+const rankedByTime = matched.toSorted((a, b) => (a.pctTimeChange ?? -Infinity) - (b.pctTimeChange ?? -Infinity));
 
 // Notable regressions (>10%)
 const notable = rankedByTime.filter((r) => r.pctTimeChange !== null && r.pctTimeChange > 10);
