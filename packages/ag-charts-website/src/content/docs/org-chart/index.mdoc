@@ -385,42 +385,47 @@ properties.
 
 ### Initial State
 
-The `initialState` property controls which nodes are expanded when the chart first renders. It accepts a
-list of expanded node IDs. When a node is listed as expanded, all its ancestors up to the root are
-automatically opened to ensure the node is visible.
+The `initialState.collapsed` property controls which nodes start collapsed when the chart first renders.
+By default, all nodes are expanded. Provide a list of node IDs whose subtrees should be hidden.
 
 This uses the same state format as `getState()` and `setState()` described below.
 
 ```js format="snippet"
 {
+    initialState: {
+        collapsed: ['finance', 'hr'],
+    },
     series: [
         {
             type: 'organization',
-            initialState: {
-                expanded: ['ceo', 'cto'],
-            },
         },
     ],
 }
 ```
 
-> **Note:** An alternative approach would be to specify collapsed nodes instead — listing nodes whose
-> children should be hidden, with all other nodes open by default. This could be useful for "start fully
-> expanded, then close specific branches" scenarios.
+The `collapsed` set can include leaf node IDs — this has no visible effect, but if children are later
+added to that node via a data update, it will already be collapsed.
 
 ### Programmatic Control
 
 The chart state can be read and updated programmatically using `getState()` and `setState()`.
-The state format is the same as `initialState`.
+The state format is the same as `initialState`. `setState()` performs a full replacement — to toggle
+a single node, read the current state, modify the array, then set it back.
 
 ```js
 // Read the current expand/collapse state
 const state = chart.getState();
-// state.expanded = ['ceo', 'cto', ...]
+// state.collapsed = ['finance', 'hr']
 
-// Set specific expanded nodes (ancestors are auto-expanded)
-chart.setState({ expanded: ['ceo', 'cto', 'dev-lead'] });
+// Collapse a specific subtree
+chart.setState({ collapsed: ['finance', 'hr', 'marketing'] });
 ```
+
+### Active Item Auto-Expand
+
+When a node is set as the active item programmatically (via `initialState.active`), all its collapsed
+ancestors are automatically expanded and the viewport pans to centre on it. This enables deep-linking
+to a specific person in a large chart.
 
 ## Highlighting
 
@@ -573,7 +578,17 @@ Zoom (via mouse wheel) is planned for a future release.
 
 ## Keyboard Navigation
 
-Organisation Charts support keyboard navigation for accessibility. See the [Accessibility](./accessibility/) page for details.
+Organisation Charts support full keyboard navigation. Arrow keys map to the visual layout of the tree:
+
+| Key       | Action                            |
+| --------- | --------------------------------- |
+| **Up**    | Move to parent                    |
+| **Down**  | Move to first child (if expanded) |
+| **Left**  | Move to previous sibling          |
+| **Right** | Move to next sibling              |
+| **Enter** | Toggle expand/collapse            |
+
+Screen readers announce the node content and sibling position (e.g. "3 of 5").
 
 ## API Reference
 
@@ -669,8 +684,8 @@ interface AgOrganizationSeriesOptions {
 
     /** Initial expand/collapse state. Same format as getState()/setState(). */
     initialState?: {
-        /** List of expanded node IDs. Ancestors of listed nodes are auto-expanded. */
-        expanded?: Array<string | number>;
+        /** Node IDs to collapse. Their subtrees are hidden. All other nodes are expanded by default. */
+        collapsed?: Array<string | number>;
     };
 
     /** Tree-path highlight styling on hover. */
