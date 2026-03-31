@@ -46,7 +46,7 @@ jobs:
 
     benchmark:
         runs-on: macos-benchmark
-        timeout-minutes: 120
+        timeout-minutes: 60 # ~37 min typical; reduce to 45 once Jest benchmarks are removed
         permissions:
             pull-requests: write
         needs: check-permissions
