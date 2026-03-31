@@ -28,7 +28,6 @@ import type {
     AgActiveItemState,
     AgChartLegendContextMenuEvent,
     AgChartLegendListeners,
-    AgChartLegendOptions,
     AgChartLegendOrientation,
     AgChartLegendPosition,
     AgMarkerShapeFn,
@@ -50,7 +49,7 @@ import { Transformable } from '../../scene/transformable';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartService } from '../chartService';
-import type { ResolvedOptions } from '../chartState';
+import type { ResolvedChartOptions } from '../chartState';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import { InteractionState } from '../interaction/interactionManager';
@@ -133,12 +132,12 @@ export class Legend {
     private paginationHighlightActive?: 'previous' | 'next';
     readonly paginationFacade: PaginationFacade;
 
-    private get opts(): ResolvedOptions<AgChartLegendOptions> {
-        return this.ctx.chartState.getValue('options', 'legend') as ResolvedOptions<AgChartLegendOptions>;
+    private get opts(): ResolvedChartOptions['legend'] {
+        return this.ctx.chartState.getValue('options', 'legend');
     }
 
     get enabled(): boolean {
-        return (this.ctx.chartState.getValue('options', 'legend.enabled') as boolean | undefined) ?? false;
+        return this.ctx.chartState.getValue('options', 'legend.enabled') ?? false;
     }
 
     get listeners(): AgChartLegendListeners | undefined {

@@ -232,14 +232,14 @@ describe('ReactiveState — nested path observation', () => {
         it('returns correct nested value', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
-            expect(state.getValue('options', 'legend', 'enabled')).toBe(true);
-            expect(state.getValue('options', 'title', 'text')).toBe('hello');
+            expect(state.getValue('options', 'legend.enabled')).toBe(true);
+            expect(state.getValue('options', 'title.text')).toBe('hello');
         });
 
         it('returns undefined for missing path', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
-            expect(state.getValue('options', 'legend', 'missing' as any)).toBeUndefined();
+            expect(state.getValue('options', 'legend.missing' as any)).toBeUndefined();
             expect(state.getValue('options', 'nonexistent' as any)).toBeUndefined();
         });
     });
@@ -251,7 +251,7 @@ describe('ReactiveState — nested path observation', () => {
 
             let observedValue: unknown;
             state.observe((get) => {
-                observedValue = get('options', 'legend', 'enabled');
+                observedValue = get('options', 'legend.enabled');
             });
 
             expect(observedValue).toBe(true);
@@ -261,8 +261,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -278,8 +278,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', initialOptions);
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -311,8 +311,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -328,8 +328,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -345,9 +345,9 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
-                get('options', 'title', 'text');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
+                get('options', 'title.text');
             });
             state.observe(observer);
             observer.mockClear();
@@ -363,9 +363,9 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('width', 800);
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
                 get('width');
-                get('options', 'legend', 'enabled');
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -387,8 +387,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             const unsubscribe = state.observe(observer);
             observer.mockClear();
@@ -405,8 +405,8 @@ describe('ReactiveState — nested path observation', () => {
             state.setValue('options', { legend: { enabled: true }, title: { text: 'hello' } });
             state.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof NestedState, ...subPath: string[]) => unknown) => {
-                get('options', 'legend', 'enabled');
+            const observer = jest.fn((get: (key: keyof NestedState, subPath?: string) => unknown) => {
+                get('options', 'legend.enabled');
             });
             state.observe(observer);
             observer.mockClear();
@@ -425,7 +425,7 @@ describe('ReactiveState — nested path observation', () => {
             arrState.setValue('data', { items: [1, 2, 3] });
             arrState.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof ArrayState, ...subPath: string[]) => unknown) => {
+            const observer = jest.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
                 get('data', 'items');
             });
             arrState.observe(observer);
@@ -444,7 +444,7 @@ describe('ReactiveState — nested path observation', () => {
             arrState.setValue('data', { items });
             arrState.flushChanges();
 
-            const observer = jest.fn((get: (key: keyof ArrayState, ...subPath: string[]) => unknown) => {
+            const observer = jest.fn((get: (key: keyof ArrayState, subPath?: string) => unknown) => {
                 get('data', 'items');
             });
             arrState.observe(observer);

@@ -1,6 +1,21 @@
+type NonNullKey<T> = keyof NonNullable<T> & string;
+
 type ValueGetter<StateMap extends object> = {
     <K extends keyof StateMap>(key: K): StateMap[K] | undefined;
-    <K extends keyof StateMap>(key: K, subPath: string): unknown;
+    <K extends keyof StateMap, P1 extends NonNullKey<StateMap[K]>>(key: K, subPath: P1): NonNullable<StateMap[K]>[P1];
+    <K extends keyof StateMap, P1 extends NonNullKey<StateMap[K]>, P2 extends NonNullKey<NonNullable<StateMap[K]>[P1]>>(
+        key: K,
+        subPath: `${P1}.${P2}`
+    ): NonNullable<NonNullable<StateMap[K]>[P1]>[P2];
+    <
+        K extends keyof StateMap,
+        P1 extends NonNullKey<StateMap[K]>,
+        P2 extends NonNullKey<NonNullable<StateMap[K]>[P1]>,
+        P3 extends NonNullKey<NonNullable<NonNullable<StateMap[K]>[P1]>[P2]>,
+    >(
+        key: K,
+        subPath: `${P1}.${P2}.${P3}`
+    ): NonNullable<NonNullable<NonNullable<StateMap[K]>[P1]>[P2]>[P3];
 };
 type StateObserver<StateMap extends object> = (valueGetter: ValueGetter<StateMap>) => void;
 
@@ -42,7 +57,7 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
      * not re-tracked thereafter. The observer will only be notified for keys accessed during
      * that first invocation. To change the set of tracked keys, unsubscribe and re-observe.
      *
-     * When a nested path is accessed via `get(key, ...subPath)`, the observer is only notified
+     * When a nested path is accessed via `get(key, subPath)`, the observer is only notified
      * if the value at that specific nested path is changed by reference.
      *
      * @param callback The observer function that receives a `valueGetter` to read state.
@@ -50,15 +65,19 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
      */
     observe(callback: StateObserver<StateMap>) {
         const observeKeys = new Map<keyof StateMap, Set<string>>();
-        callback((key, subPath: string = '') => {
+        const getter: ValueGetter<StateMap> = ((key: keyof StateMap, subPath?: string) => {
+            const path = subPath ?? '';
             let paths = observeKeys.get(key);
             if (paths == null) {
                 paths = new Set<string>();
                 observeKeys.set(key, paths);
             }
-            paths.add(subPath);
-            return this.getValue(key, subPath);
-        });
+            paths.add(path);
+            return path.length === 0
+                ? this.getValue(key)
+                : getNestedValue(this.stateMap.get(key)?.value, path.split('.'));
+        }) as ValueGetter<StateMap>;
+        callback(getter);
         for (const [key, paths] of observeKeys) {
             this.getState(key).observers.set(callback, paths);
         }
@@ -70,7 +89,21 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
     }
 
     getValue<K extends keyof StateMap>(key: K): StateMap[K] | undefined;
-    getValue<K extends keyof StateMap>(key: K, subPath: string): unknown;
+    getValue<K extends keyof StateMap, P1 extends NonNullKey<StateMap[K]>>(
+        key: K,
+        subPath: P1
+    ): NonNullable<StateMap[K]>[P1];
+    getValue<
+        K extends keyof StateMap,
+        P1 extends NonNullKey<StateMap[K]>,
+        P2 extends NonNullKey<NonNullable<StateMap[K]>[P1]>,
+    >(key: K, subPath: `${P1}.${P2}`): NonNullable<NonNullable<StateMap[K]>[P1]>[P2];
+    getValue<
+        K extends keyof StateMap,
+        P1 extends NonNullKey<StateMap[K]>,
+        P2 extends NonNullKey<NonNullable<StateMap[K]>[P1]>,
+        P3 extends NonNullKey<NonNullable<NonNullable<StateMap[K]>[P1]>[P2]>,
+    >(key: K, subPath: `${P1}.${P2}.${P3}`): NonNullable<NonNullable<NonNullable<StateMap[K]>[P1]>[P2]>[P3];
     getValue<K extends keyof StateMap>(key: K, subPath: string = ''): unknown {
         const value = this.stateMap.get(key)?.value;
         return subPath.length === 0 ? value : getNestedValue(value, subPath.split('.'));

@@ -17,8 +17,10 @@ export type ResolvedOptions<T, K extends string = ResolvedOptionsKeys> = T exten
     ? DeepResolved<Omit<T, Extract<keyof T, K>>> & Pick<T, Extract<keyof T, K>>
     : T;
 
+export type ResolvedChartOptions = ResolvedOptions<AgChartOptions>;
+
 export interface ChartState {
-    options: ResolvedOptions<AgChartOptions>;
+    options: ResolvedChartOptions;
     legendData: Record<string, CategoryLegendDatum[]>;
     legendVisible: boolean;
 }
