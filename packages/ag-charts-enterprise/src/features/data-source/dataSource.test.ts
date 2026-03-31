@@ -41,7 +41,7 @@ const BASE_OPTIONS: AgCartesianChartOptions = {
     },
 };
 
-const DATE_OPTIONS: AgCartesianChartOptions = {
+const TIME_OPTIONS: AgCartesianChartOptions = {
     ...BASE_OPTIONS,
     axes: {
         y: { type: 'number', position: 'left', crosshair: { enabled: false } },
@@ -50,6 +50,34 @@ const DATE_OPTIONS: AgCartesianChartOptions = {
             position: 'bottom',
             min: new Date('2024-01-01 00:00:00'),
             max: new Date('2024-01-07 00:00:00'),
+            crosshair: { enabled: false },
+        },
+    },
+    series: [{ type: 'line', xKey: 'time', yKey: 'price' }],
+};
+
+const UNIT_TIME_OPTIONS: AgCartesianChartOptions = {
+    ...BASE_OPTIONS,
+    axes: {
+        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+        x: {
+            type: 'unit-time',
+            position: 'bottom',
+            min: new Date('2024-01-01 00:00:00'),
+            max: new Date('2024-02-12 00:00:00'),
+            crosshair: { enabled: false },
+        },
+    },
+    series: [{ type: 'line', xKey: 'time', yKey: 'price' }],
+};
+
+const ORDINAL_TIME_OPTIONS: AgCartesianChartOptions = {
+    ...BASE_OPTIONS,
+    axes: {
+        y: { type: 'number', position: 'left', crosshair: { enabled: false } },
+        x: {
+            type: 'ordinal-time',
+            position: 'bottom',
             crosshair: { enabled: false },
         },
     },
@@ -94,7 +122,7 @@ describe('DataSource', () => {
 
     async function prepareChart(
         dataSourceOptions?: AgChartOptions['dataSource'],
-        baseOptions: AgCartesianChartOptions = DATE_OPTIONS
+        baseOptions: AgCartesianChartOptions = TIME_OPTIONS
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
@@ -160,11 +188,11 @@ describe('DataSource', () => {
                 getData: () => response,
             },
             {
-                ...DATE_OPTIONS,
+                ...TIME_OPTIONS,
                 axes: {
-                    ...DATE_OPTIONS.axes!,
+                    ...TIME_OPTIONS.axes!,
                     y: {
-                        ...(DATE_OPTIONS.axes!.y! as AgNumberAxisOptions),
+                        ...(TIME_OPTIONS.axes!.y! as AgNumberAxisOptions),
                         type: 'number',
                         min: 40,
                         max: 100,
@@ -216,7 +244,7 @@ describe('DataSource', () => {
 
         it('should load a window at the end', async () => {
             await prepareChart(dataSource, {
-                ...DATE_OPTIONS,
+                ...TIME_OPTIONS,
                 initialState: { zoom: { ratioX: { start: 0.5, end: 1 } } },
             });
             await response;
@@ -225,7 +253,7 @@ describe('DataSource', () => {
 
         it('should load a window in the middle', async () => {
             await prepareChart(dataSource, {
-                ...DATE_OPTIONS,
+                ...TIME_OPTIONS,
                 initialState: { zoom: { ratioX: { start: 0.25, end: 0.75 } } },
             });
             await response;
@@ -330,6 +358,82 @@ describe('DataSource', () => {
 
             expect(windowStart).toEqual(['bravo', 'four']);
             expect(windowEnd).toEqual(['delta', 'seven']);
+        });
+    });
+
+    describe('unit time', () => {
+        it('should load data with unit time axes', async () => {
+            const response = delay(1).then(() => [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-08 00:00:00'), price: 50 },
+                { time: new Date('2024-01-15 00:00:00'), price: 25 },
+                { time: new Date('2024-01-22 00:00:00'), price: 75 },
+                { time: new Date('2024-01-29 00:00:00'), price: 50 },
+                { time: new Date('2024-02-05 00:00:00'), price: 25 },
+                { time: new Date('2024-02-12 00:00:00'), price: 50 },
+            ]);
+
+            let windowStart;
+            let windowEnd;
+            await prepareChart(
+                {
+                    getData: (window) => {
+                        windowStart = window.windowStart;
+                        windowEnd = window.windowEnd;
+                        return response;
+                    },
+                },
+                UNIT_TIME_OPTIONS
+            );
+
+            await response;
+            await compare();
+
+            expect(windowStart).toEqual(new Date('2024-01-01 00:00:00'));
+            expect(windowEnd).toEqual(new Date('2024-02-01 00:00:00'));
+
+            await scrollAction(cx, cy, -1)(chart);
+
+            expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
+            expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
+        });
+    });
+
+    describe('ordinal time', () => {
+        it('should load data with ordinal time axes', async () => {
+            const response = delay(1).then(() => [
+                { time: new Date('2024-01-01 00:00:00'), price: 0 },
+                { time: new Date('2024-01-08 00:00:00'), price: 50 },
+                { time: new Date('2024-01-15 00:00:00'), price: 25 },
+                { time: new Date('2024-01-22 00:00:00'), price: 75 },
+                { time: new Date('2024-01-29 00:00:00'), price: 50 },
+                { time: new Date('2024-02-05 00:00:00'), price: 25 },
+                { time: new Date('2024-02-12 00:00:00'), price: 50 },
+            ]);
+
+            let windowStart;
+            let windowEnd;
+            await prepareChart(
+                {
+                    getData: (window) => {
+                        windowStart = window.windowStart;
+                        windowEnd = window.windowEnd;
+                        return response;
+                    },
+                },
+                ORDINAL_TIME_OPTIONS
+            );
+
+            await response;
+            await compare();
+
+            expect(windowStart).toEqual(undefined);
+            expect(windowEnd).toEqual(undefined);
+
+            await scrollAction(cx, cy, -1)(chart);
+
+            expect(windowStart).toEqual(new Date('2024-01-22 00:00:00'));
+            expect(windowEnd).toEqual(new Date('2024-02-12 00:00:00'));
         });
     });
 });
