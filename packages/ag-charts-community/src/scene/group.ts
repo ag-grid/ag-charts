@@ -548,4 +548,6 @@ type P = ConstructorParameters<typeof Group>[0];
 export const ScalableGroup: new <D = unknown>(p?: P) => ScalableGroup<D> = Scalable(Group<any>);
 export const RotatableGroup: new <D = unknown>(p?: P) => RotatableGroup<D> = Rotatable(Group<any>);
 export const TranslatableGroup: new <D = unknown>(p?: P) => TranslatableGroup<D> = Translatable(Group<any>);
-export const TransformableGroup: new <D = unknown>(p?: P) => TransformableGroup<D> = Rotatable(Translatable(Group<any>));
+export const TransformableGroup: new <D = unknown>(p?: P) => TransformableGroup<D> = Rotatable(
+    Translatable(Group<any>)
+);

@@ -87,7 +87,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     AgRadialBarSeriesOptions,
     RadialBarSeriesProperties<AgRadialBarSeriesOptions>,
-    _ModuleSupport.Sector,
+    _ModuleSupport.Sector<RadialBarNodeDatum>,
     RadialBarNodeDatum,
     RadialBarSeriesNodeDataContext
 > {
@@ -116,8 +116,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    protected override nodeFactory(): _ModuleSupport.Sector {
-        return new Sector();
+    protected override nodeFactory(): _ModuleSupport.Sector<RadialBarNodeDatum> {
+        return new Sector<RadialBarNodeDatum>();
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
@@ -389,7 +389,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<RadialBarNodeDatum, _ModuleSupport.Sector>,
+        selection: _ModuleSupport.Selection<RadialBarNodeDatum, _ModuleSupport.Sector<RadialBarNodeDatum>>,
         isHighlight: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];

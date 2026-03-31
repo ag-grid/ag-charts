@@ -38,7 +38,7 @@ export function preparePieSeriesAnimationFunctions(
         return { innerRadius: oldScale[0], outerRadius: oldScale[0] + (oldScale[1] - oldScale[0]) * radius };
     };
 
-    const fromFn: FromToMotionPropFn<AnimatableSectorDatum, Sector, any> = (
+    const fromFn: FromToMotionPropFn<AnimatableSectorDatum, Sector<AnimatableSectorDatum>, any> = (
         sect,
         datum,
         status: NodeUpdateState,
@@ -80,7 +80,7 @@ export function preparePieSeriesAnimationFunctions(
 
         return { startAngle, endAngle, innerRadius, outerRadius, stroke, phase, ...animatableFill };
     };
-    const toFn: FromToMotionPropFn<AnimatableSectorDatum, Sector, any> = (
+    const toFn: FromToMotionPropFn<AnimatableSectorDatum, Sector<AnimatableSectorDatum>, any> = (
         _sect: Sector,
         datum: AnimatableSectorDatum,
         status: NodeUpdateState,
@@ -91,8 +91,8 @@ export function preparePieSeriesAnimationFunctions(
         const { stroke, fill } = datum.sectorFormat;
 
         if (status === 'removed' && prevLive) {
-            startAngle = prevLive.datum?.endAngle;
-            endAngle = prevLive.datum?.endAngle;
+            startAngle = prevLive.unsafeDatum?.endAngle;
+            endAngle = prevLive.unsafeDatum?.endAngle;
         } else if (status === 'removed' && !prevLive) {
             startAngle = rotation;
             endAngle = rotation;

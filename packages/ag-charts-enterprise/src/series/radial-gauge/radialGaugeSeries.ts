@@ -182,15 +182,13 @@ export class RadialGaugeSeries
     );
     private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
-    private scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector> = Selection.select(
-        this.scaleGroup,
-        () => this.nodeFactory()
+    private scaleSelection = Selection.select<_ModuleSupport.Sector<RadialGaugeNodeDatum>>(this.scaleGroup, () =>
+        this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
+    private datumSelection = Selection.select<_ModuleSupport.Sector<RadialGaugeNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
-    private needleSelection: _ModuleSupport.Selection<RadialGaugeNeedleDatum, RadialGaugeNeedle> = Selection.select(
+    private needleSelection = Selection.selectNoInference<RadialGaugeNeedleDatum, RadialGaugeNeedle>(
         this.itemNeedleGroup,
         RadialGaugeNeedle
     );
@@ -268,8 +266,8 @@ export class RadialGaugeSeries
         return this.properties.value != null;
     }
 
-    private nodeFactory(): _ModuleSupport.Sector {
-        return new Sector();
+    private nodeFactory(): _ModuleSupport.Sector<RadialGaugeNodeDatum> {
+        return new Sector<RadialGaugeNodeDatum>();
     }
 
     private markerFactory(): _ModuleSupport.Marker<RadialGaugeTargetDatum> {
@@ -865,7 +863,7 @@ export class RadialGaugeSeries
 
     private updateDatumSelection(opts: {
         nodeData: RadialGaugeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector>;
+        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
@@ -873,7 +871,7 @@ export class RadialGaugeSeries
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector>;
+        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
@@ -928,7 +926,7 @@ export class RadialGaugeSeries
 
     private updateScaleSelection(opts: {
         scaleData: RadialGaugeNodeDatum[];
-        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector>;
+        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
@@ -936,7 +934,7 @@ export class RadialGaugeSeries
     }
 
     private updateScaleNodes(opts: {
-        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector>;
+        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         const { scaleSelection } = opts;
         const { segmentation } = this.properties;

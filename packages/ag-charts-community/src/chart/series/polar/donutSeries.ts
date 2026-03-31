@@ -155,7 +155,12 @@ interface PieDonutSeriesLabelFormatterParams
         AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
-export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
+export class DonutSeries extends PolarSeries<
+    PieDonutNodeDatum,
+    AgDonutSeriesOptions,
+    DonutSeriesProperties,
+    Sector<PieDonutNodeDatum>
+> {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -176,14 +181,17 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
     protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> = Selection.select(
+    private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
     protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomHighlightSelection: Selection<PieDonutNodeDatum, Sector<PieDonutNodeDatum>> =
-        Selection.select(this.phantomHighlightGroup, () => this.nodeFactory(), false);
+    private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
+        this.phantomHighlightGroup,
+        () => this.nodeFactory(),
+        false
+    );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
     private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
@@ -258,8 +266,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, zIndex];
     }
 
-    protected override nodeFactory(): Sector {
-        const sector = new Sector();
+    protected override nodeFactory(): Sector<PieDonutNodeDatum> {
+        const sector = new Sector<PieDonutNodeDatum>();
         sector.miterLimit = 1e9;
         return sector;
     }

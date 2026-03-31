@@ -8,7 +8,7 @@ import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelecti
 
 const { Sector, SectorBox } = _ModuleSupport;
 
-export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
+export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector<RadialColumnNodeDatum>> {
     static override readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
@@ -38,8 +38,8 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 
-    protected override nodeFactory(): _ModuleSupport.Sector {
-        return new Sector();
+    protected override nodeFactory(): _ModuleSupport.Sector<RadialColumnNodeDatum> {
+        return new Sector<RadialColumnNodeDatum>();
     }
 
     protected updateItemPath(node: _ModuleSupport.Sector, datum: RadialColumnNodeDatum, highlight: boolean) {

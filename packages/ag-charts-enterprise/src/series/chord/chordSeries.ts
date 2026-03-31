@@ -397,7 +397,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateNodeSelection(opts: {
         nodeData: ChordNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector>;
+        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
