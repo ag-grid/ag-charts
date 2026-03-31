@@ -60,6 +60,7 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
         enabled: {
             $and: [
                 { $path: '../series/0/colorKey' },
+                { $path: '../series/0/colorScale/fills/0' },
                 { $not: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] } },
             ],
         },
