@@ -56,15 +56,6 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
-    legend: {
-        enabled: {
-            $if: [
-                { $path: '../series/0/colorKey' },
-                { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] },
-                true,
-            ],
-        },
-    },
     gradientLegend: {
         enabled: {
             $and: [

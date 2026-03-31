@@ -1383,7 +1383,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 );
             }
 
-            if (legendType === 'gradient') {
+            if (legendType === 'gradient' && colorScaleProps.mode !== 'discrete') {
                 return [
                     buildGradientLegendDatum(
                         this.colorScale,
@@ -1394,6 +1394,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                     ),
                 ];
             }
+
+            return [];
         }
 
         if (legendType !== 'category') return [];
