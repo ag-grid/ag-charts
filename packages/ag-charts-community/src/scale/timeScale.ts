@@ -8,7 +8,6 @@ import {
     intervalRangeStartIndex,
     intervalStep,
     isDenseInterval,
-    isPlainObject,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -146,7 +145,7 @@ export function getDateTicksForInterval({
         return [];
     }
 
-    if (isPlainObject(interval) || typeof interval === 'string') {
+    if (typeof interval !== 'number') {
         const ticks = intervalRange(interval, new Date(start), new Date(stop), { visibleRange, extend });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
@@ -195,7 +194,7 @@ function updateNiceDomainIteration(
 
     let i: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    if (isPlainObject(interval) || typeof interval === 'string') {
+    if (interval != null && typeof interval !== 'number') {
         i = interval;
     } else {
         let tickCount: number | undefined;

@@ -49,6 +49,11 @@ export function intervalMilliseconds(interval: AgTimeInterval | AgTimeIntervalUn
     return step * unitEncoding[intervalUnit(interval)].milliseconds;
 }
 
+/** Normalise AgTimeIntervalUnit string to AgTimeInterval object. */
+export function toTimeInterval(interval: AgTimeInterval | AgTimeIntervalUnit): AgTimeInterval {
+    return typeof interval === 'string' ? { unit: interval } : interval;
+}
+
 const intervals = ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 export function isTimeInterval(value: unknown): value is AgTimeInterval {
     if (!isPlainObject(value)) return false;

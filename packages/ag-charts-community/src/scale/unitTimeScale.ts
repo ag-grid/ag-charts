@@ -18,7 +18,7 @@ import {
     intervalRange,
     intervalRangeCount,
     intervalRangeNumeric,
-    isPlainObject,
+    toTimeInterval,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
@@ -74,15 +74,15 @@ export class UnitTimeScale extends DiscreteTimeScale {
         return this._domain;
     }
 
-    /* eslint-disable sonarjs/use-type-alias */
-    private _interval: AgTimeInterval | AgTimeIntervalUnit | undefined;
-    get interval(): AgTimeInterval | AgTimeIntervalUnit | undefined {
+    private _interval: AgTimeInterval | undefined;
+    get interval(): AgTimeInterval | undefined {
         return this._interval;
     }
     set interval(interval: AgTimeInterval | AgTimeIntervalUnit | undefined) {
-        if (this._interval === interval) return;
+        const normalized = interval == null ? undefined : toTimeInterval(interval);
+        if (this._interval?.unit === normalized?.unit && this._interval?.step === normalized?.step) return;
 
-        this._interval = interval;
+        this._interval = normalized;
         this.invalidateCaches();
     }
 
@@ -339,8 +339,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     override ticks(
         { interval }: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1],
-        { extend = false } = {}
+        visibleRange: [number, number] = [0, 1]
     ): ScaleTickResult<Date> | undefined {
         const numBands = this.numericBands;
         if (numBands.length === 0 || domain.length < 2) return;
@@ -349,7 +348,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const d1 = Math.max(domain[0].valueOf(), domain[1].valueOf());
 
         // Compute the band index range for the requested domain + visibleRange
-        const [iStart, iEnd] = this.visibleBandRange(d0, d1, visibleRange, extend);
+        const [iStart, iEnd] = this.visibleBandRange(d0, d1, visibleRange);
 
         // No interval — return all bands in range
         if (interval == null) {
@@ -372,12 +371,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
     }
 
     /** Compute band slice indices for a domain range + visible range. */
-    private visibleBandRange(
-        d0: number,
-        d1: number,
-        visibleRange: [number, number],
-        extend: boolean
-    ): [number, number] {
+    private visibleBandRange(d0: number, d1: number, visibleRange: [number, number]): [number, number] {
         const numBands = this.numericBands;
         const n = numBands.length;
         if (n === 0) return [0, 0];
@@ -386,13 +380,8 @@ export class UnitTimeScale extends DiscreteTimeScale {
         const windowStart = d0 + visibleRange[0] * span;
         const windowEnd = d0 + visibleRange[1] * span;
 
-        let iStart = findMaxIndex(0, n - 1, (i) => numBands[i] <= windowStart) ?? 0;
-        let iEnd = (findMinIndex(0, n - 1, (i) => numBands[i] >= windowEnd) ?? n - 1) + 1;
-
-        if (extend) {
-            iStart = Math.max(0, iStart - 1);
-            iEnd = Math.min(n, iEnd + 1);
-        }
+        const iStart = findMaxIndex(0, n - 1, (i) => numBands[i] <= windowStart) ?? 0;
+        const iEnd = (findMinIndex(0, n - 1, (i) => numBands[i] >= windowEnd) ?? n - 1) + 1;
 
         return [iStart, iEnd];
     }
@@ -403,7 +392,7 @@ export class UnitTimeScale extends DiscreteTimeScale {
         domain: Date[],
         visibleRange: [number, number]
     ): number[] {
-        if (isPlainObject(interval) || typeof interval === 'string') {
+        if (typeof interval !== 'number') {
             return intervalRange(interval, domain[0], domain[1], { extend: true, visibleRange }).map((d) =>
                 d.valueOf()
             );
