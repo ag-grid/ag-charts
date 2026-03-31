@@ -30,7 +30,6 @@ const getHiddenPages = async () => {
     return docsHiddenPages;
 };
 
-// eslint-disable-next-line @typescript-eslint/require-await
 const getIgnoredPages = () => {
     return [
         urlWithBaseUrl('/404'),
@@ -42,13 +41,8 @@ const getIgnoredPages = () => {
 };
 
 export async function getSitemapIgnorePaths() {
-    const paths = await Promise.all([
-        getDocsExamplePaths(),
-        getTestPages(),
-        getDebugPageUrls(),
-        getIgnoredPages(),
-        getHiddenPages(),
-    ]);
+    const asyncPages = (await Promise.all([getHiddenPages(), getDebugPageUrls()])).flat();
+    const paths = [getDocsExamplePaths(), getTestPages(), getIgnoredPages(), asyncPages];
 
     return paths.flat();
 }
