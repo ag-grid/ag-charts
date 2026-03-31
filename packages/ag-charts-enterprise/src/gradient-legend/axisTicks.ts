@@ -27,10 +27,6 @@ interface TickDatum {
     translation: number;
 }
 
-interface DataProvider {
-    data: _ModuleSupport.GradientLegendDatum[];
-}
-
 export class AxisTicks {
     static readonly className = 'AxisTicks';
     static readonly DefaultTickCount = 5;
@@ -50,10 +46,10 @@ export class AxisTicks {
     translationX: number = 0;
     translationY: number = 0;
 
-    constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
-        private readonly dataProvider: DataProvider
-    ) {}
+    /** Bound series for formatter context — scoped to a single gradient legend item. */
+    boundSeries: Array<{ seriesId: string; key: string; name?: string }> = [];
+
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
 
     private get horizontal(): boolean {
         return this.placement.startsWith('top') || this.placement.startsWith('bottom');
@@ -61,6 +57,19 @@ export class AxisTicks {
 
     attachAxis(axisNode: _ModuleSupport.Group) {
         axisNode.appendChild(this.axisGroup);
+    }
+
+    detach() {
+        this.labelSelection.clear();
+        this.axisGroup.remove();
+    }
+
+    /** Shift the already-laid-out axis group by an additional offset. */
+    applyOffset(dx: number, dy: number) {
+        this.translationX += dx;
+        this.translationY += dy;
+        this.axisGroup.translationX += dx;
+        this.axisGroup.translationY += dy;
     }
 
     calculateLayout(): _ModuleSupport.BBox | undefined {
@@ -140,7 +149,7 @@ export class AxisTicks {
     ): (value: any, index: number) => TextOrSegments | undefined {
         const { ctx } = this;
         const { formatManager } = ctx;
-        const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
+        const { boundSeries } = this;
 
         return (value, index): TextOrSegments => {
             const formatParams: FormatterParams<any> = {
