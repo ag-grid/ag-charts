@@ -213,13 +213,15 @@ for version in "${versions[@]}"; do
     # Checkout files in the specified input file set (removing any files that have been added since then)
     # Note: Using git checkout instead of git restore to handle case-sensitive filename changes on macOS
     run_silent git checkout "$version" -- ${included_files[@]}
+    # Remove files that exist on HEAD but not in the target version (e.g., newly added files)
+    run_silent git clean -fd -- ${included_files[@]}
     build ${version}
     # Benchmark
     benchmark ${version}
     # Reset the working tree and staging area to HEAD state
     run_silent git checkout HEAD -- ${included_files[@]}
     run_silent git reset HEAD -- ${included_files[@]}
-    # Remove any files that don't exist in HEAD (e.g., files only in old versions)
+    # Remove any files that don't exist in HEAD (e.g., files only in the target version)
     run_silent git clean -fd -- ${included_files[@]}
 done
 
