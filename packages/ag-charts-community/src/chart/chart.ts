@@ -314,7 +314,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return new DataSet(data, this.dataIdKey);
+        return DataSet.replaceWith(this.data, data, this.dataIdKey);
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {

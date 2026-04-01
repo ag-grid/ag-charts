@@ -30,6 +30,7 @@ export class HierarchyDataSet<T = unknown> extends DataSet<T> {
             this.removeNestedDuplicatesFromRoot();
             // Invalidate after structural changes — splice may shift root indices.
             this.idToIndexCache = undefined;
+            this.idArrayCache = undefined;
         }
         return result;
     }

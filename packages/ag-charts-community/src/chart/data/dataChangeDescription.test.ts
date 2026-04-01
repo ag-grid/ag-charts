@@ -295,4 +295,148 @@ describe('DataChangeDescription', () => {
             });
         });
     });
+
+    describe('applyToTypedArray', () => {
+        it('should handle rolling window (remove head + append tail)', () => {
+            const data = Array.from({ length: 10 }, (_, i) => ({ value: i }));
+            const ds = new DataSet(data);
+
+            // Remove first 3, append 3 new
+            ds.addTransaction({ remove: data.slice(0, 3), append: [{ value: 10 }, { value: 11 }, { value: 12 }] });
+            const desc = ds.getChangeDescription()!;
+
+            // Selection: indices 1, 4, 7 are selected
+            const sel = new Uint8Array(10);
+            sel[1] = 1;
+            sel[4] = 1;
+            sel[7] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+
+            // After removing 0,1,2: old 3->0, old 4->1, old 5->2, old 6->3, old 7->4, old 8->5, old 9->6
+            // Appended 3 new at indices 7,8,9 (default 0)
+            expect(result.length).toBe(10);
+            expect(result[1]).toBe(1); // old idx 4 -> new idx 1
+            expect(result[4]).toBe(1); // old idx 7 -> new idx 4
+            expect(result[0]).toBe(0); // old idx 3 was not selected
+            expect(result[7]).toBe(0); // appended, default
+        });
+
+        it('should handle append-only', () => {
+            const data = [{ value: 0 }, { value: 1 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({ append: [{ value: 2 }] });
+            const desc = ds.getChangeDescription()!;
+
+            const sel = new Uint8Array(2);
+            sel[0] = 1;
+            sel[1] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+            expect(result.length).toBe(3);
+            expect(Array.from(result)).toEqual([1, 1, 0]);
+        });
+
+        it('should handle prepend-only', () => {
+            const data = [{ value: 0 }, { value: 1 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({ prepend: [{ value: -1 }] });
+            const desc = ds.getChangeDescription()!;
+
+            const sel = new Uint8Array(2);
+            sel[1] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+            expect(result.length).toBe(3);
+            expect(Array.from(result)).toEqual([0, 0, 1]); // old idx 1 -> new idx 2
+        });
+
+        it('should handle single removal', () => {
+            const data = [{ value: 0 }, { value: 1 }, { value: 2 }, { value: 3 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({ remove: [data[1]] });
+            const desc = ds.getChangeDescription()!;
+
+            const sel = new Uint8Array(4);
+            sel[0] = 1;
+            sel[2] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+            expect(result.length).toBe(3);
+            expect(Array.from(result)).toEqual([1, 1, 0]); // old 0->0, old 2->1, old 3->2
+        });
+
+        it('should handle no-op (no changes)', () => {
+            const data = [{ value: 0 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({}); // Empty transaction
+
+            const desc = ds.getChangeDescription();
+            // No change description means no-op
+            if (desc) {
+                const sel = new Uint8Array(1);
+                sel[0] = 1;
+                const result = desc.applyToTypedArray(sel);
+                expect(Array.from(result)).toEqual([1]);
+            }
+        });
+
+        it('should handle full removal', () => {
+            const data = [{ value: 0 }, { value: 1 }, { value: 2 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({ remove: [...data] });
+            const desc = ds.getChangeDescription()!;
+
+            const sel = new Uint8Array(3);
+            sel.fill(1);
+
+            const result = desc.applyToTypedArray(sel);
+            expect(result.length).toBe(0);
+        });
+
+        it('should handle prepend + removals + append', () => {
+            const data = [{ value: 0 }, { value: 1 }, { value: 2 }, { value: 3 }, { value: 4 }];
+            const ds = new DataSet(data);
+
+            ds.addTransaction({
+                prepend: [{ value: -2 }, { value: -1 }],
+                remove: [data[1], data[3]],
+                append: [{ value: 5 }],
+            });
+            const desc = ds.getChangeDescription()!;
+
+            // Selected: indices 0, 2, 4
+            const sel = new Uint8Array(5);
+            sel[0] = 1;
+            sel[2] = 1;
+            sel[4] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+            // After: [-2, -1, 0, 2, 4, 5] (6 items)
+            // Old 0 -> new 2, old 2 -> new 3, old 4 -> new 4
+            expect(result.length).toBe(6);
+            expect(result[0]).toBe(0); // prepended
+            expect(result[1]).toBe(0); // prepended
+            expect(result[2]).toBe(1); // old idx 0
+            expect(result[3]).toBe(1); // old idx 2
+            expect(result[4]).toBe(1); // old idx 4
+            expect(result[5]).toBe(0); // appended
+        });
+
+        it('should support custom default value', () => {
+            const data = [{ value: 0 }, { value: 1 }];
+            const ds = new DataSet(data);
+            ds.addTransaction({ append: [{ value: 2 }] });
+            const desc = ds.getChangeDescription()!;
+
+            const sel = new Uint8Array(2);
+            sel[0] = 1;
+
+            const result = desc.applyToTypedArray(sel, 1);
+            expect(result.length).toBe(3);
+            expect(result[0]).toBe(1); // preserved
+            expect(result[1]).toBe(0); // preserved (was 0)
+            expect(result[2]).toBe(1); // appended with default=1
+        });
+    });
 });

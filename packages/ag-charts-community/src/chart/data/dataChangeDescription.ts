@@ -410,4 +410,96 @@ export class DataChangeDescription {
             array.length = finalLength;
         }
     }
+
+    /**
+     * Applies the transformation to a `Uint8Array`, returning a **new** typed array.
+     * TypedArrays are fixed-length so in-place splice is not possible.
+     *
+     * **Fast path** (rolling window, prepend+append, removals-only): copies preserved
+     * blocks via `TypedArray.set()` + `subarray()` — maps to C-level memcpy in V8.
+     *
+     * **Slow path** (mid-array insertions): element-by-element copy via
+     * `forEachPreservedIndex()` with insertion-aware destination adjustment.
+     *
+     * @param arr - Source typed array to transform
+     * @param defaultValue - Value for newly inserted positions (default 0)
+     * @returns New Uint8Array with transformations applied
+     */
+    applyToTypedArray(arr: Uint8Array, defaultValue: number = 0): Uint8Array {
+        const { finalLength, removedIndices, totalPrependCount, totalAppendCount, spliceOps } = this.indexMap;
+
+        // Early exit: no structural changes
+        if (finalLength === arr.length && removedIndices.size === 0 && spliceOps.length === 0) {
+            return arr;
+        }
+
+        const result = new Uint8Array(finalLength);
+        if (defaultValue !== 0) result.fill(defaultValue);
+
+        // Detect mid-array insertions (rare — not part of the streaming hot path)
+        let totalSpliceInserted = 0;
+        for (const op of spliceOps) {
+            totalSpliceInserted += op.insertCount;
+        }
+
+        if (totalSpliceInserted > totalPrependCount + totalAppendCount) {
+            // Slow path: mid-array insertions shift destination indices beyond what
+            // forEachPreservedIndex computes, so we collect their positions and apply
+            // an additional shift per preserved element.
+            const midInsertions = this.collectMidArrayInsertions();
+            this.forEachPreservedIndex((srcIdx, baseDestIdx) => {
+                let shift = 0;
+                for (const ins of midInsertions) {
+                    if (ins.destIndex <= baseDestIdx + shift) {
+                        shift += ins.count;
+                    } else {
+                        break;
+                    }
+                }
+                result[baseDestIdx + shift] = arr[srcIdx];
+            });
+        } else {
+            // Fast path: block copy using removedIndices (source-space coordinates).
+            // TypedArray.set() with subarray() maps to C-level memcpy in V8.
+            const sortedRemovals = removedIndices.size > 0 ? Array.from(removedIndices).sort((a, b) => a - b) : [];
+
+            let srcOffset = 0;
+            let destOffset = totalPrependCount;
+
+            for (const removedIndex of sortedRemovals) {
+                const preserveCount = removedIndex - srcOffset;
+                if (preserveCount > 0) {
+                    result.set(arr.subarray(srcOffset, srcOffset + preserveCount), destOffset);
+                    destOffset += preserveCount;
+                }
+                srcOffset = removedIndex + 1;
+            }
+
+            const remaining = arr.length - srcOffset;
+            if (remaining > 0) {
+                result.set(arr.subarray(srcOffset, srcOffset + remaining), destOffset);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Collect mid-array insertion positions from splice ops (excluding prepend and append).
+     * Returns sorted ascending by destination index.
+     */
+    private collectMidArrayInsertions(): Array<{ destIndex: number; count: number }> {
+        const { totalPrependCount, totalAppendCount, finalLength, spliceOps } = this.indexMap;
+        const appendIndex = finalLength - totalAppendCount;
+        const midInsertions: Array<{ destIndex: number; count: number }> = [];
+        for (const op of spliceOps) {
+            if (op.insertCount > 0 && op.deleteCount === 0) {
+                // Skip prepend and append ops — already handled by totalPrependCount / finalLength
+                if (op.index === 0 && op.insertCount === totalPrependCount) continue;
+                if (op.index === appendIndex && op.insertCount === totalAppendCount) continue;
+                midInsertions.push({ destIndex: op.index, count: op.insertCount });
+            }
+        }
+        return midInsertions.sort((a, b) => a.destIndex - b.destIndex);
+    }
 }
