@@ -87,6 +87,7 @@
         "ENABLE_TOOL_SEARCH": "true"
     },
     "enabledPlugins": {
+        "openai/codex-plugin-cc": true,
         "skill-creator@claude-plugins-official": true
     },
     "hooks": {
