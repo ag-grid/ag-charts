@@ -27,6 +27,7 @@ import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBa
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgChordSeriesThemeableOptions } from '../series/standalone/chordOptions';
 import type { AgFlowProportionSeriesOptions } from '../series/standalone/flowProportionOptions';
+import type { AgOrganisationSeriesThemeableOptions } from '../series/standalone/organisationOptions';
 import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
 import type { AgSankeySeriesThemeableOptions } from '../series/standalone/sankeyOptions';
 import type { AgBaseStandaloneThemeOptions, AgStandaloneSeriesOptions } from '../series/standalone/standaloneOptions';
@@ -279,6 +280,12 @@ export interface AgChordThemeOverrides<TDatum = DatumDefault, TContext = Context
     series?: AgChordSeriesThemeableOptions<TDatum, TContext>;
 }
 
+export interface AgOrganisationThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
+    /** Themeable options for organisation series. */
+    series?: AgOrganisationSeriesThemeableOptions<TDatum, TContext>;
+}
+
 export interface AgPyramidThemeOverrides<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseStandaloneThemeOptions<TDatum, TContext> {
     /** Themeable options for pyramid series. */
@@ -409,6 +416,8 @@ export interface AgChartThemeOverrides<TDatum = DatumDefault, TContext = Context
     'map-shape-background'?: AgMapShapeBackgroundThemeOverrides<TDatum, TContext>;
     /** Map line background series theme overrides. */
     'map-line-background'?: AgMapLineBackgroundThemeOverrides<TDatum, TContext>;
+    /** Organisation series theme overrides. */
+    organisation?: AgOrganisationThemeOverrides<TDatum, TContext>;
     /** Sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides<TDatum, TContext>;
     /** Chord series theme overrides. */

@@ -1,7 +1,13 @@
+interface GraphConstructorOptions<E> {
+    cachedNeighboursEdge?: E;
+    processedEdge?: E;
+    singleValueEdges?: Set<E>;
+}
+
 /**
  * A graph that is optimised for vertex lookup and adjacency by edge value.
  */
-export class AdjacencyListGraph<V, E = undefined> {
+export class Graph<V, E = undefined> {
     private _vertexCount = 0;
     private _edgeCount = 0;
 
@@ -19,10 +25,10 @@ export class AdjacencyListGraph<V, E = undefined> {
 
     private readonly singleValueEdges?: Set<E>;
 
-    constructor(cachedNeighboursEdge?: E, processedEdge?: E, singleValueEdges?: Set<E>) {
-        this.cachedNeighboursEdge = cachedNeighboursEdge;
-        this.processedEdge = processedEdge;
-        this.singleValueEdges = singleValueEdges;
+    constructor(options?: GraphConstructorOptions<E>) {
+        this.cachedNeighboursEdge = options?.cachedNeighboursEdge;
+        this.processedEdge = options?.processedEdge;
+        this.singleValueEdges = options?.singleValueEdges;
     }
 
     clear() {
@@ -41,8 +47,8 @@ export class AdjacencyListGraph<V, E = undefined> {
         return this._edgeCount;
     }
 
-    addVertex(value: V): Vertex<V> {
-        const vertex = new Vertex(value);
+    addVertex(value: V): Vertex<V, E> {
+        const vertex = new Vertex<V, E>(value);
         this._vertexCount++;
         return vertex;
     }

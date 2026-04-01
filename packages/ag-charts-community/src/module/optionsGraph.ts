@@ -1,6 +1,6 @@
 import {
-    AdjacencyListGraph,
     Debug,
+    Graph,
     ModuleRegistry,
     type PlainObject,
     type Vertex,
@@ -93,7 +93,7 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): O
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
  */
-export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements OptionsGraphInterface {
+export class OptionsGraph extends Graph<unknown, string> implements OptionsGraphInterface {
     // The default priority order in which to resolve options values.
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
@@ -172,7 +172,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
-        super(PATH_EDGE, OPERATION_EDGE, new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]));
+        super({
+            cachedNeighboursEdge: PATH_EDGE,
+            processedEdge: OPERATION_EDGE,
+            singleValueEdges: new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]),
+        });
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
@@ -322,7 +326,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return this.resolvedAnnotations;
     }
 
-    override addVertex(value: unknown): Vertex<unknown, unknown> {
+    override addVertex(value: unknown) {
         const vertex = super.addVertex(value);
         if (this.isRollingBack) {
             this.rollbackVertices.push(vertex);
