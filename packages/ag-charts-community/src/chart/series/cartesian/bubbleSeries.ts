@@ -237,6 +237,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     private readonly sizeScale = new LinearScale();
     readonly colorScale = new ColorScale();
+    private colorScaleValid = false;
 
     private placedLabelData: PlacedLabel<BubbleScatterNodeDatum>[] = [];
 
@@ -310,13 +311,15 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         this.sizeScale.domain =
             mutableMarkerDomain ?? (sizeKeyIdx == null ? undefined : processedData.domain.values[sizeKeyIdx]) ?? [];
 
-        if (this.isColorScaleValid()) {
+        this.colorScaleValid = false;
+        if (colorKey) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
             const rawDomain = processedData.domain.values[colorKeyIdx].filter((v: any) => v != null);
             const domain = extent(rawDomain);
 
             if (domain != null) {
                 configureColorScale(this.colorScale, this.properties.colorScale, domain, []);
+                this.colorScaleValid = true;
             }
         }
 
@@ -326,13 +329,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     private isColorScaleValid() {
-        if (!this.properties.colorKey) return false;
-
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return false;
-
-        const idx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        return processedData.domain.values[idx].some((v: any) => v != null);
+        return this.colorScaleValid;
     }
 
     override xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number] {
