@@ -183,6 +183,33 @@ Companion PRs (symlinked repos):
   <repo-name>: <URL>
 ```
 
+### STEP 9: Monitor CI (Only If `--monitor`)
+
+If `${ARGUMENTS}` does **not** include `--monitor`, **STOP** after STEP 8.
+
+Otherwise, poll the PR's CI status until all checks complete or a timeout is reached:
+
+1.  **Poll loop** — check every 60 seconds, up to 30 minutes:
+    ```bash
+    gh pr checks <PR_NUMBER> --json name,state,conclusion
+    ```
+    -   If all checks have `state == "COMPLETED"` with `conclusion == "SUCCESS"`, report success and **STOP**.
+    -   If any check has `state == "COMPLETED"` with `conclusion != "SUCCESS"`, break out of the loop and proceed to failure triage.
+    -   Otherwise, continue polling.
+
+2.  **Failure triage** — for each failed check:
+    -   Fetch the log:
+        ```bash
+        gh run view <RUN_ID> --log-failed
+        ```
+    -   Classify the failure:
+        -   **Lint / formatting**: run `yarn nx format` and/or `yarn nx lint <package>`, commit the fix, and push.
+        -   **Merge conflict**: attempt `git merge <BASE_BRANCH>`, resolve if straightforward (auto-resolvable), commit, and push. If conflicts require manual intervention, report them to the user and **STOP**.
+        -   **Type errors**: attempt to fix if the error is clearly in files changed by this PR. If unclear, report to the user and **STOP**.
+        -   **Other / unclear**: report the failure details to the user and **STOP**. Do not attempt blind fixes.
+
+3.  **After fixing** — push the fix commit and restart the poll loop (STEP 9.1). Only attempt **one round** of automatic fixes. If CI fails again after a fix attempt, report the new failure to the user and **STOP**.
+
 ## Arguments
 
 `${ARGUMENTS}` can optionally include:
@@ -190,6 +217,7 @@ Companion PRs (symlinked repos):
 -   A JIRA ticket number (e.g., `AG-12345`) - used for branch naming, commit prefix, and PR title.
 -   A description of the change - used for branch slug, commit message, and PR title.
 -   `--base <branch>` - override the base branch detection.
+-   `--monitor` - after creating the PR, poll CI and automatically fix straightforward failures (lint, formatting, merge conflicts).
 
 **Examples:**
 
@@ -197,3 +225,5 @@ Companion PRs (symlinked repos):
 -   `/pr-create AG-12345 Add tooltip delay support` - JIRA-linked PR.
 -   `/pr-create Fix axis label overlap for long text` - no-JIRA PR.
 -   `/pr-create --base b13.0.0` - target a specific release branch.
+-   `/pr-create --monitor` - create PR and monitor CI, fixing simple failures.
+-   `/pr-create AG-12345 Fix tooltip --base b13.2.0 --monitor` - combined options.

@@ -74,7 +74,6 @@ fi
 # Run yarn install — preinstall-worktree.sh handles symlink fixes and COW cloning.
 export ROOT_WORKTREE_PATH="$CWD"
 export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
-export AG_CLOUD_INSTALL=1
 if [[ -f "$WT_PATH/package.json" ]]; then
     log "Running yarn install (preinstall hook handles worktree setup)..."
     (cd "$WT_PATH" && yarn install --prefer-offline 2>&1 | tail -20) >&2
