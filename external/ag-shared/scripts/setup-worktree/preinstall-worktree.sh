@@ -324,8 +324,8 @@ main() {
         cloud)
             create_yarnrc
 
-            # Cloud mode may also be a worktree (e.g. AG_CLOUD_INSTALL=1 set
-            # by claude-worktree-create.sh). Fix symlinks if so.
+            # Cloud mode may also be a worktree (e.g. CLAUDE_CODE_REMOTE=true
+            # in a remote environment). Fix symlinks if so.
             if [[ -f "$REPO_ROOT/.git" ]]; then
                 fix_broken_external_symlinks || log_error "Failed to fix external symlinks, continuing"
             fi
