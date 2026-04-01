@@ -1426,7 +1426,6 @@ export class SeriesAreaManager extends BaseManager {
 
     private onLegendHover(_event: null): void {
         if (!this.isState(InteractionState.Hoverable)) return;
-        this.setHoverDevice('pointer');
         this.clearCachedEvents();
         this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
         this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
