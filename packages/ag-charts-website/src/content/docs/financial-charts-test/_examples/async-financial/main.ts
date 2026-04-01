@@ -1,13 +1,24 @@
-import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgFinancialChartOptions,
+    DataSourceModule,
+    FinancialChartModule,
+    ModuleRegistry,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([FinancialChartModule]);
+ModuleRegistry.registerModules([FinancialChartModule, DataSourceModule]);
 
 const options: AgFinancialChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
     title: { text: 'Acme Inc.' },
+    dataSource: {
+        getData: async () => {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            return getData();
+        },
+    },
     initialState: {
         annotations: [
             {
