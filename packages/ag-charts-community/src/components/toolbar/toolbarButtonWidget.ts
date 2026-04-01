@@ -83,6 +83,10 @@ function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-
     return ARIA_HASPOPUP[value];
 }
 
+function isArrowLeftPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
+    return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowLeft';
+}
+
 function isArrowRightPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
     return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowRight';
 }
@@ -95,14 +99,14 @@ export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
     private lastInnerHTML?: string;
     private lastTooltip?: string;
-    private arrowRightPredicate: KeyboardClickBindingPredicate = falsePredicate;
+    private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
-        this.addKeyboardClickBinding((ev) => this.arrowRightPredicate(ev));
+        this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
     }
 
-    public update(options: ToolbarButtonWidgetOptions) {
+    public update(options: ToolbarButtonWidgetOptions, interactionOptions: { isRtl: boolean }) {
         const { localeManager } = this;
 
         if (options.tooltip) {
@@ -132,11 +136,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
-            this.arrowRightPredicate = falsePredicate;
+            this.arrowKeyPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
             this.setAriaExpanded(false);
-            this.arrowRightPredicate = isArrowRightPredicate;
+            this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
         // Only update innerHTML if content changed - avoids HTML parsing and style recalculation
