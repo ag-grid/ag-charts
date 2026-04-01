@@ -497,6 +497,36 @@ describe('GradientLegend', () => {
             await compare();
         });
 
+        it('should auto-enable gradient legend when series[0] has no colorKey but later series does', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        // No colorKey on series[0]
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                // NOT setting gradientLegend.enabled — relying on theme auto-enable
+                gradientLegend: { gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
         it('should show arrow on correct gradient bar when hovering series data', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: SCATTER_DATA,

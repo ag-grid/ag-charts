@@ -58,10 +58,15 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
     },
     gradientLegend: {
         enabled: {
-            $and: [
-                { $path: '../series/0/colorKey' },
-                { $path: '../series/0/colorScale/fills/0' },
-                { $not: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] } },
+            $some: [
+                {
+                    $and: [
+                        { $path: '/series/$index/colorKey' },
+                        { $path: '/series/$index/colorScale/fills/0' },
+                        { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
+                    ],
+                },
+                { $path: '/series' },
             ],
         },
     },

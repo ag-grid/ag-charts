@@ -147,7 +147,8 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     }
 
     private onStartLayout({ layoutBox }: _ModuleSupport.LayoutContext) {
-        this.enabledData = this.data.filter((d) => d.enabled && d.legendType === 'gradient');
+        const allEnabled = this.data.filter((d) => d.enabled && d.legendType === 'gradient');
+        this.enabledData = allEnabled.filter((d, i) => i === 0 || d.showSeparately === true);
 
         if (!this.enabled || this.enabledData.length === 0) {
             this.legendGroup.visible = false;

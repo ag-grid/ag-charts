@@ -1385,13 +1385,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
             if (legendType === 'gradient' && colorScaleProps.mode !== 'discrete') {
                 return [
-                    buildGradientLegendDatum(
-                        this.colorScale,
-                        colorScaleProps.fills,
-                        this.id,
-                        this.visible,
-                        this.getFormatterContext('color')
-                    ),
+                    {
+                        ...buildGradientLegendDatum(
+                            this.colorScale,
+                            colorScaleProps.fills,
+                            this.id,
+                            this.visible,
+                            this.getFormatterContext('color')
+                        ),
+                        showSeparately: true,
+                    },
                 ];
             }
 
