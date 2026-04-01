@@ -643,6 +643,10 @@ test.describe('keyboard-nav', () => {
             await page.keyboard.press('Tab');
         }
 
+        async function selectMode(page: Page, mode: 'create' | 'updateDelta'): Promise<void> {
+            await page.selectOption('#myUpdateMode', mode);
+        }
+
         test.beforeEach(async ({ page }) => {
             await gotoExample(page, toExamplePageUrl('accessibility-test', 'initial-focus', 'vanilla').url);
         });
@@ -665,6 +669,16 @@ test.describe('keyboard-nav', () => {
         test('viewport-end', async ({ page }) => {
             await selectOption(page, 'viewport-end');
             await expect(page).toHaveScreenshot('initial-focus-viewport-end.png');
+        });
+
+        test('only the first focus event reads the initialFocus value', async ({ page }) => {
+            await selectMode(page, 'updateDelta');
+
+            await selectOption(page, 'viewport-start');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+
+            await selectOption(page, 'viewport-end');
+            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
         });
     });
 });
