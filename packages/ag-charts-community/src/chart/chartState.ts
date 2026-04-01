@@ -1,23 +1,8 @@
-import type { DeepResolved } from 'ag-charts-core';
-import type { AgChartOptions } from 'ag-charts-types';
+import type { AgChartOptions, NormalisedLegendOptions } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
-type ResolvedOptionsKeys =
-    | 'container'
-    | 'data'
-    | 'dataIdKey'
-    | 'context'
-    | 'initialState'
-    | 'theme'
-    | 'listeners'
-    | 'styleNonce';
-
-export type ResolvedOptions<T, K extends string = ResolvedOptionsKeys> = T extends object
-    ? DeepResolved<Omit<T, Extract<keyof T, K>>> & Pick<T, Extract<keyof T, K>>
-    : T;
-
-export type ResolvedChartOptions = ResolvedOptions<AgChartOptions>;
+export type ResolvedChartOptions = Omit<AgChartOptions, 'legend'> & { legend: NormalisedLegendOptions };
 
 export interface ChartState {
     options: ResolvedChartOptions;
