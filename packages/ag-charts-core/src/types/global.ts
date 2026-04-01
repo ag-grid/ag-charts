@@ -1,5 +1,3 @@
-import type { GoogleFontFamily } from 'ag-charts-types';
-
 export type AnyFn = (...args: any[]) => any;
 
 export type Callback = (params: any) => any;
@@ -30,28 +28,6 @@ type _DeepRequiredObject<T, IgnoredKeys extends string> = {
     [K in keyof T]-?: K extends IgnoredKeys
         ? NonNullable<T[K]> // skip recursion, just remove undefined
         : DeepRequired<Defined<T[K]>, IgnoredKeys>;
-};
-
-/** Collapses types that the theme system resolves to simpler forms at runtime. */
-type CollapseResolved<T> = T extends GoogleFontFamily
-    ? string
-    : T extends (infer U)[]
-      ? CollapseResolved<U> extends string
-          ? string
-          : T
-      : T;
-
-/** Like DeepRequired but also collapses complex union types to their resolved runtime forms. */
-export type DeepResolved<T> = T extends AnyFn
-    ? T
-    : T extends any[]
-      ? Array<DeepResolved<T[number]>>
-      : T extends object
-        ? _DeepResolvedObject<T>
-        : T;
-
-type _DeepResolvedObject<T> = {
-    [K in keyof T]-?: DeepResolved<CollapseResolved<Defined<T[K]>>>;
 };
 
 export type DeepReadonly<T> = T extends (...args: any[]) => any

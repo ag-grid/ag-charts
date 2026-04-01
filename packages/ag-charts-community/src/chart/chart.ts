@@ -1568,7 +1568,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'listeners',
             'preset',
             'theme',
-            'legend',
+            'legend.listeners',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
             'locale.localeText',
@@ -1633,7 +1633,23 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
+
         this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+
+        if (
+            'legend' in deltaOptions &&
+            deltaOptions.legend &&
+            'listeners' in deltaOptions.legend &&
+            this.modulesManager.isEnabled('legend')
+        ) {
+            const legendListeners = deltaOptions.legend.listeners;
+            if (legendListeners) {
+                Object.assign((this as any).legend.listeners, legendListeners);
+            } else {
+                // Clear legend listeners when set to undefined
+                (this as any).legend.listeners.clear();
+            }
+        }
         if (deltaOptions.locale?.localeText) {
             this.pendingLocaleText = deltaOptions.locale?.localeText;
         }

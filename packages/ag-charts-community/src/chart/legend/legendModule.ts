@@ -142,7 +142,6 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
             paddingY: 8,
             marker: { size: 15, padding: 8 },
             showSeriesStroke: true,
-            line: { length: 25 },
             label: {
                 color: { $ref: 'textColor' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
@@ -152,15 +151,11 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
         },
         reverseOrder: false,
         pagination: {
-            marker: { shape: 'triangle', size: 12, padding: 8 },
-            activeStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },
-            inactiveStyle: { fill: { $ref: 'subtleTextColor' }, strokeWidth: 1, strokeOpacity: 1 },
-            highlightStyle: { fill: { $ref: 'foregroundColor' }, strokeWidth: 1, strokeOpacity: 1 },
-            label: {
-                color: { $ref: 'textColor' },
-                fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
-                fontFamily: { $ref: 'fontFamily' },
-            },
+            marker: { size: 12 },
+            activeStyle: { fill: { $ref: 'foregroundColor' } },
+            inactiveStyle: { fill: { $ref: 'subtleTextColor' } },
+            highlightStyle: { fill: { $ref: 'foregroundColor' } },
+            label: { color: { $ref: 'textColor' } },
         },
         fill: {
             $if: [{ $path: ['./position/floating', false] }, { $ref: 'chartBackgroundColor' }, 'transparent'],

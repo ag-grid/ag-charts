@@ -13,7 +13,8 @@ import type { ListWidget } from '../../widget/listWidget';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { Page } from '../gridLayout';
-import type { CategoryLegendDatum, PaginationFacade } from './legendDatum';
+import type { Pagination } from '../pagination/pagination';
+import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
 type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
@@ -33,7 +34,7 @@ type LegendDOMProxyUpdateParams = {
     ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>;
     itemSelection: ItemSelection;
     group: Node;
-    paginationFacade: PaginationFacade;
+    pagination: Pagination;
     oldPages: Page[] | undefined;
     newPages: Page[];
     datumReader: CategoryLegendDatumReader;
@@ -42,7 +43,7 @@ type LegendDOMProxyUpdateParams = {
 
 type LegendDOMProxyPageChangeParams = Pick<
     LegendDOMProxyUpdateParams,
-    'itemSelection' | 'group' | 'paginationFacade' | 'interactive'
+    'itemSelection' | 'group' | 'pagination' | 'interactive'
 >;
 
 export class LegendDOMProxy {
@@ -138,19 +139,14 @@ export class LegendDOMProxy {
         this.paginationGroup.setHidden(!visible);
     }
 
-    private updateItemProxyButtons({
-        itemSelection,
-        group,
-        paginationFacade,
-        interactive,
-    }: LegendDOMProxyPageChangeParams) {
+    private updateItemProxyButtons({ itemSelection, group, pagination, interactive }: LegendDOMProxyPageChangeParams) {
         const groupBBox = Transformable.toCanvas(group);
         this.itemList.setBounds(groupBBox);
 
         const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getTextMeasureBBox().height));
         itemSelection.each((l, _datum) => {
             if (l.proxyButton) {
-                const visible = l.pageIndex === paginationFacade.currentPage;
+                const visible = l.pageIndex === pagination.currentPage;
 
                 const { x, y, height, width } = Transformable.toCanvas(l, l.getTextMeasureBBox());
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
@@ -169,8 +165,8 @@ export class LegendDOMProxy {
         params: LegendDOMProxyUpdateParams | LegendDOMProxyPageChangeParams,
         init: boolean
     ) {
-        const { paginationFacade } = params;
-        this.paginationGroup.setHidden(!paginationFacade.visible);
+        const { pagination } = params;
+        this.paginationGroup.setHidden(!pagination.visible);
 
         if (init && 'ctx' in params) {
             const { oldPages, newPages } = params;
@@ -187,7 +183,7 @@ export class LegendDOMProxy {
         }
 
         if (this.prevButton && this.nextButton) {
-            const { prev, next } = paginationFacade.computeCSSBounds();
+            const { prev, next } = pagination.computeCSSBounds();
             const group: BBox = BBox.merge([prev, next]);
             prev.x -= group.x;
             prev.y -= group.y;
@@ -196,15 +192,15 @@ export class LegendDOMProxy {
             this.paginationGroup.setBounds(group);
             this.prevButton.setBounds(prev);
             this.nextButton.setBounds(next);
-            this.prevButton.setEnabled(paginationFacade.currentPage !== 0);
-            this.nextButton.setEnabled(paginationFacade.currentPage !== paginationFacade.totalPages - 1);
-            this.nextButton.setCursor(paginationFacade.getCursor('next'));
-            this.prevButton.setCursor(paginationFacade.getCursor('previous'));
+            this.prevButton.setEnabled(pagination.currentPage !== 0);
+            this.nextButton.setEnabled(pagination.currentPage !== pagination.totalPages - 1);
+            this.nextButton.setCursor(pagination.getCursor('next'));
+            this.prevButton.setCursor(pagination.getCursor('previous'));
         }
     }
 
     private createPaginationButtons(params: LegendDOMProxyUpdateParams) {
-        const { ctx, paginationFacade } = params;
+        const { ctx, pagination } = params;
 
         // Only create buttons if they don't exist to prevent duplicate event listeners
         if (!this.prevButton) {
@@ -215,8 +211,8 @@ export class LegendDOMProxy {
                 parent: this.paginationGroup,
             });
             this.prevButton.addListener('click', (ev) => this.onPageButton(params, ev, 'previous'));
-            this.prevButton.addListener('mouseenter', () => paginationFacade.onMouseHover('previous'));
-            this.prevButton.addListener('mouseleave', () => paginationFacade.onMouseHover(undefined));
+            this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
+            this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
         }
 
         if (!this.nextButton) {
@@ -227,8 +223,8 @@ export class LegendDOMProxy {
                 parent: this.paginationGroup,
             });
             this.nextButton.addListener('click', (ev) => this.onPageButton(params, ev, 'next'));
-            this.nextButton.addListener('mouseenter', () => paginationFacade.onMouseHover('next'));
-            this.nextButton.addListener('mouseleave', () => paginationFacade.onMouseHover(undefined));
+            this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
+            this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
         }
     }
 
@@ -240,7 +236,7 @@ export class LegendDOMProxy {
     }
 
     private onPageButton(params: LegendDOMProxyUpdateParams, ev: MouseWidgetEvent<'click'>, node: 'previous' | 'next') {
-        params.paginationFacade.onClick(ev.sourceEvent, node);
+        params.pagination.onClick(ev.sourceEvent, node);
         this.updatePaginationProxyButtons(params, false);
     }
 
