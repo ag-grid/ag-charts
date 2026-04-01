@@ -236,6 +236,7 @@ export class Selection<TDatum, TChild extends Node<TDatum>> implements Selection
         const nodes = this._nodes;
         this.parentNode.batchedUpdate(function selectionEach() {
             for (const entry of nodes.entries()) {
+                // eslint-disable-next-line sonarjs/deprecation
                 iterate(entry[1], entry[1].unsafeNonNullDatum, entry[0]);
             }
         });
@@ -245,6 +246,7 @@ export class Selection<TDatum, TChild extends Node<TDatum>> implements Selection
     *[Symbol.iterator](): IterableIterator<{ node: TChild; datum: TDatum; index: number }> {
         for (let index = 0; index < this._nodes.length; index++) {
             const node = this._nodes[index];
+            // eslint-disable-next-line sonarjs/deprecation
             yield { node, datum: node.unsafeNonNullDatum, index };
         }
     }
