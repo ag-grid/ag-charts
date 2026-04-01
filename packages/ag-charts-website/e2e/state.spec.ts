@@ -127,125 +127,6 @@ test.describe('state', () => {
         test.describe('line-example', () => {
             let canvas: Locator;
 
-            const COMMON_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                dataIdKey: undefined,
-                frozen: false,
-                preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'user-interaction',
-                type: 'activeChange',
-            });
-
-            const INACTIVE_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                activeItem: undefined,
-                datum: undefined,
-            });
-
-            const SPAIN2010_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'series-node',
-                itemId: 0,
-                seriesId: 'LineSeries-1',
-            });
-            const SPAIN2010_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: SPAIN2010_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const SPAIN2010_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...SPAIN2010_THAWED_ACTIVESTATE,
-                datum: { Year: '2010', Spain: -50000, UK: 245000, Ireland: -30000, France: 70000, Germany: 128000 },
-            });
-
-            const GERMANY2015_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'series-node',
-                itemId: 5,
-                seriesId: 'LineSeries-5',
-            });
-            const GERMANY2015_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: GERMANY2015_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const GERMANY2015_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...GERMANY2015_THAWED_ACTIVESTATE,
-                datum: { Year: '2015', Spain: 10000, UK: 330000, Ireland: 20000, France: 120000, Germany: 1139000 },
-            });
-
-            const SPAINLEGEND_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'legend',
-                itemId: 'Spain',
-                seriesId: 'LineSeries-1',
-            });
-            const SPAINLEGEND_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: SPAINLEGEND_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const SPAINLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...SPAINLEGEND_THAWED_ACTIVESTATE,
-                datum: undefined,
-            });
-
-            const UKLEGEND_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'legend',
-                itemId: 'UK',
-                seriesId: 'LineSeries-2',
-            });
-            const UKLEGEND_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: UKLEGEND_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const UKLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...UKLEGEND_THAWED_ACTIVESTATE,
-                datum: undefined,
-            });
-
-            const IRELANDLEGEND_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'legend',
-                itemId: 'Ireland',
-                seriesId: 'LineSeries-3',
-            });
-            const IRELANDLEGEND_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: IRELANDLEGEND_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const IRELANDLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...IRELANDLEGEND_THAWED_ACTIVESTATE,
-                datum: undefined,
-            });
-
-            const FRANCELEGEND_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'legend',
-                itemId: 'France',
-                seriesId: 'LineSeries-4',
-            });
-            const FRANCELEGEND_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: FRANCELEGEND_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const FRANCELEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...FRANCELEGEND_THAWED_ACTIVESTATE,
-                datum: undefined,
-            });
-
-            const GERMANYLEGEND_THAWED_ACTIVEITEM = Object.freeze({
-                type: 'legend',
-                itemId: 'Germany',
-                seriesId: 'LineSeries-5',
-            });
-            const GERMANYLEGEND_THAWED_ACTIVESTATE = Object.freeze({
-                activeItem: GERMANYLEGEND_THAWED_ACTIVEITEM,
-                frozen: false,
-            });
-            const GERMANYLEGEND_THAWED_UI_ACTIVECHANGE = Object.freeze({
-                ...COMMON_THAWED_UI_ACTIVECHANGE,
-                ...GERMANYLEGEND_THAWED_ACTIVESTATE,
-                datum: undefined,
-            });
-
             async function pickDatum(page: Page, datum: { country: string; year: string }): Promise<void> {
                 await page.selectOption('#myCountry', datum.country);
                 await page.selectOption('#myYear', datum.year);
@@ -616,7 +497,7 @@ test.describe('state', () => {
                     await pickDatum(page, { country: 'UK', year: '2023' });
                     await expect(canvas).toHaveScreenshot('line-example-canvas-active-UK-2023.png');
 
-                    await repeat(4, async () => await page.keyboard.press('Tab'));
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
                 });
 
@@ -630,7 +511,7 @@ test.describe('state', () => {
                         activeItem: { type: 'series-node', itemId: 13, seriesId: 'LineSeries-2' },
                     });
 
-                    await repeat(4, async () => await page.keyboard.press('Tab'));
+                    await repeat(3, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
@@ -643,7 +524,7 @@ test.describe('state', () => {
                 test('screenshots', async ({ page }) => {
                     const { version } = await getChartState(page);
 
-                    await repeat(7, async () => await page.keyboard.press('Tab'));
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
                     await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
 
                     await page.keyboard.press('ArrowDown');
@@ -662,7 +543,7 @@ test.describe('state', () => {
                     const { version } = await getChartState(page);
                     let state: AgChartState;
 
-                    await repeat(7, async () => await page.keyboard.press('Tab'));
+                    await repeat(6, async () => await page.keyboard.press('Tab'));
                     state = await getChartState(page);
                     expect(state.active).toEqual({
                         frozen: false,
@@ -910,117 +791,6 @@ test.describe('state', () => {
                     await clickOnGermanyLegend(page);
                     state = await getChartState(page);
                     expect(state.active).toEqual(frozenState.active);
-                });
-            });
-
-            test.describe('AG-16741', () => {
-                async function tabIntoChart(page: Page): Promise<void> {
-                    await repeat(7, async () => await page.keyboard.press('Tab'));
-                }
-
-                async function tabToSpainLegend(page: Page): Promise<void> {
-                    await page.keyboard.press('Tab');
-                }
-
-                async function arrowRightToGermanyLegend(page: Page): Promise<void> {
-                    await repeat(4, async () => await page.keyboard.press('ArrowRight'));
-                }
-
-                async function tabToGermanyLegend(page: Page): Promise<void> {
-                    await tabToSpainLegend(page);
-                    await arrowRightToGermanyLegend(page);
-                }
-
-                async function hoverNearGermany2015(page: Page): Promise<void> {
-                    await page.mouse.move(358, 174);
-                }
-
-                test.describe('without mousemove', () => {
-                    test('screenshots', async ({ page }) => {
-                        await tabIntoChart(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-2010.png');
-
-                        await tabToGermanyLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
-                    });
-
-                    test('states', async ({ page }) => {
-                        await tabIntoChart(page);
-                        expect((await getChartState(page)).active).toEqual(SPAIN2010_THAWED_ACTIVESTATE);
-
-                        await tabToGermanyLegend(page);
-                        expect((await getChartState(page)).active).toEqual(GERMANYLEGEND_THAWED_ACTIVESTATE);
-                    });
-                    test('popStates', async ({ page }) => {
-                        await tabIntoChart(page);
-                        expect(await popChartEvents(page)).toEqual([SPAIN2010_THAWED_UI_ACTIVECHANGE]);
-
-                        await tabToGermanyLegend(page);
-                        expect(await popChartEvents(page)).toEqual([
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            UKLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
-                        ]);
-                    });
-                });
-
-                test.describe('with mousemove', () => {
-                    test('screenshots', async ({ page }) => {
-                        await tabIntoChart(page);
-                        await tabToSpainLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Spain-Legend.png');
-
-                        await hoverNearGermany2015(page);
-                        await expect(canvas).toHaveScreenshot(
-                            'line-example-canvas-focus-Spain-Legend-active-Germany-2015.png'
-                        );
-
-                        await arrowRightToGermanyLegend(page);
-                        await expect(canvas).toHaveScreenshot('line-example-canvas-focus-Germany-Legend.png');
-                    });
-
-                    test('states', async ({ page }) => {
-                        await tabIntoChart(page);
-                        await tabToSpainLegend(page);
-                        expect((await getChartState(page)).active).toEqual(SPAINLEGEND_THAWED_ACTIVESTATE);
-
-                        await hoverNearGermany2015(page);
-                        expect((await getChartState(page)).active).toEqual(GERMANY2015_THAWED_ACTIVESTATE);
-
-                        await arrowRightToGermanyLegend(page);
-                        expect((await getChartState(page)).active).toEqual(GERMANYLEGEND_THAWED_ACTIVESTATE);
-                    });
-                    test('popStates', async ({ page }) => {
-                        await tabIntoChart(page);
-                        await tabToSpainLegend(page);
-                        expect(await popChartEvents(page)).toEqual([
-                            SPAIN2010_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            SPAINLEGEND_THAWED_UI_ACTIVECHANGE,
-                        ]);
-
-                        await hoverNearGermany2015(page);
-                        expect(await popChartEvents(page)).toEqual([GERMANY2015_THAWED_UI_ACTIVECHANGE]);
-
-                        await arrowRightToGermanyLegend(page);
-                        expect(await popChartEvents(page)).toEqual([
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            UKLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            IRELANDLEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            FRANCELEGEND_THAWED_UI_ACTIVECHANGE,
-                            INACTIVE_THAWED_UI_ACTIVECHANGE, // FIXME: AG-16973
-                            GERMANYLEGEND_THAWED_UI_ACTIVECHANGE,
-                        ]);
-                    });
                 });
             });
         });
@@ -1335,16 +1105,6 @@ test.describe('state', () => {
             const ANDROID_HOMEFEED_COORDS = { x: 404, y: 355 } as const;
             let canvas: Locator;
 
-            const INACTIVE_CHANGE = Object.freeze({
-                activeItem: undefined,
-                datum: undefined,
-                dataIdKey: undefined,
-                frozen: false,
-                preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'user-interaction',
-                type: 'activeChange',
-            });
-
             const ANDROID_HOMEFEED_ACTIVE_ITEM = Object.freeze({
                 type: 'series-node',
                 seriesId: 'BubbleSeries-2',
@@ -1359,37 +1119,6 @@ test.describe('state', () => {
                 source: 'user-interaction',
                 type: 'activeChange',
             });
-
-            const ANDROID_LEGEND_ACTIVE_ITEM = Object.freeze({
-                type: 'legend',
-                seriesId: 'BubbleSeries-2',
-                itemId: 'crashRate',
-            });
-            const ANDROID_LEGEND_ACTIVE_CHANGE = Object.freeze({
-                activeItem: ANDROID_LEGEND_ACTIVE_ITEM,
-                datum: undefined,
-                dataIdKey: undefined,
-                frozen: false,
-                preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'user-interaction',
-                type: 'activeChange',
-            });
-
-            const IOS_LEGEND_ACTIVE_ITEM = Object.freeze({
-                type: 'legend',
-                seriesId: 'BubbleSeries-1',
-                itemId: 'crashRate',
-            });
-            const IOS_LEGEND_ACTIVE_CHANGE = Object.freeze({
-                activeItem: IOS_LEGEND_ACTIVE_ITEM,
-                datum: undefined,
-                dataIdKey: undefined,
-                frozen: false,
-                preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'user-interaction',
-                type: 'activeChange',
-            });
-
             const IOS_MESSAGING_ACTIVE_ITEM = Object.freeze({
                 type: 'series-node',
                 seriesId: 'BubbleSeries-1',
@@ -1398,20 +1127,6 @@ test.describe('state', () => {
             const IOS_MESSAGING_ACTIVE_CHANGE = Object.freeze({
                 activeItem: IOS_MESSAGING_ACTIVE_ITEM,
                 datum: { name: 'Messaging', sessionMinutes: 5.3, crashRate: 1.1, dau: 510 },
-                dataIdKey: undefined,
-                frozen: false,
-                preventDefault: PREVENT_DEFAULT_STUB,
-                source: 'user-interaction',
-                type: 'activeChange',
-            });
-            const IOS_SEARCH_ACTIVE_ITEM = Object.freeze({
-                type: 'series-node',
-                seriesId: 'BubbleSeries-1',
-                itemId: 0,
-            });
-            const IOS_SEARCH_ACTIVE_CHANGE = Object.freeze({
-                activeItem: IOS_SEARCH_ACTIVE_ITEM,
-                datum: { name: 'Search', sessionMinutes: 5.1, crashRate: 0.8, dau: 420 },
                 dataIdKey: undefined,
                 frozen: false,
                 preventDefault: PREVENT_DEFAULT_STUB,
@@ -1525,53 +1240,6 @@ test.describe('state', () => {
 
                     await clickOnAndroidHomeFeed(page);
                     expect(await popChartEvents(page)).toEqual([IOS_MESSAGING_ACTIVE_CHANGE]);
-                });
-            });
-
-            test.describe('AG-16744 legend responds to hover events when series-area focus indicator is shown', () => {
-                async function hoverOveriOSLegend(page: Page): Promise<void> {
-                    await page.mouse.move(724, 329);
-                }
-                async function hoverOverAndroidLegend(page: Page): Promise<void> {
-                    await page.mouse.move(726, 356);
-                }
-                async function tabIntoChart(page: Page): Promise<void> {
-                    await repeat(4, async () => page.keyboard.press('Tab'));
-                }
-                test('screenshots', async ({ page }) => {
-                    await tabIntoChart(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-focus-iossearch.png');
-
-                    await hoverOverAndroidLegend(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend2-focus-iossearch.png');
-
-                    await hoverOveriOSLegend(page);
-                    await expect(canvas).toHaveScreenshot('bubble-example-canvas-active-legend1-focus-iossearch.png');
-                });
-
-                test('states', async ({ page }) => {
-                    await tabIntoChart(page);
-                    expect((await getChartState(page)).active?.activeItem).toEqual(IOS_SEARCH_ACTIVE_ITEM);
-
-                    await hoverOverAndroidLegend(page);
-                    expect((await getChartState(page)).active?.activeItem).toEqual(ANDROID_LEGEND_ACTIVE_ITEM);
-
-                    await hoverOveriOSLegend(page);
-                    expect((await getChartState(page)).active?.activeItem).toEqual(IOS_LEGEND_ACTIVE_ITEM);
-                });
-
-                test('popEvents', async ({ page }) => {
-                    await tabIntoChart(page);
-                    expect(await popChartEvents(page)).toEqual([IOS_SEARCH_ACTIVE_CHANGE]);
-
-                    await hoverOverAndroidLegend(page);
-                    expect(await popChartEvents(page)).toEqual([ANDROID_LEGEND_ACTIVE_CHANGE]);
-
-                    await hoverOveriOSLegend(page);
-                    expect(await popChartEvents(page)).toEqual([
-                        INACTIVE_CHANGE, // FIXME: AG-16973
-                        IOS_LEGEND_ACTIVE_CHANGE,
-                    ]);
                 });
             });
         });

@@ -98,7 +98,6 @@ export interface EventsHubMap {
     'layout:complete': LayoutCompleteEvent;
     'legend:change': LegendChangeEvent;
     'legend:change-partial': LegendChangePartialEvent;
-    'legend:item-hover': null;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
