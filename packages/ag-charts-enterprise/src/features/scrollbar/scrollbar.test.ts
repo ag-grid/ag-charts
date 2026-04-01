@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -9,7 +11,7 @@ import {
 } from 'ag-charts-community-test';
 import type { AgCartesianAxisPosition, AgCartesianChartOptions } from 'ag-charts-types';
 
-import { createEnterpriseChart } from '../../test/utils';
+import { createEnterpriseChart, prepareEnterpriseTestOptions } from '../../test/utils';
 
 const DATA = Array.from({ length: 12 }, (_, index) => ({
     x: index,
@@ -317,4 +319,91 @@ describe('Scrollbar Placement with Multiple Axes', () => {
             }
         });
     }
+});
+
+const BAR_DATA = [
+    { category: 'A', value: 10 },
+    { category: 'B', value: 20 },
+    { category: 'C', value: 30 },
+    { category: 'D', value: 15 },
+    { category: 'E', value: 25 },
+    { category: 'F', value: 35 },
+    { category: 'G', value: 12 },
+    { category: 'H', value: 28 },
+];
+
+describe('Scrollbar visibility on barWidth change', () => {
+    setupMockConsole();
+
+    const ctx = setupMockCanvas();
+    let proxy: ReturnType<typeof AgCharts.create> | undefined;
+
+    afterEach(() => {
+        proxy?.destroy();
+        proxy = undefined;
+    });
+
+    // getState().zoom is only populated when navigator/zoom modules are enabled, not for scrollbar-only
+    // charts. Use deproxy() for zoom assertions (internal state reads for assertions are level 3 per testing guide).
+    function getZoomX() {
+        return (deproxy(proxy!) as any).ctx.zoomManager.getZoom()?.x;
+    }
+
+    function createOptions(seriesOverrides?: Record<string, unknown>): AgCartesianChartOptions {
+        return prepareEnterpriseTestOptions({
+            width: 400,
+            height: 300,
+            data: BAR_DATA,
+            series: [{ type: 'bar', xKey: 'category', yKey: 'value', ...seriesOverrides }],
+            scrollbar: { enabled: true },
+        });
+    }
+
+    // AG-17008: Changing barWidth at runtime should trigger scrollbar when bars overflow.
+    it('shows scrollbar after increasing barWidth beyond available space', async () => {
+        const options = createOptions({ width: 10 });
+
+        proxy = AgCharts.create(options);
+        await waitForChartStability(proxy);
+
+        expect(getZoomX()?.min).toBe(0);
+        expect(getZoomX()?.max).toBe(1);
+
+        // Increase barWidth so total required width exceeds the chart width.
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
+        await waitForChartStability(proxy);
+
+        expect(getZoomX()?.max).toBeLessThan(1);
+
+        expect(extractImageData(ctx)).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-17008-scrollbar-after-barwidth-increase',
+        });
+    });
+
+    // AG-17008: Successive barWidth changes should each update the zoom correctly.
+    it('updates zoom on each successive barWidth change', async () => {
+        const options = createOptions();
+
+        proxy = AgCharts.create(options);
+        await waitForChartStability(proxy);
+
+        // No fixed width → bars fit → no scrollbar.
+        expect(getZoomX()?.max).toBe(1);
+
+        // First change: set width=10 → still fits.
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 10 }] });
+        await waitForChartStability(proxy);
+        expect(getZoomX()?.max).toBe(1);
+
+        // Second change: set width=80 → overflows → scrollbar should appear.
+        await proxy.update({ ...options, series: [{ type: 'bar', xKey: 'category', yKey: 'value', width: 80 }] });
+        await waitForChartStability(proxy);
+        expect(getZoomX()?.max).toBeLessThan(1);
+
+        expect(extractImageData(ctx)).toMatchImageSnapshot({
+            ...IMAGE_SNAPSHOT_DEFAULTS,
+            customSnapshotIdentifier: 'ag-17008-scrollbar-successive-barwidth-changes',
+        });
+    });
 });
