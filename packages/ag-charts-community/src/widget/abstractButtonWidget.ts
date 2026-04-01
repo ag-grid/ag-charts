@@ -7,7 +7,7 @@ import type { WidgetEventMap as EventMap, KeyboardWidgetEvent } from './widgetEv
 
 type R = ReturnType<Widget['addListener']>;
 
-type KeyboardClickBindingPredicate = (widgetEvent: KeyboardWidgetEvent) => boolean;
+export type KeyboardClickBindingPredicate = (widgetEvent: KeyboardWidgetEvent) => boolean;
 
 function isButtonClickEventPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
     return isButtonClickEvent(widgetEvent.sourceEvent);
