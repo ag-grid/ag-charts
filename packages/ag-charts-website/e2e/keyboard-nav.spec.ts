@@ -637,6 +637,8 @@ test.describe('keyboard-nav', () => {
     });
 
     test.describe('initial-focus', () => {
+        let canvas: Locator;
+
         async function selectOption(page: Page, initialFocus: AgInitialFocus): Promise<void> {
             await page.selectOption('#myInitialFocus', initialFocus);
             await page.locator('#above-chart').focus();
@@ -649,36 +651,37 @@ test.describe('keyboard-nav', () => {
 
         test.beforeEach(async ({ page }) => {
             await gotoExample(page, toExamplePageUrl('accessibility-test', 'initial-focus', 'vanilla').url);
+            canvas = page.locator(SELECTORS.canvasCenter).first();
         });
 
         test('data-start', async ({ page }) => {
             await selectOption(page, 'data-start');
-            await expect(page).toHaveScreenshot('initial-focus-data-start.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-data-start.png');
         });
 
         test('data-end', async ({ page }) => {
             await selectOption(page, 'data-end');
-            await expect(page).toHaveScreenshot('initial-focus-data-end.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-data-end.png');
         });
 
         test('viewport-start', async ({ page }) => {
             await selectOption(page, 'viewport-start');
-            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
         });
 
         test('viewport-end', async ({ page }) => {
             await selectOption(page, 'viewport-end');
-            await expect(page).toHaveScreenshot('initial-focus-viewport-end.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-viewport-end.png');
         });
 
         test('only the first focus event reads the initialFocus value', async ({ page }) => {
             await selectMode(page, 'updateDelta');
 
             await selectOption(page, 'viewport-start');
-            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
 
             await selectOption(page, 'viewport-end');
-            await expect(page).toHaveScreenshot('initial-focus-viewport-start.png');
+            await expect(canvas).toHaveScreenshot('initial-focus-viewport-start.png');
         });
     });
 });
