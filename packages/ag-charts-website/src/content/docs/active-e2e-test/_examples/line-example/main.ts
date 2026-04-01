@@ -1,6 +1,6 @@
 // @ag-skip-fws
 import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
-import type { AgCartesianChartOptions } from 'ag-charts-types';
+import type { AgActiveChangeEvent, AgCartesianChartOptions } from 'ag-charts-types';
 
 import { getData } from './data';
 import type { DatumType } from './data';
@@ -55,8 +55,14 @@ const options: AgCartesianChartOptions<DatumType> = {
             yKey: 'Germany',
         },
     ],
+    listeners: {
+        activeChange: (ev: AgActiveChangeEvent<DatumType, unknown>) => {
+            events.push(ev);
+        },
+    },
 };
 
+let events: unknown[] = [];
 const chart = AgCharts.create(options);
 const version = chart.getState().version;
 
@@ -125,5 +131,16 @@ function onGetState(): void {
     setTimeout(() => console.log(chart.getState()), 1000);
 }
 
+function onPopEvents() {
+    const events = popEvents();
+    console.log(events);
+}
+
+function popEvents(): unknown[] {
+    const result = events;
+    events = [];
+    return result;
+}
+
 // For e2e testing:
-(window as any).agE2E = { chart };
+(window as any).agE2E = { chart, popEvents };

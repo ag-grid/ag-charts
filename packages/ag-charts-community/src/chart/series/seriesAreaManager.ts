@@ -260,7 +260,8 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
-            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
+            chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -1421,6 +1422,14 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return result;
+    }
+
+    private onLegendHover(_event: null): void {
+        if (!this.isState(InteractionState.Hoverable)) return;
+        this.setHoverDevice('pointer');
+        this.clearCachedEvents();
+        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
