@@ -28,6 +28,7 @@ import type {
     AgChartLegendContextMenuEvent,
     AgMarkerShapeFn,
     NormalisedLegendOptions,
+    NormalisedLegendPaginationOptions,
 } from 'ag-charts-types';
 
 import type {
@@ -478,12 +479,11 @@ export class Legend {
         maxPageWidth: number;
         pages: Page[];
     } {
-        const orientation = this.opts.orientation;
+        const { item, pagination: paginationOpts, orientation } = this.opts;
         const trackingIndex = Math.min(this.paginationTrackingIndex, bboxes.length);
 
         const { isRtl } = this.ctx.domManager;
 
-        this.syncPaginationOptions();
         this.pagination.orientation = orientation;
         this.pagination.isRtl = isRtl;
 
@@ -493,19 +493,20 @@ export class Legend {
         const { pages, maxPageHeight, maxPageWidth, paginationBBox, paginationVertical } = this.calculatePagination(
             bboxes,
             width,
-            height
+            height,
+            paginationOpts
         );
 
         const newCurrentPage = pages.findIndex((p) => p.endIndex >= trackingIndex);
         this.pagination.currentPage = clamp(0, newCurrentPage, Math.max(0, pages.length - 1));
 
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.opts.item;
+        const { marker, paddingX: itemPaddingX, paddingY: itemPaddingY } = item;
         const paginationComponentPadding = 8;
         const legendItemsWidth = maxPageWidth - itemPaddingX;
         const legendItemsHeight = maxPageHeight - itemPaddingY;
 
         let paginationX = 0;
-        let paginationY = -paginationBBox.y - this.opts.item.marker.size / 2;
+        let paginationY = -paginationBBox.y - marker.size / 2;
         if (paginationVertical) {
             if (isRtl) paginationX = width - paginationBBox.width + paginationBBox.x;
             paginationY += legendItemsHeight + paginationComponentPadding;
@@ -524,8 +525,8 @@ export class Legend {
 
         this.pagination.translationX = paginationX;
         this.pagination.translationY = paginationY;
-        this.pagination.update();
-        this.pagination.updateMarkers();
+        this.pagination.update(paginationOpts);
+        this.pagination.updateMarkers(paginationOpts);
 
         let pageIndex = 0;
         this.itemSelection.each((markerLabel, _, nodeIndex) => {
@@ -541,18 +542,14 @@ export class Legend {
         };
     }
 
-    private syncPaginationOptions() {
-        const pOpts = this.opts.pagination;
-        const { pagination } = this;
-        pagination.marker.set(pOpts.marker);
-        pagination.activeStyle.set(pOpts.activeStyle);
-        pagination.inactiveStyle.set(pOpts.inactiveStyle);
-        pagination.highlightStyle.set(pOpts.highlightStyle);
-        pagination.label.set(pOpts.label);
-    }
-
-    private calculatePagination(bboxes: BBox[], width: number, height: number) {
-        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.opts.item;
+    private calculatePagination(
+        bboxes: BBox[],
+        width: number,
+        height: number,
+        paginationOpts: NormalisedLegendPaginationOptions
+    ) {
+        const { item, maxWidth, maxHeight, position, orientation } = this.opts;
+        const { paddingX: itemPaddingX, paddingY: itemPaddingY } = item;
 
         const vertPositions: readonly string[] = [
             'left',
@@ -562,10 +559,11 @@ export class Legend {
             'right-top',
             'right-bottom',
         ];
-        const { placement } = expandLegendPosition(this.opts.position);
-        const orientation = this.opts.orientation;
+        const { placement } = expandLegendPosition(position);
         const paginationVertical = vertPositions.includes(placement);
 
+        this.pagination.update(paginationOpts);
+        this.pagination.updateMarkers(paginationOpts);
         let paginationBBox: BBox = this.pagination.getBBox();
         let lastPassPaginationBBox: BBox = new BBox(0, 0, 0, 0);
         let pages: Page[] = [];
@@ -577,7 +575,7 @@ export class Legend {
             return bbox.width === paginationBBox.width && bbox.height === paginationBBox.height;
         };
 
-        const forceResult = this.opts.maxWidth !== undefined && this.opts.maxHeight !== undefined;
+        const forceResult = maxWidth !== undefined && maxHeight !== undefined;
 
         do {
             if (count++ > 10) {
@@ -586,14 +584,12 @@ export class Legend {
             }
 
             paginationBBox = lastPassPaginationBBox;
-            const maxWidth = width - (paginationVertical ? 0 : paginationBBox.width);
-            const maxHeight = height - (paginationVertical ? paginationBBox.height : 0);
 
             const layout = gridLayout({
                 orientation,
                 bboxes,
-                maxHeight,
-                maxWidth,
+                maxWidth: width - (paginationVertical ? 0 : paginationBBox.width),
+                maxHeight: height - (paginationVertical ? paginationBBox.height : 0),
                 itemPaddingY,
                 itemPaddingX,
                 forceResult,
@@ -607,8 +603,8 @@ export class Legend {
             this.pagination.visible = totalPages > 1;
             this.pagination.totalPages = totalPages;
 
-            this.pagination.update();
-            this.pagination.updateMarkers();
+            this.pagination.update(paginationOpts);
+            this.pagination.updateMarkers(paginationOpts);
             lastPassPaginationBBox = this.pagination.getBBox();
 
             if (!this.pagination.visible) {
@@ -686,7 +682,13 @@ export class Legend {
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { itemSelection, group, pagination, pages } = this;
+        const {
+            itemSelection,
+            group,
+            pagination,
+            pages,
+            opts: { pagination: paginationOpts },
+        } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const page = pages[pageNumber];
@@ -703,8 +705,8 @@ export class Legend {
             this.paginationTrackingIndex = Math.floor((startIndex + endIndex) / 2);
         }
 
-        this.pagination.update();
-        this.pagination.updateMarkers();
+        this.pagination.update(paginationOpts);
+        this.pagination.updateMarkers(paginationOpts);
 
         this.updatePositions(pageNumber);
         this.domProxy.onPageChange({ itemSelection, group, pagination, interactive: this.isInteractive() });
@@ -713,11 +715,7 @@ export class Legend {
     }
 
     update() {
-        const {
-            item: {
-                label: { color },
-            },
-        } = this.opts;
+        const { color } = this.opts.item.label;
         this.itemSelection.each((markerLabel, datum) => {
             markerLabel.setEnabled(datum.enabled);
             markerLabel.color = color;
@@ -779,8 +777,8 @@ export class Legend {
     }
 
     private getContainerStyles() {
-        const { stroke, strokeOpacity, strokeWidth, enabled: borderEnabled } = this.opts.border;
-        const { cornerRadius, fill, fillOpacity, padding } = this.opts;
+        const { border, cornerRadius, fill, fillOpacity, padding } = this.opts;
+        const { stroke, strokeOpacity, strokeWidth, enabled: borderEnabled } = border;
         const isPaddingNumber = typeof padding === 'number';
 
         return getShapeStyle(
@@ -1139,9 +1137,10 @@ export class Legend {
         this.positionLegendDOM(oldPages);
     }
     private positionLegendScene(ctx: LayoutContext) {
-        if (!this.opts.enabled || !this.data.length) return;
+        const { enabled, position, spacing } = this.opts;
+        if (!enabled || !this.data.length) return;
 
-        const { placement, floating, xOffset, yOffset } = expandLegendPosition(this.opts.position);
+        const { placement, floating, xOffset, yOffset } = expandLegendPosition(position);
         // When legend in floating, the X/Y translation is relative to the entire canvas & layoutBox doesn't shrink
         const layoutBox = floating ? new BBox(0, 0, ctx.width, ctx.height) : ctx.layoutBox;
         const { x, y, width, height } = layoutBox;
@@ -1154,8 +1153,6 @@ export class Legend {
             function unreachable(_a: never): never {
                 return undefined as never;
             }
-
-            const legendSpacing = this.opts.spacing;
 
             let translationX: number;
             let translationY: number;
@@ -1207,25 +1204,25 @@ export class Legend {
                     case 'top':
                     case 'top-right':
                     case 'top-left':
-                        shrinkAmount = legendBBox.height + legendSpacing;
+                        shrinkAmount = legendBBox.height + spacing;
                         shrinkDirection = 'top';
                         break;
                     case 'bottom':
                     case 'bottom-right':
                     case 'bottom-left':
-                        shrinkAmount = legendBBox.height + legendSpacing;
+                        shrinkAmount = legendBBox.height + spacing;
                         shrinkDirection = 'bottom';
                         break;
                     case 'left':
                     case 'left-top':
                     case 'left-bottom':
-                        shrinkAmount = legendBBox.width + legendSpacing;
+                        shrinkAmount = legendBBox.width + spacing;
                         shrinkDirection = 'left';
                         break;
                     case 'right':
                     case 'right-top':
                     case 'right-bottom':
-                        shrinkAmount = legendBBox.width + legendSpacing;
+                        shrinkAmount = legendBBox.width + spacing;
                         shrinkDirection = 'right';
                         break;
                     default:
@@ -1268,7 +1265,8 @@ export class Legend {
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {
         const { width, height } = shrinkRect;
-        const { placement } = expandLegendPosition(this.opts.position);
+        const { maxWidth, maxHeight, position } = this.opts;
+        const { placement } = expandLegendPosition(position);
 
         const aspectRatio = width / height;
         const maxCoefficient = 0.5;
@@ -1293,10 +1291,8 @@ export class Legend {
                     aspectRatio < 1
                         ? Math.min(maxCoefficient, minHeightCoefficient * (1 / aspectRatio))
                         : minHeightCoefficient;
-                legendWidth = this.opts.maxWidth ? Math.min(this.opts.maxWidth, width) : width;
-                legendHeight = this.opts.maxHeight
-                    ? Math.min(this.opts.maxHeight, height)
-                    : Math.round(height * heightCoefficient);
+                legendWidth = maxWidth ? Math.min(maxWidth, width) : width;
+                legendHeight = maxHeight ? Math.min(maxHeight, height) : Math.round(height * heightCoefficient);
                 break;
             }
 
@@ -1310,10 +1306,8 @@ export class Legend {
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
-                legendWidth = this.opts.maxWidth
-                    ? Math.min(this.opts.maxWidth, width)
-                    : Math.round(width * widthCoefficient);
-                legendHeight = this.opts.maxHeight ? Math.min(this.opts.maxHeight, height) : height;
+                legendWidth = maxWidth ? Math.min(maxWidth, width) : Math.round(width * widthCoefficient);
+                legendHeight = maxHeight ? Math.min(maxHeight, height) : height;
                 break;
             }
             default:
@@ -1324,7 +1318,8 @@ export class Legend {
     }
 
     private cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {
-        const { callbackCache, chartService } = this.ctx;
-        return callbackCache.call([undefined, chartService], fn, params);
+        const { callbackCache, chartService, chartState } = this.ctx;
+        const caller = { context: chartState.getValue('options', 'context') };
+        return callbackCache.call([caller, chartService], fn, params);
     }
 }

@@ -1,116 +1,24 @@
-import { ActionOnSet, BaseProperties, FONT_SIZE, ObserveChanges, Property, clamp, createId } from 'ag-charts-core';
-import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } from 'ag-charts-types';
+import { clamp, createId } from 'ag-charts-core';
+import type { AgChartLegendOrientation, NormalisedLegendPaginationOptions } from 'ag-charts-types';
 
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';
 import { type RotatableType, Transformable } from '../../scene/transformable';
 import { Marker } from '../marker/marker';
 
-class PaginationLabel extends BaseProperties {
-    @Property
-    color: string = 'black';
+export type PaginationMarkerStyleValues = NormalisedLegendPaginationOptions['activeStyle'];
 
-    @Property
-    fontStyle?: FontStyle = undefined;
-
-    @Property
-    fontWeight?: FontWeight = undefined;
-
-    @Property
-    fontSize: number = FONT_SIZE.SMALL;
-
-    @Property
-    fontFamily: string = 'Verdana, sans-serif';
-}
-
-class PaginationMarkerStyle extends BaseProperties {
-    @Property
-    size = 15;
-
-    @Property
-    fill?: string = undefined;
-
-    @Property
-    fillOpacity?: number = undefined;
-
-    @Property
-    stroke?: string = undefined;
-
-    @Property
-    strokeWidth: number = 1;
-
-    @Property
-    strokeOpacity: number = 1;
-}
-
-class PaginationMarker extends BaseProperties {
-    @ActionOnSet<PaginationMarker>({
-        changeValue() {
-            if (this.parent.marker === this) {
-                this.parent.onMarkerShapeChange();
-            }
-        },
-    })
-    shape: AgMarkerShape = 'triangle';
-
-    @Property
-    size = 15;
-
-    /**
-     * Inner padding between a pagination button and the label.
-     */
-    @Property
-    padding: number = 8;
-
-    constructor(readonly parent: Pagination) {
-        super();
-    }
-}
-
-export class Pagination extends BaseProperties {
+export class Pagination {
     static readonly className = 'Pagination';
 
     readonly id = createId(this);
-
-    @Property
-    readonly marker = new PaginationMarker(this);
-
-    @Property
-    readonly activeStyle = new PaginationMarkerStyle();
-
-    @Property
-    readonly inactiveStyle = new PaginationMarkerStyle();
-
-    @Property
-    readonly highlightStyle = new PaginationMarkerStyle();
-
-    @Property
-    readonly label = new PaginationLabel();
 
     private readonly group = new TranslatableGroup({ name: 'pagination' });
     private readonly labelNode = new Text();
     private highlightActive?: 'previous' | 'next';
 
-    constructor(
-        private readonly chartUpdateCallback: () => void,
-        private readonly pageUpdateCallback: (newPage: number) => void
-    ) {
-        super();
-
-        this.labelNode.setProperties({
-            textBaseline: 'middle',
-            textAlign: 'left',
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: 'Verdana, sans-serif',
-            fill: 'black',
-            y: 1,
-        });
-
-        this.group.append([this.nextButton, this.previousButton, this.labelNode]);
-
-        this.update();
-        this.updateMarkers();
-    }
+    private readonly nextButton: RotatableType<Marker> = new Marker();
+    private readonly previousButton: RotatableType<Marker> = new Marker();
 
     totalPages: number = 0;
     currentPage: number = 0;
@@ -138,21 +46,24 @@ export class Pagination extends BaseProperties {
         return this._enabled;
     }
 
+    isRtl: boolean = false;
+    orientation: AgChartLegendOrientation = 'vertical';
+
+    constructor(
+        private readonly chartUpdateCallback: () => void,
+        private readonly pageUpdateCallback: (newPage: number) => void
+    ) {
+        this.labelNode.setProperties({
+            textBaseline: 'middle',
+            textAlign: 'left',
+        });
+
+        this.group.append([this.nextButton, this.previousButton, this.labelNode]);
+    }
+
     private updateGroupVisibility() {
         this.group.visible = this.enabled && this.visible;
     }
-
-    private readonly nextButton: RotatableType<Marker> = new Marker();
-    private readonly previousButton: RotatableType<Marker> = new Marker();
-
-    @ObserveChanges<Pagination>((target) => {
-        target.applyRotations();
-        target.updatePositions();
-    })
-    isRtl: boolean = false;
-
-    @ObserveChanges<Pagination>((target) => target.applyRotations())
-    orientation: AgChartLegendOrientation = 'vertical';
 
     private applyRotations() {
         const { isRtl } = this;
@@ -170,22 +81,23 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    update() {
-        this.updateLabel();
-        this.updatePositions();
+    update(opts: NormalisedLegendPaginationOptions) {
+        this.applyRotations();
+        this.updateLabel(opts);
+        this.updatePositions(opts);
         this.enableOrDisableButtons();
     }
 
-    private updatePositions() {
+    private updatePositions(opts: NormalisedLegendPaginationOptions) {
         this.group.translationX = this.translationX;
         this.group.translationY = this.translationY;
 
-        this.updateLabelPosition();
-        this.updateButtonPositions();
+        this.updateLabelPosition(opts);
+        this.updateButtonPositions(opts);
     }
 
-    private updateLabelPosition() {
-        const { size: markerSize, padding: markerPadding } = this.marker;
+    private updateLabelPosition(opts: NormalisedLegendPaginationOptions) {
+        const { size: markerSize, padding: markerPadding } = opts.marker;
 
         this.nextButton.size = markerSize;
         this.previousButton.size = markerSize;
@@ -193,9 +105,9 @@ export class Pagination extends BaseProperties {
         this.labelNode.x = markerSize / 2 + markerPadding;
     }
 
-    private updateButtonPositions() {
+    private updateButtonPositions(opts: NormalisedLegendPaginationOptions) {
         const labelBBox = this.labelNode.getBBox();
-        const endX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
+        const endX = labelBBox.width + (opts.marker.size / 2 + opts.marker.padding) * 2;
 
         if (this.isRtl && this.orientation === 'horizontal') {
             this.nextButton.translationX = 0;
@@ -206,14 +118,9 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private updateLabel() {
-        const {
-            isRtl,
-            labelNode,
-            currentPage,
-            totalPages,
-            label: { color, fontStyle, fontWeight, fontSize, fontFamily },
-        } = this;
+    private updateLabel(opts: NormalisedLegendPaginationOptions) {
+        const { isRtl, labelNode, currentPage, totalPages } = this;
+        const { color, fontStyle, fontWeight, fontSize, fontFamily } = opts.label;
         const textLabels = [currentPage + 1, totalPages];
         if (isRtl) textLabels.reverse();
 
@@ -225,33 +132,24 @@ export class Pagination extends BaseProperties {
         labelNode.fontFamily = fontFamily;
     }
 
-    updateMarkers() {
-        const {
-            nextButton,
-            previousButton,
-            nextButtonDisabled,
-            previousButtonDisabled,
-            activeStyle,
-            inactiveStyle,
-            highlightStyle,
-            highlightActive,
-        } = this;
+    updateMarkers(opts: NormalisedLegendPaginationOptions) {
+        const { nextButton, previousButton, nextButtonDisabled, previousButtonDisabled, highlightActive } = this;
 
         const buttonStyle = (button: 'next' | 'previous', disabled: boolean) => {
             if (disabled) {
-                return inactiveStyle;
+                return opts.inactiveStyle;
             } else if (button === highlightActive) {
-                return highlightStyle;
+                return opts.highlightStyle;
             }
-            return activeStyle;
+            return opts.activeStyle;
         };
 
-        this.updateMarker(nextButton, buttonStyle('next', nextButtonDisabled));
-        this.updateMarker(previousButton, buttonStyle('previous', previousButtonDisabled));
+        this.updateMarker(nextButton, opts, buttonStyle('next', nextButtonDisabled));
+        this.updateMarker(previousButton, opts, buttonStyle('previous', previousButtonDisabled));
     }
 
-    private updateMarker(marker: Marker, style: PaginationMarkerStyle) {
-        const { shape, size } = this.marker;
+    private updateMarker(marker: Marker, opts: NormalisedLegendPaginationOptions, style: PaginationMarkerStyleValues) {
+        const { shape, size } = opts.marker;
         marker.shape = shape;
         marker.size = size;
         marker.fill = style.fill;
@@ -296,7 +194,6 @@ export class Pagination extends BaseProperties {
 
     public onMouseHover(node: 'previous' | 'next' | undefined) {
         this.highlightActive = node;
-        this.updateMarkers();
         this.chartUpdateCallback();
     }
 
@@ -310,12 +207,6 @@ export class Pagination extends BaseProperties {
 
     private decrementPage() {
         this.currentPage = Math.max(this.currentPage - 1, 0);
-    }
-
-    onMarkerShapeChange() {
-        this.updatePositions();
-        this.updateMarkers();
-        this.chartUpdateCallback();
     }
 
     attachPagination(node: Group) {
