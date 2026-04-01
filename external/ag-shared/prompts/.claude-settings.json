@@ -87,8 +87,16 @@
         "ENABLE_TOOL_SEARCH": "true"
     },
     "enabledPlugins": {
-        "openai/codex-plugin-cc": true,
+        "codex@openai-codex": true,
         "skill-creator@claude-plugins-official": true
+    },
+    "extraKnownMarketplaces": {
+        "openai-codex": {
+            "source": {
+                "source": "github",
+                "repo": "openai/codex-plugin-cc"
+            }
+        }
     },
     "hooks": {
         "PostToolUse": [
