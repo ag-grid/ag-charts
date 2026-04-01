@@ -904,7 +904,16 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             (node) => node.unsafeDatum.tickId,
             diff
         );
-        fromToMotion(this.id, 'title', animationManager, [this.title.caption.node], fns.label, undefined, diff);
+        fromToMotion(
+            this.id,
+            'title',
+            animationManager,
+            [this.title.caption.node],
+            fns.label,
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => node.unsafeDatum.tickId,
+            diff
+        );
     }
 
     protected resetSelectionNodes() {
