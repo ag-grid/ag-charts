@@ -147,7 +147,7 @@ export class DataService<D extends object> {
                 this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
             } catch (error: any) {
                 this.debug(`DataService - request failed | ${id}`);
-                Logger.errorOnce(`DataService - request failed | [${error}]`);
+                Logger.warnOnce(`DataService - request failed | [${error}]`);
                 // Ignore errors in callback and keep chart alive
             }
 
