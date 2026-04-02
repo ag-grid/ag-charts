@@ -354,11 +354,21 @@ async function dataReplacementCold(): Promise<number> {
 async function aggregationBucketSelection(): Promise<number> {
     const sel = new DataSetSelection(INITIAL_POINTS);
     selectEvenly(sel, INITIAL_POINTS, SELECTED_COUNT_SPARSE);
+    const selArr = sel.getSelection();
     const { indexData } = buildAggregationData(INITIAL_POINTS, AGG_BUCKET_COUNT);
 
     const start = performance.now();
-    for (let i = 0; i < 1_000; i++) {
-        sel.computeBucketSelection(indexData, AGG_SPAN, AGG_BUCKET_COUNT);
+    for (let iter = 0; iter < 1_000; iter++) {
+        // Inline computeBucketSelection (now a standalone fn in ag-charts-core/aggregation.ts)
+        for (let i = 0; i < AGG_BUCKET_COUNT; i++) {
+            const base = i * AGG_SPAN;
+            let selected = 0;
+            for (let j = 0; j < AGG_INDEX_SELECTED; j++) {
+                const idx = indexData[base + j];
+                if (idx < selArr.length) selected |= selArr[idx];
+            }
+            indexData[base + AGG_INDEX_SELECTED] = selected;
+        }
     }
     benchmarkSink = indexData[AGG_INDEX_SELECTED];
     return performance.now() - start;

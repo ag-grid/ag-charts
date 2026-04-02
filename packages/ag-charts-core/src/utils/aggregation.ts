@@ -618,6 +618,27 @@ export function compactAggregationIndices(
     };
 }
 
+/**
+ * Pre-compute per-bucket selection flags in `indexData`.
+ *
+ * For each bucket, reads the extrema indices (slots 0..AGGREGATION_INDEX_SELECTED-1)
+ * and ORs their selection values into the `AGGREGATION_INDEX_SELECTED` slot.
+ * This avoids reading the full selection array during aggregation pyramid traversal.
+ */
+export function computeBucketSelection(selection: Uint8Array, indexData: Uint32Array, bucketCount: number): void {
+    for (let i = 0; i < bucketCount; i++) {
+        const base = i * AGGREGATION_SPAN;
+        let selected = 0;
+        for (let j = 0; j < AGGREGATION_INDEX_SELECTED; j++) {
+            const idx = indexData[base + j];
+            if (idx < selection.length) {
+                selected |= selection[idx];
+            }
+        }
+        indexData[base + AGGREGATION_INDEX_SELECTED] = selected;
+    }
+}
+
 export interface AggregationLevelState {
     maxRange: number;
     indexData: Uint32Array;
