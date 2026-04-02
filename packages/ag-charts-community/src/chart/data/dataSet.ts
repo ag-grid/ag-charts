@@ -120,7 +120,10 @@ export class DataSet<T = unknown> {
     }
 
     /**
-     * @returns A deep clone of the DataSet, preserving selection state.
+     * @returns A deep clone of the DataSet. Selection state is preserved only when
+     * `dataIdKey` is set (transferred via key mapping). Without `dataIdKey`, selections
+     * are dropped because index-based transfer cannot guarantee correctness after the
+     * clone's data is independently mutated.
      */
     deepClone() {
         const clone = new DataSet([...this.data], this.dataIdKey);

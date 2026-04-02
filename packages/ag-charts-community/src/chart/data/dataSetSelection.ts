@@ -78,35 +78,4 @@ export class DataSetSelection {
         }
         return indices;
     }
-
-    // --- Aggregation support ---
-
-    /**
-     * Pre-compute per-bucket selection flags in `indexData`.
-     *
-     * For each bucket, reads the 4 extrema indices and ORs their selection values
-     * into the `AGGREGATION_INDEX_SELECTED` slot. This avoids reading the full
-     * selection array during aggregation pyramid traversal.
-     *
-     * @param indexData - The aggregation index data array (stride = `span`)
-     * @param span - The aggregation stride (AGGREGATION_SPAN)
-     * @param bucketCount - Number of buckets in the current aggregation level
-     */
-    computeBucketSelection(indexData: Uint32Array, span: number, bucketCount: number): void {
-        const sel = this.selection;
-        const selectedOffset = span - 1; // AGGREGATION_INDEX_SELECTED is always the last slot
-
-        for (let i = 0; i < bucketCount; i++) {
-            const base = i * span;
-            let selected = 0;
-            // Check all extrema indices (slots 0..span-2) for selection
-            for (let j = 0; j < selectedOffset; j++) {
-                const idx = indexData[base + j];
-                if (idx < sel.length) {
-                    selected |= sel[idx];
-                }
-            }
-            indexData[base + selectedOffset] = selected;
-        }
-    }
 }
