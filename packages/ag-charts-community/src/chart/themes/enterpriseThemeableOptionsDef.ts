@@ -58,6 +58,7 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
+    type AgOrganisationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
     type AgRadarAreaSeriesStyle,
@@ -383,6 +384,11 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     ...strokeOptionsDef,
     ...lineDashOptionsDef,
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
+};
+
+export const organisationSeriesThemeableOptionsDef: OptionsDefs<AgOrganisationSeriesThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
+    tooltip: tooltipOptionsDefs,
 };
 
 export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemeableOptions> = {

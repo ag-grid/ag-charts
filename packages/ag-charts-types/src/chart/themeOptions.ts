@@ -417,7 +417,7 @@ export interface AgChartThemeOverrides<TDatum = DatumDefault, TContext = Context
     /** Map line background series theme overrides. */
     'map-line-background'?: AgMapLineBackgroundThemeOverrides<TDatum, TContext>;
     /** Organisation series theme overrides. */
-    organisation?: AgOrganisationThemeOverrides<TDatum, TContext>;
+    organization?: AgOrganisationThemeOverrides<TDatum, TContext>;
     /** Sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides<TDatum, TContext>;
     /** Chord series theme overrides. */

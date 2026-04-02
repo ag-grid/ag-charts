@@ -346,6 +346,13 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 enterprise: true,
                 moduleId: 'SankeySeriesModule',
             },
+            {
+                type: 'series',
+                name: 'organization',
+                chartType: 'standalone',
+                enterprise: true,
+                moduleId: 'OrganisationSeriesModule',
+            },
 
             // Plugins
             {

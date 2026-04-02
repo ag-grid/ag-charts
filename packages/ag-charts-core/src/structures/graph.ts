@@ -196,6 +196,8 @@ export class Graph<V, E = undefined> {
     }
 }
 
+// TODO: instantiate Vertex with the right types for edges.
+
 /**
  * A wrapper class to ensure each vertex is unique even if the value is the same object.
  */
