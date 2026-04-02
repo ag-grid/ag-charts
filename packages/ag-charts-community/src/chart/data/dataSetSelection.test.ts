@@ -337,4 +337,17 @@ describe('DataSet selection transfer', () => {
             expect(nextSel!.getSelectedIndices()).toEqual([0]);
         });
     });
+
+    describe('transferFrom with mismatched dataIdKey', () => {
+        it('should drop selections when dataIdKey changes between datasets', () => {
+            const old = new DataSet([{ k: 'A', id: 1 }], 'k');
+            old.enableSelection('s1').select(0);
+
+            // New dataset uses a different dataIdKey
+            const next = DataSet.replaceWith(old, [{ k: 'A', id: 1 }], 'id');
+
+            // Selections should NOT transfer — key schema changed
+            expect(next.selections.size).toBe(0);
+        });
+    });
 });

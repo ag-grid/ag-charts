@@ -11,6 +11,8 @@ import { DataSetSelection } from './dataSetSelection';
 export { DataChangeDescription } from './dataChangeDescription';
 export { DataSetSelection } from './dataSetSelection';
 
+type DataIdValue = string | number | undefined;
+
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
  * Supports both the AG Grid-compatible API (add/addIndex) and the internal format (prepend/append/insertions).
@@ -76,7 +78,7 @@ export class DataSet<T = unknown> {
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
     protected idToIndexCache: Map<string | number, number> | undefined;
-    protected idArrayCache: (string | number | undefined)[] | undefined;
+    protected idArrayCache: DataIdValue[] | undefined;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     readonly selections = new Map<string, DataSetSelection>();
@@ -156,7 +158,7 @@ export class DataSet<T = unknown> {
      * Lazy index→key array mirroring `getIdToIndexMap()`. Built on first access
      * when `dataIdKey` is set; invalidated on data mutation and rebuilt on demand.
      */
-    getIdArray(): (string | number | undefined)[] | undefined {
+    getIdArray(): DataIdValue[] | undefined {
         if (this.dataIdKey == null) return undefined;
 
         if (this.idArrayCache === undefined) {
@@ -177,7 +179,7 @@ export class DataSet<T = unknown> {
         if (predecessor.selections.size === 0) return;
 
         const oldIds = predecessor.getIdArray();
-        if (!oldIds || !this.dataIdKey) return;
+        if (!oldIds || !this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) return;
 
         const newIdMap = this.getIdToIndexMap();
         for (const [seriesId, oldSelObj] of predecessor.selections) {
@@ -888,7 +890,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Extracts the ID value from a datum; returns `undefined` if missing or not a string/number. */
-    protected getIdValue(item: T): string | number | undefined {
+    protected getIdValue(item: T): DataIdValue {
         if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
         const value = (item as any)[this.dataIdKey];
         if (typeof value === 'string' || (typeof value === 'number' && !Number.isNaN(value))) return value;
