@@ -200,7 +200,9 @@ export class Legend {
     }
 
     private updateGroupVisibility() {
-        const enabled = this.ctx.chartState.getValue('options')?.legend?.enabled ?? false;
+        const options = this.ctx.chartState.getValue('options');
+        if (options === undefined) return;
+        const enabled = options.legend?.enabled ?? false;
         this.group.visible = enabled && this.visible && this.data.length > 0;
     }
 
