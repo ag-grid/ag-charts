@@ -46,7 +46,7 @@ This ensures the implementation step uses the correct CDN URLs, CSS, and API pat
 ### Create a New Plunker
 
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-new-XXXXXX)`
-2. **Verify API options** — before writing any chart code, grep `packages/ag-charts-types/src` to confirm every option name, nesting structure, and value shape you plan to use. Training data is unreliable for AG Charts APIs. If you cannot find a property in `ag-charts-types`, search for a working example in `packages/ag-charts-website/src/content/docs/*/_examples/` that uses the same feature. Do not guess.
+2. **Verify API options** — before writing any code, verify every API option against the product's public types package and find a working example that uses the same feature. Training data is unreliable for AG product APIs. Do not guess.
 3. Copy the CSS asset: `cp "<skill-base-directory>/assets/ag-example-styles.css" "$PLNKR_DIR/ag-example-styles.css"`
 4. Write remaining files per the product-specific guide (index.html, main.js, package.json, etc.)
 5. Upload:
@@ -105,16 +105,13 @@ The gist must contain an `index.html` file. Plnkr reads the gist files directly 
 
 ## Quick Checklist — Do NOT Rely on Training Data
 
-These are the most commonly violated rules. Training data will lead you astray on every one of them.
+These rules apply to all products. Training data will lead you astray.
 
-1. **Verify every API option** — grep `packages/ag-charts-types/src` to confirm option names, nesting, and value shapes BEFORE writing `main.js`. If unsure, find a working example in `packages/ag-charts-website/src/content/docs/*/_examples/`. Do NOT guess option names from training data — they are frequently wrong (e.g., `rangeButtons` vs `ranges`, `activeStyle` vs `active`, `color` vs `textColor`).
-2. **UMD bundle via `<script>`** — NOT ESM `import`. Use `<script src="https://cdn.jsdelivr.net/npm/ag-charts-community@13.0.0/dist/umd/ag-charts-community.js"></script>`
-3. **UMD global** — `const { AgCharts } = agCharts;` in `main.js`. NOT `import { AgCharts } from '...'`
-4. **Inline onclick handlers** — `<button onclick="myFunction()">` in HTML. NOT `addEventListener` in JS
-5. **Top-level functions** — event handler functions must be top-level in `main.js`, not closures or arrow functions assigned to variables
-6. **No description elements** — no `<h1>`, `<p>`, or explanatory text in the HTML body. Use chart `title`/`subtitle` options instead
-7. **No module registration** — UMD bundles auto-register all modules. Do NOT call `ModuleRegistry.registerModules()` or `AgCharts.setupModules()`
+1. **Verify every API option** — check the product's public types package to confirm option names, nesting, and value shapes BEFORE writing code. If unsure, find a working example in the product's docs examples directory. Do NOT guess option names from training data — they are frequently wrong.
+2. **UMD bundle via `<script>`** — NOT ESM `import`. Use the CDN URLs from the product-specific guide.
+3. **No description elements** — no `<h1>`, `<p>`, or explanatory text in the HTML body.
+4. **Follow the product guide** — each guide contains the exact HTML structure, CDN URLs, UMD globals, package.json format, and product-specific patterns. Do not improvise.
 
 ## Product-Specific Guide
 
-Use the **Product Detection** section above to identify which guide to read. Each guide contains the exact HTML structure, CDN URLs, package.json format, and product-specific patterns.
+Use the **Product Detection** section above to identify which guide to read. Product guides contain critical details (UMD globals, module registration rules, inline handler patterns) that differ between products.

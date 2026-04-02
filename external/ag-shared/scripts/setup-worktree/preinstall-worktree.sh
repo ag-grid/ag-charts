@@ -48,9 +48,12 @@ detect_mode() {
 # ---------------------------------------------------------------------------
 
 get_cow_source() {
+    # NOTE: this function returns a path via stdout, so all log_info calls
+    # must redirect to stderr to avoid corrupting the captured value.
+
     # Explicit override (set by claude-worktree-create.sh)
     if [[ -n "${ROOT_WORKTREE_PATH:-}" ]] && [[ -d "${ROOT_WORKTREE_PATH}/node_modules" ]]; then
-        log_info "COW source: ROOT_WORKTREE_PATH=${ROOT_WORKTREE_PATH}"
+        log_info "COW source: ROOT_WORKTREE_PATH=${ROOT_WORKTREE_PATH}" >&2
         echo "$ROOT_WORKTREE_PATH"; return
     fi
 
@@ -59,7 +62,7 @@ get_cow_source() {
     if [[ "$check_path" == *".claude-worktrees"* ]]; then
         local root="${check_path%%/.claude-worktrees/*}"
         if [[ -d "$root/node_modules" ]]; then
-            log_info "COW source: .claude-worktrees root=${root}"
+            log_info "COW source: .claude-worktrees root=${root}" >&2
             echo "$root"; return
         fi
     fi
@@ -79,13 +82,13 @@ get_cow_source() {
         main_repo=$(dirname "$(dirname "$(dirname "$gitdir_path")")")
 
         if [[ -d "$main_repo/node_modules" ]]; then
-            log_info "COW source: main repo=${main_repo}"
+            log_info "COW source: main repo=${main_repo}" >&2
             echo "$main_repo"; return
         fi
-        log_info "Main repo ${main_repo} has no node_modules, skipping COW"
+        log_info "Main repo ${main_repo} has no node_modules, skipping COW" >&2
     fi
 
-    log_info "No COW source found"
+    log_info "No COW source found" >&2
     echo ""
 }
 

@@ -137,7 +137,7 @@ beyond this debugging session.
 ### Option B: E2E test
 
 ```bash
-yarn nx test:e2e ag-charts-website --testPathPattern='<test-file>'
+yarn nx test:e2e <e2e-package> --testPathPattern='<test-file>'
 ```
 
 Console output appears in the Playwright terminal output. For browser-side
