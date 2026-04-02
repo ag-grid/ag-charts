@@ -14,9 +14,13 @@ import type { ChartLike, UpdateProcessor } from './processor';
 
 const visibleIgnoredSeries = new Set(['map-shape-background', 'map-line-background']);
 
+type OverlayState = 'loading' | 'no-data' | 'no-visible-series' | 'unsupported-browser' | undefined;
+
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
     private readonly cleanup = new CleanupRegistry();
     private readonly overlayElem: DOMElementProxy;
+
+    private overlayState: OverlayState = undefined;
 
     constructor(
         private readonly chartLike: ChartLike,
@@ -51,37 +55,44 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.setProperty('width', `${rect.width}px`);
         this.overlayElem.setProperty('height', `${rect.height}px`);
 
-        const loadingShown = isLoading;
-        const noDataShown = !isLoading && !hasData;
-        const noVisibleSeriesShown = hasData && !anySeriesVisible;
-        const unsupportedBrowser = this.overlays.unsupportedBrowser.enabled && isUnsupportedBrowser();
+        let newOverlayState: OverlayState;
 
-        if (loadingShown) {
-            this.showOverlay(this.overlays.loading, rect);
-        } else {
-            this.hideOverlay(this.overlays.loading);
+        if (isLoading) {
+            newOverlayState = 'loading';
+        } else if (!hasData) {
+            newOverlayState = 'no-data';
+        } else if (!anySeriesVisible) {
+            newOverlayState = 'no-visible-series';
+        } else if (this.overlays.unsupportedBrowser.enabled && isUnsupportedBrowser()) {
+            newOverlayState = 'unsupported-browser';
         }
 
-        if (noDataShown) {
-            this.showOverlay(this.overlays.noData, rect);
-        } else {
-            this.hideOverlay(this.overlays.noData);
+        // Only remove the existing overlay if the state changes.
+        if (newOverlayState !== this.overlayState) {
+            const prev = this.getOverlayFromState(this.overlayState);
+            if (prev) this.hideOverlay(prev);
+
+            this.overlayState = newOverlayState;
         }
 
-        if (noVisibleSeriesShown) {
-            this.showOverlay(this.overlays.noVisibleSeries, rect);
-        } else {
-            this.hideOverlay(this.overlays.noVisibleSeries);
-        }
+        // Always update the overlay to reposition it if the rect changes.
+        const next = this.getOverlayFromState(this.overlayState);
+        if (next) this.showOverlay(next, rect);
 
-        if (unsupportedBrowser) {
-            this.showOverlay(this.overlays.unsupportedBrowser, rect);
-        } else {
-            this.hideOverlay(this.overlays.unsupportedBrowser);
-        }
+        this.overlayElem.setAttr('aria-hidden', String(this.overlayState == null));
+    }
 
-        const shown = loadingShown || noDataShown || noVisibleSeriesShown || unsupportedBrowser;
-        this.overlayElem.setAttr('aria-hidden', String(!shown));
+    private getOverlayFromState(state: OverlayState) {
+        switch (state) {
+            case 'loading':
+                return this.overlays.loading;
+            case 'no-data':
+                return this.overlays.noData;
+            case 'no-visible-series':
+                return this.overlays.noVisibleSeries;
+            case 'unsupported-browser':
+                return this.overlays.unsupportedBrowser;
+        }
     }
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {

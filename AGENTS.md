@@ -42,11 +42,11 @@ After meaningful chart changes, also run:
 
 On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.
 
-**Canary skills:** `example`, `dev-server`, `debug`, `git-conventions`, `jira`, `simplify`
+**Canary skills:** `example`, `dev-server`, `debug`, `git-conventions`, `jira`
 
 **Warning to display (if any canary skill is missing):**
 
-> **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug, git-conventions, jira, simplify) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
+> **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug, git-conventions, jira) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
 
 Continue assisting the user after displaying the warning.
 

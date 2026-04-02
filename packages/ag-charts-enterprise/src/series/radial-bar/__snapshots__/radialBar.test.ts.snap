@@ -40,6 +40,11 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 0,
     },
   ],
+]
+`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 2`] = `
+[
   [
     {
       "angleKey": "sw",
@@ -97,6 +102,13 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 0,
     },
   ],
+]
+`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 4`] = `
+[
   [
     {
       "angleKey": "sw",
@@ -173,6 +185,13 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 0,
     },
   ],
+]
+`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 6`] = `
+[
   [
     {
       "angleKey": "hw",
@@ -268,6 +287,13 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 0,
     },
   ],
+]
+`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 8`] = `
+[
   [
     {
       "angleKey": "hw",
@@ -306,6 +332,11 @@ exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 0,
     },
   ],
+]
+`;
+
+exports[`RadialBarSeries AG-15782 styler highlights sequenced 1 9`] = `
+[
   [
     {
       "angleKey": "sw",
