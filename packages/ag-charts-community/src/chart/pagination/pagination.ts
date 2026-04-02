@@ -56,6 +56,7 @@ export class Pagination {
         this.labelNode.setProperties({
             textBaseline: 'middle',
             textAlign: 'left',
+            text: '1 / 0',
             y: 1,
         });
 
