@@ -50,13 +50,13 @@ This guide covers code quality practices, including avoiding code bloat, comment
 ## Import Hygiene
 
 -   **No re-exports for internal APIs**: When moving code between internal packages, update every consumer to import from the new canonical location. Do not leave re-exports at the old path — they add indirection, obscure where code lives, and can hinder tree-shaking.
--   **Direct imports only**: Internal packages (`ag-charts-core`, `ag-charts-community`, `ag-charts-enterprise`) should import from the source package directly. Only `ag-charts-types` defines the user-facing API contract.
+-   **Direct imports only**: Internal packages should import from the source package directly. Only the public types package defines the user-facing API contract.
 -   **Type-only imports**: Use `import type` for types that are only needed at compile time — these are erased and have zero runtime cost.
 
 ## Refactoring Safety
 
 -   **Grep all consumers before removing/relocating exports**: Before removing or moving an export, search the entire codebase for all import sites. Pre-existing consumers outside the files you're modifying are easy to miss.
--   **Run `build:types` before committing**: After any export relocation, run type checks across affected packages (`ag-charts-core`, `ag-charts-community`, `ag-charts-enterprise`) to catch broken imports before they reach CI.
+-   **Run `build:types` before committing**: After any export relocation, run type checks across affected packages to catch broken imports before they reach CI.
 
 ## Self-Review Before Committing
 
