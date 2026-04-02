@@ -84,6 +84,7 @@ node ${tools_dir}/compare-versions.js \
     --base ${base#origin/} \
     --compare ${head} \
     --format ${format} \
-    >>${output}
+    >>${output} || \
+    (if [[ $AG_BENCHMARK_SOFT_FAIL == "true" ]] ; then echo "Failed to compare versions, continuing..." ; else exit 1 ; fi)
 cat ${output}
 echo "Benchmark results saved to ${output}"

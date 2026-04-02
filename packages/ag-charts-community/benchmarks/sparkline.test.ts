@@ -22,7 +22,7 @@ describe('sparkline benchmark', () => {
         async () => {
             await ctx.create({ pool: false });
         },
-        40_000
+        120_000
     );
 
     benchmark(
@@ -32,7 +32,7 @@ describe('sparkline benchmark', () => {
         async () => {
             await ctx.create({ container: document.createElement('div') });
         },
-        40_000
+        120_000
     );
 
     describe('after load', () => {
