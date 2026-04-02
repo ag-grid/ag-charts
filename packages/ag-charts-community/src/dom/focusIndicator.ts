@@ -111,7 +111,7 @@ export class FocusIndicator {
         const elWin = this.element.ownerDocument.defaultView!;
         // !!!SLOW!!! Only call this when you receive a 'focus' event.
         this.focusVisibleStyle = parent != null && elWin.getComputedStyle(parent).opacity === '1';
-        this.hasFocus = true;;
+        this.hasFocus = true;
         return this.focusVisibleStyle;
     }
 
