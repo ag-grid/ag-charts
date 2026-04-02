@@ -493,10 +493,10 @@ export class DataChangeDescription {
         const appendIndex = finalLength - totalAppendCount;
         const midInsertions: Array<{ destIndex: number; count: number }> = [];
         for (const op of spliceOps) {
-            if (op.insertCount > 0 && op.deleteCount === 0) {
+            if (op.insertCount > 0) {
                 // Skip prepend and append ops — already handled by totalPrependCount / finalLength
-                if (op.index === 0 && op.insertCount === totalPrependCount) continue;
-                if (op.index === appendIndex && op.insertCount === totalAppendCount) continue;
+                if (op.deleteCount === 0 && op.index === 0 && op.insertCount === totalPrependCount) continue;
+                if (op.deleteCount === 0 && op.index === appendIndex && op.insertCount === totalAppendCount) continue;
                 midInsertions.push({ destIndex: op.index, count: op.insertCount });
             }
         }

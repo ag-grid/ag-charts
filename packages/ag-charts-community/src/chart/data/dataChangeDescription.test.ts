@@ -423,6 +423,58 @@ describe('DataChangeDescription', () => {
             expect(result[5]).toBe(0); // appended
         });
 
+        it('should handle mid-array insertion with removals (slow path)', () => {
+            const data = Array.from({ length: 10 }, (_, i) => ({ id: i, value: i }));
+            const ds = new DataSet(data, 'id');
+
+            // Remove index 2, insert 3 new items at index 5
+            // Original: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            // After:    [0, 1, 3, 4, X, X, X, 5, 6, 7, 8, 9] (12 items)
+            ds.addTransaction({
+                remove: [data[2]],
+                insertions: [
+                    {
+                        index: 5,
+                        items: [
+                            { id: 100, value: 100 },
+                            { id: 101, value: 101 },
+                            { id: 102, value: 102 },
+                        ],
+                    },
+                ],
+            });
+            const desc = ds.getChangeDescription()!;
+
+            // Selected: indices 0, 3, 7
+            const sel = new Uint8Array(10);
+            sel[0] = 1;
+            sel[3] = 1;
+            sel[7] = 1;
+
+            const result = desc.applyToTypedArray(sel);
+
+            // Verify via applyToArray as reference
+            const refArray = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            desc.applyToArray(refArray, () => -1);
+            // refArray shows the structure: [0, 1, 3, 4, -1, -1, -1, 5, 6, 7, 8, 9]
+
+            expect(result.length).toBe(refArray.length);
+
+            // Old 0 was selected → should still be selected at its new position
+            // Old 3 was selected → should still be selected at its new position
+            // Old 7 was selected → should still be selected at its new position
+            // Verify by cross-referencing: selected original values are 0, 3, 7
+            // In refArray: value 0 is at index 0, value 3 is at index 2, value 7 is at index 9
+            expect(result[0]).toBe(1); // old idx 0 → value 0
+            expect(result[2]).toBe(1); // old idx 3 → value 3 (shifted by removal of idx 2)
+            expect(result[9]).toBe(1); // old idx 7 → value 7 (shifted by removal + 3 insertions)
+
+            // Inserted positions should be 0
+            expect(result[4]).toBe(0);
+            expect(result[5]).toBe(0);
+            expect(result[6]).toBe(0);
+        });
+
         it('should support custom default value', () => {
             const data = [{ value: 0 }, { value: 1 }];
             const ds = new DataSet(data);
