@@ -400,7 +400,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
-        if (this.getHoverDevice() !== 'setState') {
+        if (this.getHoverDevice() !== 'setState' && this.activeState.lastActive !== 'legend') {
             this.clearAll();
         }
     }
