@@ -28,6 +28,7 @@ This guide covers testing strategies, best practices, and philosophy for AG Char
     -   Are all important outputs verified (data, keys, columns, domains, metadata, etc.)?
     -   Does this test exercise the real code path users will hit?
 -   **Naming clarity**: Variable and parameter names should clearly convey intent, especially for boolean flags (e.g., `columnNeedValueOf` is clearer than `columnValueTypes` for a boolean array).
+-   **No conditional assertions**: Never place `expect` inside `if`, ternary, or `catch` branches. A test that skips its assertions passes vacuously. Use `!` (non-null assertion) or assert definedness first (`expect(x).toBeDefined()`) then assert the value unconditionally.
 
 ## Test Philosophy
 

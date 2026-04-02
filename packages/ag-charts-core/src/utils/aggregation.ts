@@ -5,7 +5,8 @@ export const AGGREGATION_INDEX_X_MIN = 0;
 export const AGGREGATION_INDEX_X_MAX = 1;
 export const AGGREGATION_INDEX_Y_MIN = 2;
 export const AGGREGATION_INDEX_Y_MAX = 3;
-export const AGGREGATION_SPAN = 4;
+export const AGGREGATION_INDEX_SELECTED = 4;
+export const AGGREGATION_SPAN = 5;
 
 export const AGGREGATION_THRESHOLD = 1e3;
 export const AGGREGATION_MAX_POINTS = 10;
@@ -370,21 +371,22 @@ export function createAggregationIndices(
         // Note: Must use Math.floor (not |0) because |0 truncates toward zero, causing negative
         // scaledX values (data below domain) to incorrectly map to bucket 0 instead of negative bucket
         const bucketIndex = Math.floor(scaledX);
-        const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) << 2;
+        const aggIndex = (bucketIndex < maxRange ? bucketIndex : maxRange - 1) * AGGREGATION_SPAN;
 
         if (isPositiveDatum) {
             // Reset cache when switching buckets
             if (aggIndex !== lastAggIndex) {
                 if (lastAggIndex !== -1) {
                     // Inline flushCache - group writes by array for cache locality
-                    indexData[lastAggIndex] = cachedXMinIndex;
-                    indexData[lastAggIndex + 1] = cachedXMaxIndex;
-                    indexData[lastAggIndex + 2] = cachedYMinIndex;
-                    indexData[lastAggIndex + 3] = cachedYMaxIndex;
-                    valueData[lastAggIndex] = cachedXMinValue;
-                    valueData[lastAggIndex + 1] = cachedXMaxValue;
-                    valueData[lastAggIndex + 2] = cachedYMinValue;
-                    valueData[lastAggIndex + 3] = cachedYMaxValue;
+                    indexData[lastAggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
+                    indexData[lastAggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
+                    indexData[lastAggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
+                    indexData[lastAggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
+                    indexData[lastAggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+                    valueData[lastAggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
+                    valueData[lastAggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
+                    valueData[lastAggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
+                    valueData[lastAggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
                 }
                 lastAggIndex = aggIndex;
                 // Inline resetCache
@@ -439,14 +441,15 @@ export function createAggregationIndices(
             // Negative Datum (Split mode only)
             if (aggIndex !== negLastAggIndex) {
                 if (negLastAggIndex !== -1) {
-                    negativeIndexData![negLastAggIndex] = negCachedXMinIndex;
-                    negativeIndexData![negLastAggIndex + 1] = negCachedXMaxIndex;
-                    negativeIndexData![negLastAggIndex + 2] = negCachedYMinIndex;
-                    negativeIndexData![negLastAggIndex + 3] = negCachedYMaxIndex;
-                    negativeValueData![negLastAggIndex] = negCachedXMinValue;
-                    negativeValueData![negLastAggIndex + 1] = negCachedXMaxValue;
-                    negativeValueData![negLastAggIndex + 2] = negCachedYMinValue;
-                    negativeValueData![negLastAggIndex + 3] = negCachedYMaxValue;
+                    negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_X_MIN] = negCachedXMinIndex;
+                    negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_X_MAX] = negCachedXMaxIndex;
+                    negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_Y_MIN] = negCachedYMinIndex;
+                    negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_Y_MAX] = negCachedYMaxIndex;
+                    negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+                    negativeValueData![negLastAggIndex + AGGREGATION_INDEX_X_MIN] = negCachedXMinValue;
+                    negativeValueData![negLastAggIndex + AGGREGATION_INDEX_X_MAX] = negCachedXMaxValue;
+                    negativeValueData![negLastAggIndex + AGGREGATION_INDEX_Y_MIN] = negCachedYMinValue;
+                    negativeValueData![negLastAggIndex + AGGREGATION_INDEX_Y_MAX] = negCachedYMaxValue;
                 }
                 negLastAggIndex = aggIndex;
                 negCachedXMinIndex = -1;
@@ -498,25 +501,27 @@ export function createAggregationIndices(
 
     // Flush final bucket
     if (lastAggIndex !== -1) {
-        indexData[lastAggIndex] = cachedXMinIndex;
-        indexData[lastAggIndex + 1] = cachedXMaxIndex;
-        indexData[lastAggIndex + 2] = cachedYMinIndex;
-        indexData[lastAggIndex + 3] = cachedYMaxIndex;
-        valueData[lastAggIndex] = cachedXMinValue;
-        valueData[lastAggIndex + 1] = cachedXMaxValue;
-        valueData[lastAggIndex + 2] = cachedYMinValue;
-        valueData[lastAggIndex + 3] = cachedYMaxValue;
+        indexData[lastAggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinIndex;
+        indexData[lastAggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxIndex;
+        indexData[lastAggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinIndex;
+        indexData[lastAggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxIndex;
+        indexData[lastAggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+        valueData[lastAggIndex + AGGREGATION_INDEX_X_MIN] = cachedXMinValue;
+        valueData[lastAggIndex + AGGREGATION_INDEX_X_MAX] = cachedXMaxValue;
+        valueData[lastAggIndex + AGGREGATION_INDEX_Y_MIN] = cachedYMinValue;
+        valueData[lastAggIndex + AGGREGATION_INDEX_Y_MAX] = cachedYMaxValue;
     }
 
     if (split && negLastAggIndex !== -1) {
-        negativeIndexData![negLastAggIndex] = negCachedXMinIndex;
-        negativeIndexData![negLastAggIndex + 1] = negCachedXMaxIndex;
-        negativeIndexData![negLastAggIndex + 2] = negCachedYMinIndex;
-        negativeIndexData![negLastAggIndex + 3] = negCachedYMaxIndex;
-        negativeValueData![negLastAggIndex] = negCachedXMinValue;
-        negativeValueData![negLastAggIndex + 1] = negCachedXMaxValue;
-        negativeValueData![negLastAggIndex + 2] = negCachedYMinValue;
-        negativeValueData![negLastAggIndex + 3] = negCachedYMaxValue;
+        negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_X_MIN] = negCachedXMinIndex;
+        negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_X_MAX] = negCachedXMaxIndex;
+        negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_Y_MIN] = negCachedYMinIndex;
+        negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_Y_MAX] = negCachedYMaxIndex;
+        negativeIndexData![negLastAggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+        negativeValueData![negLastAggIndex + AGGREGATION_INDEX_X_MIN] = negCachedXMinValue;
+        negativeValueData![negLastAggIndex + AGGREGATION_INDEX_X_MAX] = negCachedXMaxValue;
+        negativeValueData![negLastAggIndex + AGGREGATION_INDEX_Y_MIN] = negCachedYMinValue;
+        negativeValueData![negLastAggIndex + AGGREGATION_INDEX_Y_MAX] = negCachedYMaxValue;
     }
 
     return { indexData, valueData, negativeIndexData, negativeValueData };
@@ -599,6 +604,10 @@ export function compactAggregationIndices(
                 : index1;
         nextIndexData[aggIndex + AGGREGATION_INDEX_Y_MAX] = indexData[yMaxAggIndex + AGGREGATION_INDEX_Y_MAX];
         nextValueData[aggIndex + AGGREGATION_INDEX_Y_MAX] = valueData[yMaxAggIndex + AGGREGATION_INDEX_Y_MAX];
+
+        // Propagate selection: a coarser bucket is selected if either child is selected
+        nextIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] =
+            indexData[index0 + AGGREGATION_INDEX_SELECTED] | indexData[index1 + AGGREGATION_INDEX_SELECTED];
     }
 
     return {
@@ -607,6 +616,27 @@ export function compactAggregationIndices(
         valueData: nextValueData,
         midpointData: nextMidpointData,
     };
+}
+
+/**
+ * Pre-compute per-bucket selection flags in `indexData`.
+ *
+ * For each bucket, reads the extrema indices (slots 0..AGGREGATION_INDEX_SELECTED-1)
+ * and ORs their selection values into the `AGGREGATION_INDEX_SELECTED` slot.
+ * This avoids reading the full selection array during aggregation pyramid traversal.
+ */
+export function computeBucketSelection(selection: Uint8Array, indexData: Uint32Array, bucketCount: number): void {
+    for (let i = 0; i < bucketCount; i++) {
+        const base = i * AGGREGATION_SPAN;
+        let selected = 0;
+        for (let j = 0; j < AGGREGATION_INDEX_SELECTED; j++) {
+            const idx = indexData[base + j];
+            if (idx < selection.length) {
+                selected |= selection[idx];
+            }
+        }
+        indexData[base + AGGREGATION_INDEX_SELECTED] = selected;
+    }
 }
 
 export interface AggregationLevelState {

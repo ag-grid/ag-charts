@@ -121,7 +121,7 @@ export type {
     ScopeProvider,
     UngroupedData,
 } from './chart/data/dataModel';
-export { DataSet, type TransactionCollectionState } from './chart/data/dataSet';
+export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
 export {
     accumulativeValueProperty,
     animationValidation,

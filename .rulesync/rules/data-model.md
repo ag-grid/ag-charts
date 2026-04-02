@@ -2,7 +2,7 @@
 root: false
 targets: ['*']
 description: 'Data model principles and patterns for AG Charts series data processing'
-globs: ['packages/ag-charts-*/src/**/data-model/**/*.ts']
+globs: ['packages/ag-charts-*/src/**/data-model/**/*.ts', 'packages/ag-charts-*/src/**/chart/data/**/*.ts']
 ---
 
 # DataModel Principles
@@ -18,3 +18,4 @@ globs: ['packages/ag-charts-*/src/**/data-model/**/*.ts']
 -   We support incremental processing of transactional updates which mutate an existing ProcessedData object.
     -   Incremental updates should be as efficient and fast as possible.
     -   However this should not come at the expense of the full processing performance.
+-   Never coerce missing/undefined values to a sentinel that could collide with valid data (e.g. `id ?? ''` conflates missing IDs with the legitimate empty-string key). Use `undefined` and filter at the boundary.
