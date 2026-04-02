@@ -141,6 +141,11 @@ export class Legend {
     }
 
     constructor(private readonly ctx: ModuleContext) {
+        // Start invisible — updateGroupVisibility() will enable when legend has data and options.
+        // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
+        // types where the legend is disabled (sparklines, gauges).
+        this.group.visible = false;
+
         this.pagination = new Pagination(
             () => ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER }),
             (page) => this.updatePageNumber(page)
