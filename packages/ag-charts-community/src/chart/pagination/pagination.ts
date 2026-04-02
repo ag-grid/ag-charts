@@ -56,6 +56,7 @@ export class Pagination {
         this.labelNode.setProperties({
             textBaseline: 'middle',
             textAlign: 'left',
+            y: 1,
         });
 
         this.group.append([this.nextButton, this.previousButton, this.labelNode]);
@@ -81,7 +82,10 @@ export class Pagination {
         }
     }
 
+    private lastOpts?: NormalisedLegendPaginationOptions;
+
     update(opts: NormalisedLegendPaginationOptions) {
+        this.lastOpts = opts;
         this.applyRotations();
         this.updateLabel(opts);
         this.updatePositions(opts);
@@ -194,6 +198,9 @@ export class Pagination {
 
     public onMouseHover(node: 'previous' | 'next' | undefined) {
         this.highlightActive = node;
+        if (this.lastOpts) {
+            this.updateMarkers(this.lastOpts);
+        }
         this.chartUpdateCallback();
     }
 
