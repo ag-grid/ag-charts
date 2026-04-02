@@ -1135,6 +1135,7 @@ export class Legend {
     }
 
     private positionLegend(ctx: LayoutContext) {
+        if (this.opts == null) return;
         const oldPages = this.positionLegendScene(ctx);
         this.positionLegendDOM(oldPages);
     }

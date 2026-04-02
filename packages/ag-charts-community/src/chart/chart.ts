@@ -784,6 +784,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
         } catch (error: any) {
             Logger.error('update error', error, error.stack);
+            this.runningUpdateType = ChartUpdateType.NONE;
+            this._performUpdateNotify.notify();
         }
     }
 
