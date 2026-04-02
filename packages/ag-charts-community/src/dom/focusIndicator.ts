@@ -82,15 +82,16 @@ export class FocusIndicator {
     private focusVisibleStyle: boolean = false;
     private hasFocus: boolean = false;
 
-    public focus(opts: { preventScroll?: boolean, focusVisible?: boolean }) {
-        const needsProgrammaticFocus = !this.hasFocus;
-        this.hasFocus = true;
+    public focus(opts: { preventScroll?: boolean; focusVisible?: boolean }) {
         this.focusVisible = opts.focusVisible;
-        if (needsProgrammaticFocus) {
+        if (!this.hasFocus) {
+            if (opts.focusVisible !== undefined) {
+                // Override is set, so we don't need to read `:focus-visible`, skip onFocus() handling:
+                this.hasFocus = true;
+            }
             this.swapChain.focus(opts);
         }
     }
-
 
     overrideFocusVisible(focusVisible: boolean | undefined) {
         this.focusVisible = focusVisible;
