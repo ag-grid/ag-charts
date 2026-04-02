@@ -423,7 +423,9 @@ export class DataChangeDescription {
      *
      * @param arr - Source typed array to transform
      * @param defaultValue - Value for newly inserted positions (default 0)
-     * @returns New Uint8Array with transformations applied
+     * @returns A new Uint8Array with transformations applied, or the original
+     *          `arr` reference when no structural changes occurred (same length,
+     *          no removals, no splice ops)
      */
     applyToTypedArray(arr: Uint8Array, defaultValue: number = 0): Uint8Array {
         const { finalLength, removedIndices, totalPrependCount, totalAppendCount, spliceOps } = this.indexMap;
@@ -447,7 +449,7 @@ export class DataChangeDescription {
             // forEachPreservedIndex computes, so we collect their positions and apply
             // an additional shift per preserved element.
             const midInsertions = this.collectMidArrayInsertions();
-            this.forEachPreservedIndex((srcIdx, baseDestIdx) => {
+            this.forEachPreservedIndex(function copyPreservedWithInsertionShift(srcIdx, baseDestIdx) {
                 let shift = 0;
                 for (const ins of midInsertions) {
                     if (ins.destIndex <= baseDestIdx + shift) {

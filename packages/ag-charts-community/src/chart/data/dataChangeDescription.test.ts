@@ -371,14 +371,11 @@ describe('DataChangeDescription', () => {
             const ds = new DataSet(data);
             ds.addTransaction({}); // Empty transaction
 
-            const desc = ds.getChangeDescription();
-            // No change description means no-op
-            if (desc) {
-                const sel = new Uint8Array(1);
-                sel[0] = 1;
-                const result = desc.applyToTypedArray(sel);
-                expect(Array.from(result)).toEqual([1]);
-            }
+            const desc = ds.getChangeDescription()!;
+            const sel = new Uint8Array(1);
+            sel[0] = 1;
+            const result = desc.applyToTypedArray(sel);
+            expect(Array.from(result)).toEqual([1]);
         });
 
         it('should handle full removal', () => {

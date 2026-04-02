@@ -315,5 +315,26 @@ describe('DataSet selection transfer', () => {
             const ds = new DataSet([{ id: 1 }, { id: 2 }, { id: 3 }], 'id');
             expect(ds.getIdArray()).toEqual([1, 2, 3]);
         });
+
+        it('should use undefined for missing keys (not empty string)', () => {
+            const ds = new DataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], 'k');
+            expect(ds.getIdArray()).toEqual(['A', undefined, 'C']);
+        });
+    });
+
+    describe('transferFrom with missing IDs', () => {
+        it('should not transfer selection from a datum with missing ID', () => {
+            const old = new DataSet([{ k: 'A' }, { v: 1 }, { k: 'C' }], 'k');
+            const sel = old.enableSelection('s1');
+            sel.select(0); // A — has ID
+            sel.select(1); // missing ID — should NOT transfer
+
+            const next = DataSet.replaceWith(old, [{ k: 'A' }, { k: '' }, { k: 'C' }], 'k');
+
+            const nextSel = next.selections.get('s1');
+            expect(nextSel).toBeDefined();
+            // Only A should transfer; the missing-ID datum must not collide with ''
+            expect(nextSel!.getSelectedIndices()).toEqual([0]);
+        });
     });
 });

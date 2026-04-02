@@ -76,7 +76,7 @@ export class DataSet<T = unknown> {
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
     protected idToIndexCache: Map<string | number, number> | undefined;
-    protected idArrayCache: (string | number)[] | undefined;
+    protected idArrayCache: (string | number | undefined)[] | undefined;
 
     /** Per-series selection state. Keyed by `seriesId`. */
     readonly selections = new Map<string, DataSetSelection>();
@@ -156,14 +156,13 @@ export class DataSet<T = unknown> {
      * Lazy index→key array mirroring `getIdToIndexMap()`. Built on first access
      * when `dataIdKey` is set; invalidated on data mutation and rebuilt on demand.
      */
-    getIdArray(): (string | number)[] | undefined {
+    getIdArray(): (string | number | undefined)[] | undefined {
         if (this.dataIdKey == null) return undefined;
 
         if (this.idArrayCache === undefined) {
             this.idArrayCache = [];
             for (let i = 0; i < this.data.length; i++) {
-                const id = this.getIdValue(this.data[i]);
-                this.idArrayCache.push(id ?? ('' as string | number));
+                this.idArrayCache.push(this.getIdValue(this.data[i]));
             }
         }
         return this.idArrayCache;
@@ -186,7 +185,8 @@ export class DataSet<T = unknown> {
             // Collect selected keys (transient Set, O(k) where k = selected count)
             const selectedKeys = new Set<string | number>();
             for (let i = 0; i < oldSel.length; i++) {
-                if (oldSel[i]) selectedKeys.add(oldIds[i]);
+                const id = oldIds[i];
+                if (oldSel[i] && id != null) selectedKeys.add(id);
             }
             if (selectedKeys.size === 0) continue;
 
@@ -316,16 +316,14 @@ export class DataSet<T = unknown> {
         // Transform idArray if warm (avoid rebuild on next access)
         if (this.idArrayCache) {
             changeDescription.applyToArray(this.idArrayCache, (destIndex: number) => {
-                const id = this.getIdValue(this.data[destIndex]);
-                return id ?? ('' as string | number);
+                return this.getIdValue(this.data[destIndex]);
             });
 
             // Refresh entries at updated indices — an ID-based update may have replaced
             // a datum with a different dataIdKey value (e.g. {id:'A'} → {id:'B'}).
             const { updatedIndices } = changeDescription.indexMap;
             for (const finalIdx of updatedIndices) {
-                const id = this.getIdValue(this.data[finalIdx]);
-                this.idArrayCache[finalIdx] = id ?? ('' as string | number);
+                this.idArrayCache[finalIdx] = this.getIdValue(this.data[finalIdx]);
             }
         }
 
