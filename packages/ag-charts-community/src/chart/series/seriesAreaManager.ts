@@ -240,7 +240,7 @@ export class SeriesAreaManager extends BaseManager {
         this.cleanup.register(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.swapChain.focus({ preventScroll: true })),
+            seriesWidget.addListener('focus', () => this.focusIndicator?.focus({ preventScroll: true })),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
@@ -568,8 +568,12 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.animationManager.skipCurrentBatch();
         }
 
+        // Synthetic Touch click events do not always put the series-area into focus, but we want these events to
+        // put the series-area into focus regardless of whether anything is highlighted or not. We want to
+        // programmatically focus on the HTMLElement before firing the API click event. This ensure that we keep
+        // Touch UX consistent with Mouse UX.
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
-            this.swapChain.focus({ preventScroll: true });
+            this.focusIndicator?.focus({ preventScroll: true, focusVisible: false });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 

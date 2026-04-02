@@ -80,6 +80,17 @@ export class FocusIndicator {
     // Cached `:focus-visible` CSS state. getComputedStyle() is very expensive. So this should only be check for the
     // :focus-visible pseudo-class when we receive a 'focus' .
     private focusVisibleStyle: boolean = false;
+    private hasFocus: boolean = false;
+
+    public focus(opts: { preventScroll?: boolean, focusVisible?: boolean }) {
+        const needsProgrammaticFocus = !this.hasFocus;
+        this.hasFocus = true;
+        this.focusVisible = opts.focusVisible;
+        if (needsProgrammaticFocus) {
+            this.swapChain.focus(opts);
+        }
+    }
+
 
     overrideFocusVisible(focusVisible: boolean | undefined) {
         this.focusVisible = focusVisible;
@@ -93,16 +104,19 @@ export class FocusIndicator {
     }
 
     public onFocus(): boolean {
+        if (this.hasFocus) return this.isFocusVisible();
         this.overrideFocusVisible(undefined);
         const parent = this.element.parentElement;
         const elWin = this.element.ownerDocument.defaultView!;
         // !!!SLOW!!! Only call this when you receive a 'focus' event.
         this.focusVisibleStyle = parent != null && elWin.getComputedStyle(parent).opacity === '1';
+        this.hasFocus = true;;
         return this.focusVisibleStyle;
     }
 
     public onBlur(): void {
         this.overrideFocusVisible(undefined);
         this.focusVisibleStyle = false;
+        this.hasFocus = false;
     }
 }
