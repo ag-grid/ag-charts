@@ -791,8 +791,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const { performUpdateType, extraDebugStats, _performUpdateSplits: splits, ctx } = this;
         const seriesToUpdate = [...this.seriesToUpdate];
 
-        ctx.chartState.flushChanges();
-
         if (this.clearCallbackCacheOnUpdate) {
             this.clearCallbackCacheOnUpdate = false;
 
@@ -808,6 +806,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesToUpdate.clear();
         this.runningUpdateType = performUpdateType;
         this.currentProcessingUpdateType = performUpdateType;
+
+        ctx.chartState.flushChanges();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
