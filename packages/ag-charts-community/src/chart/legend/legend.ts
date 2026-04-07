@@ -31,12 +31,7 @@ import type {
     NormalisedLegendPaginationOptions,
 } from 'ag-charts-types';
 
-import type {
-    ActiveLoadMementoEvent,
-    HighlightNodeDatum,
-    LegendChangeEvent,
-    LegendChangePartialEvent,
-} from '../../core/eventsHub';
+import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -113,10 +108,22 @@ export class Legend {
         if (objectsEqual(value, this._data)) return;
         this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
+        this.syncProxyButtonStates(value);
         this.updateGroupVisibility();
     }
     get data() {
         return this._data;
+    }
+
+    private syncProxyButtonStates(data: CategoryLegendDatum[]) {
+        const enabledMap = new Map(data.map((d) => [d.itemId, d.enabled]));
+        this.itemSelection.each(({ proxyButton }, { itemId }) => {
+            if (proxyButton == null) return;
+            const enabled = enabledMap.get(itemId);
+            if (enabled != null) {
+                proxyButton.setChecked(enabled);
+            }
+        });
     }
 
     private readonly contextMenuDatum?: CategoryLegendDatum;
@@ -126,6 +133,7 @@ export class Legend {
     private _visible: boolean = true;
     set visible(value: boolean) {
         this._visible = value;
+        this.ctx.chartState.setValue('legendVisible', value);
         this.updateGroupVisibility();
     }
     get visible() {
@@ -168,8 +176,12 @@ export class Legend {
             }),
             ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
             ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
-            ctx.eventsHub.on('legend:change', this.onLegendDataChange.bind(this)),
-            ctx.eventsHub.on('legend:change-partial', this.onLegendDataChangePartial.bind(this)),
+            ctx.chartState.observe((get) => {
+                const legendData = get('legendData');
+                if (legendData == null) return;
+                const allData = Object.values(legendData).flat();
+                this.data = allData.filter((datum) => !datum.hideInLegend);
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
             () => delete items['toggle-series-visibility'].action,
@@ -180,21 +192,6 @@ export class Legend {
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
 
         this.ctx.historyManager.addMementoOriginator(ctx.legendManager);
-    }
-
-    private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
-        this.data = legendData.filter((datum) => !datum.hideInLegend);
-    }
-
-    private onLegendDataChangePartial(event: LegendChangePartialEvent) {
-        this.itemSelection.each(({ proxyButton }, { itemId }) => {
-            if (proxyButton == null) return;
-            for (const eventElem of event.legendData) {
-                if (eventElem.itemId === itemId) {
-                    proxyButton.setChecked(eventElem.enabled);
-                }
-            }
-        });
     }
 
     public destroy() {
@@ -931,7 +928,6 @@ export class Legend {
 
         this.updateHighlight(newEnabled, datum, series);
 
-        this.ctx.legendManager.update();
         this.ctx.eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PROCESS_DATA,
             opts: { forceNodeDataRefresh: true, skipAnimations: datum.skipAnimations ?? false },
@@ -1005,7 +1001,6 @@ export class Legend {
             });
         }
 
-        this.ctx.legendManager.update();
         this.ctx.eventsHub.emit('chart:request-update', {
             type: ChartUpdateType.PROCESS_DATA,
             opts: { forceNodeDataRefresh: true },

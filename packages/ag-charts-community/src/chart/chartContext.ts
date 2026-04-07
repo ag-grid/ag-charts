@@ -141,8 +141,11 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
 
+        this.chartState.setValue('legendData', {});
+        this.chartState.setValue('legendVisible', true);
+
         this.axisManager = new AxisManager(this.eventsHub, root);
-        this.legendManager = new LegendManager(this.eventsHub);
+        this.legendManager = new LegendManager(this);
         this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();

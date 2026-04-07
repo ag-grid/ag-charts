@@ -27,7 +27,7 @@ import type {
 
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
-import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
+import type { ChartLegendType } from '../chart/legend/legendDatum';
 import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { UpdateOpts } from '../chart/updateService';
 import type { BBox } from '../scene/bbox';
@@ -96,8 +96,6 @@ export interface EventsHubMap {
     'highlight:change': HighlightChangeEvent;
     'highlight:selection-updated': HighlightSelectionUpdatedEvent;
     'layout:complete': LayoutCompleteEvent;
-    'legend:change': LegendChangeEvent;
-    'legend:change-partial': LegendChangePartialEvent;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
@@ -219,15 +217,6 @@ export interface LayoutCompleteEvent {
     readonly clipSeries: boolean;
     readonly axes: Readonly<Record<string, AxisLayout>>;
     readonly layoutBox: Readonly<BBox>;
-}
-
-export interface LegendChangeEvent {
-    legendData?: CategoryLegendDatum[];
-}
-
-export interface LegendChangePartialEvent {
-    seriesId: string;
-    legendData: CategoryLegendDatum[];
 }
 
 export interface LegendItemClickEvent {
