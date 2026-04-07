@@ -1131,7 +1131,7 @@ export class Legend {
 
     private onLocaleChanged() {
         this.updateItemSelection();
-        this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
+        this.domProxy.onLocaleChanged(this.itemSelection, this);
     }
 
     private positionLegend(ctx: LayoutContext) {
