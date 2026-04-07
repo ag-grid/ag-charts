@@ -63,7 +63,7 @@ jobs:
 
             # Ensure npm 11.5.1 or later is installed - required for OIDC
             - name: Update npm
-              run: npm install -g npm@latest
+              run: npm install -g npm@11
 
             - name: Sanity Check Versions
               run: |
