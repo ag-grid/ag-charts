@@ -42,7 +42,6 @@ import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
-import { UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
@@ -76,7 +75,6 @@ export class ChartContext implements ModuleContext {
     scene: Scene;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
-    updateService: UpdateService;
     widgets: WidgetSet;
     zoomManager: ZoomManager;
 
@@ -145,21 +143,14 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
-        this.updateService = new UpdateService();
-        this.activeManager = new ActiveManager(
-            this.chartService,
-            this.eventsHub,
-            this.updateService,
-            this.interactionManager,
-            fireEvent
-        );
+        this.activeManager = new ActiveManager(this.chartService, this.eventsHub, this.interactionManager, fireEvent);
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.eventsHub);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, this.updateService, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             if (!module.chartType || module.chartType === chartType) {

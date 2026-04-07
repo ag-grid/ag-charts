@@ -47,7 +47,7 @@ export async function waitForUpdate(chart: any): Promise<void> {
 
     return new Promise((resolve) => {
         if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== 7) {
-            const destroyFn = chart.ctx.updateService.addListener('update-complete', () => {
+            const destroyFn = chart.ctx.eventsHub.on('update:complete', () => {
                 resolve();
                 destroyFn();
             });

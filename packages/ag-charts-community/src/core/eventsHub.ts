@@ -28,14 +28,50 @@ import type {
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
-import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { UpdateOpts } from '../chart/updateService';
+import type { DatumIndexType, ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
+
+export interface UpdateCompleteEvent {
+    readonly type: 'update:complete';
+    readonly apiUpdate: boolean;
+    readonly wasShortcut: boolean;
+}
+
+export interface PreDomUpdateEvent {
+    readonly type: 'update:pre-dom';
+}
+
+export interface PreSeriesUpdateEvent {
+    readonly type: 'update:pre-series';
+    readonly requiredRangeRatio: number;
+    readonly requiredRangeDirection: ChartAxisDirection;
+    readonly requiredRange: number;
+}
+
+export interface PreSceneRenderEvent {
+    readonly type: 'update:pre-scene-render';
+    readonly apiUpdate: boolean;
+}
+
+export interface ProcessDataEvent {
+    readonly type: 'update:process-data';
+    readonly series: { shouldFlipXY?: boolean };
+}
+
+export interface UpdateOpts {
+    forceNodeDataRefresh?: boolean;
+    skipAnimations?: boolean;
+    newAnimationBatch?: boolean;
+    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
+    backOffMs?: number;
+    apiUpdate?: boolean;
+    clearCallbackCache?: boolean;
+}
 
 export interface SeriesAreaHoverEvent {
     readonly canvasX: number;
@@ -68,6 +104,11 @@ export interface DataModelDiffEvent {
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
+    'update:complete': UpdateCompleteEvent;
+    'update:pre-dom': PreDomUpdateEvent;
+    'update:pre-series': PreSeriesUpdateEvent;
+    'update:pre-scene-render': PreSceneRenderEvent;
+    'update:process-data': ProcessDataEvent;
     'active:update': AgActiveItemState | undefined;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:change': null;

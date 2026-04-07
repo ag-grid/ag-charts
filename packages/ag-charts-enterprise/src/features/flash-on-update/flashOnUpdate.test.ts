@@ -512,8 +512,8 @@ describe('FlashOnUpdate', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
 
-                // Click legend to toggle series visibility — this calls
-                // updateService.update() without apiUpdate: true
+                // Click legend to toggle series visibility — triggers
+                // a chart update without apiUpdate: true
                 animate(1200, ratio);
                 const { x, y } = computeLegendBBox(deproxy(chart));
                 await clickAction(x, y)(chart);
