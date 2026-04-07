@@ -49,10 +49,17 @@ jobs:
                   node-version-file: package.json
                   registry-url: 'https://registry.npmjs.org'
 
-            - name: Check verion
+            - name: Check verion 1
               run: |
                   npm -v
 
+            - name: Install
+              run: |
+                  npm install -g npm@11
+
+            - name: Check verion 2
+              run: |
+                  npm -v
 #            - name: Yarn
 #              run: |
 #                  yarn install --ci
@@ -104,3 +111,5 @@ jobs:
 #                    --private-key-path=$KEY_LOCATION \
 #                    --release-version=$RELEASE_VERSION \
 #                    --artifacts-path=./
+
+
