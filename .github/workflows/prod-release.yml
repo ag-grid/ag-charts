@@ -55,7 +55,7 @@ jobs:
 
             - name: Install
               run: |
-                  npm install -g npm@11
+                  npm install -g npm@11.5.1
 
             - name: Check verion 2
               run: |
