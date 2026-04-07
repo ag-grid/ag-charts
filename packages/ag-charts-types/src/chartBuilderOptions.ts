@@ -93,6 +93,7 @@ export type AgBaseFinancialPresetOptions<TDatum = DatumDefault> = Pick<
     | 'dataSource'
     | 'listeners'
     | 'formatter'
+    | 'enableRtl'
 >;
 
 export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparklineBaseThemeableOptions<TDatum> &
