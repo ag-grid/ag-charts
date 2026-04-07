@@ -107,10 +107,7 @@ export class CartesianChart extends Chart {
             this.syncStatus = 'domains-calculated';
         }
 
-        this.ctx.eventsHub.emit('update:process-data', {
-            type: 'update:process-data',
-            series: { shouldFlipXY: this.shouldFlipXY() },
-        });
+        this.ctx.eventsHub.emit('update:process-data', { series: { shouldFlipXY: this.shouldFlipXY() } });
     }
 
     override async processDomains() {

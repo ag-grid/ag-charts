@@ -818,7 +818,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.FULL:
                 if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
 
-                this.ctx.eventsHub.emit('update:pre-dom', { type: 'update:pre-dom' });
+                this.ctx.eventsHub.emit('update:pre-dom', null);
                 this.updateDOM();
             // fallthrough
 
@@ -893,10 +893,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
                 // Allow any additional pre-rendering processing to happen.
-                ctx.eventsHub.emit('update:pre-scene-render', {
-                    type: 'update:pre-scene-render',
-                    apiUpdate: this.apiUpdate,
-                });
+                ctx.eventsHub.emit('update:pre-scene-render', { apiUpdate: this.apiUpdate });
 
                 ctx.scene.updateBaseFont();
 
@@ -937,7 +934,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (!this.destroyed) {
             ctx.eventsHub.emit('update:complete', {
-                type: 'update:complete',
                 apiUpdate: this.apiUpdate,
                 wasShortcut: this.updateShortcutCount > 0,
             });
@@ -1425,7 +1421,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
         this.ctx.eventsHub.emit('update:pre-series', {
-            type: 'update:pre-series',
             requiredRangeRatio,
             requiredRangeDirection: this._requiredRangeDirection,
             requiredRange: _requiredRange,

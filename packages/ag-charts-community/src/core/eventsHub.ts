@@ -37,29 +37,21 @@ import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidge
 export type EventsHub = EventEmitter<EventsHubMap>;
 
 export interface UpdateCompleteEvent {
-    readonly type: 'update:complete';
     readonly apiUpdate: boolean;
     readonly wasShortcut: boolean;
 }
 
-export interface PreDomUpdateEvent {
-    readonly type: 'update:pre-dom';
-}
-
 export interface PreSeriesUpdateEvent {
-    readonly type: 'update:pre-series';
     readonly requiredRangeRatio: number;
     readonly requiredRangeDirection: ChartAxisDirection;
     readonly requiredRange: number;
 }
 
 export interface PreSceneRenderEvent {
-    readonly type: 'update:pre-scene-render';
     readonly apiUpdate: boolean;
 }
 
 export interface ProcessDataEvent {
-    readonly type: 'update:process-data';
     readonly series: { shouldFlipXY?: boolean };
 }
 
@@ -105,7 +97,7 @@ export interface DataModelDiffEvent {
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
     'update:complete': UpdateCompleteEvent;
-    'update:pre-dom': PreDomUpdateEvent;
+    'update:pre-dom': null;
     'update:pre-series': PreSeriesUpdateEvent;
     'update:pre-scene-render': PreSceneRenderEvent;
     'update:process-data': ProcessDataEvent;
