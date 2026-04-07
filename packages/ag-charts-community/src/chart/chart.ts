@@ -876,7 +876,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
-                ctx.chartState.flushChanges();
+                ctx.chartState.flushChanges('legendData');
                 await this.processLayout();
                 this.updateSplits('⌖');
             // fallthrough

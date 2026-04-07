@@ -114,14 +114,20 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
         this.dirtyKeys.add(key);
     }
 
-    flushChanges() {
+    flushChanges(key?: keyof StateMap) {
         if (this.isFlushing) return;
         this.isFlushing = true;
         try {
             const valueGetter = this.getValue.bind(this);
-            const snapshotKeys = new Set(this.dirtyKeys);
+            let snapshotKeys: Set<keyof StateMap>;
 
-            this.dirtyKeys.clear();
+            if (key == null) {
+                snapshotKeys = new Set(this.dirtyKeys);
+                this.dirtyKeys.clear();
+            } else {
+                snapshotKeys = new Set(this.dirtyKeys.has(key) ? [key] : []);
+                this.dirtyKeys.delete(key);
+            }
 
             for (const observer of this.collectObservers(snapshotKeys)) {
                 observer(valueGetter);
