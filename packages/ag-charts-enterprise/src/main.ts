@@ -27,6 +27,7 @@ export { FlashOnUpdateModule } from './features/flash-on-update/flashOnUpdateMod
 export { NavigatorModule } from './features/navigator/navigatorModule';
 export { ScrollbarModule } from './features/scrollbar/scrollbarModule';
 export { RangesModule } from './features/ranges/rangesModule';
+export { SelectionModule } from './features/data-selection/dataSelectionModule';
 export { StatusBarModule } from './features/status-bar/statusBarModule';
 export { SyncModule } from './features/sync/syncModule';
 export { ZoomModule } from './features/zoom/zoomModule';
