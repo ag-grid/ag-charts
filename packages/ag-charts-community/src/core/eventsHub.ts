@@ -96,11 +96,6 @@ export interface DataModelDiffEvent {
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
-    'update:complete': UpdateCompleteEvent;
-    'update:pre-dom': null;
-    'update:pre-series': PreSeriesUpdateEvent;
-    'update:pre-scene-render': PreSceneRenderEvent;
-    'update:process-data': ProcessDataEvent;
     'active:update': AgActiveItemState | undefined;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:change': null;
@@ -143,6 +138,11 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
+    'update:complete': UpdateCompleteEvent;
+    'update:pre-dom': null;
+    'update:pre-series': PreSeriesUpdateEvent;
+    'update:pre-scene-render': PreSceneRenderEvent;
+    'update:process-data': ProcessDataEvent;
     'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**
