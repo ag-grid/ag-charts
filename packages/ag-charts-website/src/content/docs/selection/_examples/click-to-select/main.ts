@@ -26,7 +26,7 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     selection: {
         enabled: true,
-        enabledClick: true,
+        enableClick: true,
     },
     tooltip: {
         enabled: false,
