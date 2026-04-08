@@ -1,11 +1,10 @@
 import { ChartAxisDirection, ChartUpdateType, CleanupRegistry, isFiniteNumber } from 'ag-charts-core';
 import type { ZoomMinMax } from 'ag-charts-core';
 
-import type { EventsHub } from '../../core/eventsHub';
+import type { EventsHub, UpdateCompleteEvent } from '../../core/eventsHub';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { ZoomManager } from '../interaction/zoomManager';
-import type { UpdateCompleteEvent, UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
@@ -19,7 +18,6 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly chart: ChartLike,
         private readonly eventsHub: EventsHub,
         private readonly dataService: DataService<D>,
-        private readonly updateService: UpdateService,
         private readonly zoomManager: ZoomManager,
         private readonly animationManager: AnimationManager
     ) {
@@ -27,7 +25,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
             this.eventsHub.on('data:source-change', () => this.onDataSourceChange()),
             this.eventsHub.on('data:load', () => this.onDataLoad()),
             this.eventsHub.on('data:error', () => this.onDataError()),
-            this.updateService.addListener('update-complete', (e) => this.onUpdateComplete(e)),
+            this.eventsHub.on('update:complete', (e) => this.onUpdateComplete(e)),
             this.eventsHub.on('zoom:change-complete', () => this.onZoomChange())
         );
     }

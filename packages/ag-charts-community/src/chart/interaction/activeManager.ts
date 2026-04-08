@@ -5,7 +5,6 @@ import type { AgActiveChangeEvent, AgActiveChangeEventSource, AgActiveItemState,
 import type { EventsHub } from '../../core/eventsHub';
 import { commonChartOptions } from '../chartOptionsDefs';
 import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
-import type { UpdateService } from '../updateService';
 import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
@@ -35,11 +34,10 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
     constructor(
         private readonly chartService: { readonly id: string },
         private readonly eventsHub: EventsHub,
-        updateService: UpdateService,
         private readonly interactionManager: InteractionManager,
         private readonly fireEvent: (event: ActiveChangeEvent) => void
     ) {
-        const removeListener: () => void = updateService.addListener('pre-scene-render', () => {
+        const removeListener: () => void = eventsHub.on('update:pre-scene-render', () => {
             this.didLayout = true;
             const { pendingMemento } = this;
             if (pendingMemento) {

@@ -11,6 +11,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
+    UpdateOpts,
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -48,7 +49,6 @@ import {
     type TooltipPaginationState,
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
-import type { UpdateOpts } from '../updateService';
 import { PickManager, type PickedNode, type PickedNodes, getItemId } from './pickManager';
 import {
     type PickFocusInputs,
@@ -257,8 +257,8 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('highlight:selection-updated', (event) => this.onHighlightSelectionUpdate(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
-            chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
-            chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
+            chart.ctx.eventsHub.on('update:pre-scene-render', () => this.preSceneRender()),
+            chart.ctx.eventsHub.on('update:complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
         );
