@@ -1,6 +1,6 @@
 import type { Scale } from 'ag-charts-core';
 import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
-import type { AgActiveItemState } from 'ag-charts-types';
+import type { AgActiveItemState, SelectionState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { BBox } from '../../scene/bbox';
@@ -254,6 +254,20 @@ export abstract class DataModelSeries<
             const xValue = xValues[datumIndex]?.valueOf();
             // Handle grouped category values
             if (objectsEqual(categoryValue, xValue)) return datumIndex;
+        }
+    }
+
+    protected getDataSelectionState(datumIndex: number): SelectionState | undefined {
+        const isSelected = this.data?.selections.get(this.id)?.isSelected(datumIndex);
+        switch (isSelected) {
+            case undefined:
+                return undefined;
+            case true:
+                return 'selected';
+            case false:
+                return 'unselected';
+            default:
+                return isSelected satisfies never; // unreachable
         }
     }
 }

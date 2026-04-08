@@ -25,6 +25,8 @@ export type HighlightState =
     | 'unhighlighted-series'
     | 'none';
 
+export type SelectionState = 'selected' | 'unselected';
+
 /**
  * Highlight states for hierarchical series (e.g., treemap, sunburst) that support
  * differentiating between nodes that share a root branch vs. those that don't.
@@ -41,6 +43,8 @@ export interface DatumCallbackParams<TDatum, THighlightState extends string = Hi
     seriesId: string;
     /** The specific highlight state of the element. */
     highlightState?: THighlightState;
+    /** The specific selection state of the element. Undefined if the selection module is disabled. */
+    selectionState?: SelectionState;
 }
 
 export interface SeriesCallbackParams<THighlightState extends string = HighlightState> {

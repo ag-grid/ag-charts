@@ -808,6 +808,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
                 datum: nodeDatum.datum,
                 highlightState,
+                selectionState: this.getDataSelectionState(nodeDatum.datumIndex),
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,
                 radiusName: properties.radiusName ?? properties.radiusKey,
