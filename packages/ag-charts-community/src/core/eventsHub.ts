@@ -77,6 +77,7 @@ export interface SeriesAreaClickEvent {
     readonly canvasY: number;
     readonly consumed: boolean;
     readonly sourceEvent: Event;
+    readonly clickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
 }
 
 export interface DataModelSeriesDiff {
