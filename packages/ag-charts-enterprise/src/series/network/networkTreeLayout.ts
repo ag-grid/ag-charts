@@ -7,7 +7,7 @@ import { NetworkLayout } from './networkLayout';
 export class NetworkTreeLayout extends NetworkLayout {
     constructor(
         private readonly verticalPadding = 40,
-        private readonly outerPadding = 0,
+        // private readonly outerPadding = 0,
         private readonly innerPadding = 10
     ) {
         super();
@@ -24,13 +24,7 @@ export class NetworkTreeLayout extends NetworkLayout {
             childBBox: _ModuleSupport.BBox
         ) => void
     ) {
-        const { containerBBox } = this.updateChildren(
-            graph,
-            vertices,
-            getDatumNodeBBox,
-            layoutDatumNode,
-            layoutLinkNode
-        );
+        this.updateChildren(graph, vertices, getDatumNodeBBox, layoutDatumNode, layoutLinkNode);
 
         // TODO: use `containerBBox` for global positioning of the network
     }

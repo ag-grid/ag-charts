@@ -1,0 +1,542 @@
+---
+title: 'Org Chart'
+enterprise: true
+---
+
+An Organisation Chart displays hierarchical relationships between people, departments, or entities as a
+tree of connected cards. Each card can contain structured content such as names, job titles, and images.
+
+{% chartExampleRunner title="Simple Org Chart" name="simple-org-chart" type="generated" /%}
+
+The Organisation Series is an enterprise feature and is created using the `organization` series type.
+
+## Basic Setup
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            data: [
+                { id: 'ceo', name: 'CEO', parentId: null },
+                { id: 'cto', name: 'CTO', parentId: 'ceo' },
+                { id: 'cfo', name: 'CFO', parentId: 'ceo' },
+                { id: 'dev', name: 'Dev Lead', parentId: 'cto' },
+                { id: 'qa', name: 'QA Lead', parentId: 'cto' },
+                { id: 'acc', name: 'Accountant', parentId: 'cfo' },
+            ],
+            idKey: 'id',
+            parentIdKey: 'parentId',
+        },
+    ],
+}
+```
+
+The `idKey` and `parentIdKey` properties define the parent-child relationships between nodes. Each row in the
+data represents a single node, with its parent identified by `parentIdKey`. The root node has a `null` parent.
+
+Sibling order follows the order nodes appear in the data array.
+
+## Data Model
+
+Each data row represents a node in the hierarchy. All node properties — names, titles, images — are included
+directly on the record alongside the `id` and `parentId` fields. The `image` field works like the
+[Image fill](/options/) options, accepting a URL string.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            data: [
+                { id: 1, name: 'Alice Chen', jobTitle: 'CEO', image: 'alice.png', parentId: null },
+                { id: 2, name: 'Bob Smith', jobTitle: 'CTO', image: 'bob.png', parentId: 1 },
+                { id: 3, name: 'Carol Wu', jobTitle: 'CFO', image: 'carol.png', parentId: 1 },
+                { id: 4, name: 'Dave Jones', jobTitle: 'Dev Lead', image: 'dave.png', parentId: 2 },
+                { id: 5, name: 'Eve Park', jobTitle: 'QA Lead', image: 'eve.png', parentId: 2 },
+            ],
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            title: { key: 'name' },
+            subtitle: { key: 'jobTitle' },
+            image: { key: 'image' },
+        },
+    ],
+}
+```
+
+When names are unique, they can serve as the ID directly — no separate numeric `id` field needed.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            data: [
+                { name: 'Alice Chen', jobTitle: 'CEO', image: 'alice.png', manager: null },
+                { name: 'Bob Smith', jobTitle: 'CTO', image: 'bob.png', manager: 'Alice Chen' },
+                { name: 'Carol Wu', jobTitle: 'CFO', image: 'carol.png', manager: 'Alice Chen' },
+                { name: 'Dave Jones', jobTitle: 'Dev Lead', image: 'dave.png', manager: 'Bob Smith' },
+                { name: 'Eve Park', jobTitle: 'QA Lead', image: 'eve.png', manager: 'Bob Smith' },
+            ],
+            idKey: 'name',
+            parentIdKey: 'manager',
+            title: { key: 'name' },
+            subtitle: { key: 'jobTitle' },
+            image: { key: 'image' },
+        },
+    ],
+}
+```
+
+## Node Presentation
+
+Each card in the chart can display a `title`, `subtitle`, additional `label` fields, and an `image`.
+
+{% tabs omitFromOverview=true %}
+
+{% tabItem id="image-left" label="Left" %}
+Organisation chart with images on the left of each card
+{% /tabItem %}
+
+{% tabItem id="image-top" label="Top" %}
+Organisation chart with images at the top of each card
+{% /tabItem %}
+
+{% tabItem id="image-right" label="Right" %}
+Organisation chart with images on the right of each card
+{% /tabItem %}
+
+{% tabItem id="image-bottom" label="Bottom" %}
+Organisation chart with images at the bottom of each card
+{% /tabItem %}
+
+{% /tabs %}
+
+### Title and Subtitle
+
+The `title` and `subtitle` are the primary text fields on each card.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            title: { key: 'name', fontSize: 16, fontWeight: 'bold' },
+            subtitle: { key: 'jobTitle', fontSize: 12, color: '#666' },
+        },
+    ],
+}
+```
+
+### Labels
+
+Additional information can be displayed using the `label` array. Each entry maps a data field via its
+`key` and is stacked vertically below the subtitle.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            title: { key: 'name' },
+            subtitle: { key: 'jobTitle' },
+            label: [
+                { key: 'department', fontSize: 11, color: '#888' },
+                { key: 'location', fontSize: 11, color: '#888' },
+            ],
+        },
+    ],
+}
+```
+
+Each label supports a `styler` callback for per-node text customisation.
+
+### Image
+
+Cards can include an image, such as a profile photo. The `image` property supports configuring the
+shape, size, and position within the card.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            image: {
+                key: 'photoUrl',
+                shape: 'circle',
+                width: 48,
+                height: 48,
+                position: 'left',
+            },
+        },
+    ],
+}
+```
+
+The `position` property controls where the image appears within the card. The `shape` can be
+`'circle'` or `'square'`.
+
+## Layout
+
+The chart uses a vertical (top-to-bottom) layout, with the root node at the top and children arranged
+below.
+
+Organisation chart with vertical (top to bottom) layout
+
+## Connectors
+
+Connectors are the lines drawn between parent and child nodes. They are configured through the `link`
+property and use orthogonal step routing by default.
+
+{% tabs omitFromOverview=true %}
+
+{% tabItem id="connector-elbow" label="Step" %}
+Organisation chart with step connectors using right-angle routing
+{% /tabItem %}
+
+{% tabItem id="connector-step-rounded" label="Step (Rounded)" %}
+Organisation chart with step connectors using rounded corners
+{% /tabItem %}
+
+{% /tabs %}
+
+The `cornerRadius` property rounds the corners where the horizontal line drops down toward children.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            link: {
+                interpolation: {
+                    type: 'step',
+                    cornerRadius: 8,
+                },
+            },
+        },
+    ],
+}
+```
+
+### Connector Styling
+
+Connectors can be styled globally or per-connector using the `link.itemStyler` callback.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            link: {
+                stroke: '#999',
+                strokeWidth: 2,
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Engineering') {
+                        return { stroke: '#43A047' };
+                    }
+                },
+            },
+        },
+    ],
+}
+```
+
+The `itemStyler` callback receives the parent and child data for each connector, allowing
+conditional styling based on relationship data.
+
+## Collapse and Expand
+
+Nodes with children can be collapsed and expanded by clicking. Non-leaf nodes display a visual
+indicator to show that they can be expanded or collapsed.
+
+{% note %}
+The exact visual design of the expand/collapse indicator (badge, pill, or chevron) is still being
+finalised. An indicator will be present at launch to distinguish leaf nodes from non-leaf nodes.
+{% /note %}
+
+{% tabs omitFromOverview=true %}
+
+{% tabItem id="state-expanded" label="Expanded" %}
+Organisation chart with all nodes expanded
+{% /tabItem %}
+
+{% tabItem id="state-collapsed" label="Collapsed" %}
+Organisation chart with collapsed nodes
+{% /tabItem %}
+
+{% /tabs %}
+
+### Initial State
+
+The `initialState.collapsed` property controls which nodes start collapsed when the chart first renders.
+By default, all nodes are expanded. Provide a list of node IDs whose subtrees should be hidden.
+
+This uses the same state format as `getState()` and `setState()` described below.
+
+```js format="snippet"
+{
+    initialState: {
+        collapsed: ['finance', 'hr'],
+    },
+    series: [
+        {
+            type: 'organization',
+        },
+    ],
+}
+```
+
+The `collapsed` set can include leaf node IDs — this has no visible effect, but if children are later
+added to that node via a data update, it will already be collapsed.
+
+### Programmatic Control
+
+The chart state can be read and updated programmatically using `getState()` and `setState()`.
+The state format is the same as `initialState`. `setState()` performs a full replacement — to toggle
+a single node, read the current state, modify the array, then set it back.
+
+```js
+// Read the current expand/collapse state
+const state = chart.getState();
+// state.collapsed = ['finance', 'hr']
+
+// Collapse a specific subtree
+chart.setState({ collapsed: ['finance', 'hr', 'marketing'] });
+```
+
+### Active Item Auto-Expand
+
+When a node is set as the active item programmatically (via `initialState.active`), all its collapsed
+ancestors are automatically expanded and the viewport pans to centre on it. This enables deep-linking
+to a specific person in a large chart.
+
+## Tooltips
+
+Tooltips are disabled by default. When enabled, they display all label fields for the hovered node.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            tooltip: {
+                enabled: true,
+            },
+        },
+    ],
+}
+```
+
+A `tooltip.renderer` callback can be used for custom formatting. The renderer receives the node's
+`datum`, `depth`, `childCount`, and all configured label values.
+
+## Event Handling
+
+The `nodeClick` event fires when a node card is clicked, providing the node's data and tree context.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            listeners: {
+                nodeClick: (event) => {
+                    console.log('Clicked:', event.datum);
+                    console.log('Depth:', event.depth);
+                    console.log('Expanded:', event.isExpanded);
+                    console.log('Children:', event.childCount);
+                },
+            },
+        },
+    ],
+}
+```
+
+The event payload includes:
+
+-   `datum` — The data object for the clicked node.
+-   `depth` — The depth of the node in the tree (root = 0).
+-   `isExpanded` — Whether the node is currently expanded.
+-   `childCount` — The number of direct children.
+
+## Customisation
+
+### Node Styling
+
+The `itemStyler` callback provides per-node visual customisation based on data and tree state.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            itemStyler: ({ datum, depth, isExpanded }) => {
+                if (depth === 0) {
+                    return { fill: '#1565C0', stroke: '#0D47A1' };
+                }
+                if (datum.department === 'Engineering') {
+                    return { fill: '#E8F5E9', stroke: '#43A047' };
+                }
+            },
+        },
+    ],
+}
+```
+
+The callback receives:
+
+-   `datum` — The node's data object.
+-   `depth` — The node's depth in the tree.
+-   `isExpanded` — Whether the node is expanded.
+
+It can return: `fill`, `stroke`, `strokeWidth`, `opacity`, `cornerRadius`, `lineDash`.
+
+### Label Styling
+
+Each label in the `label` array supports a `styler` callback for per-node text customisation.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            label: [
+                {
+                    key: 'department',
+                    styler: ({ datum }) => {
+                        if (datum.department === 'Engineering') {
+                            return { color: '#2E7D32', fontWeight: 'bold' };
+                        }
+                    },
+                },
+            ],
+        },
+    ],
+}
+```
+
+## Navigation
+
+Large organisation charts often exceed the visible area. Click and drag on the chart background to pan
+across the hierarchy.
+
+The viewport automatically centres on the root node when the chart first renders. After expanding or
+collapsing a node, the view adjusts to keep the interacted node visible.
+
+## Keyboard Navigation
+
+Organisation Charts support full keyboard navigation. Arrow keys map to the visual layout of the tree:
+
+| Key       | Action                            |
+| --------- | --------------------------------- |
+| **Up**    | Move to parent                    |
+| **Down**  | Move to first child (if expanded) |
+| **Left**  | Move to previous sibling          |
+| **Right** | Move to next sibling              |
+| **Enter** | Toggle expand/collapse            |
+
+Screen readers announce the node content and sibling position (e.g. "3 of 5").
+
+## API Reference
+
+```js
+interface AgOrganizationSeriesOptions {
+    type: 'organization';
+
+    /** Array of node records. Each record represents one node in the hierarchy. */
+    data?: object[];
+    /** Key in data for the unique node identifier. Default: `'id'`. */
+    idKey?: string;
+    /** Key in data for the parent node identifier. Default: `'parentId'`. */
+    parentIdKey?: string;
+
+    /** Primary text field, always visible. */
+    title?: {
+        key: string;
+        fontSize?: number;
+        fontWeight?: CSSFontWeight;
+        fontFamily?: string;
+        color?: string;
+        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
+    };
+    /** Secondary text field, always visible. */
+    subtitle?: {
+        key: string;
+        fontSize?: number;
+        fontWeight?: CSSFontWeight;
+        fontFamily?: string;
+        color?: string;
+        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
+    };
+    /** Additional text fields. */
+    label?: Array<{
+        key: string;
+        fontSize?: number;
+        fontWeight?: CSSFontWeight;
+        fontFamily?: string;
+        color?: string;
+        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
+    }>;
+    /** Image displayed within each card. */
+    image?: {
+        /** Key in node data for the image URL. */
+        key: string;
+        /** Shape of the image mask. Default: `'square'`. */
+        shape?: 'circle' | 'square';
+        /** Width of the image in pixels. */
+        width?: number;
+        /** Height of the image in pixels. */
+        height?: number;
+        /** How the image fills its container. Default: `'cover'`. */
+        fit?: 'cover' | 'contain' | 'fill';
+        /** Position of the image within the card. Default: `'left'`. */
+        position?: 'top' | 'left' | 'bottom' | 'right';
+    };
+
+    /** Minimum width of each node card (pixels). */
+    minWidth?: number;
+    /** Maximum width of each node card (pixels). */
+    maxWidth?: number;
+    /** Fixed height of each node card (pixels). */
+    height?: number;
+    /** Maximum height of each node card (pixels). */
+    maxHeight?: number;
+    /** Minimum spacing between nodes (pixels). */
+    minSpacing?: number;
+
+    /** Connector line configuration. */
+    link?: {
+        interpolation?: {
+            /** Connector shape. Default: `'step'`. */
+            type?: 'step';
+            /** Corner rounding (pixels). */
+            cornerRadius?: number;
+        };
+        stroke?: string;
+        strokeWidth?: number;
+        lineDash?: number[];
+        /** Per-connector styling callback. */
+        itemStyler?: (params: OrganizationLinkStylerParams) => OrganizationLinkStyle;
+    };
+
+    /** Initial expand/collapse state. Same format as getState()/setState(). */
+    initialState?: {
+        /** Node IDs to collapse. Their subtrees are hidden. All other nodes are expanded by default. */
+        collapsed?: Array<string | number>;
+    };
+
+    tooltip?: {
+        /** Whether to show tooltips on node hover. Default: `false`. */
+        enabled?: boolean;
+    };
+
+    /** Per-node card styling callback. */
+    itemStyler?: (params: OrganizationItemStylerParams) => OrganizationItemStyle;
+
+    listeners?: {
+        /** Fired when a node card is clicked. */
+        nodeClick?: (event: OrganizationNodeClickEvent) => void;
+    };
+}
+```
