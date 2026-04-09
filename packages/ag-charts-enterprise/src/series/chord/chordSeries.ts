@@ -445,6 +445,7 @@ export class ChordSeries extends FlowProportionSeries<
         style: Required<AgChordSeriesNodeStyle>
     ) {
         const { id: seriesId } = this;
+        const { fromKey, toKey, sizeKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -458,6 +459,9 @@ export class ChordSeries extends FlowProportionSeries<
             size,
             label,
             fill,
+            fromKey,
+            toKey,
+            sizeKey,
         } satisfies CallbackParamRules<AgChordSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 

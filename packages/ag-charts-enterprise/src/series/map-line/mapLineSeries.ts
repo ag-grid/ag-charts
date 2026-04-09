@@ -498,12 +498,17 @@ export class MapLineSeries
         style: Required<AgMapLineSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { sizeKey, idKey, labelKey, colorKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
         return {
             seriesId,
+            sizeKey,
+            idKey,
+            labelKey,
+            colorKey,
             datum,
             highlightState,
             ...style,

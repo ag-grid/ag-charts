@@ -800,6 +800,7 @@ export class MapMarkerSeries
         style: Required<AgMapMarkerSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -808,6 +809,12 @@ export class MapMarkerSeries
         return {
             seriesId,
             datum,
+            sizeKey,
+            idKey,
+            labelKey,
+            colorKey,
+            latitudeKey,
+            longitudeKey,
             highlightState,
             ...style,
             fill,

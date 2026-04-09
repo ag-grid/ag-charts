@@ -584,6 +584,7 @@ export class MapShapeSeries
         style: Required<AgMapShapeSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { idKey, labelKey, colorKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -592,6 +593,9 @@ export class MapShapeSeries
         return {
             seriesId,
             datum,
+            idKey,
+            labelKey,
+            colorKey,
             highlightState,
             ...style,
             fill,
