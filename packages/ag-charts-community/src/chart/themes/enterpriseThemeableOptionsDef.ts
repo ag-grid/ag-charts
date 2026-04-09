@@ -10,6 +10,7 @@ import {
     colorScaleOptionsDef,
     colorUnion,
     commonSeriesThemeableOptionsDefs,
+    defined,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -20,6 +21,7 @@ import {
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
+    overflowStrategy,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -29,6 +31,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    textWrap,
     tooltipOptionsDefs,
     union,
     without,
@@ -388,6 +391,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 
 export const organisationSeriesThemeableOptionsDef: OptionsDefs<AgOrganisationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
+    node: defined,
     tooltip: tooltipOptionsDefs,
 };
 
@@ -671,15 +675,15 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             spacing: positiveNumber,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
-            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-            overflowStrategy: union('ellipsis', 'hide'),
+            wrapping: textWrap,
+            overflowStrategy: overflowStrategy,
         },
         secondaryLabel: {
             ...seriesLabelOptionsDefs,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
-            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-            overflowStrategy: union('ellipsis', 'hide'),
+            wrapping: textWrap,
+            overflowStrategy: overflowStrategy,
         },
         highlight: {
             highlightedItem: hierarchyHighlightStyleOptionsDef,

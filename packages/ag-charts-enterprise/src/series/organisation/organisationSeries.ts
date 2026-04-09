@@ -1,34 +1,17 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Property, Vertex } from 'ag-charts-core';
+import { Vertex } from 'ag-charts-core';
 
 import {
     AbstractNetworkSeries,
     type NetworkLinkDatum,
     type NetworkLinkNode,
     type NetworkSeriesDatum,
-    NetworkSeriesProperties,
 } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import { type OrganisationEdge, OrganisationGraph, type OrganisationVertex } from './organisationGraph';
+import { OrganisationSeriesProperties } from './organisationSeriesProperties';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
-
-class OrganisationSeriesProperties extends NetworkSeriesProperties {
-    @Property
-    idKey: string = 'id';
-
-    @Property
-    parentIdKey: string = 'parentId';
-
-    @Property
-    titleKey: string = 'title';
-
-    @Property
-    subtitleKey: string = 'subtitle';
-
-    @Property
-    labelsKey: string = 'labels';
-}
 
 interface OrganisationDatum extends NetworkSeriesDatum<OrganisationVertex, OrganisationEdge> {
     datum: { title?: string; subtitle?: string; labels?: string[] };
@@ -68,7 +51,14 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         const { data } = this;
         if (data == null) return;
 
-        const { idKey, parentIdKey, titleKey, subtitleKey, labelsKey } = this.properties;
+        const {
+            idKey,
+            parentIdKey,
+            node: {
+                title: { key: titleKey },
+                subtitle: { key: subtitleKey },
+            },
+        } = this.properties;
 
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
@@ -80,7 +70,7 @@ export class OrganisationSeries extends AbstractNetworkSeries<
                     allowNullKey: true,
                     missingValue: undefined,
                 }),
-                valueProperty(labelsKey, undefined, { id: 'labelsValue', allowNullKey: true, missingValue: undefined }),
+                // valueProperty(labelsKey, undefined, { id: 'labelsValue', allowNullKey: true, missingValue: undefined }),
             ],
         });
 
@@ -117,37 +107,62 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     }
 
     updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>) {
-        const width = 180;
-        const height = 100;
+        const padding = 20;
+
+        const { node: nodeProps } = this.properties;
+        const { title, subtitle } = this.properties.node;
 
         datumSelection.each((node, datum) => {
             const shapeNode = new _ModuleSupport.Rect();
             node.appendChild(shapeNode);
-            shapeNode.fill = '#ffffff99';
-            shapeNode.stroke = '#2d58fa';
-            shapeNode.strokeWidth = 2;
-            shapeNode.cornerRadius = 12;
+            shapeNode.fill = nodeProps.fill;
+            shapeNode.stroke = nodeProps.stroke;
+            shapeNode.strokeWidth = nodeProps.strokeWidth;
+            shapeNode.cornerRadius = nodeProps.cornerRadius;
+
+            let y = padding;
 
             const titleNode = new _ModuleSupport.Text();
             node.appendChild(titleNode);
             titleNode.text = datum.datum.title;
-            titleNode.fontSize = 14;
-            titleNode.textAlign = 'center';
-            titleNode.textBaseline = 'middle';
-            titleNode.x = width / 2;
-            titleNode.y = height / 2;
+            titleNode.fontSize = title.fontSize;
+            titleNode.fontWeight = title.fontWeight;
+            titleNode.textAlign = 'left';
+            titleNode.textBaseline = 'top';
+            titleNode.x = padding;
+            titleNode.y = y;
 
-            // const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode]).grow(30);
+            const subtitleNode = new _ModuleSupport.Text();
+            node.appendChild(subtitleNode);
+            subtitleNode.text = datum.datum.subtitle;
+            subtitleNode.fontSize = 12;
+            subtitleNode.fontWeight = 'normal';
+            subtitleNode.textAlign = 'left';
+            subtitleNode.textBaseline = 'top';
+            subtitleNode.x = padding;
+            subtitleNode.y = y += titleNode.getBBox().height + title.spacing;
+
+            const labelNode = new _ModuleSupport.Text();
+            node.appendChild(labelNode);
+            labelNode.text = 'London HQ';
+            labelNode.fontSize = 11;
+            labelNode.fontWeight = 'normal';
+            labelNode.textAlign = 'left';
+            labelNode.textBaseline = 'top';
+            labelNode.x = padding;
+            labelNode.y = y += subtitleNode.getBBox().height + subtitle.spacing;
+
+            const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode, subtitleNode, labelNode]).grow(padding);
+
+            // shapeNode.x = 0;
+            // shapeNode.y = 0;
+            // shapeNode.width = width;
+            // shapeNode.height = height;
 
             shapeNode.x = 0;
             shapeNode.y = 0;
-            shapeNode.width = width;
-            shapeNode.height = height;
-
-            // shapeNode.x = bbox.x;
-            // shapeNode.y = bbox.y;
-            // shapeNode.width = bbox.width;
-            // shapeNode.height = bbox.height;
+            shapeNode.width = bbox.width;
+            shapeNode.height = bbox.height;
         });
     }
 
@@ -157,7 +172,7 @@ export class OrganisationSeries extends AbstractNetworkSeries<
             path.visible = false;
 
             path.fill = 'transparent';
-            path.stroke = '#333';
+            path.stroke = '#999';
             path.strokeWidth = 2;
 
             node.appendChild(path);
@@ -180,10 +195,12 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         const parentIdValues = dataModel.resolveColumnById(this, 'parentIdValue', processedData);
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
-        const labelsValues = dataModel.resolveColumnById(this, 'labelsValue', processedData);
+        // const labelsValues = dataModel.resolveColumnById(this, 'labelsValue', processedData);
+
+        console.log(idValues, parentIdValues, titleValues, subtitleValues);
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
-        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, labelsValues, this.rootVertex);
+        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, [], this.rootVertex);
     }
 
     private createNodeDataFromVertex(

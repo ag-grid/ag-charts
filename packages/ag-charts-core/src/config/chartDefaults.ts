@@ -76,9 +76,11 @@ import {
     highlightOptionsDef,
     labelBoxOptionsDef,
     lineDashOptionsDef,
+    overflowStrategy,
     padding,
     shapeHighlightOptionsDef,
     strokeOptionsDef,
+    textWrap,
 } from './optionsDefaults';
 
 const legendPlacementLiterals: readonly AgChartLegendPlacement[] = [
@@ -133,7 +135,7 @@ export const shapeValidator = or(
     union('circle', 'cross', 'diamond', 'heart', 'plus', 'pin', 'square', 'star', 'triangle'),
     callback
 );
-const textWrapValidator = union('never', 'always', 'hyphenate', 'on-space');
+
 const tooltipPlacementValidator = union(
     'top',
     'right',
@@ -164,7 +166,7 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     enabled: boolean,
     text: textOrSegments,
     textAlign: union('left', 'center', 'right'),
-    wrapping: union('never', 'always', 'hyphenate', 'on-space'),
+    wrapping: textWrap,
     spacing: positiveNumber,
     maxWidth: positiveNumber,
     maxHeight: positiveNumber,
@@ -466,7 +468,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         pagination: boolean,
         delay: positiveNumber,
         range: rangeValidator,
-        wrapping: textWrapValidator,
+        wrapping: textWrap,
         mode: union('single', 'shared', 'compact'),
         position: {
             anchorTo: union('pointer', 'node', 'chart'),
@@ -710,8 +712,8 @@ export const autoSizedLabelOptionsDefs: OptionsDefs<AgChartAutoSizedBaseLabelOpt
     ...seriesLabelOptionsDefs,
     lineHeight: positiveNumber,
     minimumFontSize: positiveNumber,
-    wrapping: textWrapValidator,
-    overflowStrategy: union('ellipsis', 'hide'),
+    wrapping: textWrap,
+    overflowStrategy: overflowStrategy,
 };
 
 export const errorBarThemeableOptionsDefs: OptionsDefs<AgErrorBarThemeableOptions> = {

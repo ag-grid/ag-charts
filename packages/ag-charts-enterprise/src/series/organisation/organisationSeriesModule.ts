@@ -1,27 +1,9 @@
-import { type AgOrganisationSeriesOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import {
-    type OptionsDefs,
-    type SeriesModuleDefinition,
-    commonSeriesOptionsDefs,
-    constant,
-    required,
-    string,
-} from 'ag-charts-core';
+import { type AgOrganisationSeriesOptions, VERSION } from 'ag-charts-community';
+import { type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { OrganisationSeries } from './organisationSeries';
-
-const organisationSeriesOptionsDef: OptionsDefs<AgOrganisationSeriesOptions> = {
-    ...commonSeriesOptionsDefs,
-    ..._ModuleSupport.organisationSeriesThemeableOptionsDef,
-    type: required(constant('organization')),
-    idKey: string,
-    parentIdKey: string,
-    titleKey: string,
-    subtitleKey: string,
-    labelsKey: string,
-};
-
-const organisationSeriesTheme = {};
+import { organisationSeriesOptionsDef } from './organisationSeriesOptionsDef';
+import { organisationSeriesTheme } from './organisationSeriesTheme';
 
 export const OrganisationSeriesModule: SeriesModuleDefinition<AgOrganisationSeriesOptions> = {
     type: 'series',

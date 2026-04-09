@@ -368,6 +368,10 @@ export const fontOptionsDef: OptionsDefs<TextOptions> = {
     fontWeight: fontWeight,
 };
 
+export const textWrap = union('never', 'always', 'hyphenate', 'on-space');
+
+export const overflowStrategy = union('ellipsis', 'hide');
+
 export const paddingOptions = optionsDefs<PaddingOptions>(
     { top: number, right: number, bottom: number, left: number },
     'padding object'
