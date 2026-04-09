@@ -647,6 +647,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yKey,
             colorKey,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgHeatmapSeriesItemStylerParams>;

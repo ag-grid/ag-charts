@@ -784,6 +784,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 isHighlight,
                 datumIndex
             ),
+            selectionState: this.getDataSelectionState(datumIndex),
             seriesId: this.id,
         } satisfies CallbackParamRules<
             AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>

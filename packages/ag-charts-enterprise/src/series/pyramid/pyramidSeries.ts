@@ -547,6 +547,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageKey,
             valueKey,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgPyramidSeriesItemStylerParams<unknown, unknown>>;

@@ -455,6 +455,7 @@ export class ChordSeries extends FlowProportionSeries<
             seriesId,
             datum,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             size,
             label,

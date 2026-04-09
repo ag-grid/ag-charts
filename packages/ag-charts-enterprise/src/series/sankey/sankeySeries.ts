@@ -852,6 +852,7 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             size,
             label,
