@@ -8,6 +8,11 @@ export abstract class NetworkLayout {
         graph: NetworkGraph<any, any>,
         vertices: Vertex<any, any>[],
         getDatumNodeBBox: (vertex: Vertex<any, any>) => _ModuleSupport.BBox | undefined,
-        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: _ModuleSupport.BBox) => void
+        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: _ModuleSupport.BBox) => void,
+        layoutLinkNode: (
+            vertex: Vertex<any, any>,
+            parentBBox: _ModuleSupport.BBox,
+            childBBox: _ModuleSupport.BBox
+        ) => void
     ): void;
 }

@@ -1,7 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { Property, Vertex } from 'ag-charts-core';
 
-import { AbstractNetworkSeries, type NetworkSeriesDatum, NetworkSeriesProperties } from '../network/networkSeries';
+import {
+    AbstractNetworkSeries,
+    type NetworkLinkDatum,
+    type NetworkLinkNode,
+    type NetworkSeriesDatum,
+    NetworkSeriesProperties,
+} from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import { type OrganisationEdge, OrganisationGraph, type OrganisationVertex } from './organisationGraph';
 
@@ -111,6 +117,9 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     }
 
     updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>) {
+        const width = 180;
+        const height = 100;
+
         datumSelection.each((node, datum) => {
             const shapeNode = new _ModuleSupport.Rect();
             node.appendChild(shapeNode);
@@ -123,13 +132,35 @@ export class OrganisationSeries extends AbstractNetworkSeries<
             node.appendChild(titleNode);
             titleNode.text = datum.datum.title;
             titleNode.fontSize = 14;
+            titleNode.textAlign = 'center';
+            titleNode.textBaseline = 'middle';
+            titleNode.x = width / 2;
+            titleNode.y = height / 2;
 
-            const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode]).grow(30);
+            // const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode]).grow(30);
 
-            shapeNode.x = bbox.x;
-            shapeNode.y = bbox.y;
-            shapeNode.width = bbox.width;
-            shapeNode.height = bbox.height;
+            shapeNode.x = 0;
+            shapeNode.y = 0;
+            shapeNode.width = width;
+            shapeNode.height = height;
+
+            // shapeNode.x = bbox.x;
+            // shapeNode.y = bbox.y;
+            // shapeNode.width = bbox.width;
+            // shapeNode.height = bbox.height;
+        });
+    }
+
+    updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>) {
+        linkSelection.each((node) => {
+            const path = new _ModuleSupport.Path();
+            path.visible = false;
+
+            path.fill = 'transparent';
+            path.stroke = '#333';
+            path.strokeWidth = 2;
+
+            node.appendChild(path);
         });
     }
 

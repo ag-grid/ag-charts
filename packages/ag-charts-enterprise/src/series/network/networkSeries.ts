@@ -1,5 +1,5 @@
 import { type AgActiveItemState, _ModuleSupport } from 'ag-charts-community';
-import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } from 'ag-charts-core';
+import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vec2, Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
@@ -24,6 +24,9 @@ export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
         NetworkSeriesDatumIndex,
         NetworkSeriesDatum<NetworkVertex, TNetworkEdge>
     > {}
+
+export type NetworkLinkNode = _ModuleSupport.TranslatableGroup;
+export interface NetworkLinkDatum {}
 
 /**
  *
@@ -50,13 +53,20 @@ export abstract class AbstractNetworkSeries<
     protected readonly layout: TLayout;
 
     protected readonly dataNodeGroup = this.contentGroup.appendChild(
-        new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 1 })
+        new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 2 })
+    );
+
+    protected readonly linkGroup = this.contentGroup.appendChild(
+        new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
     );
 
     protected readonly datumSelection: _ModuleSupport.Selection<TNode, TDatum> = _ModuleSupport.Selection.select(
         this.dataNodeGroup,
         () => this.nodeFactory()
     );
+
+    protected readonly linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum> =
+        _ModuleSupport.Selection.select(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
@@ -71,6 +81,10 @@ export abstract class AbstractNetworkSeries<
     abstract createNetworkLayout(): TLayout;
 
     abstract nodeFactory(): TNode;
+
+    private linkFactory(): NetworkLinkNode {
+        return new _ModuleSupport.TranslatableGroup();
+    }
 
     dataCount() {
         return this.graph.getVertexCount();
@@ -92,25 +106,39 @@ export abstract class AbstractNetworkSeries<
         if (!this.contextNodeData) return;
 
         this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
+        this.updateLinkSelection(this.contextNodeData.nodeData as TDatum[], this.linkSelection);
     }
 
     abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
 
+    private updateLinkSelection(
+        nodeData: TDatum[],
+        linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>
+    ) {
+        linkSelection.update(nodeData);
+    }
+
     private updateNodes() {
         this.updateDatumNodes(this.datumSelection);
+        this.updateLinkNodes(this.linkSelection);
         this.layout.update(
             this.graph,
             this.getRootVertices(),
             this.getDatumNodeBBox.bind(this),
-            this.layoutDatumNode.bind(this)
+            this.layoutDatumNode.bind(this),
+            this.layoutLinkNode.bind(this)
         );
     }
 
     abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
+    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>): void;
 
     private getDatumNodeBBox(vertex: Vertex<any, any>) {
         const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
         if (typeof datumIndex !== 'number') return;
+
+        const group = this.datumSelection.at(datumIndex) as _ModuleSupport.Group | undefined;
+        if (!group) return;
 
         return this.datumSelection.at(datumIndex)?.getBBox();
     }
@@ -120,6 +148,35 @@ export abstract class AbstractNetworkSeries<
         if (typeof datumIndex !== 'number') return;
 
         this.positionDatumNode(this.datumSelection.at(datumIndex)!, groupBBox);
+    }
+
+    private layoutLinkNode(
+        vertex: Vertex<TVertex, TEdge>,
+        parentBBox: _ModuleSupport.BBox,
+        childBBox: _ModuleSupport.BBox
+    ) {
+        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
+        if (typeof datumIndex !== 'number') return;
+
+        const link = this.linkSelection.at(datumIndex);
+        if (!link) return;
+
+        const path = link.children().next().value as _ModuleSupport.Path | undefined;
+        if (!path) return;
+
+        const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height);
+        const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
+        const elbowDist = Vec2.from(0, (end.y - start.y) / 2);
+
+        const elbow1 = Vec2.add(start, elbowDist);
+        const elbow2 = Vec2.sub(end, elbowDist);
+
+        path.path.moveTo(start.x, start.y);
+        path.path.lineTo(elbow1.x, elbow1.y);
+        path.path.lineTo(elbow2.x, elbow2.y);
+        path.path.lineTo(end.x, end.y);
+
+        path.visible = true;
     }
 
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
