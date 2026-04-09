@@ -1,5 +1,6 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     Logger,
     type RequireOptional,
     angleBetween,
@@ -12,7 +13,12 @@ import {
     toPlainText,
     wrapText,
 } from 'ag-charts-core';
-import type { AgChordSeriesLabelFormatterParams, AgChordSeriesNodeStyle, AgChordSeriesOptions } from 'ag-charts-types';
+import type {
+    AgChordSeriesLabelFormatterParams,
+    AgChordSeriesNodeItemStylerParams,
+    AgChordSeriesNodeStyle,
+    AgChordSeriesOptions,
+} from 'ag-charts-types';
 
 import { FlowProportionDatumType } from '../flow-proportion/flowDatumIndex';
 import type { FlowProportionNodeDatumIndex } from '../flow-proportion/flowDatumIndex';
@@ -452,7 +458,7 @@ export class ChordSeries extends FlowProportionSeries<
             size,
             label,
             fill,
-        };
+        } satisfies CallbackParamRules<AgChordSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
     protected updateNodeNodes(opts: {

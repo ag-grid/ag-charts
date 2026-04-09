@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
@@ -15,7 +16,13 @@ import {
     normalizeAngle360,
     toPlainText,
 } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
+import type {
+    AgSunburstSeriesItemStylerParams,
+    AgSunburstSeriesOptions,
+    AgSunburstSeriesStyle,
+    FontStyle,
+    FontWeight,
+} from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -211,7 +218,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgSunburstSeriesItemStylerParams<unknown, unknown>>;
     }
 
     updateNodes() {

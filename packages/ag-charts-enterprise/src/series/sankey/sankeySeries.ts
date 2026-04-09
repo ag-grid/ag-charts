@@ -1,5 +1,6 @@
 import {
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type FillOptions,
@@ -8,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     Logger,
     type RequireOptional,
     TextMeasurer,
@@ -850,7 +852,7 @@ export class SankeySeries extends FlowProportionSeries<
             size,
             label,
             fill,
-        };
+        } satisfies CallbackParamRules<AgSankeySeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
     protected updateNodeNodes(opts: {

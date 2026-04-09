@@ -1,4 +1,5 @@
 import type {
+    AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
@@ -10,6 +11,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
     type InternalAgColorType,
@@ -646,7 +648,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgHeatmapSeriesItemStylerParams>;
     }
 
     protected override updateDatumStyles({

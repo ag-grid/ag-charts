@@ -1,5 +1,6 @@
 import {
     type AgTreemapHighlightState,
+    type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesOptions,
     type AgTreemapSeriesStyle,
@@ -11,6 +12,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type DistantObject,
     type InternalAgColorType,
     type Point,
@@ -386,7 +388,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgTreemapSeriesItemStylerParams<unknown, unknown>>;
     }
 
     override updateSelections() {

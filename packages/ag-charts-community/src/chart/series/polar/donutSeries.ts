@@ -1,4 +1,5 @@
 import {
+    type CallbackParamRules,
     ChartAxisDirection,
     ChartUpdateType,
     DebugMetrics,
@@ -26,10 +27,12 @@ import type {
     AgDonutCalloutLineItemStylerParams,
     AgDonutCalloutLineItemStylerResult,
     AgDonutSeriesCalloutOptions,
+    AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgDrawingMode,
+    AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
     TextOrSegments,
@@ -782,7 +785,9 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
                 datumIndex
             ),
             seriesId: this.id,
-        };
+        } satisfies CallbackParamRules<
+            AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
+        >;
     }
 
     private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {

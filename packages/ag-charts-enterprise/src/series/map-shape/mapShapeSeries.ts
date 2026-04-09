@@ -1,5 +1,13 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    Feature,
+    FeatureCollection,
+    Geometry,
+    ITextMeasurer,
+    Point,
+    Position,
+} from 'ag-charts-core';
 import {
     Logger,
     cachedTextMeasurer,
@@ -12,6 +20,7 @@ import {
 } from 'ag-charts-core';
 import type {
     AgDrawingMode,
+    AgMapShapeSeriesItemStylerParams,
     AgMapShapeSeriesLabelFormatterParams,
     AgMapShapeSeriesOptions,
     AgMapShapeSeriesStyle,
@@ -586,7 +595,7 @@ export class MapShapeSeries
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgMapShapeSeriesItemStylerParams>;
     }
 
     private updateDatumStyles({

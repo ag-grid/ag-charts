@@ -1,5 +1,5 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
+import type { CallbackParamRules, Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
 import {
     type ITextMeasurer,
     Logger,
@@ -9,7 +9,12 @@ import {
     formatValue,
     mergeDefaults,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
+import type {
+    AgDrawingMode,
+    AgMapLineSeriesItemStylerParams,
+    AgMapLineSeriesLabelFormatterParams,
+    AgMapLineSeriesOptions,
+} from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -502,7 +507,7 @@ export class MapLineSeries
             datum,
             highlightState,
             ...style,
-        };
+        } satisfies CallbackParamRules<AgMapLineSeriesItemStylerParams>;
     }
 
     private updateDatumStyles({
