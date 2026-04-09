@@ -37,6 +37,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
+    SelectionState,
     SeriesType,
     TextOrSegments,
 } from 'ag-charts-types';
@@ -756,6 +757,11 @@ export abstract class Series<
         return HighlightState.OtherSeries;
     }
 
+    protected getDataSelectionState(_datumIndex: TDatumIndex | undefined): SelectionState | undefined {
+        // For override by subclasses.
+        return undefined;
+    }
+
     public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
@@ -1228,6 +1234,7 @@ export abstract class Series<
                 fill,
                 ...params,
                 highlightState: highlightStateString,
+                selectionState: this.getDataSelectionState(datumIndex),
                 datum,
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);

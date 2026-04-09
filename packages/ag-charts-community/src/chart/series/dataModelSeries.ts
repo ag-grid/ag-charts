@@ -257,8 +257,9 @@ export abstract class DataModelSeries<
         }
     }
 
-    protected getDataSelectionState(datumIndex: number): SelectionState | undefined {
-        const isSelected = this.data?.selections.get(this.id)?.isSelected(datumIndex);
+    protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
+        const isSelected =
+            datumIndex === undefined ? false : this.data?.selections.get(this.id)?.isSelected(datumIndex);
         switch (isSelected) {
             case undefined:
                 return undefined;
