@@ -5,18 +5,31 @@ ModuleRegistry.registerModules([SankeySeriesModule, ContextMenuModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: [
-        { id: 'ceo', title: 'Alice Chen', parentId: null },
-        { id: 'cto', title: 'Bob Smith', parentId: 'ceo' },
-        { id: 'cfo', title: 'Carol Wu', parentId: 'ceo' },
-        { id: 'dev', title: 'Dave Jones', parentId: 'cto' },
-        { id: 'qa', title: 'Eve Park', parentId: 'cto' },
-        { id: 'acc', title: 'Mr Moneybags', parentId: 'cfo' },
+        { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        { id: 'cto', name: 'Bob Smith', job: 'Chief Technology Officer', location: 'London', parentId: 'ceo' },
+        { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', location: 'London', parentId: 'ceo' },
+        { id: 'dev', name: 'Dave Jones', job: 'Developer', location: 'New York', parentId: 'cto' },
+        { id: 'qa', name: 'Eve Park', job: 'Quality Assurance', location: 'London', parentId: 'cto' },
+        { id: 'acc', name: 'Frank Cash', job: 'Accountant', location: 'London', parentId: 'cfo' },
     ],
     series: [
         {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            node: {
+                title: {
+                    key: 'name',
+                },
+                subtitle: {
+                    key: 'job',
+                },
+                labels: [
+                    {
+                        key: 'location',
+                    },
+                ],
+            },
         },
     ],
 };

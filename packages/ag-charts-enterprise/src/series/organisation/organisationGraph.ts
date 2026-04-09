@@ -54,9 +54,14 @@ export class OrganisationGraph extends NetworkGraph<OrganisationVertex, Organisa
         for (const id of idValues) {
             const vertex = this.addVertex(id);
 
-            this.attachDatumValue(vertex, titleValues[index], 'title');
-            this.attachDatumValue(vertex, subtitleValues[index], 'subtitle');
-            this.attachDatumValue(vertex, labelsValues[index], 'labels');
+            if (titleValues[index] != null) {
+                this.addEdge(vertex, this.addVertex(titleValues[index] as string), 'title');
+            }
+            if (subtitleValues[index] != null) {
+                this.addEdge(vertex, this.addVertex(subtitleValues[index] as string), 'subtitle');
+            }
+            const labels = labelsValues.map((ls) => ls?.[index]).filter(Boolean) as string[];
+            this.addEdge(vertex, this.addVertex(labels), 'labels');
 
             verticesById[id] = vertex;
 
@@ -98,14 +103,5 @@ export class OrganisationGraph extends NetworkGraph<OrganisationVertex, Organisa
     ) {
         this.addEdge(parent, child, 'child');
         this.addEdge(child, parent, 'parent');
-    }
-
-    private attachDatumValue(
-        vertex: Vertex<OrganisationVertex, OrganisationEdge>,
-        value: string | string[] | undefined,
-        edge: OrganisationEdge
-    ) {
-        if (!vertex || value == null) return;
-        this.addEdge(vertex, this.addVertex(value), edge);
     }
 }

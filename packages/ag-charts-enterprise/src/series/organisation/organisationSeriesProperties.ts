@@ -6,7 +6,7 @@ import {
     type OverflowStrategy,
     type TextWrap,
 } from 'ag-charts-community';
-import { BaseProperties, Property } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
@@ -35,15 +35,18 @@ class OrganisationSeriesNodeProperties extends BaseProperties {
     strokeWidth: number = 1;
 
     @Property
-    title = new OrganisationSeriesNodeTextProperties('title');
+    title = new OrganisationSeriesNodeTextProperties();
 
     @Property
-    subtitle = new OrganisationSeriesNodeTextProperties('subtitle');
+    subtitle = new OrganisationSeriesNodeTextProperties();
+
+    @Property
+    labels = new PropertiesArray(OrganisationSeriesNodeTextProperties);
 }
 
 class OrganisationSeriesNodeTextProperties extends BaseProperties {
     @Property
-    key: string;
+    key!: string;
 
     @Property
     fontSize: FontSize = 12;
@@ -62,9 +65,4 @@ class OrganisationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     overflowStrategy: OverflowStrategy = 'ellipsis';
-
-    constructor(key: string) {
-        super();
-        this.key = key;
-    }
 }

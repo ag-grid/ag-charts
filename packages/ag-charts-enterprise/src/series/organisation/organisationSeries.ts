@@ -57,22 +57,34 @@ export class OrganisationSeries extends AbstractNetworkSeries<
             node: {
                 title: { key: titleKey },
                 subtitle: { key: subtitleKey },
+                labels,
             },
         } = this.properties;
 
-        const { dataModel, processedData } = await dataController.request(this.id, data, {
-            props: [
-                keyProperty(idKey, undefined, { id: 'idValue' }),
-                valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
-                valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
-                valueProperty(subtitleKey, undefined, {
-                    id: 'subtitleValue',
+        const props = [
+            keyProperty(idKey, undefined, { id: 'idValue' }),
+            valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
+            valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
+            valueProperty(subtitleKey, undefined, {
+                id: 'subtitleValue',
+                allowNullKey: true,
+                missingValue: undefined,
+            }),
+        ];
+
+        let index = 0;
+        for (const label of labels) {
+            props.push(
+                valueProperty(label.key, undefined, {
+                    id: `labelValue-${index}`,
                     allowNullKey: true,
                     missingValue: undefined,
-                }),
-                // valueProperty(labelsKey, undefined, { id: 'labelsValue', allowNullKey: true, missingValue: undefined }),
-            ],
-        });
+                })
+            );
+            index++;
+        }
+
+        const { dataModel, processedData } = await dataController.request(this.id, data, { props });
 
         this.dataModel = dataModel;
         this.processedData = processedData;
@@ -110,7 +122,7 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         const padding = 20;
 
         const { node: nodeProps } = this.properties;
-        const { title, subtitle } = this.properties.node;
+        const { title, subtitle, labels } = this.properties.node;
 
         datumSelection.each((node, datum) => {
             const shapeNode = new _ModuleSupport.Rect();
@@ -120,44 +132,63 @@ export class OrganisationSeries extends AbstractNetworkSeries<
             shapeNode.strokeWidth = nodeProps.strokeWidth;
             shapeNode.cornerRadius = nodeProps.cornerRadius;
 
+            const childNodes = [];
             let y = padding;
 
-            const titleNode = new _ModuleSupport.Text();
-            node.appendChild(titleNode);
-            titleNode.text = datum.datum.title;
-            titleNode.fontSize = title.fontSize;
-            titleNode.fontWeight = title.fontWeight;
-            titleNode.textAlign = 'left';
-            titleNode.textBaseline = 'top';
-            titleNode.x = padding;
-            titleNode.y = y;
+            if (datum.datum.title) {
+                const titleNode = new _ModuleSupport.Text();
+                node.appendChild(titleNode);
+                childNodes.push(titleNode);
 
-            const subtitleNode = new _ModuleSupport.Text();
-            node.appendChild(subtitleNode);
-            subtitleNode.text = datum.datum.subtitle;
-            subtitleNode.fontSize = 12;
-            subtitleNode.fontWeight = 'normal';
-            subtitleNode.textAlign = 'left';
-            subtitleNode.textBaseline = 'top';
-            subtitleNode.x = padding;
-            subtitleNode.y = y += titleNode.getBBox().height + title.spacing;
+                titleNode.text = datum.datum.title;
+                titleNode.fontSize = title.fontSize;
+                titleNode.fontWeight = title.fontWeight;
+                titleNode.textAlign = 'left';
+                titleNode.textBaseline = 'top';
+                titleNode.x = padding;
+                titleNode.y = y;
 
-            const labelNode = new _ModuleSupport.Text();
-            node.appendChild(labelNode);
-            labelNode.text = 'London HQ';
-            labelNode.fontSize = 11;
-            labelNode.fontWeight = 'normal';
-            labelNode.textAlign = 'left';
-            labelNode.textBaseline = 'top';
-            labelNode.x = padding;
-            labelNode.y = y += subtitleNode.getBBox().height + subtitle.spacing;
+                y += titleNode.getBBox().height + title.spacing;
+            }
 
-            const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode, subtitleNode, labelNode]).grow(padding);
+            if (datum.datum.subtitle) {
+                const subtitleNode = new _ModuleSupport.Text();
+                node.appendChild(subtitleNode);
+                childNodes.push(subtitleNode);
 
-            // shapeNode.x = 0;
-            // shapeNode.y = 0;
-            // shapeNode.width = width;
-            // shapeNode.height = height;
+                subtitleNode.text = datum.datum.subtitle;
+                subtitleNode.fontSize = subtitle.fontSize;
+                subtitleNode.fontWeight = subtitle.fontWeight;
+                subtitleNode.textAlign = 'left';
+                subtitleNode.textBaseline = 'top';
+                subtitleNode.x = padding;
+                subtitleNode.y = y;
+
+                y += subtitleNode.getBBox().height + subtitle.spacing;
+            }
+
+            if (datum.datum.labels) {
+                let index = 0;
+                for (const labelText of datum.datum.labels) {
+                    const labelNode = new _ModuleSupport.Text();
+                    node.appendChild(labelNode);
+                    childNodes.push(labelNode);
+
+                    labelNode.text = labelText;
+                    labelNode.fontSize = labels[index].fontSize;
+                    labelNode.fontWeight = labels[index].fontWeight;
+                    labelNode.textAlign = 'left';
+                    labelNode.textBaseline = 'top';
+                    labelNode.x = padding;
+                    labelNode.y = y;
+
+                    y += labelNode.getBBox().height + labels[index].spacing;
+
+                    index++;
+                }
+            }
+
+            const bbox = _ModuleSupport.Group.computeChildrenBBox(childNodes).grow(padding);
 
             shapeNode.x = 0;
             shapeNode.y = 0;
@@ -195,12 +226,14 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         const parentIdValues = dataModel.resolveColumnById(this, 'parentIdValue', processedData);
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
-        // const labelsValues = dataModel.resolveColumnById(this, 'labelsValue', processedData);
 
-        console.log(idValues, parentIdValues, titleValues, subtitleValues);
+        const labelsValues = [];
+        for (let i = 0; i < this.properties.node.labels.length; i++) {
+            labelsValues.push(dataModel.resolveColumnById(this, `labelValue-${i}`, processedData));
+        }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
-        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, [], this.rootVertex);
+        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, labelsValues, this.rootVertex);
     }
 
     private createNodeDataFromVertex(

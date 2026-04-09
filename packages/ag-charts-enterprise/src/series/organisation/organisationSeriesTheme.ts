@@ -23,6 +23,15 @@ export const organisationSeriesTheme: ExtensibleTheme<'organization'> = {
                 spacing: 10,
                 wrapping: 'on-space',
             },
+            labels: {
+                $apply: {
+                    fontSize: 11,
+                    fontWeight: 'normal',
+                    overflowStrategy: 'ellipsis',
+                    spacing: 10,
+                    wrapping: 'on-space',
+                },
+            },
         },
     },
 };

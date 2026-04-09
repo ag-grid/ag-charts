@@ -6,12 +6,14 @@ import {
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
+    arrayOf,
     callbackDefs,
     commonSeriesOptionsDefs,
     constant,
     fillOptionsDef,
     fontOptionsDef,
     number,
+    optionsDefs,
     overflowStrategy,
     required,
     string,
@@ -32,7 +34,7 @@ const node: OptionsDefs<AgOrganisationSeriesOptionsNode> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: number,
-    labels: nodeText,
+    labels: arrayOf(optionsDefs(nodeText)),
     maxHeight: number,
     maxWidth: number,
     title: nodeText,
