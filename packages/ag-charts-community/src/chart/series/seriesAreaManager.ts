@@ -633,11 +633,8 @@ export class SeriesAreaManager extends BaseManager {
         consumed: boolean,
         clickedNode?: PickedNode
     ): void {
-        if (!('currentX' in event)) return;
-
         const { type, sourceEvent } = event;
-        const { canvasX, canvasY } = this.toCanvasCoordinates(event);
-        const payload: SeriesAreaClickEvent = { type, canvasX, canvasY, consumed, sourceEvent, clickedNode };
+        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
@@ -760,7 +757,16 @@ export class SeriesAreaManager extends BaseManager {
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
         if (series != null && datum != null) {
-            series.fireNodeClickEvent(sourceEvent, datum);
+            const defaultBehavior = series.fireNodeClickEvent(sourceEvent, datum);
+            if (defaultBehavior) {
+                const syntheticEvent: KeyboardSyntheticMouseWidgetEvent = {
+                    type: 'click',
+                    device: 'keyboard',
+                    sourceEvent,
+                };
+                this.emitSeriesAreaClickEvent(syntheticEvent, true, datum);
+                this.update(ChartUpdateType.SERIES_UPDATE);
+            }
         } else {
             this.chart.fireEvent<AgChartClickEvent>({
                 type: 'click',
