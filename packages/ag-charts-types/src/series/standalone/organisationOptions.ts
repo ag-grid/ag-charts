@@ -13,6 +13,9 @@ export interface AgOrganisationSeriesOptions<TDatum = DatumDefault, TContext = C
 export interface AgOrganisationSeriesOptionsKeys {
     idKey?: string;
     parentIdKey?: string;
+    titleKey?: string;
+    subtitleKey?: string;
+    labelsKey?: string;
 }
 
 export interface AgOrganisationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>

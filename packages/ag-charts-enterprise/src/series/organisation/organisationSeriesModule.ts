@@ -16,6 +16,9 @@ const organisationSeriesOptionsDef: OptionsDefs<AgOrganisationSeriesOptions> = {
     type: required(constant('organization')),
     idKey: string,
     parentIdKey: string,
+    titleKey: string,
+    subtitleKey: string,
+    labelsKey: string,
 };
 
 const organisationSeriesTheme = {};

@@ -2,7 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Property, Vertex } from 'ag-charts-core';
 
 import { AbstractNetworkSeries, type NetworkSeriesDatum, NetworkSeriesProperties } from '../network/networkSeries';
-import { CHILD_EDGE, type OrganisationEdge, OrganisationGraph, type OrganisationVertex } from './organisationGraph';
+import { NetworkTreeLayout } from '../network/networkTreeLayout';
+import { type OrganisationEdge, OrganisationGraph, type OrganisationVertex } from './organisationGraph';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
@@ -12,9 +13,22 @@ class OrganisationSeriesProperties extends NetworkSeriesProperties {
 
     @Property
     parentIdKey: string = 'parentId';
+
+    @Property
+    titleKey: string = 'title';
+
+    @Property
+    subtitleKey: string = 'subtitle';
+
+    @Property
+    labelsKey: string = 'labels';
 }
 
-interface OrganisationSeriesDatum extends NetworkSeriesDatum<OrganisationVertex, OrganisationEdge> {}
+interface OrganisationDatum extends NetworkSeriesDatum<OrganisationVertex, OrganisationEdge> {
+    datum: { title?: string; subtitle?: string; labels?: string[] };
+}
+
+type OrganisationNode = _ModuleSupport.TranslatableGroup;
 
 /**
  *
@@ -23,7 +37,9 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     OrganisationVertex,
     OrganisationEdge,
     OrganisationGraph,
-    _ModuleSupport.Rect
+    OrganisationNode,
+    OrganisationDatum,
+    NetworkTreeLayout
 > {
     override properties = new OrganisationSeriesProperties();
 
@@ -33,16 +49,32 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         return new OrganisationGraph();
     }
 
+    createNetworkLayout() {
+        return new NetworkTreeLayout();
+    }
+
+    getRootVertices() {
+        if (!this.rootVertex) return [];
+        return [this.rootVertex];
+    }
+
     async processData(dataController: _ModuleSupport.DataController) {
         const { data } = this;
         if (data == null) return;
 
-        const { idKey, parentIdKey } = this.properties;
+        const { idKey, parentIdKey, titleKey, subtitleKey, labelsKey } = this.properties;
 
         const { dataModel, processedData } = await dataController.request(this.id, data, {
             props: [
                 keyProperty(idKey, undefined, { id: 'idValue' }),
                 valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
+                valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
+                valueProperty(subtitleKey, undefined, {
+                    id: 'subtitleValue',
+                    allowNullKey: true,
+                    missingValue: undefined,
+                }),
+                valueProperty(labelsKey, undefined, { id: 'labelsValue', allowNullKey: true, missingValue: undefined }),
             ],
         });
 
@@ -53,31 +85,57 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     }
 
     createNodeData() {
-        const nodeData: OrganisationSeriesDatum[] = [];
+        const nodeData: OrganisationDatum[] = [];
 
         if (this.rootVertex) {
-            this.createNodeDataFromVertex(nodeData, this.rootVertex);
+            const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
+            if (vertices) {
+                for (const vertex of vertices) {
+                    this.createNodeDataFromVertex(nodeData, vertex as Vertex<OrganisationVertex, OrganisationEdge>);
+                }
+            }
         }
-
-        console.log(nodeData);
 
         return { itemId: this.id, nodeData, labelData: [] };
     }
 
-    nodeFactory() {
-        return new _ModuleSupport.Rect();
+    nodeFactory(): OrganisationNode {
+        return new _ModuleSupport.TranslatableGroup();
     }
 
-    updateDatumNodes(
-        datumSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Rect,
-            NetworkSeriesDatum<OrganisationVertex, OrganisationEdge>
-        >
+    updateDatumSelection(
+        nodeData: OrganisationDatum[],
+        datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>
     ) {
-        console.log('OrganisationSeries.updateDatumNodes()', datumSelection.length);
+        datumSelection.update(nodeData);
+    }
+
+    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>) {
         datumSelection.each((node, datum) => {
-            console.log(node, datum);
+            const shapeNode = new _ModuleSupport.Rect();
+            node.appendChild(shapeNode);
+            shapeNode.fill = '#ffffff99';
+            shapeNode.stroke = '#2d58fa';
+            shapeNode.strokeWidth = 2;
+            shapeNode.cornerRadius = 12;
+
+            const titleNode = new _ModuleSupport.Text();
+            node.appendChild(titleNode);
+            titleNode.text = datum.datum.title;
+            titleNode.fontSize = 14;
+
+            const bbox = _ModuleSupport.Group.computeChildrenBBox([titleNode]).grow(30);
+
+            shapeNode.x = bbox.x;
+            shapeNode.y = bbox.y;
+            shapeNode.width = bbox.width;
+            shapeNode.height = bbox.height;
         });
+    }
+
+    positionDatumNode(node: OrganisationNode, bbox: _ModuleSupport.BBox) {
+        node.translationX = bbox.x;
+        node.translationY = bbox.y;
     }
 
     private createGraphData() {
@@ -89,26 +147,41 @@ export class OrganisationSeries extends AbstractNetworkSeries<
 
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         const parentIdValues = dataModel.resolveColumnById(this, 'parentIdValue', processedData);
+        const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
+        const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
+        const labelsValues = dataModel.resolveColumnById(this, 'labelsValue', processedData);
 
-        this.graph.buildFromIds(idValues, parentIdValues, this.rootVertex);
+        // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
+        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, labelsValues, this.rootVertex);
     }
 
     private createNodeDataFromVertex(
-        nodeData: OrganisationSeriesDatum[],
+        nodeData: OrganisationDatum[],
         vertex: Vertex<OrganisationVertex, OrganisationEdge>
     ) {
-        const vertices = this.graph.neighboursWithEdgeValue(vertex, CHILD_EDGE);
+        const datumIndex = nodeData.length;
+        this.graph.addEdge(vertex, this.graph.addVertex(datumIndex), 'datumIndex');
+
+        const bbox = _ModuleSupport.BBox.zero.clone();
+        const nodeDatum: OrganisationDatum = {
+            series: this,
+            datum: {
+                title: this.graph.findNeighbourValue(vertex, 'title') as any,
+                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as any,
+                labels: this.graph.findNeighbourValue(vertex, 'labels') as any,
+            },
+            datumIndex,
+            vertex,
+            bbox,
+        };
+
+        nodeData.push(nodeDatum);
+
+        const vertices = this.graph.neighboursWithEdgeValue(vertex, 'child');
         if (!vertices) return;
 
         for (const childVertex of vertices) {
-            const nodeDatum: OrganisationSeriesDatum = {
-                series: this,
-                datum: {},
-                datumIndex: nodeData.length,
-                vertex: childVertex as Vertex<OrganisationVertex, OrganisationEdge>,
-            };
-
-            nodeData.push(nodeDatum);
+            this.createNodeDataFromVertex(nodeData, childVertex as Vertex<OrganisationVertex, OrganisationEdge>);
         }
     }
 }

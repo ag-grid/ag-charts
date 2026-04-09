@@ -3,4 +3,4 @@ import { Graph } from 'ag-charts-core';
 /**
  *
  */
-export abstract class NetworkGraph<NetworkVertex, NetworkEdge> extends Graph<NetworkVertex, NetworkEdge> {}
+export abstract class NetworkGraph<TVertex, TEdge> extends Graph<TVertex, TEdge> {}
