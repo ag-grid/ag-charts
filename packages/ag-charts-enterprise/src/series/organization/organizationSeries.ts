@@ -144,6 +144,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childNodes.push(titleNode);
 
                 titleNode.text = datum.datum.title;
+                titleNode.fontFamily = title.fontFamily;
                 titleNode.fontSize = title.fontSize;
                 titleNode.fontWeight = title.fontWeight;
                 titleNode.textAlign = 'left';
@@ -160,6 +161,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childNodes.push(subtitleNode);
 
                 subtitleNode.text = datum.datum.subtitle;
+                subtitleNode.fontFamily = subtitle.fontFamily;
                 subtitleNode.fontSize = subtitle.fontSize;
                 subtitleNode.fontWeight = subtitle.fontWeight;
                 subtitleNode.textAlign = 'left';
@@ -178,6 +180,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     childNodes.push(labelNode);
 
                     labelNode.text = labelText;
+                    labelNode.fontFamily = labels[index].fontFamily;
                     labelNode.fontSize = labels[index].fontSize;
                     labelNode.fontWeight = labels[index].fontWeight;
                     labelNode.textAlign = 'left';

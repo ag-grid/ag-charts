@@ -1,4 +1,5 @@
 import type { ExtensibleTheme } from 'ag-charts-community';
+import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
@@ -8,7 +9,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             stroke: '#2d5f8a',
             strokeWidth: 2,
             title: {
-                fontSize: 14,
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
                 fontWeight: 'bold',
                 key: 'title',
                 overflowStrategy: 'ellipsis',
@@ -16,7 +18,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 wrapping: 'on-space',
             },
             subtitle: {
-                fontSize: 12,
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                 fontWeight: 'normal',
                 key: 'subtitle',
                 overflowStrategy: 'ellipsis',
@@ -25,7 +28,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             },
             labels: {
                 $apply: {
-                    fontSize: 11,
+                    fontFamily: { $ref: 'fontFamily' },
+                    fontSize: { $rem: 11 / BASE_FONT_SIZE },
                     fontWeight: 'normal',
                     overflowStrategy: 'ellipsis',
                     spacing: 10,
