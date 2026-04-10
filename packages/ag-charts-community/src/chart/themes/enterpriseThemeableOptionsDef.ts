@@ -61,7 +61,7 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
-    type AgOrganisationSeriesThemeableOptions,
+    type AgOrganizationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
     type AgRadarAreaSeriesStyle,
@@ -389,7 +389,7 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
-export const organisationSeriesThemeableOptionsDef: OptionsDefs<AgOrganisationSeriesThemeableOptions> = {
+export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     node: defined,
     tooltip: tooltipOptionsDefs,

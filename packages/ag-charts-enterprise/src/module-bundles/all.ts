@@ -2,7 +2,7 @@ import { AllCommunityModule } from 'ag-charts-community';
 import type { ModuleDefinition } from 'ag-charts-core';
 
 import { ChordSeriesModule } from '../series/chord/chordModule';
-import { OrganisationSeriesModule } from '../series/organisation/organisationSeriesModule';
+import { OrganizationSeriesModule } from '../series/organization/organizationSeriesModule';
 import { PyramidSeriesModule } from '../series/pyramid/pyramidModule';
 import { SankeySeriesModule } from '../series/sankey/sankeyModule';
 import { SunburstSeriesModule } from '../series/sunburst/sunburstModule';
@@ -23,7 +23,7 @@ export const AllEnterpriseModule: ModuleDefinition[] = [
     FinancialChartModule,
 
     ChordSeriesModule,
-    OrganisationSeriesModule,
+    OrganizationSeriesModule,
     PyramidSeriesModule,
     SankeySeriesModule,
     SunburstSeriesModule,

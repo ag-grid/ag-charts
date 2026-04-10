@@ -351,7 +351,7 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 name: 'organization',
                 chartType: 'standalone',
                 enterprise: true,
-                moduleId: 'OrganisationSeriesModule',
+                moduleId: 'OrganizationSeriesModule',
             },
 
             // Plugins

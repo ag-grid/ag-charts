@@ -1,7 +1,7 @@
 import {
-    type AgOrganisationSeriesOptions,
-    type AgOrganisationSeriesOptionsNode,
-    type AgOrganisationSeriesOptionsNodeText,
+    type AgOrganizationSeriesOptions,
+    type AgOrganizationSeriesOptionsNode,
+    type AgOrganizationSeriesOptionsNodeText,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -21,7 +21,7 @@ import {
     textWrap,
 } from 'ag-charts-core';
 
-const nodeText: OptionsDefs<AgOrganisationSeriesOptionsNodeText> = {
+const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeText> = {
     ...fontOptionsDef,
     itemStyler: callbackDefs({}),
     key: string,
@@ -30,7 +30,7 @@ const nodeText: OptionsDefs<AgOrganisationSeriesOptionsNodeText> = {
     wrapping: textWrap,
 };
 
-const node: OptionsDefs<AgOrganisationSeriesOptionsNode> = {
+const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: number,
@@ -41,9 +41,9 @@ const node: OptionsDefs<AgOrganisationSeriesOptionsNode> = {
     subtitle: nodeText,
 };
 
-export const organisationSeriesOptionsDef: OptionsDefs<AgOrganisationSeriesOptions> = {
+export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {
     ...commonSeriesOptionsDefs,
-    ..._ModuleSupport.organisationSeriesThemeableOptionsDef,
+    ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
     idKey: string,
     node: node,

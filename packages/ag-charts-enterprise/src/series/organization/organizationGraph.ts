@@ -2,9 +2,9 @@ import { Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from '../network/networkGraph';
 
-export type OrganisationVertex = string | string[] | number;
+export type OrganizationVertex = string | string[] | number;
 
-export type OrganisationEdge =
+export type OrganizationEdge =
     | 'datumIndex'
 
     // The descendent edge from parent to child.
@@ -25,7 +25,7 @@ export type OrganisationEdge =
 /**
  *
  */
-export class OrganisationGraph extends NetworkGraph<OrganisationVertex, OrganisationEdge> {
+export class OrganizationGraph extends NetworkGraph<OrganizationVertex, OrganizationEdge> {
     constructor() {
         super({
             // Cache the child edges for optimal descendent traversal.
@@ -33,7 +33,7 @@ export class OrganisationGraph extends NetworkGraph<OrganisationVertex, Organisa
 
             singleValueEdges: new Set([
                 'datumIndex',
-                'parent', // Each child only has one parent in an Organisation graph.
+                'parent', // Each child only has one parent in an Organization graph.
                 'title',
                 'subtitle',
                 'labels',
@@ -47,9 +47,9 @@ export class OrganisationGraph extends NetworkGraph<OrganisationVertex, Organisa
         titleValues: (string | undefined)[],
         subtitleValues: (string | undefined)[],
         labelsValues: (string[] | undefined)[],
-        root: Vertex<OrganisationVertex, OrganisationEdge>
+        root: Vertex<OrganizationVertex, OrganizationEdge>
     ) {
-        const verticesById: Record<string, Vertex<OrganisationVertex, OrganisationEdge>> = {};
+        const verticesById: Record<string, Vertex<OrganizationVertex, OrganizationEdge>> = {};
         let index = 0;
         for (const id of idValues) {
             const vertex = this.addVertex(id);
@@ -98,8 +98,8 @@ export class OrganisationGraph extends NetworkGraph<OrganisationVertex, Organisa
     }
 
     private attachChild(
-        parent: Vertex<OrganisationVertex, OrganisationEdge>,
-        child: Vertex<OrganisationVertex, OrganisationEdge>
+        parent: Vertex<OrganizationVertex, OrganizationEdge>,
+        child: Vertex<OrganizationVertex, OrganizationEdge>
     ) {
         this.addEdge(parent, child, 'child');
         this.addEdge(child, parent, 'parent');

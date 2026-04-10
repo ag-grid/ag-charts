@@ -3,26 +3,26 @@ import type { ContextDefault, DatumDefault, OverflowStrategy, PixelSize, TextWra
 import type { FillOptions, FontOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
-export interface AgOrganisationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
+export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesOptions<TDatum, TContext>,
-        AgOrganisationSeriesOptionsKeys,
-        AgOrganisationSeriesThemeableOptions<TDatum, TContext> {
-    /** Configuration for the Organisation Series. */
+        AgOrganizationSeriesOptionsKeys,
+        AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
+    /** Configuration for the Organization Series. */
     type: 'organization';
 
-    node?: AgOrganisationSeriesOptionsNode;
+    node?: AgOrganizationSeriesOptionsNode;
 }
 
-export interface AgOrganisationSeriesOptionsNode extends FillOptions, StrokeOptions {
+export interface AgOrganizationSeriesOptionsNode extends FillOptions, StrokeOptions {
     cornerRadius?: PixelSize;
-    labels?: AgOrganisationSeriesOptionsNodeTextWithKey[];
+    labels?: AgOrganizationSeriesOptionsNodeTextWithKey[];
     maxHeight?: PixelSize;
     maxWidth?: PixelSize;
-    subtitle?: AgOrganisationSeriesOptionsNodeText;
-    title?: AgOrganisationSeriesOptionsNodeText;
+    subtitle?: AgOrganizationSeriesOptionsNodeText;
+    title?: AgOrganizationSeriesOptionsNodeText;
 }
 
-export interface AgOrganisationSeriesOptionsNodeText extends FontOptions {
+export interface AgOrganizationSeriesOptionsNodeText extends FontOptions {
     itemStyler?: Function;
     key?: string;
     overflowStrategy?: OverflowStrategy;
@@ -30,23 +30,23 @@ export interface AgOrganisationSeriesOptionsNodeText extends FontOptions {
     wrapping?: TextWrap;
 }
 
-export interface AgOrganisationSeriesOptionsNodeTextWithKey extends AgOrganisationSeriesOptionsNodeText {
+export interface AgOrganizationSeriesOptionsNodeTextWithKey extends AgOrganizationSeriesOptionsNodeText {
     key: string;
 }
 
-export interface AgOrganisationSeriesOptionsKeys {
+export interface AgOrganizationSeriesOptionsKeys {
     idKey?: string;
     parentIdKey?: string;
 }
 
-export interface AgOrganisationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
+export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
-    node?: AgOrganisationSeriesOptionsNode;
+    node?: AgOrganizationSeriesOptionsNode;
 
     /** Series-specific tooltip configuration. */
-    tooltip?: AgSeriesTooltip<AgOrganisationSeriesTooltipRendererParams<TDatum, TContext>>;
+    tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgOrganisationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
+export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgOrganisationSeriesOptionsKeys {}
+        AgOrganizationSeriesOptionsKeys {}

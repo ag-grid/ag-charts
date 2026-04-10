@@ -8,34 +8,34 @@ import {
     type NetworkSeriesDatum,
 } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
-import { type OrganisationEdge, OrganisationGraph, type OrganisationVertex } from './organisationGraph';
-import { OrganisationSeriesProperties } from './organisationSeriesProperties';
+import { type OrganizationEdge, OrganizationGraph, type OrganizationVertex } from './organizationGraph';
+import { OrganizationSeriesProperties } from './organizationSeriesProperties';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
-interface OrganisationDatum extends NetworkSeriesDatum<OrganisationVertex, OrganisationEdge> {
+interface OrganizationDatum extends NetworkSeriesDatum<OrganizationVertex, OrganizationEdge> {
     datum: { title?: string; subtitle?: string; labels?: string[] };
 }
 
-type OrganisationNode = _ModuleSupport.TranslatableGroup;
+type OrganizationNode = _ModuleSupport.TranslatableGroup;
 
 /**
  *
  */
-export class OrganisationSeries extends AbstractNetworkSeries<
-    OrganisationVertex,
-    OrganisationEdge,
-    OrganisationGraph,
-    OrganisationNode,
-    OrganisationDatum,
+export class OrganizationSeries extends AbstractNetworkSeries<
+    OrganizationVertex,
+    OrganizationEdge,
+    OrganizationGraph,
+    OrganizationNode,
+    OrganizationDatum,
     NetworkTreeLayout
 > {
-    override properties = new OrganisationSeriesProperties();
+    override properties = new OrganizationSeriesProperties();
 
-    private rootVertex?: Vertex<OrganisationVertex, OrganisationEdge>;
+    private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
     createNetworkGraph() {
-        return new OrganisationGraph();
+        return new OrganizationGraph();
     }
 
     createNetworkLayout() {
@@ -93,13 +93,13 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     }
 
     createNodeData() {
-        const nodeData: OrganisationDatum[] = [];
+        const nodeData: OrganizationDatum[] = [];
 
         if (this.rootVertex) {
             const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
             if (vertices) {
                 for (const vertex of vertices) {
-                    this.createNodeDataFromVertex(nodeData, vertex as Vertex<OrganisationVertex, OrganisationEdge>);
+                    this.createNodeDataFromVertex(nodeData, vertex as Vertex<OrganizationVertex, OrganizationEdge>);
                 }
             }
         }
@@ -107,18 +107,18 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         return { itemId: this.id, nodeData, labelData: [] };
     }
 
-    nodeFactory(): OrganisationNode {
+    nodeFactory(): OrganizationNode {
         return new _ModuleSupport.TranslatableGroup();
     }
 
     updateDatumSelection(
-        nodeData: OrganisationDatum[],
-        datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>
+        nodeData: OrganizationDatum[],
+        datumSelection: _ModuleSupport.Selection<OrganizationNode, OrganizationDatum>
     ) {
         datumSelection.update(nodeData);
     }
 
-    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganisationNode, OrganisationDatum>) {
+    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationNode, OrganizationDatum>) {
         const padding = 20;
 
         const { node: nodeProps } = this.properties;
@@ -210,7 +210,7 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         });
     }
 
-    positionDatumNode(node: OrganisationNode, bbox: _ModuleSupport.BBox) {
+    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox) {
         node.translationX = bbox.x;
         node.translationY = bbox.y;
     }
@@ -237,14 +237,14 @@ export class OrganisationSeries extends AbstractNetworkSeries<
     }
 
     private createNodeDataFromVertex(
-        nodeData: OrganisationDatum[],
-        vertex: Vertex<OrganisationVertex, OrganisationEdge>
+        nodeData: OrganizationDatum[],
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
     ) {
         const datumIndex = nodeData.length;
         this.graph.addEdge(vertex, this.graph.addVertex(datumIndex), 'datumIndex');
 
         const bbox = _ModuleSupport.BBox.zero.clone();
-        const nodeDatum: OrganisationDatum = {
+        const nodeDatum: OrganizationDatum = {
             series: this,
             datum: {
                 title: this.graph.findNeighbourValue(vertex, 'title') as any,
@@ -262,7 +262,7 @@ export class OrganisationSeries extends AbstractNetworkSeries<
         if (!vertices) return;
 
         for (const childVertex of vertices) {
-            this.createNodeDataFromVertex(nodeData, childVertex as Vertex<OrganisationVertex, OrganisationEdge>);
+            this.createNodeDataFromVertex(nodeData, childVertex as Vertex<OrganizationVertex, OrganizationEdge>);
         }
     }
 }

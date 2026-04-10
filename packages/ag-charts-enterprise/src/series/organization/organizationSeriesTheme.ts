@@ -1,6 +1,6 @@
 import type { ExtensibleTheme } from 'ag-charts-community';
 
-export const organisationSeriesTheme: ExtensibleTheme<'organization'> = {
+export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
         node: {
             cornerRadius: 12,

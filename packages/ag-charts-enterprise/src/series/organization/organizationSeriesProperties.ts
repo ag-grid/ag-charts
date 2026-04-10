@@ -10,7 +10,7 @@ import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
-export class OrganisationSeriesProperties extends NetworkSeriesProperties {
+export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     @Property
     idKey: string = 'id';
 
@@ -18,10 +18,10 @@ export class OrganisationSeriesProperties extends NetworkSeriesProperties {
     parentIdKey: string = 'parentId';
 
     @Property
-    node = new OrganisationSeriesNodeProperties();
+    node = new OrganizationSeriesNodeProperties();
 }
 
-class OrganisationSeriesNodeProperties extends BaseProperties {
+class OrganizationSeriesNodeProperties extends BaseProperties {
     @Property
     cornerRadius: number = 0;
 
@@ -35,16 +35,16 @@ class OrganisationSeriesNodeProperties extends BaseProperties {
     strokeWidth: number = 1;
 
     @Property
-    title = new OrganisationSeriesNodeTextProperties();
+    title = new OrganizationSeriesNodeTextProperties();
 
     @Property
-    subtitle = new OrganisationSeriesNodeTextProperties();
+    subtitle = new OrganizationSeriesNodeTextProperties();
 
     @Property
-    labels = new PropertiesArray(OrganisationSeriesNodeTextProperties);
+    labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
 }
 
-class OrganisationSeriesNodeTextProperties extends BaseProperties {
+class OrganizationSeriesNodeTextProperties extends BaseProperties {
     @Property
     key!: string;
 

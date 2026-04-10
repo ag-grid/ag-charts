@@ -47,7 +47,7 @@ export {
     mapShapeSeriesThemeableOptionsDef,
     nightingaleSeriesThemeableOptionsDef,
     ohlcSeriesThemeableOptionsDef,
-    organisationSeriesThemeableOptionsDef,
+    organizationSeriesThemeableOptionsDef,
     pyramidSeriesThemeableOptionsDef,
     radarAreaSeriesThemeableOptionsDef,
     radarLineSeriesThemeableOptionsDef,

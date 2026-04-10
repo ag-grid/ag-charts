@@ -3,10 +3,10 @@ import {
     AgCharts,
     ContextMenuModule,
     ModuleRegistry,
-    OrganisationSeriesModule,
+    OrganizationSeriesModule,
 } from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([OrganisationSeriesModule, ContextMenuModule]);
+ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
