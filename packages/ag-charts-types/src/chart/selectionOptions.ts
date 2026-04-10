@@ -22,5 +22,5 @@ export interface AgSelectionOptions {
      *
      * Default: `'single'`
      */
-    clickMode: AgSelectionClickMode;
+    clickMode?: AgSelectionClickMode;
 }
