@@ -46,6 +46,7 @@ export const seriesTypeToModule = new Map([
     ['treemap', 'TreemapSeriesModule'],
     ['chord', 'ChordSeriesModule'],
     ['sankey', 'SankeySeriesModule'],
+    ['organization', 'OrganizationSeriesModule'],
 ]);
 
 // Axis type → Module ID
@@ -218,6 +219,7 @@ export const enterpriseModules = new Set([
     'MapMarkerSeriesModule',
     'MapShapeBackgroundSeriesModule',
     'MapLineBackgroundSeriesModule',
+    'OrganizationSeriesModule',
     'PyramidSeriesModule',
     'LinearGaugeModule',
     'RadialGaugeModule',
@@ -387,6 +389,7 @@ export const bundleContents = new Map([
             'TreemapSeriesModule',
             'ChordSeriesModule',
             'SankeySeriesModule',
+            'OrganizationSeriesModule',
             // Enterprise map series
             'MapShapeSeriesModule',
             'MapLineSeriesModule',
@@ -508,6 +511,7 @@ export const validModuleIds = new Set([
     'MapShapeSeriesModule',
     'NightingaleSeriesModule',
     'OhlcSeriesModule',
+    'OrganizationSeriesModule',
     'PyramidSeriesModule',
     'RadarAreaSeriesModule',
     'RadarLineSeriesModule',
