@@ -151,7 +151,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { title, subtitle, labels } = this.properties.node;
 
         datumSelection.each((node, datum) => {
-            const shapeNode = node.appendChild(new _ModuleSupport.Rect());
+            const children = node.children();
+
+            const shapeNode =
+                (children.next().value as _ModuleSupport.Rect) ?? node.appendChild(new _ModuleSupport.Rect());
             shapeNode.cornerRadius = nodeProps.cornerRadius;
             applyFillStyles(shapeNode, nodeProps);
             applyStrokeStyles(shapeNode, nodeProps);
@@ -160,7 +163,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             let y = padding;
 
             if (datum.datum.title) {
-                const titleNode = node.appendChild(new _ModuleSupport.Text());
+                const titleNode =
+                    (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
                 childNodes.push(titleNode);
 
                 titleNode.text = datum.datum.title;
@@ -172,7 +176,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             }
 
             if (datum.datum.subtitle) {
-                const subtitleNode = node.appendChild(new _ModuleSupport.Text());
+                const subtitleNode =
+                    (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
                 childNodes.push(subtitleNode);
 
                 subtitleNode.text = datum.datum.subtitle;
@@ -186,7 +191,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             if (datum.datum.labels) {
                 let index = 0;
                 for (const labelText of datum.datum.labels) {
-                    const labelNode = node.appendChild(new _ModuleSupport.Text());
+                    const labelNode =
+                        (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
                     childNodes.push(labelNode);
 
                     labelNode.text = labelText;
@@ -213,7 +219,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { link } = this.properties;
 
         linkSelection.each((node) => {
-            const path = node.appendChild(new _ModuleSupport.Path());
+            const path =
+                (node.children().next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Path());
             path.visible = false;
             path.fill = 'transparent';
             applyStrokeStyles(path, link);
@@ -252,6 +259,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     ) {
         // This `datumIndex` does _not_ correlate with the index within the `data` array.
         const datumIndex = nodeData.length;
+        this.graph.removeEdges(vertex, 'datumIndex');
         this.graph.addEdge(vertex, this.graph.addVertex(datumIndex), 'datumIndex');
 
         const bbox = _ModuleSupport.BBox.zero.clone();

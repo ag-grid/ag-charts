@@ -110,6 +110,7 @@ export class Graph<V, E = undefined> {
     }
 
     removeEdges(from: Vertex<V>, edgeValue: E): void {
+        this._edgeCount -= from.edges.get(edgeValue)?.length ?? 0;
         from.edges.delete(edgeValue);
     }
 
