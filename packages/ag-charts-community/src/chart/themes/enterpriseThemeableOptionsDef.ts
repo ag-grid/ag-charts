@@ -391,6 +391,8 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
+    direction: defined,
+    link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
 };

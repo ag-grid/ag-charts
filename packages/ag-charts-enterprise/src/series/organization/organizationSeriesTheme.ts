@@ -3,14 +3,28 @@ import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
+        direction: 'vertical',
+        link: {
+            interpolation: {
+                type: 'step',
+                cornerRadius: 0,
+            },
+            lineDash: [],
+            stroke: { $ref: 'foregroundColor' },
+            strokeOpacity: 1,
+            strokeWidth: 2,
+        },
         node: {
             cornerRadius: 12,
-            fill: '#ffffff',
-            stroke: '#2d5f8a',
+            fill: { $ref: 'backgroundColor' },
+            stroke: { $palette: 'stroke' },
+            strokeOpacity: 1,
             strokeWidth: 2,
             title: {
+                color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
+                fontStyle: 'normal',
                 fontWeight: 'bold',
                 key: 'title',
                 overflowStrategy: 'ellipsis',
@@ -18,8 +32,10 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 wrapping: 'on-space',
             },
             subtitle: {
+                color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+                fontStyle: 'normal',
                 fontWeight: 'normal',
                 key: 'subtitle',
                 overflowStrategy: 'ellipsis',
@@ -28,8 +44,10 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             },
             labels: {
                 $apply: {
+                    color: { $ref: 'foregroundColor' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontSize: { $rem: 11 / BASE_FONT_SIZE },
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
                     overflowStrategy: 'ellipsis',
                     spacing: 10,

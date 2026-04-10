@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Vertex } from 'ag-charts-core';
+import { type CssColor, type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import { type FontOptions, Vertex } from 'ag-charts-core';
 
 import {
     AbstractNetworkSeries,
@@ -18,6 +18,32 @@ interface OrganizationDatum extends NetworkSeriesDatum<OrganizationVertex, Organ
 }
 
 type OrganizationNode = _ModuleSupport.TranslatableGroup;
+
+function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
+    node.fill = styles.fill;
+    node.fillOpacity = styles.fillOpacity ?? 1;
+}
+
+function applyStrokeStyles(
+    node: _ModuleSupport.Shape,
+    styles: StrokeOptions & { lineDash?: number[]; lineDashOffset?: number }
+) {
+    node.lineDash = styles.lineDash;
+    node.lineDashOffset = styles.lineDashOffset ?? 0;
+    node.stroke = styles.stroke;
+    node.strokeOpacity = styles.strokeOpacity ?? 1;
+    node.strokeWidth = styles.strokeWidth ?? 0;
+}
+
+function applyTextStyles(node: _ModuleSupport.Text, styles: FontOptions & { color: CssColor }) {
+    node.fill = styles.color;
+    node.fontFamily = styles.fontFamily;
+    node.fontSize = styles.fontSize;
+    node.fontStyle = styles.fontStyle;
+    node.fontWeight = styles.fontWeight;
+    node.textAlign = 'left';
+    node.textBaseline = 'top';
+}
 
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
@@ -125,46 +151,34 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { title, subtitle, labels } = this.properties.node;
 
         datumSelection.each((node, datum) => {
-            const shapeNode = new _ModuleSupport.Rect();
-            node.appendChild(shapeNode);
-            shapeNode.fill = nodeProps.fill;
-            shapeNode.stroke = nodeProps.stroke;
-            shapeNode.strokeWidth = nodeProps.strokeWidth;
+            const shapeNode = node.appendChild(new _ModuleSupport.Rect());
             shapeNode.cornerRadius = nodeProps.cornerRadius;
+            applyFillStyles(shapeNode, nodeProps);
+            applyStrokeStyles(shapeNode, nodeProps);
 
             const childNodes = [];
             let y = padding;
 
             if (datum.datum.title) {
-                const titleNode = new _ModuleSupport.Text();
-                node.appendChild(titleNode);
+                const titleNode = node.appendChild(new _ModuleSupport.Text());
                 childNodes.push(titleNode);
 
                 titleNode.text = datum.datum.title;
-                titleNode.fontFamily = title.fontFamily;
-                titleNode.fontSize = title.fontSize;
-                titleNode.fontWeight = title.fontWeight;
-                titleNode.textAlign = 'left';
-                titleNode.textBaseline = 'top';
                 titleNode.x = padding;
                 titleNode.y = y;
+                applyTextStyles(titleNode, title);
 
                 y += titleNode.getBBox().height + title.spacing;
             }
 
             if (datum.datum.subtitle) {
-                const subtitleNode = new _ModuleSupport.Text();
-                node.appendChild(subtitleNode);
+                const subtitleNode = node.appendChild(new _ModuleSupport.Text());
                 childNodes.push(subtitleNode);
 
                 subtitleNode.text = datum.datum.subtitle;
-                subtitleNode.fontFamily = subtitle.fontFamily;
-                subtitleNode.fontSize = subtitle.fontSize;
-                subtitleNode.fontWeight = subtitle.fontWeight;
-                subtitleNode.textAlign = 'left';
-                subtitleNode.textBaseline = 'top';
                 subtitleNode.x = padding;
                 subtitleNode.y = y;
+                applyTextStyles(subtitleNode, subtitle);
 
                 y += subtitleNode.getBBox().height + subtitle.spacing;
             }
@@ -172,18 +186,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             if (datum.datum.labels) {
                 let index = 0;
                 for (const labelText of datum.datum.labels) {
-                    const labelNode = new _ModuleSupport.Text();
-                    node.appendChild(labelNode);
+                    const labelNode = node.appendChild(new _ModuleSupport.Text());
                     childNodes.push(labelNode);
 
                     labelNode.text = labelText;
-                    labelNode.fontFamily = labels[index].fontFamily;
-                    labelNode.fontSize = labels[index].fontSize;
-                    labelNode.fontWeight = labels[index].fontWeight;
-                    labelNode.textAlign = 'left';
-                    labelNode.textBaseline = 'top';
                     labelNode.x = padding;
                     labelNode.y = y;
+                    applyTextStyles(labelNode, labels[index]);
 
                     y += labelNode.getBBox().height + labels[index].spacing;
 
@@ -201,15 +210,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>) {
+        const { link } = this.properties;
+
         linkSelection.each((node) => {
-            const path = new _ModuleSupport.Path();
+            const path = node.appendChild(new _ModuleSupport.Path());
             path.visible = false;
-
             path.fill = 'transparent';
-            path.stroke = '#999';
-            path.strokeWidth = 2;
-
-            node.appendChild(path);
+            applyStrokeStyles(path, link);
         });
     }
 

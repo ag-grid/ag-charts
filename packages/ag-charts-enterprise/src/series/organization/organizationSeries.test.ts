@@ -33,6 +33,28 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
     ],
 };
 
+const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    theme: {
+        overrides: {
+            organization: {
+                series: {
+                    link: { stroke: '#ff7faa', lineDash: [2, 4] },
+                    node: {
+                        fill: '#fff1e5',
+                        stroke: '#006f9b',
+                        lineDash: [8, 2],
+                        cornerRadius: 30,
+                        title: { color: '#006f9b' },
+                        subtitle: { color: '#ff7faa', fontStyle: 'italic' },
+                        labels: [{ color: '#00994d' }],
+                    },
+                },
+            },
+        },
+    },
+};
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -40,6 +62,10 @@ interface StandaloneTestCase extends ChartTestCase {
 const EXAMPLES: Record<string, StandaloneTestCase> = {
     SIMPLE_ORG_CHART: {
         options: SIMPLE_ORG_CHART,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SIMPLE_ORG_CHART_THEMED: {
+        options: SIMPLE_ORG_CHART_THEMED,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

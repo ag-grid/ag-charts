@@ -2,6 +2,7 @@ import {
     type CssColor,
     type FontFamily,
     type FontSize,
+    type FontStyle,
     type FontWeight,
     type OverflowStrategy,
     type TextWrap,
@@ -18,7 +19,41 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     parentIdKey: string = 'parentId';
 
     @Property
+    direction = 'vertical' as const;
+
+    @Property
+    link = new OrganizationSeriesLinkProperties();
+
+    @Property
     node = new OrganizationSeriesNodeProperties();
+}
+
+class OrganizationSeriesLinkProperties extends BaseProperties {
+    @Property
+    interpolation = new OrganisationSeriesLinkStepInterpolationProperties();
+
+    @Property
+    lineDash: number[] = [];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
+    stroke: CssColor = 'black';
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    strokeWidth: number = 1;
+}
+
+class OrganisationSeriesLinkStepInterpolationProperties extends BaseProperties {
+    @Property
+    type = 'step';
+
+    @Property
+    cornerRadius: number = 0;
 }
 
 class OrganizationSeriesNodeProperties extends BaseProperties {
@@ -29,7 +64,19 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fill: CssColor = 'white';
 
     @Property
+    fillOpacity: number = 1;
+
+    @Property
+    lineDash: number[] = [];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
     stroke: CssColor = 'black';
+
+    @Property
+    strokeOpacity: number = 1;
 
     @Property
     strokeWidth: number = 1;
@@ -49,10 +96,16 @@ class OrganizationSeriesNodeTextProperties extends BaseProperties {
     key!: string;
 
     @Property
-    fontSize: FontSize = 12;
+    color: CssColor = 'black';
 
     @Property
     fontFamily!: FontFamily;
+
+    @Property
+    fontSize: FontSize = 12;
+
+    @Property
+    fontStyle: FontStyle = 'normal';
 
     @Property
     fontWeight!: FontWeight;
