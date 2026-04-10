@@ -7,7 +7,7 @@ import { NetworkLayout } from './networkLayout';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
-export class NetworkTreeLayout extends NetworkLayout {
+export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
     constructor(
         private readonly verticalPadding = 40,
         private readonly outerPadding = 10,
@@ -17,11 +17,11 @@ export class NetworkTreeLayout extends NetworkLayout {
     }
 
     update(
-        graph: NetworkGraph<any, any>,
-        vertices: Vertex<any, any>[],
-        getDatumNodeBBox: (vertex: Vertex<any, any>) => TBBox | undefined,
-        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: TBBox) => void,
-        layoutLinkNode: (vertex: Vertex<any, any>, parentBBox: TBBox, childBBox: TBBox) => void
+        graph: NetworkGraph<TVertex, TEdge>,
+        vertices: Vertex<TVertex, TEdge>[],
+        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
+        layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, parentBBox: TBBox, childBBox: TBBox) => void
     ) {
         this.updateChildren(graph, vertices, getDatumNodeBBox, layoutDatumNode, layoutLinkNode);
 
@@ -29,15 +29,15 @@ export class NetworkTreeLayout extends NetworkLayout {
     }
 
     private updateChildren(
-        graph: NetworkGraph<any, any>,
-        vertices: Vertex<any, any>[],
-        getDatumNodeBBox: (vertex: Vertex<any, any>) => TBBox | undefined,
-        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: TBBox) => void,
-        layoutLinkNode: (vertex: Vertex<any, any>, parentBBox: TBBox, childBBox: TBBox) => void,
+        graph: NetworkGraph<TVertex, TEdge>,
+        vertices: Vertex<TVertex, TEdge>[],
+        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
+        layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, parentBBox: TBBox, childBBox: TBBox) => void,
         groupBBox: TBBox = new BBox(0, 0, 0, 0)
     ): {
         containerBBox: TBBox;
-        childrenBBoxes: { vertex: Vertex<any, any>; bbox: TBBox }[];
+        childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
     } {
         const layoutBBoxes = [];
 
@@ -105,15 +105,15 @@ export class NetworkTreeLayout extends NetworkLayout {
     }
 
     private findAndUpdateChildren(
-        graph: NetworkGraph<any, any>,
-        vertex: Vertex<any, any>,
-        getDatumNodeBBox: (vertex: Vertex<any, any>) => TBBox | undefined,
-        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: TBBox) => void,
-        layoutLinkNode: (vertex: Vertex<any, any>, parentBBox: TBBox, childBBox: TBBox) => void,
+        graph: NetworkGraph<TVertex, TEdge>,
+        vertex: Vertex<TVertex, TEdge>,
+        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
+        layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, parentBBox: TBBox, childBBox: TBBox) => void,
         groupBBox: TBBox,
         datumBBox?: TBBox
     ) {
-        const children = graph.neighboursWithEdgeValue(vertex, 'child');
+        const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children) return {};
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);

@@ -3,14 +3,14 @@ import type { Vertex } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 
-export abstract class NetworkLayout {
+export abstract class NetworkLayout<TVertex, TEdge> {
     abstract update(
-        graph: NetworkGraph<any, any>,
-        vertices: Vertex<any, any>[],
-        getDatumNodeBBox: (vertex: Vertex<any, any>) => _ModuleSupport.BBox | undefined,
-        layoutDatumNode: (vertex: Vertex<any, any>, groupBBox: _ModuleSupport.BBox) => void,
+        graph: NetworkGraph<TVertex, TEdge>,
+        vertices: Vertex<TVertex, TEdge>[],
+        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => _ModuleSupport.BBox | undefined,
+        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) => void,
         layoutLinkNode: (
-            vertex: Vertex<any, any>,
+            vertex: Vertex<TVertex, TEdge>,
             parentBBox: _ModuleSupport.BBox,
             childBBox: _ModuleSupport.BBox
         ) => void

@@ -28,7 +28,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationGraph,
     OrganizationNode,
     OrganizationDatum,
-    NetworkTreeLayout
+    NetworkTreeLayout<OrganizationVertex, OrganizationEdge>
 > {
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
@@ -42,7 +42,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     createNetworkLayout() {
-        return new NetworkTreeLayout();
+        return new NetworkTreeLayout<OrganizationVertex, OrganizationEdge>();
     }
 
     getRootVertices() {

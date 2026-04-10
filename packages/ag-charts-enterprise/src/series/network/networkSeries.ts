@@ -37,7 +37,7 @@ export abstract class AbstractNetworkSeries<
     TGraph extends NetworkGraph<TVertex, TEdge>,
     TNode extends _ModuleSupport.TranslatableGroup,
     TDatum extends NetworkSeriesDatum<TVertex, TEdge>,
-    TLayout extends NetworkLayout,
+    TLayout extends NetworkLayout<TVertex, TEdge>,
 > extends _ModuleSupport.Series<
     NetworkSeriesDatumIndex,
     NetworkSeriesDatum<TVertex, TEdge>,
