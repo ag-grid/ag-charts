@@ -30,6 +30,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationDatum,
     NetworkTreeLayout
 > {
+    static override readonly className = 'OrganizationSeries';
+    static readonly type = 'organization' as const;
+
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
