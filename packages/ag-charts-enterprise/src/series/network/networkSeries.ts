@@ -1,5 +1,5 @@
 import { type AgActiveItemState, _ModuleSupport } from 'ag-charts-community';
-import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vec2, Vertex } from 'ag-charts-core';
+import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
@@ -169,11 +169,7 @@ export abstract class AbstractNetworkSeries<
         this.positionDatumNode(this.datumSelection.at(datumIndex)!, groupBBox);
     }
 
-    private layoutLinkNode(
-        vertex: Vertex<TVertex, TEdge>,
-        parentBBox: _ModuleSupport.BBox,
-        childBBox: _ModuleSupport.BBox
-    ) {
+    private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
         const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
         if (typeof datumIndex !== 'number') return;
 
@@ -183,17 +179,7 @@ export abstract class AbstractNetworkSeries<
         const path = link.children().next().value as _ModuleSupport.Path | undefined;
         if (!path) return;
 
-        const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height);
-        const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
-        const elbowDist = Vec2.from(0, (end.y - start.y) / 2);
-
-        const elbow1 = Vec2.add(start, elbowDist);
-        const elbow2 = Vec2.sub(end, elbowDist);
-
-        path.path.moveTo(start.x, start.y);
-        path.path.lineTo(elbow1.x, elbow1.y);
-        path.path.lineTo(elbow2.x, elbow2.y);
-        path.path.lineTo(end.x, end.y);
+        drawLink(path.path);
 
         path.visible = true;
     }

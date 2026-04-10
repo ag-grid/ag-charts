@@ -11,8 +11,7 @@ export abstract class NetworkLayout<TVertex, TEdge> {
         layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) => void,
         layoutLinkNode: (
             vertex: Vertex<TVertex, TEdge>,
-            parentBBox: _ModuleSupport.BBox,
-            childBBox: _ModuleSupport.BBox
+            drawLink: (path: _ModuleSupport.ExtendedPath2D) => void
         ) => void
     ): void;
 }
