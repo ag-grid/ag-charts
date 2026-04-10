@@ -1,6 +1,12 @@
-import { AgChartOptions, AgCharts, ContextMenuModule, ModuleRegistry, SankeySeriesModule } from 'ag-charts-enterprise';
+import {
+    AgChartOptions,
+    AgCharts,
+    ContextMenuModule,
+    ModuleRegistry,
+    OrganisationSeriesModule,
+} from 'ag-charts-enterprise';
 
-ModuleRegistry.registerModules([SankeySeriesModule, ContextMenuModule]);
+ModuleRegistry.registerModules([OrganisationSeriesModule, ContextMenuModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
