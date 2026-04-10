@@ -440,103 +440,10 @@ Screen readers announce the node content and sibling position (e.g. "3 of 5").
 
 ## API Reference
 
-```js
-interface AgOrganizationSeriesOptions {
-    type: 'organization';
+{% tabs %}
 
-    /** Array of node records. Each record represents one node in the hierarchy. */
-    data?: object[];
-    /** Key in data for the unique node identifier. Default: `'id'`. */
-    idKey?: string;
-    /** Key in data for the parent node identifier. Default: `'parentId'`. */
-    parentIdKey?: string;
+{% tabItem id="AgOrganizationSeriesOptions" label="Organization Series" %}
+{% apiReference id="AgOrganizationSeriesOptions" /%}
+{% /tabItem %}
 
-    /** Primary text field, always visible. */
-    title?: {
-        key: string;
-        fontSize?: number;
-        fontWeight?: CSSFontWeight;
-        fontFamily?: string;
-        color?: string;
-        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
-    };
-    /** Secondary text field, always visible. */
-    subtitle?: {
-        key: string;
-        fontSize?: number;
-        fontWeight?: CSSFontWeight;
-        fontFamily?: string;
-        color?: string;
-        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
-    };
-    /** Additional text fields. */
-    label?: Array<{
-        key: string;
-        fontSize?: number;
-        fontWeight?: CSSFontWeight;
-        fontFamily?: string;
-        color?: string;
-        styler?: (params: OrganizationLabelStylerParams) => OrganizationLabelStyle;
-    }>;
-    /** Image displayed within each card. */
-    image?: {
-        /** Key in node data for the image URL. */
-        key: string;
-        /** Shape of the image mask. Default: `'square'`. */
-        shape?: 'circle' | 'square';
-        /** Width of the image in pixels. */
-        width?: number;
-        /** Height of the image in pixels. */
-        height?: number;
-        /** How the image fills its container. Default: `'cover'`. */
-        fit?: 'cover' | 'contain' | 'fill';
-        /** Position of the image within the card. Default: `'left'`. */
-        position?: 'top' | 'left' | 'bottom' | 'right';
-    };
-
-    /** Minimum width of each node card (pixels). */
-    minWidth?: number;
-    /** Maximum width of each node card (pixels). */
-    maxWidth?: number;
-    /** Fixed height of each node card (pixels). */
-    height?: number;
-    /** Maximum height of each node card (pixels). */
-    maxHeight?: number;
-    /** Minimum spacing between nodes (pixels). */
-    minSpacing?: number;
-
-    /** Connector line configuration. */
-    link?: {
-        interpolation?: {
-            /** Connector shape. Default: `'step'`. */
-            type?: 'step';
-            /** Corner rounding (pixels). */
-            cornerRadius?: number;
-        };
-        stroke?: string;
-        strokeWidth?: number;
-        lineDash?: number[];
-        /** Per-connector styling callback. */
-        itemStyler?: (params: OrganizationLinkStylerParams) => OrganizationLinkStyle;
-    };
-
-    /** Initial expand/collapse state. Same format as getState()/setState(). */
-    initialState?: {
-        /** Node IDs to collapse. Their subtrees are hidden. All other nodes are expanded by default. */
-        collapsed?: Array<string | number>;
-    };
-
-    tooltip?: {
-        /** Whether to show tooltips on node hover. Default: `false`. */
-        enabled?: boolean;
-    };
-
-    /** Per-node card styling callback. */
-    itemStyler?: (params: OrganizationItemStylerParams) => OrganizationItemStyle;
-
-    listeners?: {
-        /** Fired when a node card is clicked. */
-        nodeClick?: (event: OrganizationNodeClickEvent) => void;
-    };
-}
-```
+{% /tabs %}
