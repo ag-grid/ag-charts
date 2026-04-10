@@ -5,26 +5,13 @@ import { NetworkGraph } from '../network/networkGraph';
 export type OrganizationVertex = string | string[] | number;
 
 export type OrganizationEdge =
-    | 'datumIndex'
-
-    // The descendent edge from parent to child.
-    | 'child'
-
-    // The ancestor edge from child to parent.
-    | 'parent'
-
-    //
+    | 'datumIndex' // The index of the datum within the series' nodeData array.
+    | 'child' // The descending edge from parent to child.
+    | 'parent' // The ascending edge from child to parent.
     | 'title'
-
-    //
     | 'subtitle'
-
-    //
     | 'labels';
 
-/**
- *
- */
 export class OrganizationGraph extends NetworkGraph<OrganizationVertex, OrganizationEdge> {
     constructor() {
         super({

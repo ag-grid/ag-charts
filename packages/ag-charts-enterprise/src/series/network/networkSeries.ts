@@ -29,7 +29,7 @@ export type NetworkLinkNode = _ModuleSupport.TranslatableGroup;
 export interface NetworkLinkDatum {}
 
 /**
- *
+ * A Network Series processes data into a graph structure and presents the nodes in a network layout.
  */
 export abstract class AbstractNetworkSeries<
     TVertex,
@@ -79,12 +79,13 @@ export abstract class AbstractNetworkSeries<
 
     abstract createNetworkGraph(): TGraph;
     abstract createNetworkLayout(): TLayout;
-
     abstract nodeFactory(): TNode;
 
-    private linkFactory(): NetworkLinkNode {
-        return new _ModuleSupport.TranslatableGroup();
-    }
+    abstract getRootVertices(): Vertex<TVertex, TEdge>[];
+    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
+    abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
+    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>): void;
+    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
 
     dataCount() {
         return this.graph.getVertexCount();
@@ -101,6 +102,29 @@ export abstract class AbstractNetworkSeries<
         this.updateNodes();
     }
 
+    hasItemStylers() {
+        return false;
+    }
+
+    getTooltipContent(
+        _datumIndex: NetworkSeriesDatumIndex,
+        _removeThisDatum: NetworkSeriesDatum<TVertex, TEdge> | undefined
+    ): _ModuleSupport.TooltipContent | undefined {
+        return undefined;
+    }
+
+    getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): NetworkSeriesDatumIndex | undefined {
+        return;
+    }
+
+    private linkFactory(): NetworkLinkNode {
+        return new _ModuleSupport.TranslatableGroup();
+    }
+
     private updateSelections() {
         this.contextNodeData = this.createNodeData();
         if (!this.contextNodeData) return;
@@ -108,8 +132,6 @@ export abstract class AbstractNetworkSeries<
         this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
         this.updateLinkSelection(this.contextNodeData.nodeData as TDatum[], this.linkSelection);
     }
-
-    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
 
     private updateLinkSelection(
         nodeData: TDatum[],
@@ -129,9 +151,6 @@ export abstract class AbstractNetworkSeries<
             this.layoutLinkNode.bind(this)
         );
     }
-
-    abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
-    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>): void;
 
     private getDatumNodeBBox(vertex: Vertex<any, any>) {
         const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
@@ -177,28 +196,6 @@ export abstract class AbstractNetworkSeries<
         path.path.lineTo(end.x, end.y);
 
         path.visible = true;
-    }
-
-    abstract getRootVertices(): Vertex<TVertex, TEdge>[];
-    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
-
-    hasItemStylers() {
-        return false;
-    }
-
-    getTooltipContent(
-        _datumIndex: NetworkSeriesDatumIndex,
-        _removeThisDatum: NetworkSeriesDatum<TVertex, TEdge> | undefined
-    ): _ModuleSupport.TooltipContent | undefined {
-        return undefined;
-    }
-
-    getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
-        return;
-    }
-
-    datumIndexForCategoryValue(_categoryValue: any): NetworkSeriesDatumIndex | undefined {
-        return;
     }
 
     // ---

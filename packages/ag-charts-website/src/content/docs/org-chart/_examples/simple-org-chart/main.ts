@@ -6,18 +6,16 @@ import {
     OrganizationSeriesModule,
 } from 'ag-charts-enterprise';
 
+import { getData } from './data';
+
 ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    data: [
-        { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
-        { id: 'cto', name: 'Bob Smith', job: 'Chief Technology Officer', location: 'London', parentId: 'ceo' },
-        { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', location: 'London', parentId: 'ceo' },
-        { id: 'dev', name: 'Dave Jones', job: 'Developer', location: 'New York', parentId: 'cto' },
-        { id: 'qa', name: 'Eve Park', job: 'Quality Assurance', location: 'London', parentId: 'cto' },
-        { id: 'acc', name: 'Frank Cash', job: 'Accountant', location: 'London', parentId: 'cfo' },
-    ],
+    title: {
+        text: 'Company Organisation',
+    },
+    data: getData(),
     series: [
         {
             type: 'organization',

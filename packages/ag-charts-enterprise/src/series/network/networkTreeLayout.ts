@@ -7,6 +7,10 @@ import { NetworkLayout } from './networkLayout';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
+/**
+ * A Network Tree Layout presents the nodes in a hierarchical non-circular network, for example an org chart or family
+ * tree.
+ */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
     constructor(
         private readonly verticalPadding = 40,

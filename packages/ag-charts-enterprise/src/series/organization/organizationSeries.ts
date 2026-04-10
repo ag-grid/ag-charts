@@ -19,9 +19,6 @@ interface OrganizationDatum extends NetworkSeriesDatum<OrganizationVertex, Organ
 
 type OrganizationNode = _ModuleSupport.TranslatableGroup;
 
-/**
- *
- */
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -246,6 +243,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         nodeData: OrganizationDatum[],
         vertex: Vertex<OrganizationVertex, OrganizationEdge>
     ) {
+        // This `datumIndex` does _not_ correlate with the index within the `data` array.
         const datumIndex = nodeData.length;
         this.graph.addEdge(vertex, this.graph.addVertex(datumIndex), 'datumIndex');
 
@@ -253,9 +251,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const nodeDatum: OrganizationDatum = {
             series: this,
             datum: {
-                title: this.graph.findNeighbourValue(vertex, 'title') as any,
-                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as any,
-                labels: this.graph.findNeighbourValue(vertex, 'labels') as any,
+                title: this.graph.findNeighbourValue(vertex, 'title') as string,
+                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as string,
+                labels: this.graph.findNeighbourValue(vertex, 'labels') as string[],
             },
             datumIndex,
             vertex,
