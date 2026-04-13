@@ -1,12 +1,16 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
-const defaultConfig = {
+const sourceConfig = {
     path: './src/main.ts',
     modifyEsbuildConfig(esbuildConfig) {
-        // Uncomment to disable minification when investigating:
-        // esbuildConfig.minifyIdentifiers = false;
-        // esbuildConfig.minifySyntax = false;
-        // esbuildConfig.minifyWhitespace = false;
+        esbuildConfig.plugins = plugins;
+        return esbuildConfig;
+    },
+};
+
+const distConfig = {
+    path: './dist/package/main.js',
+    modifyEsbuildConfig(esbuildConfig) {
         esbuildConfig.plugins = plugins;
         return esbuildConfig;
     },
@@ -14,21 +18,39 @@ const defaultConfig = {
 
 module.exports = [
     {
-        name: 'Full package',
+        name: '[src] Full package',
         import: '*',
         limit: '287 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'CartesianChart only',
+        name: '[src] CartesianChart only',
         import: '{ CartesianChartModule }',
         limit: '175 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'PolarChart only',
+        name: '[src] PolarChart only',
         import: '{ PolarChartModule }',
         limit: '165 kB',
-        ...defaultConfig,
+        ...sourceConfig,
+    },
+    {
+        name: '[dist] Full package',
+        import: '*',
+        limit: '287 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] CartesianChart only',
+        import: '{ CartesianChartModule }',
+        limit: '175 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] PolarChart only',
+        import: '{ PolarChartModule }',
+        limit: '165 kB',
+        ...distConfig,
     },
 ];

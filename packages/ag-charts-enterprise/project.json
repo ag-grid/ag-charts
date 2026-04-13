@@ -6,7 +6,7 @@
   "targets": {
     "build": {
       "executor": "nx:noop",
-      "dependsOn": ["build:types", "build:package", "build:umd"],
+      "dependsOn": ["build:types", "build:package", "build:package:esm", "build:umd"],
       "inputs": [],
       "outputs": [],
       "configurations": {

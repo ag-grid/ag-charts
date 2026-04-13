@@ -1,6 +1,6 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
-const defaultConfig = {
+const sourceConfig = {
     path: './src/main.ts',
     modifyEsbuildConfig(esbuildConfig) {
         esbuildConfig.plugins = plugins;
@@ -8,71 +8,77 @@ const defaultConfig = {
     },
 };
 
+const distConfig = {
+    path: './dist/package/main.js',
+    modifyEsbuildConfig(esbuildConfig) {
+        esbuildConfig.plugins = plugins;
+        return esbuildConfig;
+    },
+};
+
 module.exports = [
+    { name: '[src] Full package', import: '*', limit: '455 kB', ...sourceConfig },
+    { name: '[src] BoxPlot module only', import: '{ BoxPlotSeriesModule }', limit: '248 kB', ...sourceConfig },
     {
-        name: 'Full package',
-        import: '*',
-        limit: '455 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Cartesian modules',
-        import: '{ AllCartesianModule }',
-        limit: '369 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Polar modules',
-        import: '{ AllPolarModule }',
-        limit: '279 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Topology modules',
-        import: '{ AllMapSeriesModule }',
-        limit: '253 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'All enterprise modules',
-        import: '{ AllEnterpriseModule }',
-        limit: '451 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'BoxPlot module only',
-        import: '{ BoxPlotSeriesModule }',
-        limit: '248 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Mixed modules A',
+        name: '[src] Mixed modules A',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
         limit: '293 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'Mixed modules B',
+        name: '[src] Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
         limit: '252 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'Mixed modules C',
+        name: '[src] Mixed modules C',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
         limit: '257 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'Mixed modules D',
+        name: '[src] Mixed modules D',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
         limit: '258 kB',
-        ...defaultConfig,
+        ...sourceConfig,
     },
     {
-        name: 'Mixed modules E',
+        name: '[src] Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
         limit: '278 kB',
-        ...defaultConfig,
+        ...sourceConfig,
+    },
+    { name: '[dist] Full package', import: '*', limit: '455 kB', ...distConfig },
+    { name: '[dist] BoxPlot module only', import: '{ BoxPlotSeriesModule }', limit: '248 kB', ...distConfig },
+    {
+        name: '[dist] Mixed modules A',
+        import: '{ BoxPlotSeriesModule, NavigatorModule }',
+        limit: '293 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] Mixed modules B',
+        import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
+        limit: '252 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] Mixed modules C',
+        import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
+        limit: '257 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] Mixed modules D',
+        import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
+        limit: '258 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] Mixed modules E',
+        import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
+        limit: '278 kB',
+        ...distConfig,
     },
 ];

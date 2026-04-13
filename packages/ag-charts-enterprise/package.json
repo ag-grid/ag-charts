@@ -4,19 +4,18 @@
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
-  "module": "./dist/package/main.esm.mjs",
+  "module": "./dist/package/main.js",
   "exports": {
     ".": {
       "types": "./dist/types/src/main.d.ts",
       "require": "./dist/package/main.cjs.js",
-      "import": "./dist/package/main.esm.mjs",
+      "import": "./dist/package/main.js",
       "default": "./dist/package/main.cjs.js"
     }
   },
   "sideEffects": [
     "*.css",
     "*.html",
-    "./dist/package/main.esm.mjs",
     "./dist/package/main.cjs.js"
   ],
   "scripts": {

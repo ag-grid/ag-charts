@@ -148,7 +148,6 @@ if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
 } else {
     outExtension = {
         '.cjs': '.cjs.js',
-        '.js': '.esm.mjs',
     };
 }
 

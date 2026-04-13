@@ -133,7 +133,7 @@
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
         "target": "es2020",
-        "format": ["cjs", "esm"],
+        "format": ["cjs"],
         "sourcemap": true
       },
       "configurations": {
@@ -146,6 +146,31 @@
         "production": {
           "sourcemap": false
         }
+      }
+    },
+    "build:package:esm": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "dependsOn": ["build:package", "^build:package:esm"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:esbuild"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist/package"],
+      "options": {
+        "command": "node tools/build-esm.cjs {projectRoot}"
+      },
+      "configurations": {
+        "watch": {},
+        "staging": {},
+        "production": {}
       }
     },
     "build:umd": {
