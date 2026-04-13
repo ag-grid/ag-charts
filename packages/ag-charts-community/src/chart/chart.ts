@@ -69,6 +69,7 @@ import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
+import type { ChartState } from './chartState';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -778,6 +779,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
         } catch (error: any) {
             Logger.error('update error', error, error.stack);
+            this.runningUpdateType = ChartUpdateType.NONE;
+            this._performUpdateNotify.notify();
         }
     }
 
@@ -800,6 +803,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesToUpdate.clear();
         this.runningUpdateType = performUpdateType;
         this.currentProcessingUpdateType = performUpdateType;
+
+        ctx.chartState.flushChanges();
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
@@ -864,6 +869,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
+                ctx.chartState.flushChanges('legendData');
                 await this.processLayout();
                 this.updateSplits('⌖');
             // fallthrough
@@ -1375,8 +1381,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
             }
         }
-
-        legendManager.update();
     }
 
     private async processLayout() {
@@ -1563,7 +1567,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'listeners',
             'preset',
             'theme',
-            'legend.listeners',
+            'legend',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
             'locale.localeText',
@@ -1628,20 +1632,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
-        if (
-            'legend' in deltaOptions &&
-            deltaOptions.legend &&
-            'listeners' in deltaOptions.legend &&
-            this.modulesManager.isEnabled('legend')
-        ) {
-            const legendListeners = deltaOptions.legend.listeners;
-            if (legendListeners) {
-                Object.assign((this as any).legend.listeners, legendListeners);
-            } else {
-                // Clear legend listeners when set to undefined
-                (this as any).legend.listeners.clear();
-            }
-        }
+
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+
         if (deltaOptions.locale?.localeText) {
             this.pendingLocaleText = deltaOptions.locale?.localeText;
         }

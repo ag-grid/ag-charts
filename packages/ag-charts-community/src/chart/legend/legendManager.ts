@@ -1,8 +1,8 @@
-import type { MementoOriginator } from 'ag-charts-core';
+import type { MementoOriginator, ReactiveState } from 'ag-charts-core';
 import { type AreExact, Logger, isArray } from 'ag-charts-core';
 import type { AgInitialStateLegendOptions as DefectAgInitialStateLegendOptions } from 'ag-charts-types';
 
-import type { EventsHub } from '../../core/eventsHub';
+import type { ChartState } from '../chartState';
 import type { CategoryLegendDatum } from './legendDatum';
 
 // FIXME: AG-16068 locally patch API AgInitialStateLegendOptions, but force compilation error if&when
@@ -12,16 +12,16 @@ type AgInitialStateLegendOptions =
         ? never
         : Omit<DefectAgInitialStateLegendOptions, 'itemId'> & { itemId?: string | number };
 
-type LegendDataMap = Map<string, CategoryLegendDatum[]>;
-
 type LegendDataMemento = AgInitialStateLegendOptions[];
 
 export class LegendManager implements MementoOriginator<LegendDataMemento> {
     public mementoOriginatorKey = 'legend' as const;
 
-    private readonly legendDataMap: LegendDataMap = new Map();
+    private readonly chartState: ReactiveState<ChartState>;
 
-    constructor(private readonly eventsHub: EventsHub) {}
+    constructor(ctx: { chartState: ReactiveState<ChartState> }) {
+        this.chartState = ctx.chartState;
+    }
 
     public createMemento() {
         return this.getData()
@@ -50,15 +50,13 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
                 this.updateData(seriesId, data);
             }
         }
-
-        this.update();
     }
 
     private getRestoredData(datum: AgInitialStateLegendOptions) {
         const { seriesId, itemId, legendItemName, visible } = datum;
 
         if (seriesId) {
-            const legendData = this.legendDataMap.get(seriesId) ?? [];
+            const legendData = this.legendDataRecord[seriesId] ?? [];
 
             const data = legendData.map((d) => {
                 const match = d.seriesId === seriesId && (!itemId || d.itemId === itemId);
@@ -88,7 +86,7 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
                 return;
             }
 
-            const seriesLegendData = (this.legendDataMap.get(legendDatum.seriesId) ?? []).map((d) =>
+            const seriesLegendData = (this.legendDataRecord[legendDatum.seriesId] ?? []).map((d) =>
                 d.itemId === itemId || d.legendItemName === legendItemName ? { ...d, enabled: visible } : d
             );
 
@@ -105,25 +103,23 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
         );
     }
 
-    public update(data?: CategoryLegendDatum[]) {
-        this.eventsHub.emit('legend:change', {
-            legendData: data ?? this.getData(),
-        });
+    private get legendDataRecord(): Record<string, CategoryLegendDatum[]> {
+        return this.chartState.getValue('legendData') ?? {};
     }
 
     public updateData(seriesId: string, data: CategoryLegendDatum[] = []) {
-        this.eventsHub.emit('legend:change-partial', { seriesId, legendData: data });
-        this.legendDataMap.set(seriesId, data);
+        this.chartState.setValue('legendData', { ...this.legendDataRecord, [seriesId]: data });
     }
 
     public clearData() {
-        this.legendDataMap.clear();
+        this.chartState.setValue('legendData', {});
     }
 
     public toggleItem(enabled: boolean, seriesId: string, itemId?: any, legendItemName?: string) {
         if (legendItemName) {
+            const record = this.legendDataRecord;
             for (const datum of this.getData()) {
-                const newData = (this.legendDataMap.get(datum.seriesId) ?? []).map((d) =>
+                const newData = (record[datum.seriesId] ?? []).map((d) =>
                     d.legendItemName === legendItemName ? { ...d, enabled } : d
                 );
 
@@ -143,14 +139,13 @@ export class LegendManager implements MementoOriginator<LegendDataMemento> {
     }
 
     public getData(seriesId?: string) {
+        const record = this.legendDataRecord;
+
         if (seriesId) {
-            return this.legendDataMap.get(seriesId) ?? [];
+            return record[seriesId] ?? [];
         }
 
-        return [...this.legendDataMap].reduce(
-            (data, [_, legendData]) => data.concat(legendData),
-            [] as CategoryLegendDatum[]
-        );
+        return Object.values(record).flat();
     }
 
     public getDatum({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {

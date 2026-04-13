@@ -5,6 +5,7 @@ import {
     EventEmitter,
     ModuleRegistry,
     ModuleType,
+    ReactiveState,
     type StrictHTMLElement,
 } from 'ag-charts-core';
 
@@ -23,6 +24,7 @@ import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
+import type { ChartState } from './chartState';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
@@ -47,6 +49,7 @@ export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
 
     readonly callbackCache = new CallbackCache();
+    readonly chartState = new ReactiveState<ChartState>();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
     readonly layoutManager = new LayoutManager(this.eventsHub);
@@ -136,8 +139,11 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
 
+        this.chartState.setValue('legendData', {});
+        this.chartState.setValue('legendVisible', true);
+
         this.axisManager = new AxisManager(this.eventsHub, root);
-        this.legendManager = new LegendManager(this.eventsHub);
+        this.legendManager = new LegendManager(this);
         this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
@@ -161,6 +167,7 @@ export class ChartContext implements ModuleContext {
 
     destroy() {
         // chart.ts handles the destruction of the scene.
+        this.chartState.destroy();
         this.animationManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();

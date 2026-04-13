@@ -364,7 +364,6 @@ export abstract class Series<
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
         this.ctx.legendManager.toggleItem(newVisibility, this.id);
-        this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
 
