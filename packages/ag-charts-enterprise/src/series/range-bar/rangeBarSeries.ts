@@ -1,4 +1,5 @@
 import {
+    type AgRangeBarSeriesItemStylerParams,
     type AgRangeBarSeriesLabelFormatterParams,
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
@@ -1083,7 +1084,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             highlightState: highlightStateString,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;
     }
 
     protected override updateDatumStyles(opts: {

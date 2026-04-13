@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
@@ -15,7 +16,13 @@ import {
     normalizeAngle360,
     toPlainText,
 } from 'ag-charts-core';
-import type { AgSunburstSeriesOptions, AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
+import type {
+    AgSunburstSeriesItemStylerParams,
+    AgSunburstSeriesOptions,
+    AgSunburstSeriesStyle,
+    FontStyle,
+    FontWeight,
+} from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -201,17 +208,22 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     private makeItemStylerParams(nodeDatum: SunburstNode, style: ItemStyle, highlightState: AgSunburstHighlightState) {
         const { id: seriesId } = this;
-
+        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
             datum: nodeDatum.datum,
             depth: nodeDatum.depth ?? 0,
+            colorKey,
+            childrenKey,
+            sizeKey,
+            labelKey,
+            secondaryLabelKey,
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgSunburstSeriesItemStylerParams<unknown, unknown>>;
     }
 
     updateNodes() {

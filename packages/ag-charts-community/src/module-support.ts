@@ -136,7 +136,7 @@ export {
     trailingAccumulatedValueProperty,
     valueProperty,
 } from './chart/data/processors';
-export type { PreSceneRenderEvent, ProcessDataEvent } from './chart/updateService';
+export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export { adjustLabelPlacement, getLabelStyles, updateLabelNode } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';

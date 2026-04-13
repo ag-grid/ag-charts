@@ -28,14 +28,42 @@ import type {
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
 import type { ChartLegendType } from '../chart/legend/legendDatum';
-import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { UpdateOpts } from '../chart/updateService';
+import type { DatumIndexType, ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
+
+export interface UpdateCompleteEvent {
+    readonly apiUpdate: boolean;
+    readonly wasShortcut: boolean;
+}
+
+export interface PreSeriesUpdateEvent {
+    readonly requiredRangeRatio: number;
+    readonly requiredRangeDirection: ChartAxisDirection;
+    readonly requiredRange: number;
+}
+
+export interface PreSceneRenderEvent {
+    readonly apiUpdate: boolean;
+}
+
+export interface ProcessDataEvent {
+    readonly series: { shouldFlipXY?: boolean };
+}
+
+export interface UpdateOpts {
+    forceNodeDataRefresh?: boolean;
+    skipAnimations?: boolean;
+    newAnimationBatch?: boolean;
+    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
+    backOffMs?: number;
+    apiUpdate?: boolean;
+    clearCallbackCache?: boolean;
+}
 
 export interface SeriesAreaHoverEvent {
     readonly canvasX: number;
@@ -108,6 +136,11 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
+    'update:complete': UpdateCompleteEvent;
+    'update:pre-dom': null;
+    'update:pre-series': PreSeriesUpdateEvent;
+    'update:pre-scene-render': PreSceneRenderEvent;
+    'update:process-data': ProcessDataEvent;
     'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**

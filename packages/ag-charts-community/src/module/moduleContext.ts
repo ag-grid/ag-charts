@@ -22,7 +22,6 @@ import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayout
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
-import type { UpdateService } from '../chart/updateService';
 import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
@@ -40,7 +39,6 @@ export interface ModuleContext {
     readonly dataService: DataService<any>;
     readonly layoutManager: LayoutManager;
     readonly optionsGraphService: OptionsGraphService;
-    readonly updateService: UpdateService;
 
     readonly axisManager: AxisManager;
     readonly chartState: ReactiveState<ChartState>;

@@ -10,6 +10,15 @@ on:
                 type: string
                 default: b12.1.1
                 required: true
+            benchmark-type:
+                description: 'Which benchmarks to run'
+                type: choice
+                options:
+                    - all
+                    - jest
+                    - browser
+                default: all
+                required: true
             notify:
                 description: 'Notify Slack channel'
                 type: boolean
@@ -46,7 +55,7 @@ jobs:
 
     benchmark:
         runs-on: macos-benchmark
-        timeout-minutes: 60 # Jest ~13m + browser ~20m + build/setup ~15m; reduce once Jest benchmarks are removed
+        timeout-minutes: 60 # Jest ~25m + browser ~25m + setup ~5m; selective runs via benchmark-type input
         permissions:
             pull-requests: write
         needs: check-permissions
@@ -175,7 +184,9 @@ jobs:
 
             - name: nx benchmark
               id: benchmark-table
-              if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: |
+                  github.event_name == 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: |
                   ./tools/benchmark/compare-latest.sh origin/${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
@@ -184,14 +195,19 @@ jobs:
 
             - name: nx benchmark
               id: benchmark-json
-              if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: |
+                  github.event_name != 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
+                  (inputs.benchmark-type || 'all') != 'browser'
               run: |
                   ./tools/benchmark/compare-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 
             - name: Browser Benchmark (table)
               id: browser-benchmark-table
-              if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              timeout-minutes: 20
+              if: |
+                  github.event_name == 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              timeout-minutes: 25
               run: |
                   ./tools/benchmark/compare-browser-latest.sh origin/${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
@@ -200,8 +216,11 @@ jobs:
 
             - name: Browser Benchmark (json)
               id: browser-benchmark-json
-              if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
-              timeout-minutes: 20
+              if: |
+                  github.event_name != 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
+                  (inputs.benchmark-type || 'all') != 'jest'
+              timeout-minutes: 25
               run: |
                   ./tools/benchmark/compare-browser-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 
@@ -243,7 +262,7 @@ jobs:
                       })
 
             - name: Slack Notification (Jest)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'browser'
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'
@@ -255,7 +274,7 @@ jobs:
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
             - name: Slack Notification (Browser)
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'jest'
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'

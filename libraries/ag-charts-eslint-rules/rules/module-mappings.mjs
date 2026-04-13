@@ -80,6 +80,7 @@ export const pluginOptionToModule = new Map([
     ['navigator', 'NavigatorModule'],
     ['ranges', 'RangesModule'],
     ['scrollbar', 'ScrollbarModule'],
+    ['selection', 'SelectionModule'],
     ['statusBar', 'StatusBarModule'],
     ['sync', 'SyncModule'],
     ['zoom', 'ZoomModule'],

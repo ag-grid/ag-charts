@@ -5,7 +5,6 @@ import type { ModuleMap } from '../../module/moduleMap';
 import type { BBox } from '../../scene/bbox';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
 import type { TooltipContent } from '../tooltip/tooltip';
-import type { UpdateService } from '../updateService';
 import type { HighlightManager } from './highlightManager';
 import type { TooltipManager } from './tooltipManager';
 import type { ZoomManager } from './zoomManager';
@@ -37,7 +36,6 @@ export type SyncChartLike = {
         eventsHub: EventEmitter<EventsHubMap>;
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
-        updateService: UpdateService;
         zoomManager: ZoomManager;
     };
     getTooltipContent(

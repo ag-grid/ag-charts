@@ -674,7 +674,7 @@ describe('Chart', () => {
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number; requiredRangeDirection: ChartAxisDirection } | undefined;
 
-            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+            chartAny.ctx.eventsHub.on('update:pre-series', (event: any) => {
                 capturedEvent = event;
             });
 
@@ -694,7 +694,7 @@ describe('Chart', () => {
             const chartAny = chart as any;
             let capturedEvent: { requiredRangeRatio: number } | undefined;
 
-            chartAny.ctx.updateService.addListener('pre-series-update', (event: any) => {
+            chartAny.ctx.eventsHub.on('update:pre-series', (event: any) => {
                 capturedEvent = event;
             });
 

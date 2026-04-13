@@ -14,6 +14,7 @@ import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
 import type { AgRangesOptions } from './rangesOptions';
 import type { AgScrollbarOptions } from './scrollbarOptions';
+import type { AgSelectionOptions } from './selectionOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type {
     ContextDefault,
@@ -262,6 +263,8 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     keyboard?: AgKeyboardOptions;
     /** Touch input options. */
     touch?: AgTouchOptions;
+    /** Data selection options */
+    selection?: AgSelectionOptions;
     /**
      * Suppress treatment of series keys as JavaScript paths when `true`.
      *

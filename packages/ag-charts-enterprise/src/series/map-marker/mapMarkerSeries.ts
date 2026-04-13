@@ -1,5 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type ChartAnimationPhase,
     type Feature,
     type FeatureCollection,
@@ -17,6 +18,7 @@ import {
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
+    type AgMapMarkerSeriesItemStylerParams,
     type AgMapMarkerSeriesLabelFormatterParams,
     type AgMapMarkerSeriesOptions,
 } from 'ag-charts-types';
@@ -798,6 +800,7 @@ export class MapMarkerSeries
         style: Required<AgMapMarkerSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -806,10 +809,16 @@ export class MapMarkerSeries
         return {
             seriesId,
             datum,
+            sizeKey,
+            idKey,
+            labelKey,
+            colorKey,
+            latitudeKey,
+            longitudeKey,
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgMapMarkerSeriesItemStylerParams>;
     }
 
     private updateMarkerNodes(opts: {
