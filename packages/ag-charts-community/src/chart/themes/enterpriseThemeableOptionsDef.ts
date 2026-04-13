@@ -10,6 +10,7 @@ import {
     colorScaleOptionsDef,
     colorUnion,
     commonSeriesThemeableOptionsDefs,
+    defined,
     fillOptionsDef,
     highlightOptionsDef,
     interpolationOptionsDefs,
@@ -20,6 +21,7 @@ import {
     markerStyleOptionsDefs,
     multiSeriesHighlightOptionsDef,
     numberFormatValidator,
+    overflowStrategy,
     positiveNumber,
     positiveNumberNonZero,
     ratio,
@@ -29,6 +31,7 @@ import {
     shapeSegmentation,
     string,
     strokeOptionsDef,
+    textWrap,
     tooltipOptionsDefs,
     union,
     without,
@@ -58,6 +61,7 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
+    type AgOrganizationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
     type AgRadarAreaSeriesStyle,
@@ -385,6 +389,14 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
+export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
+    ...commonSeriesThemeableOptionsDefs,
+    direction: defined,
+    link: defined,
+    node: defined,
+    tooltip: tooltipOptionsDefs,
+};
+
 export const pyramidSeriesThemeableOptionsDef: OptionsDefs<AgPyramidSeriesThemeableOptions> = {
     direction: union('horizontal', 'vertical'),
     aspectRatio: positiveNumber,
@@ -665,15 +677,15 @@ export const treemapSeriesThemeableOptionsDef: OptionsDefs<AgTreemapSeriesThemea
             spacing: positiveNumber,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
-            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-            overflowStrategy: union('ellipsis', 'hide'),
+            wrapping: textWrap,
+            overflowStrategy: overflowStrategy,
         },
         secondaryLabel: {
             ...seriesLabelOptionsDefs,
             lineHeight: positiveNumber,
             minimumFontSize: positiveNumber,
-            wrapping: union('never', 'always', 'hyphenate', 'on-space'),
-            overflowStrategy: union('ellipsis', 'hide'),
+            wrapping: textWrap,
+            overflowStrategy: overflowStrategy,
         },
         highlight: {
             highlightedItem: hierarchyHighlightStyleOptionsDef,

@@ -124,6 +124,7 @@ export interface EventsHubMap {
     'highlight:change': HighlightChangeEvent;
     'highlight:selection-updated': HighlightSelectionUpdatedEvent;
     'layout:complete': LayoutCompleteEvent;
+    'legend:item-hover': null;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;

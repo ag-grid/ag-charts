@@ -1,4 +1,4 @@
-import { type BaseAttributeTypeMap, getIconClassNames, setAttribute } from 'ag-charts-core';
+import { type BaseAttributeTypeMap, getIconClassNames, hasNoModifiers, setAttribute } from 'ag-charts-core';
 import type {
     AgAnnotationOptionsToolbarButtonValue,
     AgAnnotationOptionsToolbarSwitchValue,
@@ -11,7 +11,9 @@ import type {
 } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
+import type { KeyboardClickBindingPredicate } from '../../widget/abstractButtonWidget';
 import { ButtonWidget } from '../../widget/buttonWidget';
+import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 
 type ButtonValue =
     | 'menu'
@@ -81,16 +83,30 @@ function getAriaHasPopupOfValue(value: ButtonValue): BaseAttributeTypeMap['aria-
     return ARIA_HASPOPUP[value];
 }
 
+function isArrowLeftPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
+    return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowLeft';
+}
+
+function isArrowRightPredicate(widgetEvent: KeyboardWidgetEvent): boolean {
+    return hasNoModifiers(widgetEvent.sourceEvent) && widgetEvent.sourceEvent.code === 'ArrowRight';
+}
+
+function falsePredicate(_widgetEvent: KeyboardWidgetEvent): boolean {
+    return false;
+}
+
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
     private lastInnerHTML?: string;
     private lastTooltip?: string;
+    private arrowKeyPredicate: KeyboardClickBindingPredicate = falsePredicate;
 
     constructor(private readonly localeManager: LocaleManager) {
         super();
+        this.addKeyboardClickBinding((ev) => this.arrowKeyPredicate(ev));
     }
 
-    public update(options: ToolbarButtonWidgetOptions) {
+    public update(options: ToolbarButtonWidgetOptions, interactionOptions: { isRtl: boolean }) {
         const { localeManager } = this;
 
         if (options.tooltip) {
@@ -120,9 +136,11 @@ export class ToolbarButtonWidget extends ButtonWidget {
         if (haspopup == 'false') {
             this.setAriaHasPopup(undefined);
             this.setAriaExpanded(undefined);
+            this.arrowKeyPredicate = falsePredicate;
         } else {
             this.setAriaHasPopup(haspopup);
             this.setAriaExpanded(false);
+            this.arrowKeyPredicate = interactionOptions.isRtl ? isArrowLeftPredicate : isArrowRightPredicate;
         }
 
         // Only update innerHTML if content changed - avoids HTML parsing and style recalculation

@@ -1035,6 +1035,7 @@ export class Legend {
         }
 
         this.updateHighlight(datum?.enabled, datum, series);
+        this.ctx.eventsHub.emit('legend:item-hover', null);
     }
 
     onLeave() {

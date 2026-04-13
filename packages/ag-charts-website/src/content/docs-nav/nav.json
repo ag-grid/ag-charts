@@ -430,6 +430,12 @@
                             "isEnterprise": true
                         }
                     ]
+                },
+                {
+                    "type": "item",
+                    "title": "Org Chart",
+                    "path": "org-chart",
+                    "isEnterprise": true
                 }
             ]
         },

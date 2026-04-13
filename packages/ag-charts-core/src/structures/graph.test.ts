@@ -1,10 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { AdjacencyListGraph } from './graph';
+import { Graph } from './graph';
 
-describe('AdjacencyListGraph', () => {
+describe('Graph', () => {
     it('should add vertices and edges', () => {
-        const graph = new AdjacencyListGraph<number>();
+        const graph = new Graph<number>();
         const v1 = graph.addVertex(1);
         const v2 = graph.addVertex(2);
         graph.addEdge(v1, v2, undefined);
