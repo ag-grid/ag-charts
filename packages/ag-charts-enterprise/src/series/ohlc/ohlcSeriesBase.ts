@@ -7,13 +7,14 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesBaseOptions } from 'ag-charts-community';
+import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
+    type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
     Logger,
@@ -861,7 +862,7 @@ export abstract class OhlcSeriesBase<
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
-        const params = {
+        const params: CallbackParamRules<AgOhlcSeriesItemStylerParams> = {
             seriesId,
             datum,
             itemType,

@@ -1,4 +1,5 @@
 import type {
+    AgHeatmapSeriesItemStylerParams,
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
@@ -10,6 +11,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
     type InternalAgColorType,
@@ -632,7 +634,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         style: Required<AgHeatmapSeriesStyle>
     ) {
         const { id: seriesId, properties } = this;
-        const { xKey, yKey } = properties;
+        const { xKey, yKey, colorKey } = properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -643,10 +645,11 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             datum,
             xKey,
             yKey,
+            colorKey,
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgHeatmapSeriesItemStylerParams>;
     }
 
     protected override updateDatumStyles({
