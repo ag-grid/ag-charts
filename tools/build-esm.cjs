@@ -23,10 +23,9 @@ const srcDir = path.join(projectRoot, 'src');
 const outDir = path.join(projectRoot, 'dist', 'package');
 
 // Collect all non-test TypeScript source files.
-const srcFiles = execSync(
-    `find ${srcDir} -name '*.ts' -not -name '*.test.ts' -not -name '*.spec.ts'`,
-    { encoding: 'utf8' }
-)
+const srcFiles = execSync(`find ${srcDir} -name '*.ts' -not -name '*.test.ts' -not -name '*.spec.ts'`, {
+    encoding: 'utf8',
+})
     .trim()
     .split('\n')
     .filter(Boolean);
@@ -48,10 +47,9 @@ async function run() {
 
     // Copy non-TS assets (CSS, HTML) so that relative imports in the
     // transpiled JS files resolve correctly.
-    const assets = execSync(
-        `find ${srcDir} \\( -name '*.css' -o -name '*.html' \\) 2>/dev/null || true`,
-        { encoding: 'utf8' }
-    )
+    const assets = execSync(`find ${srcDir} \\( -name '*.css' -o -name '*.html' \\) 2>/dev/null || true`, {
+        encoding: 'utf8',
+    })
         .trim()
         .split('\n')
         .filter(Boolean);
