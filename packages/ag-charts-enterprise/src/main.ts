@@ -54,6 +54,7 @@ export { RadialColumnSeriesModule } from './series/radial-column/radialColumnMod
 export { RadialGaugeModule } from './series/radial-gauge/radialGaugeModule';
 export { RangeAreaSeriesModule } from './series/range-area/rangeAreaModule';
 export { RangeBarSeriesModule } from './series/range-bar/rangeBarModule';
+export { OrganizationSeriesModule } from './series/organization/organizationSeriesModule';
 export { SankeySeriesModule } from './series/sankey/sankeyModule';
 export { SunburstSeriesModule } from './series/sunburst/sunburstModule';
 export { TreemapSeriesModule } from './series/treemap/treemapModule';
