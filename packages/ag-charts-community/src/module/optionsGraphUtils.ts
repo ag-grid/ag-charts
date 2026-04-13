@@ -43,6 +43,7 @@ export interface OptionsGraphInterface {
     removeEdges(vertex: VertexInterface, edge: string): void;
     resolveValue$1(path: Array<string>): unknown;
     resolveVertexValue(vertex: VertexInterface, valueVertex: VertexInterface): unknown;
+    setResolveFresh(fresh: boolean): void;
     setCachedValue(path: Array<string>, key: string, value: unknown): void;
 }
 

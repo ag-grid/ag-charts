@@ -74,17 +74,28 @@
     }
 }
 
-.ag-charts-range-buttons--gapped {
+.ag-charts-toolbar--horizontal.ag-charts-range-buttons--gapped {
     .ag-charts-toolbar__button {
         border-radius: var(--toolbar-border-radius);
         border-width: var(--toolbar-button-border-width);
     }
 
+    .ag-charts-toolbar__button:hover,
     .ag-charts-toolbar__button--active,
     .ag-charts-toolbar__button--active:hover {
-        + .ag-charts-toolbar__button {
+        margin-inline-end: 0;
+
+        + .ag-charts-toolbar__button:not(:hover, .ag-charts-toolbar__button--active) {
             border-inline-start-color: var(--toolbar-button-border-color);
         }
+
+        + .ag-charts-toolbar__button[aria-disabled='true'] {
+            border-inline-start-color: var(--toolbar-button-border-color--disabled);
+        }
+    }
+
+    .ag-charts-toolbar__button:hover:not(.ag-charts-toolbar__button--active) {
+        border-inline-start-color: var(--toolbar-button-border-color--hover);
     }
 }
 

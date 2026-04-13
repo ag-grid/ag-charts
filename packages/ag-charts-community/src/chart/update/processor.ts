@@ -1,4 +1,4 @@
-import type { AxisID, Padding, Scale } from 'ag-charts-core';
+import type { AxisID, ChartAxisDirection, Padding, Scale } from 'ag-charts-core';
 
 import type { Group } from '../../scene/group';
 
@@ -15,6 +15,7 @@ export interface AxisLike {
     id: AxisID;
     type: string;
     scale: Scale<any, any>;
+    direction: ChartAxisDirection;
 }
 
 interface SeriesLike {

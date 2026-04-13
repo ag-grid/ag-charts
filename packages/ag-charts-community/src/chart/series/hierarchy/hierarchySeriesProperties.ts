@@ -1,6 +1,7 @@
 import { Property } from 'ag-charts-core';
 import type { AgColorType } from 'ag-charts-types';
 
+import { ColorScaleProperties } from '../../../scene/gradient/stops';
 import { DEFAULT_FILLS, DEFAULT_STROKES } from '../../themes/defaultColors';
 import { SeriesProperties } from '../seriesProperties';
 
@@ -53,4 +54,7 @@ export abstract class HierarchySeriesProperties<T extends object> extends Series
 
     @Property
     colorRange?: string[];
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 }

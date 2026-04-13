@@ -7,6 +7,10 @@ globs: ['**/*']
 
 # AI Agent Instructions
 
+## Ambiguity and confidence
+
+**NEVER guess:** This is the number one rule; if requirements, facts or details are ambiguous it is much better to admit this and ask for guidance (with context on why the ambiguity where possible) or do more research to ground things out, than to guess with a risk of being wrong.
+
 ## Project Overview
 
 AG Charts is a TypeScript monorepo providing a canvas-based charting library with community (MIT) and enterprise (commercial) versions. Built with Nx and Yarn, it supports React, Angular, and Vue 3 via framework-agnostic core packages. Rendering uses a high-performance custom scene graph on HTML Canvas, with a modular plugin architecture for extensible chart types.
@@ -21,7 +25,15 @@ Build dependency chain: `ag-charts-core` → `ag-charts-types` → `ag-charts-lo
 
 ## Pre-Commit Requirements
 
-Before proposing commits, always run from the repo root:
+Before proposing commits, re-read your changes as if reviewing someone else's PR and verify:
+
+-   Each new function/class has a single clear responsibility
+-   Names are meaningful — would a reader unfamiliar with the task understand the intent?
+-   No unnecessary complexity: three similar lines are better than a premature abstraction
+-   No copy-pasted logic that should be extracted into a shared helper
+-   New code follows the patterns of the surrounding codebase
+
+Then run from the repo root:
 
 -   `yarn nx format` – format
 -   `yarn nx build:types <package>` – type-check
@@ -32,6 +44,18 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-community`
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
+
+## Tooling Health Check
+
+On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.
+
+**Canary skills:** `example`, `dev-server`, `debug`, `git-conventions`, `jira`
+
+**Warning to display (if any canary skill is missing):**
+
+> **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug, git-conventions, jira) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
+
+Continue assisting the user after displaying the warning.
 
 ## Quick Reference
 

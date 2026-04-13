@@ -13,7 +13,7 @@ import { Property } from 'ag-charts-core';
 
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { CartesianSeriesProperties, makeSeriesTooltip } = _ModuleSupport;
+const { CartesianSeriesProperties, ColorScaleProperties, makeSeriesTooltip } = _ModuleSupport;
 export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmapSeriesOptions> {
     @Property
     title?: string;
@@ -38,6 +38,9 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
 
     @Property
     colorRange: string[] = ['black', 'black'];
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 
     @Property
     stroke: string = 'black';

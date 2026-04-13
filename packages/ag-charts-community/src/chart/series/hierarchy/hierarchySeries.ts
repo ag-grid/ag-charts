@@ -1,16 +1,23 @@
 import type { ChartAnimationPhase } from 'ag-charts-core';
-import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
+import { Logger, type Point, StateMachine, arraysEqual, clamp, formatValue, mergeDefaults } from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
+import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { createDatumId } from '../../data/processors';
-import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
+import {
+    type CategoryLegendDatum,
+    type ChartLegendType,
+    type GradientLegendDatum,
+    buildColorCategoryLegendData,
+    buildGradientLegendDatum,
+} from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
 import {
@@ -245,9 +252,8 @@ export abstract class HierarchySeries<
 
         const colorDomain = [minColor, maxColor];
 
-        this.colorScale.domain = minColor < maxColor ? [minColor, maxColor] : [0, 1];
-        this.colorScale.range = colorRange ?? ['black'];
-        this.colorScale.update();
+        const dataDomain: [number, number] = minColor < maxColor ? [minColor, maxColor] : [0, 1];
+        configureColorScale(this.colorScale, this.properties.colorScale, dataDomain, colorRange ?? ['black']);
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;
@@ -328,26 +334,38 @@ export abstract class HierarchySeries<
         return [Number.NaN, Number.NaN];
     }
 
-    override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        const { colorKey, colorRange } = this.properties;
+    override getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] | GradientLegendDatum[] {
+        const { colorKey, colorRange, colorScale: colorScaleProps } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
         const {
             id: seriesId,
             ctx: { legendManager },
             visible,
         } = this;
 
-        return legendType === 'gradient' && colorKey != null && colorRange != null
-            ? [
-                  {
-                      legendType: 'gradient',
-                      enabled: visible && legendManager.getItemEnabled({ seriesId }),
-                      seriesId,
-                      series: this.getFormatterContext('color'),
-                      colorRange,
-                      colorDomain: this.colorDomain,
-                  },
-              ]
-            : [];
+        if (colorKey == null || (colorRange == null && !hasColorScale)) {
+            return [];
+        }
+
+        const enabled = visible && legendManager.getItemEnabled({ seriesId });
+
+        if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
+            return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);
+        }
+
+        if (legendType === 'gradient') {
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    enabled,
+                    this.getFormatterContext('color')
+                ),
+            ];
+        }
+
+        return [];
     }
 
     protected getDatumIdFromData(node: Pick<TNodeClass, 'datumIndex'>): string {

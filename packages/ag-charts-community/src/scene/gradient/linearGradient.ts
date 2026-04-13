@@ -1,8 +1,12 @@
-import { type ColorSpace, createSvgElement, normalizeAngle360FromDegrees } from 'ag-charts-core';
+import {
+    type ColorSpace,
+    type GradientColorStop,
+    createSvgElement,
+    normalizeAngle360FromDegrees,
+} from 'ag-charts-core';
 
 import type { BBox } from '../bbox';
 import { Gradient } from './gradient';
-import type { GradientColorStop } from './stops';
 
 export class LinearGradient extends Gradient {
     constructor(

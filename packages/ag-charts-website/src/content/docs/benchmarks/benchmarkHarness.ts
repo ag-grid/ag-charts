@@ -565,7 +565,8 @@ class BenchmarkUI {
         version: string,
         _metadata?: Record<string, unknown>,
         onExport?: () => void,
-        baselineData?: CompactExportData | null
+        baselineData?: CompactExportData | null,
+        onRerun?: (resultIndex: number) => void
     ): void {
         if (!this.resultsElement) return;
 
@@ -704,6 +705,7 @@ class BenchmarkUI {
         html += '<div class="benchmark-table-wrapper">';
         html += '<div class="benchmark-table-container">';
         html += '<table class="benchmark-table"><thead><tr>';
+        if (onRerun) html += '<th style="width: 32px;"></th>';
         html += '<th>Test Case</th>';
         html += '<th>Parameters</th>';
         html += '<th>Avg (ms)</th>';
@@ -712,7 +714,7 @@ class BenchmarkUI {
         html += '<th>Samples</th>';
         html += '</tr></thead><tbody>';
 
-        results.forEach((result) => {
+        results.forEach((result, resultIndex) => {
             let avgCell = result.averageTime.toFixed(3);
             if (baselineMap) {
                 const baseline = baselineMap.get(
@@ -736,6 +738,9 @@ class BenchmarkUI {
             }
 
             html += '<tr>';
+            if (onRerun) {
+                html += `<td><button class="bm-rerun-btn" data-result-index="${resultIndex}" title="Re-run this test" style="background: none; border: 1px solid var(--bm-badge-border, #555); border-radius: 4px; cursor: pointer; padding: 2px 6px; font-size: 12px; color: inherit; line-height: 1;">▶</button></td>`;
+            }
             html += `<td>${formatTestCase(result.testCase)}</td>`;
             html += `<td><span class="benchmark-param">${formatParams(result.params)}</span></td>`;
             html += `<td>${avgCell}</td>`;
@@ -750,6 +755,16 @@ class BenchmarkUI {
         html += '</div>'; // close benchmark-table-wrapper
 
         this.resultsElement.innerHTML = html;
+
+        // Wire up per-row re-run buttons
+        if (onRerun) {
+            this.resultsElement.querySelectorAll('.bm-rerun-btn').forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    const idx = Number((e.currentTarget as HTMLElement).dataset.resultIndex);
+                    if (!Number.isNaN(idx)) onRerun(idx);
+                });
+            });
+        }
 
         // Inject main action buttons as floating overlay in the chart area
         this.injectActionButtons(onExport);
@@ -1237,7 +1252,8 @@ class BenchmarkRunner {
                 a.click();
                 URL.revokeObjectURL(url);
             },
-            this.baselineData
+            this.baselineData,
+            (resultIndex) => void this.rerunSingleTest(resultIndex)
         );
 
         // Wire up Copy button
@@ -1359,6 +1375,37 @@ class BenchmarkRunner {
 
         pollClipboard();
         startPolling();
+    }
+
+    private async rerunSingleTest(resultIndex: number): Promise<void> {
+        if (this.isRunning || resultIndex < 0 || resultIndex >= this.results.length) return;
+
+        // Build a flat list of (testCase, variant) pairs matching the results order
+        const pairs: Array<{ testCase: NormalizedTestCase; variant: NormalizedVariant }> = [];
+        for (const testCase of this.config.testCases) {
+            for (const variant of testCase.variants.filter((v) => v.available)) {
+                pairs.push({ testCase, variant });
+            }
+        }
+        if (resultIndex >= pairs.length) return;
+
+        const { testCase, variant } = pairs[resultIndex];
+
+        this.isRunning = true;
+        this.ui.setRunButtonEnabled(false);
+
+        try {
+            if (testCase.setup) await testCase.setup();
+            const result = await this.runBenchmarkTest(testCase, variant);
+            this.results[resultIndex] = result;
+        } catch (error) {
+            console.error('Re-run error:', error);
+        } finally {
+            if (testCase.teardown) await testCase.teardown();
+            this.isRunning = false;
+            this.ui.setRunButtonEnabled(true);
+            this.displayResults();
+        }
     }
 }
 

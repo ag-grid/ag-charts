@@ -1,6 +1,15 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { Feature, FeatureCollection, Geometry, ITextMeasurer, Point, Position } from 'ag-charts-core';
-import { Logger, cachedTextMeasurer, isArray, measureTextSegments, mergeDefaults, toPlainText } from 'ag-charts-core';
+import {
+    Logger,
+    cachedTextMeasurer,
+    findDiscreteColorBinLabel,
+    formatValue,
+    isArray,
+    measureTextSegments,
+    mergeDefaults,
+    toPlainText,
+} from 'ag-charts-core';
 import type {
     AgDrawingMode,
     AgMapShapeSeriesLabelFormatterParams,
@@ -27,6 +36,9 @@ import {
 
 const {
     getMissCount,
+    buildColorCategoryLegendData,
+    buildGradientLegendDatum,
+    configureColorScale,
     createDatumId,
     SeriesNodePickMode,
     valueProperty,
@@ -198,11 +210,10 @@ export class MapShapeSeries
             return geometryBbox(geometry, current);
         }, undefined);
 
-        if (colorRange != null && this.isColorScaleValid()) {
+        if (this.isColorScaleValid()) {
             const colorKeyIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-            colorScale.domain = processedData.domain.values[colorKeyIdx];
-            colorScale.range = colorRange;
-            colorScale.update();
+            const domain = processedData.domain.values[colorKeyIdx];
+            configureColorScale(colorScale, this.properties.colorScale, domain, colorRange ?? []);
         }
 
         if (topology == null) {
@@ -734,21 +745,38 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const { title, legendItemName, idKey, idName, colorKey, colorRange, showInLegend } = this.properties;
+        const {
+            title,
+            legendItemName,
+            idKey,
+            idName,
+            colorKey,
+            colorRange,
+            colorScale: colorScaleProps,
+            showInLegend,
+        } = this.properties;
+        const hasColorScale = colorScaleProps.fills.length > 0;
 
-        if (legendType === 'gradient' && colorKey != null && colorRange != null) {
-            const colorDomain =
-                processedData.domain.values[dataModel.resolveProcessedDataIndexById(this, 'colorValue')];
-            const legendDatum: _ModuleSupport.GradientLegendDatum = {
-                legendType: 'gradient',
-                enabled: visible,
-                seriesId,
-                series: this.getFormatterContext('color'),
-                colorRange,
-                colorDomain,
-            };
-            return [legendDatum];
+        if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    this.getFormatterContext('color')
+                ),
+            ];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    formatValue
+                );
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -822,7 +850,13 @@ export class MapShapeSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? String(colorValue) });
+            const binLabel = findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? binLabel ?? String(colorValue) });
         }
 
         const format = this.getItemStyle({ datum, datumIndex, colorValue }, false);

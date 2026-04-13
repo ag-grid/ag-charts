@@ -13,7 +13,7 @@ import { Property } from 'ag-charts-core';
 
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip } = _ModuleSupport;
 export interface MapShapeNodeLabelDatum {
     readonly x: number;
     readonly y: number;
@@ -67,6 +67,9 @@ export class MapShapeSeriesProperties extends SeriesProperties<AgMapShapeSeriesO
 
     @Property
     colorRange: string[] | undefined = undefined;
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 
     @Property
     fill: InternalAgColorType = 'black';

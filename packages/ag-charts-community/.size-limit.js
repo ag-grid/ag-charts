@@ -16,19 +16,19 @@ module.exports = [
     {
         name: 'Full package',
         import: '*',
-        limit: '274 kB',
+        limit: '287 kB',
         ...defaultConfig,
     },
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        limit: '240 kB',
+        limit: '175 kB',
         ...defaultConfig,
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
-        limit: '240 kB',
+        limit: '165 kB',
         ...defaultConfig,
     },
 ];

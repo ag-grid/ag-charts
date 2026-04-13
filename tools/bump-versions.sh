@@ -49,9 +49,9 @@ node ${TOOLS_DIR}/update-grid-version.js "$GRID_VERSION"
 
 PACKAGE_FILES=$(git status -s | grep package.json | awk '{ print $2 }')
 
-if [ "$SKIP_FORMAT" != "yes" ] -a [ $PACKAGE_FILES != "" ]
+if [ "$SKIP_FORMAT" != "yes" ] && [ -n "$PACKAGE_FILES" ]
   then
     # Ensure consistent package.json formatting.
-    npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')
+    npx prettier -w $PACKAGE_FILES
 fi
 

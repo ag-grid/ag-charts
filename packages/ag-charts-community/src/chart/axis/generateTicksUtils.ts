@@ -31,6 +31,7 @@ import {
     normalizeAngle360FromDegrees,
     toPlainText,
     toTextString,
+    toTimeInterval,
     wrapTextOrSegments,
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, TextOrSegments } from 'ag-charts-types';
@@ -125,9 +126,7 @@ function createTimeScaleTicks(
     }
 
     if (typeof interval !== 'number') {
-        const epoch = domain[0];
-        const alignedInterval: AgTimeInterval =
-            typeof interval === 'string' ? { unit: interval, epoch } : { ...interval, epoch };
+        const alignedInterval: AgTimeInterval = { ...toTimeInterval(interval), epoch: domain[0] };
         return intervalRange(alignedInterval, domain[0], domain[1], { visibleRange, extend });
     }
 
@@ -404,13 +403,19 @@ export function getTimeIntervalTicks<S extends Scale<D, number, TickInterval<S>>
             case ParentLevelMode.ContinuousTimeScaleTicks:
                 intervalTicks = createTimeScaleTicks(intervalTickParams.interval, [p0, p1], pVisibleRange, true);
                 break;
-            case ParentLevelMode.UnitTimeScaleTicks:
-            case ParentLevelMode.OrdinalTimeScaleTicks: {
-                const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange, {
-                    extend: true,
-                    dropInitial: true,
-                });
+            case ParentLevelMode.UnitTimeScaleTicks: {
+                const scaleTicks = scale.ticks(intervalTickParams, [p0, p1], pVisibleRange);
                 intervalTicks = scaleTicks?.ticks ?? [];
+                break;
+            }
+            case ParentLevelMode.OrdinalTimeScaleTicks: {
+                const ordinalTicks = (scale as unknown as OrdinalTimeScale).ticks(
+                    intervalTickParams,
+                    [p0, p1],
+                    pVisibleRange,
+                    { extend: true, dropInitial: true }
+                );
+                intervalTicks = ordinalTicks?.ticks ?? [];
                 break;
             }
             case ParentLevelMode.OrdinalTimeStepTicks:

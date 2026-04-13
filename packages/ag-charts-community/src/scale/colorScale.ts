@@ -51,6 +51,8 @@ export class ColorScale extends AbstractScale<number, string> {
     domain = [0, 1];
     @Invalidating
     range = ['red', 'blue'];
+    @Invalidating
+    mode: 'continuous' | 'discrete' = 'continuous';
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 
@@ -76,8 +78,10 @@ export class ColorScale extends AbstractScale<number, string> {
             }
         }
 
-        if (range.length < domain.length) {
-            for (let i = range.length; i < domain.length; i++) {
+        // For discrete mode, domain may have N+1 boundaries for N colours.
+        const expectedLength = this.mode === 'discrete' ? domain.length - 1 : domain.length;
+        if (range.length < expectedLength) {
+            for (let i = range.length; i < expectedLength; i++) {
                 range.push(range.length > 0 ? range[0] : 'black');
             }
         }
@@ -127,6 +131,10 @@ export class ColorScale extends AbstractScale<number, string> {
             const a = domain[index];
             const b = domain[index + 1];
             q = (x - a) / (b - a);
+        }
+
+        if (this.mode === 'discrete') {
+            return range[index];
         }
 
         const c0 = parsedRange[index];

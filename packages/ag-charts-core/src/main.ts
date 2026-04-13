@@ -14,6 +14,9 @@ export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';
 export { AbstractModuleInstance } from './modules/moduleInstance';
 
+// Scales
+export * from './scale/colorScaleUtil';
+
 // Config
 export * from './config/chartDefaults';
 export * from './config/optionsDefaults';

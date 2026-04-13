@@ -11,7 +11,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { FeatureCollection, Geometry, PointLabelDatum } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
-const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapLineNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly idValue: string;
@@ -69,6 +69,9 @@ export class MapLineSeriesProperties extends SeriesProperties<AgMapLineSeriesOpt
 
     @Property
     colorRange: string[] | undefined = undefined;
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 
     @Property
     maxStrokeWidth?: number = undefined;

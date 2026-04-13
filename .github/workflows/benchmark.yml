@@ -10,6 +10,15 @@ on:
                 type: string
                 default: b12.1.1
                 required: true
+            benchmark-type:
+                description: 'Which benchmarks to run'
+                type: choice
+                options:
+                    - all
+                    - jest
+                    - browser
+                default: all
+                required: true
             notify:
                 description: 'Notify Slack channel'
                 type: boolean
@@ -46,6 +55,7 @@ jobs:
 
     benchmark:
         runs-on: macos-benchmark
+        timeout-minutes: 60 # Jest ~25m + browser ~25m + setup ~5m; selective runs via benchmark-type input
         permissions:
             pull-requests: write
         needs: check-permissions
@@ -156,6 +166,9 @@ jobs:
                   base_ref: ${{ steps.get-branch.outputs.base }}
                   fetch_base: skip
 
+            - name: Install Playwright Chromium
+              run: npx playwright install chromium
+
             - name: Notify Progress
               uses: actions/github-script@v7
               continue-on-error: true
@@ -171,7 +184,9 @@ jobs:
 
             - name: nx benchmark
               id: benchmark-table
-              if: github.event_name == 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: |
+                  github.event_name == 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
               run: |
                   ./tools/benchmark/compare-latest.sh origin/${{ steps.get-branch.outputs.base }}
                   echo "report<<EOF" >> $GITHUB_OUTPUT
@@ -180,22 +195,51 @@ jobs:
 
             - name: nx benchmark
               id: benchmark-json
-              if: github.event_name != 'issue_comment' && (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              if: |
+                  github.event_name != 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
+                  (inputs.benchmark-type || 'all') != 'browser'
               run: |
                   ./tools/benchmark/compare-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
+
+            - name: Browser Benchmark (table)
+              id: browser-benchmark-table
+              if: |
+                  github.event_name == 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped')
+              timeout-minutes: 25
+              run: |
+                  ./tools/benchmark/compare-browser-latest.sh origin/${{ steps.get-branch.outputs.base }}
+                  echo "report<<EOF" >> $GITHUB_OUTPUT
+                  cat ./reports/browser-benchmark.log >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Browser Benchmark (json)
+              id: browser-benchmark-json
+              if: |
+                  github.event_name != 'issue_comment' &&
+                  (steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped') &&
+                  (inputs.benchmark-type || 'all') != 'jest'
+              timeout-minutes: 25
+              run: |
+                  ./tools/benchmark/compare-browser-latest.sh -j origin/${{ steps.get-branch.outputs.base }}
 
             - name: Notify Success
               uses: actions/github-script@v7
               continue-on-error: true
               if: success() && github.event_name == 'issue_comment'
               env:
-                  CONTENT: ${{ steps.benchmark-table.outputs.report }}
+                  JEST_CONTENT: ${{ steps.benchmark-table.outputs.report }}
+                  BROWSER_CONTENT: ${{ steps.browser-benchmark-table.outputs.report }}
               with:
                   script: |
-                      const body = `✅ ${process.env.JOB_URL}
-                      \`\`\`
-                      ${process.env.CONTENT}
-                      \`\`\``;
+                      let body = `✅ ${process.env.JOB_URL}\n\n`;
+                      if (process.env.BROWSER_CONTENT) {
+                        body += `**Browser Benchmarks**\n\`\`\`\n${process.env.BROWSER_CONTENT}\n\`\`\`\n\n`;
+                      }
+                      if (process.env.JEST_CONTENT) {
+                        body += `<details><summary>Jest Benchmarks</summary>\n\n\`\`\`\n${process.env.JEST_CONTENT}\n\`\`\`\n</details>`;
+                      }
                       github.rest.issues.updateComment({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
@@ -217,20 +261,35 @@ jobs:
                         body,
                       })
 
-            - name: Slack Notification
-              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
+            - name: Slack Notification (Jest)
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'browser'
               continue-on-error: true
               env:
                   SLACK_CHANNEL: '#charts-performance'
                   SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
                   SLACK_USERNAME: 'ag-charts CI'
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ steps.benchmark-json.outputs.status != 'failure' && 'success' || 'failure' }}
               run: |
                   node ./tools/benchmark/format-slack-message.js > ./reports/benchmark-slack.json
                   curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/benchmark-slack.json
 
-            - name: Slack Notification
+            - name: Slack Notification (Browser)
+              if: success() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true)) && (inputs.benchmark-type || 'all') != 'jest'
+              continue-on-error: true
+              env:
+                  SLACK_CHANNEL: '#charts-performance'
+                  SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
+                  SLACK_USERNAME: 'ag-charts CI'
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+              run: |
+                  if [[ -f ./reports/browser-benchmark.json ]]; then
+                    node ./tools/benchmark/format-browser-slack-message.js > ./reports/browser-benchmark-slack.json
+                    curl -X POST -H 'Content-type: application/json' ${{ secrets.SLACK_WEBHOOK }} --data @./reports/browser-benchmark-slack.json
+                  else
+                    echo "No browser benchmark results to report"
+                  fi
+
+            - name: Slack Notification (failure)
               if: failure() && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.notify == true))
               continue-on-error: true
               env:
@@ -238,7 +297,6 @@ jobs:
                   SLACK_ICON: 'https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png'
                   SLACK_USERNAME: 'ag-charts CI'
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-                  SLACK_COLOR: ${{ steps.benchmark-json.outputs.status != 'failure' && 'success' || 'failure' }}
               run: |
                   cat <<EOF > ./reports/benchmark-slack.json
                   {
@@ -265,3 +323,5 @@ jobs:
                   name: benchmark-results
                   path: |
                       packages/ag-charts-website/src/content/docs/benchmarks/_examples/summary/*
+                      reports/browser-benchmarks/*
+                      reports/browser-benchmark.*

@@ -162,6 +162,106 @@ describe('GradientLegend', () => {
         expect(arrow?.visible).toBe(false);
     });
 
+    describe('AG-16045 named stop labels', () => {
+        const HEATMAP_SERIES = {
+            type: 'heatmap' as const,
+            xKey: 'year',
+            yKey: 'person',
+            colorKey: 'spending',
+        };
+        const GRADIENT_LEGEND = { gradient: { preferredLength: 200 } };
+
+        it('should render named labels for continuous colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Low' },
+                                { color: 'yellow', stop: 30, name: 'Mid' },
+                                { color: 'green', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: GRADIENT_LEGEND,
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render named labels for discrete colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'green', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+                legend: { enabled: false },
+                gradientLegend: { ...GRADIENT_LEGEND, enabled: true },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render only named labels (partial names)', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Negative' },
+                                { color: 'red' },
+                                { color: 'ivory', stop: 30, name: 'Neutral' },
+                                { color: 'green', name: 'Positive' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: GRADIENT_LEGEND,
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render named labels in vertical position', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Low' },
+                                { color: 'yellow', stop: 30, name: 'Mid' },
+                                { color: 'green', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: {
+                    ...GRADIENT_LEGEND,
+                    position: 'right',
+                },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
     it('AG-16729 should show arrow when highlight.enabled is true (default)', async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,

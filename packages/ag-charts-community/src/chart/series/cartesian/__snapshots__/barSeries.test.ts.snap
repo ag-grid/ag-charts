@@ -40,6 +40,11 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "yKey": "expenses",
     },
   ],
+]
+`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 2`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -97,6 +102,13 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "yKey": "expenses",
     },
   ],
+]
+`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 3`] = `[]`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 4`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -173,6 +185,13 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "yKey": "sales",
     },
   ],
+]
+`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 5`] = `[]`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 6`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -287,6 +306,13 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "yKey": "expenses",
     },
   ],
+]
+`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 7`] = `[]`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 8`] = `
+[
   [
     {
       "cornerRadius": 0,
@@ -363,6 +389,11 @@ exports[`BarSeries AG-11673 styler highlights sequenced 1 1`] = `
       "yKey": "sales",
     },
   ],
+]
+`;
+
+exports[`BarSeries AG-11673 styler highlights sequenced 1 9`] = `
+[
   [
     {
       "cornerRadius": 0,

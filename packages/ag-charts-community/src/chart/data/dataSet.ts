@@ -6,8 +6,12 @@ import {
     type SpliceOperation,
     contiguousRemovalCountAtStart,
 } from './dataChangeDescription';
+import { DataSetSelection } from './dataSetSelection';
 
 export { DataChangeDescription } from './dataChangeDescription';
+export { DataSetSelection } from './dataSetSelection';
+
+type DataIdValue = string | number | undefined;
 
 /**
  * Encapsulates a single transaction to be applied to a DataSet.
@@ -74,6 +78,10 @@ export class DataSet<T = unknown> {
     private cachedPendingReplacements: Map<string | number, T> | undefined;
     private itemToIndexCache: Map<T, number> | undefined;
     protected idToIndexCache: Map<string | number, number> | undefined;
+    protected idArrayCache: DataIdValue[] | undefined;
+
+    /** Per-series selection state. Keyed by `seriesId`. */
+    readonly selections = new Map<string, DataSetSelection>();
 
     constructor(
         public data: T[],
@@ -114,10 +122,84 @@ export class DataSet<T = unknown> {
     }
 
     /**
-     * @returns A deep clone of the DataSet.
+     * @returns A deep clone of the DataSet. Selection state is preserved only when
+     * `dataIdKey` is set (transferred via key mapping). Without `dataIdKey`, selections
+     * are dropped because index-based transfer cannot guarantee correctness after the
+     * clone's data is independently mutated.
      */
     deepClone() {
-        return new DataSet([...this.data], this.dataIdKey);
+        const clone = new DataSet([...this.data], this.dataIdKey);
+        clone.transferFrom(this);
+        return clone;
+    }
+
+    /**
+     * Create a new DataSet, transferring persistent state from a predecessor.
+     * For subclasses that take additional constructor args (e.g. HierarchyDataSet),
+     * use the two-phase pattern: construct, then call `transferFrom()` explicitly.
+     */
+    static replaceWith<U = unknown>(predecessor: DataSet<U> | undefined, data: U[], dataIdKey?: string): DataSet<U> {
+        const newDataSet = new DataSet<U>(data, dataIdKey);
+        if (predecessor) newDataSet.transferFrom(predecessor);
+        return newDataSet;
+    }
+
+    /** Lazy-create a per-series selection backed by a Uint8Array of `data.length`. */
+    enableSelection(seriesId: string): DataSetSelection {
+        let sel = this.selections.get(seriesId);
+        if (!sel) {
+            sel = new DataSetSelection(this.data.length);
+            this.selections.set(seriesId, sel);
+        }
+        return sel;
+    }
+
+    /**
+     * Lazy index→key array mirroring `getIdToIndexMap()`. Built on first access
+     * when `dataIdKey` is set; invalidated on data mutation and rebuilt on demand.
+     */
+    getIdArray(): DataIdValue[] | undefined {
+        if (this.dataIdKey == null) return undefined;
+
+        if (this.idArrayCache === undefined) {
+            this.idArrayCache = [];
+            for (let i = 0; i < this.data.length; i++) {
+                this.idArrayCache.push(this.getIdValue(this.data[i]));
+            }
+        }
+        return this.idArrayCache;
+    }
+
+    /**
+     * Transfer persistent state (selections) from a predecessor DataSet.
+     * Uses `idArray` + `idToIndexMap` to map selected keys from old to new index space.
+     * Without `dataIdKey`, selections cannot be transferred and are dropped.
+     */
+    transferFrom(predecessor: DataSet<T>): void {
+        if (predecessor.selections.size === 0) return;
+
+        const oldIds = predecessor.getIdArray();
+        if (!oldIds || !this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) return;
+
+        const newIdMap = this.getIdToIndexMap();
+        for (const [seriesId, oldSelObj] of predecessor.selections) {
+            const oldSel = oldSelObj.getSelection();
+            // Collect selected keys (transient Set, O(k) where k = selected count)
+            const selectedKeys = new Set<string | number>();
+            for (let i = 0; i < oldSel.length; i++) {
+                const id = oldIds[i];
+                if (oldSel[i] && id != null) selectedKeys.add(id);
+            }
+            if (selectedKeys.size === 0) continue;
+
+            // Map into new index space (O(k) lookups)
+            const newSelObj = this.enableSelection(seriesId);
+            for (const key of selectedKeys) {
+                const idx = newIdMap.get(key);
+                if (idx != null) newSelObj.select(idx);
+            }
+            // selectedKeys GC'd after this scope
+        }
     }
 
     /**
@@ -225,6 +307,27 @@ export class DataSet<T = unknown> {
         // Maintain index cache incrementally where possible, otherwise invalidate.
         this.updateItemToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
         this.updateIdToIndexCache(changeDescription, appendedValues, prependedValues, insertionValues);
+
+        // Apply transform to each per-series selection array
+        if (this.selections.size > 0) {
+            for (const sel of this.selections.values()) {
+                sel.applyDataChange(changeDescription);
+            }
+        }
+
+        // Transform idArray if warm (avoid rebuild on next access)
+        if (this.idArrayCache) {
+            changeDescription.applyToArray(this.idArrayCache, (destIndex: number) => {
+                return this.getIdValue(this.data[destIndex]);
+            });
+
+            // Refresh entries at updated indices — an ID-based update may have replaced
+            // a datum with a different dataIdKey value (e.g. {id:'A'} → {id:'B'}).
+            const { updatedIndices } = changeDescription.indexMap;
+            for (const finalIdx of updatedIndices) {
+                this.idArrayCache[finalIdx] = this.getIdValue(this.data[finalIdx]);
+            }
+        }
 
         return true;
     }
@@ -787,7 +890,7 @@ export class DataSet<T = unknown> {
     }
 
     /** Extracts the ID value from a datum; returns `undefined` if missing or not a string/number. */
-    protected getIdValue(item: T): string | number | undefined {
+    protected getIdValue(item: T): DataIdValue {
         if (this.dataIdKey == null || item == null || typeof item !== 'object') return undefined;
         const value = (item as any)[this.dataIdKey];
         if (typeof value === 'string' || (typeof value === 'number' && !Number.isNaN(value))) return value;

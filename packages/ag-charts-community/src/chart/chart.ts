@@ -47,6 +47,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
+import type { UpdateOpts } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
@@ -93,7 +94,6 @@ import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import type { UpdateOpts } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
@@ -167,6 +167,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     container?: HTMLElement;
 
     public data: DataSet = DataSet.empty();
+
+    public loading: boolean | undefined = undefined;
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -312,7 +314,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return new DataSet(data, this.dataIdKey);
+        return DataSet.replaceWith(this.data, data, this.dataIdKey);
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -395,14 +397,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             );
 
         this.processors = [
-            new DataWindowProcessor(
-                this,
-                ctx.eventsHub,
-                ctx.dataService,
-                ctx.updateService,
-                ctx.zoomManager,
-                ctx.animationManager
-            ),
+            new DataWindowProcessor(this, ctx.eventsHub, ctx.dataService, ctx.zoomManager, ctx.animationManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
@@ -823,7 +818,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.FULL:
                 if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
 
-                this.ctx.updateService.dispatchPreDomUpdate();
+                this.ctx.eventsHub.emit('update:pre-dom', null);
                 this.updateDOM();
             // fallthrough
 
@@ -898,7 +893,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
                 // Allow any additional pre-rendering processing to happen.
-                ctx.updateService.dispatchPreSceneRender(this.apiUpdate);
+                ctx.eventsHub.emit('update:pre-scene-render', { apiUpdate: this.apiUpdate });
 
                 ctx.scene.updateBaseFont();
 
@@ -938,7 +933,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);
+            ctx.eventsHub.emit('update:complete', {
+                apiUpdate: this.apiUpdate,
+                wasShortcut: this.updateShortcutCount > 0,
+            });
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
@@ -1422,11 +1420,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const requiredRangeRatio = _requiredRange / dimension || 0; // In case it's NaN, return 0.
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
-        this.ctx.updateService.dispatchPreSeriesUpdate(
+        this.ctx.eventsHub.emit('update:pre-series', {
             requiredRangeRatio,
-            this._requiredRangeDirection,
-            _requiredRange
-        );
+            requiredRangeDirection: this._requiredRangeDirection,
+            requiredRange: _requiredRange,
+        });
     }
 
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
@@ -1656,7 +1654,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // reset zoom to initial state
             this.ctx.zoomManager.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
-                { x: { min: 0, max: 1 } }
+                { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );
         }
 

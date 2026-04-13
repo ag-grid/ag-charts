@@ -17,7 +17,7 @@ import type {
 } from 'ag-charts-core';
 import { Property } from 'ag-charts-core';
 
-const { SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
+const { ColorScaleProperties, SeriesProperties, makeSeriesTooltip, Label } = _ModuleSupport;
 export interface MapMarkerNodeLabelDatum extends PointLabelDatum {
     readonly datumIndex: number;
     readonly datumId: string | number | boolean;
@@ -92,6 +92,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @Property
     colorRange: string[] | undefined = undefined;
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 
     /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
     @Property

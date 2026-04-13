@@ -3,6 +3,7 @@ import {
     type OptionsDefs,
     arrayOf,
     color,
+    colorScaleOptionsDef,
     commonSeriesOptionsDefs,
     constant,
     required,
@@ -25,4 +26,5 @@ export const heatmapSeriesOptionsDef: OptionsDefs<AgHeatmapSeriesOptions> = {
     yName: string,
     colorName: string,
     colorRange: arrayOf(color),
+    colorScale: colorScaleOptionsDef,
 };

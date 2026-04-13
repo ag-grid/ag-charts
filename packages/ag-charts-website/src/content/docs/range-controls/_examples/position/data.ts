@@ -1,7 +1,7 @@
 export function getData() {
     const data: { date: Date; value: number }[] = [];
     const start = new Date(2022, 0, 1);
-    const end = new Date(2024, 11, 31);
+    const end = new Date(2025, 3, 30);
     let value = 100;
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
         value += random() * 6 - 3;

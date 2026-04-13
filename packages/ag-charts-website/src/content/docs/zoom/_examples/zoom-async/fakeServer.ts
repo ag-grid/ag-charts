@@ -5,7 +5,9 @@ import { Database, Datum, dataEnd, dataStart, day, hour, week } from './data';
  * frontend developer you can safely ignore this part of the example.
  */
 export const FakeServer = {
-    get: async function (params: { windowStart?: Date; windowEnd?: Date }) {
+    get: async function (params: { windowStart?: Date | number | string; windowEnd?: Date | number | string }) {
+        if (typeof params.windowStart !== 'object' || typeof params.windowEnd !== 'object') return [];
+
         // Simulate a real server with a random 2000-2500ms delay
         const delayTime = 2000 + Math.floor(Math.random() * 500);
         await delay(delayTime);

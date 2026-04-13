@@ -18,14 +18,7 @@ test.describe('zoom', () => {
 
         await gotoExample(page, url);
 
-        const { width } = await locateCanvas(page);
-        let height = 0;
-        const updateCanvasSize = async () => {
-            const { height: newHeight } = await locateCanvas(page);
-            height = newHeight;
-        };
-
-        await updateCanvasSize();
+        const { width, height } = await locateCanvas(page);
 
         const withoutNavigatorYAxisTop = { x: width - 30, y: height / 4 };
         const withoutNavigatorYAxisBottom = { x: width - 30, y: (height * 3) / 4 };
@@ -36,8 +29,8 @@ test.describe('zoom', () => {
         const withNavigatorYAxisTop = { x: width - 30, y: height / 4 };
         const withNavigatorYAxisBottom = { x: width - 30, y: (height * 3) / 4 };
 
-        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 70 };
-        const withNavigatorXAxisRight = { x: width / 4, y: height - 70 };
+        const withNavigatorXAxisLeft = { x: (width * 3) / 4, y: height - 80 };
+        const withNavigatorXAxisRight = { x: width / 4, y: height - 80 };
 
         // 1. Click the zoom-in button the floating zoom buttons
         await page.hover(SELECTORS.canvasProxy, { position: { x: 100, y: height - 100 } });
@@ -56,7 +49,6 @@ test.describe('zoom', () => {
 
         // Show navigator with minichart
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
-        await updateCanvasSize();
 
         // 3. Drag the y-axis with the navigator visible to zoom in
         await dragCanvas(page, withNavigatorYAxisBottom, withNavigatorYAxisTop);
@@ -68,7 +60,6 @@ test.describe('zoom', () => {
 
         // Hide navigator
         await page.locator('.example-controls button').getByText('Toggle Navigator').click();
-        await updateCanvasSize();
 
         // 5. Drag the y-axis twice with the navigator hidden again to zoom out
         await dragCanvas(page, withoutNavigatorYAxisTop, withoutNavigatorYAxisBottom);

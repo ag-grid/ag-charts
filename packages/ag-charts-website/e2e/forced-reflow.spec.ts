@@ -72,7 +72,7 @@ test.describe('forced reflow detection', () => {
     // Duration budget per allowlisted reflow event (microseconds). If any single
     // allowlisted event exceeds this, a fixable performance bug is hiding behind the
     // allowlist (e.g. the ctx.direction regression that was 1,942ms under renderOffscreen).
-    const MAX_ALLOWLISTED_EVENT_DURATION_US = 5_000; // 5ms — font resolution can take ~1.5ms; ctx.direction regression was 1,942ms
+    const MAX_ALLOWLISTED_EVENT_DURATION_US = 8_000; // 8ms — CI variance can push drawImage to ~6ms; ctx.direction regression was 1,942ms
 
     function assertAllowlistBounds(filtered: ReturnType<typeof filterAgChartsReflows>, bounds: Record<string, number>) {
         for (const [fn, maxCount] of Object.entries(bounds)) {

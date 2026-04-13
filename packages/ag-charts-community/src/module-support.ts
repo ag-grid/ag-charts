@@ -121,7 +121,7 @@ export type {
     ScopeProvider,
     UngroupedData,
 } from './chart/data/dataModel';
-export { DataSet, type TransactionCollectionState } from './chart/data/dataSet';
+export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
 export {
     accumulativeValueProperty,
     animationValidation,
@@ -136,7 +136,7 @@ export {
     trailingAccumulatedValueProperty,
     valueProperty,
 } from './chart/data/processors';
-export type { PreSceneRenderEvent, ProcessDataEvent } from './chart/updateService';
+export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export { adjustLabelPlacement, getLabelStyles, updateLabelNode } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
@@ -303,11 +303,14 @@ export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
-export type {
-    CategoryLegendDatum,
-    ChartLegendDatum,
-    ChartLegendType,
-    GradientLegendDatum,
+export {
+    buildColorCategoryLegendData,
+    buildGradientLegendDatum,
+    type CategoryLegendDatum,
+    type ChartLegendDatum,
+    type ChartLegendType,
+    type GradientLegendDatum,
+    type GradientLegendNamedLabel,
 } from './chart/legend/legendDatum';
 export type { LegendSymbolOptions } from './chart/legend/legendSymbol';
 export { isTooltipValueMissing } from './chart/tooltip/tooltip';
@@ -327,6 +330,7 @@ export { BandScale } from './scale/bandScale';
 export { CategoryScale } from './scale/categoryScale';
 export { TimeScale } from './scale/timeScale';
 export { ColorScale } from './scale/colorScale';
+export { configureColorScale } from './scale/colorScaleUtil';
 export { LinearScale } from './scale/linearScale';
 export type { SyncGroupState, SyncDerivedDomain, SyncAxisLike, SyncChartLike } from './chart/interaction/syncManager';
 
@@ -336,8 +340,7 @@ export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';
 export { type GradientParams } from './scene/gradient/gradient';
-export { getColorStops, StopProperties } from './scene/gradient/stops';
-export type { GradientColorStop } from './scene/gradient/stops';
+export { ColorScaleProperties, getColorStops, StopProperties } from './scene/gradient/stops';
 export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';

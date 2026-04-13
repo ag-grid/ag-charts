@@ -59,8 +59,7 @@ export abstract class DiscreteTimeScale extends BandScale<Date, AgTimeInterval |
     abstract override ticks(
         params: ScaleTickParams<AgTimeInterval | AgTimeIntervalUnit | number>,
         domain?: Date[],
-        visibleRange?: [number, number],
-        options?: { extend?: boolean; dropInitial?: boolean }
+        visibleRange?: [number, number]
     ): { ticks: Date[]; count: number | undefined; firstTickIndex?: number } | undefined;
 
     override toDomain(value: number): Date {

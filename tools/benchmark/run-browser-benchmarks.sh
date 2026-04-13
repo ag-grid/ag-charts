@@ -51,7 +51,7 @@ trap cleanup EXIT INT TERM
 
 echo "Starting dev server on port $PORT..."
 cd "$REPO_ROOT"
-PORT="$PORT" npx nx dev ag-charts-website &
+PUBLIC_SITE_URL="http://localhost:$PORT" PUBLIC_HTTPS_SERVER=false PORT="$PORT" npx nx dev ag-charts-website &
 SERVER_PID=$!
 
 echo "Waiting for dev server at http://localhost:$PORT..."

@@ -421,10 +421,22 @@ id = "GHSA-9ppj-qmqm-q256"
 reason = "downstream dep and not part of the final built artefacts"
 
 [[IgnoredVulns]]
-id = "GHSA-g93w-mfhg-p222"
-reason = "downstream dep and not part of the final built artefacts"
+id = "GHSA-22cc-p3c6-wpvm"
+reason = "h3 is not used in final prod docs build"
 
 [[IgnoredVulns]]
-id = "GHSA-9ppj-qmqm-q256"
-reason = "downstream dep and not part of the final built artefacts"
+id = "GHSA-4hxc-9384-m385"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-72gr-qfp7-vwhw"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-wr4h-v87w-p3r7"
+reason = "h3 is not used in final prod docs build"
+
+[[IgnoredVulns]]
+id = "GHSA-rf6f-7fwh-wjgh"
+reason = "used by dev/test - not used in final prod build"
 
