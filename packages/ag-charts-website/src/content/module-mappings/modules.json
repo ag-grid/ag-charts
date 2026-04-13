@@ -375,6 +375,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "SelectionModule",
+                    "name": "Selection",
+                    "path": "selection",
+                    "isEnterprise": true
+                },
+                {
                     "moduleName": "SyncModule",
                     "name": "Synchronization",
                     "path": "sync",

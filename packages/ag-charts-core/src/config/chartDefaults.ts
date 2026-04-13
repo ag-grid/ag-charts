@@ -490,6 +490,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
     touch: {
         dragAction: union('none', 'drag', 'hover'),
     },
+    selection: defined,
     ranges: {
         enabled: boolean,
         enableOutOfRange: boolean,

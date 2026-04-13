@@ -1,5 +1,6 @@
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { SelectionModule } from '../features/data-selection/dataSelectionModule';
 import { MapLineBackgroundSeriesModule } from '../series/map-line-background/mapLineBackgroundModule';
 import { MapLineSeriesModule } from '../series/map-line/mapLineModule';
 import { MapMarkerSeriesModule } from '../series/map-marker/mapMarkerModule';
@@ -12,4 +13,5 @@ export const AllMapSeriesModule: ModuleDefinition[] = [
     MapMarkerSeriesModule,
     MapShapeSeriesModule,
     MapShapeBackgroundSeriesModule,
+    SelectionModule,
 ];
