@@ -45,6 +45,7 @@ import type { TypedEvent } from '../../util/observable';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
+import type { UpdateService } from '../updateService';
 
 type CoreZoomEntry = ZoomMinMax & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
@@ -182,6 +183,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     constructor(
         private readonly eventsHub: EventsHub,
+        updateService: UpdateService,
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
@@ -190,23 +192,30 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             eventsHub.on('zoom:change-request', (event) => {
                 this.constrainZoomToRequiredWidth(event);
             }),
-            eventsHub.on('update:pre-series', ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
-                this.didLayoutAxes = true;
+            updateService.addListener(
+                'pre-series-update',
+                ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
+                    this.didLayoutAxes = true;
 
-                const { pendingMemento } = this;
-                if (pendingMemento) {
-                    this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
-                } else {
-                    this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection, requiredRange);
+                    const { pendingMemento } = this;
+                    if (pendingMemento) {
+                        this.restoreMemento(
+                            pendingMemento.version,
+                            pendingMemento.mementoVersion,
+                            pendingMemento.memento
+                        );
+                    } else {
+                        this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection, requiredRange);
+                    }
+
+                    // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
+                    this.updateZoom({
+                        source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
+                        sourceDetail: 'unspecified',
+                    });
                 }
-
-                // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
-                this.updateZoom({
-                    source: 'chart-update', // FIXME(AG-16412): this is "probably" what caused, but we don't really know
-                    sourceDetail: 'unspecified',
-                });
-            }),
-            eventsHub.on('update:complete', ({ wasShortcut }) => {
+            ),
+            updateService.addListener('update-complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource) {
                     const source = this.pendingZoomEventSource;
