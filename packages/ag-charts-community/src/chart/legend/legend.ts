@@ -9,6 +9,8 @@ import {
     type ITextMeasurer,
     LineSplitter,
     Logger,
+    type NormalisedLegendOptions,
+    type NormalisedLegendPaginationOptions,
     ZIndexMap,
     cachedTextMeasurer,
     callWithContext,
@@ -23,13 +25,7 @@ import {
     toPlainText,
     truncateLine,
 } from 'ag-charts-core';
-import type {
-    AgActiveItemState,
-    AgChartLegendContextMenuEvent,
-    AgMarkerShapeFn,
-    NormalisedLegendOptions,
-    NormalisedLegendPaginationOptions,
-} from 'ag-charts-types';
+import type { AgActiveItemState, AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
 
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';

@@ -1,5 +1,5 @@
-import { clamp, createId } from 'ag-charts-core';
-import type { AgChartLegendOrientation, NormalisedLegendPaginationOptions } from 'ag-charts-types';
+import { type NormalisedLegendPaginationOptions, clamp, createId } from 'ag-charts-core';
+import type { AgChartLegendOrientation } from 'ag-charts-types';
 
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Text } from '../../scene/shape/text';

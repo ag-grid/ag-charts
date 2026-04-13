@@ -8,8 +8,9 @@ import type {
     AgPaginationLabelOptions,
     AgPaginationMarkerOptions,
     AgPaginationMarkerStyle,
-} from '../chart/legendOptions';
-import type { BorderOptions } from '../series/cartesian/commonOptions';
+    BorderOptions,
+} from 'ag-charts-types';
+
 import type { Normalised } from './normalise';
 
 // --- Leaf normalised types ---

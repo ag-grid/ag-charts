@@ -1,4 +1,5 @@
-import type { AgChartOptions, NormalisedLegendOptions } from 'ag-charts-types';
+import type { NormalisedLegendOptions } from 'ag-charts-core';
+import type { AgChartOptions } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from './legend/legendDatum';
 

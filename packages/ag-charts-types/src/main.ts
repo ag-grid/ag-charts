@@ -97,5 +97,3 @@ export * from './series/topology/mapShapeBackgroundOptions';
 export * from './series/topology/mapShapeOptions';
 export * from './series/topology/topologyOptions';
 export * from './serverSideRenderingOptions';
-
-export * from './internal/normalisedLegendOptions';
