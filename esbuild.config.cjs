@@ -1,6 +1,8 @@
 const esbuild = require('esbuild');
 const { umdWrapper } = require('esbuild-plugin-umd-wrapper');
+const acorn = require('acorn');
 const fs = require('fs/promises');
+const fsSync = require('fs');
 const path = require('path');
 const htmlMinifier = require('html-minifier-terser');
 
@@ -97,6 +99,121 @@ const postBuildMinificationPlugin = {
     },
 };
 
+/**
+ * Post-build plugin that adds /*#__PURE__* / annotations to top-level side effects
+ * in the ESM bundle. This allows downstream bundlers to tree-shake unused code from
+ * the single-file bundle output.
+ *
+ * Covers:
+ *   - Expression statements (calls like __decorateClass, assignments like _Foo.bar = …)
+ *   - Variable declaration initialisers with nested calls (object literals with .bind(), etc.)
+ *
+ * @type {import('esbuild').Plugin}
+ */
+const pureTopLevelSideEffectsPlugin = {
+    name: 'pure-toplevel-side-effects',
+    setup(build) {
+        build.initialOptions.metafile = true;
+
+        build.onEnd(async (result) => {
+            if (result.errors?.length !== 0) return;
+            for (const file of Object.keys(result.metafile.outputs)) {
+                if (!file.endsWith('.esm.mjs')) continue;
+
+                const code = fsSync.readFileSync(file, 'utf8');
+                const annotated = annotatePureToplevel(code);
+                if (annotated !== code) {
+                    await fs.writeFile(file, annotated);
+                }
+            }
+        });
+    },
+};
+
+function hasSideEffect(node) {
+    if (!node) return false;
+    if (node.type === 'CallExpression' || node.type === 'NewExpression' || node.type === 'TaggedTemplateExpression') {
+        return true;
+    }
+    for (const key of Object.keys(node)) {
+        const val = node[key];
+        if (val && typeof val === 'object') {
+            if (Array.isArray(val)) {
+                for (const item of val) {
+                    if (item?.type && hasSideEffect(item)) return true;
+                }
+            } else if (val.type && hasSideEffect(val)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
+
+function annotatePureToplevel(code) {
+    let ast;
+    try {
+        ast = acorn.parse(code, { ecmaVersion: 'latest', sourceType: 'module' });
+    } catch {
+        return code;
+    }
+
+    const edits = [];
+
+    for (const node of ast.body) {
+        // 0. Bare side-effect imports — esbuild emits `import "pkg"` for type-only imports
+        //    of external packages. These are unnecessary and trigger warnings in downstream
+        //    bundlers that check sideEffects fields.
+        if (node.type === 'ImportDeclaration' && node.specifiers.length === 0) {
+            edits.push({ pos: node.start, end: node.end, replace: '' });
+            continue;
+        }
+
+        // 1. Expression statements — wrap in a pure IIFE so that the entire statement
+        //    (including argument evaluation) is droppable by downstream bundlers.
+        //    A simple /*#__PURE__*/ prepend on calls is not enough because esbuild still
+        //    evaluates call arguments (e.g. Foo.prototype), which retains references.
+        if (node.type === 'ExpressionStatement') {
+            const orig = code.slice(node.start, node.end);
+            edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })()` });
+        }
+
+        // 2. Variable declarations whose initialisers contain calls / new / tagged templates.
+        if (node.type === 'VariableDeclaration') {
+            for (const decl of node.declarations) {
+                if (!decl.init || !hasSideEffect(decl.init)) continue;
+
+                if (CALL_LIKE.has(decl.init.type)) {
+                    edits.push({ pos: decl.init.start, text: '/*#__PURE__*/ ' });
+                } else {
+                    const initCode = code.slice(decl.init.start, decl.init.end);
+                    edits.push({
+                        pos: decl.init.start,
+                        end: decl.init.end,
+                        replace: `/*#__PURE__*/ (() => (${initCode}))()`,
+                    });
+                }
+            }
+        }
+    }
+
+    if (edits.length === 0) return code;
+
+    // Apply in reverse source-position order so earlier edits don't shift later positions.
+    let result = code;
+    edits.sort((a, b) => b.pos - a.pos);
+    for (const edit of edits) {
+        if (edit.replace !== undefined) {
+            result = result.slice(0, edit.pos) + edit.replace + result.slice(edit.end);
+        } else {
+            result = result.slice(0, edit.pos) + edit.text + result.slice(edit.pos);
+        }
+    }
+    return result;
+}
+
 /** @type {import('esbuild').Plugin} */
 const umdWrapperAdaptorPlugin = {
     name: 'umd-wrapper-adaptor',
@@ -104,7 +221,7 @@ const umdWrapperAdaptorPlugin = {
         const { initialOptions } = build;
 
         build.onResolve({ filter: /\.cjs\.js$/ }, (args) => ({
-            path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.esm.mjs')),
+            path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.js')),
         }));
 
         // Creates UMD banner + footer config.
@@ -150,6 +267,10 @@ if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
         '.cjs': '.cjs.js',
         '.js': '.esm.mjs',
     };
+}
+
+if (!process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
+    plugins.push(pureTopLevelSideEffectsPlugin);
 }
 
 if (process.env.NX_TASK_TARGET_CONFIGURATION !== 'watch') {

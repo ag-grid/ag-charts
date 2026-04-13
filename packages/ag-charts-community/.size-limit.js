@@ -12,6 +12,14 @@ const defaultConfig = {
     },
 };
 
+const distConfig = {
+    path: './dist/package/main.esm.mjs',
+    modifyEsbuildConfig(esbuildConfig) {
+        esbuildConfig.plugins = plugins;
+        return esbuildConfig;
+    },
+};
+
 module.exports = [
     {
         name: 'Full package',
@@ -30,5 +38,23 @@ module.exports = [
         import: '{ PolarChartModule }',
         limit: '165 kB',
         ...defaultConfig,
+    },
+    {
+        name: '[dist] Full package',
+        import: '*',
+        limit: '287 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] CartesianChart only',
+        import: '{ CartesianChartModule }',
+        limit: '215 kB',
+        ...distConfig,
+    },
+    {
+        name: '[dist] PolarChart only',
+        import: '{ PolarChartModule }',
+        limit: '215 kB',
+        ...distConfig,
     },
 ];
