@@ -1,11 +1,22 @@
-import { ConsoleMessage, Page } from '@playwright/test';
+import type { ConsoleMessage, Locator, Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
 import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
+type LocatorBoundingBox = NonNullable<Awaited<ReturnType<Locator['boundingBox']>>>;
+
 async function getSceneRenders(page: Page): Promise<string> {
     await expect(page.locator(SELECTORS.wrapper)).toHaveAttribute('data-scene-renders');
-    return await page.locator(SELECTORS.wrapper).getAttribute('data-scene-renders');
+    const sceneRenders: string | null = await page.locator(SELECTORS.wrapper).getAttribute('data-scene-renders');
+
+    expect(sceneRenders).not.toBeNull();
+    return sceneRenders!;
+}
+
+async function getBoundingBoxByText(page: Page, text: string): Promise<LocatorBoundingBox> {
+    const bbox: LocatorBoundingBox | null = await page.getByText(text).boundingBox();
+    expect(bbox).not.toBeNull();
+    return bbox!;
 }
 
 test.describe('interactive-tooltip', () => {
@@ -21,7 +32,7 @@ test.describe('interactive-tooltip', () => {
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
 
-        const bbox = await page.getByText('Click here').boundingBox();
+        const bbox = await getBoundingBoxByText(page, 'Click here');
         await page.mouse.move(bbox.x, bbox.y);
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const actualRenders: string = await getSceneRenders(page);
@@ -39,7 +50,7 @@ test.describe('interactive-tooltip', () => {
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const expectedRenders: string = await getSceneRenders(page);
 
-        const bbox = await page.getByText('Click here').boundingBox();
+        const bbox = await getBoundingBoxByText(page, 'Click here');
         await page.mouse.move(bbox.x, bbox.y, { steps: 4 });
         await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
         const actualRenders: string = await getSceneRenders(page);
@@ -84,7 +95,7 @@ test.describe('interactive-tooltip', () => {
                 await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
                 const expectedRenders: string = await getSceneRenders(page);
 
-                const bbox = await page.getByText('Click here').boundingBox();
+                const bbox = await getBoundingBoxByText(page, 'Click here');
                 await page.mouse.click(bbox.x, bbox.y);
                 await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
                 const actualRenders: string = await getSceneRenders(page);
@@ -106,7 +117,7 @@ test.describe('interactive-tooltip', () => {
                 await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
                 const expectedRenders: string = await getSceneRenders(page);
 
-                const bbox = await page.getByText(' Jul: 70 ').boundingBox();
+                const bbox = await getBoundingBoxByText(page, ' Jul: 70 ');
                 await page.mouse.click(bbox.x, bbox.y);
                 await expect(page).toHaveScreenshot('interactive-tooltip-visible.png');
                 const actualRenders: string = await getSceneRenders(page);
