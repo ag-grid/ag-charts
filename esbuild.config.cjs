@@ -152,6 +152,16 @@ function hasSideEffect(node) {
 
 const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
 
+// Bare side-effect imports from AG Charts packages are artefacts of esbuild bundling
+// type-only imports from external dependencies. Safe to remove.
+const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts-locale', 'ag-charts-types']);
+
+// Expression statement patterns that are safe to mark as pure (they only affect the
+// class/object they target, so removing them alongside an unused class is correct).
+const SAFE_CALL_PATTERN = /^__decorateClass\(|^__export\(|^__reExport\(/;
+const SAFE_ASSIGN_PATTERN = /^_?[A-Z][a-zA-Z]*\.\w+ =/;
+const SAFE_VERIFY_PATTERN = /^__VERIFY/;
+
 function annotatePureToplevel(code) {
     let ast;
     try {
@@ -163,21 +173,29 @@ function annotatePureToplevel(code) {
     const edits = [];
 
     for (const node of ast.body) {
-        // 0. Bare side-effect imports — esbuild emits `import "pkg"` for type-only imports
-        //    of external packages. These are unnecessary and trigger warnings in downstream
-        //    bundlers that check sideEffects fields.
+        // 0. Bare side-effect imports of AG Charts packages — artefacts of esbuild bundling
+        //    type-only imports. These trigger warnings in downstream bundlers.
         if (node.type === 'ImportDeclaration' && node.specifiers.length === 0) {
-            edits.push({ pos: node.start, end: node.end, replace: '' });
+            if (AG_PACKAGES.has(node.source.value)) {
+                edits.push({ pos: node.start, end: node.end, replace: '' });
+            }
             continue;
         }
 
-        // 1. Expression statements — wrap in a pure IIFE so that the entire statement
-        //    (including argument evaluation) is droppable by downstream bundlers.
-        //    A simple /*#__PURE__*/ prepend on calls is not enough because esbuild still
-        //    evaluates call arguments (e.g. Foo.prototype), which retains references.
+        // 1. Expression statements — only wrap known-safe patterns in a pure IIFE.
+        //    We use IIFE wrapping (not a simple prepend) because esbuild still evaluates
+        //    call arguments (e.g. Foo.prototype) even when the call itself is marked pure.
         if (node.type === 'ExpressionStatement') {
-            const orig = code.slice(node.start, node.end);
-            edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })()` });
+            const text = code.slice(node.start, node.start + 40);
+
+            const isSafeCall = node.expression.type === 'CallExpression' && SAFE_CALL_PATTERN.test(text);
+            const isSafeAssign = node.expression.type === 'AssignmentExpression' && SAFE_ASSIGN_PATTERN.test(text);
+            const isSafeVerify = SAFE_VERIFY_PATTERN.test(text);
+
+            if (isSafeCall || isSafeAssign || isSafeVerify) {
+                const orig = code.slice(node.start, node.end);
+                edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })()` });
+            }
         }
 
         // 2. Variable declarations whose initialisers contain calls / new / tagged templates.
@@ -221,7 +239,7 @@ const umdWrapperAdaptorPlugin = {
         const { initialOptions } = build;
 
         build.onResolve({ filter: /\.cjs\.js$/ }, (args) => ({
-            path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.js')),
+            path: path.join(args.resolveDir, args.path.replace('.cjs.js', '.esm.mjs')),
         }));
 
         // Creates UMD banner + footer config.
