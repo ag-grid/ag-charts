@@ -28,6 +28,8 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
+type ButtonInteractionOptions = Parameters<_ModuleSupport.ToolbarButtonWidget['update']>[1];
+
 const { FloatingToolbar, Menu, ToolbarButtonWidget } = _ModuleSupport;
 interface EventMap {
     'pressed-delete': null;
@@ -77,8 +79,8 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
 }
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
-    public override update(options: AnnotationOptionsButtonOptions) {
-        super.update(options as any);
+    public override update(options: AnnotationOptionsButtonOptions, interactionOptions: ButtonInteractionOptions) {
+        super.update(options as any, interactionOptions);
 
         if (options.value === AnnotationOptions.LineStrokeWidth) {
             this.updateLineStrokeWidth(options);

@@ -2,6 +2,7 @@ import type { BoxBounds } from 'ag-charts-core';
 import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
+import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
@@ -14,6 +15,8 @@ import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
+
+type ButtonInteractionOptions = Parameters<ToolbarButtonWidget['update']>[1];
 
 export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
     section?: string;
@@ -47,17 +50,19 @@ export abstract class BaseToolbar<
 
     protected readonly eventsHub: EventsHub;
     protected readonly localeManager: LocaleManager;
+    private readonly domManager: DOMManager;
 
     private readonly updateAriaLabel = () => this.setAriaLabel(this.localeManager.t(this.ariaLabelId));
 
     constructor(
-        { eventsHub, localeManager }: ModuleContext,
+        { eventsHub, localeManager, domManager }: ModuleContext,
         private ariaLabelId: string,
         orientation: RovingDirection
     ) {
         super(orientation);
         this.eventsHub = eventsHub;
         this.localeManager = localeManager;
+        this.domManager = domManager;
         this.addClass('ag-charts-toolbar');
         this.toggleClass('ag-charts-toolbar--horizontal', orientation === 'horizontal');
         this.toggleClass('ag-charts-toolbar--vertical', orientation === 'vertical');
@@ -83,12 +88,17 @@ export abstract class BaseToolbar<
         this.buttonWidgets.splice(0);
     }
 
+    protected getInteractionOptions(): ButtonInteractionOptions {
+        const { isRtl } = this.domManager;
+        return { isRtl };
+    }
+
     public updateButtons(buttons: Array<ButtonOptions>) {
         const { buttonWidgets } = this;
 
         for (const [index, button] of buttons.entries()) {
             const buttonWidget = this.buttonWidgets.at(index) ?? this.createButton(index, button);
-            buttonWidget.update(button);
+            buttonWidget.update(button, this.getInteractionOptions());
         }
 
         for (let index = buttons.length; index < buttonWidgets.length; index++) {
@@ -101,7 +111,7 @@ export abstract class BaseToolbar<
     }
 
     public updateButtonByIndex(index: number, button: ButtonOptions) {
-        this.buttonWidgets.at(index)?.update(button);
+        this.buttonWidgets.at(index)?.update(button, this.getInteractionOptions());
     }
 
     public clearActiveButton() {
