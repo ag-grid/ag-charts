@@ -53,18 +53,18 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Documentation and Examples
 
-| Type    | Name                             | Invoke            | What it does                                             |
-| ------- | -------------------------------- | ----------------- | -------------------------------------------------------- |
-| Skill   | 🟠 `docs-create`                 | `/docs-create` (user) | Scaffold a new documentation page                    |
-| Command | 🟠 `/docs-review`                | `/docs-review`    | Review docs for accuracy and example consistency         |
-| Skill   | 🟠 `spruce-docs`                 | `/spruce-docs`    | Create or improve docs following established patterns    |
-| Skill   | 🟠 `plunker`                     | `/plunker`        | Create and manage Plunker demos for AG Charts            |
-| Skill   | 🔵 `batch-plunkers`              | `/batch-plunkers` | Create multiple Plunkers in parallel via sub-agents      |
-| Skill   | 🟠 `spruce-example`              | `/spruce-example` | Improve gallery examples to professional quality         |
-| Skill   | 🔵 `website-astro`               | `/website-astro`  | Astro page patterns, content collections, and components |
-| Skill   | 🔵 `website-css`                 | `/website-css`    | CSS architecture, design tokens, and styling patterns    |
-| Agent   | 🟠 `data-viz-designer`           | Auto              | Dataset selection, chart type guidance                   |
-| Agent   | 🔵 `docs-example-browser-tester` | Auto              | Browser-test a single docs example at its direct URL     |
+| Type    | Name                             | Invoke                | What it does                                             |
+| ------- | -------------------------------- | --------------------- | -------------------------------------------------------- |
+| Skill   | 🟠 `docs-create`                 | `/docs-create` (user) | Scaffold a new documentation page                        |
+| Command | 🟠 `/docs-review`                | `/docs-review`        | Review docs for accuracy and example consistency         |
+| Skill   | 🟠 `spruce-docs`                 | `/spruce-docs`        | Create or improve docs following established patterns    |
+| Skill   | 🟠 `plunker`                     | `/plunker`            | Create and manage Plunker demos for AG Charts            |
+| Skill   | 🔵 `batch-plunkers`              | `/batch-plunkers`     | Create multiple Plunkers in parallel via sub-agents      |
+| Skill   | 🟠 `spruce-example`              | `/spruce-example`     | Improve gallery examples to professional quality         |
+| Skill   | 🔵 `website-astro`               | `/website-astro`      | Astro page patterns, content collections, and components |
+| Skill   | 🔵 `website-css`                 | `/website-css`        | CSS architecture, design tokens, and styling patterns    |
+| Agent   | 🟠 `data-viz-designer`           | Auto                  | Dataset selection, chart type guidance                   |
+| Agent   | 🔵 `docs-example-browser-tester` | Auto                  | Browser-test a single docs example at its direct URL     |
 
 ## Planning and Analysis
 
@@ -101,8 +101,8 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                    | Invoke                       | What it does                                 |
 | ----- | ----------------------- | ---------------------------- | -------------------------------------------- |
-| Skill | 🔵 `ag-shared-sync-log` | `/ag-shared-sync-log`       | Generate migration log for ag-shared changes |
-| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)    | Sync ag-shared subrepo across AG repos       |
+| Skill | 🔵 `ag-shared-sync-log` | `/ag-shared-sync-log`        | Generate migration log for ag-shared changes |
+| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos       |
 | Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`       |
 | Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history     |
 | Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs              |
@@ -133,19 +133,19 @@ Rules load automatically when you edit files matching their glob patterns.
 
 ### Core Code Rules
 
-| Rule                                 | Activates on                                           | Description                                        |
-| ------------------------------------ | ------------------------------------------------------ | -------------------------------------------------- |
-| 🟢 `api-contracts`                   | `ag-charts-types/**/*.ts`, `**/config/**/*.ts`         | Public API vs undocumented options patterns         |
+| Rule                                 | Activates on                                           | Description                                           |
+| ------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------- |
+| 🟢 `api-contracts`                   | `ag-charts-types/**/*.ts`, `**/config/**/*.ts`         | Public API vs undocumented options patterns           |
 | 🔵 `browser-support`                 | `packages/*/src/**/*.ts`                               | Browser support policy — minimum API/feature baseline |
-| 🟢 `data-model`                      | `**/data-model/**/*.ts`                                | DataModel principles and data processing patterns  |
-| 🟢 `defaults`                        | `**/*Module.ts`, `**/*Properties.ts`, `**/*Options.ts` | Three-tier default system and theme configuration  |
-| 🟢 `dom-performance`                 | `**/dom/**`, `**/chart/tooltip/**`                     | DOM perf patterns — caching, invalidation, reflow  |
-| 🟢 `module-support`                  | `module-support.ts`                                    | Barrel export guidelines and tree-shaking impact   |
-| 🟢 `series`                          | `**/series/**/*.ts`                                    | Series architecture, rendering, and performance    |
-| 🟠 `series-performance-optimization` | `**/series/**/*.ts`                                    | Series perf optimisation guide                     |
-| 🟠 `cartesian-series-types`          | `**/series/cartesian/**/*.ts`                          | Consolidated generic type patterns                 |
-| 🔵 `code-quality`                    | `packages/*/src/**/*.ts`                               | Bloat avoidance and comment guidelines             |
-| 🟢 `server-side-rendering`           | `ag-charts-server-side/src/**/*`                       | SSR patterns and global usage constraints          |
+| 🟢 `data-model`                      | `**/data-model/**/*.ts`                                | DataModel principles and data processing patterns     |
+| 🟢 `defaults`                        | `**/*Module.ts`, `**/*Properties.ts`, `**/*Options.ts` | Three-tier default system and theme configuration     |
+| 🟢 `dom-performance`                 | `**/dom/**`, `**/chart/tooltip/**`                     | DOM perf patterns — caching, invalidation, reflow     |
+| 🟢 `module-support`                  | `module-support.ts`                                    | Barrel export guidelines and tree-shaking impact      |
+| 🟢 `series`                          | `**/series/**/*.ts`                                    | Series architecture, rendering, and performance       |
+| 🟠 `series-performance-optimization` | `**/series/**/*.ts`                                    | Series perf optimisation guide                        |
+| 🟠 `cartesian-series-types`          | `**/series/cartesian/**/*.ts`                          | Consolidated generic type patterns                    |
+| 🔵 `code-quality`                    | `packages/*/src/**/*.ts`                               | Bloat avoidance and comment guidelines                |
+| 🟢 `server-side-rendering`           | `ag-charts-server-side/src/**/*`                       | SSR patterns and global usage constraints             |
 
 ### Testing and Benchmarks
 
@@ -161,7 +161,7 @@ Rules load automatically when you edit files matching their glob patterns.
 | -------------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
 | 🟢 `docs-pages`                  | `**/docs/**/*.mdoc`, `**/docs/**/_examples/**`         | Slim pointer → `/spruce-docs` skill                |
 | 🟢 `docs-checklist`              | `**/docs/**/*.mdoc`                                    | Slim pointer → `/spruce-docs` skill                |
-| 🟢 `docs-review-testing`         | _(no globs — loaded on demand)_                        | Browser testing tips for canvas-rendered AG Charts  |
+| 🟢 `docs-review-testing`         | _(no globs — loaded on demand)_                        | Browser testing tips for canvas-rendered AG Charts |
 | 🟢 `examples`                    | `**/_examples/**`, `**/gallery/**`                     | Slim pointer → `/example` skill                    |
 | 🟢 `examples-framework-patterns` | `**/_examples/**`, `**/generate-example-files/**`      | Slim pointer → `/example` skill                    |
 | 🟢 `link-verification`           | `plans/**/*.md`, `**/docs/**/*.mdoc`                   | Verify all URLs before including in documents      |
@@ -179,12 +179,12 @@ Rules load automatically when you edit files matching their glob patterns.
 
 ### Infrastructure and Tooling
 
-| Rule                  | Activates on                                  | Description                                  |
-| --------------------- | --------------------------------------------- | -------------------------------------------- |
-| 🟢 `docker`           | `**/.docker/**`, `**/Dockerfile`              | Docker usage patterns for examples and SSR   |
-| 🔵 `nx-conventions`   | `**/project.json`, `nx.json`                  | Nx project configuration conventions         |
-| 🔵 `rulesync-editing` | `.rulesync/**`, `.claude/**`, `.cursor/**`     | Agentic tooling configuration guide          |
-| 🔵 `setup-prompts`    | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide                      |
+| Rule                  | Activates on                                  | Description                                |
+| --------------------- | --------------------------------------------- | ------------------------------------------ |
+| 🟢 `docker`           | `**/.docker/**`, `**/Dockerfile`              | Docker usage patterns for examples and SSR |
+| 🔵 `nx-conventions`   | `**/project.json`, `nx.json`                  | Nx project configuration conventions       |
+| 🔵 `rulesync-editing` | `.rulesync/**`, `.claude/**`, `.cursor/**`    | Agentic tooling configuration guide        |
+| 🔵 `setup-prompts`    | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide                    |
 
 ---
 
@@ -244,14 +244,14 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 
 Sub-agents are spawned automatically when the AI determines a task matches their speciality. They cannot be invoked directly.
 
-| Agent                              | Description                                      |
-| ---------------------------------- | ------------------------------------------------ |
-| 🟠 `data-viz-designer`             | Guides dataset selection and chart type choices  |
-| 🔵 `docs-example-browser-tester`   | Browser-test a single docs example at its URL    |
-| 🟠 `example-tester`                | Tests AG Charts examples for correctness         |
-| 🔵 `nx-expert`                     | Nx monorepo configuration and build optimisation |
-| 🔵 `playwright-expert`             | Playwright E2E test architecture and debugging   |
-| 🟠 `previs-evaluator`              | PREVis methodology evaluation of visualisations  |
-| 🟠 `technical-research-analyst`    | In-depth technical research with citations       |
-| 🟠 `test-writer`                   | Creates Jest snapshot and Playwright E2E tests   |
-| 🟠 `visual-qa`                     | Reviews visual regression test diffs             |
+| Agent                            | Description                                      |
+| -------------------------------- | ------------------------------------------------ |
+| 🟠 `data-viz-designer`           | Guides dataset selection and chart type choices  |
+| 🔵 `docs-example-browser-tester` | Browser-test a single docs example at its URL    |
+| 🟠 `example-tester`              | Tests AG Charts examples for correctness         |
+| 🔵 `nx-expert`                   | Nx monorepo configuration and build optimisation |
+| 🔵 `playwright-expert`           | Playwright E2E test architecture and debugging   |
+| 🟠 `previs-evaluator`            | PREVis methodology evaluation of visualisations  |
+| 🟠 `technical-research-analyst`  | In-depth technical research with citations       |
+| 🟠 `test-writer`                 | Creates Jest snapshot and Playwright E2E tests   |
+| 🟠 `visual-qa`                   | Reviews visual regression test diffs             |
