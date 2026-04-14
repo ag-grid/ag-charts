@@ -1,6 +1,6 @@
 // Bundle render test scenarios.
-// Each scenario defines an import pattern, modules to register, and chart options
-// to verify that a tree-shaken bundle produces a functional chart.
+// Each scenario defines modules to register and chart options to verify that a
+// tree-shaken bundle produces a functional chart.
 //
 // Unlike the size-limit scenarios (which test bundle size alone), these scenarios
 // include all modules needed for a functional chart (axes, series, chart type).
@@ -52,15 +52,11 @@ const rangeAreaData = [
     { category: 'Q4', low: 12, high: 35 },
 ];
 
-// Common axis modules needed for cartesian charts
-const CARTESIAN_AXES = 'NumberAxisModule, CategoryAxisModule';
-
 export const scenarios = [
     // === ag-charts-community ===
     {
         name: 'community/full',
         package: 'ag-charts-community',
-        import: '*',
         modules: ['AllCommunityModule'],
         chartOptions: {
             data: barData,
@@ -70,7 +66,6 @@ export const scenarios = [
     {
         name: 'community/CartesianChartModule',
         package: 'ag-charts-community',
-        import: `{ CartesianChartModule, BarSeriesModule, ${CARTESIAN_AXES} }`,
         modules: ['CartesianChartModule', 'BarSeriesModule', 'NumberAxisModule', 'CategoryAxisModule'],
         chartOptions: {
             data: barData,
@@ -80,7 +75,6 @@ export const scenarios = [
     {
         name: 'community/PolarChartModule',
         package: 'ag-charts-community',
-        import: '{ PolarChartModule, PieSeriesModule }',
         modules: ['PolarChartModule', 'PieSeriesModule'],
         chartOptions: {
             data: pieData,
@@ -92,7 +86,6 @@ export const scenarios = [
     {
         name: 'enterprise/full',
         package: 'ag-charts-enterprise',
-        import: '*',
         modules: ['AllEnterpriseModule'],
         chartOptions: {
             data: barData,
@@ -102,7 +95,6 @@ export const scenarios = [
     {
         name: 'enterprise/BoxPlotSeriesModule',
         package: 'ag-charts-enterprise',
-        import: `{ BoxPlotSeriesModule, ${CARTESIAN_AXES} }`,
         modules: ['BoxPlotSeriesModule', 'NumberAxisModule', 'CategoryAxisModule'],
         chartOptions: {
             data: boxPlotData,
@@ -122,7 +114,6 @@ export const scenarios = [
     {
         name: 'enterprise/MixedA',
         package: 'ag-charts-enterprise',
-        import: `{ BoxPlotSeriesModule, NavigatorModule, ${CARTESIAN_AXES} }`,
         modules: ['BoxPlotSeriesModule', 'NavigatorModule', 'NumberAxisModule', 'CategoryAxisModule'],
         chartOptions: {
             data: boxPlotData,
@@ -142,7 +133,6 @@ export const scenarios = [
     {
         name: 'enterprise/MixedB',
         package: 'ag-charts-enterprise',
-        import: '{ AngleNumberAxisModule, RadiusCategoryAxisModule, RadialBarSeriesModule, StatusBarModule }',
         modules: ['AngleNumberAxisModule', 'RadiusCategoryAxisModule', 'RadialBarSeriesModule', 'StatusBarModule'],
         chartOptions: {
             data: radialBarData,
@@ -152,7 +142,6 @@ export const scenarios = [
     {
         name: 'enterprise/MixedC',
         package: 'ag-charts-enterprise',
-        import: `{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule, ${CARTESIAN_AXES} }`,
         modules: [
             'FunnelSeriesModule',
             'MapLineSeriesModule',
@@ -169,7 +158,6 @@ export const scenarios = [
     {
         name: 'enterprise/MixedD',
         package: 'ag-charts-enterprise',
-        import: `{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule, ${CARTESIAN_AXES} }`,
         modules: [
             'HeatmapSeriesModule',
             'LinearGaugeModule',
@@ -187,7 +175,6 @@ export const scenarios = [
     {
         name: 'enterprise/MixedE',
         package: 'ag-charts-enterprise',
-        import: `{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule, ${CARTESIAN_AXES} }`,
         modules: [
             'RadarLineSeriesModule',
             'MapMarkerSeriesModule',
