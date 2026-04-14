@@ -156,11 +156,10 @@ const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExp
 // type-only imports from external dependencies. Safe to remove.
 const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts-locale', 'ag-charts-types']);
 
-// Expression statement patterns that are safe to mark as pure (they only affect the
-// class/object they target, so removing them alongside an unused class is correct).
-const SAFE_CALL_PATTERN = /^__decorateClass\(|^__export\(|^__reExport\(/;
-const SAFE_ASSIGN_PATTERN = /^_?[A-Z][a-zA-Z]*\.\w+ =/;
-const SAFE_VERIFY_PATTERN = /^__VERIFY/;
+// NOTE: Expression statements must NOT be wrapped in #__PURE__ IIFEs — Rollup treats
+// #__PURE__ on expression statements as "always droppable" regardless of whether the
+// referenced symbols are live. Only variable declaration initialisers can use #__PURE__
+// safely (dropped only when the declared variable is unused).
 
 function annotatePureToplevel(code) {
     let ast;
@@ -182,21 +181,9 @@ function annotatePureToplevel(code) {
             continue;
         }
 
-        // 1. Expression statements — only wrap known-safe patterns in a pure IIFE.
-        //    We use IIFE wrapping (not a simple prepend) because esbuild still evaluates
-        //    call arguments (e.g. Foo.prototype) even when the call itself is marked pure.
-        if (node.type === 'ExpressionStatement') {
-            const text = code.slice(node.start, node.start + 40);
-
-            const isSafeCall = node.expression.type === 'CallExpression' && SAFE_CALL_PATTERN.test(text);
-            const isSafeAssign = node.expression.type === 'AssignmentExpression' && SAFE_ASSIGN_PATTERN.test(text);
-            const isSafeVerify = SAFE_VERIFY_PATTERN.test(text);
-
-            if (isSafeCall || isSafeAssign || isSafeVerify) {
-                const orig = code.slice(node.start, node.end);
-                edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })();` });
-            }
-        }
+        // 1. Expression statements — intentionally NOT annotated. Rollup treats #__PURE__
+        //    on expression statements as "always droppable" even when the statement mutates
+        //    live objects (e.g. __decorateClass, static property assignments, __export).
 
         // 2. Variable declarations whose initialisers contain calls / new / tagged templates.
         if (node.type === 'VariableDeclaration') {
