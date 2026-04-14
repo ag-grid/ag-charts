@@ -186,6 +186,7 @@ function annotatePureToplevel(code) {
     //   var _Foo = /*#__PURE__*/ (() => { var _cls = class { ... }; __decorateClass(...); _cls.staticProp = value; return _cls; })();
 
     let i = 0;
+    let tmpVarCounter = 0;
     while (i < body.length) {
         const node = body[i];
 
@@ -231,11 +232,12 @@ function annotatePureToplevel(code) {
 
                 if (trailingExprs.length > 0) {
                     // Merge: var _Foo = <init>; <expr1>; <expr2>; →
-                    //        var _Foo = /*#__PURE__*/ (() => { var _c = <init>; <expr1_rewritten>; <expr2_rewritten>; return _c; })();
+                    //        var _Foo = /*#__PURE__*/ (() => { var _c$0 = <init>; <expr1_rewritten>; return _c$0; })();
                     const initCode = code.slice(decl.init.start, decl.init.end);
-                    const tmpVar = '_c$';
+                    const tmpVar = `_c$${tmpVarCounter++}`;
+                    const varNameRe = new RegExp(`\\b${varName}\\b`, 'g');
                     const exprsCode = trailingExprs
-                        .map((e) => code.slice(e.start, e.end).replaceAll(varName, tmpVar))
+                        .map((e) => code.slice(e.start, e.end).replace(varNameRe, tmpVar))
                         .join(' ');
                     const lastExpr = trailingExprs[trailingExprs.length - 1];
                     edits.push({
