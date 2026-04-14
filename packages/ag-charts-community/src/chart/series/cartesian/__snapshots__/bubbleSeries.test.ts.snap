@@ -4,6 +4,7 @@ exports[`BubbleSeries AG-11673 styler init callbacks params 1`] = `
 [
   [
     {
+      "colorKey": undefined,
       "context": {
         "name": "male context",
       },
@@ -29,6 +30,7 @@ exports[`BubbleSeries AG-11673 styler init callbacks params 1`] = `
   ],
   [
     {
+      "colorKey": undefined,
       "context": {
         "name": "female context",
       },

@@ -56,6 +56,20 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
     },
+    gradientLegend: {
+        enabled: {
+            $some: [
+                {
+                    $and: [
+                        { $path: '/series/$index/colorKey' },
+                        { $path: '/series/$index/colorScale/fills/0' },
+                        { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
+                    ],
+                },
+                { $path: '/series' },
+            ],
+        },
+    },
 };
 
 export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
