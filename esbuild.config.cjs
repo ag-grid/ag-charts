@@ -158,7 +158,7 @@ const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts
 
 // Patterns for expression statements that can be merged into their parent class IIFE.
 // These reference a class variable (e.g. _Foo.prototype, _Foo.bar) and only affect that class.
-const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?\],\s*|_?)([A-Z][a-zA-Z0-9]*)\./;
+const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?\],\s*)(_?[A-Z][a-zA-Z0-9]*)\.|^(_?[A-Z][a-zA-Z0-9]*)\./;
 // __VERIFY statements are build-time checks, safe to drop unconditionally.
 const SAFE_VERIFY_PATTERN = /^__VERIFY/;
 
@@ -222,7 +222,7 @@ function annotatePureToplevel(code) {
                 while (j < body.length && body[j].type === 'ExpressionStatement') {
                     const exprText = code.slice(body[j].start, body[j].start + 80);
                     const match = CLASS_EXPR_PATTERN.exec(exprText);
-                    if (match && match[2] === varName) {
+                    if (match && (match[2] ?? match[3]) === varName) {
                         trailingExprs.push(body[j]);
                         j++;
                     } else {
