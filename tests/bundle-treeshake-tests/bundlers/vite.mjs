@@ -12,6 +12,9 @@ export async function bundleWithVite({ entry, outFile }) {
             rollupOptions: {
                 input: { main: entry },
                 preserveEntrySignatures: 'strict',
+                treeshake: {
+                    moduleSideEffects: false,
+                },
                 output: {
                     format: 'es',
                     entryFileNames: basename(outFile),

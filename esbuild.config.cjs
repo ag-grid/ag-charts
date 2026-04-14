@@ -156,10 +156,11 @@ const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExp
 // type-only imports from external dependencies. Safe to remove.
 const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts-locale', 'ag-charts-types']);
 
-// NOTE: Expression statements must NOT be wrapped in #__PURE__ IIFEs — Rollup treats
-// #__PURE__ on expression statements as "always droppable" regardless of whether the
-// referenced symbols are live. Only variable declaration initialisers can use #__PURE__
-// safely (dropped only when the declared variable is unused).
+// Patterns for expression statements that can be merged into their parent class IIFE.
+// These reference a class variable (e.g. _Foo.prototype, _Foo.bar) and only affect that class.
+const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?\],\s*|_?)([A-Z][a-zA-Z0-9]*)\./;
+// __VERIFY statements are build-time checks, safe to drop unconditionally.
+const SAFE_VERIFY_PATTERN = /^__VERIFY/;
 
 function annotatePureToplevel(code) {
     let ast;
@@ -170,26 +171,100 @@ function annotatePureToplevel(code) {
     }
 
     const edits = [];
+    const body = ast.body;
 
-    for (const node of ast.body) {
+    // Pass 1: Identify variable declarations and collect trailing expression statements
+    //         that reference the declared variable. These will be merged into a single
+    //         #__PURE__ IIFE so the entire group is tree-shakeable as a unit.
+    //
+    // Pattern in esbuild output:
+    //   var _Foo = class { ... };
+    //   __decorateClass([...], _Foo.prototype, "bar", 2);
+    //   _Foo.staticProp = value;
+    //
+    // Becomes:
+    //   var _Foo = /*#__PURE__*/ (() => { var _cls = class { ... }; __decorateClass(...); _cls.staticProp = value; return _cls; })();
+
+    let i = 0;
+    while (i < body.length) {
+        const node = body[i];
+
         // 0. Bare side-effect imports of AG Charts packages — artefacts of esbuild bundling
         //    type-only imports. These trigger warnings in downstream bundlers.
         if (node.type === 'ImportDeclaration' && node.specifiers.length === 0) {
             if (AG_PACKAGES.has(node.source.value)) {
                 edits.push({ pos: node.start, end: node.end, replace: '' });
             }
+            i++;
             continue;
         }
 
-        // 1. Expression statements — intentionally NOT annotated. Rollup treats #__PURE__
-        //    on expression statements as "always droppable" even when the statement mutates
-        //    live objects (e.g. __decorateClass, static property assignments, __export).
+        // 1. __VERIFY statements — safe to drop unconditionally.
+        if (node.type === 'ExpressionStatement') {
+            if (SAFE_VERIFY_PATTERN.test(code.slice(node.start, node.start + 40))) {
+                const orig = code.slice(node.start, node.end);
+                edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })();` });
+            }
+            i++;
+            continue;
+        }
 
-        // 2. Variable declarations whose initialisers contain calls / new / tagged templates.
-        if (node.type === 'VariableDeclaration') {
+        // 2. Variable declarations — annotate initialisers and merge trailing expr statements.
+        if (node.type === 'VariableDeclaration' && node.declarations.length === 1) {
+            const decl = node.declarations[0];
+            if (decl.id?.type === 'Identifier' && decl.init) {
+                const varName = decl.id.name;
+
+                // Collect trailing expression statements that reference this variable.
+                const trailingExprs = [];
+                let j = i + 1;
+                while (j < body.length && body[j].type === 'ExpressionStatement') {
+                    const exprText = code.slice(body[j].start, body[j].start + 80);
+                    const match = CLASS_EXPR_PATTERN.exec(exprText);
+                    if (match && match[2] === varName) {
+                        trailingExprs.push(body[j]);
+                        j++;
+                    } else {
+                        break;
+                    }
+                }
+
+                if (trailingExprs.length > 0) {
+                    // Merge: var _Foo = <init>; <expr1>; <expr2>; →
+                    //        var _Foo = /*#__PURE__*/ (() => { var _c = <init>; <expr1_rewritten>; <expr2_rewritten>; return _c; })();
+                    const initCode = code.slice(decl.init.start, decl.init.end);
+                    const tmpVar = '_c$';
+                    const exprsCode = trailingExprs
+                        .map((e) => code.slice(e.start, e.end).replaceAll(varName, tmpVar))
+                        .join(' ');
+                    const lastExpr = trailingExprs[trailingExprs.length - 1];
+                    edits.push({
+                        pos: decl.init.start,
+                        end: lastExpr.end,
+                        replace: `/*#__PURE__*/ (() => { var ${tmpVar} = ${initCode}; ${exprsCode} return ${tmpVar}; })()`,
+                    });
+                    i = j;
+                    continue;
+                }
+
+                // No trailing exprs — just annotate the initialiser if it has side effects.
+                if (hasSideEffect(decl.init)) {
+                    if (CALL_LIKE.has(decl.init.type)) {
+                        edits.push({ pos: decl.init.start, text: '/*#__PURE__*/ ' });
+                    } else {
+                        const initCode = code.slice(decl.init.start, decl.init.end);
+                        edits.push({
+                            pos: decl.init.start,
+                            end: decl.init.end,
+                            replace: `/*#__PURE__*/ (() => (${initCode}))()`,
+                        });
+                    }
+                }
+            }
+        } else if (node.type === 'VariableDeclaration') {
+            // Multi-declarator — annotate each initialiser individually.
             for (const decl of node.declarations) {
                 if (!decl.init || !hasSideEffect(decl.init)) continue;
-
                 if (CALL_LIKE.has(decl.init.type)) {
                     edits.push({ pos: decl.init.start, text: '/*#__PURE__*/ ' });
                 } else {
@@ -202,6 +277,8 @@ function annotatePureToplevel(code) {
                 }
             }
         }
+
+        i++;
     }
 
     if (edits.length === 0) return code;
