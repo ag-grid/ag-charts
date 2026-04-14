@@ -17,8 +17,8 @@ export class DataSelection extends AbstractModuleInstance {
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
         if (!this.enabled || !this.enableClick) return;
 
-        const { clickedNode } = event;
-        if (clickedNode === undefined) return;
+        const { type, clickedNode } = event;
+        if (type !== 'click' || clickedNode === undefined) return;
 
         const { data } = clickedNode.series;
         if (data === undefined) return;

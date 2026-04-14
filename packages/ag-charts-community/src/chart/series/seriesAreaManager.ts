@@ -635,9 +635,9 @@ export class SeriesAreaManager extends BaseManager {
     ): void {
         if (!('currentX' in event)) return;
 
-        const { sourceEvent } = event;
+        const { type, sourceEvent } = event;
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
-        const payload: SeriesAreaClickEvent = { canvasX, canvasY, consumed, sourceEvent, clickedNode };
+        const payload: SeriesAreaClickEvent = { type, canvasX, canvasY, consumed, sourceEvent, clickedNode };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 

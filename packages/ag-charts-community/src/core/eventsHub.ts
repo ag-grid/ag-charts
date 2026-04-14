@@ -73,6 +73,7 @@ export interface SeriesAreaHoverEvent {
 }
 
 export interface SeriesAreaClickEvent {
+    readonly type: 'click' | 'dblclick';
     readonly canvasX: number;
     readonly canvasY: number;
     readonly consumed: boolean;
