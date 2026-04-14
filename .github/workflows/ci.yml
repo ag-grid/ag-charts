@@ -562,12 +562,61 @@ jobs:
                   branch: ${{ needs.init.outputs.snapshot_branch }}
                   type: ${{ matrix.framework }}-package-tests:test:package
 
+    bundle_tests:
+        runs-on: ubuntu-24.04
+        name: Bundle Tests
+        permissions:
+            contents: write
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        env:
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx test:bundle-treeshake
+              id: treeshake
+              run: yarn nx run bundle-treeshake-tests:test:bundle-treeshake
+
+            - name: nx test:bundle-render
+              id: render
+              run: yarn nx run bundle-render-tests:test:bundle-render
+
     report:
         runs-on: ubuntu-24.04
         permissions:
             contents: write
             pull-requests: write
-        needs: [detect-changes, init, lint, generate, build, validate, website_build, test, e2e, sonarqube, fw_pkg_test]
+        needs:
+            [
+                detect-changes,
+                init,
+                lint,
+                generate,
+                build,
+                validate,
+                website_build,
+                test,
+                e2e,
+                sonarqube,
+                fw_pkg_test,
+                bundle_tests,
+            ]
         if: cancelled() != true
         steps:
             - name: Checkout

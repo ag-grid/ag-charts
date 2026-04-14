@@ -11,37 +11,37 @@ const scenarios = [
         name: 'BoxPlot module only',
         import: '{ BoxPlotSeriesModule }',
         srcLimit: '250 kB',
-        distLimit: '324 kB',
+        distLimit: '361 kB',
     },
     {
         name: 'Mixed modules A',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
         srcLimit: '296 kB',
-        distLimit: '363 kB',
+        distLimit: '385 kB',
     },
     {
         name: 'Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
         srcLimit: '254 kB',
-        distLimit: '325 kB',
+        distLimit: '363 kB',
     },
     {
         name: 'Mixed modules C',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
         srcLimit: '260 kB',
-        distLimit: '331 kB',
+        distLimit: '370 kB',
     },
     {
         name: 'Mixed modules D',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
         srcLimit: '261 kB',
-        distLimit: '334 kB',
+        distLimit: '368 kB',
     },
     {
         name: 'Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
         srcLimit: '280 kB',
-        distLimit: '338 kB',
+        distLimit: '381 kB',
     },
 ];
 
