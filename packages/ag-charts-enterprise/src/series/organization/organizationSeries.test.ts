@@ -55,6 +55,19 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     },
 };
 
+const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    theme: {
+        overrides: {
+            organization: {
+                series: {
+                    link: { interpolation: { type: 'step', cornerRadius: 8 } },
+                },
+            },
+        },
+    },
+};
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -66,6 +79,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     SIMPLE_ORG_CHART_THEMED: {
         options: SIMPLE_ORG_CHART_THEMED,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    LINKS_ROUNDED_INTERPOLATION: {
+        options: LINKS_ROUNDED_INTERPOLATION,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

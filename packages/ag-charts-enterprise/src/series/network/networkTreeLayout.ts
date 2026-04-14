@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Vec2, type Vertex } from 'ag-charts-core';
+import { Vec2, type Vertex, clamp } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 import { NetworkLayout } from './networkLayout';
@@ -12,11 +12,13 @@ const { BBox } = _ModuleSupport;
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    constructor(
-        private readonly verticalPadding = 40,
-        private readonly outerPadding = 10,
-        private readonly innerPadding = 10
-    ) {
+    public interpolation: { type: 'step'; cornerRadius?: number } = { type: 'step' };
+
+    private readonly verticalPadding = 40;
+    private readonly outerPadding = 10;
+    private readonly innerPadding = 10;
+
+    constructor() {
         super();
     }
 
@@ -158,9 +160,25 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         const elbow1 = Vec2.add(start, elbowDist);
         const elbow2 = Vec2.sub(end, elbowDist);
 
+        const cornerRadius = clamp(
+            0,
+            this.interpolation.cornerRadius ?? 0,
+            Math.min(Math.abs(start.x - end.x), Math.abs(start.y - end.y))
+        );
+
         path.moveTo(start.x, start.y);
         path.lineTo(elbow1.x, elbow1.y);
-        path.lineTo(elbow2.x, elbow2.y);
+        if (cornerRadius > 0) {
+            if (start.x > end.x) {
+                path.lineTo(elbow2.x + cornerRadius, elbow2.y);
+                path.arc(elbow2.x + cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, Math.PI, true);
+            } else if (start.x < end.x) {
+                path.lineTo(elbow2.x - cornerRadius, elbow2.y);
+                path.arc(elbow2.x - cornerRadius, elbow2.y + cornerRadius, cornerRadius, -Math.PI / 2, 0, false);
+            }
+        } else {
+            path.lineTo(elbow2.x, elbow2.y);
+        }
         path.lineTo(end.x, end.y);
     }
 }

@@ -56,7 +56,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
 
-    override properties = new OrganizationSeriesProperties();
+    override properties = new OrganizationSeriesProperties((interpolation) => {
+        this.layout.interpolation = interpolation;
+    });
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 

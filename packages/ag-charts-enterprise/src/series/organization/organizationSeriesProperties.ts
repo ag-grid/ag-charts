@@ -1,4 +1,5 @@
 import {
+    type AgOrganisationSeriesOptionsLinkStepInterpolation,
     type CssColor,
     type FontFamily,
     type FontSize,
@@ -7,11 +8,19 @@ import {
     type OverflowStrategy,
     type TextWrap,
 } from 'ag-charts-community';
-import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
+import { ActionOnSet, BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
 export class OrganizationSeriesProperties extends NetworkSeriesProperties {
+    constructor(
+        private readonly onLinkStepInterpolationChange: (
+            interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation
+        ) => void
+    ) {
+        super();
+    }
+
     @Property
     idKey: string = 'id';
 
@@ -22,15 +31,23 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     direction = 'vertical' as const;
 
     @Property
-    link = new OrganizationSeriesLinkProperties();
+    link = new OrganizationSeriesLinkProperties(this.onLinkStepInterpolationChange);
 
     @Property
     node = new OrganizationSeriesNodeProperties();
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {
+    constructor(
+        private readonly onInterpolationChange: (
+            interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation
+        ) => void
+    ) {
+        super();
+    }
+
     @Property
-    interpolation = new OrganisationSeriesLinkStepInterpolationProperties();
+    interpolation = new OrganisationSeriesLinkStepInterpolationProperties(this.onInterpolationChange);
 
     @Property
     lineDash: number[] = [];
@@ -49,9 +66,23 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
 }
 
 class OrganisationSeriesLinkStepInterpolationProperties extends BaseProperties {
-    @Property
-    type = 'step';
+    constructor(private readonly onChange: (interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation) => void) {
+        super();
+    }
 
+    @ActionOnSet<OrganisationSeriesLinkStepInterpolationProperties>({
+        changeValue(type) {
+            this.onChange({ ...this, type });
+        },
+    })
+    @Property
+    type: 'step' = 'step' as const;
+
+    @ActionOnSet<OrganisationSeriesLinkStepInterpolationProperties>({
+        changeValue(cornerRadius) {
+            this.onChange({ ...this, cornerRadius });
+        },
+    })
     @Property
     cornerRadius: number = 0;
 }
