@@ -39,7 +39,7 @@ npm install --no-audit --no-fund \
     ./ag-charts-core.tgz \
     ./ag-charts-community.tgz \
     ./ag-charts-enterprise.tgz \
-    esbuild vite webpack 2>&1
+    esbuild 'vite@^7' webpack 2>&1
 
 echo ">>> running bundle tree-shake tests..."
 update_flag=""

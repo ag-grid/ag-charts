@@ -6,16 +6,14 @@ export async function bundleWithVite({ entry, outFile }) {
         configFile: false,
         logLevel: 'error',
         build: {
-            lib: {
-                entry,
-                formats: ['es'],
-                fileName: () => basename(outFile),
-            },
             outDir: dirname(outFile),
             emptyOutDir: false,
             minify: 'esbuild',
             rollupOptions: {
+                input: { main: entry },
+                preserveEntrySignatures: 'strict',
                 output: {
+                    format: 'es',
                     entryFileNames: basename(outFile),
                 },
             },
