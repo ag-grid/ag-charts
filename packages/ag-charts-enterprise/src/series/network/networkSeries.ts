@@ -25,7 +25,7 @@ export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
         NetworkSeriesDatum<NetworkVertex, TNetworkEdge>
     > {}
 
-export type NetworkLinkNode = _ModuleSupport.TranslatableGroup;
+export type NetworkLinkNode = _ModuleSupport.TranslatableGroup<NetworkLinkDatum>;
 export interface NetworkLinkDatum {}
 
 /**
@@ -35,8 +35,8 @@ export abstract class AbstractNetworkSeries<
     TVertex,
     TEdge,
     TGraph extends NetworkGraph<TVertex, TEdge>,
-    TNode extends _ModuleSupport.TranslatableGroup,
     TDatum extends NetworkSeriesDatum<TVertex, TEdge>,
+    TNode extends _ModuleSupport.TranslatableGroup<TDatum>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
 > extends _ModuleSupport.Series<
     NetworkSeriesDatumIndex,
@@ -60,13 +60,15 @@ export abstract class AbstractNetworkSeries<
         new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
     );
 
-    protected readonly datumSelection: _ModuleSupport.Selection<TNode, TDatum> = _ModuleSupport.Selection.select(
+    protected readonly datumSelection = _ModuleSupport.Selection.selectNoInference<TDatum, TNode>(
         this.dataNodeGroup,
         () => this.nodeFactory()
     );
 
-    protected readonly linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum> =
-        _ModuleSupport.Selection.select(this.linkGroup, () => this.linkFactory());
+    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<NetworkLinkDatum, NetworkLinkNode>(
+        this.linkGroup,
+        () => this.linkFactory()
+    );
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
@@ -82,9 +84,9 @@ export abstract class AbstractNetworkSeries<
     abstract nodeFactory(): TNode;
 
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
-    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
-    abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TNode, TDatum>): void;
-    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>): void;
+    abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
+    abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
+    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>): void;
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
 
     dataCount() {
@@ -135,7 +137,7 @@ export abstract class AbstractNetworkSeries<
 
     private updateLinkSelection(
         nodeData: TDatum[],
-        linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>
+        linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>
     ) {
         linkSelection.update(nodeData);
     }
