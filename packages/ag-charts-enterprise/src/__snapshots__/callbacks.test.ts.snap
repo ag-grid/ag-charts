@@ -2108,6 +2108,8 @@ exports[`AG-15850 labels bubble formatter 1`] = `
 [
   [
     {
+      "colorKey": undefined,
+      "colorName": undefined,
       "datum": {
         "myCategory": "CatA",
         "mySize": 5,
@@ -2129,6 +2131,8 @@ exports[`AG-15850 labels bubble formatter 1`] = `
   ],
   [
     {
+      "colorKey": undefined,
+      "colorName": undefined,
       "datum": {
         "myCategory": "CatB",
         "mySize": 10,
@@ -2162,6 +2166,8 @@ exports[`AG-15850 labels bubble itemStyler 1`] = `
         "strokeWidth": 1,
       },
       "color": "#464646",
+      "colorKey": undefined,
+      "colorName": undefined,
       "cornerRadius": 4,
       "datum": {
         "myCategory": "CatA",

@@ -15,7 +15,7 @@ import type {
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -100,6 +100,8 @@ export interface AgBubbleSeriesOptionsKeys<TDatum = DatumDefault> {
     sizeKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: DatumKey<TDatum>;
+    /** The key to use to retrieve colour values from the data. This value (along with `colorScale` config) will be used to determine the marker colour. */
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgBubbleSeriesOptionsNames {
@@ -111,6 +113,8 @@ export interface AgBubbleSeriesOptionsNames {
     sizeName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    colorName?: string;
     /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
 }
@@ -123,4 +127,6 @@ export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = Context
         AgBubbleSeriesOptionsNames {
     /** Configuration for Bubble Series. */
     type: 'bubble';
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }

@@ -18,6 +18,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
+import { ColorScaleProperties } from '../../../scene/gradient/stops';
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { makeSeriesTooltip } from '../seriesTooltip';
@@ -58,6 +59,9 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     labelKey?: string;
 
     @Property
+    colorKey?: string;
+
+    @Property
     selectedKey: string | undefined;
 
     @Property
@@ -71,6 +75,12 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
 
     @Property
     labelName?: string;
+
+    @Property
+    colorName?: string;
+
+    @Property
+    readonly colorScale = new ColorScaleProperties();
 
     @Property
     title?: string;
