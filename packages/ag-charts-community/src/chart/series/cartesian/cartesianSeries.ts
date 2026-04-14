@@ -968,7 +968,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             .pickNodes(x, y)
             .filter((match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } => {
                 // eslint-disable-next-line sonarjs/deprecation
-                return match.unsafeDatum?.missing !== true;
+                const { unsafeDatum } = match;
+                return unsafeDatum !== undefined && unsafeDatum?.missing !== true;
             });
 
         if (matches.length !== 0) {
@@ -979,7 +980,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
 
     protected pickModulesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] | undefined {
         for (const mod of this.moduleMap.modules()) {
-            const { unsafeDatum } = mod.pickNodeExact(point)?.unsafeDatum ?? {};
+            const { unsafeDatum } = mod.pickNodeExact(point) ?? {};
             if (unsafeDatum == null) continue;
             if (unsafeDatum?.missing === true) continue;
 
