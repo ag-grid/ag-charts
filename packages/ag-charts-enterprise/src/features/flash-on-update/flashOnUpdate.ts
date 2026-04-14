@@ -165,7 +165,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
             this.ctx.scene.attachNode(this.flashGroup),
             this.ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
             this.ctx.eventsHub.on('datamodel:diff', (event) => this.onDataModelDiff(event)),
-            this.ctx.updateService.addListener('pre-scene-render', (event) => this.onPreSceneRender(event))
+            this.ctx.eventsHub.on('update:pre-scene-render', (event) => this.onPreSceneRender(event))
         );
     }
 

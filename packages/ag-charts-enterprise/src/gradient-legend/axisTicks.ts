@@ -27,10 +27,6 @@ interface TickDatum {
     translation: number;
 }
 
-interface DataProvider {
-    data: _ModuleSupport.GradientLegendDatum[];
-}
-
 export class AxisTicks {
     static readonly className = 'AxisTicks';
     static readonly DefaultTickCount = 5;
@@ -45,14 +41,15 @@ export class AxisTicks {
     readonly label = new AxisLabel();
     readonly scale = new LinearScale();
 
+    namedLabels?: _ModuleSupport.GradientLegendNamedLabel[];
     placement: AgChartLegendPlacement = 'bottom';
     translationX: number = 0;
     translationY: number = 0;
 
-    constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
-        private readonly dataProvider: DataProvider
-    ) {}
+    /** Bound series for formatter context — scoped to a single gradient legend item. */
+    boundSeries: Array<{ seriesId: string; key: string; name?: string }> = [];
+
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
 
     private get horizontal(): boolean {
         return this.placement.startsWith('top') || this.placement.startsWith('bottom');
@@ -60,6 +57,19 @@ export class AxisTicks {
 
     attachAxis(axisNode: _ModuleSupport.Group) {
         axisNode.appendChild(this.axisGroup);
+    }
+
+    detach() {
+        this.labelSelection.clear();
+        this.axisGroup.remove();
+    }
+
+    /** Shift the already-laid-out axis group by an additional offset. */
+    applyOffset(dx: number, dy: number) {
+        this.translationX += dx;
+        this.translationY += dy;
+        this.axisGroup.translationX += dx;
+        this.axisGroup.translationY += dy;
     }
 
     calculateLayout(): _ModuleSupport.BBox | undefined {
@@ -139,7 +149,7 @@ export class AxisTicks {
     ): (value: any, index: number) => TextOrSegments | undefined {
         const { ctx } = this;
         const { formatManager } = ctx;
-        const boundSeries = this.dataProvider.data.flatMap((d) => d.series);
+        const { boundSeries } = this;
 
         return (value, index): TextOrSegments => {
             const formatParams: FormatterParams<any> = {
@@ -173,6 +183,10 @@ export class AxisTicks {
     public padding: number = 0;
 
     private generateTicks() {
+        if (this.namedLabels?.length) {
+            return this.generateNamedTicks(this.namedLabels);
+        }
+
         const { minSpacing, maxSpacing } = this.interval;
         const { maxTickCount, minTickCount, tickCount } = estimateTickCount(
             findRangeExtent(this.scale.range),
@@ -191,24 +205,49 @@ export class AxisTicks {
             maxTickCount,
         });
 
-        if (this.placement === 'bottom' || this.placement === 'top') {
-            const measurer = cachedTextMeasurer(this.label);
-
-            const { domain } = this.scale;
-            const reversed = domain[0] > domain[1];
-            const direction = reversed ? -1 : 1;
-            let lastTickPosition = -Infinity * direction;
-            tickData.ticks = tickData.ticks.filter((data) => {
-                if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
-                const { width: labelWidth } = isArray(data.tickLabel)
-                    ? measureTextSegments(data.tickLabel, this.label)
-                    : measurer.measureLines(toTextString(data.tickLabel));
-                lastTickPosition = data.translation + labelWidth * direction;
-                return true;
-            });
-        }
+        this.applyCollisionAvoidance(tickData.ticks);
 
         return tickData;
+    }
+
+    private generateNamedTicks(namedLabels: _ModuleSupport.GradientLegendNamedLabel[]) {
+        const [r0, r1] = this.scale.range;
+        const { domain } = this.scale;
+        const reversed = domain[0] > domain[1];
+        const idGenerator = createIdsGenerator();
+
+        const ticks: TickDatum[] = namedLabels.map(({ position, label }) => {
+            const t = reversed ? 1 - position : position;
+            const translation = r0 + t * (r1 - r0);
+            return { tick: position, tickId: idGenerator(label), tickLabel: label, translation };
+        });
+
+        this.applyCollisionAvoidance(ticks);
+
+        return { rawTicks: ticks.map((t) => t.tick), fractionDigits: 0, ticks };
+    }
+
+    private applyCollisionAvoidance(ticks: TickDatum[]) {
+        if (this.placement !== 'bottom' && this.placement !== 'top') return;
+
+        const measurer = cachedTextMeasurer(this.label);
+        const { domain } = this.scale;
+        const reversed = domain[0] > domain[1];
+        const direction = reversed ? -1 : 1;
+        let lastTickPosition = -Infinity * direction;
+
+        const keep: boolean[] = ticks.map((data) => {
+            if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
+            const { width: labelWidth } = isArray(data.tickLabel)
+                ? measureTextSegments(data.tickLabel, this.label)
+                : measurer.measureLines(toTextString(data.tickLabel));
+            lastTickPosition = data.translation + labelWidth * direction;
+            return true;
+        });
+
+        for (let i = ticks.length - 1; i >= 0; i--) {
+            if (!keep[i]) ticks.splice(i, 1);
+        }
     }
 
     private getTicksData(tickParams: ScaleTickParams<any>) {

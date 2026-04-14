@@ -51,7 +51,9 @@ const priceVolumeOptionsDef: OptionsDefs<AgPriceVolumePreset & AgBaseFinancialPr
     title: defined,
     data: array,
     dataIdKey: string,
+    dataSource: defined,
     formatter: defined,
+    enableRtl: boolean,
 };
 
 const commonGaugeOptions: OptionsDefs<AgBaseGaugePresetOptions & { tooltip?: AgSeriesTooltip<any> }> = {

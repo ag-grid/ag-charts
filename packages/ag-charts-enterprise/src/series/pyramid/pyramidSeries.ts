@@ -1,4 +1,5 @@
 import {
+    type AgPyramidSeriesItemStylerParams,
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
@@ -6,6 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type ChartAnimationPhase,
     type DomainWithMetadata,
     type Point,
@@ -546,7 +548,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgPyramidSeriesItemStylerParams<unknown, unknown>>;
     }
 
     private updateDatumStyles({

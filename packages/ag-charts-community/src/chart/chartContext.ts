@@ -5,6 +5,7 @@ import {
     EventEmitter,
     ModuleRegistry,
     ModuleType,
+    ReactiveState,
     type StrictHTMLElement,
 } from 'ag-charts-core';
 
@@ -23,6 +24,7 @@ import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
+import type { ChartState } from './chartState';
 import { DataService } from './data/dataService';
 import type { ChartType } from './factory/expectedModules';
 import { FontManager } from './fonts/fontManager';
@@ -42,12 +44,12 @@ import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
-import { UpdateService } from './updateService';
 
 export class ChartContext implements ModuleContext {
     readonly eventsHub = new EventEmitter<EventsHubMap>();
 
     readonly callbackCache = new CallbackCache();
+    readonly chartState = new ReactiveState<ChartState>();
     readonly highlightManager = new HighlightManager(this.eventsHub);
     readonly formatManager = new FormatManager();
     readonly layoutManager = new LayoutManager(this.eventsHub);
@@ -76,7 +78,6 @@ export class ChartContext implements ModuleContext {
     scene: Scene;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
-    updateService: UpdateService;
     widgets: WidgetSet;
     zoomManager: ZoomManager;
 
@@ -138,28 +139,24 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
 
+        this.chartState.setValue('legendData', {});
+        this.chartState.setValue('legendVisible', true);
+
         this.axisManager = new AxisManager(this.eventsHub, root);
-        this.legendManager = new LegendManager(this.eventsHub);
+        this.legendManager = new LegendManager(this);
         this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
-        this.updateService = new UpdateService();
-        this.activeManager = new ActiveManager(
-            this.chartService,
-            this.eventsHub,
-            this.updateService,
-            this.interactionManager,
-            fireEvent
-        );
+        this.activeManager = new ActiveManager(this.chartService, this.eventsHub, this.interactionManager, fireEvent);
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.eventsHub);
         this.historyManager = new HistoryManager(this.eventsHub);
         this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this.eventsHub, this.updateService, fireEvent);
+        this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             if (!module.chartType || module.chartType === chartType) {
@@ -170,6 +167,7 @@ export class ChartContext implements ModuleContext {
 
     destroy() {
         // chart.ts handles the destruction of the scene.
+        this.chartState.destroy();
         this.animationManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();

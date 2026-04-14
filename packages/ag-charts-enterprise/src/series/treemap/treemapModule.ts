@@ -113,8 +113,21 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                 },
             },
         },
+        legend: {
+            enabled: {
+                $and: [
+                    { $path: '../series/0/colorKey' },
+                    { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] },
+                ],
+            },
+        },
         gradientLegend: {
-            enabled: { $if: [{ $path: '../series/0/colorKey' }, true, false] },
+            enabled: {
+                $and: [
+                    { $path: '../series/0/colorKey' },
+                    { $not: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] } },
+                ],
+            },
         },
     },
 

@@ -27,6 +27,7 @@ export { FlashOnUpdateModule } from './features/flash-on-update/flashOnUpdateMod
 export { NavigatorModule } from './features/navigator/navigatorModule';
 export { ScrollbarModule } from './features/scrollbar/scrollbarModule';
 export { RangesModule } from './features/ranges/rangesModule';
+export { SelectionModule } from './features/data-selection/dataSelectionModule';
 export { StatusBarModule } from './features/status-bar/statusBarModule';
 export { SyncModule } from './features/sync/syncModule';
 export { ZoomModule } from './features/zoom/zoomModule';
@@ -53,6 +54,7 @@ export { RadialColumnSeriesModule } from './series/radial-column/radialColumnMod
 export { RadialGaugeModule } from './series/radial-gauge/radialGaugeModule';
 export { RangeAreaSeriesModule } from './series/range-area/rangeAreaModule';
 export { RangeBarSeriesModule } from './series/range-bar/rangeBarModule';
+export { OrganizationSeriesModule } from './series/organization/organizationSeriesModule';
 export { SankeySeriesModule } from './series/sankey/sankeyModule';
 export { SunburstSeriesModule } from './series/sunburst/sunburstModule';
 export { TreemapSeriesModule } from './series/treemap/treemapModule';

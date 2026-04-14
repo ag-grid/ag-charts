@@ -1,7 +1,20 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
-import { type ITextMeasurer, Logger, type Point, cachedTextMeasurer, mergeDefaults } from 'ag-charts-core';
-import type { AgDrawingMode, AgMapLineSeriesLabelFormatterParams, AgMapLineSeriesOptions } from 'ag-charts-types';
+import type { CallbackParamRules, Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
+import {
+    type ITextMeasurer,
+    Logger,
+    type Point,
+    cachedTextMeasurer,
+    findDiscreteColorBinLabel,
+    formatValue,
+    mergeDefaults,
+} from 'ag-charts-core';
+import type {
+    AgDrawingMode,
+    AgMapLineSeriesItemStylerParams,
+    AgMapLineSeriesLabelFormatterParams,
+    AgMapLineSeriesOptions,
+} from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -16,6 +29,7 @@ import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesPropert
 const {
     getMissCount,
     getLabelStyles,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -486,16 +500,21 @@ export class MapLineSeries
         style: Required<AgMapLineSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { sizeKey, idKey, labelKey, colorKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
 
         return {
             seriesId,
+            sizeKey,
+            idKey,
+            labelKey,
+            colorKey,
             datum,
             highlightState,
             ...style,
-        };
+        } satisfies CallbackParamRules<AgMapLineSeriesItemStylerParams>;
     }
 
     private updateDatumStyles({
@@ -688,8 +707,25 @@ export class MapLineSeries
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
-            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    this.getFormatterContext('color')
+                ),
+            ];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    formatValue
+                );
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -797,7 +833,13 @@ export class MapLineSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
+            const binLabel = findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
         }
 
         const format = this.getItemStyle({ datumIndex, datum, colorValue, sizeValue }, false);

@@ -511,6 +511,88 @@ describe('MapShapeSeries', () => {
         });
     });
 
+    describe('legend', () => {
+        it('should render gradient legend with colorKey', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                gradientLegend: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render category legend with discrete colorScale', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+                legend: { enabled: true },
+                gradientLegend: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render category legend with named discrete stops', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 1_000_000, name: 'Low' },
+                                { color: 'yellow', stop: 5_000_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+                legend: { enabled: true },
+                gradientLegend: { enabled: false },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
+        it('should render gradient legend with continuous named stops', async () => {
+            const options: AgChartOptions = {
+                ...HEATMAP_EXAMPLE,
+                series: [
+                    {
+                        ...(HEATMAP_EXAMPLE.series![0] as AgMapShapeSeriesOptions),
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 1_000_000, name: 'Low' },
+                                { color: 'yellow', stop: 5_000_000, name: 'Medium' },
+                                { color: 'red', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+    });
+
     describe('gradient fill', () => {
         it('should render map shape series with a default gradient fill', async () => {
             const options: AgChartOptions = {

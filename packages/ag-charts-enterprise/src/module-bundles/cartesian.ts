@@ -6,6 +6,7 @@ import { BandHighlightModule } from '../features/band-highlight/bandHighlightMod
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
 import { CrosshairModule } from '../features/crosshair/crosshairModule';
+import { SelectionModule } from '../features/data-selection/dataSelectionModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { FlashOnUpdateModule } from '../features/flash-on-update/flashOnUpdateModule';
@@ -36,6 +37,7 @@ export const AllCartesianModule: ModuleDefinition[] = [
     NavigatorModule,
     RangesModule,
     ScrollbarModule,
+    SelectionModule,
     StatusBarModule,
     SyncModule,
     ZoomModule,

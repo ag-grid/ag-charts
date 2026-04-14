@@ -220,7 +220,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
-            ctx.updateService.addListener('process-data', (event) => this.onProcessData(event)),
+            ctx.eventsHub.on('update:process-data', (event) => this.onProcessData(event)),
             ctx.eventsHub.on('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequested(event)),
             ctx.eventsHub.on('zoom:pan-start', (event) => this.onZoomPanStart(event)),

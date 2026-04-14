@@ -31,6 +31,7 @@ export * from './chart/scrollbarOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/radiusAxisOptions';
 export * from './chart/rangesOptions';
+export * from './chart/selectionOptions';
 export * from './chart/themeMap';
 export * from './chart/themeOptions';
 export * from './chart/themeParamsOptions';
@@ -72,6 +73,7 @@ export * from './series/standalone/flowProportionOptions';
 export * from './series/standalone/sankeyOptions';
 export * from './series/standalone/standaloneOptions';
 export * from './series/standalone/hierarchyOptions'; // Legacy
+export * from './series/standalone/organisationOptions';
 export * from './series/standalone/pyramidOptions';
 export * from './series/standalone/sunburstOptions';
 export * from './series/standalone/treemapOptions';

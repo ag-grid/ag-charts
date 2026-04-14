@@ -23,3 +23,27 @@ title: 'Zoom Test'
 # AG-16803 infinite loop
 
 {% chartExampleRunner title="infinite-loop" name="infinite-loop" type="generated" /%}
+
+# Async
+
+{% note %}
+Use javascript framework
+{% /note %}
+
+## Async Category
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-category" name="async-category" type="generated" /%}
+{% /if %}
+
+## Async Grouped Category
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-grouped-category" name="async-grouped-category" type="generated" /%}
+{% /if %}
+
+## Async Unit Time
+
+{% if isFramework("javascript") %}
+{% chartExampleRunner title="async-unit-time" name="async-unit-time" type="generated" /%}
+{% /if %}

@@ -1,4 +1,4 @@
-import type { Locator, Page } from '@playwright/test';
+import type { ConsoleMessage, Locator, Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
 
@@ -139,13 +139,13 @@ export function setupIntrinsicAssertions(
     };
 }
 
+const ignoreMessageRegexes = [
+    // Vite messages
+    /^\[vite].*/,
+    // AG Charts license error message
+    /^\*.*/,
+];
 export function createConsoleLogs() {
-    const ignoreMessageRegexes = [
-        // Vite messages
-        /^\[vite].*/,
-        // AG Charts license error message
-        /^\*.*/,
-    ];
     const consoleLogs: string[] = [];
     const clear = () => {
         consoleLogs.length = 0;
@@ -180,6 +180,46 @@ export function createConsoleLogs() {
             return consoleLogs;
         },
     };
+}
+
+// A variant of createConsoleLogs that offer more fine-tuned config & assertions
+export function createConsoleTracker(page: Page) {
+    type Message = {
+        args: ReturnType<ConsoleMessage['args']>;
+        text: ReturnType<ConsoleMessage['text']>;
+        type: ReturnType<ConsoleMessage['type']>;
+    };
+    type ConsoleTracker = {
+        init(): void;
+        teardown(): void;
+        popMessages(expectedCount: number): Promise<Message[]>;
+    };
+    const messages: Message[] = [];
+    function onConsoleMessage(msg: ConsoleMessage): void {
+        const args = msg.args();
+        const text = msg.text();
+        const type = msg.type();
+        const ignore = ignoreMessageRegexes.some((regex) => regex.test(text));
+        if (!ignore) {
+            messages.push({ type, args, text });
+        }
+    }
+
+    const consoleTracker: ConsoleTracker = {
+        init() {
+            page.on('console', onConsoleMessage);
+        },
+        teardown() {
+            page.off('console', onConsoleMessage);
+        },
+        async popMessages(expectedCount: number) {
+            await waitForChartUpdate(page.locator(SELECTORS.wrapper));
+            const pollopts = { message: `Waiting for ${expectedCount} console logs` };
+            await expect.poll(() => messages.length, pollopts).toBeGreaterThanOrEqual(expectedCount);
+            return messages.splice(0, messages.length);
+        },
+    };
+    return consoleTracker;
 }
 
 export async function repeat(repCount: number, fn: () => Promise<void>): Promise<void>;

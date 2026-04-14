@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
-const path = require('path');
+
+const { formatPercentageChange, formatTable, requireSlackEnv } = require('./format-utils');
 
 const logFile = './reports/benchmark.json';
 const {
@@ -13,145 +14,7 @@ const {
     rankedByMemory,
 } = JSON.parse(fs.readFileSync(logFile, 'utf8').toString());
 
-let channel = process.env.SLACK_CHANNEL;
-let username = process.env.SLACK_USERNAME;
-let icon_url = process.env.SLACK_ICON;
-
-if (!channel) throw new Error('SLACK_CHANNEL is not set');
-if (!username) throw new Error('SLACK_USERNAME is not set');
-if (!icon_url) throw new Error('SLACK_ICON is not set');
-
-function formatSection(data, headers, headerLabels) {
-    const rows = [...data.slice(0, 5)];
-    if (data.length >= 10) {
-        // Include gap then the last 5 rows.
-        rows.push({}, ...data.slice(-5));
-    } else if (data.length > 5) {
-        // Include all remaining rows.
-        rows.push(...data.slice(5));
-    }
-    const dataKeys = ['test', ...headers];
-    const labels = ['Test', ...(headerLabels || dataKeys)];
-
-    // Calculate column widths
-    const maxWidth = 80;
-    const padding = 2; // Space between columns
-    const colWidths = labels.map((h) => h.length);
-    for (const row of rows) {
-        if (Object.keys(row).length > 0) {
-            dataKeys.forEach((key, i) => {
-                const val = String(row[key] ?? '');
-                colWidths[i] = Math.max(colWidths[i], val.length);
-            });
-        }
-    }
-
-    // Adjust first column width to fit within max width
-    const otherColsWidth = colWidths.slice(1).reduce((sum, w) => sum + w, 0);
-    const spacingWidth = (labels.length - 1) * padding;
-    const maxFirstColWidth = maxWidth - otherColsWidth - spacingWidth;
-    colWidths[0] = Math.min(colWidths[0], maxFirstColWidth);
-
-    // Create header row
-    let table =
-        labels
-            .map((h, i) => {
-                const text = i === 0 ? h.slice(0, colWidths[0]) : h;
-                return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
-            })
-            .join('  ') + '\n';
-    table += labels.map((_, i) => '='.repeat(colWidths[i])).join('==') + '\n';
-
-    // Create data rows
-    for (const row of rows) {
-        if (Object.keys(row).length === 0) {
-            table += labels.map((_, i) => '.'.repeat(colWidths[i])).join('..') + '\n';
-        } else {
-            table +=
-                dataKeys
-                    .map((key, i) => {
-                        const val = String(row[key] ?? '');
-                        const text =
-                            i === 0 ? (val.length > colWidths[0] ? val.slice(0, colWidths[0] - 3) + '...' : val) : val;
-                        return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
-                    })
-                    .join('  ') + '\n';
-        }
-    }
-
-    return table;
-}
-
-function formatPercentageChange(pctChange) {
-    if (pctChange === null || pctChange === undefined) {
-        return 'N/A';
-    }
-    return `${pctChange > 0 ? '+' : ''}${pctChange}%`;
-}
-
-function formatFullSection(data, headers, headerLabels) {
-    // Include all rows (no truncation)
-    const rows = data;
-    const dataKeys = ['test', ...headers];
-    const labels = ['Test', ...(headerLabels || dataKeys)];
-
-    // Calculate column widths
-    // Reduced from 80 to 77 to fit within Slack attachment display width
-    const maxWidth = 77;
-    const padding = 2; // Space between columns
-    const colWidths = labels.map((h) => h.length);
-    for (const row of rows) {
-        if (Object.keys(row).length > 0) {
-            dataKeys.forEach((key, i) => {
-                let val;
-                // Format percentage changes properly
-                if (key === 'pctTimeChange' || key === 'pctMemoryChange') {
-                    val = formatPercentageChange(row[key]);
-                } else {
-                    val = String(row[key] ?? '');
-                }
-                colWidths[i] = Math.max(colWidths[i], val.length);
-            });
-        }
-    }
-
-    // Adjust first column width to fit within max width
-    const otherColsWidth = colWidths.slice(1).reduce((sum, w) => sum + w, 0);
-    const spacingWidth = (labels.length - 1) * padding;
-    const maxFirstColWidth = maxWidth - otherColsWidth - spacingWidth;
-    colWidths[0] = Math.min(colWidths[0], maxFirstColWidth);
-
-    // Create header row
-    let table =
-        labels
-            .map((h, i) => {
-                const text = i === 0 ? h.slice(0, colWidths[0]) : h;
-                return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
-            })
-            .join('  ') + '\n';
-    table += labels.map((_, i) => '='.repeat(colWidths[i])).join('==') + '\n';
-
-    // Create data rows
-    for (const row of rows) {
-        table +=
-            dataKeys
-                .map((key, i) => {
-                    let val;
-                    // Format percentage changes properly
-                    if (key === 'pctTimeChange' || key === 'pctMemoryChange') {
-                        val = formatPercentageChange(row[key]);
-                    } else {
-                        val = String(row[key] ?? '');
-                    }
-                    const text =
-                        i === 0 ? (val.length > colWidths[0] ? val.slice(0, colWidths[0] - 3) + '...' : val) : val;
-                    return i === 0 ? text.padEnd(colWidths[i]) : text.padStart(colWidths[i]);
-                })
-                .join('  ') + '\n';
-    }
-
-    return table;
-}
+const { channel, username, icon_url } = requireSlackEnv();
 
 // Count improvements and regressions
 const timeImprovements = rankedByTime.filter((r) => r.pctTimeChange < 0).length;
@@ -188,7 +51,7 @@ if (expectationBreaches.length > 0) {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*⚠️  Expectation Breaches*\n\`\`\`\n${formatSection(breachData, ['type', 'expected', 'actual', 'exceeded'], ['Type', 'Expected', 'Actual', 'Exceeded'])}\`\`\``,
+                text: `*⚠️  Expectation Breaches*\n\`\`\`\n${formatTable(breachData, ['type', 'expected', 'actual', 'exceeded'], ['Type', 'Expected', 'Actual', 'Exceeded'])}\`\`\``,
             },
         },
         { type: 'divider' }
@@ -201,7 +64,7 @@ if (critical.length > 0) {
             type: 'section',
             text: {
                 type: 'mrkdwn',
-                text: `*Critical Cases* (regressions)\n\`\`\`\n${formatSection(critical, ['beforeMs', 'afterMs', 'beforeMB', 'afterMB'], ['Before (ms)', 'After (ms)', 'Before (MB)', 'After (MB)'])}\`\`\``,
+                text: `*Critical Cases* (regressions)\n\`\`\`\n${formatTable(critical, ['beforeMs', 'afterMs', 'beforeMB', 'afterMB'], ['Before (ms)', 'After (ms)', 'Before (MB)', 'After (MB)'])}\`\`\``,
             },
         },
         { type: 'divider' }
@@ -213,7 +76,7 @@ blocks.push(
         type: 'section',
         text: {
             type: 'mrkdwn',
-            text: `*Timings* (top 5/bottom 5)\n\`\`\`\n${formatSection(rankedByTime, ['pctTimeChange', 'beforeMs', 'afterMs'], ['%', 'Before (ms)', 'After (ms)'])}\`\`\``,
+            text: `*Timings* (top 5/bottom 5)\n\`\`\`\n${formatTable(rankedByTime, ['pctTimeChange', 'beforeMs', 'afterMs'], ['%', 'Before (ms)', 'After (ms)'])}\`\`\``,
         },
     },
     { type: 'divider' },
@@ -221,7 +84,7 @@ blocks.push(
         type: 'section',
         text: {
             type: 'mrkdwn',
-            text: `*Memory* (top 5/bottom 5)\n\`\`\`\n${formatSection(rankedByMemory, ['pctMemoryChange', 'beforeMB', 'afterMB'], ['%', 'Before (MB)', 'After (MB)'])}\`\`\``,
+            text: `*Memory* (top 5/bottom 5)\n\`\`\`\n${formatTable(rankedByMemory, ['pctMemoryChange', 'beforeMB', 'afterMB'], ['%', 'Before (MB)', 'After (MB)'])}\`\`\``,
         },
     }
 );
@@ -232,15 +95,17 @@ blocks.push(
 // ```bash
 // SLACK_CHANNEL='a' SLACK_ICON='a' SLACK_USERNAME='a' ./tools/benchmark/format-slack-message.js | pbcopy
 // ```
-const fullTimingTable = formatFullSection(
+const fullTimingTable = formatTable(
     rankedByTime,
     ['pctTimeChange', 'beforeMs', 'afterMs'],
-    ['%', 'Before (ms)', 'After (ms)']
+    ['%', 'Before (ms)', 'After (ms)'],
+    { maxWidth: 77, truncate: false }
 );
-const fullMemoryTable = formatFullSection(
+const fullMemoryTable = formatTable(
     rankedByMemory,
     ['pctMemoryChange', 'beforeMB', 'afterMB'],
-    ['%', 'Before (MB)', 'After (MB)']
+    ['%', 'Before (MB)', 'After (MB)'],
+    { maxWidth: 77, truncate: false }
 );
 
 const slackMessage = {

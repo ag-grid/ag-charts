@@ -1,5 +1,6 @@
 import {
     type AgTreemapHighlightState,
+    type AgTreemapSeriesItemStylerParams,
     type AgTreemapSeriesLabelFormatterParams,
     type AgTreemapSeriesOptions,
     type AgTreemapSeriesStyle,
@@ -11,12 +12,14 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type DistantObject,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
     cachedTextMeasurer,
     calcLineHeight,
+    findDiscreteColorBinLabel,
     formatValue,
     isGradientFill,
     isNumberEqual,
@@ -378,6 +381,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         highlightState: AgTreemapHighlightState
     ) {
         const { id: seriesId } = this;
+        const { colorKey, childrenKey, sizeKey, labelKey, secondaryLabelKey } = this.properties;
 
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
@@ -385,10 +389,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             seriesId,
             datum: nodeDatum.datum,
             depth: nodeDatum.depth ?? -1,
+            colorKey,
+            childrenKey,
+            sizeKey,
+            labelKey,
+            secondaryLabelKey,
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgTreemapSeriesItemStylerParams<unknown, unknown>>;
     }
 
     override updateSelections() {
@@ -903,7 +912,17 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey!, value: content ?? formatValue(datumColor) });
+            const binLabel = findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                datumColor,
+                formatValue
+            );
+            data.push({
+                label: colorName,
+                fallbackLabel: colorKey!,
+                value: content ?? binLabel ?? formatValue(datumColor),
+            });
         }
 
         const format: Required<ItemStyle> = this.getItemStyle(

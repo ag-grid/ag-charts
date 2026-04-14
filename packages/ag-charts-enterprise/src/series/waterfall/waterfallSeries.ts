@@ -1,4 +1,5 @@
 import type {
+    AgWaterfallSeriesItemStylerParams,
     AgWaterfallSeriesItemType,
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
@@ -7,6 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
     type Mutable,
@@ -829,7 +831,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             highlightState: highlightStateString,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;
     }
 
     protected override updateDatumStyles({

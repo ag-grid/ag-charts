@@ -1,5 +1,7 @@
 // Types
 export * from './types/global';
+export * from './types/normalised-options/normalise';
+export * from './types/normalised-options/normalisedLegendOptions';
 export * from './modules/moduleDefinition';
 export * from './types/scene';
 export * from './types/scales';
@@ -25,6 +27,7 @@ export * from './config/themeUtil';
 
 // API
 export * from './state/memento';
+export { ReactiveState } from './state/reactiveState';
 
 // Chart
 export * from './types/animationPhase';

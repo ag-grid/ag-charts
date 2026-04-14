@@ -47,6 +47,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
+import type { UpdateOpts } from '../core/eventsHub';
 import type { ModuleContext } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
@@ -68,6 +69,7 @@ import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
+import type { ChartState } from './chartState';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -93,7 +95,6 @@ import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
-import type { UpdateOpts } from './updateService';
 
 const debug = Debug.create(true, 'opts');
 
@@ -167,6 +168,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     container?: HTMLElement;
 
     public data: DataSet = DataSet.empty();
+
+    public loading: boolean | undefined = undefined;
 
     @ActionOnSet<Chart>({
         newValue(value) {
@@ -312,7 +315,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     }
 
     protected createDataSet(data: unknown[]): DataSet {
-        return new DataSet(data, this.dataIdKey);
+        return DataSet.replaceWith(this.data, data, this.dataIdKey);
     }
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
@@ -395,14 +398,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             );
 
         this.processors = [
-            new DataWindowProcessor(
-                this,
-                ctx.eventsHub,
-                ctx.dataService,
-                ctx.updateService,
-                ctx.zoomManager,
-                ctx.animationManager
-            ),
+            new DataWindowProcessor(this, ctx.eventsHub, ctx.dataService, ctx.zoomManager, ctx.animationManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
@@ -783,6 +779,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             });
         } catch (error: any) {
             Logger.error('update error', error, error.stack);
+            this.runningUpdateType = ChartUpdateType.NONE;
+            this._performUpdateNotify.notify();
         }
     }
 
@@ -806,6 +804,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.runningUpdateType = performUpdateType;
         this.currentProcessingUpdateType = performUpdateType;
 
+        ctx.chartState.flushChanges();
+
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
             ctx.animationManager.onBatchStop(() => (this.chartAnimationPhase = 'ready'));
@@ -823,7 +823,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             case ChartUpdateType.FULL:
                 if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
 
-                this.ctx.updateService.dispatchPreDomUpdate();
+                this.ctx.eventsHub.emit('update:pre-dom', null);
                 this.updateDOM();
             // fallthrough
 
@@ -869,6 +869,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
 
+                ctx.chartState.flushChanges('legendData');
                 await this.processLayout();
                 this.updateSplits('⌖');
             // fallthrough
@@ -898,7 +899,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
                 // Allow any additional pre-rendering processing to happen.
-                ctx.updateService.dispatchPreSceneRender(this.apiUpdate);
+                ctx.eventsHub.emit('update:pre-scene-render', { apiUpdate: this.apiUpdate });
 
                 ctx.scene.updateBaseFont();
 
@@ -938,7 +939,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (!this.destroyed) {
-            ctx.updateService.dispatchUpdateComplete(this.apiUpdate, this.updateShortcutCount > 0);
+            ctx.eventsHub.emit('update:complete', {
+                apiUpdate: this.apiUpdate,
+                wasShortcut: this.updateShortcutCount > 0,
+            });
             this.apiUpdate = false;
             this.ctx.domManager.setDataBoolean('updatePending', false);
             this.runningUpdateType = ChartUpdateType.NONE;
@@ -1298,6 +1302,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (Object.keys(chartRanges).length === 0) {
             this._requiredRange = 0;
         } else {
+            // IMPORTANT: _requiredRange must only be set here (during PROCESS_RANGE), not during
+            // PERFORM_LAYOUT. The zoom oscillation guard in zoomManager.restoreRequiredRange() depends
+            // on this value being stable across re-layouts to distinguish genuine option changes from
+            // layout-triggered dimension changes. See AG-16803 and AG-17008.
             this._requiredRange = Math.ceil(Math.max(...Object.values(chartRanges)));
         }
 
@@ -1373,8 +1381,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
             }
         }
-
-        legendManager.update();
     }
 
     private async processLayout() {
@@ -1418,7 +1424,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const requiredRangeRatio = _requiredRange / dimension || 0; // In case it's NaN, return 0.
 
         // Once the dimensions of the chart have been calculated, allow modules to respond to these dimensions.
-        this.ctx.updateService.dispatchPreSeriesUpdate(requiredRangeRatio, this._requiredRangeDirection);
+        this.ctx.eventsHub.emit('update:pre-series', {
+            requiredRangeRatio,
+            requiredRangeDirection: this._requiredRangeDirection,
+            requiredRange: _requiredRange,
+        });
     }
 
     protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
@@ -1557,7 +1567,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'listeners',
             'preset',
             'theme',
-            'legend.listeners',
+            'legend',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
             'locale.localeText',
@@ -1622,20 +1632,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
-        if (
-            'legend' in deltaOptions &&
-            deltaOptions.legend &&
-            'listeners' in deltaOptions.legend &&
-            this.modulesManager.isEnabled('legend')
-        ) {
-            const legendListeners = deltaOptions.legend.listeners;
-            if (legendListeners) {
-                Object.assign((this as any).legend.listeners, legendListeners);
-            } else {
-                // Clear legend listeners when set to undefined
-                (this as any).legend.listeners.clear();
-            }
-        }
+
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+
         if (deltaOptions.locale?.localeText) {
             this.pendingLocaleText = deltaOptions.locale?.localeText;
         }

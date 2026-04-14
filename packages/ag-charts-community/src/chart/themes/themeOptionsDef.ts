@@ -108,6 +108,7 @@ import {
     mapShapeSeriesThemeableOptionsDef,
     nightingaleSeriesThemeableOptionsDef,
     ohlcSeriesThemeableOptionsDef,
+    organizationSeriesThemeableOptionsDef,
     pyramidSeriesThemeableOptionsDef,
     radarAreaSeriesThemeableOptionsDef,
     radarLineSeriesThemeableOptionsDef,
@@ -609,6 +610,12 @@ export const themeOverridesOptionsDef: OptionsDefs<AgThemeOverrides> = {
     chord: {
         ...commonChartOptionsDefs,
         series: chordSeriesThemeableOptionsDef,
+        navigator: navigatorOptionsDef,
+        ...undocumentedSeriesOptionsDef,
+    },
+    organization: {
+        ...commonChartOptionsDefs,
+        series: organizationSeriesThemeableOptionsDef,
         navigator: navigatorOptionsDef,
         ...undocumentedSeriesOptionsDef,
     },

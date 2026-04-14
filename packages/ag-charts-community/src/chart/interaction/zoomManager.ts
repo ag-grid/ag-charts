@@ -45,7 +45,6 @@ import type { TypedEvent } from '../../util/observable';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
-import type { UpdateService } from '../updateService';
 
 type CoreZoomEntry = ZoomMinMax & { direction: CartesianAxisDirection };
 export type CoreZoomState = Record<AxisID, CoreZoomEntry>;
@@ -160,8 +159,9 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private pendingZoomEventSource?: AgZoomEventSource;
 
     private lastRestoredState: CoreZoomStateSafeRetrieval = {};
-    private lastRestoredRequiredRange?: number;
+    private lastRestoredRequiredRange?: number; // The ratio (_requiredRange / dimension) last applied to zoom
     private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
+    private lastRequiredRange?: number; // The raw pixel value from processRanges(), used to detect genuine option changes
     private restoreRequiredRangeIterations = 0;
     private independentAxes = false;
     private navigatorModule = false;
@@ -182,7 +182,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     constructor(
         private readonly eventsHub: EventsHub,
-        updateService: UpdateService,
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
@@ -191,14 +190,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             eventsHub.on('zoom:change-request', (event) => {
                 this.constrainZoomToRequiredWidth(event);
             }),
-            updateService.addListener('pre-series-update', ({ requiredRangeRatio, requiredRangeDirection }) => {
+            eventsHub.on('update:pre-series', ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
                 this.didLayoutAxes = true;
 
                 const { pendingMemento } = this;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 } else {
-                    this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection);
+                    this.restoreRequiredRange(requiredRangeRatio, requiredRangeDirection, requiredRange);
                 }
 
                 // Maybe fire 'zoom:change-request' if the zoom-state has changed in this redraw:
@@ -207,7 +206,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                     sourceDetail: 'unspecified',
                 });
             }),
-            updateService.addListener('update-complete', ({ wasShortcut }) => {
+            eventsHub.on('update:complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource) {
                     const source = this.pendingZoomEventSource;
@@ -640,8 +639,21 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return memento;
     }
 
-    private restoreRequiredRange(requiredRangeRatio: number, requiredRangeDirection: ChartAxisDirection) {
+    private restoreRequiredRange(
+        requiredRangeRatio: number,
+        requiredRangeDirection: ChartAxisDirection,
+        requiredRange: number
+    ) {
         const { lastRestoredRequiredRange, lastRestoredRequiredRangeDirection } = this;
+
+        // When the underlying required range changes (e.g. user changed barWidth), reset the iteration counter
+        // so the new range is applied. Layout-triggered re-layouts only change the ratio (via chart dimension
+        // changes) without changing the required range itself, so the counter still prevents those oscillations.
+        // @see AG-17008
+        if (this.lastRequiredRange !== requiredRange) {
+            this.lastRequiredRange = requiredRange;
+            this.restoreRequiredRangeIterations = 0;
+        }
 
         // Prevent infinite loops where an x-axis label with a different height becomes visible, causing a change in
         // the chart height. This triggers the nice algorithm to change the y-axis label widths which changes the

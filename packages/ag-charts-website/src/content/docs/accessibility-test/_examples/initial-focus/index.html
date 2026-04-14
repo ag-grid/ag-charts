@@ -7,6 +7,10 @@
             <option value="viewport-start">viewport-start</option>
             <option value="viewport-end">viewport-end</option>
         </select>
+        <select id="myUpdateMode" onchange="onUpdateModeChange(event.target.value)">
+            <option value="create">create</option>
+            <option value="updateDelta">updateDelta</option>
+        </select>
         <label for="above-chart">Element before chart:</label>
         <input type="text" id="above-chart" />
     </div>

@@ -27,15 +27,43 @@ import type {
 
 import { DataSet } from '../chart/data/dataSet';
 import type { ContextShowOnMap } from '../chart/interaction/contextMenuTypes';
-import type { CategoryLegendDatum, ChartLegendType } from '../chart/legend/legendDatum';
-import type { DatumIndexType, SeriesNodeDatum } from '../chart/series/seriesTypes';
-import type { UpdateOpts } from '../chart/updateService';
+import type { ChartLegendType } from '../chart/legend/legendDatum';
+import type { DatumIndexType, ISeries, SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { BBox } from '../scene/bbox';
 import type { Node } from '../scene/node';
 import type { SelectionInterface } from '../scene/selection';
 import type { DragWidgetEvent, KeyboardWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../widget/widgetEvents';
 
 export type EventsHub = EventEmitter<EventsHubMap>;
+
+export interface UpdateCompleteEvent {
+    readonly apiUpdate: boolean;
+    readonly wasShortcut: boolean;
+}
+
+export interface PreSeriesUpdateEvent {
+    readonly requiredRangeRatio: number;
+    readonly requiredRangeDirection: ChartAxisDirection;
+    readonly requiredRange: number;
+}
+
+export interface PreSceneRenderEvent {
+    readonly apiUpdate: boolean;
+}
+
+export interface ProcessDataEvent {
+    readonly series: { shouldFlipXY?: boolean };
+}
+
+export interface UpdateOpts {
+    forceNodeDataRefresh?: boolean;
+    skipAnimations?: boolean;
+    newAnimationBatch?: boolean;
+    seriesToUpdate?: Iterable<ISeries<any, any, any>>;
+    backOffMs?: number;
+    apiUpdate?: boolean;
+    clearCallbackCache?: boolean;
+}
 
 export interface SeriesAreaHoverEvent {
     readonly canvasX: number;
@@ -96,8 +124,7 @@ export interface EventsHubMap {
     'highlight:change': HighlightChangeEvent;
     'highlight:selection-updated': HighlightSelectionUpdatedEvent;
     'layout:complete': LayoutCompleteEvent;
-    'legend:change': LegendChangeEvent;
-    'legend:change-partial': LegendChangePartialEvent;
+    'legend:item-hover': null;
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
@@ -110,6 +137,11 @@ export interface EventsHubMap {
     'series-area:click': SeriesAreaClickEvent;
     'series:redo': null;
     'series:undo': null;
+    'update:complete': UpdateCompleteEvent;
+    'update:pre-dom': null;
+    'update:pre-series': PreSeriesUpdateEvent;
+    'update:pre-scene-render': PreSceneRenderEvent;
+    'update:process-data': ProcessDataEvent;
     'zoom:save-memento': ZoomSaveMementoEvent;
     'zoom:load-memento': ZoomLoadMementoEvent;
     /**
@@ -219,15 +251,6 @@ export interface LayoutCompleteEvent {
     readonly clipSeries: boolean;
     readonly axes: Readonly<Record<string, AxisLayout>>;
     readonly layoutBox: Readonly<BBox>;
-}
-
-export interface LegendChangeEvent {
-    legendData?: CategoryLegendDatum[];
-}
-
-export interface LegendChangePartialEvent {
-    seriesId: string;
-    legendData: CategoryLegendDatum[];
 }
 
 export interface LegendItemClickEvent {

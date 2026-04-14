@@ -84,6 +84,11 @@ exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yName": "Company 2",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 2`] = `
+[
   [
     {
       "cap": {
@@ -289,6 +294,13 @@ exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yName": "Company 2",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 4`] = `
+[
   [
     {
       "cap": {
@@ -494,6 +506,13 @@ exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yName": "Company 2",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 6`] = `
+[
   [
     {
       "cap": {
@@ -740,6 +759,13 @@ exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yName": "Company 2",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 8`] = `
+[
   [
     {
       "cap": {
@@ -986,6 +1012,11 @@ exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 1`] = `
       "yName": "Company 2",
     },
   ],
+]
+`;
+
+exports[`BoxPlotSeries AG-15782 styler highlights sequenced 1 9`] = `
+[
   [
     {
       "cap": {

@@ -17,7 +17,7 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
-import type { AgBaseCartesianSeriesAxisOptions, FillOptions, StrokeOptions } from './commonOptions';
+import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
@@ -87,6 +87,8 @@ export interface AgScatterSeriesOptionsKeys<TDatum = DatumDefault> {
     yKey: DatumKey<TDatum>;
     /** The key to use to retrieve values from the data to use as labels for the markers. */
     labelKey?: DatumKey<TDatum>;
+    /** The key to use to retrieve colour values from the data. This value (along with `colorScale` config) will be used to determine the marker colour. */
+    colorKey?: DatumKey<TDatum>;
 }
 
 export interface AgScatterSeriesOptionsNames {
@@ -96,6 +98,8 @@ export interface AgScatterSeriesOptionsNames {
     yName?: string;
     /** A human-readable description of the label values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
     labelName?: string;
+    /** A human-readable description of the colour values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
+    colorName?: string;
     /** The text to display in the legend for this series. If supplied, matching items with the same value will be toggled together. */
     legendItemName?: string;
 }
@@ -110,4 +114,6 @@ export interface AgScatterSeriesOptions<TDatum = DatumDefault, TContext = Contex
     type: 'scatter';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }

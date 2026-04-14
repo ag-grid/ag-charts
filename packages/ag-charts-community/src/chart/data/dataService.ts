@@ -31,6 +31,7 @@ export class DataService<D extends object> {
     private dataSourceCallback?: DataSourceCallback;
     private isLoadingInitialData = false;
     private isLoadingData = false;
+    private isForcedLoadingData: boolean | undefined = undefined;
     private latestRequest?: { params: AgDataSourceCallbackParams; fetchRequest: Promise<unknown> };
     private freshRequests: Promise<unknown>[] = [];
     private requestCounter = 0;
@@ -91,7 +92,15 @@ export class DataService<D extends object> {
     }
 
     public isLoading() {
+        if (this.isForcedLoadingData != null) {
+            return this.isForcedLoadingData;
+        }
+
         return this.isLazy() && (this.isLoadingInitialData || this.isLoadingData);
+    }
+
+    public setForcedLoading(forcedLoading: boolean | undefined) {
+        this.isForcedLoadingData = forcedLoading;
     }
 
     public async getData(): Promise<DataServiceRestoredData | undefined> {
@@ -147,7 +156,7 @@ export class DataService<D extends object> {
                 this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
             } catch (error: any) {
                 this.debug(`DataService - request failed | ${id}`);
-                Logger.errorOnce(`DataService - request failed | [${error}]`);
+                Logger.warnOnce(`DataService - request failed | [${error}]`);
                 // Ignore errors in callback and keep chart alive
             }
 

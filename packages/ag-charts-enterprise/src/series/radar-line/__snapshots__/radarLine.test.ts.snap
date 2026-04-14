@@ -86,6 +86,11 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 2,
     },
   ],
+]
+`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 2`] = `
+[
   [
     {
       "angleKey": "trait",
@@ -366,6 +371,13 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 2,
     },
   ],
+]
+`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 3`] = `[]`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 4`] = `
+[
   [
     {
       "angleKey": "trait",
@@ -478,6 +490,13 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 2,
     },
   ],
+]
+`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 5`] = `[]`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 6`] = `
+[
   [
     {
       "angleKey": "trait",
@@ -730,6 +749,13 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 3,
     },
   ],
+]
+`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 7`] = `[]`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 8`] = `
+[
   [
     {
       "angleKey": "trait",
@@ -842,6 +868,11 @@ exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 1`] = `
       "strokeWidth": 2,
     },
   ],
+]
+`;
+
+exports[`RadarLineSeries AG-15782 styler highlights sequenced 1 9`] = `
+[
   [
     {
       "angleKey": "trait",

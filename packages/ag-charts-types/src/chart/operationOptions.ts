@@ -89,6 +89,7 @@ type ColorOperation =
 type FontOperation = { $rem: Leaf<number> | [Leaf<number>, Leaf<ThemeParam>] }; // Ratio of base font size
 
 type LocationOperation =
+    | { $circular: Leaf<any> }
     | { $isUserOption: [Leaf<string>, AnyLeaf, AnyLeaf] } // Target vertex | Value if true | Value if false
     | { $mapPalette: PaletteParam } // Palette param
     | { $palette: PaletteParam } // Palette param
@@ -102,6 +103,8 @@ type LogicOperation =
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
     | { $not: AnyLeaf } // Target vertex that is truthy
+    | { $some: [AnyLeaf | object, AnyLeaf] } // Body expression (with $index substitution) | Array to iterate — true if any element matches
+    | { $every: [AnyLeaf | object, AnyLeaf] } // Body expression (with $index substitution) | Array to iterate — true if all elements match
     | { $switch: (AnyLeaf | object)[] } // Conditional value | Default value if no case matches | ...One to many cases of [match | match[], value if matched]
     | { $greaterThan: [Leaf<number>, Leaf<number>] }
     | { $lessThan: [Leaf<number>, Leaf<number>] };

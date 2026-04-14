@@ -222,6 +222,12 @@
                     "name": "Pyramid Series",
                     "path": "pyramid-series",
                     "isEnterprise": true
+                },
+                {
+                    "moduleName": "OrganizationSeriesModule",
+                    "name": "Organization Series",
+                    "path": "org-chart",
+                    "isEnterprise": true
                 }
             ]
         },
@@ -372,6 +378,12 @@
                     "moduleName": "ScrollbarModule",
                     "name": "Scrollbar",
                     "path": "scrollbar",
+                    "isEnterprise": true
+                },
+                {
+                    "moduleName": "SelectionModule",
+                    "name": "Selection",
+                    "path": "selection",
                     "isEnterprise": true
                 },
                 {

@@ -210,8 +210,11 @@ trap 'cleanup' ERR EXIT
 
 prebuild
 for version in "${versions[@]}"; do
-    # Checkout files in the specified input file set (removing any files that have been added since then)
-    # Note: Using git checkout instead of git restore to handle case-sensitive filename changes on macOS
+    # Remove all tracked files first, then checkout from target version.
+    # git checkout <version> -- <path> only overlays files that exist in <version>,
+    # leaving HEAD-only files (e.g. colorScaleUtil.ts) that cause TS errors on older branches.
+    # git clean alone is insufficient because those files are still tracked (in the index).
+    run_silent git rm -rf --quiet --ignore-unmatch -- ${included_files[@]}
     run_silent git checkout "$version" -- ${included_files[@]}
     build ${version}
     # Benchmark
@@ -219,7 +222,7 @@ for version in "${versions[@]}"; do
     # Reset the working tree and staging area to HEAD state
     run_silent git checkout HEAD -- ${included_files[@]}
     run_silent git reset HEAD -- ${included_files[@]}
-    # Remove any files that don't exist in HEAD (e.g., files only in old versions)
+    # Remove any files that don't exist in HEAD (e.g., files only in the target version)
     run_silent git clean -fd -- ${included_files[@]}
 done
 

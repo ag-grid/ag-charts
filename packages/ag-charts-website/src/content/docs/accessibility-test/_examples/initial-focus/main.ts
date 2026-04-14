@@ -58,13 +58,24 @@ const options: AgCartesianChartOptions<DataType> = {
 };
 
 let chart: AgChartInstance = AgCharts.create(options);
+let updateMode: 'create' | 'updateDelta' = 'create';
 
 export function onInitialFocusChange(initialFocus: '' | AgInitialFocus) {
     if (initialFocus !== '') {
-        chart.destroy();
-        chart = AgCharts.create({
-            ...options,
-            keyboard: { initialFocus },
-        });
+        if (updateMode === 'create') {
+            chart.destroy();
+            chart = AgCharts.create({
+                ...options,
+                keyboard: { initialFocus },
+            });
+        } else if (updateMode satisfies 'updateDelta') {
+            chart.updateDelta({
+                keyboard: { initialFocus },
+            });
+        }
     }
+}
+
+export function onUpdateModeChange(newMode: 'create' | 'updateDelta') {
+    updateMode = newMode;
 }

@@ -1,5 +1,6 @@
 import {
     type AgSankeySeriesLabelFormatterParams,
+    type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
     type FillOptions,
@@ -8,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     Logger,
     type RequireOptional,
     TextMeasurer,
@@ -843,6 +845,7 @@ export class SankeySeries extends FlowProportionSeries<
         style: Required<AgSankeySeriesNodeStyle>
     ) {
         const { id: seriesId } = this;
+        const { fromKey, toKey, sizeKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -851,12 +854,15 @@ export class SankeySeries extends FlowProportionSeries<
         return {
             seriesId,
             datum,
+            fromKey,
+            toKey,
+            sizeKey,
             highlightState,
             ...style,
             size,
             label,
             fill,
-        };
+        } satisfies CallbackParamRules<AgSankeySeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
     protected updateNodeNodes(opts: {

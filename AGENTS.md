@@ -1,5 +1,9 @@
 # AI Agent Instructions
 
+## Ambiguity and confidence
+
+**NEVER guess:** This is the number one rule; if requirements, facts or details are ambiguous it is much better to admit this and ask for guidance (with context on why the ambiguity where possible) or do more research to ground things out, than to guess with a risk of being wrong.
+
 ## Project Overview
 
 AG Charts is a TypeScript monorepo providing a canvas-based charting library with community (MIT) and enterprise (commercial) versions. Built with Nx and Yarn, it supports React, Angular, and Vue 3 via framework-agnostic core packages. Rendering uses a high-performance custom scene graph on HTML Canvas, with a modular plugin architecture for extensible chart types.
@@ -33,6 +37,18 @@ After meaningful chart changes, also run:
 -   `yarn nx test ag-charts-community`
 -   `yarn nx test ag-charts-enterprise`
 -   `yarn nx test:e2e ag-charts-website`
+
+## Tooling Health Check
+
+On the **first response** of a conversation, verify that project skills are available by checking the system-reminder skill list. If **any** of the canary skills are missing, display a one-time warning before doing anything else. Do not repeat the warning on subsequent responses.
+
+**Canary skills:** `example`, `dev-server`, `debug-trace`, `git-conventions`, `jira`
+
+**Warning to display (if any canary skill is missing):**
+
+> **Agentic tooling is not initialised.** Expected skills (example, dev-server, debug-trace, git-conventions, jira) are missing or incomplete. Run `yarn` from the repository root to set up AI tooling configuration, then restart your session. If you are in a worktree, ensure you ran `yarn` in the worktree directory (not just the main checkout).
+
+Continue assisting the user after displaying the warning.
 
 ## Quick Reference
 

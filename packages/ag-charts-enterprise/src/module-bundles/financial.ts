@@ -8,6 +8,7 @@ import { BandHighlightModule } from '../features/band-highlight/bandHighlightMod
 import { ChartToolbarModule } from '../features/chart-toolbar/chartToolbarModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
 import { CrosshairModule } from '../features/crosshair/crosshairModule';
+import { SelectionModule } from '../features/data-selection/dataSelectionModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { ErrorBarsModule } from '../features/error-bar/errorBarModule';
 import { NavigatorModule } from '../features/navigator/navigatorModule';
@@ -41,6 +42,7 @@ export const FinancialChartModule: ModuleDefinition[] = [
     GradientLegendModule,
     NavigatorModule,
     RangesModule,
+    SelectionModule,
     SyncModule,
     ZoomModule,
 

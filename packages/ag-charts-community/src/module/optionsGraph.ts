@@ -1,6 +1,6 @@
 import {
-    AdjacencyListGraph,
     Debug,
+    Graph,
     ModuleRegistry,
     type PlainObject,
     type Vertex,
@@ -93,7 +93,7 @@ export function createOptionsGraphFn(theme: ChartTheme, options: PlainObject): O
  * The OptionsGraph combines the theme config, params, palette, overrides and user options into a graph which can then
  * be resolved down into an object.
  */
-export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements OptionsGraphInterface {
+export class OptionsGraph extends Graph<unknown, string> implements OptionsGraphInterface {
     // The default priority order in which to resolve options values.
     private static readonly EDGE_PRIORITY = [USER_OPTIONS_EDGE, OVERRIDES_EDGE, DEFAULTS_EDGE];
 
@@ -162,6 +162,8 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     // Records the already resolved root ancestors, i.e. vertices with a path of a single segment
     private readonly resolvedRootAncestorsPaths = new Set();
 
+    private resolveFresh = false;
+
     constructor(
         private readonly config: PlainObject = {},
         private readonly userOptions: PlainObject = {},
@@ -170,7 +172,11 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         private readonly overrides: PlainObject | undefined = undefined,
         private readonly internalParams: Map<unknown, unknown> = new Map()
     ) {
-        super(PATH_EDGE, OPERATION_EDGE, new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]));
+        super({
+            cachedNeighboursEdge: PATH_EDGE,
+            processedEdge: OPERATION_EDGE,
+            singleValueEdges: new Set([USER_PARTIAL_OPTIONS_EDGE, USER_OPTIONS_EDGE]),
+        });
 
         this.root = this.addVertex('root');
         this.params = this.addVertex('params');
@@ -320,7 +326,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         return this.resolvedAnnotations;
     }
 
-    override addVertex(value: unknown): Vertex<unknown, unknown> {
+    override addVertex(value: unknown) {
         const vertex = super.addVertex(value);
         if (this.isRollingBack) {
             this.rollbackVertices.push(vertex);
@@ -550,6 +556,10 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
     setCachedValue(path: string[], key: string, value: unknown): void {
         const cacheKey = [...path, key].join('.');
         OptionsGraph.valueCache.set(cacheKey, value);
+    }
+
+    setResolveFresh(fresh: boolean) {
+        this.resolveFresh = fresh;
     }
 
     prune(vertex: Vertex<unknown>, edges: Array<string>) {
@@ -974,7 +984,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // Resolve the full ancestor object if attempting to resolve a child before the ancestor. For example,
         // `/series/0/type` must be resolved after `/series`, otherwise the de-duplication below will prevent
         // subsequent resolving from filling out the full ancestor object.
-        if (pathArray.length > 1 && !this.resolvedRootAncestorsPaths.has(rootAncestorPath)) {
+        if (!this.resolveFresh && pathArray.length > 1 && !this.resolvedRootAncestorsPaths.has(rootAncestorPath)) {
             const rootAncestorVertex = this.findVertexAtPath([rootAncestorPath]);
             if (rootAncestorVertex) {
                 this.resolveVertex(rootAncestorVertex, object, prune);
@@ -985,7 +995,7 @@ export class OptionsGraph extends AdjacencyListGraph<unknown, string> implements
         // Only resolve vertices once, to prevent duplication of vertices and edges. This is only applied to when not
         // partially resolving or using a custom path branch and also only for simple non-object values to avoid
         // skipping unresolved children.
-        if (this.userPartialOptions == null && object === this.resolved && pathArray.length > 0) {
+        if (!this.resolveFresh && this.userPartialOptions == null && object === this.resolved && pathArray.length > 0) {
             const resolvedVertexValue = getPathSafe(object, pathArray);
             if (resolvedVertexValue != null && !isPlainObject(resolvedVertexValue)) {
                 return;

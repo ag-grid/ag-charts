@@ -149,17 +149,116 @@ describe('GradientLegend', () => {
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
-        const arrow = gradientLegend?.arrow;
 
         // Before hover - arrow should be hidden
-        expect(arrow?.visible).toBe(false);
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
 
         // Hover over a heatmap cell (center of chart)
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
 
         // After hover - arrow should still be hidden because highlight.enabled is false
-        expect(arrow?.visible).toBe(false);
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
+    });
+
+    describe('AG-16045 named stop labels', () => {
+        const HEATMAP_SERIES = {
+            type: 'heatmap' as const,
+            xKey: 'year',
+            yKey: 'person',
+            colorKey: 'spending',
+        };
+        const GRADIENT_LEGEND = { gradient: { preferredLength: 200 } };
+
+        it('should render named labels for continuous colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Low' },
+                                { color: 'yellow', stop: 30, name: 'Mid' },
+                                { color: 'green', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: GRADIENT_LEGEND,
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render named labels for discrete colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 20, name: 'Low' },
+                                { color: 'yellow', stop: 35, name: 'Medium' },
+                                { color: 'green', name: 'High' },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+                legend: { enabled: false },
+                gradientLegend: { ...GRADIENT_LEGEND, enabled: true },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render only named labels (partial names)', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Negative' },
+                                { color: 'red' },
+                                { color: 'ivory', stop: 30, name: 'Neutral' },
+                                { color: 'green', name: 'Positive' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: GRADIENT_LEGEND,
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render named labels in vertical position', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        ...HEATMAP_SERIES,
+                        colorScale: {
+                            fills: [
+                                { color: 'red', stop: 10, name: 'Low' },
+                                { color: 'yellow', stop: 30, name: 'Mid' },
+                                { color: 'green', name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: {
+                    ...GRADIENT_LEGEND,
+                    position: 'right',
+                },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     it('AG-16729 should show arrow when highlight.enabled is true (default)', async () => {
@@ -172,16 +271,301 @@ describe('GradientLegend', () => {
 
         const chartInstance = deproxy(chart);
         const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
-        const arrow = gradientLegend?.arrow;
 
         // Before hover - arrow should be hidden
-        expect(arrow?.visible).toBe(false);
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
 
         // Hover over a heatmap cell (center of chart)
         await hoverAction(300, 200)(chart);
         await waitForChartStability(chart);
 
         // After hover - arrow should be visible because highlight is enabled
-        expect(arrow?.visible).toBe(true);
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
+    });
+
+    describe('AG-16048 multi-series gradient legend', () => {
+        const SCATTER_DATA = [
+            { x: 1, y1: 10, y2: 12, temp: 5, pressure: 100 },
+            { x: 2, y1: 20, y2: 22, temp: 15, pressure: 200 },
+            { x: 3, y1: 30, y2: 32, temp: 25, pressure: 300 },
+            { x: 4, y1: 40, y2: 42, temp: 35, pressure: 400 },
+            { x: 5, y1: 50, y2: 52, temp: 45, pressure: 500 },
+        ];
+
+        it('should render two gradient bars for two scatter series (bottom)', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render two gradient bars for two scatter series (right)', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, position: 'right', gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render gradient bars for scatter and bubble with different domains', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'bubble' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        sizeKey: 'pressure',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'white', stop: 100 },
+                                { color: 'purple', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render a single gradient bar when only one series has colorKey', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render named labels per gradient bar for multiple series', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5, name: 'Cold' },
+                                { color: 'red', stop: 45, name: 'Hot' },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100, name: 'Low' },
+                                { color: 'yellow', stop: 500, name: 'High' },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should only render gradient bar for continuous series when mixed with discrete', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should auto-enable gradient legend when series[0] has no colorKey but later series does', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        // No colorKey on series[0]
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                // NOT setting gradientLegend.enabled — relying on theme auto-enable
+                gradientLegend: { gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should show arrow on correct gradient bar when hovering series data', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {
+                            fills: [
+                                { color: 'blue', stop: 5 },
+                                { color: 'red', stop: 45 },
+                            ],
+                        },
+                    },
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y2',
+                        colorKey: 'pressure',
+                        colorScale: {
+                            fills: [
+                                { color: 'green', stop: 100 },
+                                { color: 'yellow', stop: 500 },
+                            ],
+                        },
+                    },
+                ],
+                gradientLegend: { enabled: true, gradient: { preferredLength: 150 } },
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Hover over a data point to trigger the arrow indicator.
+            await hoverAction(300, 200)(chart);
+            await waitForChartStability(chart);
+
+            await compare();
+        });
     });
 });

@@ -1,4 +1,5 @@
 import {
+    type CallbackParamRules,
     ChartAxisDirection,
     ChartUpdateType,
     DebugMetrics,
@@ -26,10 +27,12 @@ import type {
     AgDonutCalloutLineItemStylerParams,
     AgDonutCalloutLineItemStylerResult,
     AgDonutSeriesCalloutOptions,
+    AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
     AgDonutSeriesOptions,
     AgDonutSeriesStyle,
     AgDrawingMode,
+    AgPieSeriesItemStylerParams,
     AgPieSeriesLabelFormatterParams,
     AgPieSeriesStyle,
     TextOrSegments,
@@ -784,7 +787,9 @@ export class DonutSeries extends PolarSeries<
                 datumIndex
             ),
             seriesId: this.id,
-        };
+        } satisfies CallbackParamRules<
+            AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
+        >;
     }
 
     private getCalloutLineStyle(nodeDatum: PieDonutNodeDatum, highlighted: boolean) {
@@ -1832,7 +1837,6 @@ export class DonutSeries extends PolarSeries<
         for (const [itemId, enabled] of enabledItems.entries()) {
             legendManager.toggleItem(enabled, seriesId, itemId);
         }
-        legendManager.update();
         eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
     }
 

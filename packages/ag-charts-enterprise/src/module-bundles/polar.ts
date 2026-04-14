@@ -7,6 +7,7 @@ import { RadiusCategoryAxisModule } from '../axes/radius-category/radiusCategory
 import { RadiusNumberAxisModule } from '../axes/radius-number/radiusNumberAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
 import { ContextMenuModule } from '../features/context-menu/contextMenuModule';
+import { SelectionModule } from '../features/data-selection/dataSelectionModule';
 import { DataSourceModule } from '../features/data-source/dataSourceModule';
 import { GradientLegendModule } from '../gradient-legend/gradientLegendModule';
 import { NightingaleSeriesModule } from '../series/nightingale/nightingaleModule';
@@ -33,4 +34,5 @@ export const AllPolarModule: ModuleDefinition[] = [
     ContextMenuModule,
     DataSourceModule,
     GradientLegendModule,
+    SelectionModule,
 ].flat();

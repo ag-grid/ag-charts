@@ -1,10 +1,11 @@
-import { AgDocument, type CallbackCache } from 'ag-charts-core';
+import { AgDocument, type CallbackCache, type ReactiveState } from 'ag-charts-core';
 
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
+import type { ChartState } from '../chart/chartState';
 import type { DataService } from '../chart/data/dataService';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { ActiveManager } from '../chart/interaction/activeManager';
@@ -21,7 +22,6 @@ import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayout
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { OptionsGraphService } from '../chart/optionsGraphService';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
-import type { UpdateService } from '../chart/updateService';
 import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
@@ -39,9 +39,9 @@ export interface ModuleContext {
     readonly dataService: DataService<any>;
     readonly layoutManager: LayoutManager;
     readonly optionsGraphService: OptionsGraphService;
-    readonly updateService: UpdateService;
 
     readonly axisManager: AxisManager;
+    readonly chartState: ReactiveState<ChartState>;
     readonly legendManager: LegendManager;
 
     readonly activeManager: ActiveManager;

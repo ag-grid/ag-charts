@@ -1,5 +1,6 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
+    type CallbackParamRules,
     type ChartAnimationPhase,
     type Feature,
     type FeatureCollection,
@@ -11,10 +12,13 @@ import {
     type SizedPoint,
     StateMachine,
     cachedTextMeasurer,
+    findDiscreteColorBinLabel,
+    formatValue,
     mergeDefaults,
 } from 'ag-charts-core';
 import {
     type AgDrawingMode,
+    type AgMapMarkerSeriesItemStylerParams,
     type AgMapMarkerSeriesLabelFormatterParams,
     type AgMapMarkerSeriesOptions,
 } from 'ag-charts-types';
@@ -36,6 +40,7 @@ import {
 const {
     fromToMotion,
     getMissCount,
+    buildColorCategoryLegendData,
     buildGradientLegendDatum,
     configureColorScale,
     createDatumId,
@@ -804,6 +809,7 @@ export class MapMarkerSeries
         style: Required<AgMapMarkerSeriesStyle>
     ) {
         const { id: seriesId } = this;
+        const { sizeKey, idKey, labelKey, colorKey, latitudeKey, longitudeKey } = this.properties;
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
@@ -812,10 +818,16 @@ export class MapMarkerSeries
         return {
             seriesId,
             datum,
+            sizeKey,
+            idKey,
+            labelKey,
+            colorKey,
+            latitudeKey,
+            longitudeKey,
             highlightState,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgMapMarkerSeriesItemStylerParams>;
     }
 
     private updateMarkerNodes(opts: {
@@ -950,8 +962,25 @@ export class MapMarkerSeries
         const hasColorScale = colorScaleProps.fills.length > 0;
 
         if (legendType === 'gradient' && colorKey != null && (colorRange != null || hasColorScale)) {
-            return [buildGradientLegendDatum(this.colorScale, seriesId, visible, this.getFormatterContext('color'))];
+            return [
+                buildGradientLegendDatum(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    this.getFormatterContext('color')
+                ),
+            ];
         } else if (legendType === 'category') {
+            if (colorScaleProps.mode === 'discrete' && hasColorScale) {
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    formatValue
+                );
+            }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
@@ -1058,7 +1087,13 @@ export class MapMarkerSeries
                 fractionDigits: undefined,
                 visibleDomain: undefined,
             });
-            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? String(colorValue) });
+            const binLabel = findDiscreteColorBinLabel(
+                this.colorScale,
+                properties.colorScale.fills,
+                colorValue,
+                formatValue
+            );
+            data.push({ label: colorName, fallbackLabel: colorKey, value: content ?? binLabel ?? String(colorValue) });
         }
 
         let heading: string | undefined;

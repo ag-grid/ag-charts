@@ -29,8 +29,11 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
             },
         },
     },
+    legend: {
+        enabled: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] },
+    },
     gradientLegend: {
-        enabled: true,
+        enabled: { $not: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] } },
     },
 };
 

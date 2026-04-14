@@ -1,7 +1,6 @@
 import { type BoxBounds, type StrictHTMLElement, createElementId, toPlainText } from 'ag-charts-core';
 import type { TextOrSegments } from 'ag-charts-types';
 
-import type { LocaleManager } from '../../locale/localeManager';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { Node } from '../../scene/node';
@@ -28,7 +27,7 @@ interface ButtonListener {
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel): void;
 }
 
-type LegendDOMProxyUpdateParams = {
+interface LegendDOMProxyUpdateParams {
     visible: boolean;
     interactive: boolean;
     ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>;
@@ -39,7 +38,7 @@ type LegendDOMProxyUpdateParams = {
     newPages: Page[];
     datumReader: CategoryLegendDatumReader;
     itemListener: ButtonListener;
-};
+}
 
 type LegendDOMProxyPageChangeParams = Pick<
     LegendDOMProxyUpdateParams,
@@ -60,7 +59,10 @@ export class LegendDOMProxy {
         return [':hover', ':focus-visible'].some((selector) => element.matches(selector));
     }
 
-    public constructor(ctx: ModuleContext, idPrefix: string) {
+    public constructor(
+        private readonly ctx: ModuleContext,
+        idPrefix: string
+    ) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             domManagerId: `${idPrefix}-toolbar`,
@@ -76,24 +78,23 @@ export class LegendDOMProxy {
         this.itemDescription = ctx.agDocument.createElement('p');
         this.itemDescription.style.display = 'none';
         this.itemDescription.id = createElementId();
-        this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
+        this.itemDescription.textContent = this.getItemAriaDescription();
         this.itemList.getElement().append(this.itemDescription);
     }
 
     private initLegendList(params: LegendDOMProxyUpdateParams) {
         if (!this.dirty) return;
 
-        const { ctx, itemSelection, datumReader, itemListener } = params;
-        const lm = ctx.localeManager;
+        const { itemSelection, datumReader, itemListener } = params;
         const count = itemSelection.length;
         // CRT-752 TODO: this can be optimised with something like this.itemList.replaceChildren(), rather than adding
         // and removing each button one-by-one.
         itemSelection.each((markerLabel, datum, index) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton?.destroy();
-            markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
+            markerLabel.proxyButton = this.ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
-                textContent: this.getItemAriaText(lm, toPlainText(datumReader.getItemLabel(datum)), index, count),
+                textContent: this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count),
                 // eslint-disable-next-line sonarjs/deprecation
                 ariaChecked: !!markerLabel.unsafeNonNullDatum.enabled,
                 ariaDescribedBy: this.itemDescription.id,
@@ -129,10 +130,24 @@ export class LegendDOMProxy {
     public update(params: LegendDOMProxyUpdateParams) {
         if (params.visible) {
             this.initLegendList(params);
+            this.syncItemLabels(params);
             this.updateItemProxyButtons(params);
             this.updatePaginationProxyButtons(params, true);
         }
         this.updateVisibility(params.visible);
+    }
+
+    private syncItemLabels({ itemSelection, datumReader }: LegendDOMProxyUpdateParams) {
+        const count = itemSelection.length;
+        itemSelection.each(({ proxyButton }, datum, index) => {
+            const element = proxyButton?.getElement();
+            if (element != null) {
+                const text = this.getItemAriaText(toPlainText(datumReader.getItemLabel(datum)), index, count);
+                if (element.textContent !== text) {
+                    element.textContent = text;
+                }
+            }
+        });
     }
 
     private updateVisibility(visible: boolean) {
@@ -250,20 +265,16 @@ export class LegendDOMProxy {
             });
     }
 
-    public onLocaleChanged(
-        localeManager: LocaleManager,
-        itemSelection: ItemSelection,
-        datumReader: CategoryLegendDatumReader
-    ) {
+    public onLocaleChanged(itemSelection: ItemSelection, datumReader: CategoryLegendDatumReader) {
         const count = itemSelection.length;
         itemSelection.each(({ proxyButton }, datum, index) => {
             const button = proxyButton?.getElement();
             if (button != null) {
                 const label = toPlainText(datumReader.getItemLabel(datum));
-                button.textContent = this.getItemAriaText(localeManager, label, index, count);
+                button.textContent = this.getItemAriaText(label, index, count);
             }
         });
-        this.itemDescription.textContent = this.getItemAriaDescription(localeManager);
+        this.itemDescription.textContent = this.getItemAriaDescription();
     }
 
     public onPageChange(params: LegendDOMProxyPageChangeParams) {
@@ -271,20 +282,15 @@ export class LegendDOMProxy {
         this.updatePaginationProxyButtons(params, false);
     }
 
-    private getItemAriaText(
-        localeManager: LocaleManager,
-        label: string | undefined,
-        index: number,
-        count: number
-    ): string {
+    private getItemAriaText(label: string | undefined, index: number, count: number): string {
         if (index >= 0 && label) {
             index++;
-            return localeManager.t('ariaLabelLegendItem', { label, index, count });
+            return this.ctx.localeManager.t('ariaLabelLegendItem', { label, index, count });
         }
-        return localeManager.t('ariaLabelLegendItemUnknown');
+        return this.ctx.localeManager.t('ariaLabelLegendItemUnknown');
     }
 
-    private getItemAriaDescription(localeManager: LocaleManager): string {
-        return localeManager.t('ariaDescriptionLegendItem');
+    private getItemAriaDescription(): string {
+        return this.ctx.localeManager.t('ariaDescriptionLegendItem');
     }
 }

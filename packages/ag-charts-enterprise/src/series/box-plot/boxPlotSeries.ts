@@ -1,5 +1,6 @@
 import {
     type AgBoxPlotHighlightStyleOptions,
+    type AgBoxPlotSeriesItemStylerParams,
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
@@ -830,7 +831,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             highlightState: highlightStateString,
             ...style,
             fill,
-        };
+        } satisfies CallbackParamRules<AgBoxPlotSeriesItemStylerParams>;
     }
 
     protected override updateDatumStyles({

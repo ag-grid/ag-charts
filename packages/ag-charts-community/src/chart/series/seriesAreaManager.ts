@@ -11,6 +11,7 @@ import type {
     SeriesAreaClickEvent,
     SeriesAreaHoverEvent,
     SeriesKeyNavPanXEvent,
+    UpdateOpts,
     ZoomChangeCompleteEvent,
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
@@ -48,7 +49,6 @@ import {
     type TooltipPaginationState,
     tooltipContentAriaLabel,
 } from '../tooltip/tooltip';
-import type { UpdateOpts } from '../updateService';
 import { PickManager, type PickedNode, type PickedNodes, getItemId } from './pickManager';
 import {
     type PickFocusInputs,
@@ -240,7 +240,7 @@ export class SeriesAreaManager extends BaseManager {
         this.cleanup.register(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesWidget.addListener('focus', () => this.swapChain.focus({ preventScroll: true })),
+            seriesWidget.addListener('focus', () => this.focusIndicator?.focus({ preventScroll: true })),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event, seriesWidget)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
@@ -257,10 +257,11 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.eventsHub.on('highlight:selection-updated', (event) => this.onHighlightSelectionUpdate(event)),
             chart.ctx.eventsHub.on('layout:complete', (event) => this.layoutComplete(event)),
-            chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
-            chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
+            chart.ctx.eventsHub.on('update:pre-scene-render', () => this.preSceneRender()),
+            chart.ctx.eventsHub.on('update:complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
-            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll())
+            chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
+            chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
         if (seriesDragInterpreter) {
             this.cleanup.register(
@@ -399,7 +400,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onAnimationStart(): void {
-        if (this.getHoverDevice() !== 'setState') {
+        if (this.getHoverDevice() !== 'setState' && this.activeState.lastActive !== 'legend') {
             this.clearAll();
         }
     }
@@ -567,8 +568,12 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.animationManager.skipCurrentBatch();
         }
 
+        // Synthetic Touch click events do not always put the series-area into focus, but we want these events to
+        // put the series-area into focus regardless of whether anything is highlighted or not. We want to
+        // programmatically focus on the HTMLElement before firing the API click event. This ensure that we keep
+        // Touch UX consistent with Mouse UX.
         if (event.device === 'touch' && current === this.chart.ctx.widgets.seriesWidget) {
-            this.swapChain.focus({ preventScroll: true });
+            this.focusIndicator?.focus({ preventScroll: true, focusVisible: false });
         }
         if (!this.isState(InteractionState.Clickable)) return;
 
@@ -1421,6 +1426,14 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         return result;
+    }
+
+    private onLegendHover(_event: null): void {
+        if (!this.isState(InteractionState.Hoverable)) return;
+        this.setHoverDevice('pointer');
+        this.clearCachedEvents();
+        this.chart.ctx.highlightManager.updateHighlight(this.id, undefined);
+        this.chart.ctx.tooltipManager.removeTooltip(this.id, undefined);
     }
 
     private onActiveLoadMemento(event: ActiveLoadMementoEvent) {
