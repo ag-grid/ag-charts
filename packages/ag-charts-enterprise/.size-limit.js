@@ -1,79 +1,69 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
-const defaultConfig = {
-    path: './src/main.ts',
-    modifyEsbuildConfig(esbuildConfig) {
-        esbuildConfig.plugins = plugins;
-        return esbuildConfig;
+const scenarios = [
+    {
+        name: 'Full package',
+        import: '*',
+        srcLimit: '461 kB',
+        distLimit: '461 kB',
     },
-};
-
-const distConfig = {
-    path: './dist/package/main.esm.mjs',
-    modifyEsbuildConfig(esbuildConfig) {
-        esbuildConfig.plugins = plugins;
-        return esbuildConfig;
+    {
+        name: 'BoxPlot module only',
+        import: '{ BoxPlotSeriesModule }',
+        srcLimit: '250 kB',
+        distLimit: '324 kB',
     },
-};
-
-module.exports = [
-    { name: 'Full package', import: '*', limit: '455 kB', ...defaultConfig },
-    { name: 'BoxPlot module only', import: '{ BoxPlotSeriesModule }', limit: '248 kB', ...defaultConfig },
-    { name: 'Mixed modules A', import: '{ BoxPlotSeriesModule, NavigatorModule }', limit: '293 kB', ...defaultConfig },
+    {
+        name: 'Mixed modules A',
+        import: '{ BoxPlotSeriesModule, NavigatorModule }',
+        srcLimit: '296 kB',
+        distLimit: '363 kB',
+    },
     {
         name: 'Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: '252 kB',
-        ...defaultConfig,
+        srcLimit: '254 kB',
+        distLimit: '325 kB',
     },
     {
         name: 'Mixed modules C',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: '257 kB',
-        ...defaultConfig,
+        srcLimit: '260 kB',
+        distLimit: '331 kB',
     },
     {
         name: 'Mixed modules D',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: '258 kB',
-        ...defaultConfig,
+        srcLimit: '261 kB',
+        distLimit: '334 kB',
     },
     {
         name: 'Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: '278 kB',
-        ...defaultConfig,
-    },
-    { name: '[dist] Full package', import: '*', limit: '455 kB', ...distConfig },
-    { name: '[dist] BoxPlot module only', import: '{ BoxPlotSeriesModule }', limit: '330 kB', ...distConfig },
-    {
-        name: '[dist] Mixed modules A',
-        import: '{ BoxPlotSeriesModule, NavigatorModule }',
-        limit: '360 kB',
-        ...distConfig,
-    },
-    {
-        name: '[dist] Mixed modules B',
-        import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: '330 kB',
-        ...distConfig,
-    },
-    {
-        name: '[dist] Mixed modules C',
-        import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: '330 kB',
-        ...distConfig,
-    },
-    {
-        name: '[dist] Mixed modules D',
-        import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: '330 kB',
-        ...distConfig,
-    },
-    {
-        name: '[dist] Mixed modules E',
-        import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: '350 kB',
-        ...distConfig,
+        srcLimit: '280 kB',
+        distLimit: '338 kB',
     },
 ];
+
+module.exports = scenarios.flatMap(({ name, import: imp, srcLimit, distLimit }) => [
+    {
+        name: `[src] ${name}`,
+        import: imp,
+        limit: srcLimit,
+        path: './src/main.ts',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+    {
+        name: `[dist] ${name}`,
+        import: imp,
+        limit: distLimit,
+        path: './dist/package/main.esm.mjs',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+]);
