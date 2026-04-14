@@ -130,8 +130,13 @@ const pureTopLevelSideEffectsPlugin = {
     },
 };
 
+// Deferred scopes: calls inside these node types only execute when invoked,
+// not at module initialisation time, so they are not top-level side effects.
+const DEFERRED_BODY = new Set(['FunctionExpression', 'FunctionDeclaration', 'ArrowFunctionExpression', 'ClassBody']);
+
 function hasSideEffect(node) {
     if (!node) return false;
+    if (DEFERRED_BODY.has(node.type)) return false;
     if (node.type === 'CallExpression' || node.type === 'NewExpression' || node.type === 'TaggedTemplateExpression') {
         return true;
     }
@@ -148,6 +153,10 @@ function hasSideEffect(node) {
         }
     }
     return false;
+}
+
+function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 const CALL_LIKE = new Set(['CallExpression', 'NewExpression', 'TaggedTemplateExpression']);
@@ -220,7 +229,7 @@ function annotatePureToplevel(code) {
                 const trailingExprs = [];
                 let j = i + 1;
                 while (j < body.length && body[j].type === 'ExpressionStatement') {
-                    const exprText = code.slice(body[j].start, body[j].start + 80);
+                    const exprText = code.slice(body[j].start, body[j].end);
                     const match = CLASS_EXPR_PATTERN.exec(exprText);
                     if (match && (match[2] ?? match[3]) === varName) {
                         trailingExprs.push(body[j]);
@@ -235,7 +244,7 @@ function annotatePureToplevel(code) {
                     //        var _Foo = /*#__PURE__*/ (() => { var _c$0 = <init>; <expr1_rewritten>; return _c$0; })();
                     const initCode = code.slice(decl.init.start, decl.init.end);
                     const tmpVar = `_c$${tmpVarCounter++}`;
-                    const varNameRe = new RegExp(`\\b${varName}\\b`, 'g');
+                    const varNameRe = new RegExp(`\\b${escapeRegExp(varName)}\\b`, 'g');
                     const exprsCode = trailingExprs
                         .map((e) => code.slice(e.start, e.end).replace(varNameRe, tmpVar))
                         .join(' ');
