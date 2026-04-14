@@ -1,11 +1,16 @@
 import {
-    type AgOrganisationSeriesOptionsLinkStepInterpolation,
+    type AgOrganizationSeriesNodeItemStylerParams,
+    type AgOrganizationSeriesNodeStyle,
+    type AgOrganizationSeriesNodeTextStyle,
+    type AgOrganizationSeriesNodeTextStylerParams,
+    type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type CssColor,
     type FontFamily,
     type FontSize,
     type FontStyle,
     type FontWeight,
     type OverflowStrategy,
+    type Styler,
     type TextWrap,
 } from 'ag-charts-community';
 import { ActionOnSet, BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
@@ -15,7 +20,7 @@ import { NetworkSeriesProperties } from '../network/networkSeries';
 export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     constructor(
         private readonly onLinkStepInterpolationChange: (
-            interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation
+            interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation
         ) => void
     ) {
         super();
@@ -40,14 +45,14 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
 class OrganizationSeriesLinkProperties extends BaseProperties {
     constructor(
         private readonly onInterpolationChange: (
-            interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation
+            interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation
         ) => void
     ) {
         super();
     }
 
     @Property
-    interpolation = new OrganisationSeriesLinkStepInterpolationProperties(this.onInterpolationChange);
+    interpolation = new OrganizationSeriesLinkStepInterpolationProperties(this.onInterpolationChange);
 
     @Property
     lineDash: number[] = [];
@@ -65,12 +70,12 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
     strokeWidth: number = 1;
 }
 
-class OrganisationSeriesLinkStepInterpolationProperties extends BaseProperties {
-    constructor(private readonly onChange: (interpolation: AgOrganisationSeriesOptionsLinkStepInterpolation) => void) {
+class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {
+    constructor(private readonly onChange: (interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation) => void) {
         super();
     }
 
-    @ActionOnSet<OrganisationSeriesLinkStepInterpolationProperties>({
+    @ActionOnSet<OrganizationSeriesLinkStepInterpolationProperties>({
         changeValue(type) {
             this.onChange({ ...this, type });
         },
@@ -78,7 +83,7 @@ class OrganisationSeriesLinkStepInterpolationProperties extends BaseProperties {
     @Property
     type: 'step' = 'step' as const;
 
-    @ActionOnSet<OrganisationSeriesLinkStepInterpolationProperties>({
+    @ActionOnSet<OrganizationSeriesLinkStepInterpolationProperties>({
         changeValue(cornerRadius) {
             this.onChange({ ...this, cornerRadius });
         },
@@ -98,10 +103,19 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<unknown>, AgOrganizationSeriesNodeStyle>;
+
+    @Property
     lineDash: number[] = [];
 
     @Property
     lineDashOffset?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
+    maxWidth?: number;
 
     @Property
     stroke: CssColor = 'black';
@@ -122,7 +136,7 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
 }
 
-class OrganizationSeriesNodeTextProperties extends BaseProperties {
+export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     @Property
     key!: string;
 
@@ -140,6 +154,9 @@ class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     fontWeight!: FontWeight;
+
+    @Property
+    itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;
 
     @Property
     spacing: number = 0;

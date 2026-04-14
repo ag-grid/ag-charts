@@ -1,3 +1,4 @@
+import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
 import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -10,14 +11,14 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the Organization Series. */
     type: 'organization';
 
-    node?: AgOrganizationSeriesOptionsNode;
+    node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     direction?: AgOrganizationSeriesOptionsDirection;
     link?: AgOrganizationSeriesOptionsLink;
-    node?: AgOrganizationSeriesThemeableOptionsNode;
+    node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
@@ -29,43 +30,63 @@ export interface AgOrganizationSeriesOptionsLink extends LineDashOptions, Stroke
     interpolation?: AgOrganizationSeriesOptionsLinkInterpolation;
 }
 
-export type AgOrganizationSeriesOptionsLinkInterpolation = AgOrganisationSeriesOptionsLinkStepInterpolation;
+export type AgOrganizationSeriesOptionsLinkInterpolation = AgOrganizationSeriesOptionsLinkStepInterpolation;
 
-export interface AgOrganisationSeriesOptionsLinkStepInterpolation {
+export interface AgOrganizationSeriesOptionsLinkStepInterpolation {
     type: 'step';
     cornerRadius?: PixelSize;
 }
 
-export interface AgOrganizationSeriesThemeableOptionsNode extends FillOptions, LineDashOptions, StrokeOptions {
+export interface AgOrganizationSeriesThemeableOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesNodeStyle {
+    labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
+    subtitle?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>;
+    title?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>;
+}
+
+export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
-    labels?: AgOrganizationSeriesOptionsNodeText[];
     maxHeight?: PixelSize;
     maxWidth?: PixelSize;
-    subtitle?: AgOrganizationSeriesOptionsNodeText;
-    title?: AgOrganizationSeriesOptionsNodeText;
 }
 
-export interface AgOrganizationSeriesOptionsNode extends Omit<AgOrganizationSeriesThemeableOptionsNode, 'labels'> {
-    labels?: AgOrganizationSeriesOptionsNodeLabel[];
+export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>, 'labels'> {
+    itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeStyle>;
+    labels?: AgOrganizationSeriesOptionsNodeLabel<TDatum, TContext>[];
 }
 
-export interface AgOrganizationSeriesOptionsNodeText extends FontOptions {
-    color?: CssColor;
-    itemStyler?: Function;
+export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesNodeTextStyle {
     key?: string;
+    itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeTextStyle>;
+}
+
+export interface AgOrganizationSeriesOptionsNodeLabel<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+    key: string;
+}
+
+export interface AgOrganizationSeriesNodeTextStyle extends FontOptions {
+    color?: CssColor;
     overflowStrategy?: OverflowStrategy;
     spacing?: number;
     wrapping?: TextWrap;
-}
-
-export interface AgOrganizationSeriesOptionsNodeLabel extends AgOrganizationSeriesOptionsNodeText {
-    key: string;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {
     idKey?: string;
     parentIdKey?: string;
 }
+
+export interface AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
+    extends DatumCallbackParams<TDatum, HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesNodeStyle {}
+
+export interface AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext = ContextDefault>
+    extends DatumCallbackParams<TDatum, HighlightState>,
+        ContextCallbackParams<TContext> {}
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,
