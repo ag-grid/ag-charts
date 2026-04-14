@@ -1,7 +1,9 @@
 const NUM_DATA_POINTS = 100;
 
-export function getData() {
-    const data: Array<{ year: number; spending: number }> = [];
+export type DataType = { year: number; spending: number };
+
+export function getData(): DataType[] {
+    const data: DataType[] = [];
     for (let i = 0; i < NUM_DATA_POINTS; i++) {
         data.push({
             year: new Date().getFullYear() - NUM_DATA_POINTS + i,
