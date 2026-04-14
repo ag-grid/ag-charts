@@ -132,7 +132,10 @@ const pureTopLevelSideEffectsPlugin = {
 
 // Deferred scopes: calls inside these node types only execute when invoked,
 // not at module initialisation time, so they are not top-level side effects.
-const DEFERRED_BODY = new Set(['FunctionExpression', 'FunctionDeclaration', 'ArrowFunctionExpression', 'ClassBody']);
+// Note: ClassBody is intentionally NOT here — static field initialisers inside class
+// bodies execute at definition time and are genuine side effects. Method bodies are
+// FunctionExpression/ArrowFunctionExpression which are already covered.
+const DEFERRED_BODY = new Set(['FunctionExpression', 'FunctionDeclaration', 'ArrowFunctionExpression']);
 
 function hasSideEffect(node) {
     if (!node) return false;
@@ -167,7 +170,7 @@ const AG_PACKAGES = new Set(['ag-charts-core', 'ag-charts-community', 'ag-charts
 
 // Patterns for expression statements that can be merged into their parent class IIFE.
 // These reference a class variable (e.g. _Foo.prototype, _Foo.bar) and only affect that class.
-const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?\],\s*)(_?[A-Z][a-zA-Z0-9]*)\.|^(_?[A-Z][a-zA-Z0-9]*)\./;
+const CLASS_EXPR_PATTERN = /^(__decorateClass\(\[[\s\S]*?],\s*)(_?[A-Z][a-zA-Z0-9$]*)\.|^(_?[A-Z][a-zA-Z0-9$]*)\./;
 // __VERIFY statements are build-time checks, safe to drop unconditionally.
 const SAFE_VERIFY_PATTERN = /^__VERIFY/;
 
@@ -349,7 +352,7 @@ if (typeof require === 'undefined') {
 };
 
 const plugins = [cssPlugin, htmlPlugin];
-let outExtension = {};
+let outExtension;
 if (process.env.NX_TASK_TARGET_TARGET?.endsWith('umd')) {
     plugins.push(umdWrapperAdaptorPlugin);
     outExtension = {
