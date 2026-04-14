@@ -194,7 +194,7 @@ function annotatePureToplevel(code) {
 
             if (isSafeCall || isSafeAssign || isSafeVerify) {
                 const orig = code.slice(node.start, node.end);
-                edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })()` });
+                edits.push({ pos: node.start, end: node.end, replace: `/*#__PURE__*/ (() => { ${orig} })();` });
             }
         }
 
