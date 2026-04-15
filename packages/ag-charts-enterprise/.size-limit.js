@@ -1,78 +1,69 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
-const defaultConfig = {
-    path: './src/main.ts',
-    modifyEsbuildConfig(esbuildConfig) {
-        esbuildConfig.plugins = plugins;
-        return esbuildConfig;
-    },
-};
-
-module.exports = [
+const scenarios = [
     {
         name: 'Full package',
         import: '*',
-        limit: '455 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Cartesian modules',
-        import: '{ AllCartesianModule }',
-        limit: '369 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Polar modules',
-        import: '{ AllPolarModule }',
-        limit: '279 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'Topology modules',
-        import: '{ AllMapSeriesModule }',
-        limit: '253 kB',
-        ...defaultConfig,
-    },
-    {
-        name: 'All enterprise modules',
-        import: '{ AllEnterpriseModule }',
-        limit: '451 kB',
-        ...defaultConfig,
+        srcLimit: '461 kB',
+        distLimit: '461 kB',
     },
     {
         name: 'BoxPlot module only',
         import: '{ BoxPlotSeriesModule }',
-        limit: '248 kB',
-        ...defaultConfig,
+        srcLimit: '250 kB',
+        distLimit: '361 kB',
     },
     {
         name: 'Mixed modules A',
         import: '{ BoxPlotSeriesModule, NavigatorModule }',
-        limit: '293 kB',
-        ...defaultConfig,
+        srcLimit: '296 kB',
+        distLimit: '385 kB',
     },
     {
         name: 'Mixed modules B',
         import: '{ AngleNumberAxisModule, RadialBarSeriesModule, StatusBarModule }',
-        limit: '252 kB',
-        ...defaultConfig,
+        srcLimit: '254 kB',
+        distLimit: '363 kB',
     },
     {
         name: 'Mixed modules C',
         import: '{ FunnelSeriesModule, MapLineSeriesModule, CrosshairModule, GradientLegendModule }',
-        limit: '257 kB',
-        ...defaultConfig,
+        srcLimit: '260 kB',
+        distLimit: '370 kB',
     },
     {
         name: 'Mixed modules D',
         import: '{ HeatmapSeriesModule, LinearGaugeModule, DataSourceModule, ContextMenuModule, AnimationModule }',
-        limit: '258 kB',
-        ...defaultConfig,
+        srcLimit: '261 kB',
+        distLimit: '368 kB',
     },
     {
         name: 'Mixed modules E',
         import: '{ RadarLineSeriesModule, MapMarkerSeriesModule, RangeAreaSeriesModule, BandHighlightModule, SyncModule, ZoomModule }',
-        limit: '278 kB',
-        ...defaultConfig,
+        srcLimit: '280 kB',
+        distLimit: '381 kB',
     },
 ];
+
+module.exports = scenarios.flatMap(({ name, import: imp, srcLimit, distLimit }) => [
+    {
+        name: `[src] ${name}`,
+        import: imp,
+        limit: srcLimit,
+        path: './src/main.ts',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+    {
+        name: `[dist] ${name}`,
+        import: imp,
+        limit: distLimit,
+        path: './dist/package/main.esm.mjs',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+]);

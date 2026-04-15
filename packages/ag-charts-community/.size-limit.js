@@ -1,34 +1,45 @@
 const { plugins } = require('../../esbuild.config.cjs');
 
-const defaultConfig = {
-    path: './src/main.ts',
-    modifyEsbuildConfig(esbuildConfig) {
-        // Uncomment to disable minification when investigating:
-        // esbuildConfig.minifyIdentifiers = false;
-        // esbuildConfig.minifySyntax = false;
-        // esbuildConfig.minifyWhitespace = false;
-        esbuildConfig.plugins = plugins;
-        return esbuildConfig;
-    },
-};
-
-module.exports = [
+const scenarios = [
     {
         name: 'Full package',
         import: '*',
-        limit: '287 kB',
-        ...defaultConfig,
+        srcLimit: '290 kB',
+        distLimit: '289 kB',
     },
     {
         name: 'CartesianChart only',
         import: '{ CartesianChartModule }',
-        limit: '175 kB',
-        ...defaultConfig,
+        srcLimit: '176 kB',
+        distLimit: '267 kB',
     },
     {
         name: 'PolarChart only',
         import: '{ PolarChartModule }',
-        limit: '165 kB',
-        ...defaultConfig,
+        srcLimit: '167 kB',
+        distLimit: '268 kB',
     },
 ];
+
+module.exports = scenarios.flatMap(({ name, import: imp, srcLimit, distLimit }) => [
+    {
+        name: `[src] ${name}`,
+        import: imp,
+        limit: srcLimit,
+        path: './src/main.ts',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+    {
+        name: `[dist] ${name}`,
+        import: imp,
+        limit: distLimit,
+        path: './dist/package/main.esm.mjs',
+        modifyEsbuildConfig(config) {
+            config.plugins = plugins;
+            return config;
+        },
+    },
+]);

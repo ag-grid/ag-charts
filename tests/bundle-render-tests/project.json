@@ -1,15 +1,12 @@
 {
-  "name": "bundle-treeshake-tests",
+  "name": "bundle-render-tests",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "tests/bundle-treeshake-tests",
+  "sourceRoot": "tests/bundle-render-tests",
   "projectType": "application",
   "targets": {
-    "test:bundle-treeshake": {
+    "test:bundle-render": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run.sh",
-      "configurations": {
-        "update": { "args": "-u" }
-      }
+      "command": "{projectRoot}/run.sh"
     }
   },
   "implicitDependencies": [
