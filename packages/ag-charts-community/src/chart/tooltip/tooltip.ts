@@ -35,6 +35,9 @@ export {
     type TooltipStructuredContent,
 } from './tooltipContent';
 
+/** Default gap between tooltip and anchor; must match the theme template fallback in chartTheme.ts. */
+const DEFAULT_TOOLTIP_OFFSET = 8;
+
 type TooltipOffsets = { canvasX: number; canvasY: number; nodeCanvasX?: number; nodeCanvasY?: number };
 export type TooltipEventType = 'pointermove' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
@@ -134,7 +137,7 @@ export class TooltipPosition extends BaseProperties {
 
     @Property
     /** The distance in pixels between the tooltip and its anchor point, applied in the placement direction. */
-    offset: number = 8;
+    offset: number = DEFAULT_TOOLTIP_OFFSET;
 
     @Property
     anchorTo?: AgTooltipAnchorTo;
@@ -258,7 +261,7 @@ export class Tooltip extends BaseProperties {
         }
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
-        const offset = meta.position?.offset ?? 8;
+        const offset = meta.position?.offset ?? DEFAULT_TOOLTIP_OFFSET;
 
         const minX = relativeRect.x;
         const minY = relativeRect.y;
@@ -492,15 +495,9 @@ export class Tooltip extends BaseProperties {
         if (anchorTo === 'node' || anchorTo === 'pointer') {
             const horizontalAlignment = horizontalAlignments[placement];
             const verticalAlignment = verticalAlignments[placement];
-            const isDiagonal = horizontalAlignment !== 0 && verticalAlignment !== 0;
-            const effectiveOffset = isDiagonal ? offset / Math.SQRT2 : offset;
-            bounds.top =
-                canvasY + yOffset + (tooltipHeight * (verticalAlignment - 1)) / 2 + effectiveOffset * verticalAlignment;
+            bounds.top = canvasY + yOffset + (tooltipHeight * (verticalAlignment - 1)) / 2 + offset * verticalAlignment;
             bounds.left =
-                canvasX +
-                xOffset +
-                (tooltipWidth * (horizontalAlignment - 1)) / 2 +
-                effectiveOffset * horizontalAlignment;
+                canvasX + xOffset + (tooltipWidth * (horizontalAlignment - 1)) / 2 + offset * horizontalAlignment;
             return bounds;
         }
 
