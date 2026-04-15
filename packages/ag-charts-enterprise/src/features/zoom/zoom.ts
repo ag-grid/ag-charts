@@ -78,7 +78,6 @@ export class Zoom extends AbstractModuleInstance {
     private readonly axisDragger = new ZoomAxisDragger();
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
-    private readonly dataChangeHandler: ZoomOnDataChange;
     private readonly panner = new ZoomPanner(this.ctx);
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
@@ -131,7 +130,8 @@ export class Zoom extends AbstractModuleInstance {
                 event.constrainZoom(this.constrainZoom(restrictions));
             }
         };
-        this.dataChangeHandler = new ZoomOnDataChange(
+        // eslint-disable-next-line sonarjs/constructor-for-side-effects -- event handlers keep instance alive via cleanup registry
+        new ZoomOnDataChange(
             {
                 eventsHub: ctx.eventsHub,
                 zoomManager: ctx.zoomManager,
