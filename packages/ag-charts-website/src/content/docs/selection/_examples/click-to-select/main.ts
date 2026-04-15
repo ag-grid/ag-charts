@@ -57,6 +57,13 @@ const options: AgCartesianChartOptions = {
             type: 'line',
             xKey: 'year',
             yKey: 'spending',
+            marker: {
+                itemStyler: (params) => {
+                    if (params.selectionState === 'selected') {
+                        return { stroke: 'black', strokeWidth: 2, size: 15 };
+                    }
+                },
+            },
         },
     ],
 };

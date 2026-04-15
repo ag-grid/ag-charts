@@ -829,6 +829,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             xKey,
             yKey,
             highlightState: highlightStateString,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;

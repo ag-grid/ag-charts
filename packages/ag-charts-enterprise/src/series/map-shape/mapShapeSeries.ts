@@ -592,6 +592,7 @@ export class MapShapeSeries
             labelKey,
             colorKey,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgMapShapeSeriesItemStylerParams>;

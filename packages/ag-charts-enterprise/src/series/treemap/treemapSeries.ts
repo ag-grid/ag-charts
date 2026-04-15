@@ -376,7 +376,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private makeItemStylerParams(
-        nodeDatum: Pick<TreemapNode, 'datum' | 'depth'>,
+        nodeDatum: Pick<TreemapNode, 'datum' | 'datumIndex' | 'depth'>,
         style: Required<ItemStyle>,
         highlightState: AgTreemapHighlightState
     ) {
@@ -395,6 +395,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             labelKey,
             secondaryLabelKey,
             highlightState,
+            selectionState: this.getDataSelectionState(nodeDatum.datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgTreemapSeriesItemStylerParams<unknown, unknown>>;

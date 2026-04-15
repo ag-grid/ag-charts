@@ -872,6 +872,7 @@ export abstract class OhlcSeriesBase<
             highKey,
             lowKey,
             highlightState: highlightStateString,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
         };
 

@@ -1082,6 +1082,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey,
             yLowKey,
             highlightState: highlightStateString,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;

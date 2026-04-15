@@ -1365,6 +1365,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yValue,
             stackGroup,
             highlightState: highlightStateString,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;

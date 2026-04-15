@@ -825,6 +825,7 @@ export class MapMarkerSeries
             latitudeKey,
             longitudeKey,
             highlightState,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgMapMarkerSeriesItemStylerParams>;

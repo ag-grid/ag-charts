@@ -829,6 +829,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             q3Key,
             maxKey,
             highlightState: highlightStateString,
+            selectionState: this.getDataSelectionState(datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBoxPlotSeriesItemStylerParams>;
