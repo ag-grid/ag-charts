@@ -605,9 +605,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
-            const consumed: boolean = this.checkSeriesNodeClick(event);
-            if (consumed) {
-                this.emitSeriesAreaClickEvent(event, true);
+            const clickedNode: PickedNode | undefined = this.checkSeriesNodeClick(event);
+            if (clickedNode) {
+                this.emitSeriesAreaClickEvent(event, true, clickedNode);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
                 return;
@@ -630,12 +630,14 @@ export class SeriesAreaManager extends BaseManager {
 
     private emitSeriesAreaClickEvent(
         event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
-        consumed: boolean
+        consumed: boolean,
+        clickedNode?: PickedNode
     ): void {
         if (!('currentX' in event)) return;
 
+        const { type, sourceEvent } = event;
         const { canvasX, canvasY } = this.toCanvasCoordinates(event);
-        const payload: SeriesAreaClickEvent = { canvasX, canvasY, consumed, sourceEvent: event.sourceEvent };
+        const payload: SeriesAreaClickEvent = { type, canvasX, canvasY, consumed, sourceEvent, clickedNode };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
@@ -767,10 +769,10 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): boolean {
+    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): PickedNode | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
-        if (pickedNodes === undefined || updated.active === undefined) return false;
+        if (pickedNodes === undefined || updated.active === undefined) return undefined;
 
         const distance = updated.paginationState == null ? pickedNodes.distance : 0;
 
@@ -790,7 +792,7 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return true;
+            return updated.active;
         }
 
         if (event.type === 'dblclick') {
@@ -805,10 +807,10 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
-            return true;
+            return updated.active;
         }
 
-        return false;
+        return undefined;
     }
 
     private handleFocusFromUserInput(inputs: HandleFocusInputs): void {

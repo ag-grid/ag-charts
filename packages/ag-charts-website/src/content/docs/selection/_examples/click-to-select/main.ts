@@ -11,6 +11,7 @@ import {
     SelectionModule,
 } from 'ag-charts-enterprise';
 
+import type { DataType } from './data';
 import { getData } from './data';
 
 ModuleRegistry.registerModules([
@@ -22,7 +23,7 @@ ModuleRegistry.registerModules([
     SelectionModule,
     ContextMenuModule,
 ]);
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     selection: {
         enabled: true,
