@@ -1,0 +1,6 @@
+#myDragBox {
+    display: none;
+    background: rgba(140, 140, 255);
+    opacity: 0.2;
+    position: absolute;
+}
