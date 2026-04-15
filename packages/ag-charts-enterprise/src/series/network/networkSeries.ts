@@ -38,6 +38,11 @@ export interface NetworkSeriesLinkDatum<NetworkVertex, TNetworkEdge> {
     to: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
+export interface NetworkLinkInterpolation {
+    type: 'step';
+    cornerRadius?: number;
+}
+
 /**
  * A Network Series processes data into a graph structure and presents the nodes in a network layout.
  */
@@ -104,6 +109,7 @@ export abstract class AbstractNetworkSeries<
     ): void;
 
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
+    abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
 
     dataCount() {
         return this.graph.getVertexCount();
@@ -165,6 +171,7 @@ export abstract class AbstractNetworkSeries<
             this.graph,
             this.getRootVertices(),
             this.getDatumNodeBBox.bind(this),
+            this.getLinkInterpolation.bind(this),
             this.layoutDatumNode.bind(this),
             this.layoutLinkNode.bind(this)
         );

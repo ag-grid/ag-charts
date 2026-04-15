@@ -5,7 +5,6 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
-    type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type CssColor,
     type FontFamily,
     type FontSize,
@@ -15,19 +14,11 @@ import {
     type Styler,
     type TextWrap,
 } from 'ag-charts-community';
-import { ActionOnSet, BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
+import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
 export class OrganizationSeriesProperties extends NetworkSeriesProperties {
-    constructor(
-        private readonly onLinkStepInterpolationChange: (
-            interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation
-        ) => void
-    ) {
-        super();
-    }
-
     @Property
     idKey: string = 'id';
 
@@ -38,26 +29,18 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     direction = 'vertical' as const;
 
     @Property
-    link = new OrganizationSeriesLinkProperties(this.onLinkStepInterpolationChange);
+    link = new OrganizationSeriesLinkProperties();
 
     @Property
     node = new OrganizationSeriesNodeProperties();
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {
-    constructor(
-        private readonly onInterpolationChange: (
-            interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation
-        ) => void
-    ) {
-        super();
-    }
-
     @Property
     itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>, AgOrganizationSeriesLinkStyle>;
 
     @Property
-    interpolation = new OrganizationSeriesLinkStepInterpolationProperties(this.onInterpolationChange);
+    interpolation = new OrganizationSeriesLinkStepInterpolationProperties();
 
     @Property
     lineDash: number[] = [];
@@ -76,23 +59,9 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
 }
 
 class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {
-    constructor(private readonly onChange: (interpolation: AgOrganizationSeriesOptionsLinkStepInterpolation) => void) {
-        super();
-    }
-
-    @ActionOnSet<OrganizationSeriesLinkStepInterpolationProperties>({
-        changeValue(type) {
-            this.onChange({ ...this, type });
-        },
-    })
     @Property
     type: 'step' = 'step' as const;
 
-    @ActionOnSet<OrganizationSeriesLinkStepInterpolationProperties>({
-        changeValue(cornerRadius) {
-            this.onChange({ ...this, cornerRadius });
-        },
-    })
     @Property
     cornerRadius: number = 0;
 }

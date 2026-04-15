@@ -15,6 +15,7 @@ import { type CallbackParamRules, type DeepRequired, type FontOptions, Vertex, m
 
 import {
     AbstractNetworkSeries,
+    type NetworkLinkInterpolation,
     type NetworkLinkNode,
     type NetworkSeriesDatum,
     type NetworkSeriesLinkDatum,
@@ -72,9 +73,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
 
-    override properties = new OrganizationSeriesProperties((interpolation) => {
-        this.layout.interpolation = interpolation;
-    });
+    override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
@@ -251,6 +250,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox) {
         node.translationX = bbox.x;
         node.translationY = bbox.y;
+    }
+
+    getLinkInterpolation(
+        from: Vertex<OrganizationVertex, OrganizationEdge>,
+        to: Vertex<OrganizationVertex, OrganizationEdge>
+    ): NetworkLinkInterpolation {
+        const fromIndex = this.graph.findNeighbourValue(from, 'datumIndex') as number;
+        const toIndex = this.graph.findNeighbourValue(to, 'datumIndex') as number;
+        const styles = this.getLinkStyle(fromIndex, toIndex);
+
+        return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
     private createGraphData() {
