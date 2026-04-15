@@ -93,16 +93,13 @@ export abstract class RadarSeries<
     TStyle extends AgRadarSeriesStyle,
     TOpts extends AgBaseRadarSeriesOptions<DatumDefault, ContextDefault, TStyle>,
     TProps extends RadarSeriesProperties<TStyle, TOpts>,
-> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker> {
+> extends _ModuleSupport.PolarSeries<RadarNodeDatum, TOpts, TProps, _ModuleSupport.Marker<RadarNodeDatum>> {
     static override readonly className: string = 'RadarSeries';
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
-    private readonly lineGroup = this.contentGroup.appendChild(new Group({ name: 'radar-line' }));
-    protected lineSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
-        this.lineGroup,
-        Path
-    );
+    private readonly lineGroup = this.contentGroup.appendChild(new Group<boolean>({ name: 'radar-line' }));
+    protected lineSelection = Selection.select<_ModuleSupport.Path<boolean>>(this.lineGroup, Path<boolean>);
 
     protected resetInvalidToZero: boolean = false;
 
@@ -132,8 +129,8 @@ export abstract class RadarSeries<
         return (hasMarkers && this.getDrawingMode(false) === 'cutout') || super.renderToOffscreenCanvas();
     }
 
-    protected override nodeFactory(): _ModuleSupport.Marker {
-        return new Marker();
+    protected override nodeFactory(): _ModuleSupport.Marker<RadarNodeDatum> {
+        return new Marker<RadarNodeDatum>();
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): DomainWithMetadata<any> {
@@ -396,7 +393,7 @@ export abstract class RadarSeries<
     }
 
     protected updateDatumStyles(
-        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -421,7 +418,7 @@ export abstract class RadarSeries<
     }
 
     protected updateMarkers(
-        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean,
         drawingMode: AgDrawingMode
     ) {

@@ -305,11 +305,11 @@ export abstract class Series<
     });
 
     readonly highlightNodeGroup = this.highlightGroup.appendChild(
-        new Group({ name: `${this.internalId}-highlight-node` })
+        new Group<TDatum>({ name: `${this.internalId}-highlight-node` })
     );
 
     readonly highlightLabelGroup = this.highlightGroup.appendChild(
-        new Group({
+        new Group<TLabel>({
             name: `${this.internalId}-highlight-label`,
             zIndex: SeriesContentZIndexMap.LABEL,
         })
@@ -321,7 +321,7 @@ export abstract class Series<
     });
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup = new TranslatableGroup({
+    readonly labelGroup = new TranslatableGroup<TLabel>({
         name: `${this.internalId}-series-labels`,
     });
 
@@ -922,7 +922,8 @@ export abstract class Series<
     protected pickNodesExactShape(point: Point): SeriesNodeDatum<DatumIndexType>[] {
         const datums: SeriesNodeDatum<DatumIndexType>[] = [];
         for (const node of this.contentGroup.pickNodes(point.x, point.y)) {
-            const datum = node.closestDatum();
+            // eslint-disable-next-line sonarjs/deprecation
+            const datum = node.unsafeClosestDatum();
             if (typeof datum === 'object' && datum != null && datum.missing !== true) {
                 datums.push(datum);
             }
@@ -941,7 +942,8 @@ export abstract class Series<
         items: Iterable<T>
     ): SeriesNodePickMatch | undefined {
         const match = nearestSquared(point.x, point.y, items);
-        const datum = match.nearest?.closestDatum();
+        // eslint-disable-next-line sonarjs/deprecation
+        const datum = match.nearest?.unsafeClosestDatum();
         if (typeof datum === 'object' && datum != null && datum.missing !== true) {
             return { datum, distance: Math.sqrt(match.distanceSquared) };
         }

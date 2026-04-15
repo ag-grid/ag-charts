@@ -1,7 +1,7 @@
 import { clamp, isPlainObject, linear, objectsEqualWith } from 'ag-charts-core';
 
 import { Node } from '../scene/node';
-import type { Selection } from '../scene/selection';
+import type { SelectionInterface } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 
@@ -50,9 +50,10 @@ export const PHASE_METADATA: Record<AnimationPhase, AnimationMetadata> = {
 export type AnimationValue =
     | number
     | string
+    | boolean
     | Interpolating
     | undefined
-    | Record<string, number | string | Interpolating | undefined>;
+    | Record<string, number | string | boolean | Interpolating | undefined>;
 
 export enum RepeatType {
     Loop = 'loop',
@@ -110,9 +111,9 @@ function isNodeArray<N extends Node>(array: (object | N)[]): array is N[] {
     return array.every((n) => n instanceof Node);
 }
 
-export function deconstructSelectionsOrNodes<N extends Node, D>(
-    selectionsOrNodes: Selection<N, D>[] | N[]
-): { nodes: N[]; selections: Selection<N, D>[] } {
+export function deconstructSelectionsOrNodes<D, N extends Node<D>>(
+    selectionsOrNodes: SelectionInterface<D, N>[] | N[]
+): { nodes: N[]; selections: SelectionInterface<D, N>[] } {
     return isNodeArray(selectionsOrNodes)
         ? { nodes: selectionsOrNodes, selections: [] }
         : { nodes: [], selections: selectionsOrNodes };

@@ -125,7 +125,7 @@ type AnimatableBarDatum = {
 type RectDatum = {
     crisp: boolean;
 };
-type BarRect = Rect<RectDatum>;
+type BarRect = Rect<AnimatableBarDatum & RectDatum>;
 
 export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
     initPos: InitialPosition<T>,
@@ -133,10 +133,12 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
 ) {
     const isRemoved = (datum?: T) => datum == null || Number.isNaN(datum.x) || Number.isNaN(datum.y);
 
-    const fromFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
-        if (status === 'updated' && isRemoved(datum)) {
+    const fromFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+        // eslint-disable-next-line sonarjs/deprecation
+        if (status === 'updated' && isRemoved(rect.unsafeDatum)) {
             status = 'removed';
-        } else if (status === 'updated' && isRemoved(rect.previousDatum)) {
+            // eslint-disable-next-line sonarjs/deprecation
+        } else if (status === 'updated' && isRemoved(rect.unsafePreviousDatum)) {
             status = 'added';
         }
 
@@ -150,7 +152,8 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
                     opacity: 0,
                 };
             } else {
-                source = initPos.calculate(datum, rect.previousDatum);
+                // eslint-disable-next-line sonarjs/deprecation
+                source = initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
             }
 
             if (status === 'unknown') {
@@ -170,12 +173,14 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
         const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
         return { ...source, phase };
     };
-    const toFn: FromToMotionPropFn<BarRect, AnimatableBarDatum, T> = (rect, datum, status) => {
+    const toFn: FromToMotionPropFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
             return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
-        } else if (status === 'removed' || isRemoved(datum)) {
-            return initPos.calculate(datum, rect.previousDatum);
+            // eslint-disable-next-line sonarjs/deprecation
+        } else if (status === 'removed' || isRemoved(rect.unsafeDatum)) {
+            // eslint-disable-next-line sonarjs/deprecation
+            return initPos.calculate(rect.unsafeDatum, rect.unsafePreviousDatum);
         } else {
             return {
                 x: datum.x,
@@ -187,7 +192,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(
             };
         }
     };
-    const applyFn: ApplyFn<BarRect, AnimatableBarDatum> = (rect, datum, status) => {
+    const applyFn: ApplyFn<AnimatableBarDatum, BarRect, AnimatableBarDatum> = (rect, datum, status) => {
         // Use aggressive bypass method that writes directly to backing fields
         rect.resetAnimationProperties(datum.x, datum.y, datum.width, datum.height, datum.opacity ?? 1, datum.clipBBox);
         rect.crisp = status === 'end' && (rect.datum?.crisp ?? false);

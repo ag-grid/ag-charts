@@ -88,18 +88,20 @@ export class MapLineSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    public datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.contentGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.contentGroup, () =>
+        this.nodeFactory()
     );
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
-        Selection.select(this.labelGroup, Text);
-    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
+    private labelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
+        this.labelGroup,
+        Text
     );
-    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>> =
-        Selection.select(this.highlightLabelGroup, Text);
+    private highlightDatumSelection = Selection.select<GeoGeometry<MapLineNodeDatum>>(this.highlightNodeGroup, () =>
+        this.nodeFactory()
+    );
+    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>>(
+        this.highlightLabelGroup,
+        Text
+    );
     private placedLabelData: PlacedLabel<MapLineNodeLabelDatum>[] = [];
 
     public contextNodeData?: MapLineNodeDataContext;
@@ -147,8 +149,8 @@ export class MapLineSeries
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    private nodeFactory(): GeoGeometry {
-        const geoGeometry = new GeoGeometry();
+    private nodeFactory(): GeoGeometry<MapLineNodeDatum> {
+        const geoGeometry = new GeoGeometry<MapLineNodeDatum>();
         geoGeometry.renderMode = GeoGeometryRenderMode.Lines;
         geoGeometry.lineJoin = 'round';
         geoGeometry.lineCap = 'round';
@@ -453,7 +455,7 @@ export class MapLineSeries
 
     private updateDatumSelection(opts: {
         nodeData: MapLineNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
@@ -519,7 +521,7 @@ export class MapLineSeries
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -531,7 +533,7 @@ export class MapLineSeries
         datumSelection,
         drawingMode,
     }: {
-        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<MapLineNodeDatum, GeoGeometry<MapLineNodeDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -564,7 +566,10 @@ export class MapLineSeries
         isHighlight,
         labelSelection,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PlacedLabel<MapLineNodeLabelDatum>>;
+        labelSelection: _ModuleSupport.Selection<
+            PlacedLabel<MapLineNodeLabelDatum>,
+            _ModuleSupport.Text<PlacedLabel<MapLineNodeLabelDatum>>
+        >;
         isHighlight: boolean;
     }) {
         const { properties } = this;

@@ -4,7 +4,7 @@ import { DeclaredSceneChangeDetection } from 'ag-charts-core';
 
 const { Path, BBox } = _ModuleSupport;
 
-export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
+export class OhlcBaseNode<D = unknown> extends Path<D> implements DistantObject {
     @DeclaredSceneChangeDetection()
     centerX: number = 0;
     declare __centerX: number;
@@ -129,7 +129,7 @@ export class OhlcBaseNode<D = any> extends Path<D> implements DistantObject {
     }
 }
 
-export class OhlcNode extends OhlcBaseNode {
+export class OhlcNode<D = unknown> extends OhlcBaseNode<D> {
     @DeclaredSceneChangeDetection()
     strokeAlignment: number = 0;
     declare __strokeAlignment: number;

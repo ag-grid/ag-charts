@@ -13,7 +13,7 @@ export enum GeoGeometryRenderMode {
     Lines = 0b10,
 }
 
-export class GeoGeometry<D = any> extends Path<D> implements DistantObject {
+export class GeoGeometry<D = unknown> extends Path<D> implements DistantObject {
     @SceneObjectChangeDetection({ equals: objectsEqual })
     projectedGeometry: Geometry | undefined = undefined;
 

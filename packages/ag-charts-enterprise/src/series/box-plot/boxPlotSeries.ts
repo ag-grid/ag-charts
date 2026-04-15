@@ -615,7 +615,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override animateEmptyUpdateReady({
         datumSelection,
-    }: _ModuleSupport.CartesianAnimationData<BoxPlotNode, BoxPlotNodeDatum>) {
+    }: _ModuleSupport.CartesianAnimationData<BoxPlotNodeDatum, BoxPlotNode>) {
         const isVertical = this.isVertical();
         const { from, to } = prepareBoxPlotFromTo(isVertical);
         motion.resetMotion([datumSelection], resetBoxPlotSelectionsScalingCenterFn(isVertical));
@@ -630,7 +630,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         seriesIdx: number;
     }) {
         const data = opts.nodeData ?? [];
@@ -838,7 +838,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
@@ -852,7 +852,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<BoxPlotNode, BoxPlotNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, BoxPlotNode>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;
@@ -915,7 +915,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, BoxPlotNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<BoxPlotNodeDatum, _ModuleSupport.Text<BoxPlotNodeDatum>>;
         seriesIdx: number;
     }) {
         const { labelData, labelSelection } = opts;

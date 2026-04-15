@@ -8,8 +8,9 @@ import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { Marker } from '../marker/marker';
+import type { CategoryLegendDatum } from './legendDatum';
 
-export class LegendMarkerLabel extends TranslatableGroup {
+export class LegendMarkerLabel<D = CategoryLegendDatum> extends TranslatableGroup<D> {
     static readonly className = 'MarkerLabel';
 
     private readonly symbolsGroup: Group = this.appendChild(

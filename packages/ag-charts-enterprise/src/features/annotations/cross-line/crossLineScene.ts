@@ -13,7 +13,7 @@ import { getGroupingValue } from '../utils/scale';
 import { convert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
-export class CrossLineScene extends AnnotationScene {
+export class CrossLineScene extends AnnotationScene<never> {
     static override is(value: unknown): value is CrossLineScene {
         return AnnotationScene.isCheck(value, 'cross-line');
     }
@@ -25,7 +25,7 @@ export class CrossLineScene extends AnnotationScene {
     private readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
     private axisLabel?: AxisLabelScene;
-    public text?: CollidableText;
+    public text?: CollidableText<never>;
 
     private seriesRect?: _ModuleSupport.BBox;
     private dragState?: {
@@ -105,7 +105,7 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     private updateText(datum: CrossLineProperties, coords: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateLineText(this.line.id, this.line, coords, datum.text, this.text, datum.text.label, datum.strokeWidth);
     }

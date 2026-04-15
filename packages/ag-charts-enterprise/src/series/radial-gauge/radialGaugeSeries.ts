@@ -182,34 +182,37 @@ export class RadialGaugeSeries
     );
     private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
-    private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
-        this.scaleGroup,
-        () => this.nodeFactory()
+    private scaleSelection = Selection.select<_ModuleSupport.Sector<RadialGaugeNodeDatum>>(this.scaleGroup, () =>
+        this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
+    private datumSelection = Selection.select<_ModuleSupport.Sector<RadialGaugeNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
-    private needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum> = Selection.select(
+    private needleSelection = Selection.selectNoInference<RadialGaugeNeedleDatum, RadialGaugeNeedle>(
         this.itemNeedleGroup,
         RadialGaugeNeedle
     );
-    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
-        this.itemTargetGroup,
+    public targetSelection = Selection.select<_ModuleSupport.Marker<RadialGaugeTargetDatum>>(this.itemTargetGroup, () =>
+        this.markerFactory()
+    );
+    private targetLabelSelection = Selection.select<_ModuleSupport.Text<RadialGaugeTargetDatum>>(
+        this.itemTargetLabelGroup,
+        Text<RadialGaugeTargetDatum>
+    );
+    private labelSelection = Selection.select<_ModuleSupport.Text<RadialGaugeLabelDatum>>(
+        this.itemLabelGroup,
+        Text<RadialGaugeLabelDatum>
+    );
+    private highlightTargetSelection = Selection.select<_ModuleSupport.Marker<RadialGaugeTargetDatum>>(
+        this.highlightTargetGroup,
         () => this.markerFactory()
     );
-    private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum> =
-        Selection.select(this.itemTargetLabelGroup, Text);
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum> = Selection.select(
-        this.itemLabelGroup,
-        Text
+    private tickSelection = Selection.select<_ModuleSupport.TransformableText<RadialGaugeTickDatum>>(
+        this.tickGroup,
+        _ModuleSupport.TransformableText
     );
-    private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> =
-        Selection.select(this.highlightTargetGroup, () => this.markerFactory());
-    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum> =
-        Selection.select(this.tickGroup, _ModuleSupport.TransformableText);
 
-    public datumUnion: DatumUnion<_ModuleSupport.Sector, RadialGaugeNodeDatum> = new DatumUnion();
+    public datumUnion: DatumUnion<_ModuleSupport.Sector<RadialGaugeNodeDatum>> = new DatumUnion();
     private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: RadialGaugeNodeDataContext;
@@ -263,12 +266,12 @@ export class RadialGaugeSeries
         return this.properties.value != null;
     }
 
-    private nodeFactory(): _ModuleSupport.Sector {
-        return new Sector();
+    private nodeFactory(): _ModuleSupport.Sector<RadialGaugeNodeDatum> {
+        return new Sector<RadialGaugeNodeDatum>();
     }
 
-    private markerFactory(): _ModuleSupport.Marker {
-        const marker = new Marker();
+    private markerFactory(): _ModuleSupport.Marker<RadialGaugeTargetDatum> {
+        const marker = new Marker<RadialGaugeTargetDatum>();
         marker.size = 1;
         return marker;
     }
@@ -860,7 +863,7 @@ export class RadialGaugeSeries
 
     private updateDatumSelection(opts: {
         nodeData: RadialGaugeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
@@ -868,7 +871,7 @@ export class RadialGaugeSeries
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
@@ -923,7 +926,7 @@ export class RadialGaugeSeries
 
     private updateScaleSelection(opts: {
         scaleData: RadialGaugeNodeDatum[];
-        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
@@ -931,7 +934,7 @@ export class RadialGaugeSeries
     }
 
     private updateScaleNodes(opts: {
-        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<RadialGaugeNodeDatum, _ModuleSupport.Sector<RadialGaugeNodeDatum>>;
     }) {
         const { scaleSelection } = opts;
         const { segmentation } = this.properties;
@@ -962,13 +965,13 @@ export class RadialGaugeSeries
 
     private updateNeedleSelection(opts: {
         needleData: RadialGaugeNeedleDatum[];
-        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedleDatum, RadialGaugeNeedle>;
     }) {
         return opts.needleSelection.update(opts.needleData, undefined, () => createDatumId(0));
     }
 
     private updateNeedleNodes(opts: {
-        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedleDatum, RadialGaugeNeedle>;
     }) {
         const { needleSelection } = opts;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
@@ -1005,7 +1008,10 @@ export class RadialGaugeSeries
 
     private updateTargetSelection(opts: {
         targetData: RadialGaugeTargetDatum[];
-        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<
+            RadialGaugeTargetDatum,
+            _ModuleSupport.Marker<RadialGaugeTargetDatum>
+        >;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
@@ -1014,7 +1020,10 @@ export class RadialGaugeSeries
         targetSelection,
         isHighlight,
     }: {
-        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<
+            RadialGaugeTargetDatum,
+            _ModuleSupport.Marker<RadialGaugeTargetDatum>
+        >;
         isHighlight: boolean;
     }) {
         targetSelection.each((_, datum) => {
@@ -1025,7 +1034,10 @@ export class RadialGaugeSeries
     private updateTargetNodes({
         targetSelection,
     }: {
-        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<
+            RadialGaugeTargetDatum,
+            _ModuleSupport.Marker<RadialGaugeTargetDatum>
+        >;
     }) {
         targetSelection.each((target, datum) => {
             const { centerX, centerY, angle, radius, shape, size, rotation } = datum;
@@ -1051,13 +1063,19 @@ export class RadialGaugeSeries
 
     private updateTargetLabelSelection(opts: {
         targetData: RadialGaugeTargetDatum[];
-        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<
+            RadialGaugeTargetDatum,
+            _ModuleSupport.Text<RadialGaugeTargetDatum>
+        >;
     }) {
         return opts.targetLabelSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private updateTargetLabelNodes(opts: {
-        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<
+            RadialGaugeTargetDatum,
+            _ModuleSupport.Text<RadialGaugeTargetDatum>
+        >;
     }) {
         const { targetLabelSelection } = opts;
 
@@ -1087,13 +1105,13 @@ export class RadialGaugeSeries
 
     private updateLabelSelection(opts: {
         labelData: RadialGaugeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
     }
 
     private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<RadialGaugeLabelDatum, _ModuleSupport.Text<RadialGaugeLabelDatum>>;
     }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
@@ -1112,13 +1130,19 @@ export class RadialGaugeSeries
 
     private updateTickSelection(opts: {
         tickData: RadialGaugeTickDatum[];
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum>;
+        tickSelection: _ModuleSupport.Selection<
+            RadialGaugeTickDatum,
+            _ModuleSupport.TransformableText<RadialGaugeTickDatum>
+        >;
     }) {
         return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.index);
     }
 
     private updateTickNodes(opts: {
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, RadialGaugeTickDatum>;
+        tickSelection: _ModuleSupport.Selection<
+            RadialGaugeTickDatum,
+            _ModuleSupport.TransformableText<RadialGaugeTickDatum>
+        >;
     }) {
         const { scale, radius, centerX, centerY, properties } = this;
         const { enabled, color, fontFamily, fontSize, fontStyle, fontWeight, spacing } = properties.scale.label;
@@ -1352,7 +1376,7 @@ export class RadialGaugeSeries
             animationManager,
             [this.labelSelection],
             fadeInFns,
-            (_label, datum) => datum.label
+            (label) => label.unsafeDatum.label
         );
 
         this.animateLabelText({

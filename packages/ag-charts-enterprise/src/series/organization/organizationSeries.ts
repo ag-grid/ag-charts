@@ -17,7 +17,7 @@ interface OrganizationDatum extends NetworkSeriesDatum<OrganizationVertex, Organ
     datum: { title?: string; subtitle?: string; labels?: string[] };
 }
 
-type OrganizationNode = _ModuleSupport.TranslatableGroup;
+type OrganizationNode = _ModuleSupport.TranslatableGroup<OrganizationDatum>;
 
 function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
     node.fill = styles.fill;
@@ -49,8 +49,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
     OrganizationGraph,
-    OrganizationNode,
     OrganizationDatum,
+    OrganizationNode,
     NetworkTreeLayout<OrganizationVertex, OrganizationEdge>
 > {
     static override readonly className = 'OrganizationSeries';
@@ -139,12 +139,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     updateDatumSelection(
         nodeData: OrganizationDatum[],
-        datumSelection: _ModuleSupport.Selection<OrganizationNode, OrganizationDatum>
+        datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>
     ) {
         datumSelection.update(nodeData);
     }
 
-    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationNode, OrganizationDatum>) {
+    updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
         const padding = 20;
 
         const { node: nodeProps } = this.properties;
@@ -215,7 +215,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
-    updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkNode, NetworkLinkDatum>) {
+    updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>) {
         const { link } = this.properties;
 
         linkSelection.each((node) => {

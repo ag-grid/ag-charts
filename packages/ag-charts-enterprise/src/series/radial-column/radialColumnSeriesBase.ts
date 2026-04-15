@@ -85,7 +85,9 @@ interface RadialColumnSeriesNodeDataContext
 }
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
+    ItemPathType extends
+        | _ModuleSupport.Sector<RadialColumnNodeDatum>
+        | _ModuleSupport.RadialColumnShape<RadialColumnNodeDatum>,
 > extends _ModuleSupport.PolarSeries<
     RadialColumnNodeDatum,
     AgBaseRadialColumnSeriesOptions,
@@ -422,7 +424,7 @@ export abstract class RadialColumnSeriesBase<
     protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
     protected updateSectorSelection(
-        selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
+        selection: _ModuleSupport.Selection<RadialColumnNodeDatum, ItemPathType>,
         isHighlight: boolean
     ) {
         const { contextNodeData } = this;

@@ -592,12 +592,12 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override nodeFactory() {
-        return new Rect();
+        return new Rect<HistogramNodeDatum>();
     }
 
     protected override updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
 
@@ -623,7 +623,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override updateDatumStyles(opts: {
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -635,7 +635,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Rect, HistogramNodeDatum>;
+        datumSelection: Selection<HistogramNodeDatum, Rect<HistogramNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -667,7 +667,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     protected override updateLabelSelection(opts: {
         labelData: HistogramNodeDatum[];
-        labelSelection: Selection<Text, HistogramNodeDatum>;
+        labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -678,7 +678,10 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
         });
     }
 
-    protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum>; isHighlight?: boolean }) {
+    protected updateLabelNodes(opts: {
+        labelSelection: Selection<HistogramNodeDatum, Text<HistogramNodeDatum>>;
+        isHighlight?: boolean;
+    }) {
         const labelEnabled = this.isLabelEnabled();
         const { isHighlight = false } = opts;
 
@@ -714,7 +717,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
         const { value: childNode } = this.contentGroup.children().next();
         if (childNode instanceof Group) {
-            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect>);
+            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect<HistogramNodeDatum>>);
         }
     }
 
@@ -880,7 +883,8 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.ctx.animationManager,
             [data.datumSelection],
             fns,
-            (_, datum) => createDatumId(...datum.domain),
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => createDatumId(...node.unsafeDatum.domain),
             dataDiff
         );
 

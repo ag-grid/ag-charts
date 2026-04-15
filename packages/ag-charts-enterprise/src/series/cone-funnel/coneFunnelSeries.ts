@@ -23,7 +23,7 @@ const { Line } = _ModuleSupport;
  * Consolidated type interface for ConeFunnelSeries.
  */
 interface ConeFunnelSeriesTypes extends BaseFunnelSeriesTypes {
-    readonly node: _ModuleSupport.Line;
+    readonly node: _ModuleSupport.Line<FunnelNodeDatum>;
     readonly options: AgConeFunnelSeriesOptions;
     readonly properties: ConeFunnelProperties;
 }
@@ -74,8 +74,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         return this.properties.getStyle(index);
     }
 
-    protected override nodeFactory(): _ModuleSupport.Line {
-        return new Line();
+    protected override nodeFactory(): _ModuleSupport.Line<FunnelNodeDatum> {
+        return new Line<FunnelNodeDatum>();
     }
 
     protected override createLabelData({
@@ -164,7 +164,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Line, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Line<FunnelNodeDatum>>;
         isHighlight: boolean;
     }) {
         const highlightStyle = this.getHighlightStyle(opts.isHighlight);

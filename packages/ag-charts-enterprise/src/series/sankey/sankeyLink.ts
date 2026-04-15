@@ -3,7 +3,7 @@ import { type Point, SceneChangeDetection, Vec2, clamp } from 'ag-charts-core';
 
 const { BBox, Path } = _ModuleSupport;
 
-export class SankeyLink<D = any> extends Path<D> {
+export class SankeyLink<D = unknown> extends Path<D> {
     @SceneChangeDetection()
     x1: number = 0;
 

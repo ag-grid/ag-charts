@@ -87,15 +87,15 @@ interface FunnelContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
  * Constrains datum, label, context, and properties types while leaving node and options open for subclasses.
  */
 export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesTypes {
-    readonly node: _ModuleSupport.QuadtreeCompatibleNode;
+    readonly node: _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>;
     readonly properties: BaseFunnelProperties<this['options']>;
     readonly datum: FunnelNodeDatum;
     readonly label: FunnelNodeLabelDatum;
     readonly context: FunnelContext;
 }
 
-export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
-    extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
+export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
+    extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -127,7 +127,7 @@ export abstract class BaseFunnelSeries<
             zIndex: SeriesZIndexMap.BACKGROUND,
         })
     );
-    protected connectorSelection = Selection.select<FunnelConnector, FunnelConnectorDatum>(
+    protected connectorSelection = Selection.select<FunnelConnector<FunnelConnectorDatum>>(
         this.connectorNodeGroup,
         () => this.connectionFactory()
     );
@@ -187,7 +187,7 @@ export abstract class BaseFunnelSeries<
     protected abstract connectorStyle(index: number): RequireOptional<AgFunnelSeriesStyle> & { opacity: number };
 
     private connectionFactory() {
-        return new FunnelConnector();
+        return new FunnelConnector<FunnelConnectorDatum>();
     }
 
     override getKeyAxis(direction: ChartAxisDirection): string | undefined {
@@ -467,7 +467,7 @@ export abstract class BaseFunnelSeries<
 
     protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.NodeOf<TTypes>, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.NodeOf<TTypes>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -476,7 +476,7 @@ export abstract class BaseFunnelSeries<
 
     private updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
-        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const { connectorData, connectorSelection } = opts;
         return connectorSelection.update(this.connectorEnabled() ? connectorData : [], undefined, (connector) =>
@@ -485,7 +485,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private updateConnectorNodes(opts: {
-        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnectorDatum, FunnelConnector<FunnelConnectorDatum>>;
     }) {
         const fillBBox = this.getShapeFillBBox();
 
@@ -521,7 +521,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, FunnelNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<FunnelNodeLabelDatum, _ModuleSupport.Text<FunnelNodeLabelDatum>>;
         isHighlight?: boolean;
     }) {
         const params: RequireOptional<AgFunnelSeriesLabelFormatterParams> = {
@@ -585,8 +585,8 @@ export abstract class BaseFunnelSeries<
 
     protected override resetAllAnimation(
         data: _ModuleSupport.CartesianAnimationData<
-            _ModuleSupport.NodeOf<TTypes>,
             FunnelNodeDatum,
+            _ModuleSupport.NodeOf<TTypes>,
             FunnelNodeLabelDatum,
             FunnelContext
         >

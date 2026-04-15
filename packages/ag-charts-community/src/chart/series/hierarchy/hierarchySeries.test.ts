@@ -11,12 +11,17 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> 
     readonly tooltip: SeriesTooltip<never> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<Group, object, ExampleHierarchySeriesProperties, HierarchyNode> {
+class ExampleHierarchySeries extends HierarchySeries<
+    HierarchyNode,
+    Group<HierarchyNode>,
+    object,
+    ExampleHierarchySeriesProperties
+> {
     override properties = new ExampleHierarchySeriesProperties();
 
     NodeClass = HierarchyNode;
 
-    datumSelection = Selection.select(this.contentGroup, Group);
+    datumSelection = Selection.select<Group<HierarchyNode>>(this.contentGroup, Group);
 
     override getSeriesDomain(): never {
         throw new Error('Method not implemented.');

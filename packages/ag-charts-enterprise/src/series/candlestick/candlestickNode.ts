@@ -5,7 +5,7 @@ import { OhlcBaseNode } from '../ohlc/ohlcNode';
 
 const { ExtendedPath2D, BBox } = _ModuleSupport;
 
-export class CandlestickNode extends OhlcBaseNode {
+export class CandlestickNode<D> extends OhlcBaseNode<D> {
     private readonly wickPath = new ExtendedPath2D();
 
     @DeclaredSceneChangeDetection()

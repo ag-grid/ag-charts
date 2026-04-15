@@ -7,11 +7,11 @@ import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import type { SeriesNodePickMatch } from '../series';
 import type { DatumIndexType, SeriesNodeDatum } from '../seriesTypes';
 
-export type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
+export type QuadtreeCompatibleNode<D> = Node<D> & DistantObject & { readonly midPoint: { x: number; y: number } };
 
 export function addHitTestersToQuadtree<
-    TNode extends QuadtreeCompatibleNode,
     TDatum extends SeriesNodeDatum<DatumIndexType>,
+    TNode extends QuadtreeCompatibleNode<TDatum>,
 >(quadtree: QuadtreeNearest<TDatum>, hitTesters: Iterable<TNode>) {
     for (const node of hitTesters) {
         const datum: TDatum | undefined = node.datum;

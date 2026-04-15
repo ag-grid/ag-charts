@@ -7,7 +7,7 @@ export function seriesLabelFadeInAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    ...labelSelections: Selection<NodeWithOpacity, T>[]
+    ...labelSelections: Selection<T, NodeWithOpacity<T>>[]
 ) {
     // Force cleanup of stale labels before we start animating, they should never be displayed.
     for (const labelSelection of labelSelections) {
@@ -28,7 +28,7 @@ export function seriesLabelFadeOutAnimation<T>(
     { id }: { id: string },
     subId: string,
     animationManager: AnimationManager,
-    ...labelSelections: Selection<NodeWithOpacity, T>[]
+    ...labelSelections: Selection<T, NodeWithOpacity<T>>[]
 ) {
     staticFromToMotion(
         id,
@@ -41,6 +41,6 @@ export function seriesLabelFadeOutAnimation<T>(
     );
 }
 
-export function resetLabelFn(_node: NodeWithOpacity) {
+export function resetLabelFn(_node: NodeWithOpacity<unknown>) {
     return { opacity: 1 };
 }

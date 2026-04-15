@@ -734,7 +734,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     }
 
     protected override nodeFactory() {
-        return new Rect();
+        return new Rect<WaterfallNodeDatum>();
     }
 
     private getSeriesItemType(isPositive: boolean, datumType?: AgWaterfallSeriesItemType): AgWaterfallSeriesItemType {
@@ -758,7 +758,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -838,7 +838,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -850,7 +850,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Rect<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -878,7 +878,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     protected override updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -898,7 +898,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         labelSelection,
         isHighlight,
     }: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
+        labelSelection: _ModuleSupport.Selection<WaterfallNodeDatum, _ModuleSupport.Text<WaterfallNodeDatum>>;
         isHighlight: boolean;
     }) {
         const params: RequireOptional<AgWaterfallSeriesLabelFormatterParams> = {

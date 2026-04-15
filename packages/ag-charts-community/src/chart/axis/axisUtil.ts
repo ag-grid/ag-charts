@@ -54,7 +54,7 @@ export interface AxisAnimationContext {
     max: number;
 }
 
-interface AxisGroupDatum {
+export interface AxisGroupDatum {
     rotation: number;
     rotationCenterX: number;
     rotationCenterY: number;
@@ -71,6 +71,19 @@ export interface AxisLabelDatum {
     rotation: number;
     range: number[];
 }
+
+export type AxisGroupTranslation = Pick<AxisGroupDatum, 'translationX' | 'translationY'>;
+
+export type AxisLineDatumCoords = Pick<AxisLineDatum, 'x1' | 'x2' | 'y1' | 'y2'>;
+
+export type AxisLineOpacity = AxisLineDatumCoords & { opacity?: number };
+
+export type AxisGroupDatumTranslation = Pick<AxisGroupDatum, 'translationX' | 'translationY'>;
+
+export type AxisLabelDatumRotation = Pick<
+    AxisLabelDatum,
+    'x' | 'y' | 'rotationCenterX' | 'rotationCenterY' | 'rotation'
+>;
 
 export function prepareAxisAnimationContext(axis: { range: number[] }): AxisAnimationContext {
     const [requestedRangeMin, requestedRangeMax] = findMinMax(axis.range);
@@ -96,7 +109,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const outOfBounds = (y: number) => {
         return y < min || y > max;
     };
-    const tick: FromToFns<Line, any, AxisLineDatum> = {
+    const tick: FromToFns<AxisLineDatum, Line<AxisLineDatum>, AxisLineOpacity> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let { x1, x2, y1, y2 } = node;
@@ -132,9 +145,9 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         },
     };
 
-    const label: FromToFns<RotatableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+    const label: FromToFns<AxisLabelDatumRotation, RotatableText<AxisLabelDatumRotation>, AxisLabelDatumRotation> = {
         fromFn(node, newDatum, status) {
-            const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
+            const datum: AxisLabelDatumRotation = node.previousDatum ?? newDatum;
 
             // Default to starting at the same position that the node is currently in.
             let { x, y, rotationCenterX, rotationCenterY, rotation } = datum;
@@ -142,7 +155,8 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
 
             if (status === 'removed' || outOfBounds(datum.y)) {
                 rotation = newDatum.rotation;
-            } else if (status === 'added' || outOfBounds(node.datum.y)) {
+                // eslint-disable-next-line sonarjs/deprecation
+            } else if (status === 'added' || outOfBounds(node.unsafeDatum.y)) {
                 ({ x, y, rotationCenterX, rotationCenterY, rotation } = newDatum);
                 opacity = 0;
             }
@@ -182,10 +196,11 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             };
         },
     };
-    const line: FromToFns<Line, any, AxisLineDatum> = {
+    const line: FromToFns<AxisLineDatumCoords, Line<AxisLineDatumCoords>, AxisLineDatumCoords> = {
         fromFn(node, datum) {
             // Default to starting at the same position that the node is currently in.
-            const { x1, x2, y1, y2 } = node.previousDatum ?? datum;
+            // eslint-disable-next-line sonarjs/deprecation
+            const { x1, x2, y1, y2 } = node.unsafePreviousDatum ?? datum;
             return {
                 x1,
                 x2,
@@ -199,7 +214,11 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             return { x1, x2, y1, y2 };
         },
     };
-    const group: FromToFns<TranslatableGroup, any, AxisGroupDatum> = {
+    const group: FromToFns<
+        AxisGroupDatumTranslation,
+        TranslatableGroup<AxisGroupDatumTranslation>,
+        AxisGroupTranslation
+    > = {
         fromFn(node, _datum) {
             const { translationX, translationY } = node;
             return {
@@ -218,7 +237,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
 }
 
 export function resetAxisGroupFn() {
-    return (_node: Group, datum: AxisGroupDatum) => {
+    return (_node: Group, datum: AxisGroupDatumTranslation) => {
         return {
             translationX: datum.translationX,
             translationY: datum.translationY,
@@ -227,7 +246,7 @@ export function resetAxisGroupFn() {
 }
 
 export function resetAxisLabelSelectionFn() {
-    return (_node: RotatableText, datum: AxisLabelDatum) => {
+    return (_node: RotatableText, datum: AxisLabelDatumRotation) => {
         return {
             x: datum.x,
             y: datum.y,
@@ -239,7 +258,7 @@ export function resetAxisLabelSelectionFn() {
 }
 
 export function resetAxisLineSelectionFn() {
-    return (_node: Line, datum: AxisLineDatum) => {
+    return (_node: Line, datum: AxisLineDatumCoords) => {
         const { x1, x2, y1, y2 } = datum;
         return { x1, x2, y1, y2 };
     };

@@ -3,9 +3,9 @@ import { describe, expect, it } from '@jest/globals';
 import { Group } from './group';
 import { Selection } from './selection';
 
-class TestNode<D = any> extends Group<D> {}
+class TestNode extends Group<any> {}
 
-const expectSelectionToMatchData = (selection: Selection, data: Array<any>) => {
+const expectSelectionToMatchData = (selection: Selection<any, TestNode>, data: Array<any>) => {
     expect(selection.nodes()).toHaveLength(data.length);
     selection.each((node, datum, index) => {
         expect(node).toBeInstanceOf(TestNode);
@@ -13,15 +13,23 @@ const expectSelectionToMatchData = (selection: Selection, data: Array<any>) => {
     });
 };
 
+function newManagedSelection(): Selection<any, TestNode> {
+    return new Selection<any, TestNode>(new TestNode(), TestNode, true);
+}
+
+function newUnmanagedSelection(): Selection<any, TestNode> {
+    return new Selection<any, TestNode>(new TestNode(), TestNode, false);
+}
+
 describe('Selection', () => {
     it('should create an empty selection', () => {
-        const selection = new Selection(new TestNode(), TestNode);
+        const selection = newManagedSelection();
         expect(selection.nodes()).toHaveLength(0);
     });
 
     describe('without getDatumId', () => {
         it('should update with new data', () => {
-            const selection = new Selection(new TestNode(), TestNode);
+            const selection = newManagedSelection();
             const data = ['a', 'b', 'c'];
             selection.update(data);
 
@@ -30,7 +38,7 @@ describe('Selection', () => {
 
         describe('with automatic garbage collection', () => {
             it('should remove data', () => {
-                const selection = new Selection(new TestNode(), TestNode);
+                const selection = newManagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData = ['a', 'c'];
                 selection.update(data);
@@ -40,7 +48,7 @@ describe('Selection', () => {
             });
 
             it('should remove and add data', () => {
-                const selection = new Selection(new TestNode(), TestNode);
+                const selection = newManagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData = ['a', 'c'];
                 selection.update(data);
@@ -51,7 +59,7 @@ describe('Selection', () => {
             });
 
             it('for zero datums it should remove data', () => {
-                const selection = new Selection(new TestNode(), TestNode);
+                const selection = newManagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData: string[] = [];
                 selection.update(data);
@@ -63,7 +71,7 @@ describe('Selection', () => {
 
         describe('with manual garbage collection', () => {
             it('should not remove data', () => {
-                const selection = new Selection(new TestNode(), TestNode, false);
+                const selection = newUnmanagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData = ['a', 'c'];
 
@@ -78,7 +86,7 @@ describe('Selection', () => {
             });
 
             it('when garbage collected it should remove data', () => {
-                const selection = new Selection(new TestNode(), TestNode, false);
+                const selection = newUnmanagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData = ['a', 'c'];
                 selection.update(data);
@@ -89,7 +97,7 @@ describe('Selection', () => {
             });
 
             it('when garbage collected and zero datums it should remove data', () => {
-                const selection = new Selection(new TestNode(), TestNode, false);
+                const selection = newUnmanagedSelection();
                 const data = ['a', 'b', 'c'];
                 const changedData: string[] = [];
                 selection.update(data);
@@ -103,7 +111,7 @@ describe('Selection', () => {
 
     describe('with getDatumId and manual garbage collection', () => {
         it('should update with new data', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -115,7 +123,7 @@ describe('Selection', () => {
         });
 
         it('should update datums by id rather than index and maintain order', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -140,7 +148,7 @@ describe('Selection', () => {
         });
 
         it('should not remove data', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -158,7 +166,7 @@ describe('Selection', () => {
         });
 
         it('should maintain order', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const a = { key: 'a', value: 0 };
             const b = { key: 'b', value: 1 };
             const c = { key: 'c', value: 2 };
@@ -190,7 +198,7 @@ describe('Selection', () => {
         });
 
         it('when garbage collected it should remove data', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -212,7 +220,7 @@ describe('Selection', () => {
 
     describe('mode transitions', () => {
         it('should handle transition from index-based to ID-based mode', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -237,7 +245,7 @@ describe('Selection', () => {
         });
 
         it('should handle transition from ID-based to index-based mode', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },
@@ -261,7 +269,7 @@ describe('Selection', () => {
         });
 
         it('should handle multiple transitions back and forth', () => {
-            const selection = new Selection(new TestNode(), TestNode, false);
+            const selection = newUnmanagedSelection();
             const data1 = [
                 { key: 'a', value: 0 },
                 { key: 'b', value: 1 },

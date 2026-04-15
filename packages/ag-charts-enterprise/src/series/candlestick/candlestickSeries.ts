@@ -9,7 +9,7 @@ import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
  * Consolidated type interface for CandlestickSeries.
  */
 interface CandlestickSeriesTypes extends OhlcSeriesBaseTypes {
-    readonly node: CandlestickNode;
+    readonly node: CandlestickNode<OhlcNodeDatum>;
     readonly options: AgCandlestickSeriesOptions;
     readonly properties: CandlestickSeriesProperties<AgCandlestickSeriesOptions>;
 }
@@ -21,7 +21,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     override properties = new CandlestickSeriesProperties<AgCandlestickSeriesOptions>();
 
     protected override nodeFactory() {
-        const node = new CandlestickNode();
+        const node = new CandlestickNode<OhlcNodeDatum>();
         node.lineCap = 'butt';
         return node;
     }
@@ -30,7 +30,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -42,7 +42,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<CandlestickSeriesTypes['node'], OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, CandlestickSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;

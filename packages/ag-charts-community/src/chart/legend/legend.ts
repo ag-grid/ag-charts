@@ -31,6 +31,7 @@ import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/even
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
+import { Node } from '../../scene/node';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Rect } from '../../scene/shape/rect';
@@ -84,10 +85,8 @@ export class Legend {
 
     private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
-    private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
-        this.group,
-        LegendMarkerLabel
-    );
+    private readonly itemSelection: Selection<CategoryLegendDatum, LegendMarkerLabel> =
+        Selection.select<LegendMarkerLabel>(this.group, LegendMarkerLabel);
     private readonly containerNode = this.group.appendChild(new Rect({ name: 'legend-container' }));
 
     private readonly oldSize: [number, number] = [0, 0];
@@ -820,10 +819,12 @@ export class Legend {
         proxyButton: SwitchWidget;
     } {
         const { datum, proxyButton } =
-            this.itemSelection.select((ml): ml is LegendMarkerLabel => ml.datum?.itemId === params.itemId)[0] ?? {};
+            this.itemSelection.select((ml: Node<any>): ml is LegendMarkerLabel => {
+                return ml.datum?.itemId === params.itemId;
+            })[0] ?? {};
         if (datum === undefined || proxyButton === undefined) {
             throw new Error(
-                `AG Charts - Missing required properties { datum: ${datum}, proxyButton: ${JSON.stringify(proxyButton)} }`
+                `AG Charts - Missing required properties { datum: ${JSON.stringify(datum)}, proxyButton: ${JSON.stringify(proxyButton)} }`
             );
         }
         return { datum, proxyButton };
@@ -843,7 +844,8 @@ export class Legend {
     onContextClick(widgetEvent: MouseWidgetEvent<'contextmenu'>, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         const { sourceEvent } = widgetEvent;
-        const legendItem: CategoryLegendDatum = node.datum;
+        // eslint-disable-next-line sonarjs/deprecation
+        const legendItem: CategoryLegendDatum = node.unsafeNonNullDatum;
 
         this.clearHighlight();
 

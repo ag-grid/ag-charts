@@ -6,7 +6,7 @@ import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
 import { Shape } from './shape';
 
-export class Path<D = any> extends Shape<D> implements DistantObject {
+export class Path<D = unknown> extends Shape<D> implements DistantObject {
     static override readonly className: string = 'Path';
 
     /**

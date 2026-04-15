@@ -41,7 +41,7 @@ export interface PluginModuleInstance extends ModuleInstance {
     processData?(dataController: any): Promise<void> | void;
 }
 
-export type PickNodeDatumResult = { datum: NonNullable<any>; distanceSquared: number } | undefined;
+export type PickNodeDatumResult = { unsafeDatum: any; distanceSquared: number } | undefined;
 // export type PickNodeDatumResult = { datum: SeriesNodeDatum<DatumIndexType>; distanceSquared: number } | undefined;
 
 export interface PropertyDefinitionOpts {

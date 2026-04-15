@@ -146,7 +146,7 @@ interface BubbleSeriesNodeDataContext
  * Defines all type parameters in one place for the series.
  */
 interface BubbleSeriesTypes extends CartesianSeriesTypes {
-    readonly node: Marker;
+    readonly node: Marker<BubbleScatterNodeDatum>;
     readonly options: AgBubbleSeriesOptions;
     readonly properties: BubbleSeriesProperties;
     readonly datum: BubbleScatterNodeDatum;
@@ -908,7 +908,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     protected override updateDatumSelection(opts: {
         nodeData: BubbleScatterNodeDatum[];
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
     }) {
         const { nodeData, datumSelection } = opts;
 
@@ -933,7 +933,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     override updateDatumStyles(opts: {
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -968,7 +968,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected override updateDatumNodes(opts: {
-        datumSelection: Selection<Marker, BubbleScatterNodeDatum>;
+        datumSelection: Selection<BubbleScatterNodeDatum, Marker<BubbleScatterNodeDatum>>;
         isHighlight: boolean;
         drawingMode: AgDrawingMode;
     }) {
@@ -1068,7 +1068,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
+        labelSelection: Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>>;
         isHighlight?: boolean;
     }) {
         const { isHighlight = false } = opts;
@@ -1093,8 +1093,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     protected override updateLabelSelection(opts: {
         labelData: BubbleScatterNodeDatum[];
-        labelSelection: Selection<Text, BubbleScatterNodeDatum>;
-    }): Selection<Text, BubbleScatterNodeDatum> {
+        labelSelection: Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>>;
+    }): Selection<BubbleScatterNodeDatum, Text<BubbleScatterNodeDatum>> {
         const { labelData, labelSelection } = opts;
         return labelSelection.update(labelData, (text) => {
             text.pointerEvents = PointerEvents.None;
@@ -1440,7 +1440,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected nodeFactory() {
-        return new Marker();
+        return new Marker<BubbleScatterNodeDatum>();
     }
 
     public getStyle(highlightState?: HighlightState): Required<AgBubbleSeriesStylerResult> {

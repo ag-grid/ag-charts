@@ -156,7 +156,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
     }
 
     updateText(datum: DisjointChannelProperties, top: Bounds4, bottom: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateChannelText(false, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
     }

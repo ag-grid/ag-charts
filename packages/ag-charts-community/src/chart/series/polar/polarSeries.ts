@@ -57,14 +57,14 @@ export type UnknownPolarSeries = PolarSeries<
     DataModelSeriesNodeDatum,
     object,
     SeriesProperties<object> & PolarSeriesProperties,
-    Node
+    Node<DataModelSeriesNodeDatum>
 >;
 
 export abstract class PolarSeries<
     TDatum extends DataModelSeriesNodeDatum & { legendItemValue?: string },
     TOpts extends object,
     TProps extends SeriesProperties<TOpts> & PolarSeriesProperties,
-    TNode extends Node,
+    TNode extends Node<TDatum>,
     TLabel = TDatum,
     TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
 > extends DataModelSeries<TDatum, TOpts, TProps, TLabel, TContext> {
@@ -80,26 +80,28 @@ export abstract class PolarSeries<
         return this.nodeData;
     }
 
-    protected itemSelection: Selection<TNode, TDatum> = Selection.select(
+    protected itemSelection = Selection.selectNoInference<TDatum, TNode>(
         this.itemGroup,
         () => this.nodeFactory(),
         false
     );
-    protected labelSelection: Selection<Text, TDatum> = Selection.select(
+    protected labelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
         this.labelGroup,
         () => this.labelFactory(),
         false
     );
-    protected highlightSelection: Selection<TNode, TDatum> = Selection.select(this.highlightNodeGroup, () =>
-        this.nodeFactory()
+    protected highlightSelection: Selection<TDatum, TNode> = Selection.selectNoInference<TDatum, TNode>(
+        this.highlightNodeGroup,
+        () => this.nodeFactory()
     );
-    protected highlightLabelSelection: Selection<Text, TDatum> = Selection.select(this.highlightLabelGroup, () =>
-        this.labelFactory()
+    protected highlightLabelSelection: Selection<TDatum, Text<TDatum>> = Selection.select(
+        this.highlightLabelGroup,
+        () => this.labelFactory()
     );
 
     animationResetFns?: {
         item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
-        label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
+        label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
     };
 
     /**
@@ -139,7 +141,7 @@ export abstract class PolarSeries<
         canHaveAxes?: boolean;
         animationResetFns?: {
             item?: (node: TNode, datum: TDatum) => AnimationValue & Partial<TNode>;
-            label?: (node: Text, datum: TDatum) => AnimationValue & Partial<Text>;
+            label?: (node: Text<TDatum>, datum: TDatum) => AnimationValue & Partial<Text<TDatum>>;
         };
     } & Partial<DataModelSeriesConstructorOpts<TProps>>) {
         super({
@@ -219,8 +221,8 @@ export abstract class PolarSeries<
 
     protected abstract nodeFactory(): TNode;
 
-    protected labelFactory(): Text {
-        const text = new Text();
+    protected labelFactory(): Text<TDatum> {
+        const text = new Text<TDatum>();
         text.pointerEvents = PointerEvents.None;
         return text;
     }

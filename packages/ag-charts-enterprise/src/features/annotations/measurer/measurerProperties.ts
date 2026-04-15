@@ -33,6 +33,8 @@ class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
 }
 
 export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineStyle(StartEndProperties)))) {
+    public type!: AnnotationType;
+
     public direction: 'both' | 'horizontal' | 'vertical' = 'both';
 
     public hasDateRange = false;
@@ -95,7 +97,7 @@ export class DateRangeProperties extends DateRange(MeasurerTypeProperties) {
     }
 
     @Property
-    type = AnnotationType.DateRange as const;
+    override type = AnnotationType.DateRange as const;
 
     @Property
     extendAbove?: boolean;
@@ -112,7 +114,7 @@ export class PriceRangeProperties extends PriceRange(MeasurerTypeProperties) {
     }
 
     @Property
-    type = AnnotationType.PriceRange as const;
+    override type = AnnotationType.PriceRange as const;
 
     @Property
     extendLeft?: boolean;
@@ -129,7 +131,7 @@ export class DatePriceRangeProperties extends DateRange(PriceRange(MeasurerTypeP
     }
 
     @Property
-    type = AnnotationType.DatePriceRange as const;
+    override type = AnnotationType.DatePriceRange as const;
 
     override direction = 'both' as const;
 }
@@ -140,7 +142,7 @@ export class QuickDatePriceRangeProperties extends DateRange(PriceRange(Measurer
     }
 
     @Property
-    type = AnnotationType.QuickDatePriceRange as const;
+    override type = AnnotationType.QuickDatePriceRange as const;
 
     @Property
     public up = new MeasurerDirectionProperties();

@@ -54,14 +54,14 @@ export interface AbstractBarSeriesNodeDataContext<
  * The properties type must include direction for bar orientation.
  */
 export interface AbstractBarSeriesTypes extends CartesianSeriesTypes {
-    readonly node: QuadtreeCompatibleNode;
+    readonly node: QuadtreeCompatibleNode<this['datum']>;
     readonly properties: AbstractBarSeriesProperties<this['options']>;
     readonly context: AbstractBarSeriesNodeDataContext<this['datum'], this['label']>;
 }
 
 export type AbstractBarSeriesAnimationData<TTypes extends AbstractBarSeriesTypes> = CartesianAnimationData<
-    NodeOf<TTypes>,
     DatumOf<TTypes>,
+    NodeOf<TTypes>,
     LabelOf<TTypes>,
     ContextOf<TTypes>
 >;

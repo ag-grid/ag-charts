@@ -46,7 +46,7 @@ export interface NodeOptions {
     scene?: IScene;
 }
 
-export type NodeWithOpacity = Node & { opacity: number };
+export type NodeWithOpacity<D> = Node<D> & { opacity: number };
 
 export type ChildNodeCounts = {
     groups: number;
@@ -166,19 +166,36 @@ export abstract class Node<TDatum = unknown> {
     /**
      * Some arbitrary data bound to the node.
      */
-    get datum() {
+    get datum(): TDatum | undefined {
         return this._datum;
     }
 
-    set datum(datum: any) {
+    set datum(datum: TDatum | undefined) {
         if (this._datum !== datum) {
             this._previousDatum = this._datum;
             this._datum = datum;
         }
     }
 
-    get previousDatum(): any {
+    get previousDatum(): TDatum | undefined {
         return this._previousDatum;
+    }
+
+    /** @deprecated do not use unsafe non-null assertion (`datum!`), used typed `datum` */
+    get unsafeNonNullDatum(): TDatum {
+        return this.datum!;
+    }
+    /** @deprecated do not use `any`, used typed `datum` */
+    get unsafeDatum(): any {
+        return this.datum;
+    }
+    /** @deprecated do not use `any`, used typed `datum` */
+    set unsafeDatum(datum: any) {
+        this.datum = datum;
+    }
+    /** @deprecated do not use `any`, used typed `previousDatum` */
+    get unsafePreviousDatum(): any {
+        return this.previousDatum;
     }
 
     get layerManager(): LayersManager | undefined {
@@ -189,12 +206,17 @@ export abstract class Node<TDatum = unknown> {
         return this.scene?.imageLoader;
     }
 
-    closestDatum() {
+    closestDatum(): unknown {
         for (const { datum } of this.traverseUp(true)) {
             if (datum != null) {
                 return datum;
             }
         }
+    }
+
+    /** @deprecated do not use `any` */
+    unsafeClosestDatum(): any {
+        return this.closestDatum();
     }
 
     /** Perform any pre-rendering initialization. */

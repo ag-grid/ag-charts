@@ -56,8 +56,8 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return mergeDefaults(this.properties.dropOff.getStyle(), this.properties.getStyle(index));
     }
 
-    protected override nodeFactory(): _ModuleSupport.Rect {
-        return new Rect();
+    protected override nodeFactory(): _ModuleSupport.Rect<FunnelNodeDatum> {
+        return new Rect<FunnelNodeDatum>();
     }
 
     protected override createLabelData({
@@ -140,7 +140,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<FunnelNodeDatum, _ModuleSupport.Rect<FunnelNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { contextNodeData } = this;
@@ -168,7 +168,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         return this.getItemStyle({ datum, datumIndex }, false);
     }
 
-    override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect>) {
+    override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect<FunnelNodeDatum>>) {
         super.animateEmptyUpdateReady(params);
 
         const { datumSelection } = params;
@@ -179,7 +179,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], barFns);
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Rect>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Rect<FunnelNodeDatum>>) {
         super.animateWaitingUpdateReady(data);
         const { datumSelection: datumSelections } = data;
         const { processedData } = this;
@@ -192,7 +192,8 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => datum.xValue,
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => node.unsafeDatum.xValue,
             dataDiff
         );
     }

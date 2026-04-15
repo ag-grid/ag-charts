@@ -9,5 +9,5 @@ export class FibonacciRetracementProperties extends FibonacciProperties {
     }
 
     @Property
-    type = AnnotationType.FibonacciRetracement as const;
+    override type = AnnotationType.FibonacciRetracement as const;
 }

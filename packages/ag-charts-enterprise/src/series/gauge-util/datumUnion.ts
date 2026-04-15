@@ -1,13 +1,12 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
 export class DatumUnion<
-    TNode extends _ModuleSupport.Shape,
-    TDatum extends _ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>,
+    TNode extends _ModuleSupport.Shape<_ModuleSupport.SeriesNodeDatum<_ModuleSupport.DatumIndexType>>,
 > {
     node?: TNode;
-    datum?: TDatum;
+    datum?: TNode['datum'];
 
-    *[Symbol.iterator](): IterableIterator<{ node: TNode; datum: TDatum }> {
+    *[Symbol.iterator](): IterableIterator<{ node: TNode; datum: TNode['datum'] }> {
         const { node, datum } = this;
         if (node && datum) yield { node, datum };
     }
@@ -33,7 +32,17 @@ export class DatumUnion<
             }
             const first = nodes[0];
             const last =
-                nodes.toReversed().find((n) => n.datum.datum.value > n.datum.datum.segmentStart) ?? nodes.at(-1)!;
+                nodes.toReversed().find((n: TNode): boolean => {
+                    const unsafeDatum: unknown = n.datum?.datum;
+                    if (unsafeDatum != null && typeof unsafeDatum === 'object') {
+                        const unsafeObject: { value?: unknown; segmentStart?: unknown } = unsafeDatum;
+                        const { value, segmentStart } = unsafeObject;
+                        if (typeof value === 'number' && typeof segmentStart === 'number') {
+                            return value > segmentStart;
+                        }
+                    }
+                    return false;
+                }) ?? nodes.at(-1)!;
 
             this.node.datum = this.datum = first.datum;
             nodeUpdater(this.node, first, last);

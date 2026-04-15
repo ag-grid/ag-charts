@@ -8,7 +8,7 @@ import { OhlcSeriesProperties } from './ohlcSeriesProperties';
  * Consolidated type interface for OhlcSeries.
  */
 interface OhlcSeriesTypes extends OhlcSeriesBaseTypes {
-    readonly node: OhlcNode;
+    readonly node: OhlcNode<OhlcNodeDatum>;
     readonly options: AgOhlcSeriesOptions;
     readonly properties: OhlcSeriesProperties;
 }
@@ -20,7 +20,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
     override properties = new OhlcSeriesProperties();
 
     protected override nodeFactory() {
-        const node = new OhlcNode();
+        const node = new OhlcNode<OhlcNodeDatum>();
         node.lineCap = 'square';
         return node;
     }
@@ -29,7 +29,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, datum) => {
@@ -41,7 +41,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<OhlcSeriesTypes['node'], OhlcNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<OhlcNodeDatum, OhlcSeriesTypes['node']>;
         isHighlight: boolean;
     }) {
         const { contextNodeData, properties } = this;

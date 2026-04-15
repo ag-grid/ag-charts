@@ -191,7 +191,7 @@ export function prepareLinePathPropertyAnimation(
     status: NodeUpdateState,
     visibleToggleMode: 'fade' | 'none',
     targetOpacity: number = 1
-): FromToFns<Path, any, unknown> {
+): FromToFns<unknown, Path<unknown>, any> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {

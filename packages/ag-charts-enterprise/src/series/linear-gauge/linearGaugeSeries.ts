@@ -159,30 +159,30 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     );
     private readonly tickGroup = this.contentGroup.appendChild(new Group({ name: 'tickGroup' }));
 
-    private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
-        this.scaleGroup,
-        () => this.nodeFactory()
+    private scaleSelection = Selection.select<_ModuleSupport.Rect<LinearGaugeNodeDatum>>(this.scaleGroup, () =>
+        this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
+    private datumSelection = Selection.select<_ModuleSupport.Rect<LinearGaugeNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
-    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
-        this.itemTargetGroup,
-        () => this.markerFactory()
+    public targetSelection = Selection.select<_ModuleSupport.Marker<LinearGaugeTargetDatum>>(this.itemTargetGroup, () =>
+        this.markerFactory()
     );
-    private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum> =
-        Selection.select(this.itemTargetLabelGroup, Text);
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum> = Selection.select(
-        this.itemLabelGroup,
+    private targetLabelSelection = Selection.select<_ModuleSupport.Text<LinearGaugeTargetDatum>>(
+        this.itemTargetLabelGroup,
         Text
     );
-    private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
-        Selection.select(this.highlightTargetGroup, () => this.markerFactory());
-    private tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum> =
-        Selection.select(this.tickGroup, TransformableText);
+    private labelSelection = Selection.select<_ModuleSupport.Text<LinearGaugeLabelDatum>>(this.itemLabelGroup, Text);
+    private highlightTargetSelection = Selection.select<_ModuleSupport.Marker<LinearGaugeTargetDatum>>(
+        this.highlightTargetGroup,
+        () => this.markerFactory()
+    );
+    private tickSelection = Selection.select<_ModuleSupport.TransformableText<_ModuleSupport.TickDatum>>(
+        this.tickGroup,
+        TransformableText
+    );
 
-    public datumUnion: DatumUnion<_ModuleSupport.Rect, LinearGaugeNodeDatum> = new DatumUnion();
+    public datumUnion: DatumUnion<_ModuleSupport.Rect<LinearGaugeNodeDatum>> = new DatumUnion();
     private readonly animationState: StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
     public contextNodeData?: LinearGaugeNodeDataContext;
@@ -233,14 +233,14 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return true;
     }
 
-    private nodeFactory(): _ModuleSupport.Rect {
-        const rect = new Rect();
+    private nodeFactory(): _ModuleSupport.Rect<LinearGaugeNodeDatum> {
+        const rect = new Rect<LinearGaugeNodeDatum>();
         rect.crisp = true;
         return rect;
     }
 
-    private markerFactory(): _ModuleSupport.Marker {
-        return new Marker();
+    private markerFactory(): _ModuleSupport.Marker<LinearGaugeTargetDatum> {
+        return new Marker<LinearGaugeTargetDatum>();
     }
 
     override processData() {
@@ -868,7 +868,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateDatumSelection(opts: {
         nodeData: LinearGaugeNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
@@ -876,7 +876,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private updateDatumNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
     }) {
         const { datumSelection } = opts;
         const { ctx } = this;
@@ -933,7 +933,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateScaleSelection(opts: {
         scaleData: LinearGaugeNodeDatum[];
-        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
@@ -941,7 +941,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
     }
 
     private updateScaleNodes(opts: {
-        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<LinearGaugeNodeDatum, _ModuleSupport.Rect<LinearGaugeNodeDatum>>;
     }) {
         const { scaleSelection } = opts;
 
@@ -965,13 +965,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTargetSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<
+            LinearGaugeTargetDatum,
+            _ModuleSupport.Marker<LinearGaugeTargetDatum>
+        >;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private updateTargetNodes(opts: {
-        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<
+            LinearGaugeTargetDatum,
+            _ModuleSupport.Marker<LinearGaugeTargetDatum>
+        >;
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
@@ -1001,13 +1007,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTargetLabelSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<
+            LinearGaugeTargetDatum,
+            _ModuleSupport.Text<LinearGaugeTargetDatum>
+        >;
     }) {
         return opts.targetLabelSelection.update(opts.targetData);
     }
 
     private updateTargetLabelNodes(opts: {
-        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<
+            LinearGaugeTargetDatum,
+            _ModuleSupport.Text<LinearGaugeTargetDatum>
+        >;
     }) {
         const { targetLabelSelection } = opts;
 
@@ -1032,13 +1044,19 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateTickSelection(opts: {
         tickData: _ModuleSupport.TickDatum[];
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum>;
+        tickSelection: _ModuleSupport.Selection<
+            _ModuleSupport.TickDatum,
+            _ModuleSupport.TransformableText<_ModuleSupport.TickDatum>
+        >;
     }) {
         return opts.tickSelection.update(opts.tickData, undefined, (datum) => datum.tickId);
     }
 
     private updateTickNodes(opts: {
-        tickSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, _ModuleSupport.TickDatum>;
+        tickSelection: _ModuleSupport.Selection<
+            _ModuleSupport.TickDatum,
+            _ModuleSupport.TransformableText<_ModuleSupport.TickDatum>
+        >;
     }) {
         const { gaugeRect, properties } = this;
         const defaultScale = properties.defaultScale;
@@ -1098,13 +1116,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private updateLabelSelection(opts: {
         labelData: LinearGaugeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (_datum) => 'primary');
     }
 
     private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<LinearGaugeLabelDatum, _ModuleSupport.Text<LinearGaugeLabelDatum>>;
     }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
@@ -1205,7 +1223,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(true, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
+        fromToMotion(
+            this.id,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            // eslint-disable-next-line sonarjs/deprecation
+            (sector) => sector.unsafeDatum.itemId
+        );
 
         fromToMotion(this.id, 'label', animationManager, [this.labelSelection], fadeInFns, () => 'primary');
 
@@ -1216,7 +1242,15 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         const { animationManager } = this.ctx;
 
         const { node } = prepareLinearGaugeSeriesAnimationFunctions(false, this.horizontal);
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
+        fromToMotion(
+            this.id,
+            'node',
+            animationManager,
+            [this.datumSelection],
+            node,
+            // eslint-disable-next-line sonarjs/deprecation
+            (sector) => sector.unsafeDatum.itemId
+        );
 
         this.animateLabelText();
     }

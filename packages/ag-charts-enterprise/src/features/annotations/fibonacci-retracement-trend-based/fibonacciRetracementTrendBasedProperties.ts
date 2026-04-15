@@ -10,7 +10,7 @@ export class FibonacciRetracementTrendBasedProperties extends FibonacciPropertie
     }
 
     @Property
-    type = AnnotationType.FibonacciRetracementTrendBased as const;
+    override type = AnnotationType.FibonacciRetracementTrendBased as const;
 
     @Property
     endRetracement = new PointProperties();

@@ -8,7 +8,7 @@ import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene {
+export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene<Datum> {
     override activeHandle?: string;
 
     protected readonly handle = new DivariantHandle();

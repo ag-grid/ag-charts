@@ -1,9 +1,10 @@
 import type { AnnotationContext } from '../annotationTypes';
 import { annotationConfigs } from '../annotationsConfig';
-import type { AnnotationProperties, AnnotationScene } from '../annotationsSuperTypes';
+import type { AnnotationProperties, AnnotationScene, AnnotationTypeConfig } from '../annotationsSuperTypes';
 
 export function updateAnnotation(node: AnnotationScene, datum: AnnotationProperties, context: AnnotationContext) {
-    for (const { update } of Object.values(annotationConfigs)) {
-        update(node, datum, context);
+    for (const value of Object.values(annotationConfigs)) {
+        const lenientValue: AnnotationTypeConfig<any, AnnotationScene> = value;
+        lenientValue.update(node, datum, context);
     }
 }

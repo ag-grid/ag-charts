@@ -209,7 +209,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
     }
 
     updateText(datum: ParallelChannelProperties, top: Bounds4, bottom: Bounds4) {
-        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!datum.text.label);
 
         updateChannelText(true, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
     }

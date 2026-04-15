@@ -20,8 +20,10 @@ function fixRadialBarAnimationStatus(
     if (status === 'updated') {
         if (
             node.previousDatum == null ||
-            Number.isNaN(node.previousDatum.innerRadius) ||
-            Number.isNaN(node.previousDatum.outerRadius)
+            // eslint-disable-next-line sonarjs/deprecation
+            Number.isNaN(node.unsafePreviousDatum.innerRadius) ||
+            // eslint-disable-next-line sonarjs/deprecation
+            Number.isNaN(node.unsafePreviousDatum.outerRadius)
         ) {
             return 'added';
         }

@@ -29,14 +29,14 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 
 export abstract class RadiusAxis<
     S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
-    D = any,
+    D = unknown,
 > extends _ModuleSupport.PolarAxis<S, D> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
     @Property
     positionAngle: number = 0;
 
-    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line, _ModuleSupport.TickDatum>(
+    protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
         false

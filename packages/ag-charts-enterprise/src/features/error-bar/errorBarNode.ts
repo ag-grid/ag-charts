@@ -52,7 +52,7 @@ class HierarchicalBBox {
     }
 }
 
-export class ErrorBarNode extends _ModuleSupport.Group {
+export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
     private readonly whiskerPath: _ModuleSupport.Path;
     private readonly capsPath: _ModuleSupport.Path;
     private capLength: number = Number.NaN;
@@ -247,7 +247,8 @@ export class ErrorBarGroup extends _ModuleSupport.Group {
             children: this.children() as Iterable<ErrorBarNode>,
         });
         if (nearest !== undefined && !Number.isNaN(distanceSquared)) {
-            return { datum: nearest.datum, distanceSquared };
+            // eslint-disable-next-line sonarjs/deprecation
+            return { unsafeDatum: nearest.unsafeDatum, distanceSquared };
         }
     }
 }

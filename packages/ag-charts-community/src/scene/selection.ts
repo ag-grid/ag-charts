@@ -5,16 +5,66 @@ import { Node } from './node';
 
 type ValidId = string | number;
 type NodeConstructor<TNode extends Node> = new () => TNode;
-type NodeFactory<TNode extends Node, TDatum> = (datum: TDatum) => TNode;
-type NodeConstructorOrFactory<TNode extends Node, TDatum> = NodeConstructor<TNode> | NodeFactory<TNode, TDatum>;
+type NodeFactory<TDatum, TNode extends Node<TDatum>> = (datum: TDatum) => TNode;
+type NodeConstructorOrFactory<TDatum, TNode extends Node<TDatum>> = NodeConstructor<TNode> | NodeFactory<TDatum, TNode>;
 
-export class Selection<TChild extends Node = Node, TDatum = any> {
-    static select<TChild extends Node = Node, TDatum = any>(
+/**
+ * `Selection['nodeFactory']` causes some Selections to unintuitively become unassignable to something that looks like
+ * it should be.
+ *
+ * Example:
+ *
+ *     type A = { opacity: number, yValue: number };
+ *     type B = { opacity: number };
+ *     type U = unknown;
+ *     const myA = new Selection<A, Node<A>>(new Group, Rect<A>);
+ *     const myB: Selection<B, Node<B>> = myA;            // error.
+ *     const myU: Selection<U, Node<U>> = myA;            // also an error (same reason).
+ *     const myI: SelectionInterface<B, Node<B>> = myA;   // OK
+ *
+ * Error for `myB` assignment
+ *
+ *     Type 'Selection<A, Node<A>>' is not assignable to type 'Selection<B, Node<B>>'.
+ *      Types of property 'nodeFactory' are incompatible.
+ *        Type 'NodeFactory<A, Node<A>>' is not assignable to type 'NodeFactory<B, Node<B>>'.
+ *          Type 'B' is not assignable to type 'A'.
+ *
+ * Which basically mean: this is unsafe, because `myB` might end up in a situation where you create a `TDatum` that does
+ * not include the `yValue` property, which would break the assumptions that you can make about `myA`.
+ *
+ * However, assignments like `myB` and `myU` are genuine cases that we want to support:
+ *
+ * 1.   `myB` Animation: Partially update a scene-node
+ * 2.   `myU` Highlight: Call `Node.getBBox()` (we do not intend to access `Node.datum`).
+ *
+ * Using `SelectionInterface` works because you are telling Typescript that you only care about the methods `Selection`
+ * (interface) and not about the properties used internally (implementation).
+ */
+export interface SelectionInterface<TDatum, TChild extends Node<TDatum>> {
+    [Symbol.iterator](): IterableIterator<{ node: TChild }>;
+    readonly length: number;
+    nodes(): TChild[];
+    cleanup(): void;
+    isGarbage(node: TChild): boolean;
+    batchedUpdate(fn: () => void): void;
+}
+
+export class Selection<TDatum, TChild extends Node<TDatum>> implements SelectionInterface<TDatum, TChild> {
+    static select<N extends Node<any>>(
         parent: Group,
-        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
+        classOrFactory: NodeConstructorOrFactory<any, N>,
         garbageCollection: boolean = true
     ) {
-        return new Selection(parent, classOrFactory, garbageCollection);
+        type DImplicit = N extends Node<infer Datum> ? Datum : never;
+        return new Selection<DImplicit, N>(parent, classOrFactory, garbageCollection);
+    }
+
+    static selectNoInference<DExplicit, N extends Node<DExplicit>>(
+        parent: Group,
+        classOrFactory: NodeConstructorOrFactory<DExplicit, N>,
+        garbageCollection: boolean = true
+    ) {
+        return new Selection<DExplicit, N>(parent, classOrFactory, garbageCollection);
     }
 
     static selectAll<TChild extends Node = Node>(parent: Node, predicate: (node: Node) => node is TChild) {
@@ -41,7 +91,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return Selection.selectAll(node, (n: Node): n is TChild => n.tag === tag);
     }
 
-    private readonly nodeFactory: NodeFactory<TChild, TDatum>;
+    private readonly nodeFactory: NodeFactory<TDatum, TChild>;
     private readonly garbageBin = new Set<TChild>();
 
     private readonly _nodesMap = new Map<TChild, ValidId>();
@@ -52,12 +102,12 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
 
     constructor(
         private readonly parentNode: Group,
-        classOrFactory: NodeConstructorOrFactory<TChild, TDatum>,
+        classOrFactory: NodeConstructorOrFactory<TDatum, TChild>,
         private readonly autoCleanup: boolean = true
     ) {
         this.nodeFactory = Object.prototype.isPrototypeOf.call(Node, classOrFactory)
             ? () => new (classOrFactory as NodeConstructor<TChild>)()
-            : (classOrFactory as NodeFactory<TChild, TDatum>);
+            : (classOrFactory as NodeFactory<TDatum, TChild>);
     }
 
     private createNode(datum: TDatum, initializer?: (node: TChild) => void, idx?: number) {
@@ -186,7 +236,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         const nodes = this._nodes;
         this.parentNode.batchedUpdate(function selectionEach() {
             for (const entry of nodes.entries()) {
-                iterate(entry[1], entry[1].datum, entry[0]);
+                // eslint-disable-next-line sonarjs/deprecation
+                iterate(entry[1], entry[1].unsafeNonNullDatum, entry[0]);
             }
         });
         return this;
@@ -195,19 +246,20 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     *[Symbol.iterator](): IterableIterator<{ node: TChild; datum: TDatum; index: number }> {
         for (let index = 0; index < this._nodes.length; index++) {
             const node = this._nodes[index];
-            yield { node, datum: node.datum, index };
+            // eslint-disable-next-line sonarjs/deprecation
+            yield { node, datum: node.unsafeNonNullDatum, index };
         }
     }
 
-    select<TChild2 extends Node = Node>(predicate: (node: Node) => node is TChild2): TChild2[] {
+    select<TChild2 extends Node>(predicate: (node: Node) => node is TChild2): TChild2[] {
         return Selection.selectAll(this.parentNode, predicate);
     }
 
-    selectByClass<TChild2 extends Node = Node>(Class: new () => TChild2): TChild2[] {
+    selectByClass<TChild2 extends Node>(Class: new () => TChild2): TChild2[] {
         return Selection.selectByClass(this.parentNode, Class);
     }
 
-    selectByTag<TChild2 extends Node = Node>(tag: number): TChild2[] {
+    selectByTag<TChild2 extends Node>(tag: number): TChild2[] {
         return Selection.selectByTag(this.parentNode, tag);
     }
 

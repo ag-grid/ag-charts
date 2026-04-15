@@ -9,7 +9,7 @@ function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [numbe
     return Math.abs(ax - bx) <= delta && Math.abs(ay - by) <= delta;
 }
 
-export class FunnelConnector<D = any> extends Path<D> implements DistantObject {
+export class FunnelConnector<D = unknown> extends Path<D> implements DistantObject {
     @SceneChangeDetection()
     x0: number = 0;
 

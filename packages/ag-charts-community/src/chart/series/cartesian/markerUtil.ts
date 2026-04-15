@@ -17,16 +17,17 @@ import { HighlightState, highlightStates } from '../seriesProperties';
 import type { DatumIndexType, ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
-type NodeWithDrawingMode = Node & { drawingMode?: AgDrawingMode };
-type NodeWithOpacity = NodeWithDrawingMode & { opacity: number };
-type MarkerFadeInOptions = Partial<ExtraOpts<NodeWithOpacity>>;
-type MarkerSwipeScaleInOptions = Partial<ExtraOpts<NodeWithDrawingMode>>;
-export function markerFadeInAnimation<T>(
+type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };
+type NodeWithOpacity<D> = Node<D> & { opacity: number };
+type MarkerFadeInOptions<D> = Partial<ExtraOpts<NodeWithDrawingMode<D>>>;
+type MarkerSwipeScaleInOptions<D> = Partial<ExtraOpts<NodeWithDrawingMode<D>>>;
+
+export function markerFadeInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
     status?: NodeUpdateState,
-    options?: MarkerFadeInOptions,
-    ...markerSelections: Selection<NodeWithOpacity, T>[]
+    options?: MarkerFadeInOptions<D>,
+    ...markerSelections: Selection<D, NodeWithOpacity<D>>[]
 ) {
     const params = {
         ...options,
@@ -38,10 +39,10 @@ export function markerFadeInAnimation<T>(
     }
 }
 
-export function markerScaleInAnimation<T>(
+export function markerScaleInAnimation<D>(
     { id }: { id: string },
     animationManager: AnimationManager,
-    ...markerSelections: Selection<Node, T>[]
+    ...markerSelections: Selection<D, Node<D>>[]
 ) {
     staticFromToMotion(
         id,
@@ -57,14 +58,14 @@ export function markerScaleInAnimation<T>(
     }
 }
 
-export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
+export function markerSwipeScaleInAnimation<D extends CartesianSeriesNodeDatum>(
     { id, nodeDataDependencies }: { id: string } & NodeDataDependant,
     animationManager: AnimationManager,
-    options?: MarkerSwipeScaleInOptions,
-    ...markerSelections: Selection<NodeWithDrawingMode, T>[]
+    options?: MarkerSwipeScaleInOptions<D>,
+    ...markerSelections: Selection<D, NodeWithDrawingMode<D>>[]
 ) {
     const seriesWidth: number = nodeDataDependencies.seriesRectWidth;
-    const fromFn = (_: Node, datum: T) => {
+    const fromFn = (_: Node, datum: D) => {
         const x = datum.midPoint?.x ?? seriesWidth;
         // Calculate a delay that depends on the X position of the datum, so that nodes appear
         // gradually from left to right.
@@ -92,7 +93,7 @@ export function markerSwipeScaleInAnimation<T extends CartesianSeriesNodeDatum>(
     fromToMotion(id, 'markers', animationManager, markerSelections, { fromFn, toFn });
 }
 
-export function resetMarkerFn(_node: NodeWithOpacity & Node) {
+export function resetMarkerFn(_node: NodeWithOpacity<unknown>) {
     return { opacity: 1, scalingX: 1, scalingY: 1 };
 }
 
@@ -125,7 +126,7 @@ export function resetMarkerSelectionsDirect<D extends CartesianSeriesNodeDatum>(
     }
 }
 
-export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node: Node, datum: T) {
+export function resetMarkerPositionFn<D extends CartesianSeriesNodeDatum>(_node: Node<D>, datum: D) {
     return {
         x: datum.point?.x ?? Number.NaN,
         y: datum.point?.y ?? Number.NaN,

@@ -11,27 +11,32 @@ import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 
-export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene {
-    protected readonly trendLine = new CollidableLine();
-    public text?: CollidableText;
+export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene<Datum> {
+    protected readonly trendLine = new CollidableLine<never>();
+    public text?: CollidableText<never>;
 
     private readonly rangeFillsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
         name: `${this.id}-range-fills`,
     });
-    private readonly rangeFillsGroupSelection: _ModuleSupport.Selection<_ModuleSupport.Range, FibonacciRangeDatum> =
-        _ModuleSupport.Selection.select(this.rangeFillsGroup, _ModuleSupport.Range);
+    private readonly rangeFillsGroupSelection = _ModuleSupport.Selection.select<
+        _ModuleSupport.Range<FibonacciRangeDatum>
+    >(this.rangeFillsGroup, _ModuleSupport.Range);
 
     private readonly rangeStrokesGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
         name: `${this.id}-range-strokes`,
     });
-    private readonly rangeStrokesGroupSelection: _ModuleSupport.Selection<CollidableLine, FibonacciRangeDatum> =
-        _ModuleSupport.Selection.select(this.rangeStrokesGroup, CollidableLine);
+    private readonly rangeStrokesGroupSelection = _ModuleSupport.Selection.select<CollidableLine<FibonacciRangeDatum>>(
+        this.rangeStrokesGroup,
+        CollidableLine
+    );
 
     private readonly labelsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
         name: `${this.id}-ranges-labels`,
     });
-    private readonly labelsGroupSelection: _ModuleSupport.Selection<CollidableText, FibonacciRangeDatum> =
-        _ModuleSupport.Selection.select(this.labelsGroup, CollidableText);
+    private readonly labelsGroupSelection = _ModuleSupport.Selection.select<CollidableText<FibonacciRangeDatum>>(
+        this.labelsGroup,
+        CollidableText
+    );
 
     protected anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
@@ -95,7 +100,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         return linePoints;
     }
 
-    protected updateLine(datum: Datum, coords?: Bounds4, line?: CollidableLine) {
+    protected updateLine(datum: Datum, coords?: Bounds4, line?: CollidableLine<never>) {
         if (!coords || !line) {
             return;
         }
@@ -241,12 +246,13 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         xAxis: AnnotationAxisContext,
         fontOptions: TextOptions,
         isRtl: boolean,
-        textNode?: CollidableText
+        textNode?: CollidableText<FibonacciRangeDatum>
     ) {
         if (!textNode) {
             return false;
         }
-        const { text, ...coords } = textNode.datum.label;
+        // eslint-disable-next-line sonarjs/deprecation
+        const { text, ...coords } = textNode.unsafeNonNullDatum.label;
         textNode.setProperties({
             ...fontOptions,
             text,
@@ -266,14 +272,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     protected updateText(datum: Datum, coords: Bounds4) {
-        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine>(FibonacciNodeTag.OneLine)[0];
+        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine<FibonacciRangeDatum>>(
+            FibonacciNodeTag.OneLine
+        )[0];
 
         if (!oneLine) {
             return;
         }
 
         const { text: textProperties, strokeWidth } = datum;
-        this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
+        this.text = this.updateNode(CollidableText<never>, this.text, !!textProperties.label);
 
         updateLineText(oneLine.id, oneLine, coords, textProperties, this.text, textProperties.label, strokeWidth);
     }

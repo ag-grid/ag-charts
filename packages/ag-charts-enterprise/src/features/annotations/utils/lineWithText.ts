@@ -17,10 +17,10 @@ interface Numbers {
 
 export function updateLineText(
     id: string,
-    line: CollidableLine,
+    line: CollidableLine<unknown>,
     coords: Bounds4,
     textProperties?: Partial<LineTextProperties>,
-    textNode?: CollidableText,
+    textNode?: CollidableText<unknown>,
     text?: string,
     lineWidth?: number
 ) {
@@ -59,7 +59,7 @@ export function updateChannelText(
     textProperties: ChannelTextProperties,
     lineWidth?: number,
 
-    textNode?: CollidableText,
+    textNode?: CollidableText<never>,
     text?: string
 ) {
     if (!text || !textNode) return;

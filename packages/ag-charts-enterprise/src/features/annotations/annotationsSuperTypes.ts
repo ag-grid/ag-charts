@@ -120,20 +120,20 @@ export interface AnnotationsStateMachineContext {
     update: () => void;
 }
 
-export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationSceneNode> {
+export interface AnnotationTypeConfig<Datum extends BaseProperties, Scene extends AnnotationScene> {
     type: AnnotationType;
     isDatum: (value: unknown) => value is Datum;
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
-    update: (node: AnnotationSceneNode, datum: BaseProperties, context: AnnotationContext) => void;
+    update: (node: AnnotationSceneNode<Datum>, datum: BaseProperties, context: AnnotationContext) => void;
     translate: (
-        node: AnnotationSceneNode,
+        node: AnnotationSceneNode<unknown>,
         datum: BaseProperties,
         translation: Point,
         context: AnnotationContext
     ) => void;
     copy: (
-        node: AnnotationSceneNode,
+        node: AnnotationSceneNode<unknown>,
         datum: BaseProperties,
         copiedDatum: BaseProperties,
         context: AnnotationContext

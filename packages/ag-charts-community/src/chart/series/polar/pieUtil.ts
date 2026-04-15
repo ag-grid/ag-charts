@@ -38,7 +38,7 @@ export function preparePieSeriesAnimationFunctions(
         return { innerRadius: oldScale[0], outerRadius: oldScale[0] + (oldScale[1] - oldScale[0]) * radius };
     };
 
-    const fromFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
+    const fromFn: FromToMotionPropFn<AnimatableSectorDatum, Sector<AnimatableSectorDatum>, any> = (
         sect,
         datum,
         status: NodeUpdateState,
@@ -80,7 +80,7 @@ export function preparePieSeriesAnimationFunctions(
 
         return { startAngle, endAngle, innerRadius, outerRadius, stroke, phase, ...animatableFill };
     };
-    const toFn: FromToMotionPropFn<Sector, any, AnimatableSectorDatum> = (
+    const toFn: FromToMotionPropFn<AnimatableSectorDatum, Sector<AnimatableSectorDatum>, any> = (
         _sect: Sector,
         datum: AnimatableSectorDatum,
         status: NodeUpdateState,
@@ -91,8 +91,10 @@ export function preparePieSeriesAnimationFunctions(
         const { stroke, fill } = datum.sectorFormat;
 
         if (status === 'removed' && prevLive) {
-            startAngle = prevLive.datum?.endAngle;
-            endAngle = prevLive.datum?.endAngle;
+            // eslint-disable-next-line sonarjs/deprecation
+            startAngle = prevLive.unsafeDatum?.endAngle;
+            // eslint-disable-next-line sonarjs/deprecation
+            endAngle = prevLive.unsafeDatum?.endAngle;
         } else if (status === 'removed' && !prevLive) {
             startAngle = rotation;
             endAngle = rotation;
@@ -109,10 +111,13 @@ export function preparePieSeriesAnimationFunctions(
         return { startAngle, endAngle, outerRadius, innerRadius, stroke, ...animatableFill };
     };
 
-    const innerCircleFromFn: FromToMotionPropFn<Marker, any, { radius: number }> = (node, _) => {
-        return { size: node.previousDatum?.radius ?? node.size ?? 0, phase };
+    type D = { radius: number };
+    type T = { size: number; phase?: typeof phase };
+    const innerCircleFromFn: FromToMotionPropFn<D, Marker<D>, T> = (node, _) => {
+        // eslint-disable-next-line sonarjs/deprecation
+        return { size: node.unsafePreviousDatum?.radius ?? node.size ?? 0, phase };
     };
-    const innerCircleToFn: FromToMotionPropFn<Marker, any, { radius: number }> = (_, datum) => {
+    const innerCircleToFn: FromToMotionPropFn<D, Marker<D>, T> = (_, datum) => {
         return { size: datum.radius ?? 0 };
     };
 

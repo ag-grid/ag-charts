@@ -78,8 +78,8 @@ export class ChordSeries extends FlowProportionSeries<
     ChordNodeLabelDatum,
     AgChordSeriesOptions,
     ChordSeriesProperties,
-    _ModuleSupport.Sector,
-    ChordLink
+    _ModuleSupport.Sector<ChordNodeDatum>,
+    ChordLink<ChordLinkDatum>
 > {
     static override readonly className = 'ChordSeries';
     static readonly type = 'chord' as const;
@@ -98,11 +98,11 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected linkFactory() {
-        return new ChordLink();
+        return new ChordLink<ChordLinkDatum>();
     }
 
     protected nodeFactory() {
-        return new Sector();
+        return new Sector<ChordNodeDatum>();
     }
 
     override createNodeData(): ChordNodeDataContext | undefined {
@@ -340,14 +340,20 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<
+            ChordNodeLabelDatum,
+            _ModuleSupport.TransformableText<ChordNodeLabelDatum>
+        >;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<
+            ChordNodeLabelDatum,
+            _ModuleSupport.TransformableText<ChordNodeLabelDatum>
+        >;
     }) {
         const params: AgChordSeriesLabelFormatterParams = {
             toKey: this.properties.toKey,
@@ -397,7 +403,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateNodeSelection(opts: {
         nodeData: ChordNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.type, datum.id));
     }
@@ -466,7 +472,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected updateNodeNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordNodeDatum, _ModuleSupport.Sector<ChordNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -491,7 +497,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected updateLinkSelection(opts: {
         nodeData: ChordLinkDatum[];
-        datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId(datum.type, datum.index, datum.fromNode.id, datum.toNode.id)
@@ -550,7 +556,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected updateLinkNodes(opts: {
-        datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordLinkDatum, ChordLink<ChordLinkDatum>>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;

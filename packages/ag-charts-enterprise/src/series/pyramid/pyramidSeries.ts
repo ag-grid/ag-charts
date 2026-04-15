@@ -88,21 +88,20 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
     private readonly stageLabelGroup = this.contentGroup.appendChild(new Group({ name: 'stageLabelGroup' }));
 
-    public datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
-        this.itemGroup,
-        () => this.nodeFactory()
+    public datumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.itemGroup, () =>
+        this.nodeFactory()
     );
-    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> = Selection.select(
-        this.itemLabelGroup,
+    private labelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(this.itemLabelGroup, Text);
+    private stageLabelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
+        this.stageLabelGroup,
         Text
     );
-    private stageLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
-        Selection.select(this.stageLabelGroup, Text);
-    private highlightLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum> =
-        Selection.select(this.highlightLabelGroup, Text);
-    private highlightDatumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum> = Selection.select(
-        this.highlightNodeGroup,
-        () => this.nodeFactory()
+    private highlightLabelSelection = Selection.select<_ModuleSupport.Text<PyramidNodeLabelDatum>>(
+        this.highlightLabelGroup,
+        Text
+    );
+    private highlightDatumSelection = Selection.select<FunnelConnector<PyramidNodeDatum>>(this.highlightNodeGroup, () =>
+        this.nodeFactory()
     );
 
     public contextNodeData?: PyramidNodeDataContext;
@@ -140,8 +139,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         this.cleanup.register(this.ctx.eventsHub.on('legend:item-click', (event) => this.onLegendItemClick(event)));
     }
 
-    private nodeFactory(): FunnelConnector {
-        return new FunnelConnector();
+    private nodeFactory(): FunnelConnector<PyramidNodeDatum> {
+        return new FunnelConnector<PyramidNodeDatum>();
     }
 
     public override getNodeData(): PyramidNodeDatum[] | undefined {
@@ -495,7 +494,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateDatumSelection(opts: {
         nodeData: PyramidNodeDatum[];
-        datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
     }) {
         return opts.datumSelection.update(opts.nodeData);
     }
@@ -556,7 +555,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datumSelection,
         isHighlight,
     }: {
-        datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
         datumSelection.each((_, nodeDatum) => {
@@ -567,7 +566,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     private updateDatumNodes({
         datumSelection,
     }: {
-        datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<PyramidNodeDatum, FunnelConnector<PyramidNodeDatum>>;
         isHighlight: boolean;
     }) {
         const { properties } = this;
@@ -589,20 +588,23 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     private updateLabelSelection(opts: {
         labelData: PyramidNodeLabelDatum[];
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
     }) {
         return opts.labelSelection.update(this.properties.label.enabled ? opts.labelData : []);
     }
 
     private updateStageLabelSelection(opts: {
         stageLabelData: PyramidNodeLabelDatum[];
-        stageLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
+        stageLabelSelection: _ModuleSupport.Selection<
+            PyramidNodeLabelDatum,
+            _ModuleSupport.Text<PyramidNodeLabelDatum>
+        >;
     }) {
         return opts.stageLabelSelection.update(opts.stageLabelData);
     }
 
     private updateLabelNodes(opts: {
-        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<PyramidNodeLabelDatum, _ModuleSupport.Text<PyramidNodeLabelDatum>>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
         isHighlight?: boolean;
         checkActiveHighlight?: boolean;

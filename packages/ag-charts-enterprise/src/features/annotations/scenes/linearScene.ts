@@ -15,7 +15,7 @@ export abstract class LinearScene<
         extendEnd?: boolean;
         isWriteable: () => boolean;
     },
-> extends AnnotationScene {
+> extends AnnotationScene<Datum> {
     protected dragState?: {
         offset: Point;
         start: Point;

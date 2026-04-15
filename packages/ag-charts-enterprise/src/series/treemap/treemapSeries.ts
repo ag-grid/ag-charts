@@ -101,17 +101,17 @@ const verticalAlignFactors: Record<VerticalAlign, number | undefined> = {
     bottom: 1,
 };
 
-class DistantGroup extends _ModuleSupport.Group implements DistantObject {
+class DistantGroup<D> extends _ModuleSupport.Group<D> implements DistantObject {
     distanceSquared(x: number, y: number): number {
         return this.getBBox().distanceSquared(x, y);
     }
 }
 
 export class TreemapSeries extends _ModuleSupport.HierarchySeries<
-    DistantGroup,
+    TreemapNode,
+    DistantGroup<TreemapNode>,
     AgTreemapSeriesOptions,
-    TreemapSeriesProperties,
-    TreemapNode
+    TreemapSeriesProperties
 > {
     static override readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
@@ -122,12 +122,15 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
     private readonly rectGroup = this.contentGroup.appendChild(new Group());
 
-    protected readonly datumSelection = Selection.select<_ModuleSupport.Rect, TreemapNode>(this.rectGroup, Rect);
-    private readonly labelSelection = Selection.select<_ModuleSupport.Group, TreemapNode>(this.labelGroup, Group);
-    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, TreemapNode> = Selection.select(
+    protected readonly datumSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(
         this.rectGroup,
-        Rect
+        Rect<TreemapNode>
     );
+    private readonly labelSelection = Selection.select<_ModuleSupport.Group<TreemapNode>>(
+        this.labelGroup,
+        Group<TreemapNode>
+    );
+    private readonly highlightSelection = Selection.select<_ModuleSupport.Rect<TreemapNode>>(this.rectGroup, Rect);
 
     private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
         const heightRatioThreshold = 3;
@@ -731,7 +734,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         };
         const highlightedDatum = this.getActiveHighlightNode();
         for (const text of this.labelSelection.selectByClass(Text)) {
-            const datum = text.closestDatum();
+            // eslint-disable-next-line sonarjs/deprecation
+            const datum = text.unsafeClosestDatum();
             updateLabelFn(datum, text, text.tag, datum === highlightedDatum);
         }
     }

@@ -22,7 +22,7 @@ import { ErrorBarProperties } from './errorBarProperties';
 const { fixNumericExtent, groupAccumulativeValueProperty, valueProperty } = _ModuleSupport;
 
 interface ErrorBoundSeriesTypes extends _ModuleSupport.CartesianSeriesTypes {
-    readonly node: _ModuleSupport.Node<any>;
+    readonly node: _ModuleSupport.Node<ErrorBarNodeDatum>;
     readonly options: object;
     readonly properties: _ModuleSupport.CartesianSeriesProperties<any>;
     readonly datum: ErrorBarNodeDatum;
@@ -41,7 +41,7 @@ type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
-    private readonly selection: _ModuleSupport.Selection<ErrorBarNode>;
+    private readonly selection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
 
     readonly properties = new ErrorBarProperties();
 
@@ -301,7 +301,8 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         const { x, y } = point;
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
-            return { datum: node.datum, distanceSquared: 0 };
+            // eslint-disable-next-line sonarjs/deprecation
+            return { unsafeDatum: node.unsafeDatum, distanceSquared: 0 };
         }
     }
 
@@ -310,7 +311,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     pickNodeMainAxisFirst(point: Point, majorDirection: ChartAxisDirection): PickNodeDatumResult | undefined {
-        let closestDatum;
+        let unsafeClosestDatum: any;
         let closestDistance = [Infinity, Infinity];
         const referencePoints = [point.x, point.y];
         if (majorDirection === ChartAxisDirection.Y) {
@@ -330,14 +331,15 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
                 childDistances[0] < closestDistance[0] ||
                 (childDistances[0] == closestDistance[0] && childDistances[1] < closestDistance[1])
             ) {
-                closestDatum = child.datum;
+                // eslint-disable-next-line sonarjs/deprecation
+                unsafeClosestDatum = child.unsafeDatum;
                 closestDistance = childDistances;
             }
         }
 
-        if (closestDatum) {
+        if (unsafeClosestDatum) {
             return {
-                datum: closestDatum,
+                unsafeDatum: unsafeClosestDatum,
                 distanceSquared: Math.pow(closestDistance[0], 2) + Math.pow(closestDistance[1], 2),
             };
         }

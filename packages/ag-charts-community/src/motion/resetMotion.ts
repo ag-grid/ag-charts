@@ -9,8 +9,8 @@ import { deconstructSelectionsOrNodes } from './animation';
  * @param selectionsOrNodes contains nodes to be reset
  * @param propsFn callback to determine per-node properties
  */
-export function resetMotion<N extends Node, T extends Partial<N>, D>(
-    selectionsOrNodes: Selection<N, D>[] | N[],
+export function resetMotion<D, N extends Node<D>, T extends Partial<N>>(
+    selectionsOrNodes: Selection<D, N>[] | N[],
     propsFn: (node: N, datum: D) => T
 ) {
     const { nodes, selections } = deconstructSelectionsOrNodes(selectionsOrNodes);
@@ -19,14 +19,16 @@ export function resetMotion<N extends Node, T extends Partial<N>, D>(
         const selectionNodes = selection.nodes();
         selection.batchedUpdate(function resetMotionNodes() {
             for (const node of selectionNodes) {
-                const from = propsFn(node, node.datum);
+                // eslint-disable-next-line sonarjs/deprecation
+                const from = propsFn(node, node.unsafeDatum);
                 node.setProperties(from);
             }
             selection.cleanup();
         });
     }
     for (const node of nodes) {
-        const from = propsFn(node, node.datum);
+        // eslint-disable-next-line sonarjs/deprecation
+        const from = propsFn(node, node.unsafeDatum);
         node.setProperties(from);
     }
 }

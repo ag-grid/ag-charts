@@ -7,7 +7,7 @@ import type { AnnotationScene } from './annotationScene';
 
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
-        this: AnnotationScene & {
+        this: AnnotationScene<Datum> & {
             background: _ModuleSupport.Path;
             getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(datum: Datum, top: Bounds4, bottom: Bounds4, bounds: Bounds4): Point[];

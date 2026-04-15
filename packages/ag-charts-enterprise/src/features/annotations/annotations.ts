@@ -32,9 +32,10 @@ import { AnnotationType, stringToAnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import { LINE_STYLE_TYPE_ITEMS } from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
-import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
+import type { AnnotationProperties, AnnotationScene as AnnotationSceneUnion } from './annotationsSuperTypes';
 import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
+import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotationScene';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { getGroupingValue } from './utils/scale';
@@ -93,7 +94,7 @@ export class Annotations extends AbstractModuleInstance {
     // Elements
     private seriesRect?: _ModuleSupport.BBox;
     private readonly container = new _ModuleSupport.Group({ name: 'static-annotations' });
-    private readonly annotations = new Selection<AnnotationScene, AnnotationProperties>(
+    private readonly annotations = new Selection<AnnotationProperties, AnnotationSceneNode<AnnotationProperties>>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
@@ -232,7 +233,7 @@ export class Annotations extends AbstractModuleInstance {
                             // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                             // element has a width and height that it can use in the anchor calculations.
                             optionsToolbar.show();
-                            optionsToolbar.setAnchorScene(selectedNode);
+                            optionsToolbar.setAnchorScene(selectedNode as AnnotationSceneUnion);
                         });
                     }
                 } else {
@@ -287,7 +288,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             node: (index: number) => {
-                return this.annotations.at(index);
+                return this.annotations.at(index) as AnnotationSceneUnion;
             },
 
             recordAction: (label: string) => {
@@ -297,7 +298,7 @@ export class Annotations extends AbstractModuleInstance {
             update: () => {
                 this.postUpdateFns.push(() => {
                     const active = this.state.getActive();
-                    const node = active == null ? null : this.annotations.at(active);
+                    const node = active == null ? null : (this.annotations.at(active) as AnnotationSceneUnion);
                     if (node == null) return;
                     this.optionsToolbar.setAnchorScene(node);
                 });
@@ -362,7 +363,7 @@ export class Annotations extends AbstractModuleInstance {
             },
 
             showAnnotationOptions: (active: number) => {
-                const node = this.annotations.at(active);
+                const node = this.annotations.at(active) as AnnotationSceneUnion;
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
@@ -580,7 +581,7 @@ export class Annotations extends AbstractModuleInstance {
      */
     private createAnnotationScene(datum: AnnotationProperties) {
         if (datum.type in annotationConfigs) {
-            return new annotationConfigs[datum.type].scene();
+            return new annotationConfigs[datum.type].scene() as AnnotationSceneNode<AnnotationProperties>;
         }
         throw new Error(
             `AG Charts - Cannot create annotation scene of type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
@@ -654,7 +655,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private translateNode(
-        node: AnnotationScene,
+        node: AnnotationSceneNode<AnnotationProperties>,
         datum: AnnotationProperties,
         translation: Point
     ): AnnotationProperties | undefined {
@@ -669,7 +670,7 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private createAnnotationDatumCopy(
-        node: AnnotationScene,
+        node: AnnotationSceneNode<AnnotationProperties>,
         datum: AnnotationProperties
     ): AnnotationProperties | undefined {
         const config = this.getAnnotationConfig(datum);
@@ -764,7 +765,8 @@ export class Annotations extends AbstractModuleInstance {
             phase,
             groupId: 'opacity',
             onUpdate(value) {
-                annotations.each((node) => {
+                annotations.each((sceneNode) => {
+                    const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = value;
                     if ('setAxisLabelOpacity' in node) {
                         node.setAxisLabelOpacity(value);
@@ -772,7 +774,8 @@ export class Annotations extends AbstractModuleInstance {
                 });
             },
             onStop() {
-                annotations.each((node) => {
+                annotations.each((sceneNode) => {
+                    const node = sceneNode as AnnotationSceneUnion;
                     node.opacity = to;
                     if ('setAxisLabelOpacity' in node) {
                         node.setAxisLabelOpacity(to);
@@ -886,7 +889,8 @@ export class Annotations extends AbstractModuleInstance {
 
         annotations
             .update(annotationData ?? [], undefined, (datum) => datum.id)
-            .each((node, datum) => {
+            .each((sceneNode, datum) => {
+                const node = sceneNode as AnnotationSceneUnion;
                 if (!showAnnotations) {
                     node.visible = false;
                     if ('setAxisLabelVisible' in node) {

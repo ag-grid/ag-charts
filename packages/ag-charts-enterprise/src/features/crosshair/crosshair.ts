@@ -63,7 +63,7 @@ export class Crosshair extends AbstractModuleInstance {
             zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
-    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line, false);
+    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line<string>, false);
 
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;

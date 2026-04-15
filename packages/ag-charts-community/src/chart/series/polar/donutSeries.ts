@@ -158,7 +158,12 @@ interface PieDonutSeriesLabelFormatterParams
         AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
-export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOptions, DonutSeriesProperties, Sector> {
+export class DonutSeries extends PolarSeries<
+    PieDonutNodeDatum,
+    AgDonutSeriesOptions,
+    DonutSeriesProperties,
+    Sector<PieDonutNodeDatum>
+> {
     static override readonly className: string = 'DonutSeries';
     static readonly type: string = 'donut';
 
@@ -179,22 +184,19 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
     protected phantomGroup = this.contentGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
+    private readonly phantomSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomGroup,
         () => this.nodeFactory(),
         false
     );
     protected phantomHighlightGroup = this.highlightGroup.appendChild(new Group({ name: 'phantom', zIndex: -1 }));
-    private readonly phantomHighlightSelection: Selection<Sector, PieDonutNodeDatum> = Selection.select(
+    private readonly phantomHighlightSelection = Selection.select<Sector<PieDonutNodeDatum>>(
         this.phantomHighlightGroup,
         () => this.nodeFactory(),
         false
     );
     private readonly calloutLabelGroup = this.contentGroup.appendChild(new Group({ name: 'pieCalloutLabels' }));
-    private readonly calloutLabelSelection: Selection<Group, PieDonutNodeDatum> = new Selection(
-        this.calloutLabelGroup,
-        Group
-    );
+    private readonly calloutLabelSelection = Selection.select<Group<PieDonutNodeDatum>>(this.calloutLabelGroup, Group);
 
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
     readonly zerosumRingsGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-zerosumRings` }));
@@ -203,8 +205,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
 
     readonly innerLabelsGroup = this.contentGroup.appendChild(new Group({ name: 'innerLabels' }));
     readonly innerCircleGroup = this.backgroundGroup.appendChild(new Group({ name: `${this.id}-innerCircle` }));
-    readonly innerLabelsSelection: Selection<Text, DonutInnerLabel> = Selection.select(this.innerLabelsGroup, Text);
-    readonly innerCircleSelection: Selection<Marker, { radius: number }> = Selection.select(
+    readonly innerLabelsSelection = Selection.select<Text<DonutInnerLabel>>(this.innerLabelsGroup, Text);
+    readonly innerCircleSelection = Selection.select<Marker<{ radius: number }>>(
         this.innerCircleGroup,
         () => new Marker({ shape: 'circle' })
     );
@@ -267,8 +269,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, zIndex];
     }
 
-    protected override nodeFactory(): Sector {
-        const sector = new Sector();
+    protected override nodeFactory(): Sector<PieDonutNodeDatum> {
+        const sector = new Sector<PieDonutNodeDatum>();
         sector.miterLimit = 1e9;
         return sector;
     }
@@ -1125,7 +1127,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
-            const datum = line.closestDatum() as PieDonutNodeDatum;
+            // eslint-disable-next-line sonarjs/deprecation
+            const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
             const { length: calloutLength, strokeWidth, color, colors } = this.getCalloutLineStyle(datum, false);
@@ -1373,7 +1376,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
-            const datum: PieDonutNodeDatum = text.closestDatum();
+            // eslint-disable-next-line sonarjs/deprecation
+            const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
             const outerRadius = Math.max(0, radius);
@@ -1547,7 +1551,7 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
         const align = { textAlign: 'center', textBaseline: 'middle' } as const;
-        const updateSelection = (selection: Selection<Text, PieDonutNodeDatum>) =>
+        const updateSelection = (selection: Selection<PieDonutNodeDatum, Text<PieDonutNodeDatum>>) =>
             selection.each((text, datum) => {
                 const { outerRadius, startAngle, endAngle } = datum;
 
@@ -1851,7 +1855,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection, this.phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex)
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
@@ -1897,7 +1902,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex),
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex),
             dataDiff
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
@@ -1942,7 +1948,8 @@ export class DonutSeries extends PolarSeries<PieDonutNodeDatum, AgDonutSeriesOpt
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            (_, datum) => this.getDatumId(datum.datumIndex)
+            // eslint-disable-next-line sonarjs/deprecation
+            (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
 
