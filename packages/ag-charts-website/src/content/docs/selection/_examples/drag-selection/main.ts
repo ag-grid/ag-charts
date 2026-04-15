@@ -1,6 +1,5 @@
 // @ag-skip-fws
 import {
-    AgCartesianChartOptions,
     AgCharts,
     AnimationModule,
     ContextMenuModule,
@@ -12,6 +11,17 @@ import {
     RangeBarSeriesModule,
     SelectionModule,
 } from 'ag-charts-enterprise';
+import {
+    AgAreaSeriesOptions,
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgLineSeriesOptions,
+    AgRangeAreaSeriesOptions,
+    AgRangeBarSeriesOptions,
+    AgSeriesMarkerStyle,
+    SelectionState,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { DataType } from './data';
 import { getData } from './data';
@@ -78,6 +88,18 @@ ModuleRegistry.registerModules([
     ContextMenuModule,
     NavigatorModule,
 ]);
+
+const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions => {
+    if (params.selectionState === 'selected') {
+        return { stroke: 'black', strokeWidth: 2 };
+    }
+};
+
+const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle => {
+    if (params.selectionState === 'selected') {
+        return { stroke: 'black', strokeWidth: 2, size: 15 };
+    }
+};
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
     selection: {
@@ -111,19 +133,94 @@ const options: AgCartesianChartOptions<DataType> = {
         enabled: true,
     },
     data: getData(),
-    series: [
+    series: getAreaSeriesOptions(),
+};
+
+const chart = AgCharts.create(options);
+
+function getAreaSeriesOptions(): AgAreaSeriesOptions<DataType>[] {
+    return [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'low',
+            marker: { itemStyler: markerItemStyler },
+        },
+    ];
+}
+
+function getBarSeriesOptions(): AgBarSeriesOptions<DataType>[] {
+    return [
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'low',
+            itemStyler: barItemStyler,
+        },
+    ];
+}
+
+function getLineSeriesOptions(): AgLineSeriesOptions<DataType>[] {
+    return [
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'low',
+            marker: { itemStyler: markerItemStyler },
+        },
+    ];
+}
+
+function getRangeAreaSeriesOptions(): AgRangeAreaSeriesOptions<DataType>[] {
+    return [
+        {
+            type: 'range-area',
+            xKey: 'year',
+            yLowKey: 'low',
+            yHighKey: 'high',
+            marker: { itemStyler: markerItemStyler },
+        },
+    ];
+}
+
+function getRangeBarSeriesOptions(): AgRangeBarSeriesOptions<DataType>[] {
+    return [
         {
             type: 'range-bar',
             xKey: 'year',
             yLowKey: 'low',
             yHighKey: 'high',
-            itemStyler: (params) => {
-                if (params.selectionState === 'selected') {
-                    return { stroke: 'black', strokeWidth: 2, size: 15 };
-                }
-            },
+            itemStyler: barItemStyler,
         },
-    ],
-};
+    ];
+}
 
-AgCharts.create(options);
+export function onChartTypeChange(value: unknown) {
+    switch (value) {
+        case 'area':
+            options.series = getAreaSeriesOptions();
+            break;
+
+        case 'bar':
+            options.series = getBarSeriesOptions();
+            break;
+
+        case 'line':
+            options.series = getLineSeriesOptions();
+            break;
+
+        case 'range-area':
+            options.series = getRangeAreaSeriesOptions();
+            break;
+
+        case 'range-bar':
+            options.series = getRangeBarSeriesOptions();
+            break;
+
+        default:
+            console.error(`unexpected value:`, value);
+            throw new Error();
+    }
+
+    chart.update(options);
+}
