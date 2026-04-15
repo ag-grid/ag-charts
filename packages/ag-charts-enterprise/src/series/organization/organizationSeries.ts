@@ -15,9 +15,9 @@ import { type CallbackParamRules, type DeepRequired, type FontOptions, Vertex, m
 
 import {
     AbstractNetworkSeries,
+    type NetworkDatum,
+    type NetworkLinkDatum,
     type NetworkLinkNode,
-    type NetworkSeriesDatum,
-    type NetworkSeriesLinkDatum,
 } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
@@ -26,14 +26,14 @@ import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } fr
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
-interface OrganizationDatum extends NetworkSeriesDatum<OrganizationVertex, OrganizationEdge> {
+interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
     datum: { title?: string; subtitle?: string; labels?: string[] };
     nodeDatumIndex: number;
 }
-
 type OrganizationNode = _ModuleSupport.TranslatableGroup<OrganizationDatum>;
-type OrganizationLinkDatum = NetworkSeriesLinkDatum<OrganizationVertex, OrganizationEdge>;
-type OrganizationLinkNode = NetworkLinkNode<OrganizationVertex, OrganizationEdge>;
+
+type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
+type OrganizationLinkNode = NetworkLinkNode<OrganizationLinkDatum>;
 
 function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
     node.fill = styles.fill;
