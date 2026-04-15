@@ -24,6 +24,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
                 'datumIndex',
                 'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
+                'depth',
                 'title',
                 'subtitle',
                 'labels',
