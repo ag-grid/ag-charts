@@ -6,9 +6,10 @@ import {
     ContextMenuModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
     ModuleRegistry,
+    NavigatorModule,
     NumberAxisModule,
+    RangeBarSeriesModule,
     SelectionModule,
 } from 'ag-charts-enterprise';
 
@@ -71,10 +72,11 @@ ModuleRegistry.registerModules([
     AnimationModule,
     CrosshairModule,
     LegendModule,
-    LineSeriesModule,
+    RangeBarSeriesModule,
     NumberAxisModule,
     SelectionModule,
     ContextMenuModule,
+    NavigatorModule,
 ]);
 const options: AgCartesianChartOptions<DataType> = {
     container: document.getElementById('myChart'),
@@ -105,18 +107,20 @@ const options: AgCartesianChartOptions<DataType> = {
             },
         },
     },
+    navigator: {
+        enabled: true,
+    },
     data: getData(),
     series: [
         {
-            type: 'line',
+            type: 'range-bar',
             xKey: 'year',
-            yKey: 'spending',
-            marker: {
-                itemStyler: (params) => {
-                    if (params.selectionState === 'selected') {
-                        return { stroke: 'black', strokeWidth: 2, size: 15 };
-                    }
-                },
+            yLowKey: 'low',
+            yHighKey: 'high',
+            itemStyler: (params) => {
+                if (params.selectionState === 'selected') {
+                    return { stroke: 'black', strokeWidth: 2, size: 15 };
+                }
             },
         },
     ],
