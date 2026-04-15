@@ -1,5 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type { AgSelectionClickMode, _ModuleSupport } from 'ag-charts-community';
 import { AbstractModuleInstance, Logger, Property } from 'ag-charts-core';
+
+type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
+type Series = NonNullable<ClickedNode['series']>;
+type DataSet = NonNullable<Series['data']>;
 
 export class DataSelection extends AbstractModuleInstance {
     @Property
@@ -8,6 +12,9 @@ export class DataSelection extends AbstractModuleInstance {
     @Property
     enableClick: boolean = true;
 
+    @Property
+    clickMode: AgSelectionClickMode = 'single';
+
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super();
 
@@ -15,7 +22,8 @@ export class DataSelection extends AbstractModuleInstance {
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
-        if (!this.enabled || !this.enableClick) return;
+        const { enabled, enableClick, clickMode } = this;
+        if (!enabled || !enableClick) return;
 
         const { type, clickedNode } = event;
         if (type !== 'click' || clickedNode === undefined) return;
@@ -29,6 +37,20 @@ export class DataSelection extends AbstractModuleInstance {
             return;
         }
 
+        if (clickMode === 'multiple' || event.ctrlOrMeta) {
+            this.toggleSelection(clickedNode, data, datumIndex);
+        } else {
+            clickMode satisfies 'single';
+            this.setSingleSelection(clickedNode, data, datumIndex);
+        }
+    }
+
+    private setSingleSelection(clickedNode: ClickedNode, data: DataSet, datumIndex: number): void {
+        data.selections.clear();
+        this.toggleSelection(clickedNode, data, datumIndex);
+    }
+
+    private toggleSelection(clickedNode: ClickedNode, data: DataSet, datumIndex: number): void {
         const selections = data.enableSelection(clickedNode.series.id);
         selections.toggle(datumIndex);
     }

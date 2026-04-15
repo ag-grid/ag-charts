@@ -634,7 +634,8 @@ export class SeriesAreaManager extends BaseManager {
         clickedNode?: PickedNode
     ): void {
         const { type, sourceEvent } = event;
-        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
+        const ctrlOrMeta = sourceEvent.ctrlKey || sourceEvent.metaKey;
+        const payload: SeriesAreaClickEvent = { type, consumed, ctrlOrMeta, sourceEvent, clickedNode };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
