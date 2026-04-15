@@ -28,10 +28,7 @@ export type AgOrganizationSeriesOptionsDirection = 'vertical';
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOrganizationSeriesLinkStyle {
-    itemStyler?: Styler<
-        AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext, HighlightState>,
-        AgOrganizationSeriesLinkStyle
-    >;
+    itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext>, AgOrganizationSeriesLinkStyle>;
 }
 
 export interface AgOrganizationSeriesLinkStyle extends LineDashOptions, StrokeOptions {
@@ -87,20 +84,14 @@ export interface AgOrganizationSeriesOptionsKeys {
     parentIdKey?: string;
 }
 
-export interface AgOrganizationSeriesLinkItemStylerParams<
-    TDatum = DatumDefault,
-    TContext = ContextDefault,
-    THighlightState extends string = HighlightState,
-> extends ContextCallbackParams<TContext>,
+export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
+        ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
     /** The data point from which the link starts. */
-    from: TDatum;
+    fromDatum: TDatum;
     /** The data point to which the link ends. */
-    to: TDatum;
-    /** The unique identifier of the series. */
-    seriesId: string;
-    /** The specific highlight state of the element. */
-    highlightState?: THighlightState;
+    toDatum: TDatum;
 }
 
 export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>

@@ -538,13 +538,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     ): AgOrganizationSeriesLinkItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 
-        const from = processedData.dataSources.get(seriesId)?.data?.[fromIndex];
-        const to = processedData.dataSources.get(seriesId)?.data?.[toIndex];
+        const fromDatum = processedData.dataSources.get(seriesId)?.data?.[fromIndex];
+        const toDatum = processedData.dataSources.get(seriesId)?.data?.[toIndex];
 
         return {
             ...style,
-            from,
-            to,
+            fromDatum,
+            toDatum,
             seriesId,
             highlightState: 'none',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;

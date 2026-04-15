@@ -26,9 +26,9 @@ const options: AgChartOptions = {
                 strokeWidth: 2,
                 lineDash: [8, 2],
                 itemStyler: (params: any) => {
-                    if (params.from.job === 'Chief Technology Officer' && params.to.job === 'Developer') {
+                    if (params.fromDatum.job === 'Chief Technology Officer' && params.toDatum.job === 'Developer') {
                         return { stroke: '#00994d' };
-                    } else if (params.from.job === 'Chief Executive Officer') {
+                    } else if (params.fromDatum.job === 'Chief Executive Officer') {
                         return {
                             stroke: '#006f9b',
                             strokeWidth: 4,
