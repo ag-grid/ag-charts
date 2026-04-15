@@ -37,4 +37,9 @@ npm install --no-audit --no-fund \
     esbuild 'vite@^7' webpack skia-canvas jsdom pixelmatch pngjs 2>&1
 
 echo ">>> running bundle render tests..."
-node test-render.mjs
+exitCode=0
+node test-render.mjs || exitCode=$?
+
+# Cleanup temp directory
+rm -rf "${tmp_dir}"
+exit ${exitCode}

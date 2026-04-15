@@ -46,4 +46,9 @@ update_flag=""
 if ${update}; then
     update_flag="--update --scenarios-path ${script_dir}/scenarios.mjs"
 fi
-node test-treeshake.mjs ${update_flag}
+exitCode=0
+node test-treeshake.mjs ${update_flag} || exitCode=$?
+
+# Cleanup temp directory
+rm -rf "${tmp_dir}"
+exit ${exitCode}

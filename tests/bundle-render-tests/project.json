@@ -1,19 +1,19 @@
 {
-    "name": "bundle-render-tests",
-    "$schema": "../../node_modules/nx/schemas/project-schema.json",
-    "sourceRoot": "tests/bundle-render-tests",
-    "projectType": "application",
-    "targets": {
-        "test:bundle-render": {
-            "dependsOn": ["^pack"],
-            "command": "{projectRoot}/run.sh"
-        }
-    },
-    "implicitDependencies": [
-        "ag-charts-core",
-        "ag-charts-community",
-        "ag-charts-enterprise",
-        "ag-charts-locale",
-        "ag-charts-types"
-    ]
+  "name": "bundle-render-tests",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tests/bundle-render-tests",
+  "projectType": "application",
+  "targets": {
+    "test:bundle-render": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh"
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-core",
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-locale",
+    "ag-charts-types"
+  ]
 }
