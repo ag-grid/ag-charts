@@ -140,7 +140,7 @@ function findZoomTarget(
     if (zoomModule === undefined) return undefined;
 
     const caster = new Caster(zoomModule);
-    const zoom = caster.findBoolean('enabled').findBoolean('enableAxisDragging').value;
+    const zoom = caster.accessProperty('opts').findBoolean('enabled').findBoolean('enableAxisDragging').value;
 
     const axisDOMProxyCaster = new Caster(axisDOMProxyModule);
 

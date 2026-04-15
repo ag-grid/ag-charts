@@ -2,17 +2,15 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     CleanupRegistry,
-    DeepRequired,
     DefinedZoomState,
+    NormalisedZoomOnDataChange,
     ZoomMinMax,
     ZoomMinMaxDirection,
 } from 'ag-charts-core';
-import { BaseProperties, ChartAxisDirection, Logger, Property, clamp, definedZoomState } from 'ag-charts-core';
-import type { AgZoomOnDataChange, AgZoomOnDataChangeStrategy } from 'ag-charts-types';
+import { ChartAxisDirection, Logger, clamp, definedZoomState } from 'ag-charts-core';
 
 const { userInteraction } = _ModuleSupport;
 
-type ModuleContext = Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'>;
 type ZoomChangeState = _ModuleSupport.ZoomChangeState;
 
 // All axes scale-types can have their minimums & maximums represented as a number.
@@ -47,7 +45,7 @@ function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
     return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
 }
 
-function shouldStickToEnd(properties: ZoomOnDataChangeProperties, zoom: DefinedZoomState): boolean {
+function shouldStickToEnd(properties: NormalisedZoomOnDataChange, zoom: DefinedZoomState): boolean {
     return properties.stickToEnd && zoom.x.max === 1;
 }
 
@@ -72,24 +70,20 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
     };
 }
 
-// `chart.zoom.onDataChange` options
-export class ZoomOnDataChangeProperties extends BaseProperties implements DeepRequired<AgZoomOnDataChange> {
-    @Property
-    strategy: AgZoomOnDataChangeStrategy = 'preserveDomain';
-
-    @Property
-    // TODO(olegat): change default to 'true'
-    stickToEnd: boolean = false;
+export interface ZoomOnDataChangeCtx
+    extends Pick<_ModuleSupport.ModuleContext, 'eventsHub' | 'zoomManager' | 'axisManager'> {
+    readonly cleanup: CleanupRegistry;
+    readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
+    // Reactive option access delegated from parent via getter property.
+    readonly opts: NormalisedZoomOnDataChange;
 }
 
 export class ZoomOnDataChange {
     private desiredChanges?: DesiredChanges;
 
     constructor(
-        private readonly onConstrainChangesCallback: (e: _ModuleSupport.ZoomChangeRequestEvent) => void,
-        private readonly properties: ZoomOnDataChangeProperties,
-        private readonly ctx: ModuleContext,
-        eventsCleanup: CleanupRegistry
+        private readonly ctx: ZoomOnDataChangeCtx,
+        _initialOpts: NormalisedZoomOnDataChange
     ) {
         // When calling `AgCharts.create`, the data:update event is emitted before the axes ranges/scales are fully
         // initialised. This causes the 'preserveDomain' strategy to read an uninitialised (and incorrect) domain, and
@@ -97,20 +91,19 @@ export class ZoomOnDataChange {
         // Fortunately, the ZoomOnDataChange class only needs to worry about data changes, not data initialisation.
         // Therefore, we'll wait for the initial layout:complete event to be emitted before starting to listen for
         // data:update events.
+        const { eventsHub, cleanup } = ctx;
         const onFirstDraw = () => {
-            ctx.eventsHub.off('layout:complete', onFirstDraw);
-            eventsCleanup.register(
-                ctx.eventsHub.on('data:load', (e) => this.onDataLoad(e)),
-                ctx.eventsHub.on('data:update', (e) => this.onDataUpdate(e))
+            eventsHub.off('layout:complete', onFirstDraw);
+            cleanup.register(
+                eventsHub.on('data:load', (e) => this.onDataLoad(e)),
+                eventsHub.on('data:update', (e) => this.onDataUpdate(e))
             );
         };
-        eventsCleanup.register(
-            ctx.eventsHub.on('layout:complete', onFirstDraw),
-            ctx.eventsHub.on('zoom:change-request', (e) => this.onZoomChangeRequest(e))
+        cleanup.register(
+            eventsHub.on('layout:complete', onFirstDraw),
+            eventsHub.on('zoom:change-request', (e) => this.onZoomChangeRequest(e))
         );
     }
-
-    destroy(): void {}
 
     private onDataLoad(_e: _ModuleSupport.EventsHubMap['data:load']): void {
         this.performUpdateStrategy();
@@ -127,7 +120,7 @@ export class ZoomOnDataChange {
         const changes = this.popDesiredChanges();
         if (changes) {
             e.constrainChanges(changes);
-            this.onConstrainChangesCallback(e); // FIXME(AG-16414) remove this
+            this.ctx.onConstrainChanges(e); // FIXME(AG-16414) remove this
         }
     }
 
@@ -189,11 +182,12 @@ export class ZoomOnDataChange {
 
         if (shouldIgnoreDataUpdate(zoom)) {
             return;
-        } else if (shouldStickToEnd(this.properties, zoom)) {
+        } else if (shouldStickToEnd(this.ctx.opts, zoom)) {
             return this.performStickToEnd();
         }
 
-        switch (this.properties.strategy) {
+        const { strategy } = this.ctx.opts;
+        switch (strategy) {
             case 'reset':
                 return this.ctx.zoomManager.resetZoom(userInteraction('onDataChange-reset'));
             case 'preserveRatios':
@@ -202,7 +196,7 @@ export class ZoomOnDataChange {
                 return this.performPreserveDomain();
             default:
                 const unreachable = (a: never): never => a;
-                return unreachable(this.properties.strategy);
+                return unreachable(strategy);
         }
     }
 

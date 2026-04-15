@@ -23,6 +23,7 @@ import type {
     DefinedZoomState,
     MementoOriginator,
     OptionsDefs,
+    ReactiveState,
     RequireOptional,
     Scale,
     ZoomMinMax,
@@ -43,6 +44,7 @@ import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
+import type { ChartState } from '../chartState';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
@@ -180,11 +182,18 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
           }
         | undefined = undefined;
 
+    private readonly chartState: ReactiveState<ChartState>;
+    private readonly eventsHub: EventsHub;
+
     constructor(
-        private readonly eventsHub: EventsHub,
+        ctx: { chartState: ReactiveState<ChartState>; eventsHub: EventsHub },
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
+
+        this.chartState = ctx.chartState;
+        this.eventsHub = ctx.eventsHub;
+        const { eventsHub } = ctx;
 
         this.cleanup.register(
             eventsHub.on('zoom:change-request', (event) => {
@@ -461,6 +470,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
     public fireZoomPanStartEvent(callerId: 'navigator' | 'zoom') {
+        this.chartState.setValue('zoomPanning', true);
         this.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
@@ -795,6 +805,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
+            this.chartState.setValue('zoom', this.state);
+            this.chartState.setValue('zoomPanning', false);
             const acceptedZoom = this.getZoom() ?? {};
             this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes

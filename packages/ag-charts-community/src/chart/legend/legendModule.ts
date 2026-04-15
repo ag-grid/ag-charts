@@ -167,8 +167,8 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
         },
     },
 
-    create: (ctx) => {
-        const moduleInstance = new Legend(ctx);
+    create: (ctx, initialOpts) => {
+        const moduleInstance = new Legend(ctx, initialOpts);
         moduleInstance.attachLegend(ctx.scene);
         return moduleInstance;
     },

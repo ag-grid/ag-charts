@@ -143,7 +143,10 @@ export class Legend {
         return this.ctx.chartState.getValue('options', 'legend');
     }
 
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(
+        private readonly ctx: ModuleContext,
+        initialOpts: NormalisedLegendOptions
+    ) {
         // Start invisible — updateGroupVisibility() will enable when legend has data and options.
         // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
         // types where the legend is disabled (sparklines, gauges).
@@ -159,7 +162,7 @@ export class Legend {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
 
-        let prevEnabled: boolean | undefined;
+        let prevEnabled = initialOpts.enabled;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'legend.enabled');

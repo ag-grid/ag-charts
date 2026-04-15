@@ -1558,6 +1558,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
+        // Store options in chartState BEFORE creating modules, so modules can read
+        // their initial options via chartState from construction.
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+
         const modulesChanged = this.applyModules();
 
         const skip = [
@@ -1568,6 +1572,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'preset',
             'theme',
             'legend',
+            'zoom',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
             'locale.localeText',
@@ -1632,8 +1637,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
-
-        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
 
         if (deltaOptions.locale?.localeText) {
             this.pendingLocaleText = deltaOptions.locale?.localeText;
@@ -1864,7 +1867,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
-                const moduleInstance = module.create(this.getModuleContext());
+                const initialOpts = (this.ctx.chartState.getValue('options') as any)?.[module.name];
+                const moduleInstance = module.create(this.getModuleContext(), initialOpts);
                 this.modulesManager.addModule(module.name, moduleInstance);
                 (this as any)[module.name] = moduleInstance; // TODO remove
             } else {

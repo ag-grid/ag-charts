@@ -1,57 +1,45 @@
-import type { AgZoomAutoScaling } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { CartesianAxisDirection, DeepRequired, ZoomMinMax } from 'ag-charts-core';
-import {
-    BaseProperties,
-    ChartAxisDirection,
-    CleanupRegistry,
-    Property,
-    isFiniteNumber,
-    objectsEqual,
-    strictObjectKeys,
-} from 'ag-charts-core';
+import type { CartesianAxisDirection, CleanupRegistry, NormalisedZoomAutoScaling, ZoomMinMax } from 'ag-charts-core';
+import { ChartAxisDirection, isFiniteNumber, objectsEqual, strictObjectKeys } from 'ag-charts-core';
 
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
-type ZoomAutoScalingOpts = DeepRequired<AgZoomAutoScaling>;
 
-// `chart.zoom.autoScaling` options
-export class ZoomAutoScalingProperties extends BaseProperties implements ZoomAutoScalingOpts {
-    constructor() {
-        super();
-    }
-
-    @Property
-    enabled = false;
-
-    @Property
-    padding = 0;
-}
-
-// `chart.zoom` options that ZoomAutoScaler is affected by.
-interface ZoomAutoScalerPropertiesDeps {
-    readonly enabled: boolean;
-    readonly enableIndependentAxes?: boolean;
+export interface ZoomAutoScalerCtx {
+    readonly zoomManager: _ModuleSupport.ZoomManager;
+    readonly eventsHub: _ModuleSupport.EventsHub;
+    readonly cleanup: CleanupRegistry;
+    // Reactive option access delegated from parent via getter properties.
+    readonly opts: {
+        readonly enabled: boolean;
+        readonly enableIndependentAxes?: boolean;
+        readonly autoScaling: NormalisedZoomAutoScaling;
+    };
 }
 
 export class ZoomAutoScaler {
     constructor(
-        private readonly properties: ZoomAutoScalingProperties,
-        private readonly zoomManager: _ModuleSupport.ZoomManager,
-        private readonly deps: ZoomAutoScalerPropertiesDeps,
-        eventsHub: _ModuleSupport.EventsHub,
-        eventsCleanup: CleanupRegistry
+        private readonly ctx: ZoomAutoScalerCtx,
+        _initialOpts: NormalisedZoomAutoScaling
     ) {
-        eventsCleanup.register(
-            eventsHub.on('zoom:save-memento', (e) => this.onSaveMemento(e)),
-            eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
-            eventsHub.on('zoom:change-request', (e) => this.onChangeRequest(e))
+        ctx.cleanup.register(
+            ctx.eventsHub.on('zoom:save-memento', (e) => this.onSaveMemento(e)),
+            ctx.eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
+            ctx.eventsHub.on('zoom:change-request', (e) => this.onChangeRequest(e))
         );
+    }
+
+    private get zoomManager() {
+        return this.ctx.zoomManager;
+    }
+
+    private get autoScalingOpts(): NormalisedZoomAutoScaling {
+        return this.ctx.opts.autoScaling;
     }
 
     private manuallyAdjusted: boolean = false;
 
     get enabled(): boolean {
-        return this.deps.enabled && this.properties.enabled && !this.manuallyAdjusted;
+        return this.ctx.opts.enabled && this.autoScalingOpts.enabled && !this.manuallyAdjusted;
     }
 
     onManualAdjustment(direction: ChartAxisDirection) {
@@ -121,9 +109,9 @@ export class ZoomAutoScaler {
     private getAutoScaleYZoom(zoomX: ZoomMinMax): ZoomMinMax | undefined {
         if (!this.enabled) return;
 
-        const { padding } = this.properties;
+        const { padding } = this.autoScalingOpts;
         let yZoom: ZoomMinMax | undefined;
-        if (this.deps.enableIndependentAxes) {
+        if (this.ctx.opts.enableIndependentAxes) {
             yZoom = this.primaryAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
         } else {
             yZoom = this.combinedAxisZoom(ChartAxisDirection.Y, zoomX, { padding });
