@@ -10,6 +10,12 @@ import { bundleWithVite } from './bundlers/vite.mjs';
 import { bundleWithWebpack } from './bundlers/webpack.mjs';
 import { scenarios } from './scenarios.mjs';
 
+// Import ag-charts-server-side for its side-effects: it applies skia-canvas prototype
+// patches (fillText, CanvasRenderingContext2D fixes) via ag-charts-core's applySkiaPatches.
+// This also registers enterprise modules on its own ModuleRegistry — but that's a separate
+// instance from the bundled entries' inlined registries, so no cross-contamination.
+await import('ag-charts-server-side');
+
 const bundlers = [
     { name: 'esbuild', fn: bundleWithEsbuild },
     { name: 'vite', fn: bundleWithVite },

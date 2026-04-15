@@ -14,6 +14,7 @@
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-locale",
-    "ag-charts-types"
+    "ag-charts-types",
+    "ag-charts-server-side"
   ]
 }
