@@ -23,10 +23,20 @@ export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
     extends _ModuleSupport.SeriesNodeDataContext<
         NetworkSeriesDatumIndex,
         NetworkSeriesDatum<NetworkVertex, TNetworkEdge>
-    > {}
+    > {
+    linkData: NetworkSeriesLinkDatum<NetworkVertex, TNetworkEdge>[];
 
-export type NetworkLinkNode = _ModuleSupport.TranslatableGroup<NetworkLinkDatum>;
-export interface NetworkLinkDatum {}
+    // labelData is unused.
+    labelData: any;
+}
+
+export type NetworkLinkNode<NetworkVertex, TNetworkEdge> = _ModuleSupport.TranslatableGroup<
+    NetworkSeriesLinkDatum<NetworkVertex, TNetworkEdge>
+>;
+export interface NetworkSeriesLinkDatum<NetworkVertex, TNetworkEdge> {
+    from: Vertex<NetworkVertex, TNetworkEdge>;
+    to: Vertex<NetworkVertex, TNetworkEdge>;
+}
 
 /**
  * A Network Series processes data into a graph structure and presents the nodes in a network layout.
@@ -35,14 +45,17 @@ export abstract class AbstractNetworkSeries<
     TVertex,
     TEdge,
     TGraph extends NetworkGraph<TVertex, TEdge>,
-    TDatum extends NetworkSeriesDatum<TVertex, TEdge>,
     TNode extends _ModuleSupport.TranslatableGroup<TDatum>,
+    TDatum extends NetworkSeriesDatum<TVertex, TEdge>,
+    TLinkDatum extends NetworkSeriesLinkDatum<TVertex, TEdge>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
 > extends _ModuleSupport.Series<
     NetworkSeriesDatumIndex,
     NetworkSeriesDatum<TVertex, TEdge>,
     NetworkSeriesOptions,
-    NetworkSeriesProperties
+    NetworkSeriesProperties,
+    TDatum,
+    NetworkSeriesContextNodeData<TVertex, TEdge>
 > {
     override properties = new NetworkSeriesProperties();
 
@@ -65,10 +78,10 @@ export abstract class AbstractNetworkSeries<
         () => this.nodeFactory()
     );
 
-    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<NetworkLinkDatum, NetworkLinkNode>(
-        this.linkGroup,
-        () => this.linkFactory()
-    );
+    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<
+        NetworkSeriesLinkDatum<TVertex, TEdge>,
+        NetworkLinkNode<TVertex, TEdge>
+    >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
@@ -86,7 +99,10 @@ export abstract class AbstractNetworkSeries<
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
     abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
-    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>): void;
+    abstract updateLinkNodes(
+        linkSelection: _ModuleSupport.Selection<NetworkSeriesLinkDatum<TVertex, TEdge>, NetworkLinkNode<TVertex, TEdge>>
+    ): void;
+
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
 
     dataCount() {
@@ -123,7 +139,7 @@ export abstract class AbstractNetworkSeries<
         return;
     }
 
-    private linkFactory(): NetworkLinkNode {
+    private linkFactory(): NetworkLinkNode<TVertex, TEdge> {
         return new _ModuleSupport.TranslatableGroup();
     }
 
@@ -132,14 +148,14 @@ export abstract class AbstractNetworkSeries<
         if (!this.contextNodeData) return;
 
         this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
-        this.updateLinkSelection(this.contextNodeData.nodeData as TDatum[], this.linkSelection);
+        this.updateLinkSelection(this.contextNodeData.linkData as TLinkDatum[], this.linkSelection);
     }
 
     private updateLinkSelection(
-        nodeData: TDatum[],
-        linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>
+        linkData: TLinkDatum[],
+        linkSelection: _ModuleSupport.Selection<NetworkSeriesLinkDatum<TVertex, TEdge>, NetworkLinkNode<TVertex, TEdge>>
     ) {
-        linkSelection.update(nodeData);
+        linkSelection.update(linkData);
     }
 
     private updateNodes() {

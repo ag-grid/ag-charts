@@ -17,7 +17,7 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     direction?: AgOrganizationSeriesOptionsDirection;
-    link?: AgOrganizationSeriesOptionsLink;
+    link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
@@ -26,7 +26,15 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
 
 export type AgOrganizationSeriesOptionsDirection = 'vertical';
 
-export interface AgOrganizationSeriesOptionsLink extends LineDashOptions, StrokeOptions {
+export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesLinkStyle {
+    itemStyler?: Styler<
+        AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext, HighlightState>,
+        AgOrganizationSeriesLinkStyle
+    >;
+}
+
+export interface AgOrganizationSeriesLinkStyle extends LineDashOptions, StrokeOptions {
     interpolation?: AgOrganizationSeriesOptionsLinkInterpolation;
 }
 
@@ -79,6 +87,22 @@ export interface AgOrganizationSeriesOptionsKeys {
     parentIdKey?: string;
 }
 
+export interface AgOrganizationSeriesLinkItemStylerParams<
+    TDatum,
+    TContext = ContextDefault,
+    THighlightState extends string = HighlightState,
+> extends ContextCallbackParams<TContext>,
+        AgOrganizationSeriesLinkStyle {
+    /**  */
+    from: TDatum;
+    /**  */
+    to: TDatum;
+    /** The unique identifier of the series. */
+    seriesId: string;
+    /** The specific highlight state of the element. */
+    highlightState?: THighlightState;
+}
+
 export interface AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
@@ -86,7 +110,8 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext = Con
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
-        ContextCallbackParams<TContext> {}
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesNodeTextStyle {}
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,

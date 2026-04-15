@@ -1,4 +1,6 @@
 import {
+    type AgOrganizationSeriesLinkItemStylerParams,
+    type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
@@ -50,6 +52,9 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
     ) {
         super();
     }
+
+    @Property
+    itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>, AgOrganizationSeriesLinkStyle>;
 
     @Property
     interpolation = new OrganizationSeriesLinkStepInterpolationProperties(this.onInterpolationChange);
