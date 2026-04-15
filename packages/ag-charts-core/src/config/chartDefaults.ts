@@ -473,6 +473,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
             placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
             xOffset: number,
             yOffset: number,
+            offset: positiveNumber,
         },
     },
     animation: defined,
@@ -796,6 +797,7 @@ export const tooltipOptionsDefs: OptionsDefs<AgSeriesTooltip<any>> = {
         placement: or(tooltipPlacementValidator, arrayOf(tooltipPlacementValidator)),
         xOffset: number,
         yOffset: number,
+        offset: positiveNumber,
     },
     interaction: {
         enabled: boolean,

@@ -46,6 +46,7 @@ export interface TooltipMetaPosition {
     placement?: AgTooltipPlacement | AgTooltipPlacement[];
     xOffset?: number;
     yOffset?: number;
+    offset?: number;
 }
 
 export interface TooltipMeta extends TooltipOffsets {
@@ -130,6 +131,10 @@ export class TooltipPosition extends BaseProperties {
     @Property
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
+
+    @Property
+    /** The distance in pixels between the tooltip and its anchor point, applied in the placement direction. */
+    offset: number = 8;
 
     @Property
     anchorTo?: AgTooltipAnchorTo;
@@ -253,6 +258,7 @@ export class Tooltip extends BaseProperties {
         }
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
+        const offset = meta.position?.offset ?? 8;
 
         const minX = relativeRect.x;
         const minY = relativeRect.y;
@@ -275,6 +281,7 @@ export class Tooltip extends BaseProperties {
                 canvasY,
                 yOffset,
                 xOffset,
+                offset,
                 canvasRect,
             });
             position = calculatePlacement(elementSize.width, elementSize.height, relativeRect, tooltipBounds);
@@ -474,9 +481,10 @@ export class Tooltip extends BaseProperties {
         canvasY: number;
         yOffset: number;
         xOffset: number;
+        offset: number;
         canvasRect: DOMRect;
     }): Bounds {
-        const { elementSize, anchorTo, placement, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
+        const { elementSize, anchorTo, placement, canvasX, canvasY, yOffset, xOffset, offset, canvasRect } = opts;
 
         const { width: tooltipWidth, height: tooltipHeight } = elementSize;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
@@ -484,8 +492,15 @@ export class Tooltip extends BaseProperties {
         if (anchorTo === 'node' || anchorTo === 'pointer') {
             const horizontalAlignment = horizontalAlignments[placement];
             const verticalAlignment = verticalAlignments[placement];
-            bounds.top = canvasY + yOffset + (tooltipHeight * (verticalAlignment - 1)) / 2 + 8 * verticalAlignment;
-            bounds.left = canvasX + xOffset + (tooltipWidth * (horizontalAlignment - 1)) / 2 + 8 * horizontalAlignment;
+            const isDiagonal = horizontalAlignment !== 0 && verticalAlignment !== 0;
+            const effectiveOffset = isDiagonal ? offset / Math.SQRT2 : offset;
+            bounds.top =
+                canvasY + yOffset + (tooltipHeight * (verticalAlignment - 1)) / 2 + effectiveOffset * verticalAlignment;
+            bounds.left =
+                canvasX +
+                xOffset +
+                (tooltipWidth * (horizontalAlignment - 1)) / 2 +
+                effectiveOffset * horizontalAlignment;
             return bounds;
         }
 

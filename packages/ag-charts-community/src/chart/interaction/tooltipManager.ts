@@ -180,7 +180,7 @@ export class TooltipManager {
     ): TooltipMeta {
         const { canvasX, canvasY } = event;
         const tooltip = series.properties.tooltip as SeriesTooltip<any>;
-        const { placement, anchorTo, xOffset, yOffset } = tooltip.position;
+        const { placement, anchorTo, xOffset, yOffset, offset } = tooltip.position;
         const refPoint = getDatumRefPoint(series, datum, movedBounds);
         const meta: TooltipMeta = {
             canvasX,
@@ -194,6 +194,7 @@ export class TooltipManager {
                 anchorTo,
                 xOffset,
                 yOffset,
+                offset,
             },
         };
 

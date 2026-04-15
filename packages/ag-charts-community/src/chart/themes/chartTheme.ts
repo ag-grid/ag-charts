@@ -480,6 +480,7 @@ export class ChartTheme {
                         placement: { $path: ['/tooltip/position/placement', undefined] },
                         xOffset: { $path: ['/tooltip/position/xOffset', 0] },
                         yOffset: { $path: ['/tooltip/position/yOffset', 0] },
+                        offset: { $path: ['/tooltip/position/offset', 8] },
                     },
                 },
             },
