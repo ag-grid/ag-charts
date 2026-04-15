@@ -135,8 +135,8 @@ export class TooltipPosition extends BaseProperties {
     /** The vertical offset in pixels for the position of the tooltip. */
     yOffset: number = 0;
 
-    @Property
     /** The distance in pixels between the tooltip and its anchor point, applied in the placement direction. */
+    @Property
     offset: number = DEFAULT_TOOLTIP_OFFSET;
 
     @Property
