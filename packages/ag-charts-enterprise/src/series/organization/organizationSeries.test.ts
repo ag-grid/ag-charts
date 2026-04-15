@@ -96,6 +96,23 @@ const ITEM_STYLERS: AgChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            link: {
+                itemStyler: (params: any) => {
+                    if (params.from.job === 'Chief Technology Officer' && params.to.job === 'Developer') {
+                        return { stroke: '#00994d' };
+                    } else if (params.from.job === 'Chief Executive Officer') {
+                        return {
+                            stroke: '#006f9b',
+                            strokeWidth: 4,
+                            lineDash: [],
+                            interpolation: {
+                                type: 'step',
+                                cornerRadius: 8,
+                            },
+                        };
+                    }
+                },
+            },
             node: {
                 itemStyler: (params: any) => {
                     if (params.datum.job === 'Chief Financial Officer') {
