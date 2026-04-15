@@ -93,9 +93,9 @@ export interface AgOrganizationSeriesLinkItemStylerParams<
     THighlightState extends string = HighlightState,
 > extends ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
-    /**  */
+    /** The data point from which the link starts. */
     from: TDatum;
-    /**  */
+    /** The data point to which the link ends. */
     to: TDatum;
     /** The unique identifier of the series. */
     seriesId: string;
