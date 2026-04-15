@@ -122,6 +122,8 @@ const ITEM_STYLERS: AgChartOptions = {
                             lineDash: [8, 2],
                             cornerRadius: 30,
                         };
+                    } else if (params.depth === 3) {
+                        return { fill: '#c1d9e3' };
                     }
                 },
                 title: { key: 'name' },

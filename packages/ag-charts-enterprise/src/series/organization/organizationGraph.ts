@@ -9,6 +9,7 @@ export type OrganizationEdge =
     | 'nodeDatumIndex' // The index of the datum within the series' nodeData array.
     | 'child' // The descending edge from parent to child.
     | 'parent' // The ascending edge from child to parent.
+    | 'depth'
     | 'title'
     | 'subtitle'
     | 'labels';

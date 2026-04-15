@@ -88,7 +88,7 @@ export interface AgOrganizationSeriesOptionsKeys {
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<
-    TDatum,
+    TDatum = DatumDefault,
     TContext = ContextDefault,
     THighlightState extends string = HighlightState,
 > extends ContextCallbackParams<TContext>,
@@ -103,15 +103,21 @@ export interface AgOrganizationSeriesLinkItemStylerParams<
     highlightState?: THighlightState;
 }
 
-export interface AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
+export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgOrganizationSeriesNodeStyle {}
+        AgOrganizationSeriesNodeStyle {
+    /** The depth of the data point within the organization. */
+    depth: number;
+}
 
-export interface AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext = ContextDefault>
+export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgOrganizationSeriesNodeTextStyle {}
+        AgOrganizationSeriesNodeTextStyle {
+    /** The depth of the data */
+    depth: number;
+}
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,

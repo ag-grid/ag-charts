@@ -169,7 +169,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumSelection.each((node, datum) => {
             const children = node.children();
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
-            const styles = this.getNodeStyle(datumIndex, false, undefined);
+            const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
+            const styles = this.getNodeStyle(datumIndex, depth, false, undefined);
 
             const shapeNode =
                 (children.next().value as _ModuleSupport.Rect) ?? node.appendChild(new _ModuleSupport.Rect());
@@ -287,11 +288,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private createNodeDataFromVertex(
         nodeData: OrganizationDatum[],
         linkData: OrganizationLinkDatum[],
-        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>,
+        depth: number = 1
     ) {
         const nodeDatumIndex = nodeData.length;
         this.graph.removeEdges(vertex, 'nodeDatumIndex');
         this.graph.addEdge(vertex, this.graph.addVertex(nodeDatumIndex), 'nodeDatumIndex');
+        this.graph.addEdge(vertex, this.graph.addVertex(depth), 'depth');
 
         const bbox = _ModuleSupport.BBox.zero.clone();
         const nodeDatum: OrganizationDatum = {
@@ -320,7 +323,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
             linkData.push(linkDatum);
 
-            this.createNodeDataFromVertex(nodeData, linkData, childVertex);
+            this.createNodeDataFromVertex(nodeData, linkData, childVertex, depth + 1);
         }
     }
 
@@ -355,6 +358,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     private getNodeStyle(
         datumIndex: number | undefined,
+        depth: number,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
     ): DeepRequired<
@@ -385,6 +389,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         dataModel,
                         processedData,
                         datumIndex,
+                        depth,
                         // isHighlight,
                         style
                     );
@@ -406,7 +411,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             'title',
             dataModel,
             processedData,
-            datumIndex
+            datumIndex,
+            depth
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -414,7 +420,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             'subtitle',
             dataModel,
             processedData,
-            datumIndex
+            datumIndex,
+            depth
         );
 
         let labelIndex = 0;
@@ -425,7 +432,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 _ModuleSupport.createDatumId('label', labelIndex),
                 dataModel,
                 processedData,
-                datumIndex
+                datumIndex,
+                depth
             );
             labelIndex++;
         }
@@ -496,7 +504,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIdSuffix: string,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
-        datumIndex: number | undefined
+        datumIndex: number | undefined,
+        depth: number
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
@@ -505,7 +514,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix),
             () => {
-                const params = this.makeNodeTextStylerParams(dataModel, processedData, datumIndex, style);
+                const params = this.makeNodeTextStylerParams(dataModel, processedData, datumIndex, depth, style);
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.callWithContext(styler, params)
@@ -533,10 +542,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const to = processedData.dataSources.get(seriesId)?.data?.[toIndex];
 
         return {
+            ...style,
             from,
             to,
             seriesId,
-            ...style,
             highlightState: 'none',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
@@ -545,6 +554,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
+        depth: number,
         style: Required<AgOrganizationSeriesNodeStyle>
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -552,9 +562,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
 
         return {
-            datum,
-            seriesId,
             ...style,
+            datum,
+            depth,
+            seriesId,
             highlightState: 'none',
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
@@ -564,6 +575,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
+        depth: number,
         style: Required<AgOrganizationSeriesNodeTextStyle>
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -571,9 +583,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
 
         return {
-            datum,
-            seriesId,
             ...style,
+            datum,
+            depth,
+            seriesId,
             highlightState: 'none',
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
