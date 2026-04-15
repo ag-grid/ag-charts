@@ -75,7 +75,7 @@ export const scenarios = [
     {
         name: 'community/PolarChartModule',
         package: 'ag-charts-community',
-        modules: ['PolarChartModule', 'PieSeriesModule'],
+        modules: ['PolarChartModule', 'PieSeriesModule', 'LegendModule'],
         chartOptions: {
             data: pieData,
             series: [{ type: 'pie', angleKey: 'value', legendItemKey: 'label' }],
@@ -164,6 +164,7 @@ export const scenarios = [
             'DataSourceModule',
             'ContextMenuModule',
             'AnimationModule',
+            'GradientLegendModule',
             'NumberAxisModule',
             'CategoryAxisModule',
         ],

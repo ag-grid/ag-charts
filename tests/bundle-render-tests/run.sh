@@ -2,11 +2,6 @@
 
 set -eu
 
-update=false
-if [[ "${1:-}" == "-u" ]]; then
-    update=true
-fi
-
 script_dir=$(cd "$(dirname "$0")" && pwd)
 repo_dir=$(cd "${script_dir}/../.." && pwd)
 
@@ -23,7 +18,6 @@ echo ">>> temp dir: ${tmp_dir}"
 cp "${script_dir}/test-render.mjs" "${tmp_dir}/"
 cp "${script_dir}/scenarios.mjs" "${tmp_dir}/"
 cp -R "${script_dir}/bundlers" "${tmp_dir}/"
-cp -R "${script_dir}/e2e" "${tmp_dir}/"
 
 # Copy tarballs
 for pkg in ag-charts-types ag-charts-locale ag-charts-core ag-charts-community ag-charts-enterprise; do
@@ -43,8 +37,4 @@ npm install --no-audit --no-fund \
     esbuild 'vite@^7' webpack skia-canvas jsdom pixelmatch pngjs 2>&1
 
 echo ">>> running bundle render tests..."
-update_flag=""
-if ${update}; then
-    update_flag="--update --snapshots-path ${script_dir}/e2e/render-snapshots"
-fi
-node test-render.mjs ${update_flag}
+node test-render.mjs
