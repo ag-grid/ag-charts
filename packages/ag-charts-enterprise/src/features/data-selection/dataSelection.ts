@@ -73,7 +73,7 @@ export class DataSelection extends AbstractModuleInstance {
             for (const unsafeDatum of series.pickNodesInBBox(bbox)) {
                 // TODO:
                 // The value this.ctx.chartService.series uses `TDatum = any`, therefore `pickNodesInBBox`
-                // is not type-safe. These runtime-check become irrelevant if `pickNodesInBBox` were type-safe;
+                // is not type-safe. These runtime checks become irrelevant if `pickNodesInBBox` were type-safe;
                 // Therefore verify that unsafeDatum is of type `any`.
                 true satisfies AreExact<typeof unsafeDatum, any>;
                 const unknownDatum: unknown = unsafeDatum;
