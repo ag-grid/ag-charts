@@ -3,6 +3,7 @@ import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } f
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
+import type { NetworkLinkInterpolation } from './networkTypes';
 
 export type NetworkSeriesDatumIndex = number;
 
@@ -36,11 +37,6 @@ export type NetworkLinkNode<NetworkVertex, TNetworkEdge> = _ModuleSupport.Transl
 export interface NetworkSeriesLinkDatum<NetworkVertex, TNetworkEdge> {
     from: Vertex<NetworkVertex, TNetworkEdge>;
     to: Vertex<NetworkVertex, TNetworkEdge>;
-}
-
-export interface NetworkLinkInterpolation {
-    type: 'step';
-    cornerRadius?: number;
 }
 
 /**

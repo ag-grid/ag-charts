@@ -2,7 +2,7 @@ import type { _ModuleSupport } from 'ag-charts-community';
 import type { Vertex } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
-import type { NetworkLinkInterpolation } from './networkSeries';
+import type { NetworkLinkInterpolation } from './networkTypes';
 
 export abstract class NetworkLayout<TVertex, TEdge> {
     abstract update(

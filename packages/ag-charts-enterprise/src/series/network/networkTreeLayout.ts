@@ -3,7 +3,7 @@ import { Vec2, type Vertex, clamp } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 import { NetworkLayout } from './networkLayout';
-import type { NetworkLinkInterpolation } from './networkSeries';
+import type { NetworkLinkInterpolation } from './networkTypes';
 
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;

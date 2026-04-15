@@ -15,12 +15,12 @@ import { type CallbackParamRules, type DeepRequired, type FontOptions, Vertex, m
 
 import {
     AbstractNetworkSeries,
-    type NetworkLinkInterpolation,
     type NetworkLinkNode,
     type NetworkSeriesDatum,
     type NetworkSeriesLinkDatum,
 } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
+import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { type OrganizationEdge, OrganizationGraph, type OrganizationVertex } from './organizationGraph';
 import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } from './organizationSeriesProperties';
 
