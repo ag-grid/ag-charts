@@ -5,61 +5,28 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
-    type CssColor,
-    type FillOptions,
-    type StrokeOptions,
     type Styler,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, type FontOptions, Vertex, mergeDefaults } from 'ag-charts-core';
+import { type CallbackParamRules, type DeepRequired, Vertex, mergeDefaults } from 'ag-charts-core';
 
-import {
-    AbstractNetworkSeries,
-    type NetworkDatum,
-    type NetworkLinkDatum,
-    type NetworkLinkNode,
-} from '../network/networkSeries';
+import { AbstractNetworkSeries } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
-import { type OrganizationEdge, OrganizationGraph, type OrganizationVertex } from './organizationGraph';
+import { OrganizationGraph } from './organizationGraph';
+import { OrganizationNode } from './organizationNode';
 import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } from './organizationSeriesProperties';
+import type {
+    OrganizationDatum,
+    OrganizationEdge,
+    OrganizationLinkDatum,
+    OrganizationLinkNode,
+    OrganizationVertex,
+    RequiredOrganizationNodeStyle,
+} from './organizationTypes';
+import { applyStrokeStyles } from './organizationUtils';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
-
-interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    datum: { image?: string; title?: string; subtitle?: string; labels?: string[] };
-    nodeDatumIndex: number;
-}
-type OrganizationNode = _ModuleSupport.TranslatableGroup<OrganizationDatum>;
-
-type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
-type OrganizationLinkNode = NetworkLinkNode<OrganizationLinkDatum>;
-
-function applyFillStyles(node: _ModuleSupport.Shape, styles: FillOptions) {
-    node.fill = styles.fill;
-    node.fillOpacity = styles.fillOpacity ?? 1;
-}
-
-function applyStrokeStyles(
-    node: _ModuleSupport.Shape,
-    styles: StrokeOptions & { lineDash?: number[]; lineDashOffset?: number }
-) {
-    node.lineDash = styles.lineDash;
-    node.lineDashOffset = styles.lineDashOffset ?? 0;
-    node.stroke = styles.stroke;
-    node.strokeOpacity = styles.strokeOpacity ?? 1;
-    node.strokeWidth = styles.strokeWidth ?? 0;
-}
-
-function applyTextStyles(node: _ModuleSupport.Text, styles: FontOptions & { color: CssColor }) {
-    node.fill = styles.color;
-    node.fontFamily = styles.fontFamily;
-    node.fontSize = styles.fontSize;
-    node.fontStyle = styles.fontStyle;
-    node.fontWeight = styles.fontWeight;
-    node.textAlign = 'left';
-    node.textBaseline = 'top';
-}
 
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
@@ -155,7 +122,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     nodeFactory(): OrganizationNode {
-        return new _ModuleSupport.TranslatableGroup();
+        return new OrganizationNode();
     }
 
     updateDatumSelection(
@@ -166,122 +133,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
-        const padding = 20;
-
         datumSelection.each((node, datum) => {
-            const children = node.children();
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
             const styles = this.getNodeStyle(datumIndex, depth, false, undefined);
 
-            const shapeNode =
-                (children.next().value as _ModuleSupport.Rect) ?? node.appendChild(new _ModuleSupport.Rect());
-            shapeNode.cornerRadius = styles.cornerRadius;
-            applyFillStyles(shapeNode, styles);
-            applyStrokeStyles(shapeNode, styles);
-
-            const childNodes = [];
-            let x = padding;
-            let y = padding;
-
-            if (datum.datum.image && (styles.image.position === 'top' || styles.image.position === 'left')) {
-                const imageNode = node.appendChild(new _ModuleSupport.Rect());
-                childNodes.push(imageNode);
-
-                imageNode.fill = {
-                    type: 'image',
-                    fit: 'cover',
-                    url: datum.datum.image,
-                    width: styles.image.width,
-                    height: styles.image.height,
-                    backgroundFillOpacity: 0,
-                };
-
-                imageNode.x = x;
-                imageNode.y = y;
-                imageNode.width = styles.image.width;
-                imageNode.height = styles.image.height;
-
-                if (styles.image.position === 'top') {
-                    y += imageNode.getBBox().height + styles.image.spacing;
-                } else if (styles.image.position === 'left') {
-                    x += imageNode.getBBox().width + styles.image.spacing;
-                }
-            }
-
-            if (datum.datum.title) {
-                const titleNode =
-                    (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
-                childNodes.push(titleNode);
-
-                titleNode.text = datum.datum.title;
-                titleNode.x = x;
-                titleNode.y = y;
-                applyTextStyles(titleNode, styles.title);
-
-                y += titleNode.getBBox().height + styles.title.spacing;
-            }
-
-            if (datum.datum.subtitle) {
-                const subtitleNode =
-                    (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
-                childNodes.push(subtitleNode);
-
-                subtitleNode.text = datum.datum.subtitle;
-                subtitleNode.x = x;
-                subtitleNode.y = y;
-                applyTextStyles(subtitleNode, styles.subtitle);
-
-                y += subtitleNode.getBBox().height + styles.subtitle.spacing;
-            }
-
-            if (datum.datum.labels) {
-                let index = 0;
-                for (const labelText of datum.datum.labels) {
-                    const labelNode =
-                        (children.next().value as _ModuleSupport.Text) ?? node.appendChild(new _ModuleSupport.Text());
-                    childNodes.push(labelNode);
-
-                    labelNode.text = labelText;
-                    labelNode.x = x;
-                    labelNode.y = y;
-                    applyTextStyles(labelNode, styles.labels[index]);
-
-                    y += labelNode.getBBox().height + styles.labels[index].spacing;
-
-                    index++;
-                }
-            }
-
-            if (datum.datum.image && (styles.image.position === 'bottom' || styles.image.position === 'right')) {
-                const imageNode = node.appendChild(new _ModuleSupport.Rect());
-
-                imageNode.fill = {
-                    type: 'image',
-                    fit: 'cover',
-                    url: datum.datum.image,
-                    width: styles.image.width,
-                    height: styles.image.height,
-                    backgroundFillOpacity: 0,
-                };
-
-                imageNode.x =
-                    styles.image.position === 'right'
-                        ? x + _ModuleSupport.Group.computeChildrenBBox(childNodes).width + styles.image.spacing
-                        : padding;
-                imageNode.y = styles.image.position === 'bottom' ? y : padding;
-                imageNode.width = styles.image.width;
-                imageNode.height = styles.image.height;
-
-                childNodes.push(imageNode);
-            }
-
-            const bbox = _ModuleSupport.Group.computeChildrenBBox(childNodes).grow(padding);
-
-            shapeNode.x = 0;
-            shapeNode.y = 0;
-            shapeNode.width = bbox.width;
-            shapeNode.height = bbox.height;
+            node.update(datum.datum, styles);
         });
     }
 
@@ -422,13 +279,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number,
         isHighlight: boolean,
         highlightState?: _ModuleSupport.HighlightState
-    ): DeepRequired<
-        AgOrganizationSeriesNodeStyle & {
-            title: AgOrganizationSeriesNodeTextStyle;
-            subtitle: AgOrganizationSeriesNodeTextStyle;
-            labels: AgOrganizationSeriesNodeTextStyle[];
-        }
-    > {
+    ): RequiredOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
         const { itemStyler: titleStyler } = this.properties.node.title;
@@ -452,7 +303,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         datumIndex,
                         depth,
                         // isHighlight,
-                        style as any
+                        style
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -499,7 +350,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             labelIndex++;
         }
 
-        return style as any;
+        return style;
     }
 
     private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {

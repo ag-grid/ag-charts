@@ -44,4 +44,9 @@ const options: AgChartOptions = {
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function changePosition(position: string) {
+    options.series[0].node.image.position = position;
+    chart.update(options);
+}

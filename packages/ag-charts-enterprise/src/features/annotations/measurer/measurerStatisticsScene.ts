@@ -1,8 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { type Bounds4, type BoxBounds, type Point, Vec4 } from 'ag-charts-core';
 
+import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../../../utils/sceneLayout';
 import type { AnnotationContext } from '../annotationTypes';
-import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
+import { layoutAddX, layoutAddY } from '../utils/layout';
 import type { MeasurerTypeProperties, QuickDatePriceRangeProperties } from './measurerProperties';
 
 export interface Statistics {

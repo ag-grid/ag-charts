@@ -33,6 +33,5 @@ export function getData() {
         },
         { id: 'qa', name: 'Eve Park', job: 'Quality Assurance', location: 'London', parentId: 'cto' },
         { id: 'acc', name: 'Frank Cash', job: 'Accountant', location: 'London', parentId: 'cfo' },
-        // { id: 'acc2', name: 'George Dollars', job: 'Accountant', location: 'London', parentId: 'cfo' },
     ];
 }
