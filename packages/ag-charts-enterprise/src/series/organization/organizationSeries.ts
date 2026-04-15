@@ -27,7 +27,7 @@ import { OrganizationSeriesNodeTextProperties, OrganizationSeriesProperties } fr
 const { keyProperty, valueProperty } = _ModuleSupport;
 
 interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    datum: { title?: string; subtitle?: string; labels?: string[] };
+    datum: { image?: string; title?: string; subtitle?: string; labels?: string[] };
     nodeDatumIndex: number;
 }
 type OrganizationNode = _ModuleSupport.TranslatableGroup<OrganizationDatum>;
@@ -98,6 +98,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             idKey,
             parentIdKey,
             node: {
+                image: { key: imageKey },
                 title: { key: titleKey },
                 subtitle: { key: subtitleKey },
                 labels,
@@ -107,6 +108,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const props = [
             keyProperty(idKey, undefined, { id: 'idValue' }),
             valueProperty(parentIdKey, undefined, { id: 'parentIdValue', allowNullKey: true }),
+            valueProperty(imageKey, undefined, { id: 'imageValue', allowNullKey: true, missingValue: undefined }),
             valueProperty(titleKey, undefined, { id: 'titleValue', allowNullKey: true, missingValue: undefined }),
             valueProperty(subtitleKey, undefined, {
                 id: 'subtitleValue',
@@ -179,7 +181,33 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             applyStrokeStyles(shapeNode, styles);
 
             const childNodes = [];
+            let x = padding;
             let y = padding;
+
+            if (datum.datum.image && (styles.image.position === 'top' || styles.image.position === 'left')) {
+                const imageNode = node.appendChild(new _ModuleSupport.Rect());
+                childNodes.push(imageNode);
+
+                imageNode.fill = {
+                    type: 'image',
+                    fit: 'cover',
+                    url: datum.datum.image,
+                    width: styles.image.width,
+                    height: styles.image.height,
+                    backgroundFillOpacity: 0,
+                };
+
+                imageNode.x = x;
+                imageNode.y = y;
+                imageNode.width = styles.image.width;
+                imageNode.height = styles.image.height;
+
+                if (styles.image.position === 'top') {
+                    y += imageNode.getBBox().height + styles.image.spacing;
+                } else if (styles.image.position === 'left') {
+                    x += imageNode.getBBox().width + styles.image.spacing;
+                }
+            }
 
             if (datum.datum.title) {
                 const titleNode =
@@ -187,7 +215,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childNodes.push(titleNode);
 
                 titleNode.text = datum.datum.title;
-                titleNode.x = padding;
+                titleNode.x = x;
                 titleNode.y = y;
                 applyTextStyles(titleNode, styles.title);
 
@@ -200,7 +228,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 childNodes.push(subtitleNode);
 
                 subtitleNode.text = datum.datum.subtitle;
-                subtitleNode.x = padding;
+                subtitleNode.x = x;
                 subtitleNode.y = y;
                 applyTextStyles(subtitleNode, styles.subtitle);
 
@@ -215,7 +243,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     childNodes.push(labelNode);
 
                     labelNode.text = labelText;
-                    labelNode.x = padding;
+                    labelNode.x = x;
                     labelNode.y = y;
                     applyTextStyles(labelNode, styles.labels[index]);
 
@@ -223,6 +251,29 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
                     index++;
                 }
+            }
+
+            if (datum.datum.image && (styles.image.position === 'bottom' || styles.image.position === 'right')) {
+                const imageNode = node.appendChild(new _ModuleSupport.Rect());
+
+                imageNode.fill = {
+                    type: 'image',
+                    fit: 'cover',
+                    url: datum.datum.image,
+                    width: styles.image.width,
+                    height: styles.image.height,
+                    backgroundFillOpacity: 0,
+                };
+
+                imageNode.x =
+                    styles.image.position === 'right'
+                        ? x + _ModuleSupport.Group.computeChildrenBBox(childNodes).width + styles.image.spacing
+                        : padding;
+                imageNode.y = styles.image.position === 'bottom' ? y : padding;
+                imageNode.width = styles.image.width;
+                imageNode.height = styles.image.height;
+
+                childNodes.push(imageNode);
             }
 
             const bbox = _ModuleSupport.Group.computeChildrenBBox(childNodes).grow(padding);
@@ -273,6 +324,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         const parentIdValues = dataModel.resolveColumnById(this, 'parentIdValue', processedData);
+        const imageValues = dataModel.resolveColumnById(this, 'imageValue', processedData);
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
 
@@ -282,7 +334,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.
-        this.graph.build(idValues, parentIdValues, titleValues, subtitleValues, labelsValues, this.rootVertex);
+        this.graph.build(
+            idValues,
+            parentIdValues,
+            imageValues,
+            titleValues,
+            subtitleValues,
+            labelsValues,
+            this.rootVertex
+        );
     }
 
     private createNodeDataFromVertex(
@@ -300,9 +360,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const nodeDatum: OrganizationDatum = {
             series: this,
             datum: {
-                title: this.graph.findNeighbourValue(vertex, 'title') as string,
-                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as string,
-                labels: this.graph.findNeighbourValue(vertex, 'labels') as string[],
+                image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
+                title: this.graph.findNeighbourValue(vertex, 'title') as string | undefined,
+                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as string | undefined,
+                labels: this.graph.findNeighbourValue(vertex, 'labels') as string[] | undefined,
             },
             datumIndex: this.graph.findNeighbourValue(vertex, 'datumIndex') as number,
             nodeDatumIndex,
@@ -391,7 +452,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         datumIndex,
                         depth,
                         // isHighlight,
-                        style
+                        style as any
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
                         ['series', `${this.declarationOrder}`],
@@ -438,7 +499,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             labelIndex++;
         }
 
-        return style;
+        return style as any;
     }
 
     private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {
@@ -446,6 +507,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius,
             fill,
             fillOpacity,
+            image,
             lineDash,
             lineDashOffset,
             maxHeight,
@@ -458,6 +520,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius,
             fill,
             fillOpacity,
+            image: {
+                key: image.key,
+                height: image.height,
+                width: image.width,
+                position: image.position,
+                shape: image.shape,
+                spacing: image.spacing,
+            },
             lineDash,
             lineDashOffset: lineDashOffset ?? 0,
             maxHeight: maxHeight ?? Infinity,

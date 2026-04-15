@@ -51,6 +51,7 @@ export interface AgOrganizationSeriesThemeableOptionsNode<TDatum = DatumDefault,
 
 export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
+    image?: AgOrganizationSeriesOptionsNodeImage;
     maxHeight?: PixelSize;
     maxWidth?: PixelSize;
 }
@@ -60,6 +61,18 @@ export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext
     itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeStyle>;
     labels?: AgOrganizationSeriesOptionsNodeLabel<TDatum, TContext>[];
 }
+
+export interface AgOrganizationSeriesOptionsNodeImage {
+    key?: string;
+    height?: number;
+    width?: number;
+    position?: AgOrganizationSeriesOptionsNodeImagePosition;
+    shape?: AgOrganizationSeriesOptionsNodeImageShape;
+    spacing?: number;
+}
+
+export type AgOrganizationSeriesOptionsNodeImageShape = 'circle' | 'square';
+export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | 'right' | 'top';
 
 export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOrganizationSeriesNodeTextStyle {
