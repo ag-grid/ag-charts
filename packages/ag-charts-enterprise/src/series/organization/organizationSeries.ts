@@ -467,6 +467,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             seriesId,
             ...style,
             highlightState: 'none',
+            selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
@@ -485,6 +486,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             seriesId,
             ...style,
             highlightState: 'none',
+            selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 }
