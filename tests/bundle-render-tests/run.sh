@@ -20,7 +20,7 @@ cp "${script_dir}/scenarios.mjs" "${tmp_dir}/"
 cp -R "${script_dir}/bundlers" "${tmp_dir}/"
 
 # Copy tarballs
-for pkg in ag-charts-types ag-charts-locale ag-charts-core ag-charts-community ag-charts-enterprise ag-charts-server-side; do
+for pkg in ag-charts-types ag-charts-locale ag-charts-core ag-charts-community ag-charts-enterprise; do
     cp "${repo_dir}/dist/packages/${pkg}.tgz" "${tmp_dir}/"
 done
 
@@ -34,8 +34,7 @@ npm install --no-audit --no-fund \
     ./ag-charts-core.tgz \
     ./ag-charts-community.tgz \
     ./ag-charts-enterprise.tgz \
-    ./ag-charts-server-side.tgz \
-    esbuild 'vite@^7' webpack jsdom pixelmatch pngjs 2>&1
+    esbuild 'vite@^7' webpack skia-canvas jsdom pixelmatch pngjs 2>&1
 
 echo ">>> running bundle render tests..."
 exitCode=0

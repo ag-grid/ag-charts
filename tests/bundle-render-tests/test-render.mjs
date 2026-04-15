@@ -3,18 +3,20 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import pixelmatch from 'pixelmatch';
 import { PNG } from 'pngjs';
+import * as SkiaCanvas from 'skia-canvas';
 import { Canvas, DOMMatrix, Image, Path2D } from 'skia-canvas';
+
+// Use ag-charts-core's canvas utilities (same as ag-charts-server-side uses internally).
+// ConfiguredCanvasMixin adds transferToImageBitmap; applySkiaPatches fixes fillText.
+import { ConfiguredCanvasMixin, applySkiaPatches } from 'ag-charts-core';
 
 import { bundleWithEsbuild } from './bundlers/esbuild.mjs';
 import { bundleWithVite } from './bundlers/vite.mjs';
 import { bundleWithWebpack } from './bundlers/webpack.mjs';
 import { scenarios } from './scenarios.mjs';
 
-// Import ag-charts-server-side for its side-effects: it applies skia-canvas prototype
-// patches (fillText, CanvasRenderingContext2D fixes) via ag-charts-core's applySkiaPatches.
-// This also registers enterprise modules on its own ModuleRegistry — but that's a separate
-// instance from the bundled entries' inlined registries, so no cross-contamination.
-await import('ag-charts-server-side');
+const NodeCanvas = ConfiguredCanvasMixin(Canvas);
+applySkiaPatches(SkiaCanvas.CanvasRenderingContext2D, DOMMatrix);
 
 const bundlers = [
     { name: 'esbuild', fn: bundleWithEsbuild },
@@ -38,7 +40,7 @@ function createEnvironment() {
     const win = dom.window;
     win.requestAnimationFrame = (cb) => setTimeout(() => cb(Date.now()), 0);
     win.cancelAnimationFrame = (handle) => clearTimeout(handle);
-    win.OffscreenCanvas = Canvas;
+    win.OffscreenCanvas = NodeCanvas;
     win.DOMMatrix = DOMMatrix;
     win.Image = Image;
     win.Path2D = Path2D;
@@ -104,9 +106,9 @@ async function bundleAndRender(entryCode, entryFile, bundler, outFile) {
     await bundler.fn({ entry: entryFile, outFile });
 
     const env = createEnvironment();
-    const mainCanvas = new Canvas(400, 300);
+    const mainCanvas = new NodeCanvas(400, 300);
     const canvasStack = [mainCanvas];
-    patchCreateElement(env.document, () => canvasStack.shift() ?? new Canvas(400, 300));
+    patchCreateElement(env.document, () => canvasStack.shift() ?? new NodeCanvas(400, 300));
 
     try {
         const bundleUrl = new URL(`file://${resolve(outFile)}`).href;
