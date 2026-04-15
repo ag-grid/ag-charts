@@ -1,7 +1,7 @@
 import type { AgBaseThemeableChartOptions } from '../../chart/chartOptions';
 import type { ContextDefault, DatumDefault } from '../../chart/types';
 import type { AgChordSeriesOptions } from './chordOptions';
-import type { AgOrganizationSeriesOptions } from './organisationOptions';
+import type { AgOrganizationSeriesOptions } from './organizationOptions';
 import type { AgPyramidSeriesOptions } from './pyramidOptions';
 import type { AgSankeySeriesOptions } from './sankeyOptions';
 import type { AgSunburstSeriesOptions } from './sunburstOptions';

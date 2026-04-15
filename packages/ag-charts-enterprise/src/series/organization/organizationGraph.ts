@@ -5,7 +5,8 @@ import { NetworkGraph } from '../network/networkGraph';
 export type OrganizationVertex = string | string[] | number;
 
 export type OrganizationEdge =
-    | 'datumIndex' // The index of the datum within the series' nodeData array.
+    | 'datumIndex' // The index of the datum within the series' data array.
+    | 'nodeDatumIndex' // The index of the datum within the series' nodeData array.
     | 'child' // The descending edge from parent to child.
     | 'parent' // The ascending edge from child to parent.
     | 'title'
@@ -20,6 +21,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             singleValueEdges: new Set([
                 'datumIndex',
+                'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
                 'title',
                 'subtitle',
@@ -49,6 +51,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             }
             const labels = labelsValues.map((ls) => ls?.[index]).filter(Boolean) as string[];
             this.addEdge(vertex, this.addVertex(labels), 'labels');
+            this.addEdge(vertex, this.addVertex(index), 'datumIndex');
 
             verticesById[id] = vertex;
 

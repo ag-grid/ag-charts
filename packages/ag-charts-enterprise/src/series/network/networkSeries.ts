@@ -155,27 +155,27 @@ export abstract class AbstractNetworkSeries<
     }
 
     private getDatumNodeBBox(vertex: Vertex<any, any>) {
-        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
-        if (typeof datumIndex !== 'number') return;
+        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        if (typeof nodeDatumIndex !== 'number') return;
 
-        const group = this.datumSelection.at(datumIndex) as _ModuleSupport.Group | undefined;
+        const group = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
         if (!group) return;
 
-        return this.datumSelection.at(datumIndex)?.getBBox();
+        return this.datumSelection.at(nodeDatumIndex)?.getBBox();
     }
 
     private layoutDatumNode(vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) {
-        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
-        if (typeof datumIndex !== 'number') return;
+        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        if (typeof nodeDatumIndex !== 'number') return;
 
-        this.positionDatumNode(this.datumSelection.at(datumIndex)!, groupBBox);
+        this.positionDatumNode(this.datumSelection.at(nodeDatumIndex)!, groupBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
-        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex' as TEdge);
-        if (typeof datumIndex !== 'number') return;
+        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        if (typeof nodeDatumIndex !== 'number') return;
 
-        const link = this.linkSelection.at(datumIndex);
+        const link = this.linkSelection.at(nodeDatumIndex);
         if (!link) return;
 
         const path = link.children().next().value as _ModuleSupport.Path | undefined;
