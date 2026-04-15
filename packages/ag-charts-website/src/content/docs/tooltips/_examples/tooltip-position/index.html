@@ -7,7 +7,7 @@
             <option value="chart">Chart</option>
         </select>
         <span>Placement:</span>
-        <select onchange="setPlacement(event.target.value)">
+        <select class="gap-right" onchange="setPlacement(event.target.value)">
             <option value="top">Top</option>
             <option value="top-right">Top Right</option>
             <option value="right">Right</option>
@@ -20,6 +20,17 @@
             <option value="left, right">Left + Right fallback</option>
             <option value="right, left">Right + Left fallback</option>
         </select>
+        <label for="offsetSlider">Offset:</label>
+        <input
+            type="range"
+            id="offsetSlider"
+            min="0"
+            max="40"
+            value="8"
+            oninput="setOffset(event)"
+            onchange="setOffset(event)"
+        />
+        <span id="offsetValue" style="display: inline-block; min-width: 3ch; text-align: right">8</span>
     </div>
 </div>
 <div id="myChart"></div>
