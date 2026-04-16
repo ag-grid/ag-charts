@@ -28,6 +28,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                  | Invoke                                     | What it does                                               |
 | ----- | --------------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| Skill | 🔵 `fr`               | `/fr <AG-XXXXX>` (user)                    | End-to-end feature implementation from JIRA to PR          |
 | Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)             | Fix build and lint errors across a package                 |
 | Skill | 🔵 `pr-create`        | `/pr-create` (user)                        | Commit, push, and open a PR                                |
 | Skill | 🔵 `pr-review`        | `/pr-review [--json] [--all] <PR#>` (user) | Review a PR (Markdown default; `--all` adds DA + Simplify) |
@@ -208,6 +209,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `dev-server`         |      | 🤖     | Start dev server, check build status                        |
 | 🟠 `docs-create`        | ✂   | 👤     | Scaffold a new documentation page                           |
 | 🔵 `example`            | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
+| 🔵 `fr`                 |      | 👤     | End-to-end feature implementation from JIRA to PR           |
 | 🔵 `git-bisect`         |      | 👤     | Find the commit that introduced a regression                |
 | 🔵 `git-conventions`    |      | 🤖     | Branch, commit, and PR naming conventions                   |
 | 🔵 `git-split`          |      | 👤     | Split large files preserving git history                    |
