@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import type { PositionedScene } from '../../../utils/sceneLayout';
 
 export function layoutAddX(scene: PositionedScene, x: number) {
