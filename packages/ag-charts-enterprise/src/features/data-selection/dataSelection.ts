@@ -83,8 +83,8 @@ export class DataSelection extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
-        const { enabled } = this.opts;
-        if (!enabled) return;
+        const { enabled, enableDrag } = this.opts;
+        if (!enabled || !enableDrag) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
@@ -95,10 +95,10 @@ export class DataSelection extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
-        const { enabled } = this.opts;
+        const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !dragStartEvent) {
+        if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
         }
@@ -114,10 +114,10 @@ export class DataSelection extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
-        const { enabled } = this.opts;
+        const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !dragStartEvent) {
+        if (!enabled || !enableDrag || !dragStartEvent) {
             this.dragRect.visible = false;
             return;
         }

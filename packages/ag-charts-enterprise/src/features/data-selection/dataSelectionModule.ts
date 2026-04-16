@@ -14,11 +14,13 @@ export const SelectionModule: PluginModuleDefinition<AgSelectionOptions> = {
     options: {
         enabled: boolean,
         enableClick: boolean,
+        enableDrag: boolean,
         clickMode: strictUnion<AgSelectionClickMode>()('single', 'multiple'),
     },
     themeTemplate: {
         enabled: false,
         enableClick: true,
+        enableDrag: false,
         clickMode: 'single',
     },
 
