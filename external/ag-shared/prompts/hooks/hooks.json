@@ -1,0 +1,56 @@
+{
+    "description": "AG development hooks — formatter and session setup",
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|MultiEdit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "jq -r '.tool_input.file_path' | ( read file_path; yarn nx format --files \"$file_path\" )"
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+                "matcher": "startup",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/install-for-cloud/install-for-cloud.sh"
+                    },
+                    {
+                        "type": "command",
+                        "command": "if [ -n \"$CLAUDE_ENV_FILE\" ]; then echo 'export NX_DAEMON=false' >> \"$CLAUDE_ENV_FILE\"; fi"
+                    },
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/install-for-cloud/setup-terminal-title.sh"
+                    }
+                ]
+            }
+        ],
+        "WorktreeCreate": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/setup-worktree/claude-worktree-create.sh",
+                        "timeout": 300
+                    }
+                ]
+            }
+        ],
+        "WorktreeRemove": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "\"$CLAUDE_PROJECT_DIR\"/external/ag-shared/scripts/setup-worktree/claude-worktree-remove.sh"
+                    }
+                ]
+            }
+        ]
+    }
+}

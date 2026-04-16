@@ -1,0 +1,13 @@
+{
+    "name": "ag-dev",
+    "owner": {
+        "name": "AG Grid"
+    },
+    "plugins": [
+        {
+            "name": "ag",
+            "source": "./",
+            "description": "AG development tools — skills, agents, and hooks shared across AG product repos"
+        }
+    ]
+}

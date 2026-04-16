@@ -87,10 +87,17 @@
         "ENABLE_TOOL_SEARCH": "true"
     },
     "enabledPlugins": {
+        "ag@ag-dev": true,
         "codex@openai-codex": true,
         "skill-creator@claude-plugins-official": true
     },
     "extraKnownMarketplaces": {
+        "ag-dev": {
+            "source": {
+                "source": "github",
+                "repo": "ag-grid/ag-dev-prompts"
+            }
+        },
         "openai-codex": {
             "source": {
                 "source": "github",
