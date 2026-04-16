@@ -53,7 +53,8 @@ export class DataSelection extends AbstractModuleInstance {
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
-            ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev))
+            ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
+            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
         );
     }
 
@@ -150,9 +151,13 @@ export class DataSelection extends AbstractModuleInstance {
                 }
             }
         }
-        this.dragStartEvent = undefined;
-        this.dragRect.visible = false;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+        this.endDrag();
+    }
+
+    private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
+        if (widgetEvent.sourceEvent.code === 'Escape') {
+            this.endDrag();
+        }
     }
 
     private setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {
@@ -168,5 +173,11 @@ export class DataSelection extends AbstractModuleInstance {
     private setSelected(series: Series, data: DataSet, datumIndex: number): void {
         const selections = data.enableSelection(series.id);
         selections.select(datumIndex);
+    }
+
+    private endDrag(): void {
+        this.dragStartEvent = undefined;
+        this.dragRect.visible = false;
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 }
