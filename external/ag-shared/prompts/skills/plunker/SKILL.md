@@ -46,7 +46,7 @@ This ensures the implementation step uses the correct CDN URLs, CSS, and API pat
 ### Create a New Plunker
 
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-new-XXXXXX)`
-2. **Verify API options** — before writing any code, verify every API option against the product's public types package and find a working example that uses the same feature. Training data is unreliable for AG product APIs. Do not guess.
+2. **Verify API options** — before writing any code, verify every API option against the product's public types package AND find at least one working example in `packages/ag-charts-website/src/content/docs/*/_examples/` (or equivalent for the product) that uses the same feature, event, or API pattern. Read the example to confirm option names, nesting, and event signatures. Do NOT proceed to step 3 until verification is complete. Training data is unreliable for AG product APIs. Do not guess.
 3. Copy the CSS asset: `cp "<skill-base-directory>/assets/ag-example-styles.css" "$PLNKR_DIR/ag-example-styles.css"`
 4. Write remaining files per the product-specific guide (index.html, main.js, package.json, etc.)
 5. Upload:
@@ -54,6 +54,7 @@ This ensures the implementation step uses the correct CDN URLs, CSS, and API pat
    bash "<skill-base-directory>/plnkr.sh" upload "$PLNKR_DIR" --title "Example Title"
    ```
 6. Parse output for `URL=` — the shareable link.
+7. **Browser verify** — open the plunker preview URL in the browser (Chrome extension) and verify the chart renders correctly and any interactive features work as expected. Take a screenshot to confirm.
 
 ### Fork/Modify an Existing Plunker
 
@@ -67,6 +68,7 @@ This ensures the implementation step uses the correct CDN URLs, CSS, and API pat
    ```bash
    bash "<skill-base-directory>/plnkr.sh" upload "$DIR" --title "Modified: Original Title"
    ```
+5. **Browser verify** — open the plunker preview URL in the browser (Chrome extension) and verify the chart renders correctly and any interactive features work as expected. Take a screenshot to confirm.
 
 ### Read-Only Inspection
 
@@ -96,6 +98,18 @@ Use these when sharing links or loading existing content:
 | Load a GitHub Gist (embed) | `https://embed.plnkr.co/gist/<gist-id>` |
 
 The gist must contain an `index.html` file. Plnkr reads the gist files directly — no upload needed.
+
+### Browser Verification
+
+When verifying plunkers via browser automation, use the **editor + preview** URL (`https://plnkr.co/edit/<plunk-id>?preview`) rather than the `run.plnkr.co` URL. The `run.plnkr.co` domain shows a phishing warning interstitial that blocks automation.
+
+## Forked Context Limitation
+
+This skill runs in a forked context. If you have already modified plunker files in the parent context (before invoking the skill), the fork may not see those changes. In that case, use the bash script directly instead of invoking the skill for upload-only:
+
+```bash
+bash "<skill-base-directory>/plnkr.sh" upload "$DIR"
+```
 
 ## API Notes
 

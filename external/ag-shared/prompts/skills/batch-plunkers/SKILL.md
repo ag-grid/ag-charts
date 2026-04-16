@@ -51,7 +51,7 @@ Wait for user confirmation. Do NOT launch sub-agents until confirmed.
 
 ### 2a. Read the Product Guide
 
-Read all `*-guide.md` files in the sibling plunker skill directory (`../plunker/`). These contain the product-specific file templates, CDN URLs, styling requirements, and common issues. Also read `.rulesync/skills/example/ag-charts/chart-construction.md` and `.rulesync/skills/example/ag-charts/enterprise-features.md` for chart construction patterns and enterprise/community feature matrix. The guide content will be included in each sub-agent prompt.
+Read all `*-guide.md` files in the sibling plunker skill directory (`../plunker/`). These contain the product-specific file templates, CDN URLs, styling requirements, and common issues. The guide content will be included in each sub-agent prompt.
 
 ### 2b. Determine CDN and Resolve Enterprise/Community Per-Assignment
 
@@ -75,7 +75,7 @@ Launch one `general-purpose` Task sub-agent per assignment, **all in a single me
 Each sub-agent prompt **MUST** include:
 
 1. The assignment text and plunker number
-2. **The full product guide content AND example skill content inline** (from Step 2a) — paste the plunker guide, chart-construction.md, and enterprise-features.md text into the prompt so the sub-agent has it immediately without needing to read files
+2. **The full product guide content inline** (from Step 2a) — paste the entire guide text into the prompt so the sub-agent has it immediately without needing to read files
 3. The **resolved CDN URL** for this specific assignment (enterprise or community, from Step 2b)
 4. Any feature context from the JIRA ticket
 5. The exact upload command with the absolute path to `plnkr.sh`
@@ -96,7 +96,7 @@ Create a Plunker for the following assignment:
 ## Instructions
 
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-batch-{PLUNKER_NUMBER}-XXXXXX)`
-2. **MANDATORY: Verify ALL API options** against `packages/ag-charts-types/src` before writing files. Grep for every option name, confirm nesting and value shapes. If not found in types, search for a working example in `packages/ag-charts-website/src/content/docs/*/_examples/`. Training data is unreliable — do NOT guess option names or structures
+2. **Verify API options** against `packages/ag-charts-types/src` before writing files. You may skip verification for basic series properties (`type`, `xKey`, `yKey`, `yName`, `data`) but must verify all other options — especially callbacks, nested objects, styling properties, and anything you are less than fully confident about
 3. Write all files per the product guide below (index.html, main.js, ag-example-styles.css, package.json, and optionally data.js)
 4. Upload: `bash "{ABSOLUTE_PATH_TO_PLNKR_SH}" upload "$PLNKR_DIR" --title "{TITLE}" --tags "ag-charts,qa"`
 5. Report the URL= line from the upload output
@@ -106,14 +106,6 @@ Create a Plunker for the following assignment:
 ## Product Guide
 
 {GUIDE_CONTENT}
-
-## Chart Construction Patterns
-
-{CHART_CONSTRUCTION_CONTENT}
-
-## Enterprise Features
-
-{ENTERPRISE_FEATURES_CONTENT}
 ````
 
 Wait for **all** sub-agents to complete before proceeding to Step 3.
