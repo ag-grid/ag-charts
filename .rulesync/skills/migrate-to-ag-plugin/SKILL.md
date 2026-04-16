@@ -16,9 +16,9 @@ This skill tracks the steps needed to adopt the `ag@ag-dev` Claude plugin in a c
 
 ## Prerequisites
 
-- The repo must have `external/ag-shared` as a subrepo
-- The repo must already use `setup-prompts.sh` for rulesync generation
-- The developer needs push access to `ag-grid/ag-dev-prompts` (for syncing)
+-   The repo must have `external/ag-shared` as a subrepo
+-   The repo must already use `setup-prompts.sh` for rulesync generation
+-   The developer needs push access to `ag-grid/ag-dev-prompts` (for syncing)
 
 ## Phase 1: Enable Dual Mode
 
@@ -31,8 +31,9 @@ yarn subrepo pull ag-shared
 ```
 
 This brings in the updated `.claude-settings.json` which already contains:
-- `enabledPlugins["ag@ag-dev"]: true`
-- `extraKnownMarketplaces.ag-dev` pointing to `ag-grid/ag-dev-prompts`
+
+-   `enabledPlugins["ag@ag-dev"]: true`
+-   `extraKnownMarketplaces.ag-dev` pointing to `ag-grid/ag-dev-prompts`
 
 ### Step 2: Regenerate rulesync output
 
@@ -56,8 +57,9 @@ Start a new Claude Code session and check:
 The plugin delivers hooks via `hooks/hooks.json`. If the project `.claude/settings.json` also defines the same hooks (PostToolUse formatter, SessionStart, WorktreeCreate/Remove), they may fire twice.
 
 **Resolution:** During dual mode, hooks should come from ONE source. Either:
-- Remove hooks from the plugin's `hooks/hooks.json` (keep in project settings)
-- Or remove hooks from `.claude-settings.json` (keep in plugin)
+
+-   Remove hooks from the plugin's `hooks/hooks.json` (keep in project settings)
+-   Or remove hooks from `.claude-settings.json` (keep in plugin)
 
 The current recommendation is to keep hooks in project settings during dual mode and defer the plugin hooks to Phase 3 (cut-over).
 
@@ -109,8 +111,8 @@ The sync script uses `git filter-repo --subdirectory-filter prompts/` which prod
 
 ## Per-Repo Status
 
-| Repo | Phase | Status | Notes |
-|------|-------|--------|-------|
-| ag-charts | 1 | Dual mode active | Skills + product content in plugin; testing in progress |
-| ag-grid | 0 | Not started | Needs `subrepo pull ag-shared` to get config |
-| ag-studio | 0 | Not started | Needs `subrepo pull ag-shared` to get config |
+| Repo      | Phase | Status           | Notes                                                   |
+| --------- | ----- | ---------------- | ------------------------------------------------------- |
+| ag-charts | 1     | Dual mode active | Skills + product content in plugin; testing in progress |
+| ag-grid   | 0     | Not started      | Needs `subrepo pull ag-shared` to get config            |
+| ag-studio | 0     | Not started      | Needs `subrepo pull ag-shared` to get config            |
