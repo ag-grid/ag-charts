@@ -97,13 +97,13 @@ function initMyDragBox() {
 }
 initMyDragBox();
 
-const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions => {
+const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
     if (params.selectionState === 'selected') {
         return { stroke: 'black', strokeWidth: 2 };
     }
 };
 
-const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle => {
+const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle | undefined => {
     if (params.selectionState === 'selected') {
         return { stroke: 'black', strokeWidth: 2, size: 15 };
     }
