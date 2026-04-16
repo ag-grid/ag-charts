@@ -47,6 +47,7 @@ import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { getShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta } from '../tooltip/tooltip';
+import type { TooltipContent } from '../tooltip/tooltipContent';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
 import { makeLegendItemEvent } from './legendEvent';
@@ -215,8 +216,10 @@ export class Legend {
         const {
             toggleSeries,
             listeners: { legendItemClick, legendItemDoubleClick },
+            item: { tooltip },
         } = this.opts;
-        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null;
+        const hasExplicitTooltip = tooltip != null && tooltip.visible !== 'never';
+        return toggleSeries || legendItemDoubleClick != null || legendItemClick != null || hasExplicitTooltip;
     }
 
     private checkInteractionState(): boolean {
@@ -1019,6 +1022,37 @@ export class Legend {
         return { canvasX: point.x, canvasY: point.y, showArrow: false };
     }
 
+    private getTooltipContent(datum: CategoryLegendDatum): TooltipContent[] | undefined {
+        const tooltipOpts = this.opts.item.tooltip;
+        const isTruncated = this.truncatedItems.has(datum.itemId ?? datum.id);
+
+        // Resolve effective visibility: default is 'always' when custom content provided, else 'auto'
+        const hasCustomContent = tooltipOpts?.text != null || tooltipOpts?.renderer != null;
+        const visible = tooltipOpts?.visible ?? (hasCustomContent ? 'always' : 'auto');
+
+        if (visible === 'never') return undefined;
+        if (visible === 'auto' && !isTruncated) return undefined;
+
+        // Content precedence: renderer > text > default label
+        if (tooltipOpts?.renderer) {
+            const params = {
+                seriesId: datum.seriesId,
+                itemId: datum.itemId ?? datum.id,
+                text: toPlainText(datum.label.text),
+                enabled: datum.enabled,
+            };
+            const result = this.cachedCallWithContext(tooltipOpts.renderer, params);
+            if (result == null || result === '') return undefined;
+            return [{ type: 'raw', rawHtmlString: result }];
+        }
+
+        if (tooltipOpts?.text != null) {
+            return [{ type: 'structured', title: tooltipOpts.text }];
+        }
+
+        return [{ type: 'structured', title: this.getItemLabel(datum) }];
+    }
+
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
         if (this.checkInteractionState()) return;
         if (!this.opts.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
@@ -1027,13 +1061,13 @@ export class Legend {
 
         const datum: CategoryLegendDatum | undefined = node.datum;
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
-        if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
+
+        const content = datum ? this.getTooltipContent(datum) : undefined;
+        if (content) {
             const meta = this.toTooltipMeta(event, node);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, [
-                { type: 'structured', title: this.getItemLabel(datum) },
-            ]);
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         } else {
-            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+            this.ctx.tooltipManager.removeTooltip(this.id, undefined, true);
         }
 
         this.updateHighlight(datum?.enabled, datum, series);

@@ -381,6 +381,11 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
                 formatter: callback,
                 ...fontOptionsDef,
             },
+            tooltip: {
+                visible: union('auto', 'always', 'never'),
+                text: string,
+                renderer: callback,
+            },
             maxWidth: positiveNumber,
             paddingX: positiveNumber,
             paddingY: positiveNumber,
