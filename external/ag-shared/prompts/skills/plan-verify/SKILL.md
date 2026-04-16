@@ -91,12 +91,12 @@ The `discovered-work.md` is shared with the `plan-review` skill.
 
     Unless `--no-jira` is set, automatically detect the JIRA ticket key from (in priority order):
     1. Explicit `--jira AG-XXXXX` argument
-    2. Plan file content: scan for `AG-\d+` pattern in title or first section
-    3. Branch name: extract from `ag-XXXXX/` prefix (e.g. `ag-10316/custom-legend-item-tooltip`)
+    2. Plan file content: scan for `[A-Z]+-\d+` pattern in title or first section (matches AG-, ST-, and other JIRA project keys)
+    3. Branch name: extract ticket key prefix (case-insensitive, e.g. `ag-10316/...`, `AG-10316/...`, `st-123/...`)
 
     ```bash
-    # Detect from branch name
-    git branch --show-current | grep -oE 'ag-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]'
+    # Detect from branch name (case-insensitive)
+    git branch --show-current | grep -ioE '[a-z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]'
     ```
 
     Fetch the ticket via Atlassian MCP:
