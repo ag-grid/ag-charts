@@ -11,7 +11,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private subtitleNode?: _ModuleSupport.Text;
     private labelNodes?: _ModuleSupport.Text[];
 
-    private padding = 20;
+    private readonly padding = 20;
 
     update(datum: OrganizationDatum['datum'], styles: RequiredOrganizationNodeStyle) {
         this.updateShapeNode(styles);
