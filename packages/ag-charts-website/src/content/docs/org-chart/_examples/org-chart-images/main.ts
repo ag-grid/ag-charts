@@ -2,6 +2,8 @@ import {
     AgChartOptions,
     AgCharts,
     AgOrganizationSeriesOptions,
+    AgOrganizationSeriesOptionsNodeImagePosition,
+    AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -11,7 +13,7 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Company Organisation',
@@ -47,7 +49,7 @@ const options: AgChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function changePosition(position: string) {
-    (options.series![0] as AgOrganizationSeriesOptions).node.image.position = position;
+function changePosition(position: AgOrganizationSeriesOptionsNodeImagePosition) {
+    (options.series![0] as AgOrganizationSeriesOptions).node!.image!.position = position;
     chart.update(options);
 }
