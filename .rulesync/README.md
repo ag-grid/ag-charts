@@ -209,7 +209,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `dev-server`         |      | 🤖     | Start dev server, check build status                        |
 | 🟠 `docs-create`        | ✂   | 👤     | Scaffold a new documentation page                           |
 | 🔵 `example`            | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
-| 🔵 `fr`                 |      | 👤     | End-to-end feature implementation from JIRA to PR           |
+| 🔵 `fr`                 | ✂   | 👤     | End-to-end feature implementation from JIRA to PR           |
 | 🔵 `git-bisect`         |      | 👤     | Find the commit that introduced a regression                |
 | 🔵 `git-conventions`    |      | 🤖     | Branch, commit, and PR naming conventions                   |
 | 🔵 `git-split`          |      | 👤     | Split large files preserving git history                    |

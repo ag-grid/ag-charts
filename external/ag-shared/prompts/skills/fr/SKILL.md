@@ -15,7 +15,7 @@ Orchestrate a complete feature implementation from JIRA ticket to merged PR. You
 Feature implementations generate enormous context: JIRA descriptions, codebase research, implementation diffs, test output, review feedback. If you do everything inline, your context fills up before you finish. Instead:
 
 - **Delegate** research, implementation steps, and reviews to sub-agents
-- **Use temp files** (`tmp/fr-planning/`) as shared memory between agents
+- **Use the state directory** as shared memory between agents
 - **Summarise** sub-agent results rather than ingesting full transcripts
 - **Stay lean** — your job is to make decisions and manage phase transitions
 
@@ -36,36 +36,49 @@ Parse the invocation for a JIRA ticket reference:
 
 - `AG-XXXXX` or `ST-XXXXX` — JIRA ticket key
 - Full JIRA URL — extract the ticket key
-- `--resume` — resume an in-progress feature (reads state from `tmp/fr-planning/`)
+- `--resume` — resume the most recent in-progress feature
 
 Examples: `/fr AG-17064`, `/fr https://ag-grid.atlassian.net/browse/AG-17064`, `/fr --resume`
 
 ---
 
-## Workspace Setup
+## State Directory
 
-Create the planning workspace on first run:
+State is stored per-ticket in the **main checkout** (not the worktree), so it persists across worktrees and sessions. Resolve the main checkout root and create the state directory:
+
+```bash
+MAIN_REPO=$(git rev-parse --path-format=absolute --git-common-dir | sed 's/\.git$//')
+STATE_DIR="${MAIN_REPO}tmp/fr-state/<TICKET-KEY>/"
+mkdir -p "$STATE_DIR"
+```
+
+For example, `/fr AG-17064` creates: `<main-checkout>/tmp/fr-state/AG-17064/`
+
+### Directory contents
 
 ```
-tmp/fr-planning/
+tmp/fr-state/AG-17064/
 ├── intent.md          # JIRA summary, ACs, scope boundaries
+├── research.md        # Codebase research findings
 ├── plan.md            # The implementation plan
 ├── progress.md        # Step completion tracking
 ├── review-feedback.md # Quality check findings and resolution
 └── decisions.md       # Key decisions and their rationale
 ```
 
-These files are the shared memory between you and your sub-agents. When delegating, point sub-agents at the relevant files so they have context without you relaying everything through your own conversation.
+These files are the shared memory between you and your sub-agents. When delegating, give sub-agents absolute paths to these files so they have context without you relaying everything through your own conversation.
+
+Store the resolved `STATE_DIR` path early and use it throughout — don't re-derive it for every reference.
 
 ---
 
 ## Phase 0: Context Gathering
 
-**Goal:** Build a clear picture of what needs to be done and write it to `tmp/fr-planning/intent.md`.
+**Goal:** Build a clear picture of what needs to be done and write it to `intent.md`.
 
 1. **Fetch the JIRA ticket** via Atlassian MCP:
     ```
-    mcp__atlassian__getJiraIssue(issueIdOrKey, responseContentFormat: 'markdown')
+    mcp__atlassian__getJiraIssue(issueIdOrKey: '<TICKET-KEY>', responseContentFormat: 'markdown')
     ```
 
 2. **Write `intent.md`** with:
@@ -77,7 +90,7 @@ These files are the shared memory between you and your sub-agents. When delegati
     - Your 1-2 sentence summary of the core intent — what problem does this solve?
 
 3. **Delegate codebase research** to a sub-agent:
-    > "Read `tmp/fr-planning/intent.md`. Research the codebase to identify: (a) which packages and files are likely affected, (b) existing patterns for similar features, (c) relevant tests and docs pages. Write findings to `tmp/fr-planning/research.md`."
+    > "Read `<STATE_DIR>/intent.md`. Research the codebase to identify: (a) which packages and files are likely affected, (b) existing patterns for similar features, (c) relevant tests and docs pages. Write findings to `<STATE_DIR>/research.md`."
 
 4. **Read the research summary** and ensure you understand the scope before planning.
 
@@ -91,7 +104,7 @@ If the JIRA fetch fails, ask the user to describe the feature and write `intent.
 
 ### Create the Plan
 
-Enter plan mode. Draft a plan in `tmp/fr-planning/plan.md` covering:
+Enter plan mode. Draft a plan in `<STATE_DIR>/plan.md` covering:
 
 1. **Implementation steps** — what code changes, in which files, in what order
 2. **Test strategy** — what tests to add or modify (see Test Strategy below)
@@ -106,12 +119,12 @@ The right test type depends on what's changing. Get this wrong and you'll either
 
 | Change Type | Test Approach | Why |
 |---|---|---|
-| Canvas rendering (series, axes, labels, legend) | Integration tests (Jest snapshots) | Canvas output is deterministic and testable without a browser |
-| DOM changes (tooltips, overlays, interactive controls) | E2E tests (Playwright) | DOM interactions need a real browser to exercise properly |
+| Canvas / rendering output | Integration tests (Jest snapshots) | Canvas output is deterministic and testable without a browser |
+| DOM changes (overlays, popups, interactive controls) | E2E tests (Playwright) | DOM interactions need a real browser to exercise properly |
 | Data processing, logic, utilities | Unit tests | Pure logic benefits from fast, isolated tests |
 | API surface changes | Integration tests + type checks | Verify options are accepted and produce correct output |
 
-When a feature touches both canvas and DOM (common for interactive features like tooltips over data points), plan for both integration and e2e tests. Don't skip e2e for DOM changes — integration tests can't exercise real browser behaviour like hover states, focus management, or DOM measurement.
+When a feature touches both rendering and DOM (common for interactive features), plan for both integration and e2e tests. Don't skip e2e for DOM changes — integration tests can't exercise real browser behaviour like hover states, focus management, or DOM measurement.
 
 ### Review and Iterate
 
@@ -128,7 +141,7 @@ Planning is cheap; rework is expensive. The plan needs to be solid before implem
     - Documentation needs are identified
     - You are confident the plan, when executed, fully satisfies the ticket scope
 
-Write final decisions to `tmp/fr-planning/decisions.md` so sub-agents can reference them during implementation.
+Write final decisions to `<STATE_DIR>/decisions.md` so sub-agents can reference them during implementation.
 
 Exit plan mode once the plan is approved.
 
@@ -149,9 +162,9 @@ For each plan step, decide whether to delegate or do inline:
 
 Give each sub-agent:
 - The specific plan step(s) to implement
-- Paths to `tmp/fr-planning/intent.md` and `tmp/fr-planning/plan.md` for context
+- Absolute paths to `<STATE_DIR>/intent.md` and `<STATE_DIR>/plan.md` for context
 - Relevant file paths from the research phase
-- Any decisions from `tmp/fr-planning/decisions.md` that affect their work
+- Any decisions from `<STATE_DIR>/decisions.md` that affect their work
 
 **Do inline** when the step:
 - Requires real-time judgment or creative decisions
@@ -160,7 +173,7 @@ Give each sub-agent:
 
 ### Progress Tracking
 
-After each step completes (delegated or inline), update `tmp/fr-planning/progress.md`:
+After each step completes (delegated or inline), update `<STATE_DIR>/progress.md`:
 
 ```markdown
 ## Step 1: [Description] — DONE
@@ -195,20 +208,21 @@ Read the output. If tests fail, fix them — don't defer to the quality gate and
 
 **Goal:** Verify the implementation is complete, correct, and ready for human review.
 
-Record all findings in `tmp/fr-planning/review-feedback.md`.
+Record all findings in `<STATE_DIR>/review-feedback.md`.
 
 ### 1. Run All Tests
 
 Before running review skills, verify that every test actually passes. Run the full test suites for all affected packages — not just the new tests, but the entire suite to catch regressions.
 
 ```bash
-# Core package tests (always run for chart changes)
-yarn nx test ag-charts-community
-yarn nx test ag-charts-enterprise
+# Run tests for every package you changed
+yarn nx test <package>
 
 # E2E tests (run if e2e tests were added or DOM-affecting changes were made)
-yarn nx test:e2e ag-charts-website
+yarn nx test:e2e <website-package>
 ```
+
+Consult `CLAUDE.md` for the repo-specific test commands — package names and test targets vary across AG products.
 
 If you added tests with `--testPathPattern` during implementation, now is the time to run without the filter. A test that passes in isolation can fail when the full suite runs (shared state, ordering issues).
 
@@ -241,7 +255,7 @@ For each finding:
 | P2 (JIRA gap) | Fix — missing AC coverage is a real gap, not optional |
 | P3 | Note but don't block |
 
-**If fixes require significant new work** (new plan steps, architectural changes), return to **Phase 1** to re-plan rather than patching ad hoc. Update `tmp/fr-planning/plan.md` with the additions.
+**If fixes require significant new work** (new plan steps, architectural changes), return to **Phase 1** to re-plan rather than patching ad hoc. Update `<STATE_DIR>/plan.md` with the additions.
 
 After fixing, re-run the relevant checks to confirm resolution. Don't skip re-verification — a fix can introduce new issues.
 
@@ -317,12 +331,16 @@ Iterate until CI is green. Present the PR URL to the user when ready for team re
 
 ## Resuming a Session (`--resume`)
 
-If invoked with `--resume` or `tmp/fr-planning/` already exists:
+If invoked with `--resume`:
 
-1. Read `tmp/fr-planning/progress.md` to determine the current phase
-2. Read `tmp/fr-planning/intent.md` for feature context
-3. Summarise current state to the user before continuing
-4. Pick up from the last incomplete phase
+1. Resolve the main checkout root and list directories in `tmp/fr-state/`
+2. If multiple ticket directories exist, pick the most recently modified one (or ask the user which ticket to resume if ambiguous)
+3. Read `progress.md` to determine the current phase
+4. Read `intent.md` for feature context
+5. Summarise current state to the user before continuing
+6. Pick up from the last incomplete phase
+
+If invoked with a specific ticket (`/fr AG-17064`) and the state directory already exists, this is a resume — read existing state rather than starting fresh.
 
 ---
 
