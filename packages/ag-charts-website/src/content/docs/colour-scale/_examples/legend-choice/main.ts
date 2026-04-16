@@ -51,13 +51,13 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setMode(mode: 'continuous' | 'discrete') {
+export function setMode(mode: 'continuous' | 'discrete') {
     const series = options.series![0] as any;
     series.colorScale.mode = mode;
     chart.update(options);
 }
 
-function toggleLegendType() {
+export function toggleLegendType() {
     useGradientLegend = !useGradientLegend;
     options.gradientLegend = { ...options.gradientLegend, enabled: useGradientLegend };
     options.legend = { ...options.legend, enabled: !useGradientLegend };
