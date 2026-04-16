@@ -1,6 +1,7 @@
 import {
     AgChartOptions,
     AgCharts,
+    AgOrganizationSeriesOptions,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -47,6 +48,6 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function changePosition(position: string) {
-    options.series[0].node.image.position = position;
+    (options.series![0] as AgOrganizationSeriesOptions).node.image.position = position;
     chart.update(options);
 }
