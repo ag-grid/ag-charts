@@ -7,7 +7,7 @@ export type NormalisedZoomOnDataChange = Required<AgZoomOnDataChange>;
 export type NormalisedZoomButtons = Normalised<
     AgZoomButtons,
     'enabled' | 'visible',
-    { buttons: AgZoomButtons['buttons'] & {} }
+    { buttons: NonNullable<AgZoomButtons['buttons']> }
 >;
 
 export type NormalisedZoomOptions = Normalised<

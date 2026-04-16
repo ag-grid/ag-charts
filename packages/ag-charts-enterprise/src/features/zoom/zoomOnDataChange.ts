@@ -45,8 +45,8 @@ function shouldIgnoreDataUpdate(zoom: DefinedZoomState): boolean {
     return zoom.x.min === 0 && zoom.x.max === 1 && zoom.y.min === 0 && zoom.y.max === 1;
 }
 
-function shouldStickToEnd(properties: NormalisedZoomOnDataChange, zoom: DefinedZoomState): boolean {
-    return properties.stickToEnd && zoom.x.max === 1;
+function shouldStickToEnd(opts: NormalisedZoomOnDataChange, zoom: DefinedZoomState): boolean {
+    return opts.stickToEnd && zoom.x.max === 1;
 }
 
 function toVisibleMinMax(axisId: AxisID, domainMinMax: DomainMinMax, ratios: ZoomMinMax): VisibleMinMax {

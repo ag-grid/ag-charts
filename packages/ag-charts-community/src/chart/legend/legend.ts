@@ -162,7 +162,7 @@ export class Legend {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
 
-        let prevEnabled = initialOpts.enabled;
+        let prevEnabled = initialOpts?.enabled;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'legend.enabled');

@@ -61,8 +61,10 @@ enum DragState {
 type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
 
 export class Zoom extends AbstractModuleInstance {
+    private static readonly DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
+
     private get opts(): ZoomOpts {
-        return this.ctx.chartState.getValue('options', 'zoom');
+        return this.ctx.chartState.getValue('options', 'zoom') ?? Zoom.DISABLED_OPTS;
     }
 
     // Public getter required by `hasViewportSupport()` in chart.ts.
@@ -200,23 +202,29 @@ export class Zoom extends AbstractModuleInstance {
             initialOpts.autoScaling
         );
 
-        // Initial setup from initialOpts (guaranteed non-null)
+        // Initial setup from initialOpts
         ctx.zoomManager.setIndependentAxes(Boolean(initialOpts.enableIndependentAxes));
-        this.panner.deceleration = initialOpts.deceleration;
-        this.onEnabledChange(initialOpts.enabled);
+        if (initialOpts.deceleration != null) this.panner.deceleration = initialOpts.deceleration;
+        this.onEnabledChange(initialOpts.enabled ?? false);
 
         // Observe subsequent option changes
-        let prevEnabled = initialOpts.enabled;
+        let prevEnabled = initialOpts.enabled ?? false;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
-                const enabled = get('options', 'zoom.enabled');
-                const deceleration = get('options', 'zoom.deceleration');
+                const opts = get('options', 'zoom');
+                if (opts == null) return;
 
-                ctx.zoomManager.setIndependentAxes(Boolean(this.opts.enableIndependentAxes));
-                this.panner.deceleration = deceleration;
-                if (prevEnabled !== enabled) {
-                    prevEnabled = enabled;
-                    this.onEnabledChange(enabled);
+                ctx.zoomManager.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
+                this.panner.deceleration = opts.deceleration;
+
+                // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
+                if (opts.buttons) {
+                    this.buttons.set(opts.buttons);
+                }
+
+                if (prevEnabled !== opts.enabled) {
+                    prevEnabled = opts.enabled;
+                    this.onEnabledChange(opts.enabled);
                 }
             })
         );
@@ -731,18 +739,17 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const opts = this.opts;
-        if (opts == null) return; // chartState not yet populated
+        const { enabled, enableDoubleClickToReset, enableAxisDragging, enableAxisScrolling } = this.opts;
 
         this.ctx.eventsHub.emit('axis-dom-proxy:update', {
             source: 'zoom',
-            enabled: opts.enabled,
-            enableDoubleClick: opts.enableDoubleClickToReset,
-            enableDragging: opts.enableAxisDragging,
-            enableScrolling: opts.enableAxisScrolling,
+            enabled,
+            enableDoubleClick: enableDoubleClickToReset,
+            enableDragging: enableAxisDragging,
+            enableScrolling: enableAxisScrolling,
         });
 
-        if (!opts.enabled) return;
+        if (!enabled) return;
 
         this.seriesRect = event.series.rect;
         this.paddedRect = event.series.paddedRect;
