@@ -134,7 +134,8 @@ if git rev-parse "$SYNC_TAG" &>/dev/null; then
     PLUGIN_HEAD=$(git rev-parse HEAD)
     if [ "$SYNC_BASE" != "$PLUGIN_HEAD" ]; then
         # Collect direct commit SHAs (oldest first) between sync tag and HEAD
-        mapfile -t DIRECT_COMMITS < <(git rev-list --reverse "${SYNC_TAG}..HEAD")
+        DIRECT_COMMITS=()
+        while IFS= read -r c; do DIRECT_COMMITS+=("$c"); done < <(git rev-list --reverse "${SYNC_TAG}..HEAD")
         echo "Found ${#DIRECT_COMMITS[@]} direct commit(s) to rebase"
     else
         echo "No direct commits (HEAD matches sync tag)"
@@ -144,7 +145,8 @@ else
     # Check if the filtered HEAD exists in the plugin repo
     if git merge-base --is-ancestor "$FILTERED_HEAD" HEAD 2>/dev/null; then
         # Filtered HEAD is an ancestor — everything after it is direct
-        mapfile -t DIRECT_COMMITS < <(git rev-list --reverse "${FILTERED_HEAD}..HEAD")
+        DIRECT_COMMITS=()
+        while IFS= read -r c; do DIRECT_COMMITS+=("$c"); done < <(git rev-list --reverse "${FILTERED_HEAD}..HEAD")
         echo "Found ${#DIRECT_COMMITS[@]} direct commit(s) (no sync tag, inferred from history)"
     else
         echo "No sync tag and histories diverge — will force-sync"
