@@ -99,6 +99,7 @@ export class DataSelection extends AbstractModuleInstance {
                 }
             }
         }
+        this.dragStartEvent = undefined;
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
     }
 

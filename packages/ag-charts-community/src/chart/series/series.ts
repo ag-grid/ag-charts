@@ -965,13 +965,13 @@ export abstract class Series<
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
         function* walkLeafNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
-                if (child instanceof Group) {
-                    yield* walkLeafNodes(child, callback);
-                } else if (child.datum !== undefined) {
+                if (child.datum !== undefined) {
                     const result = callback(child);
                     if (result !== undefined) {
                         yield result;
                     }
+                } else if (child instanceof Group) {
+                    yield* walkLeafNodes(child, callback);
                 }
             }
         }
