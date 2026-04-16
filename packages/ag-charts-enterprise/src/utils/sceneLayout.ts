@@ -47,6 +47,7 @@ export function layoutScenesColumn(
             layoutSetY(scene, y);
             y += scene.getBBox().height + gap;
         }
+        index++;
     }
 }
 
