@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
@@ -103,7 +103,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.imageNode.height = styles.image.height;
     }
 
-    private updateTitleNode(text: string | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
         if (text == null) return;
 
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
@@ -111,7 +111,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         applyTextStyles(this.titleNode, styles.title);
     }
 
-    private updateSubtitleNode(text: string | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
         if (text == null) return;
 
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
@@ -119,13 +119,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         applyTextStyles(this.subtitleNode, styles.subtitle);
     }
 
-    private updateLabelNodes(labels: string[] | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateLabelNodes(
+        labels: (TextOrSegments | undefined)[] | undefined,
+        styles: RequiredOrganizationNodeStyle
+    ) {
         if (labels == null) return;
 
         this.labelNodes ??= [];
 
         let index = 0;
         for (const labelText of labels) {
+            if (labelText == null) return;
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
             this.labelNodes[index].text = labelText;
             applyTextStyles(this.labelNodes[index], styles.labels[index]);

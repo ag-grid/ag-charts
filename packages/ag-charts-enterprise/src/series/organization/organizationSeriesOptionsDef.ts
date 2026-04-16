@@ -14,6 +14,7 @@ import {
     type OptionsDefs,
     arrayOf,
     callbackDefs,
+    callbackOf,
     commonSeriesOptionsDefs,
     constant,
     fillOptionsDef,
@@ -27,6 +28,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    textOrSegments,
     textWrap,
     union,
 } from 'ag-charts-core';
@@ -58,6 +60,7 @@ const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
 
 const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeText> = {
     ...fontOptionsDef,
+    formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
         ...fontOptionsDef,
         overflowStrategy: overflowStrategy,

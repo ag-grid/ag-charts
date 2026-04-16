@@ -1,4 +1,5 @@
 import {
+    type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
@@ -10,6 +11,7 @@ import {
     type FontSize,
     type FontStyle,
     type FontWeight,
+    type Formatter,
     type OverflowStrategy,
     type Styler,
     type TextWrap,
@@ -151,6 +153,9 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     fontWeight!: FontWeight;
+
+    @Property
+    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;

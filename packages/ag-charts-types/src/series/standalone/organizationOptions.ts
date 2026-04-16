@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    DatumCallbackParams,
+    HighlightState,
+    RichFormatter,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
 import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
@@ -77,6 +83,7 @@ export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | '
 export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOrganizationSeriesNodeTextStyle {
     key?: string;
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeTextStyle>;
 }
 
@@ -95,6 +102,17 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions {
 export interface AgOrganizationSeriesOptionsKeys {
     idKey?: string;
     parentIdKey?: string;
+}
+
+export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TContext = ContextDefault> {
+    /** The data point associated with the label. */
+    datum: TDatum;
+    /** The unique identifier of the series. */
+    seriesId: string;
+    /** Context for this callback. */
+    context?: TContext;
+    /** The default label value that would have been used without a formatter. */
+    value: any;
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
