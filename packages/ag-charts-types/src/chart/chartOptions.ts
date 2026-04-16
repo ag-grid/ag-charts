@@ -82,6 +82,30 @@ export interface AgChartOverlaysOptions<TContext = ContextDefault> {
     unsupportedBrowser?: AgChartOverlayOptions<TContext>;
 }
 
+/** Params passed to the caption tooltip renderer callback. */
+export interface AgCaptionTooltipRendererParams {
+    /** The caption's own text content as a plain string. */
+    text: string;
+    /** User-supplied context from the chart options. */
+    context?: any;
+}
+
+export interface AgCaptionTooltipOptions {
+    /**
+     * Controls when the caption tooltip is shown.
+     * - `'auto'` — only when text is truncated.
+     * - `'always'` — on every hover.
+     * - `'never'` — tooltip is disabled.
+     *
+     * Default: `'always'` when `text` or `renderer` is provided, `'auto'` otherwise.
+     */
+    visible?: 'auto' | 'always' | 'never';
+    /** Static text to display in the tooltip. Overrides the default caption text. */
+    text?: string;
+    /** Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`. */
+    renderer?: (params: AgCaptionTooltipRendererParams) => string;
+}
+
 export interface AgChartCaptionOptions {
     /** Whether the text should be shown. */
     enabled?: boolean;
@@ -115,6 +139,8 @@ export interface AgChartCaptionOptions {
      * Default: `'on-space'`
      */
     wrapping?: TextWrap;
+    /** Configuration for the caption tooltip shown on hover. */
+    tooltip?: AgCaptionTooltipOptions;
 }
 export interface AgChartSubtitleOptions extends AgChartCaptionOptions {}
 export interface AgChartFooterOptions extends AgChartCaptionOptions {}

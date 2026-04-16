@@ -3,6 +3,7 @@ import {
     FONT_SIZE,
     Property,
     ProxyPropertyOnWrite,
+    callWithContext,
     createId,
     isArray,
     isSegmentTruncated,
@@ -12,7 +13,14 @@ import {
     wrapText,
     wrapTextSegments,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, TextAlign, TextOrSegments, TextWrap } from 'ag-charts-types';
+import type {
+    AgCaptionTooltipRendererParams,
+    FontStyle,
+    FontWeight,
+    TextAlign,
+    TextOrSegments,
+    TextWrap,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
@@ -21,6 +29,7 @@ import { Transformable } from '../scene/transformable';
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
+import type { TooltipContent } from './tooltip/tooltipContent';
 
 type CaptionNodeDatum = {
     visible: boolean;
@@ -32,6 +41,17 @@ type CaptionNodeDatum = {
     rotationCenterY: number;
     rotation: number;
 };
+
+class CaptionTooltipProperties extends BaseProperties {
+    @Property
+    visible?: 'auto' | 'always' | 'never';
+
+    @Property
+    text?: string;
+
+    @Property
+    renderer?: (params: AgCaptionTooltipRendererParams) => string;
+}
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly className = 'Caption';
@@ -95,6 +115,9 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Property
     layoutStyle: 'block' | 'overlay' = 'block';
 
+    @Property
+    readonly tooltip = new CaptionTooltipProperties();
+
     private truncated = false;
     private proxyText?: BoundedTextWidget;
     private proxyTextListeners?: Array<() => void>;
@@ -144,7 +167,9 @@ export class Caption extends BaseProperties implements CaptionLike {
             this.proxyText = proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
             this.proxyTextListeners = [
                 this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev)),
-                this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev)),
+                this.proxyText.addListener('mouseleave', () => this.handleTooltipHide(moduleCtx)),
+                this.proxyText.addListener('focus', () => this.handleFocus(moduleCtx)),
+                this.proxyText.addListener('blur', () => this.handleTooltipHide(moduleCtx)),
             ];
         }
 
@@ -169,19 +194,60 @@ export class Caption extends BaseProperties implements CaptionLike {
         }
     }
 
-    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
-        if (event != null && this.enabled && this.truncated) {
-            const { x, y } = Transformable.toCanvas(this.node);
-            const canvasX = event.sourceEvent.offsetX + x;
-            const canvasY = event.sourceEvent.offsetY + y;
-            moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [
-                { type: 'structured', title: toPlainText(this.text) },
-            ]);
-        }
+    private getEffectiveTooltipVisible(): 'auto' | 'always' | 'never' {
+        const { visible, text, renderer } = this.tooltip;
+        if (visible != null) return visible;
+        return text != null || renderer != null ? 'always' : 'auto';
     }
 
-    private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent<'mouseleave'>) {
-        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true); // true = delayed
+    private getTooltipContent(moduleCtx: ModuleContext): TooltipContent | undefined {
+        const captionText = toPlainText(this.text);
+        const { renderer, text } = this.tooltip;
+
+        if (renderer != null) {
+            const params: AgCaptionTooltipRendererParams = { text: captionText };
+            const result = callWithContext(moduleCtx.chartService, renderer, params);
+            if (result === '') return undefined;
+            return { type: 'raw', rawHtmlString: result };
+        }
+
+        const displayText = text ?? captionText;
+        return { type: 'structured', title: displayText };
+    }
+
+    private showTooltip(moduleCtx: ModuleContext, canvasX: number, canvasY: number) {
+        if (!this.enabled) return;
+
+        const effectiveVisible = this.getEffectiveTooltipVisible();
+        if (effectiveVisible === 'never') return;
+        if (effectiveVisible === 'auto' && !this.truncated) return;
+
+        const content = this.getTooltipContent(moduleCtx);
+        if (content == null) return;
+
+        moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
+    }
+
+    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
+        if (event == null) return;
+
+        const { x, y } = Transformable.toCanvas(this.node);
+        const canvasX = event.sourceEvent.offsetX + x;
+        const canvasY = event.sourceEvent.offsetY + y;
+        this.showTooltip(moduleCtx, canvasX, canvasY);
+    }
+
+    private handleFocus(moduleCtx: ModuleContext) {
+        const bbox = Transformable.toCanvas(this.node);
+        if (!bbox) return;
+
+        const canvasX = bbox.x + bbox.width / 2;
+        const canvasY = bbox.y + bbox.height / 2;
+        this.showTooltip(moduleCtx, canvasX, canvasY);
+    }
+
+    private handleTooltipHide(moduleCtx: ModuleContext) {
+        moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
     }
 
     destroy() {
