@@ -1,6 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
+    AgHeatmapSeriesOptions,
     CategoryAxisModule,
     GradientLegendModule,
     HeatmapSeriesModule,
@@ -42,8 +43,8 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function toggleMode() {
-    const series = options.series![0] as any;
-    const current = series.colorScale.mode;
-    series.colorScale.mode = current === 'discrete' ? 'continuous' : 'discrete';
+    const series = options.series![0] as AgHeatmapSeriesOptions;
+    const current = series.colorScale?.mode;
+    series.colorScale = { ...series.colorScale, mode: current === 'discrete' ? 'continuous' : 'discrete' };
     chart.update(options);
 }
