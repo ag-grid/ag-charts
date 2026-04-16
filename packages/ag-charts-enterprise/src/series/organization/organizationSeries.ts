@@ -267,7 +267,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
 
-        return formatter(this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, text)) ?? text;
+        return (
+            this.callWithContext(
+                formatter,
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, text)
+            ) ?? text
+        );
     }
 
     private getLinkStyle(
