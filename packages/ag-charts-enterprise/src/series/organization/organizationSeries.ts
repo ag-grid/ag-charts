@@ -133,10 +133,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         datumSelection.each((node, datum) => {
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
-            const styles = this.getNodeStyle(datumIndex, depth, false, undefined);
+
+            const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState);
 
             node.update(datum.datum, styles);
         });
@@ -285,6 +290,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { itemStyler: titleStyler } = this.properties.node.title;
         const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
 
+        // TODO: AG-17010 MVP does not include default highlight styles
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
 
         let style = mergeDefaults(highlightStyle, this.getNodeDefaultStyle(), {
@@ -302,7 +308,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         processedData,
                         datumIndex,
                         depth,
-                        // isHighlight,
+                        highlightState,
                         style
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
@@ -477,6 +483,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
         style: Required<AgOrganizationSeriesNodeStyle>
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -488,7 +495,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             datum,
             depth,
             seriesId,
-            highlightState: 'none',
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
