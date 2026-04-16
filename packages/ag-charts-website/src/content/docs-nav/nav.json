@@ -217,6 +217,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Colour Scale",
+                            "path": "colour-scale",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Error Bars",
                             "path": "error-bars",
                             "isEnterprise": true
