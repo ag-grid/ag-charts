@@ -915,7 +915,9 @@ describe('Legend', () => {
         let legendY: number;
 
         function getTooltipElement() {
-            return document.querySelector('.ag-charts-tooltip');
+            // Scope to the current chart's container to avoid picking up
+            // stale/unrelated tooltip elements from other charts.
+            return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
         }
 
         function isTooltipVisible() {
