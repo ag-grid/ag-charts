@@ -553,6 +553,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -620,6 +621,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -687,6 +689,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -754,6 +757,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -810,6 +814,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -866,6 +871,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -944,6 +950,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1011,6 +1018,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1078,6 +1086,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1145,6 +1154,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1201,6 +1211,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1257,6 +1268,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1335,6 +1347,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1402,6 +1415,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1469,6 +1483,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1536,6 +1551,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "pointer",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1592,6 +1608,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },
@@ -1648,6 +1665,7 @@ describe('ChartOptions', () => {
     "tooltip": {
       "position": {
         "anchorTo": "node",
+        "offset": 8,
         "xOffset": 0,
         "yOffset": 0,
       },

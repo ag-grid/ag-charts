@@ -27,7 +27,7 @@ import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBa
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
 import type { AgChordSeriesThemeableOptions } from '../series/standalone/chordOptions';
 import type { AgFlowProportionSeriesOptions } from '../series/standalone/flowProportionOptions';
-import type { AgOrganizationSeriesThemeableOptions } from '../series/standalone/organisationOptions';
+import type { AgOrganizationSeriesThemeableOptions } from '../series/standalone/organizationOptions';
 import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
 import type { AgSankeySeriesThemeableOptions } from '../series/standalone/sankeyOptions';
 import type { AgBaseStandaloneThemeOptions, AgStandaloneSeriesOptions } from '../series/standalone/standaloneOptions';

@@ -8,6 +8,7 @@ import type {
     AgPaginationLabelOptions,
     AgPaginationMarkerOptions,
     AgPaginationMarkerStyle,
+    AgSelectionOptions,
     BorderOptions,
 } from 'ag-charts-types';
 
@@ -89,3 +90,5 @@ export type NormalisedLegendOptions = Normalised<
         pagination: NormalisedLegendPaginationOptions;
     }
 >;
+
+export type NormalisedSelectionOptions = Normalised<AgSelectionOptions, 'enabled' | 'enableClick' | 'clickMode'>;

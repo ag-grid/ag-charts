@@ -1,10 +1,17 @@
 import {
+    type AgOrganizationSeriesLinkItemStylerParams,
+    type AgOrganizationSeriesLinkStyle,
+    type AgOrganizationSeriesNodeItemStylerParams,
+    type AgOrganizationSeriesNodeStyle,
+    type AgOrganizationSeriesNodeTextStyle,
+    type AgOrganizationSeriesNodeTextStylerParams,
     type CssColor,
     type FontFamily,
     type FontSize,
     type FontStyle,
     type FontWeight,
     type OverflowStrategy,
+    type Styler,
     type TextWrap,
 } from 'ag-charts-community';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
@@ -30,7 +37,10 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
 
 class OrganizationSeriesLinkProperties extends BaseProperties {
     @Property
-    interpolation = new OrganisationSeriesLinkStepInterpolationProperties();
+    itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>, AgOrganizationSeriesLinkStyle>;
+
+    @Property
+    interpolation = new OrganizationSeriesLinkStepInterpolationProperties();
 
     @Property
     lineDash: number[] = [];
@@ -48,9 +58,9 @@ class OrganizationSeriesLinkProperties extends BaseProperties {
     strokeWidth: number = 1;
 }
 
-class OrganisationSeriesLinkStepInterpolationProperties extends BaseProperties {
+class OrganizationSeriesLinkStepInterpolationProperties extends BaseProperties {
     @Property
-    type = 'step';
+    type: 'step' = 'step' as const;
 
     @Property
     cornerRadius: number = 0;
@@ -67,10 +77,19 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<unknown>, AgOrganizationSeriesNodeStyle>;
+
+    @Property
     lineDash: number[] = [];
 
     @Property
     lineDashOffset?: number;
+
+    @Property
+    maxHeight?: number;
+
+    @Property
+    maxWidth?: number;
 
     @Property
     stroke: CssColor = 'black';
@@ -91,7 +110,7 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
 }
 
-class OrganizationSeriesNodeTextProperties extends BaseProperties {
+export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     @Property
     key!: string;
 
@@ -109,6 +128,9 @@ class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     fontWeight!: FontWeight;
+
+    @Property
+    itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;
 
     @Property
     spacing: number = 0;

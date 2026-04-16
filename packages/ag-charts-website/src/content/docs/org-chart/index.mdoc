@@ -189,17 +189,7 @@ Organisation chart with vertical (top to bottom) layout
 Connectors are the lines drawn between parent and child nodes. They are configured through the `link`
 property and use orthogonal step routing by default.
 
-{% tabs omitFromOverview=true %}
-
-{% tabItem id="connector-elbow" label="Step" %}
-Organisation chart with step connectors using right-angle routing
-{% /tabItem %}
-
-{% tabItem id="connector-step-rounded" label="Step (Rounded)" %}
-Organisation chart with step connectors using rounded corners
-{% /tabItem %}
-
-{% /tabs %}
+{% chartExampleRunner title="Org Chart Links" name="org-chart-links" type="generated" /%}
 
 The `cornerRadius` property rounds the corners where the horizontal line drops down toward children.
 
@@ -220,6 +210,8 @@ The `cornerRadius` property rounds the corners where the horizontal line drops d
 ```
 
 ### Connector Styling
+
+{% chartExampleRunner title="Org Chart Link Customisation" name="org-chart-link-customisation" type="generated" /%}
 
 Connectors can be styled globally or per-connector using the `link.itemStyler` callback.
 
@@ -364,6 +356,8 @@ The event payload includes:
 
 ### Node Styling
 
+{% chartExampleRunner title="Org Chart Node Customisation" name="org-chart-node-customisation" type="generated" /%}
+
 The `itemStyler` callback provides per-node visual customisation based on data and tree state.
 
 ```js format="snippet"
@@ -393,6 +387,8 @@ The callback receives:
 It can return: `fill`, `stroke`, `strokeWidth`, `opacity`, `cornerRadius`, `lineDash`.
 
 ### Label Styling
+
+{% chartExampleRunner title="Org Chart Label Customisation" name="org-chart-label-customisation" type="generated" /%}
 
 Each label in the `label` array supports a `styler` callback for per-node text customisation.
 

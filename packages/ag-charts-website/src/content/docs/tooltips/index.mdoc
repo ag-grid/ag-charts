@@ -91,11 +91,33 @@ The options for `anchorTo` are:
 -   `pointer` - the mouse pointer or [single finger touch](./touch/#single-finger-touch-dragging) position.
 -   `chart` - the chart container.
 
-The tooltip position can be further customised by setting the `tooltip.position.xOffset` and `tooltip.position.yOffset` properties, which will move the tooltip by the specified number of pixels in the x and y directions, respectively.
+### Directional Offset
+
+Use `tooltip.position.offset` to control the gap between the tooltip and its anchor point. The offset is applied in the direction determined by the current `placement` — for example, `placement: 'right'` with `offset: 20` pushes the tooltip 20px to the right of the anchor, while `placement: 'top'` pushes it 20px above.
+
+```js format="snippet"
+{
+    tooltip: {
+        position: {
+            anchorTo: 'node',
+            placement: ['right', 'left'],
+            offset: 20,
+        },
+    },
+}
+```
+
+Unlike `xOffset` and `yOffset`, the directional `offset` adapts automatically when fallback placements are used. In the above example, the 20px gap is maintained regardless of whether the tooltip appears to the right or left of the anchor.
+
+The default `offset` is `8`. Setting `offset: 0` removes the gap entirely.
+
+### Screen-Space Offset
+
+The tooltip position can be further customised by setting the `tooltip.position.xOffset` and `tooltip.position.yOffset` properties, which move the tooltip by the specified number of pixels in the x and y directions, respectively. These are applied in addition to the directional `offset`.
 
 ## Tooltip Arrow
 
-The default tooltip displays an arrow below it to indicate its exact point of origin. This is removed when the tooltip is constrained by the container or has a [position offset](#tooltip-position) supplied.
+The default tooltip displays an arrow below it to indicate its exact point of origin. This is removed when the tooltip is constrained by the container or has an `xOffset` or `yOffset` supplied. The directional `offset` does not suppress the arrow.
 
 {% chartExampleRunner title="Removing the Tooltip Arrow" name="default-tooltip-arrow" type="generated" /%}
 

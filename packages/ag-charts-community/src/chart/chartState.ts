@@ -2,6 +2,7 @@ import type {
     AxisID,
     CartesianAxisDirection,
     NormalisedLegendOptions,
+    NormalisedSelectionOptions,
     NormalisedZoomOptions,
     ZoomMinMax,
 } from 'ag-charts-core';
@@ -9,8 +10,9 @@ import type { AgChartOptions } from 'ag-charts-types';
 
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
-export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'zoom'> & {
+export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'selection' | 'zoom'> & {
     legend: NormalisedLegendOptions;
+    selection: NormalisedSelectionOptions;
     zoom: NormalisedZoomOptions;
 };
 

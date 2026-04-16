@@ -33,7 +33,7 @@ Based on ticket type, read the relevant template (in the `templates/` subdirecto
 
 - [ ] Reproduction URL (Plunker, CodeSandbox, etc.).
 - [ ] Steps to reproduce (numbered list).
-- [ ] Actual vs Expected behaviour.
+- [ ] Actual vs Expected behaviour — **you must reproduce the bug yourself** before writing Actual/Expected. If you cannot reproduce it, report this to the user rather than writing unverified claims.
 - [ ] Affected versions (test from end-user perspective in browser — see product file; required for Bug, optional for Improvement).
 - [ ] Root cause analysis (if known).
 
@@ -46,6 +46,8 @@ Based on ticket type, read the relevant template (in the `templates/` subdirecto
 - [ ] Acceptance criteria.
 
 When the user provides requirements that differ from existing PRDs or design documents, the user's stated requirements take precedence. Confirm requirements with the user before drafting — do not assume PRD content is final.
+
+**Brevity:** When the user requests a concise or minimal ticket, keep the numbered template section headings but shorten section content. Sections with no meaningful content should contain just "N/A" — do not remove the heading itself, as downstream tooling may expect fixed section presence. Never replace template section headings with custom ones. Interview the user for missing information rather than padding sections.
 
 **For Tech-debt tickets, collect:**
 
@@ -195,14 +197,19 @@ Think of it as: the **inward** issue is the one being referenced ("split **from*
 - **Inline code for option names:** Always wrap API option names, property names, and programmatic values in backticks (e.g., `enableRtl`, `skipNullBars: true`, `bar`). This distinguishes code from prose and improves readability.
 - **Series type references:** When referencing series types, use backtick-wrapped type values (e.g., `bar`) rather than informal names like "bar/column".
 
+## Editing Existing Tickets
+
+When editing an existing ticket (not creating a new one), only modify the fields the user explicitly requested. Do not change issue type, track, summary, or other fields unless specifically asked. If you believe other fields should change, ask first.
+
 ## Critical Rules
 
 1. **Always use templates** — Don't improvise description formats.
 2. **Test bugs in browser** — Not by analysing code.
-3. **End numbered items with periods** — JIRA formatting requirement.
-4. **No comments** — Put all information in the description.
-5. **No rationale in feature requests** — State **what** and acceptance criteria, not **why**.
-6. **Improvement = internally reported bug** — Always use the bug template for Improvement tickets, not the feature/task template.
-7. **Inline code for options** — Always wrap API option/property names in backticks in descriptions.
-8. **URLs must be explicit markdown links** — Bare URLs are NOT clickable in JIRA. Always write `[https://url](https://url)`, never just `https://url`.
-9. **JIRA ticket references must be Smart Links** — Use ADF `inlineCard` nodes, not markdown links or bare keys. Only `inlineCard` renders as an expanded Smart Link with the ticket title.
+3. **Reproduce before documenting** — Never write Actual/Expected claims without verifying the behaviour yourself. If the bug cannot be reproduced, report this to the user.
+4. **End numbered items with periods** — JIRA formatting requirement.
+5. **No comments** — Put all information in the description.
+6. **No rationale in feature requests** — State **what** and acceptance criteria, not **why**.
+7. **Improvement = internally reported bug** — Always use the bug template for Improvement tickets, not the feature/task template.
+8. **Inline code for options** — Always wrap API option/property names in backticks in descriptions.
+9. **URLs must be explicit markdown links** — Bare URLs are NOT clickable in JIRA. Always write `[https://url](https://url)`, never just `https://url`.
+10. **JIRA ticket references must be Smart Links** — Use ADF `inlineCard` nodes, not markdown links or bare keys. Only `inlineCard` renders as an expanded Smart Link with the ticket title.

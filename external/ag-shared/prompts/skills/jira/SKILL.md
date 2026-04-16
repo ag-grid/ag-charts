@@ -110,7 +110,7 @@ Each ticket has exactly **one** track value. Never set multiple track values on 
 - **End numbered items with periods.**
 - Bold: `**text**`.
 - Code: backticks.
-- **contentFormat**: Use `"markdown"` for all JIRA API calls. This accepts standard markdown syntax and converts it to JIRA's native ADF format.
+- **contentFormat**: Use `"markdown"` for ticket descriptions and fields. This accepts standard markdown syntax and converts it to JIRA's native ADF format.
 - **URLs must use explicit markdown link syntax** — bare URLs will NOT become clickable links in JIRA. Always write `[https://example.com](https://example.com)` instead of just `https://example.com`. The URL should be visible as both the link text and the href (never hide it behind display text like `[Plunker](url)`).
 - Empty sections: Just `N/A`.
 - No comments — all info in description.
@@ -123,6 +123,48 @@ Each ticket has exactly **one** track value. Never set multiple track values on 
 - **Bug**: `templates/bug.md` (TC-based format)
 
 Follow the exact structure from the template. Do not use free-form markdown headers (`##`), tables, or code blocks for top-level structure.
+
+### Writing JIRA Comments
+
+When adding comments to existing tickets (e.g., posting QA plunker links, test results):
+
+- **Use `contentFormat: "adf"`** with explicit link marks. JIRA's markdown renderer does not reliably produce clickable links in comments.
+- **Use bullet lists, not tables.** Tables render inconsistently in JIRA comments.
+- **URLs must use ADF link marks** — without them, URLs appear as plain text and are not clickable.
+- **The Atlassian MCP has no delete-comment tool.** Do not attempt workarounds via curl/REST API. Get the format right on the first attempt — re-posting creates duplicates that must be cleaned up manually.
+
+**ADF bullet list structure for comments with links:**
+
+```json
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    {
+      "type": "heading",
+      "attrs": {"level": 3},
+      "content": [{"type": "text", "text": "Section Title"}]
+    },
+    {
+      "type": "bulletList",
+      "content": [
+        {
+          "type": "listItem",
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {"type": "text", "text": "Description text — "},
+                {"type": "text", "text": "https://example.com/link", "marks": [{"type": "link", "attrs": {"href": "https://example.com/link"}}]}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
 
 ### Reading JIRA Comments
 

@@ -1,7 +1,10 @@
 import {
-    type AgOrganisationSeriesOptionsLinkStepInterpolation,
+    type AgOrganizationSeriesLinkStyle,
+    type AgOrganizationSeriesNodeStyle,
+    type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesOptions,
     type AgOrganizationSeriesOptionsLink,
+    type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
     type AgOrganizationSeriesOptionsNodeText,
     _ModuleSupport,
@@ -25,7 +28,7 @@ import {
     textWrap,
 } from 'ag-charts-core';
 
-const stepInterpolation: OptionsDefs<AgOrganisationSeriesOptionsLinkStepInterpolation> = {
+const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpolation> = {
     type: required(constant('step')),
     cornerRadius: positiveNumber,
 };
@@ -33,12 +36,22 @@ const stepInterpolation: OptionsDefs<AgOrganisationSeriesOptionsLinkStepInterpol
 const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
+    itemStyler: callbackDefs<AgOrganizationSeriesLinkStyle>({
+        ...lineDashOptionsDef,
+        ...strokeOptionsDef,
+        interpolation: stepInterpolation,
+    }),
     interpolation: stepInterpolation,
 };
 
 const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeText> = {
     ...fontOptionsDef,
-    itemStyler: callbackDefs({}),
+    itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
+        ...fontOptionsDef,
+        overflowStrategy: overflowStrategy,
+        spacing: number,
+        wrapping: textWrap,
+    }),
     key: string,
     overflowStrategy: overflowStrategy,
     spacing: number,
@@ -50,6 +63,14 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: number,
+    itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
+        ...fillOptionsDef,
+        ...lineDashOptionsDef,
+        ...strokeOptionsDef,
+        cornerRadius: number,
+        maxHeight: number,
+        maxWidth: number,
+    }),
     labels: arrayOf(optionsDefs(nodeText)),
     maxHeight: number,
     maxWidth: number,
