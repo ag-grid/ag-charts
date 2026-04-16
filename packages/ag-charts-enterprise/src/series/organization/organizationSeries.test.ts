@@ -96,6 +96,23 @@ const ITEM_STYLERS: AgChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            link: {
+                itemStyler: (params: any) => {
+                    if (params.fromDatum.job === 'Chief Technology Officer' && params.toDatum.job === 'Developer') {
+                        return { stroke: '#00994d' };
+                    } else if (params.fromDatum.job === 'Chief Executive Officer') {
+                        return {
+                            stroke: '#006f9b',
+                            strokeWidth: 4,
+                            lineDash: [],
+                            interpolation: {
+                                type: 'step',
+                                cornerRadius: 8,
+                            },
+                        };
+                    }
+                },
+            },
             node: {
                 itemStyler: (params: any) => {
                     if (params.datum.job === 'Chief Financial Officer') {
@@ -105,6 +122,8 @@ const ITEM_STYLERS: AgChartOptions = {
                             lineDash: [8, 2],
                             cornerRadius: 30,
                         };
+                    } else if (params.depth === 3) {
+                        return { fill: '#c1d9e3' };
                     }
                 },
                 title: { key: 'name' },

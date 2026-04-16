@@ -3,6 +3,7 @@ import { Vec2, type Vertex, clamp } from 'ag-charts-core';
 
 import type { NetworkGraph } from './networkGraph';
 import { NetworkLayout } from './networkLayout';
+import type { NetworkLinkInterpolation } from './networkTypes';
 
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
@@ -26,13 +27,14 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         graph: NetworkGraph<TVertex, TEdge>,
         vertices: Vertex<TVertex, TEdge>[],
         getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
         layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
         layoutLinkNode: (
             vertex: Vertex<TVertex, TEdge>,
             drawLink: (path: _ModuleSupport.ExtendedPath2D) => void
         ) => void
     ) {
-        this.updateChildren(graph, vertices, getDatumNodeBBox, layoutDatumNode, layoutLinkNode);
+        this.updateChildren(graph, vertices, getDatumNodeBBox, getLinkInterpolation, layoutDatumNode, layoutLinkNode);
 
         // TODO: use `containerBBox` for global positioning of the network
     }
@@ -41,6 +43,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         graph: NetworkGraph<TVertex, TEdge>,
         vertices: Vertex<TVertex, TEdge>[],
         getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
         layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
         layoutLinkNode: (
             vertex: Vertex<TVertex, TEdge>,
@@ -65,6 +68,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 graph,
                 vertex,
                 getDatumNodeBBox,
+                getLinkInterpolation,
                 layoutDatumNode,
                 layoutLinkNode,
                 groupBBox,
@@ -105,8 +109,9 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             // Request the series to layout the links between children and their parents.
             if (childrenBBoxes) {
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
+                    const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox)
+                        this.drawLink(path, layoutBBox, bbox, interpolation)
                     );
                 }
             }
@@ -122,6 +127,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         graph: NetworkGraph<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
+        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
         layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
         layoutLinkNode: (
             vertex: Vertex<TVertex, TEdge>,
@@ -140,6 +146,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             graph,
             children,
             getDatumNodeBBox,
+            getLinkInterpolation,
             layoutDatumNode,
             layoutLinkNode,
             childrenGroupBBox
@@ -152,7 +159,12 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         };
     }
 
-    private drawLink(path: _ModuleSupport.ExtendedPath2D, parentBBox: TBBox, childBBox: TBBox) {
+    private drawLink(
+        path: _ModuleSupport.ExtendedPath2D,
+        parentBBox: TBBox,
+        childBBox: TBBox,
+        interpolation: NetworkLinkInterpolation = { type: 'step' }
+    ) {
         const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height);
         const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
         const elbowDist = Vec2.from(0, (end.y - start.y) / 2);
@@ -162,7 +174,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         const cornerRadius = clamp(
             0,
-            this.interpolation.cornerRadius ?? 0,
+            interpolation.cornerRadius ?? 0,
             Math.min(Math.abs(start.x - end.x), Math.abs(start.y - end.y))
         );
 

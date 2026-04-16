@@ -1,4 +1,5 @@
 import {
+    type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesOptions,
@@ -35,6 +36,11 @@ const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpol
 const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
+    itemStyler: callbackDefs<AgOrganizationSeriesLinkStyle>({
+        ...lineDashOptionsDef,
+        ...strokeOptionsDef,
+        interpolation: stepInterpolation,
+    }),
     interpolation: stepInterpolation,
 };
 

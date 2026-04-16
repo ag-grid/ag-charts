@@ -9,6 +9,7 @@ export type OrganizationEdge =
     | 'nodeDatumIndex' // The index of the datum within the series' nodeData array.
     | 'child' // The descending edge from parent to child.
     | 'parent' // The ascending edge from child to parent.
+    | 'depth'
     | 'title'
     | 'subtitle'
     | 'labels';
@@ -23,6 +24,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
                 'datumIndex',
                 'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
+                'depth',
                 'title',
                 'subtitle',
                 'labels',

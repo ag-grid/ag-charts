@@ -17,7 +17,7 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     direction?: AgOrganizationSeriesOptionsDirection;
-    link?: AgOrganizationSeriesOptionsLink;
+    link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
@@ -26,7 +26,12 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
 
 export type AgOrganizationSeriesOptionsDirection = 'vertical';
 
-export interface AgOrganizationSeriesOptionsLink extends LineDashOptions, StrokeOptions {
+export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesLinkStyle {
+    itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext>, AgOrganizationSeriesLinkStyle>;
+}
+
+export interface AgOrganizationSeriesLinkStyle extends LineDashOptions, StrokeOptions {
     interpolation?: AgOrganizationSeriesOptionsLinkInterpolation;
 }
 
@@ -79,14 +84,31 @@ export interface AgOrganizationSeriesOptionsKeys {
     parentIdKey?: string;
 }
 
-export interface AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
+export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesLinkStyle {
+    /** The data point from which the link starts. */
+    fromDatum: TDatum;
+    /** The data point to which the link ends. */
+    toDatum: TDatum;
+}
+
+export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
-        AgOrganizationSeriesNodeStyle {}
+        AgOrganizationSeriesNodeStyle {
+    /** The depth of the data point within the organization. */
+    depth: number;
+}
 
-export interface AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext = ContextDefault>
+export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
     extends DatumCallbackParams<TDatum, HighlightState>,
-        ContextCallbackParams<TContext> {}
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesNodeTextStyle {
+    /** The depth of the data */
+    depth: number;
+}
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
     extends AgSeriesTooltipRendererParams<TDatum, TContext>,

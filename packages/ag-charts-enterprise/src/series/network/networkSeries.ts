@@ -3,10 +3,11 @@ import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } f
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
+import type { NetworkLinkInterpolation } from './networkTypes';
 
 export type NetworkSeriesDatumIndex = number;
 
-export interface NetworkSeriesDatum<NetworkVertex, TNetworkEdge>
+export interface NetworkDatum<NetworkVertex, TNetworkEdge>
     extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
     bbox: _ModuleSupport.BBox;
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
@@ -20,13 +21,18 @@ export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<obj
 }
 
 export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
-    extends _ModuleSupport.SeriesNodeDataContext<
-        NetworkSeriesDatumIndex,
-        NetworkSeriesDatum<NetworkVertex, TNetworkEdge>
-    > {}
+    extends _ModuleSupport.SeriesNodeDataContext<NetworkSeriesDatumIndex, NetworkDatum<NetworkVertex, TNetworkEdge>> {
+    linkData: NetworkLinkDatum<NetworkVertex, TNetworkEdge>[];
 
-export type NetworkLinkNode = _ModuleSupport.TranslatableGroup<NetworkLinkDatum>;
-export interface NetworkLinkDatum {}
+    // labelData is unused.
+    labelData: any;
+}
+
+export type NetworkLinkNode<TDatum> = _ModuleSupport.TranslatableGroup<TDatum>;
+export interface NetworkLinkDatum<NetworkVertex, TNetworkEdge> {
+    from: Vertex<NetworkVertex, TNetworkEdge>;
+    to: Vertex<NetworkVertex, TNetworkEdge>;
+}
 
 /**
  * A Network Series processes data into a graph structure and presents the nodes in a network layout.
@@ -35,14 +41,17 @@ export abstract class AbstractNetworkSeries<
     TVertex,
     TEdge,
     TGraph extends NetworkGraph<TVertex, TEdge>,
-    TDatum extends NetworkSeriesDatum<TVertex, TEdge>,
     TNode extends _ModuleSupport.TranslatableGroup<TDatum>,
+    TDatum extends NetworkDatum<TVertex, TEdge>,
+    TLinkDatum extends NetworkLinkDatum<TVertex, TEdge>,
     TLayout extends NetworkLayout<TVertex, TEdge>,
 > extends _ModuleSupport.Series<
     NetworkSeriesDatumIndex,
-    NetworkSeriesDatum<TVertex, TEdge>,
+    NetworkDatum<TVertex, TEdge>,
     NetworkSeriesOptions,
-    NetworkSeriesProperties
+    NetworkSeriesProperties,
+    TDatum,
+    NetworkSeriesContextNodeData<TVertex, TEdge>
 > {
     override properties = new NetworkSeriesProperties();
 
@@ -65,10 +74,10 @@ export abstract class AbstractNetworkSeries<
         () => this.nodeFactory()
     );
 
-    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<NetworkLinkDatum, NetworkLinkNode>(
-        this.linkGroup,
-        () => this.linkFactory()
-    );
+    protected readonly linkSelection = _ModuleSupport.Selection.selectNoInference<
+        NetworkLinkDatum<TVertex, TEdge>,
+        NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
+    >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
@@ -86,14 +95,21 @@ export abstract class AbstractNetworkSeries<
     abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
     abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
-    abstract updateLinkNodes(linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>): void;
+    abstract updateLinkNodes(
+        linkSelection: _ModuleSupport.Selection<
+            NetworkLinkDatum<TVertex, TEdge>,
+            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
+        >
+    ): void;
+
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
+    abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
 
     dataCount() {
         return this.graph.getVertexCount();
     }
 
-    findNodeDatum(_itemIdOrIndex: AgActiveItemState['itemId']): NetworkSeriesDatum<TVertex, TEdge> | undefined {
+    findNodeDatum(_itemIdOrIndex: AgActiveItemState['itemId']): NetworkDatum<TVertex, TEdge> | undefined {
         return undefined;
     }
 
@@ -110,7 +126,7 @@ export abstract class AbstractNetworkSeries<
 
     getTooltipContent(
         _datumIndex: NetworkSeriesDatumIndex,
-        _removeThisDatum: NetworkSeriesDatum<TVertex, TEdge> | undefined
+        _removeThisDatum: NetworkDatum<TVertex, TEdge> | undefined
     ): _ModuleSupport.TooltipContent | undefined {
         return undefined;
     }
@@ -123,7 +139,7 @@ export abstract class AbstractNetworkSeries<
         return;
     }
 
-    private linkFactory(): NetworkLinkNode {
+    private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
         return new _ModuleSupport.TranslatableGroup();
     }
 
@@ -132,14 +148,17 @@ export abstract class AbstractNetworkSeries<
         if (!this.contextNodeData) return;
 
         this.updateDatumSelection(this.contextNodeData.nodeData as TDatum[], this.datumSelection);
-        this.updateLinkSelection(this.contextNodeData.nodeData as TDatum[], this.linkSelection);
+        this.updateLinkSelection(this.contextNodeData.linkData as TLinkDatum[], this.linkSelection);
     }
 
     private updateLinkSelection(
-        nodeData: TDatum[],
-        linkSelection: _ModuleSupport.Selection<NetworkLinkDatum, NetworkLinkNode>
+        linkData: TLinkDatum[],
+        linkSelection: _ModuleSupport.Selection<
+            NetworkLinkDatum<TVertex, TEdge>,
+            NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>>
+        >
     ) {
-        linkSelection.update(nodeData);
+        linkSelection.update(linkData);
     }
 
     private updateNodes() {
@@ -149,6 +168,7 @@ export abstract class AbstractNetworkSeries<
             this.graph,
             this.getRootVertices(),
             this.getDatumNodeBBox.bind(this),
+            this.getLinkInterpolation.bind(this),
             this.layoutDatumNode.bind(this),
             this.layoutLinkNode.bind(this)
         );
