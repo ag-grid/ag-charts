@@ -15,6 +15,7 @@ import {
     positiveNumber,
     ratio,
     shapeValidator,
+    string,
     strokeOptionsDef,
     union,
 } from 'ag-charts-core';
@@ -60,6 +61,11 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
                 maxLength: positiveNumber,
                 formatter: callback,
                 ...fontOptionsDef,
+            },
+            tooltip: {
+                visible: union('auto', 'always', 'never'),
+                text: string,
+                renderer: callback,
             },
             maxWidth: positiveNumber,
             paddingX: positiveNumber,
