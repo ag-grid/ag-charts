@@ -2,12 +2,16 @@
 import {
     AgCharts,
     AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
     ContextMenuModule,
     CrosshairModule,
     LegendModule,
+    LineSeriesModule,
     ModuleRegistry,
     NavigatorModule,
     NumberAxisModule,
+    RangeAreaSeriesModule,
     RangeBarSeriesModule,
     SelectionModule,
 } from 'ag-charts-enterprise';
@@ -25,6 +29,21 @@ import {
 
 import type { DataType } from './data';
 import { getData } from './data';
+
+ModuleRegistry.registerModules([
+    AnimationModule,
+    AreaSeriesModule,
+    BarSeriesModule,
+    ContextMenuModule,
+    CrosshairModule,
+    LegendModule,
+    LineSeriesModule,
+    NavigatorModule,
+    NumberAxisModule,
+    RangeAreaSeriesModule,
+    RangeBarSeriesModule,
+    SelectionModule,
+]);
 
 function initMyDragBox() {
     const elem = document.getElementById('myDragBox')!;
@@ -77,17 +96,6 @@ function initMyDragBox() {
     return 0;
 }
 initMyDragBox();
-
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    LegendModule,
-    RangeBarSeriesModule,
-    NumberAxisModule,
-    SelectionModule,
-    ContextMenuModule,
-    NavigatorModule,
-]);
 
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions => {
     if (params.selectionState === 'selected') {
