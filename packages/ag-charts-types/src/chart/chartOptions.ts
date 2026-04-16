@@ -83,14 +83,14 @@ export interface AgChartOverlaysOptions<TContext = ContextDefault> {
 }
 
 /** Params passed to the caption tooltip renderer callback. */
-export interface AgCaptionTooltipRendererParams {
+export interface AgCaptionTooltipRendererParams<TContext = ContextDefault> {
     /** The caption's own text content as a plain string. */
     text: string;
     /** User-supplied context from the chart options. */
-    context?: any;
+    context?: TContext;
 }
 
-export interface AgCaptionTooltipOptions {
+export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     /**
      * Controls when the caption tooltip is shown.
      * - `'auto'` — only when text is truncated.
@@ -103,10 +103,10 @@ export interface AgCaptionTooltipOptions {
     /** Static text to display in the tooltip. Overrides the default caption text. */
     text?: string;
     /** Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`. */
-    renderer?: (params: AgCaptionTooltipRendererParams) => string;
+    renderer?: (params: AgCaptionTooltipRendererParams<TContext>) => string;
 }
 
-export interface AgChartCaptionOptions {
+export interface AgChartCaptionOptions<TContext = ContextDefault> {
     /** Whether the text should be shown. */
     enabled?: boolean;
     /** The text to display. */
@@ -140,10 +140,10 @@ export interface AgChartCaptionOptions {
      */
     wrapping?: TextWrap;
     /** Configuration for the caption tooltip shown on hover. */
-    tooltip?: AgCaptionTooltipOptions;
+    tooltip?: AgCaptionTooltipOptions<TContext>;
 }
-export interface AgChartSubtitleOptions extends AgChartCaptionOptions {}
-export interface AgChartFooterOptions extends AgChartCaptionOptions {}
+export interface AgChartSubtitleOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
+export interface AgChartFooterOptions<TContext = ContextDefault> extends AgChartCaptionOptions<TContext> {}
 
 export interface AgChartBackground {
     /** Whether the background should be visible. */
@@ -256,11 +256,11 @@ export interface AgBaseThemeableChartOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the background shown behind the chart. */
     background?: AgChartBackground;
     /** Configuration for the title shown at the top of the chart. */
-    title?: AgChartCaptionOptions;
+    title?: AgChartCaptionOptions<TContext>;
     /** Configuration for the subtitle shown beneath the chart title. */
-    subtitle?: AgChartSubtitleOptions;
+    subtitle?: AgChartSubtitleOptions<TContext>;
     /** Configuration for the footnote shown at the bottom of the chart. */
-    footnote?: AgChartFooterOptions;
+    footnote?: AgChartFooterOptions<TContext>;
     /** Configuration for the chart highlighting. */
     highlight?: AgChartHighlightOptions;
     /** HTML overlays. */
