@@ -31,7 +31,7 @@ function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; met
 
 export class DataSelection extends AbstractModuleInstance {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
-    private dragRect: _ModuleSupport.Rect;
+    private readonly dragRect: _ModuleSupport.Rect;
 
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection');
