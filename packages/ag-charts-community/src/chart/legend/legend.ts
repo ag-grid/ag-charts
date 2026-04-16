@@ -218,7 +218,7 @@ export class Legend {
             listeners: { legendItemClick, legendItemDoubleClick },
             item: { tooltip },
         } = this.opts;
-        const hasExplicitTooltip = tooltip?.visible === 'always' || tooltip?.text != null || tooltip?.renderer != null;
+        const hasExplicitTooltip = tooltip != null && tooltip.visible !== 'never';
         return toggleSeries || legendItemDoubleClick != null || legendItemClick != null || hasExplicitTooltip;
     }
 
@@ -1037,7 +1037,7 @@ export class Legend {
         if (tooltipOpts?.renderer) {
             const params = {
                 seriesId: datum.seriesId,
-                itemId: datum.itemId,
+                itemId: datum.itemId ?? datum.id,
                 text: toPlainText(datum.label.text),
                 enabled: datum.enabled,
             };
