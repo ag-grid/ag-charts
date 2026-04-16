@@ -61,12 +61,17 @@ export class DataSelection extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+        const { enabled } = this.opts;
+        if (!enabled) return;
+
         this.dragStartEvent = event;
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
+        const { enabled } = this.opts;
         const { dragStartEvent } = this;
-        if (!dragStartEvent) return;
+
+        if (!enabled || !dragStartEvent) return;
 
         const [x, width] = toStartAndLength(dragStartEvent.currentX, dragEndEvent.currentX);
         const [y, height] = toStartAndLength(dragStartEvent.currentY, dragEndEvent.currentY);
