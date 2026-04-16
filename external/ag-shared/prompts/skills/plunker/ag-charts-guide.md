@@ -392,9 +392,11 @@ createApp(App).mount('#app');
 -   `<div id="app">` replaces `<div id="myChart">` in the HTML body
 -   Use `chart.updateDelta({...})` in `watch()` callbacks for reactive updates
 
-### Staging CDN — SystemJS/CJS Paths
+### Framework CDN — SystemJS/CJS Paths
 
-Framework wrappers (Angular, React, Vue) are not published as UMD bundles on jsdelivr, so framework plunkers must use the staging CDN. The same staging-vs-versioned rules apply: use staging by default, versioned when the user specifies a version. CJS package paths differ from the UMD paths:
+Framework plunkers use SystemJS with CJS/ESM paths instead of UMD. The same staging-vs-versioned rules apply as for vanilla plunkers: use staging by default, versioned when the user specifies a version.
+
+**Staging:**
 
 | Package | Staging CJS path |
 |---------|-----------------|
@@ -404,6 +406,17 @@ Framework wrappers (Angular, React, Vue) are not published as UMD bundles on jsd
 | `ag-charts-types` | `https://charts-staging.ag-grid.com/dev/ag-charts-types/dist/package/main.cjs.js` |
 | `ag-charts-locale` | `https://charts-staging.ag-grid.com/dev/ag-charts-locale/dist/package/main.cjs.js` |
 | `ag-charts-angular` (ESM) | `https://charts-staging.ag-grid.com/dev/ag-charts-angular/` (+ `fesm2022/ag-charts-angular.mjs`) |
+
+**Versioned:**
+
+| Package | Versioned CJS path |
+|---------|--------------------|
+| `ag-charts-community` | `https://cdn.jsdelivr.net/npm/ag-charts-community@13.2.1/dist/package/main.cjs.js` |
+| `ag-charts-core` | `https://cdn.jsdelivr.net/npm/ag-charts-core@13.2.1/dist/package/main.cjs.js` |
+| `ag-charts-enterprise` | `https://cdn.jsdelivr.net/npm/ag-charts-enterprise@13.2.1/dist/package/main.cjs.js` |
+| `ag-charts-types` | `https://cdn.jsdelivr.net/npm/ag-charts-types@13.2.1/dist/package/main.cjs.js` |
+| `ag-charts-locale` | `https://cdn.jsdelivr.net/npm/ag-charts-locale@13.2.1/dist/package/main.cjs.js` |
+| `ag-charts-angular` (ESM) | `https://cdn.jsdelivr.net/npm/ag-charts-angular@13.2.1/` (+ `fesm2022/ag-charts-angular.mjs`) |
 
 ### Common Issues
 
