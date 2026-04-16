@@ -1,28 +1,23 @@
-import type { AgSelectionClickMode, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, Property } from 'ag-charts-core';
+import type { _ModuleSupport } from 'ag-charts-community';
+import { AbstractModuleInstance, Logger, type NormalisedSelectionOptions } from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
 
 export class DataSelection extends AbstractModuleInstance {
-    @Property
-    enabled: boolean = false;
+    private get opts(): NormalisedSelectionOptions {
+        return this.ctx.chartState.getValue('options', 'selection');
+    }
 
-    @Property
-    enableClick: boolean = true;
-
-    @Property
-    clickMode: AgSelectionClickMode = 'single';
-
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         this.cleanup.register(ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)));
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
-        const { enabled, enableClick, clickMode } = this;
+        const { enabled, enableClick, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
         const { type, clickedNode } = event;

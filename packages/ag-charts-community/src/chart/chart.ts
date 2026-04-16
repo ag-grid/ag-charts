@@ -1579,6 +1579,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'formatter',
             'displayNullData',
             'enableRtl',
+            'selection',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
