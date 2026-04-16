@@ -97,7 +97,7 @@ git filter-repo --subdirectory-filter prompts/ --force --quiet 2>&1
 # Remove files that are delivered via project settings, not the plugin.
 # These exist in ag-shared/prompts/ for the rulesync system but would conflict
 # or be redundant when loaded as a plugin alongside the project config.
-EXCLUDE_FILES=(.mcp.json .claude-settings.json .cursor-worktrees.json)
+EXCLUDE_FILES=(.mcp.json .claude-settings.json .cursor-worktrees.json hooks)
 EXCLUDED=()
 for f in "${EXCLUDE_FILES[@]}"; do
     if [ -e "$f" ]; then
