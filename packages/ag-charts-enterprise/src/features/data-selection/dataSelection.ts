@@ -62,6 +62,7 @@ export class DataSelection extends AbstractModuleInstance {
             clickMode satisfies 'single';
             this.setSingleSelection(series, data, datumIndex);
         }
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -109,7 +110,7 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
         this.dragStartEvent = undefined;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
     private setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {
