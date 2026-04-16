@@ -14,7 +14,15 @@ When creating or editing AG Charts examples, follow these conventions:
 3. **Container pattern**: Use `document.getElementById('myChart')` for container setup
 4. **Top-level functions**: Event handlers and chart update functions must be top-level
 5. **Framework compatible**: All public docs examples MUST work across all frameworks (NO `@ag-skip-fws`)
-6. **Controls in HTML**: Place controls BEFORE chart div, wrapped in `class="example-controls"`
+6. **Controls in HTML**: Place controls BEFORE chart div using this structure:
+    ```html
+    <div class="example-controls">
+        <div class="controls-row">
+            Label Text:
+            <button onclick="handler('value')"><code>'value'</code></button>
+        </div>
+    </div>
+    ```
 
 ## Regenerating Examples After Source Changes
 
