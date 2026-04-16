@@ -10,6 +10,7 @@
     "stripe.markdoc-language-support",
     "firsttris.vscode-jest-runner",
     "naumovs.color-highlight",
-    "raywiis.png-image-diff"
+    "raywiis.png-image-diff",
+    "redhat.vscode-yaml"
   ]
 }

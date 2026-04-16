@@ -2,6 +2,12 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-LODASH-15869625:
+        - jest-image-snapshot@6.4.0 > lodash@4.17.21:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-04-15T13:32:58.750Z
     SNYK-JS-PICOMATCH-15765511:
         - del@6.1.1 > globby@11.1.0 > fast-glob@3.3.2 > micromatch@4.0.8 > picomatch@2.3.1:
               reason: >-
@@ -492,9 +498,4 @@ ignore:
                   Only used for testing, so a DoS would only affect a developers machine
               expires: 2026-06-08T00:00:00.000Z
               created: 2025-07-15T11:28:00.000Z
-    SNYK-JS-GLOB-14040952:
-        - 'skia-canvas@2.0.2 > glob@11.0.2':
-              reason: Glob is only used for testing and we control what files are passed in
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2025-11-20T10:29:00.007Z
 patch: {}
