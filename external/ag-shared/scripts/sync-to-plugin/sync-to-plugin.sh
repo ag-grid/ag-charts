@@ -94,6 +94,21 @@ echo "Source HEAD: $SOURCE_SHORT ($(git log -1 --format='%s' HEAD))"
 echo "Extracting prompts/ with git filter-repo..."
 git filter-repo --subdirectory-filter prompts/ --force --quiet 2>&1
 
+# Remove files that are delivered via project settings, not the plugin.
+# These exist in ag-shared/prompts/ for the rulesync system but would conflict
+# or be redundant when loaded as a plugin alongside the project config.
+EXCLUDE_FILES=(.mcp.json .claude-settings.json .cursor-worktrees.json)
+EXCLUDED=()
+for f in "${EXCLUDE_FILES[@]}"; do
+    if [ -e "$f" ]; then
+        git rm -rf --quiet "$f"
+        EXCLUDED+=("$f")
+    fi
+done
+if [ ${#EXCLUDED[@]} -gt 0 ]; then
+    git commit --quiet -m "Exclude project-level config from plugin: ${EXCLUDED[*]}"
+fi
+
 FILTERED_HEAD=$(git rev-parse HEAD)
 FILTERED_SHORT=$(git rev-parse --short HEAD)
 FILTERED_COUNT=$(git rev-list --count HEAD)
