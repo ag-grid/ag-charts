@@ -158,3 +158,48 @@ If you find significant issues outside your focus area, use TaskCreate to propos
 a follow-up task rather than investigating. Note in your findings that you
 created a task, then continue with your focused review.
 ```
+
+---
+
+## Agent 5: JIRA AC Verifier (default when ticket detected)
+
+```markdown
+Independently verify the implementation against JIRA acceptance criteria.
+
+**JIRA Ticket:** ${TICKET_KEY}
+**Acceptance Criteria:**
+${ACCEPTANCE_CRITERIA}
+
+**Modified Files:**
+${MODIFIED_FILES}
+
+**Task:**
+For each acceptance criterion:
+1. Read the relevant implementation files
+2. Check if tests cover the criterion
+3. Determine status: PASS / PARTIAL / MISSING
+
+**Guidelines:**
+- Be independent — do NOT rely on the plan or other agents' findings
+- Read the actual code, not just file names
+- For PARTIAL: explain exactly what's missing
+- For MISSING: assess severity (is it a code gap or a test gap?)
+- Flag any ACs that the plan didn't address at all
+
+**Return:**
+
+| AC# | Criterion | Status | Evidence | Notes |
+|-----|-----------|--------|----------|-------|
+| ... | ...       | ...    | ...      | ...   |
+
+- Summary: X/Y PASS, gaps identified
+- Critical gaps (code changes needed)
+- Test-only gaps (just missing test coverage)
+- Recommendations
+
+**Discovered Work:**
+
+If you find significant issues outside your focus area, use TaskCreate to propose
+a follow-up task rather than investigating. Note in your findings that you
+created a task, then continue with your focused review.
+```

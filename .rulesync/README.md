@@ -71,7 +71,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 | Type    | Name                               | Invoke                               | What it does                                         |
 | ------- | ---------------------------------- | ------------------------------------ | ---------------------------------------------------- |
 | Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness        |
-| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps        |
+| Skill   | 🔵 `plan-verify`    | `/plan-verify` (user) | Review plan execution, identify delivery gaps        |
 | Skill   | 🔵 `design-review`                 | `/design-review` (user)              | Multi-agent expert panel review of design documents  |
 | Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research        |
 | Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets            |
@@ -214,7 +214,7 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 | 🔵 `jira`                       | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
 | 🔵 `nx-performance`             |      | 🤖     | Nx monorepo performance diagnostics and optimization        |
 | 🟠 `optimize-series`            | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
-| 🔵 `plan-implementation-review` | ✂   | 👤     | Review plan execution, identify delivery gaps               |
+| 🔵 `plan-verify` | ✂   | 👤     | Review plan execution, identify delivery gaps               |
 | 🔵 `plan-review`                | ✂   | 👤     | Review plans for completeness and correctness               |
 | 🟠 `plunker`                    | ✂   | 🤖     | Create and manage Plunker demos for AG Charts               |
 | 🔵 `pr-create`                  |      | 👤     | Commit, push, and open a PR                                 |
