@@ -46,7 +46,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-export function toggleMode() {
+function toggleMode() {
     const series = options.series![0] as any;
     const current = series.colorScale.mode;
     series.colorScale.mode = current === 'discrete' ? 'continuous' : 'discrete';
