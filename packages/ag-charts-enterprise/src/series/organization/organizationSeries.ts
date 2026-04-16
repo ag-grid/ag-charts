@@ -350,7 +350,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth
+            depth,
+            highlightState
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -359,7 +360,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth
+            depth,
+            highlightState
         );
 
         let labelIndex = 0;
@@ -371,7 +373,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 dataModel,
                 processedData,
                 datumIndex,
-                depth
+                depth,
+                highlightState
             );
             labelIndex++;
         }
@@ -452,7 +455,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
@@ -461,7 +465,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix),
             () => {
-                const params = this.makeNodeTextStylerParams(dataModel, processedData, datumIndex, depth, style);
+                const params = this.makeNodeTextStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    style
+                );
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.callWithContext(styler, params)
@@ -525,6 +536,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
         style: Required<AgOrganizationSeriesNodeTextStyle>
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -536,7 +548,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             datum,
             depth,
             seriesId,
-            highlightState: 'none',
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
