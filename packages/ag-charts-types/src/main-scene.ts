@@ -20,4 +20,4 @@ export type LinearScale = any;
 
 export type BBox = any;
 
-export type Caption = AgChartCaptionOptions<any>;
+export type Caption = AgChartCaptionOptions<unknown>;
