@@ -15,7 +15,7 @@ subtitle: {
 },
 footnote: {
     text: 'Source: Internal CRM',
-},
+}
 ```
 
 ## Wrapping & Truncation
@@ -46,10 +46,12 @@ When `tooltip.text` or `tooltip.renderer` is provided without an explicit `visib
 Use `tooltip.text` to display a static tooltip message, or `tooltip.renderer` for dynamic content. The renderer receives the caption's plain text and can return a string or an HTML string.
 
 ```js format="snippet"
-title: {
-    text: 'Annual Revenue',
-    tooltip: {
-        renderer: ({ text }) => `<b>${text}</b><br/>Source: Internal CRM`,
+{
+    title: {
+        text: 'Annual Revenue',
+        tooltip: {
+            renderer: ({ text }) => `<b>${text}</b><br/>Source: Internal CRM`,
+        },
     },
 }
 ```
