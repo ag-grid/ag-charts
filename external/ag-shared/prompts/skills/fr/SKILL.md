@@ -327,6 +327,18 @@ For CI failures that need manual intervention:
 
 Iterate until CI is green. Present the PR URL to the user when ready for team review.
 
+### JIRA Comment
+
+After the PR is published and CI is green, draft a comment for the JIRA ticket. The comment should be tight and concise — PMs and other engineers will scan it quickly. Structure:
+
+1. **PR link** — lead with the PR URL
+2. **Edge cases and AC gaps** — bullet list of any acceptance criteria gaps, edge cases you made a judgement call on, or areas that need PM feedback. Only include items that are genuinely worth flagging — don't pad with "everything went fine" bullets.
+3. **Docs staging link** — if docs pages were added or updated, include the staging URL so reviewers can preview them
+
+If there's nothing notable beyond the PR link (all ACs met cleanly, no edge cases), keep it to just the PR URL with a one-line summary.
+
+**Before posting:** Present the exact comment text to the user for approval. Check whether the ticket already has a comment for this PR (e.g., from a previous `/fr` run) — if so, propose updating that comment rather than adding a new one. Only post via `mcp__atlassian__addCommentToJiraIssue` after the user confirms.
+
 ---
 
 ## Resuming a Session (`--resume`)
