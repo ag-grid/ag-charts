@@ -1868,8 +1868,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
-                const initialOpts = (this.ctx.chartState.getValue('options') as any)?.[module.name] ?? {};
-                const moduleInstance = module.create(this.getModuleContext(), initialOpts);
+                const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
                 (this as any)[module.name] = moduleInstance; // TODO remove
             } else {

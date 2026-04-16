@@ -81,10 +81,7 @@ export interface ZoomOnDataChangeCtx
 export class ZoomOnDataChange {
     private desiredChanges?: DesiredChanges;
 
-    constructor(
-        private readonly ctx: ZoomOnDataChangeCtx,
-        _initialOpts: NormalisedZoomOnDataChange
-    ) {
+    constructor(private readonly ctx: ZoomOnDataChangeCtx) {
         // When calling `AgCharts.create`, the data:update event is emitted before the axes ranges/scales are fully
         // initialised. This causes the 'preserveDomain' strategy to read an uninitialised (and incorrect) domain, and
         // this uninitialised domain therefore incorrectly constrains the initial zoom:change-request event.

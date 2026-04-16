@@ -143,10 +143,7 @@ export class Legend {
         return this.ctx.chartState.getValue('options', 'legend');
     }
 
-    constructor(
-        private readonly ctx: ModuleContext,
-        initialOpts: NormalisedLegendOptions
-    ) {
+    constructor(private readonly ctx: ModuleContext) {
         // Start invisible — updateGroupVisibility() will enable when legend has data and options.
         // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
         // types where the legend is disabled (sparklines, gauges).
@@ -162,7 +159,7 @@ export class Legend {
         items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
         items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
 
-        let prevEnabled = initialOpts?.enabled;
+        let prevEnabled = this.opts?.enabled;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'legend.enabled');
@@ -257,13 +254,14 @@ export class Legend {
      * @param height
      */
     private calcLayout(width: number, height: number) {
+        const { item } = this.opts;
         const {
             paddingX,
             paddingY,
             label,
             maxWidth: itemMaxWidth,
             label: { maxLength = Infinity, fontStyle, fontWeight, fontSize, fontFamily },
-        } = this.opts.item;
+        } = item;
         this.updateItemSelection();
 
         // Update properties that affect the size of the legend items and measure them.
@@ -284,7 +282,7 @@ export class Legend {
             markerLabel.fontFamily = fontFamily;
             markerLabel.isRtl = isRtl;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled);
+            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, markerWidth, anyLineEnabled, item);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = toPlainText(labelText, '<unknown>').replace(LineSplitter, ' ');
@@ -343,16 +341,20 @@ export class Legend {
         return markerEnabled && shape !== undefined && typeof shape !== 'string';
     }
 
-    private calcSymbolsEnabled(symbol: LegendSymbolOptions) {
-        const { showSeriesStroke } = this.opts.item;
+    private calcSymbolsEnabled(symbol: LegendSymbolOptions, showSeriesStroke: boolean) {
         const markerEnabled = !showSeriesStroke || (symbol.marker.enabled ?? true);
         const lineEnabled = !!(symbol.line && showSeriesStroke);
         const isCustomMarker = this.isCustomMarker(markerEnabled, symbol.marker.shape);
         return { markerEnabled, lineEnabled, isCustomMarker };
     }
 
-    private calcSymbolsLengths(symbol: LegendSymbolOptions, markerEnabled: boolean, lineEnabled: boolean) {
-        const { marker, line } = this.opts.item;
+    private calcSymbolsLengths(
+        symbol: LegendSymbolOptions,
+        markerEnabled: boolean,
+        lineEnabled: boolean,
+        itemOpts: NormalisedLegendOptions['item']
+    ) {
+        const { marker, line } = itemOpts;
 
         let customMarkerSize: number | undefined;
         const { shape } = symbol.marker;
@@ -371,17 +373,19 @@ export class Legend {
     }
 
     private calculateMarkerWidth() {
+        const { item } = this.opts;
+        const { showSeriesStroke } = item;
         let markerWidth = 0;
         let anyLineEnabled = false;
         this.itemSelection.each((_, datum) => {
             const { symbol } = datum;
 
-            const { lineEnabled, markerEnabled } = this.calcSymbolsEnabled(symbol);
+            const { lineEnabled, markerEnabled } = this.calcSymbolsEnabled(symbol, showSeriesStroke);
             const {
                 markerLength,
                 lineLength,
                 customMarkerSize = -Infinity,
-            } = this.calcSymbolsLengths(symbol, markerEnabled, lineEnabled);
+            } = this.calcSymbolsLengths(symbol, markerEnabled, lineEnabled, item);
             markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
 
             anyLineEnabled ||= lineEnabled;
@@ -393,13 +397,14 @@ export class Legend {
         markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
         markerWidth: number,
-        anyLineEnabled: boolean
+        anyLineEnabled: boolean,
+        itemOpts: NormalisedLegendOptions['item']
     ): number {
-        const { marker: itemMarker, paddingX } = this.opts.item;
+        const { marker: itemMarker, paddingX, showSeriesStroke } = itemOpts;
         const { symbol } = datum;
         let paddedSymbolWidth = paddingX;
 
-        const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
+        const { markerEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol, showSeriesStroke);
 
         const spacing = itemMarker.padding;
 

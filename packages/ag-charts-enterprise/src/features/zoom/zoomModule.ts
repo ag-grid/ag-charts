@@ -110,7 +110,7 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         },
     },
 
-    create: (ctx, initialOpts) => new Zoom(ctx, initialOpts),
+    create: (ctx) => new Zoom(ctx),
 };
 
 // @ts-expect-error undocumented option

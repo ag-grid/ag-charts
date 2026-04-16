@@ -60,11 +60,11 @@ enum DragState {
 // Extends the normalised type with undocumented options available at runtime.
 type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
 
-export class Zoom extends AbstractModuleInstance {
-    private static readonly DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
+const DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
 
+export class Zoom extends AbstractModuleInstance {
     private get opts(): ZoomOpts {
-        return this.ctx.chartState.getValue('options', 'zoom') ?? Zoom.DISABLED_OPTS;
+        return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
     }
 
     // Public getter required by `hasViewportSupport()` in chart.ts.
@@ -96,10 +96,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
-    constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
-        initialOpts: ZoomOpts
-    ) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
         const self = this;
@@ -133,19 +130,16 @@ export class Zoom extends AbstractModuleInstance {
             }
         };
         // eslint-disable-next-line sonarjs/constructor-for-side-effects -- event handlers keep instance alive via cleanup registry
-        new ZoomOnDataChange(
-            {
-                eventsHub: ctx.eventsHub,
-                zoomManager: ctx.zoomManager,
-                axisManager: ctx.axisManager,
-                cleanup: this.cleanup,
-                onConstrainChanges: minVisibleItemsCallback,
-                get opts() {
-                    return self.opts.onDataChange;
-                },
+        new ZoomOnDataChange({
+            eventsHub: ctx.eventsHub,
+            zoomManager: ctx.zoomManager,
+            axisManager: ctx.axisManager,
+            cleanup: this.cleanup,
+            onConstrainChanges: minVisibleItemsCallback,
+            get opts() {
+                return self.opts.onDataChange;
             },
-            initialOpts.onDataChange
-        );
+        });
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
@@ -182,33 +176,26 @@ export class Zoom extends AbstractModuleInstance {
         );
 
         // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
-        this.autoScaler = new ZoomAutoScaler(
-            {
-                zoomManager: ctx.zoomManager,
-                eventsHub: ctx.eventsHub,
-                cleanup: this.cleanup,
-                opts: {
-                    get enabled() {
-                        return self.opts.enabled;
-                    },
-                    get enableIndependentAxes() {
-                        return self.opts.enableIndependentAxes;
-                    },
-                    get autoScaling() {
-                        return self.opts.autoScaling;
-                    },
+        this.autoScaler = new ZoomAutoScaler({
+            zoomManager: ctx.zoomManager,
+            eventsHub: ctx.eventsHub,
+            cleanup: this.cleanup,
+            opts: {
+                get enabled() {
+                    return self.opts.enabled;
+                },
+                get enableIndependentAxes() {
+                    return self.opts.enableIndependentAxes;
+                },
+                get autoScaling() {
+                    return self.opts.autoScaling;
                 },
             },
-            initialOpts.autoScaling
-        );
+        });
 
-        // Initial setup from initialOpts
-        ctx.zoomManager.setIndependentAxes(Boolean(initialOpts.enableIndependentAxes));
-        if (initialOpts.deceleration != null) this.panner.deceleration = initialOpts.deceleration;
-        this.onEnabledChange(initialOpts.enabled ?? false);
-
-        // Observe subsequent option changes
-        let prevEnabled = initialOpts.enabled ?? false;
+        // Observe option changes. The callback runs immediately during registration
+        // (chartState is populated before module creation), handling initial setup too.
+        let prevEnabled: boolean | undefined;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'zoom');
@@ -249,10 +236,11 @@ export class Zoom extends AbstractModuleInstance {
         if (this.ctx.chartService.touch.dragAction !== 'drag') {
             return true;
         }
-        if (this.opts.enableSelecting) {
+        const { enableSelecting, enablePanning } = this.opts;
+        if (enableSelecting) {
             return false;
         }
-        if (!this.opts.enablePanning) {
+        if (!enablePanning) {
             return true;
         }
         return isMaxZoom(this.getZoom());
@@ -442,7 +430,8 @@ export class Zoom extends AbstractModuleInstance {
         this.hoveredAxisId = undefined;
         this.ctx.domManager.updateCursor(CURSOR_ID);
 
-        if (!this.opts.enabled || !this.opts.enableAxisDragging) return;
+        const { enabled, enableAxisDragging } = this.opts;
+        if (!enabled || !enableAxisDragging) return;
     }
 
     private onAxisDoubleClick(id: AxisID) {
@@ -647,7 +636,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
-        if (!this.opts.enabled || !this.opts.enableAxisScrolling) return;
+        const { enabled, enableAxisScrolling } = this.opts;
+        if (!enabled || !enableAxisScrolling) return;
 
         baseEvent.stopProcessing();
 
@@ -799,22 +789,14 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private isScalingX() {
-        if (this.opts.axes === 'xy') return true;
-        return this.shouldFlipXY ? this.opts.axes === 'y' : this.opts.axes === 'x';
+    private isScalingX(axes: ZoomOpts['axes']) {
+        if (axes === 'xy') return true;
+        return this.shouldFlipXY ? axes === 'y' : axes === 'x';
     }
 
-    private isScalingY() {
-        if (this.opts.axes === 'xy') return true;
-        return this.shouldFlipXY ? this.opts.axes === 'x' : this.opts.axes === 'y';
-    }
-
-    private getAnchorPointX() {
-        return this.shouldFlipXY ? this.opts.anchorPointY : this.opts.anchorPointX;
-    }
-
-    private getAnchorPointY() {
-        return this.shouldFlipXY ? this.opts.anchorPointX : this.opts.anchorPointY;
+    private isScalingY(axes: ZoomOpts['axes']) {
+        if (axes === 'xy') return true;
+        return this.shouldFlipXY ? axes === 'x' : axes === 'y';
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
@@ -1003,15 +985,17 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
+        const { anchorPointX, anchorPointY, axes, enabled, enableIndependentAxes, keepAspectRatio, scrollingStep } =
+            this.opts;
         return {
-            anchorPointX: overrides?.anchorPointX ?? this.getAnchorPointX(),
-            anchorPointY: overrides?.anchorPointY ?? this.getAnchorPointY(),
-            enabled: overrides?.enabled ?? this.opts.enabled,
-            independentAxes: overrides?.independentAxes ?? this.opts.enableIndependentAxes === true,
-            isScalingX: overrides?.isScalingX ?? this.isScalingX(),
-            isScalingY: overrides?.isScalingY ?? this.isScalingY(),
-            keepAspectRatio: overrides?.keepAspectRatio ?? this.opts.keepAspectRatio ?? false,
-            scrollingStep: overrides?.scrollingStep ?? this.opts.scrollingStep,
+            anchorPointX: overrides?.anchorPointX ?? (this.shouldFlipXY ? anchorPointY : anchorPointX),
+            anchorPointY: overrides?.anchorPointY ?? (this.shouldFlipXY ? anchorPointX : anchorPointY),
+            enabled: overrides?.enabled ?? enabled,
+            independentAxes: overrides?.independentAxes ?? enableIndependentAxes === true,
+            isScalingX: overrides?.isScalingX ?? this.isScalingX(axes),
+            isScalingY: overrides?.isScalingY ?? this.isScalingY(axes),
+            keepAspectRatio: overrides?.keepAspectRatio ?? keepAspectRatio ?? false,
+            scrollingStep: overrides?.scrollingStep ?? scrollingStep,
         };
     }
 }

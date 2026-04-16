@@ -17,10 +17,7 @@ export interface ZoomAutoScalerCtx {
 }
 
 export class ZoomAutoScaler {
-    constructor(
-        private readonly ctx: ZoomAutoScalerCtx,
-        _initialOpts: NormalisedZoomAutoScaling
-    ) {
+    constructor(private readonly ctx: ZoomAutoScalerCtx) {
         ctx.cleanup.register(
             ctx.eventsHub.on('zoom:save-memento', (e) => this.onSaveMemento(e)),
             ctx.eventsHub.on('zoom:load-memento', (e) => this.onLoadMemento(e)),
