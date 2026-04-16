@@ -77,6 +77,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    image = new OrganizationSeriesNodeImageProperties();
+
+    @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<unknown>, AgOrganizationSeriesNodeStyle>;
 
     @Property
@@ -108,6 +111,26 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 
     @Property
     labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
+}
+
+export class OrganizationSeriesNodeImageProperties extends BaseProperties {
+    @Property
+    key!: string;
+
+    @Property
+    height: number = 50;
+
+    @Property
+    width: number = 50;
+
+    @Property
+    position: 'bottom' | 'left' | 'right' | 'top' = 'top';
+
+    @Property
+    shape: 'circle' | 'square' = 'square';
+
+    @Property
+    spacing: number = 0;
 }
 
 export class OrganizationSeriesNodeTextProperties extends BaseProperties {
