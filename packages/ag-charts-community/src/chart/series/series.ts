@@ -963,7 +963,7 @@ export abstract class Series<
     }
 
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
-        function* walkLeafNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
+        function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
                 if (child.datum !== undefined) {
                     const result = callback(child);
@@ -971,12 +971,12 @@ export abstract class Series<
                         yield result;
                     }
                 } else if (child instanceof Group) {
-                    yield* walkLeafNodes(child, callback);
+                    yield* walkNodes(child, callback);
                 }
             }
         }
 
-        yield* walkLeafNodes(this.contentGroup, (node) => {
+        yield* walkNodes(this.contentGroup, (node) => {
             const { x, y, width, height } = node.getBBox();
             if (boxContains(selectionBox, x, y, width, height)) {
                 // eslint-disable-next-line sonarjs/deprecation
