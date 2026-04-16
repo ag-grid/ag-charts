@@ -157,6 +157,39 @@ const ITEM_STYLERS: AgChartOptions = {
     ],
 };
 
+const FORMATTERS: AgChartOptions = {
+    ...SIMPLE_ORG_CHART,
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: {
+                    key: 'name',
+                    formatter: ({ value }) => {
+                        if (value === 'Bob Smith') {
+                            return [{ text: 'Bob' }, { text: ' "John" ', fontStyle: 'italic' }, { text: 'Smith' }];
+                        }
+                    },
+                },
+                subtitle: {
+                    key: 'job',
+                    formatter: ({ value }) => {
+                        if (value === 'Quality Assurance') {
+                            return [
+                                { text: 'Quality', color: 'red', fontSize: 14, fontWeight: 'bold' },
+                                { text: ' Assurance', color: 'green', fontStyle: 'italic' },
+                            ];
+                        }
+                    },
+                },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -176,6 +209,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     ITEM_STYLERS: {
         options: ITEM_STYLERS,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    FORMATTERS: {
+        options: FORMATTERS,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

@@ -1,11 +1,14 @@
 import {
+    type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesNodeTextStylerParams,
+    type Formatter,
     type Styler,
+    type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import { type CallbackParamRules, type DeepRequired, Vertex, mergeDefaults } from 'ag-charts-core';
@@ -133,12 +136,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     updateDatumNodes(datumSelection: _ModuleSupport.Selection<OrganizationDatum, OrganizationNode>) {
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
         datumSelection.each((node, datum) => {
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
-            const styles = this.getNodeStyle(datumIndex, depth, false, undefined);
 
-            node.update(datum.datum, styles);
+            const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
+            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState);
+
+            const title = this.formatText(datum.datum.title, this.properties.node.title.formatter, datumIndex);
+            const subtitle = this.formatText(datum.datum.subtitle, this.properties.node.subtitle.formatter, datumIndex);
+            const labels = datum.datum.labels?.map((label, index) =>
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
+            );
+
+            node.update({ image: datum.datum.image, title, subtitle, labels }, styles);
         });
     }
 
@@ -245,6 +259,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
+    private formatText(
+        text: TextOrSegments | undefined,
+        formatter: Formatter<AgOrganizationNodeTextFormatterParams> | undefined,
+        datumIndex: number | undefined
+    ) {
+        const { dataModel, processedData } = this;
+        if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
+
+        return (
+            this.callWithContext(
+                formatter,
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, text)
+            ) ?? text
+        );
+    }
+
     private getLinkStyle(
         fromIndex: number | undefined,
         toIndex: number | undefined
@@ -285,6 +315,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { itemStyler: titleStyler } = this.properties.node.title;
         const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
 
+        // TODO: AG-17010 MVP does not include default highlight styles
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
 
         let style = mergeDefaults(highlightStyle, this.getNodeDefaultStyle(), {
@@ -302,7 +333,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         processedData,
                         datumIndex,
                         depth,
-                        // isHighlight,
+                        highlightState,
                         style
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
@@ -324,7 +355,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth
+            depth,
+            highlightState
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -333,7 +365,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             dataModel,
             processedData,
             datumIndex,
-            depth
+            depth,
+            highlightState
         );
 
         let labelIndex = 0;
@@ -345,7 +378,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 dataModel,
                 processedData,
                 datumIndex,
-                depth
+                depth,
+                highlightState
             );
             labelIndex++;
         }
@@ -426,7 +460,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
-        depth: number
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
@@ -435,7 +470,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const overrides = this.cachedDatumCallback(
             _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix),
             () => {
-                const params = this.makeNodeTextStylerParams(dataModel, processedData, datumIndex, depth, style);
+                const params = this.makeNodeTextStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    style
+                );
                 return this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
                     this.callWithContext(styler, params)
@@ -477,6 +519,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
         style: Required<AgOrganizationSeriesNodeStyle>
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -488,7 +531,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             datum,
             depth,
             seriesId,
-            highlightState: 'none',
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
@@ -498,6 +541,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
         depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
         style: Required<AgOrganizationSeriesNodeTextStyle>
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -509,8 +553,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             datum,
             depth,
             seriesId,
-            highlightState: 'none',
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
+    }
+
+    private makeNodeTextFormatterParams(
+        _dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        value: any
+    ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
+        const { id: seriesId } = this;
+
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
+
+        return {
+            datum,
+            seriesId,
+            value,
+        } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
     }
 }

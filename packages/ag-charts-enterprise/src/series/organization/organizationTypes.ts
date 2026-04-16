@@ -1,5 +1,5 @@
 import type { DeepRequired } from 'ag-charts-core';
-import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle } from 'ag-charts-types';
+import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, TextOrSegments } from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum, NetworkLinkNode } from '../network/networkSeries';
 
@@ -17,7 +17,12 @@ export type OrganizationEdge =
     | 'labels';
 
 export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    datum: { image?: string; title?: string; subtitle?: string; labels?: string[] };
+    datum: {
+        image?: string;
+        title?: TextOrSegments;
+        subtitle?: TextOrSegments;
+        labels?: (TextOrSegments | undefined)[];
+    };
     nodeDatumIndex: number;
 }
 
