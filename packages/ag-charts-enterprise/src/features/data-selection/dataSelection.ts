@@ -3,7 +3,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     type AreExact,
-    type BoxBounds,
     ChartUpdateType,
     Logger,
     type NormalisedSelectionOptions,
