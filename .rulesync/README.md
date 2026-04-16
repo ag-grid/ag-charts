@@ -28,6 +28,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 | Type  | Name                  | Invoke                                     | What it does                                               |
 | ----- | --------------------- | ------------------------------------------ | ---------------------------------------------------------- |
+| Skill | 🔵 `fr`               | `/fr <AG-XXXXX>` (user)                    | End-to-end feature implementation from JIRA to PR          |
 | Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)             | Fix build and lint errors across a package                 |
 | Skill | 🔵 `pr-create`        | `/pr-create` (user)                        | Commit, push, and open a PR                                |
 | Skill | 🔵 `pr-review`        | `/pr-review [--json] [--all] <PR#>` (user) | Review a PR (Markdown default; `--all` adds DA + Simplify) |
@@ -68,18 +69,19 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 ## Planning and Analysis
 
-| Type    | Name                               | Invoke                               | What it does                                         |
-| ------- | ---------------------------------- | ------------------------------------ | ---------------------------------------------------- |
-| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)                | Review plans for completeness and correctness        |
-| Skill   | 🔵 `plan-implementation-review`    | `/plan-implementation-review` (user) | Review plan execution, identify delivery gaps        |
-| Skill   | 🔵 `design-review`                 | `/design-review` (user)              | Multi-agent expert panel review of design documents  |
-| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis`      | Analyse requirements with competitor research        |
-| Skill   | 🔵 `jira`                          | `/jira`                              | Create, estimate, or analyse JIRA tickets            |
-| Skill   | 🟢 `triage-rt`                     | `/triage-rt`                         | Triage release testing tickets (CRT/RTI)             |
-| Skill   | 🟢 `triage-rt-board`               | `/triage-rt-board`                   | Triage an entire regression testing board end-to-end |
-| Agent   | 🟠 `technical-research-analyst`    | Auto                                 | In-depth technical research with citations           |
-| Skill   | 🔵 `nx-performance`                | `/nx-performance`                    | Nx monorepo performance diagnostics and optimization |
-| Agent   | 🔵 `nx-expert`                     | Auto                                 | Nx monorepo configuration and build optimisation     |
+| Type    | Name                               | Invoke                          | What it does                                         |
+| ------- | ---------------------------------- | ------------------------------- | ---------------------------------------------------- |
+| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)           | Review plans for completeness and correctness        |
+| Skill   | 🔵 `plan-verify`                   | `/plan-verify` (user)           | Review plan execution, identify delivery gaps        |
+| Skill   | 🔵 `interview-me`                  | `/interview-me` (user)          | Surface ambiguities and open questions via interview |
+| Skill   | 🔵 `design-review`                 | `/design-review` (user)         | Multi-agent expert panel review of design documents  |
+| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis` | Analyse requirements with competitor research        |
+| Skill   | 🔵 `jira`                          | `/jira`                         | Create, estimate, or analyse JIRA tickets            |
+| Skill   | 🟢 `triage-rt`                     | `/triage-rt`                    | Triage release testing tickets (CRT/RTI)             |
+| Skill   | 🟢 `triage-rt-board`               | `/triage-rt-board`              | Triage an entire regression testing board end-to-end |
+| Agent   | 🟠 `technical-research-analyst`    | Auto                            | In-depth technical research with citations           |
+| Skill   | 🔵 `nx-performance`                | `/nx-performance`               | Nx monorepo performance diagnostics and optimization |
+| Agent   | 🔵 `nx-expert`                     | Auto                            | Nx monorepo configuration and build optimisation     |
 
 ## Prompt Hygiene
 
@@ -196,47 +198,49 @@ Skills load on-demand when invoked. All skills are invoked via `/skill-name`. Al
 -   **👤 = user-only** — `disable-model-invocation: true`; the LLM cannot invoke autonomously via the Skill tool.
 -   **🤖 = auto** — the LLM may invoke via the Skill tool when it matches the task.
 
-| Skill                           | Fork | Invoke | Description                                                 |
-| ------------------------------- | ---- | ------ | ----------------------------------------------------------- |
-| 🔵 `ag-shared-sync-log`         |      | 🤖     | Generate migration log entries for ag-shared changes        |
-| 🔵 `batch-lint-cleanup`         |      | 👤     | Auto-fix ESLint violations by rule                          |
-| 🔵 `batch-plunkers`             | ✂   | 🤖     | Create multiple Plunkers in parallel via sub-agents         |
-| 🔵 `code-fixup`                 |      | 👤     | Fix build and lint errors across a package                  |
-| 🔵 `debug-trace`                |      | 🤖     | Hypothesis-driven debugging with transient log tracing      |
-| 🔵 `design-review`              | ✂   | 👤     | Multi-agent expert panel review of design documents         |
-| 🔵 `dev-server`                 |      | 🤖     | Start dev server, check build status                        |
-| 🟠 `docs-create`                | ✂   | 👤     | Scaffold a new documentation page                           |
-| 🔵 `example`                    | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
-| 🔵 `git-bisect`                 |      | 👤     | Find the commit that introduced a regression                |
-| 🔵 `git-conventions`            |      | 🤖     | Branch, commit, and PR naming conventions                   |
-| 🔵 `git-split`                  |      | 👤     | Split large files preserving git history                    |
-| 🔵 `git-worktree-clean`         |      | 👤     | Hard-reset worktree to `origin/latest`                      |
-| 🔵 `jira`                       | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
-| 🔵 `nx-performance`             |      | 🤖     | Nx monorepo performance diagnostics and optimization        |
-| 🟠 `optimize-series`            | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
-| 🔵 `plan-implementation-review` | ✂   | 👤     | Review plan execution, identify delivery gaps               |
-| 🔵 `plan-review`                | ✂   | 👤     | Review plans for completeness and correctness               |
-| 🟠 `plunker`                    | ✂   | 🤖     | Create and manage Plunker demos for AG Charts               |
-| 🔵 `pr-create`                  |      | 👤     | Commit, push, and open a PR                                 |
-| 🔵 `pr-review`                  |      | 👤     | Review a PR (Markdown default, JSON with `--json`)          |
-| 🔵 `pr-split`                   |      | 👤     | Split a branch into stacked PRs                             |
-| 🟠 `publish-prd`                | ✂   | 👤     | Publish PRD or design doc to docs repo                      |
-| 🔵 `recall`                     | ✂   | 👤     | Load branch context, browse project memories                |
-| 🔵 `reflect`                    |      | 👤     | Analyse conversation friction and improve agentic config    |
-| 🟢 `releases`                   |      | 🤖     | Release conventions, branch naming, and constraints         |
-| 🔵 `remember`                   | ✂   | 👤     | Save branch context or project learnings as memory          |
-| 🔵 `rulesync`                   |      | 🤖     | Configure AI/agentic tooling via `.rulesync/`               |
-| 🔵 `run-gha-locally`            |      | 👤     | Run GitHub Actions workflow jobs locally                    |
-| 🟠 `sonar-fix`                  | ✂   | 👤     | Fetch and fix SonarCloud issues                             |
-| 🟠 `spruce-docs`                | ✂   | 🤖     | Create or improve documentation following patterns          |
-| 🟠 `spruce-example`             | ✂   | 🤖     | Improve gallery examples to professional quality            |
-| 🔵 `sync-ag-shared`             | ✂   | 👤     | Sync ag-shared subrepo changes across AG repos              |
-| 🟢 `technology-stack`           |      | 🤖     | Architecture constraints and zero-dependency requirements   |
-| 🟢 `triage-rt`                  | ✂   | 🤖     | Triage release testing tickets (CRT/RTI)                    |
-| 🟢 `triage-rt-board`            | ✂   | 🤖     | Triage an entire regression testing board end-to-end        |
-| 🔵 `validate-prompts`           |      | 👤     | Validate prompt file references for consistency and hygiene |
-| 🔵 `website-astro`              |      | 🤖     | Astro page patterns, content collections, and components    |
-| 🔵 `website-css`                |      | 🤖     | CSS architecture, design tokens, and styling patterns       |
+| Skill                   | Fork | Invoke | Description                                                 |
+| ----------------------- | ---- | ------ | ----------------------------------------------------------- |
+| 🔵 `ag-shared-sync-log` |      | 🤖     | Generate migration log entries for ag-shared changes        |
+| 🔵 `batch-lint-cleanup` |      | 👤     | Auto-fix ESLint violations by rule                          |
+| 🔵 `batch-plunkers`     | ✂   | 🤖     | Create multiple Plunkers in parallel via sub-agents         |
+| 🔵 `code-fixup`         |      | 👤     | Fix build and lint errors across a package                  |
+| 🔵 `debug-trace`        |      | 🤖     | Hypothesis-driven debugging with transient log tracing      |
+| 🔵 `design-review`      | ✂   | 👤     | Multi-agent expert panel review of design documents         |
+| 🔵 `dev-server`         |      | 🤖     | Start dev server, check build status                        |
+| 🟠 `docs-create`        | ✂   | 👤     | Scaffold a new documentation page                           |
+| 🔵 `example`            | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
+| 🔵 `fr`                 | ✂   | 👤     | End-to-end feature implementation from JIRA to PR           |
+| 🔵 `git-bisect`         |      | 👤     | Find the commit that introduced a regression                |
+| 🔵 `git-conventions`    |      | 🤖     | Branch, commit, and PR naming conventions                   |
+| 🔵 `git-split`          |      | 👤     | Split large files preserving git history                    |
+| 🔵 `git-worktree-clean` |      | 👤     | Hard-reset worktree to `origin/latest`                      |
+| 🔵 `interview-me`       |      | 👤     | Surface ambiguities and open questions via interview        |
+| 🔵 `jira`               | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
+| 🔵 `nx-performance`     |      | 🤖     | Nx monorepo performance diagnostics and optimization        |
+| 🟠 `optimize-series`    | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
+| 🔵 `plan-verify`        | ✂   | 👤     | Review plan execution, identify delivery gaps               |
+| 🔵 `plan-review`        | ✂   | 👤     | Review plans for completeness and correctness               |
+| 🟠 `plunker`            | ✂   | 🤖     | Create and manage Plunker demos for AG Charts               |
+| 🔵 `pr-create`          |      | 👤     | Commit, push, and open a PR                                 |
+| 🔵 `pr-review`          |      | 👤     | Review a PR (Markdown default, JSON with `--json`)          |
+| 🔵 `pr-split`           |      | 👤     | Split a branch into stacked PRs                             |
+| 🟠 `publish-prd`        | ✂   | 👤     | Publish PRD or design doc to docs repo                      |
+| 🔵 `recall`             | ✂   | 👤     | Load branch context, browse project memories                |
+| 🔵 `reflect`            |      | 👤     | Analyse conversation friction and improve agentic config    |
+| 🟢 `releases`           |      | 🤖     | Release conventions, branch naming, and constraints         |
+| 🔵 `remember`           | ✂   | 👤     | Save branch context or project learnings as memory          |
+| 🔵 `rulesync`           |      | 🤖     | Configure AI/agentic tooling via `.rulesync/`               |
+| 🔵 `run-gha-locally`    |      | 👤     | Run GitHub Actions workflow jobs locally                    |
+| 🟠 `sonar-fix`          | ✂   | 👤     | Fetch and fix SonarCloud issues                             |
+| 🟠 `spruce-docs`        | ✂   | 🤖     | Create or improve documentation following patterns          |
+| 🟠 `spruce-example`     | ✂   | 🤖     | Improve gallery examples to professional quality            |
+| 🔵 `sync-ag-shared`     | ✂   | 👤     | Sync ag-shared subrepo changes across AG repos              |
+| 🟢 `technology-stack`   |      | 🤖     | Architecture constraints and zero-dependency requirements   |
+| 🟢 `triage-rt`          | ✂   | 🤖     | Triage release testing tickets (CRT/RTI)                    |
+| 🟢 `triage-rt-board`    | ✂   | 🤖     | Triage an entire regression testing board end-to-end        |
+| 🔵 `validate-prompts`   |      | 👤     | Validate prompt file references for consistency and hygiene |
+| 🔵 `website-astro`      |      | 🤖     | Astro page patterns, content collections, and components    |
+| 🔵 `website-css`        |      | 🤖     | CSS architecture, design tokens, and styling patterns       |
 
 ---
 

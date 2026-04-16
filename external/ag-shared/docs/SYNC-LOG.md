@@ -185,7 +185,7 @@ The new code-quality "Design and Modularity" principles are paired with a pre-co
 - **[prompts/skills]** Created `website-css` skill (5 files: SKILL.md + colour-palette, dark-mode, design-tokens, utility-classes) — replaces monolithic guide
 - **[prompts/skills]** Created `website-astro` skill (4 files: SKILL.md + content-collections, page-patterns, shared-components) — replaces monolithic guide
 - **[prompts/skills]** Decomposed `plan-review` skill into SKILL.md + 5 sub-docs (agent-prompts-quick, agent-prompts-thorough, discovered-work, external-tools, output-format)
-- **[prompts/skills]** Decomposed `plan-implementation-review` skill into SKILL.md + 3 sub-docs (agent-prompts, discovered-work, output-format)
+- **[prompts/skills]** Decomposed `plan-verify` skill into SKILL.md + 3 sub-docs (agent-prompts, discovered-work, output-format)
 - **[prompts/guides]** Slimmed `website-css.md` and `website-astro-pages.md` guides (content moved to skills)
 - **[prompts/agents]** Deleted `code-reviewer.md` agent (unused)
 - **[prompts/commands]** Removed `analyze-jira-issue.md`, `docs-create.md`, `sonar-fix.md` commands (migrated to skills)

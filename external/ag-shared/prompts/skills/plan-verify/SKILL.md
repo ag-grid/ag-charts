@@ -1,26 +1,28 @@
 ---
 targets: ['*']
-name: plan-implementation-review
-description: 'Review plan execution completeness and identify delivery gaps'
+name: plan-verify
+description: 'Verify plan execution against implementation and JIRA acceptance criteria. Use when reviewing implementation completeness, checking plan progress, validating against ticket ACs, or saying /plan-verify.'
 invocable: user-only
 context: fork
 ---
 
-# Plan Implementation Review Prompt
+# Plan Verify Prompt
 
-You are an implementation reviewer. Review how complete plan execution is by tracking progress, identifying gaps, and validating quality.
+You are an implementation reviewer. Verify plan execution by tracking progress, identifying gaps, validating quality, and checking JIRA acceptance criteria.
 
 ## Input Requirements
 
 User provides one of:
 
-- Explicit plan file path: `/plan-implementation-review path/to/plan.md`
-- Auto-detect from context: `/plan-implementation-review` (looks for recent plans)
+- Explicit plan file path: `/plan-verify path/to/plan.md`
+- Auto-detect from context: `/plan-verify` (looks for recent plans)
 
 Optional flags:
 
-- `--quick` - Fast progress check (2 agents)
-- `--thorough` - Comprehensive review (default, 4 agents)
+- `--quick` - Fast progress check (2 agents + JIRA if detected)
+- `--thorough` - Comprehensive review (default, 4 agents + JIRA if detected)
+- `--jira <ticket-key>` - Explicit JIRA ticket for AC verification
+- `--no-jira` - Skip JIRA AC verification
 
 ## Sub-Documents
 
@@ -50,8 +52,8 @@ The `discovered-work.md` is shared with the `plan-review` skill.
 
     | Flag | Mode | Agents | Use Case |
     |------|------|--------|----------|
-    | `--quick` | Quick | 2 | Fast progress check |
-    | `--thorough` (default) | Thorough | 4 | Comprehensive validation |
+    | `--quick` | Quick | 2 (+1 JIRA) | Fast progress check |
+    | `--thorough` (default) | Thorough | 4 (+1 JIRA) | Comprehensive validation |
 
 3. **Detect git changes since plan creation:**
 
@@ -85,13 +87,36 @@ The `discovered-work.md` is shared with the `plan-review` skill.
     - Files modified → are they in the plan?
     - Unexpected changes → drift from plan or drift from intent?
 
+6. **Detect and fetch JIRA ticket (default behaviour):**
+
+    Unless `--no-jira` is set, automatically detect the JIRA ticket key from (in priority order):
+    1. Explicit `--jira AG-XXXXX` argument
+    2. Plan file content: scan for `[A-Z]+-\d+` pattern in title or first section (matches AG-, ST-, and other JIRA project keys)
+    3. Branch name: extract ticket key prefix (case-insensitive, e.g. `ag-10316/...`, `AG-10316/...`, `st-123/...`)
+
+    ```bash
+    # Detect from branch name (case-insensitive)
+    git branch --show-current | grep -ioE '[a-z]+-[0-9]+' | head -1 | tr '[:lower:]' '[:upper:]'
+    ```
+
+    Fetch the ticket via Atlassian MCP:
+    ```
+    mcp__atlassian__getJiraIssue(cloudId, issueIdOrKey, responseContentFormat: 'markdown')
+    ```
+
+    Extract "Functional Acceptance Criteria" and "Non-functional Acceptance Criteria"
+    sections from the ticket description. These become the input for Agent 5.
+
+    If the MCP tool is unavailable, the fetch fails, or no ticket key is detected,
+    log a note and continue without JIRA verification (do not block the review).
+
 ### Phase 1: Implementation Analysis (Parallel Agents)
 
-Launch analysis agents based on mode. Load `.rulesync/skills/plan-implementation-review/agent-prompts.md` for prompt templates.
+Launch analysis agents based on mode. Load `agent-prompts.md` for prompt templates.
 
-Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discovered-work.md` in all sub-agent prompts.
+Include the Discovered Work Protocol from the `plan-review` skill's `discovered-work.md` in all sub-agent prompts.
 
-#### Quick Mode (2 agents)
+#### Quick Mode (2 + JIRA agents)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -106,10 +131,15 @@ Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discover
 │    - Test coverage status                                   │
 │    - Build status                                           │
 │    - Lint/type check status                                 │
+├─────────────────────────────────────────────────────────────┤
+│ 5. JIRA AC Verifier (when ticket detected)                   │
+│    - Independently verifies each AC against implementation  │
+│    - Reports PASS / PARTIAL / MISSING per criterion         │
+│    - Flags gaps not covered by the plan                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-#### Thorough Mode (4 agents)
+#### Thorough Mode (4 + JIRA agents)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -119,6 +149,7 @@ Include the Discovered Work Protocol from `.rulesync/skills/plan-review/discover
 │ 2. Gap Detector                                              │
 │ 3. Intent & Quality Validator (CRITICAL)                     │
 │ 4. Test Coverage Reviewer                                    │
+│ 5. JIRA AC Verifier (when ticket detected)                   │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -157,27 +188,34 @@ Correlate plan steps with implementation evidence.
 
 ### Phase 3: Report Generation
 
-Load `.rulesync/skills/plan-implementation-review/output-format.md` for the report template.
+Load `output-format.md` for the report template.
 
 1. **Calculate completion metrics** — overall %, per-section, per-step
 2. **Identify remaining work** — pending steps, blockers, estimated effort
 3. **Document deviations** — planned vs actual, unexpected changes
 4. **Provide actionable next steps** — prioritised remaining work
 5. **Aggregate discovered tasks** — call `TaskList`, triage, include in report
+6. **JIRA AC verification (when ticket detected)** — per-criterion PASS/PARTIAL/MISSING table, gap summary, recommendations. If no ticket detected, note "JIRA AC verification skipped — no ticket detected."
 
 ---
 
 ## Usage Examples
 
 ```bash
-# Thorough review (default)
-/plan-implementation-review
+# Thorough review (default — auto-detects JIRA ticket)
+/plan-verify
 
 # Quick progress check
-/plan-implementation-review --quick
+/plan-verify --quick
 
 # Explicit plan file
-/plan-implementation-review path/to/plan.md
+/plan-verify path/to/plan.md
+
+# Explicit JIRA ticket
+/plan-verify --jira AG-10316
+
+# Skip JIRA verification
+/plan-verify --no-jira
 ```
 
 ---
@@ -185,7 +223,7 @@ Load `.rulesync/skills/plan-implementation-review/output-format.md` for the repo
 ## Integration with Other Commands
 
 - **Before implementation:** Run `/plan-review` to validate the plan
-- **During implementation:** Run `/plan-implementation-review` periodically
+- **During implementation:** Run `/plan-verify` periodically
 - **After implementation:** Run full test suite and documentation review
 
 ---
@@ -195,7 +233,7 @@ Load `.rulesync/skills/plan-implementation-review/output-format.md` for the repo
 Review results are cached for tracking progress over time:
 
 ```
-node_modules/.cache/plan-implementation-reviews/
+node_modules/.cache/plan-verify/
 ├── {plan-name}-{timestamp}.json    # Raw agent findings
 ├── {plan-name}-progress.json       # Progress tracking over time
 ├── {plan-name}-report.md           # Generated report
