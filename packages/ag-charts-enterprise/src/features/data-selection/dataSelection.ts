@@ -1,5 +1,12 @@
 import type { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, Logger, type NormalisedSelectionOptions, type AreExact, ChartUpdateType } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    type AreExact,
+    type BoxBounds,
+    ChartUpdateType,
+    Logger,
+    type NormalisedSelectionOptions,
+} from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
