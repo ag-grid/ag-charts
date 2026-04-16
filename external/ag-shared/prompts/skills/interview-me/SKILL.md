@@ -1,7 +1,7 @@
 ---
 targets: ['*']
 name: interview-me
-description: "Interview the user about ambiguities, low-confidence areas, and open questions in the current conversation. Use when the user says /interview-me, 'interview me', 'ask me questions', 'what should you clarify', 'check your assumptions', or when the user wants to proactively surface gaps in the agent's understanding before proceeding with work."
+description: "Interview the user about ambiguities, low-confidence areas, and open questions in the current conversation. Only invoke when explicitly requested via /iterview-me."
 invocable: user-only
 ---
 
