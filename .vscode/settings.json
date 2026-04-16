@@ -4,7 +4,13 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
   "files.associations": {
-    "*.mdoc": "markdown"
+    "*.mdoc": "markdown",
+    "*.snyk": "yaml"
+  },
+  "yaml.format.singleQuote": true,
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.tabSize": 4
   },
   "eslint.validate": ["json", "typescript"],
   "eslint.useFlatConfig": true,
