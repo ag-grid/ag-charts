@@ -9,7 +9,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private imageNode?: _ModuleSupport.Rect;
     private titleNode?: _ModuleSupport.Text;
     private subtitleNode?: _ModuleSupport.Text;
-    private labelNodes?: _ModuleSupport.Text[];
+    private labelNodes?: (_ModuleSupport.Text | undefined)[];
 
     private readonly padding = 20;
 
@@ -43,6 +43,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         let index = 0;
         for (const labelNode of this.labelNodes ?? []) {
+            if (!labelNode) {
+                index++;
+                continue;
+            }
             columnScenes.push(labelNode);
             columnGaps.push(styles.labels[index].spacing);
             index++;
@@ -86,7 +90,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateImageNode(url: string | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (url == null) return;
+        if (url == null) {
+            this.imageNode?.remove();
+            this.imageNode = undefined;
+            return;
+        }
 
         this.imageNode ??= this.appendChild(new _ModuleSupport.Rect());
 
@@ -104,7 +112,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (text == null) return;
+        if (text == null) {
+            this.titleNode?.remove();
+            this.titleNode = undefined;
+            return;
+        }
 
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.titleNode.text = text;
@@ -112,7 +124,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (text == null) return;
+        if (text == null) {
+            this.subtitleNode?.remove();
+            this.subtitleNode = undefined;
+            return;
+        }
 
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.subtitleNode.text = text;
@@ -129,10 +145,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         let index = 0;
         for (const labelText of labels) {
-            if (labelText == null) return;
+            if (labelText == null) {
+                this.labelNodes[index]?.remove();
+                this.labelNodes[index] = undefined;
+                index++;
+                continue;
+            }
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
-            this.labelNodes[index].text = labelText;
-            applyTextStyles(this.labelNodes[index], styles.labels[index]);
+            this.labelNodes[index]!.text = labelText;
+            applyTextStyles(this.labelNodes[index]!, styles.labels[index]);
             index++;
         }
     }
