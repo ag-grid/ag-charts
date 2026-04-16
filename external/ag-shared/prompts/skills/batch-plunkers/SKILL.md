@@ -96,7 +96,7 @@ Create a Plunker for the following assignment:
 ## Instructions
 
 1. Create a working directory: `PLNKR_DIR=$(mktemp -d /tmp/plnkr-batch-{PLUNKER_NUMBER}-XXXXXX)`
-2. If the assignment involves non-trivial or unfamiliar APIs, verify them against `packages/ag-charts-types/src` before writing files
+2. **Verify API options** against `packages/ag-charts-types/src` before writing files. You may skip verification for basic series properties (`type`, `xKey`, `yKey`, `yName`, `data`) but must verify all other options — especially callbacks, nested objects, styling properties, and anything you are less than fully confident about
 3. Write all files per the product guide below (index.html, main.js, ag-example-styles.css, package.json, and optionally data.js)
 4. Upload: `bash "{ABSOLUTE_PATH_TO_PLNKR_SH}" upload "$PLNKR_DIR" --title "{TITLE}" --tags "ag-charts,qa"`
 5. Report the URL= line from the upload output

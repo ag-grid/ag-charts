@@ -394,7 +394,7 @@ createApp(App).mount('#app');
 
 ### Staging CDN — SystemJS/CJS Paths
 
-For framework plunkers using SystemJS, the CJS package paths differ from the UMD paths:
+Framework wrappers (Angular, React, Vue) are not published as UMD bundles on jsdelivr, so framework plunkers must use the staging CDN. The same staging-vs-versioned rules apply: use staging by default, versioned when the user specifies a version. CJS package paths differ from the UMD paths:
 
 | Package | Staging CJS path |
 |---------|-----------------|

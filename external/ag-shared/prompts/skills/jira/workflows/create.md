@@ -47,7 +47,7 @@ Based on ticket type, read the relevant template (in the `templates/` subdirecto
 
 When the user provides requirements that differ from existing PRDs or design documents, the user's stated requirements take precedence. Confirm requirements with the user before drafting — do not assume PRD content is final.
 
-**Brevity:** When the user requests a concise or minimal ticket, keep the numbered template structure but shorten section content and omit sections that would only contain "N/A" (e.g., sections 5–8 and 10–12 when they add no information). Never replace template section headings with custom ones — always use the numbered sections from the template. Interview the user for missing information rather than padding sections.
+**Brevity:** When the user requests a concise or minimal ticket, keep the numbered template section headings but shorten section content. Sections with no meaningful content should contain just "N/A" — do not remove the heading itself, as downstream tooling may expect fixed section presence. Never replace template section headings with custom ones. Interview the user for missing information rather than padding sections.
 
 **For Tech-debt tickets, collect:**
 
