@@ -89,6 +89,11 @@ const options: AgCartesianChartOptions<DataType> = {
     navigator: {
         enabled: true,
     },
+    listeners: {
+        selectionChange: (ev: unknown) => {
+            console.log(ev);
+        },
+    },
     data: getData(),
     series: getAreaSeriesOptions(),
 };
