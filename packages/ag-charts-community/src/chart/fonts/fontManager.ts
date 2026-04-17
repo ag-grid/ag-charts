@@ -1,15 +1,11 @@
 import { cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
 
-import type { EventsHub } from '../../core/eventsHub';
-import type { DOMManager } from '../../dom/domManager';
+import type { ModuleContext } from '../../module/moduleContext';
 
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
 
-    constructor(
-        private readonly domManager: DOMManager,
-        private readonly eventsHub: EventsHub
-    ) {}
+    constructor(private readonly ctx: ModuleContext) {}
 
     public updateFonts(fonts?: Set<string>) {
         if (!fonts || fonts.size === 0) return;
@@ -31,7 +27,7 @@ export class FontManager {
         const fontStyle = ':wght@100;200;300;400;500;600;700;800;900';
         const joinString = `${fontStyle}&family=`;
         const css = `@import url('https://fonts.googleapis.com/css2?family=${fontStrings.join(joinString)}${fontStyle}&display=swap');\n`;
-        this.domManager.addStyles(`google-font-${fontStrings.join('-')}`, css);
+        this.ctx.domManager.addStyles(`google-font-${fontStrings.join('-')}`, css);
     }
 
     private observeFontStatus(font: string) {
@@ -39,7 +35,7 @@ export class FontManager {
         const ResizeObserverCtor = getResizeObserver();
         if (ResizeObserverCtor === undefined) return;
 
-        const doc = this.domManager.getDocument();
+        const doc = this.ctx.domManager.getDocument();
         const fontCheckElement = doc.createElement('div', {
             position: 'absolute',
             top: '0',
@@ -56,7 +52,7 @@ export class FontManager {
         });
         fontCheckElement.textContent = 'UVWxyz';
 
-        this.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);
+        this.ctx.domManager.addChild('canvas-container', `font-check-${encodeURIComponent(font)}`, fontCheckElement);
 
         // Observe changes to the element size as a proxy for the font loading
         const fontCheckObserver = new ResizeObserverCtor((entries) => {
@@ -64,7 +60,7 @@ export class FontManager {
             if (width != null && width > 0) {
                 // Clear the text measurer pool to ensure the font metrics are recalculated on update
                 cachedTextMeasurer.clear();
-                this.eventsHub.emit('font:load', null);
+                this.ctx.eventsHub.emit('font:load', null);
             }
         });
         fontCheckObserver.observe(fontCheckElement);

@@ -1,6 +1,7 @@
 import { type Point, objectsEqual } from 'ag-charts-core';
 
-import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
+import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
@@ -20,7 +21,7 @@ export class HighlightManager {
 
     private static readonly HIGHLIGHT_CHANGE_EVENT = 'highlight:change';
 
-    constructor(private readonly eventsHub: EventsHub) {}
+    constructor(private readonly ctx: ModuleContext) {}
 
     private highlightInViewport: boolean = true;
 
@@ -75,7 +76,7 @@ export class HighlightManager {
         if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.highlightInViewport = highlightInViewport;
-            this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
+            this.ctx.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,

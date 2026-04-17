@@ -26,14 +26,18 @@ import type { EventsHub } from '../core/eventsHub';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
+import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import type { TypedEvent } from '../util/observable';
 
 export interface ModuleContext {
     readonly scene: Scene;
+    readonly annotationRoot: Group;
 
     readonly agDocument: AgDocument;
     readonly eventsHub: EventsHub;
     readonly callbackCache: CallbackCache;
+    readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
 
     readonly chartService: ChartService;
     readonly dataService: DataService<any>;

@@ -4,6 +4,7 @@ import { EventEmitter } from 'ag-charts-core';
 
 import type { EventsHubMap } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
+import type { ModuleContext } from '../../module/moduleContext';
 import { FontManager } from './fontManager';
 
 // Capture the ResizeObserver callback so we can simulate a font load
@@ -37,7 +38,7 @@ describe('FontManager', () => {
     it('should emit font:load on eventsHub when a font loads', () => {
         const eventsHub = new EventEmitter<EventsHubMap>();
         const domManager = createMockDomManager();
-        const fontManager = new FontManager(domManager, eventsHub);
+        const fontManager = new FontManager({ domManager, eventsHub } as unknown as ModuleContext);
 
         const handler = jest.fn();
         eventsHub.on('font:load', handler);
@@ -56,7 +57,7 @@ describe('FontManager', () => {
     it('should not emit font:load when observed width is zero', () => {
         const eventsHub = new EventEmitter<EventsHubMap>();
         const domManager = createMockDomManager();
-        const fontManager = new FontManager(domManager, eventsHub);
+        const fontManager = new FontManager({ domManager, eventsHub } as unknown as ModuleContext);
 
         const handler = jest.fn();
         eventsHub.on('font:load', handler);

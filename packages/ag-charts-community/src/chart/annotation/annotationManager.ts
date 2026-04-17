@@ -2,10 +2,8 @@ import type { MementoOriginator } from 'ag-charts-core';
 import { deepClone, isArray, mergeDefaults } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
-import type { EventsHub } from '../../core/eventsHub';
-import type { Group } from '../../scene/group';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';
-import type { TypedEvent } from '../../util/observable';
 
 type AnnotationsMemento = AgAnnotation[];
 
@@ -15,11 +13,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
 
-    constructor(
-        private readonly eventsHub: EventsHub,
-        private readonly annotationRoot: Group,
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
-    ) {}
+    constructor(private readonly ctx: ModuleContext) {}
 
     public createMemento() {
         return this.annotations;
@@ -37,7 +31,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
             return mergeDefaults(annotation, annotationTheme);
         });
 
-        this.eventsHub.emit('annotations:restore', { annotations: this.annotations });
+        this.ctx.eventsHub.emit('annotations:restore', { annotations: this.annotations });
     }
 
     public updateData(annotations?: AnnotationsMemento) {
@@ -45,11 +39,11 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     }
 
     public fireChangedEvent() {
-        this.fireChartEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
+        this.ctx.fireEvent({ type: 'annotations', annotations: deepClone([...this.annotations]) });
     }
 
     public attachNode(node: Node) {
-        this.annotationRoot.append(node);
+        this.ctx.annotationRoot.append(node);
         return () => {
             node.remove();
             return this;

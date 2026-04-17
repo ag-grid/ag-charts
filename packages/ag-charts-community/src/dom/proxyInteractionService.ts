@@ -1,8 +1,7 @@
 import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import type { EventsHub } from '../core/eventsHub';
-import type { LocaleManager } from '../locale/localeManager';
+import type { ModuleContext } from '../module/moduleContext';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';
 import { ButtonWidget } from '../widget/buttonWidget';
 import { GroupWidget } from '../widget/groupWidget';
@@ -12,7 +11,6 @@ import { SliderWidget } from '../widget/sliderWidget';
 import { SwitchWidget } from '../widget/switchWidget';
 import { ToolbarWidget } from '../widget/toolbarWidget';
 import type { Widget } from '../widget/widget';
-import type { DOMManager } from './domManager';
 
 type ParentProperties<T = NativeWidget<HTMLDivElement>> =
     | { readonly parent: T }
@@ -124,11 +122,7 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 export class ProxyInteractionService {
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(
-        private readonly eventsHub: EventsHub,
-        private readonly localeManager: LocaleManager,
-        private readonly domManager: DOMManager
-    ) {}
+    constructor(private readonly ctx: ModuleContext) {}
 
     destroy() {
         this.cleanup.flush();
@@ -137,7 +131,7 @@ export class ProxyInteractionService {
     private addLocalisation(fn: () => void) {
         fn();
         // FIXME(olegat) The result of `addListener` must be freed when the HTMLElement goes out of scope.
-        this.cleanup.register(this.eventsHub.on('locale:change', fn));
+        this.cleanup.register(this.ctx.eventsHub.on('locale:change', fn));
     }
 
     createProxyContainer<T extends ProxyContainerType>(
@@ -147,7 +141,7 @@ export class ProxyInteractionService {
         const { params, result } = meta;
         const div = result.getElement();
 
-        this.domManager.addChild('canvas-proxy', params.domManagerId, div);
+        this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.role ?? params.type;
 
@@ -158,7 +152,7 @@ export class ProxyInteractionService {
         const { ariaLabel } = params;
         if (ariaLabel) {
             this.addLocalisation(() => {
-                div.ariaLabel = this.localeManager.t(ariaLabel.id, ariaLabel.params);
+                div.ariaLabel = this.ctx.localeManager.t(ariaLabel.id, ariaLabel.params);
             });
         }
 
@@ -178,7 +172,7 @@ export class ProxyInteractionService {
             } else {
                 const { textContent } = params;
                 this.addLocalisation(() => {
-                    button.textContent = this.localeManager.t(textContent.id, textContent.params);
+                    button.textContent = this.ctx.localeManager.t(textContent.id, textContent.params);
                 });
             }
             this.setParent(meta.params, meta.result);
@@ -192,7 +186,7 @@ export class ProxyInteractionService {
             slider.role = params.role ?? 'presentation';
             slider.style.margin = '0px';
             this.addLocalisation(() => {
-                slider.ariaLabel = this.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
+                slider.ariaLabel = this.ctx.localeManager.t(params.ariaLabel.id, params.ariaLabel.params);
             });
             this.setParent(meta.params, meta.result);
         }
@@ -253,9 +247,9 @@ export class ProxyInteractionService {
             params.parent?.addChild(element);
         } else {
             const insert = { where: params.where, query: '.ag-charts-series-area' };
-            this.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
+            this.ctx.domManager.addChild('canvas-proxy', params.domManagerId, element.getElement(), insert);
             element.destroyListener = () => {
-                this.domManager.removeChild('canvas-proxy', params.domManagerId);
+                this.ctx.domManager.removeChild('canvas-proxy', params.domManagerId);
             };
         }
     }
