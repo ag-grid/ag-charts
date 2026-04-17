@@ -1,4 +1,4 @@
-import type { AgSelectionChangeEvent, AgSelectionItem, _Widget } from 'ag-charts-community';
+import type { AgSelectionChangeEvent, AgSelectionItem } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
