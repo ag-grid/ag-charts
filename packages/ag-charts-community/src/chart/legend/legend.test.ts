@@ -911,10 +911,26 @@ describe('Legend', () => {
             legend: { enabled: true },
         };
 
-        let updateSpy: jest.SpiedFunction<typeof chart.ctx.tooltipManager.updateTooltip>;
-        let removeSpy: jest.SpiedFunction<typeof chart.ctx.tooltipManager.removeTooltip>;
         let legendX: number;
         let legendY: number;
+
+        function getTooltipElement() {
+            // Scope to the current chart's container to avoid picking up
+            // stale/unrelated tooltip elements from other charts.
+            return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
+        }
+
+        function isTooltipVisible() {
+            return getTooltipElement()?.hasAttribute('data-presented-as-popover') ?? false;
+        }
+
+        function getTooltipText() {
+            return getTooltipElement()?.textContent ?? '';
+        }
+
+        function getTooltipHTML() {
+            return getTooltipElement()?.innerHTML ?? '';
+        }
 
         async function setupChart(legendOverrides: AgCartesianChartOptions['legend'] = {}) {
             const options: AgCartesianChartOptions = prepareTestOptions({
@@ -923,30 +939,31 @@ describe('Legend', () => {
             });
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
-            updateSpy = jest.spyOn(chart.ctx.tooltipManager, 'updateTooltip');
-            removeSpy = jest.spyOn(chart.ctx.tooltipManager, 'removeTooltip');
             const box = computeLegendBBox(chart);
             legendX = box.x;
             legendY = box.y;
         }
 
+        async function hoverLegendItem() {
+            await hoverAction(legendX, legendY)(chart);
+            await waitForChartStability(chart);
+        }
+
         test('no tooltip config — non-truncated items do not show tooltip', async () => {
             await setupChart();
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).not.toHaveBeenCalled();
-            expect(removeSpy).toHaveBeenCalled();
+            expect(isTooltipVisible()).toBe(false);
         });
 
         test('visible: always — tooltip shown on every hover', async () => {
             await setupChart({ item: { tooltip: { visible: 'always' } } });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).toHaveBeenCalledTimes(1);
-            const content = updateSpy.mock.calls[0][2];
-            expect(content).toEqual([{ type: 'structured', title: 'Series Y' }]);
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Series Y');
         });
 
         test('visible: never — tooltip never shown', async () => {
@@ -957,19 +974,18 @@ describe('Legend', () => {
                 },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).not.toHaveBeenCalled();
+            expect(isTooltipVisible()).toBe(false);
         });
 
         test('text — static text shown on every hover', async () => {
             await setupChart({ item: { tooltip: { text: 'Click to toggle' } } });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).toHaveBeenCalledTimes(1);
-            const content = updateSpy.mock.calls[0][2];
-            expect(content).toEqual([{ type: 'structured', title: 'Click to toggle' }]);
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Click to toggle');
         });
 
         test('renderer — dynamic content on every hover', async () => {
@@ -981,15 +997,10 @@ describe('Legend', () => {
                 },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).toHaveBeenCalledTimes(1);
-            const content = updateSpy.mock.calls[0][2];
-            expect(content).toEqual(
-                expect.arrayContaining([expect.objectContaining({ type: 'raw', rawHtmlString: expect.any(String) })])
-            );
-            const rawContent = (content![0] as { type: 'raw'; rawHtmlString: string }).rawHtmlString;
-            expect(rawContent).toContain('Series Y');
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipHTML()).toContain('Series Y');
         });
 
         test('visible: auto with renderer — tooltip only when truncated', async () => {
@@ -1003,8 +1014,8 @@ describe('Legend', () => {
             });
 
             // Non-truncated item: no tooltip
-            await hoverAction(legendX, legendY)(chart);
-            expect(updateSpy).not.toHaveBeenCalled();
+            await hoverLegendItem();
+            expect(isTooltipVisible()).toBe(false);
         });
 
         test('renderer returns empty string — no tooltip', async () => {
@@ -1016,9 +1027,9 @@ describe('Legend', () => {
                 },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).not.toHaveBeenCalled();
+            expect(isTooltipVisible()).toBe(false);
         });
 
         test('both text and renderer — renderer takes precedence', async () => {
@@ -1031,21 +1042,20 @@ describe('Legend', () => {
                 },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).toHaveBeenCalledTimes(1);
-            const content = updateSpy.mock.calls[0][2];
-            const rawContent = (content![0] as { type: 'raw'; rawHtmlString: string }).rawHtmlString;
-            expect(rawContent).toContain('Custom: Series Y');
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipHTML()).toContain('Custom: Series Y');
         });
 
         test('text defaults visible to always', async () => {
             await setupChart({ item: { tooltip: { text: 'Info' } } });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
             // Text provided without explicit visible — should default to 'always'
-            expect(updateSpy).toHaveBeenCalledTimes(1);
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Info');
         });
 
         test('renderer params contain expected fields', async () => {
@@ -1054,7 +1064,7 @@ describe('Legend', () => {
                 item: { tooltip: { renderer: rendererFn } },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
             expect(rendererFn).toHaveBeenCalledTimes(1);
             const params = rendererFn.mock.calls[0][0];
@@ -1072,9 +1082,9 @@ describe('Legend', () => {
                 item: { tooltip: { visible: 'always' } },
             });
 
-            await hoverAction(legendX, legendY)(chart);
+            await hoverLegendItem();
 
-            expect(updateSpy).toHaveBeenCalledTimes(1);
+            expect(isTooltipVisible()).toBe(true);
         });
     });
 });
