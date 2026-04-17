@@ -98,7 +98,10 @@ export class DataSelection extends AbstractModuleInstance {
         const { enabled } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !dragStartEvent) return;
+        if (!enabled || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
 
         const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
         const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
@@ -107,14 +110,17 @@ export class DataSelection extends AbstractModuleInstance {
         this.dragRect.y = canvasBounds.y;
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PRE_SERIES_UPDATE });
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
         const { enabled } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !dragStartEvent) return;
+        if (!enabled || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         const bbox = toBBox(dragStartEvent, dragEndEvent);
