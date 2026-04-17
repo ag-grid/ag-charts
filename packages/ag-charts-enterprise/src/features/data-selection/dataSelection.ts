@@ -14,12 +14,11 @@ import {
     diffSelectionBuffers,
     hasAddToSelectionModifier,
     restoreSelectionBuffers,
+    setSelected,
+    setSingleSelection,
     toBBox,
+    toggleSelection,
 } from './dataSelectionUtil';
-
-type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
-type Series = NonNullable<ClickedNode['series']>;
-type DataSet = NonNullable<Series['data']>;
 
 export class DataSelection extends AbstractModuleInstance {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
@@ -67,10 +66,10 @@ export class DataSelection extends AbstractModuleInstance {
         }
 
         if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
-            this.toggleSelection(series, data, datumIndex);
+            toggleSelection(series, data, datumIndex);
         } else {
             clickMode satisfies 'single';
-            this.setSingleSelection(series, data, datumIndex);
+            setSingleSelection(series, data, datumIndex);
         }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
@@ -140,7 +139,7 @@ export class DataSelection extends AbstractModuleInstance {
                 if (unknownDatum != null && typeof unknownDatum === 'object' && 'datumIndex' in unknownDatum) {
                     const datumIndex: unknown = unknownDatum.datumIndex;
                     if (typeof datumIndex === 'number') {
-                        this.setSelected(series, data, datumIndex);
+                        setSelected(series, data, datumIndex);
                     } else {
                         Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
                     }
@@ -159,21 +158,6 @@ export class DataSelection extends AbstractModuleInstance {
         if (widgetEvent.sourceEvent.code === 'Escape') {
             this.endDrag();
         }
-    }
-
-    private setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {
-        data.selections.clear();
-        this.toggleSelection(series, data, datumIndex);
-    }
-
-    private toggleSelection(series: Series, data: DataSet, datumIndex: number): void {
-        const selections = data.enableSelection(series.id);
-        selections.toggle(datumIndex);
-    }
-
-    private setSelected(series: Series, data: DataSet, datumIndex: number): void {
-        const selections = data.enableSelection(series.id);
-        selections.select(datumIndex);
     }
 
     private endDrag(): void {
