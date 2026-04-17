@@ -57,7 +57,14 @@ jobs:
                   fetch-depth: 1
 
             - name: Run Codex PR Review
-              uses: ./external/ag-shared/github/actions/codex-pr-review
+              # AG-17085 Phase 3: the action now lives in ag-dev-prompts alongside
+              # the pr-review skill, so no rulesync fetch / cross-repo auth is
+              # needed — the action reads SKILL.md from its own checkout via
+              # ${{ github.action_path }}. Pinned to a branch during Phase 3 soak;
+              # swap for a SHA / tag once the flow lands on ag-dev-prompts latest.
+              # Requires org setting: "Allow actions and reusable workflows from
+              # repositories within the organization".
+              uses: ag-grid/ag-dev-prompts/.github/actions/codex-pr-review@ag-17085/codex-pr-review-action
               with:
                   codex-api-key: ${{ secrets.CODEX_API_KEY }}
                   pr-number: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
@@ -66,10 +73,5 @@ jobs:
                   pr-title: ${{ github.event.pull_request.title || '' }}
                   pr-author: ${{ github.event.pull_request.user.login || '' }}
                   github-token: ${{ github.token }}
-                  # AG-17085 Phase 3: read-only PAT for ag-grid/ag-dev-prompts so
-                  # setup-prompts.sh can fetch plugin content (private repo).
-                  # Without it the fetch step warns and non-Claude targets miss
-                  # the plugin-delivered pr-review skill.
-                  ag-dev-prompts-token: ${{ secrets.AG_DEV_PROMPTS_TOKEN }}
                   comment-id: ${{ github.event.comment.id }}
                   inline-comments: 'true'
