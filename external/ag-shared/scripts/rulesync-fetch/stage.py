@@ -37,8 +37,16 @@ def load_manifest() -> dict:
 
 
 def rewrite_targets(content: str, new_targets: list[str] | str) -> str:
-    """Rewrite the `targets:` line inside YAML frontmatter. Returns content unchanged
-    if no frontmatter is found."""
+    """Rewrite the `targets:` node inside YAML frontmatter with a new flow-style
+    value. Handles three source forms:
+
+    - ``targets: ['*']`` (flow) — single line replaced.
+    - ``targets: '*'`` (scalar) — single line replaced.
+    - ``targets:\\n  - cursor\\n  - codex`` (block) — the ``targets:`` line plus
+      the continuation list items are collapsed to a single flow-style line.
+
+    Returns content unchanged if no frontmatter is found.
+    """
     lines = content.split("\n")
     if not lines or lines[0].strip() != "---":
         return content
@@ -49,18 +57,36 @@ def rewrite_targets(content: str, new_targets: list[str] | str) -> str:
             break
     if end_fm is None:
         return content
-    target_line_idx = None
+
+    target_start = None
+    target_end = None  # inclusive
     for i in range(1, end_fm):
-        if lines[i].lstrip().startswith("targets:"):
-            target_line_idx = i
+        stripped = lines[i].lstrip()
+        if stripped.startswith("targets:"):
+            target_start = i
+            value = stripped[len("targets:") :].strip()
+            if value in ("", "[]"):
+                # Block-style list follows — consume indented '- ...' items.
+                j = i + 1
+                while j < end_fm:
+                    lstripped = lines[j].lstrip()
+                    if lstripped.startswith("- ") or lstripped == "-":
+                        j += 1
+                    else:
+                        break
+                target_end = j - 1
+            else:
+                target_end = i
             break
+
     if isinstance(new_targets, str):
         rendered = new_targets
     else:
         rendered = "[" + ", ".join(f"'{t}'" for t in new_targets) + "]"
     new_line = f"targets: {rendered}"
-    if target_line_idx is not None:
-        lines[target_line_idx] = new_line
+
+    if target_start is not None:
+        lines[target_start : target_end + 1] = [new_line]
     else:
         lines.insert(end_fm, new_line)
     return "\n".join(lines)
