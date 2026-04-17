@@ -113,7 +113,7 @@ export class TooltipPosition extends BaseProperties {
 
     /** The distance in pixels between the tooltip and its anchor point, applied in the placement direction. */
     @Property
-    offset: number = DEFAULT_TOOLTIP_OFFSET;
+    offset?: number;
 
     @Property
     anchorTo?: AgTooltipAnchorTo;
