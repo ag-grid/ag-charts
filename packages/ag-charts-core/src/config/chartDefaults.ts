@@ -456,6 +456,7 @@ export const commonChartOptionsDefs: OptionsDefs<Omit<AgBaseThemeableChartOption
         seriesNodeDoubleClick: callback,
         seriesVisibilityChange: callback,
         activeChange: callback,
+        selectionChange: callback,
         click: callback,
         doubleClick: callback,
         annotations: callback,

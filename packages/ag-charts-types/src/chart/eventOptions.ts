@@ -78,6 +78,30 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     dataIdKey?: DatumKey<TDatum>;
 }
 
+interface AgSelectionItem<TDatum> {
+    /** Series ID, as specified in `series.id` (or generated if not specified) */
+    seriesId: string;
+    /** Datum from the chart or series data array. */
+    datum: TDatum;
+    /** Legend item id - usually yKey value for cartesian series. */
+    itemId?: string | number;
+}
+
+export type AgSelectionChangeEventSource = 'user-interaction' | 'api-call';
+
+export interface AgSelectionChangeEvent<TDatum, TContext> extends AgPreventableEvent {
+    /** Event type. */
+    type: 'selectionChange';
+    /** An indication of what triggered this event. */
+    source: AgSelectionChangeEventSource;
+    /** Callback context for this event. */
+    context?: TContext;
+    /** Items added to the selection in this change. */
+    added: AgSelectionItem<TDatum>[];
+    /** Items removed from the selection in this change. */
+    removed: AgSelectionItem<TDatum>[];
+}
+
 export interface AgAnnotationsEvent<TContext = ContextDefault> {
     type: 'annotations';
     annotations?: AgAnnotation[];
@@ -138,6 +162,8 @@ export interface AgBaseChartListeners<TDatum, TContext = ContextDefault> {
     seriesVisibilityChange?: Listener<AgSeriesVisibilityChange<TContext>>;
     /** The listener to call when the active state (highlight/tooltip) is changed. */
     activeChange?: Listener<AgActiveChangeEvent<TDatum, TContext>>;
+    /** The listener to call when data selection is changed */
+    selectionChange?: Listener<AgSelectionChangeEvent<TDatum, TContext>>;
     /** The listener to call when the chart is clicked. */
     click?: Listener<AgChartClickEvent<TContext>>;
     /** The listener to call when the chart is double-clicked. */
