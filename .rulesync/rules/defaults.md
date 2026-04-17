@@ -182,6 +182,26 @@ export interface AgSankeySeriesNodeOptions {
 
 **If the comment doesn't match the theme template**: The comment is stale and needs updating.
 
+### JSDoc formatting: `Default:` must be its own paragraph
+
+The `Default:` marker **must** be separated from the description prose by a blank `*` line inside the JSDoc block. If it sits inline with the description, the docs-site API reference renders it as body text rather than as a labelled default.
+
+```typescript
+// ✅ GOOD — Default: rendered as a labelled default in the API reference
+/**
+ * Spacing between the nodes.
+ *
+ * Default: `20`
+ */
+spacing?: PixelSize;
+
+// ❌ BAD — Default: swallowed into the description prose
+/** Spacing between the nodes. Default: `20` */
+spacing?: PixelSize;
+```
+
+This applies to every option in `packages/ag-charts-types` regardless of description length — even a one-sentence description must promote the `Default:` marker to its own paragraph.
+
 ---
 
 ## Common Module Locations
