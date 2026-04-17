@@ -14,6 +14,7 @@ import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { DEFAULT_FILLS } from '../../themes/defaultColors';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
@@ -69,6 +70,17 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
                 { $path: '/series' },
             ],
         },
+    },
+};
+
+// colorScale is documented only on AgScatterSeriesOptions (non-themeable); declared here so the
+// default palette (matching the default theme's divergingColors) is applied when enterprise is
+// registered. sanitizeThemeModules strips this default for community mode.
+// $shallow prevents the options graph from index-merging user-supplied fills with the default array.
+// @ts-expect-error colorScale is not declared on the themeable options interface
+themeTemplate.series.colorScale = {
+    fills: {
+        $shallow: [{ color: DEFAULT_FILLS.ORANGE }, { color: DEFAULT_FILLS.YELLOW }, { color: DEFAULT_FILLS.GREEN }],
     },
 };
 

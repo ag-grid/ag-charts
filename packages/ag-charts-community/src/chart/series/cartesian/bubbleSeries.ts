@@ -1323,7 +1323,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             tooltip,
             {
                 title,
-                symbol: this.legendItemSymbol(),
+                symbol: this.legendItemSymbol(activeStyle),
                 data,
             },
             {
@@ -1347,7 +1347,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         );
     }
 
-    private legendItemSymbol(): LegendSymbolOptions {
+    private legendItemSymbol(styleOverride?: Partial<AgSeriesMarkerStyle>): LegendSymbolOptions {
         const style = this.getStyle();
         const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
             this.properties.marker,
@@ -1361,7 +1361,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             style satisfies RequireOptional<AgSeriesMarkerStyle>
         );
         return {
-            marker,
+            marker: styleOverride ? { ...marker, ...styleOverride } : marker,
         };
     }
 

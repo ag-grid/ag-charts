@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 
 import { reset as resetLogger } from '../logging/logger';
+import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
     type OptionsDefs,
     type Validator,
@@ -17,6 +18,7 @@ import {
     callbackOf,
     constant,
     date,
+    enterprise,
     greaterThan,
     instanceOf,
     lessThan,
@@ -134,6 +136,44 @@ describe('Validation utils', () => {
                 'a non-empty string'
             );
             expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();
+        });
+
+        describe('enterprise wrapper', () => {
+            afterEach(() => resetRegistry());
+
+            test('passes values through when enterprise is registered', () => {
+                setRegistryMode(RegistryMode.Enterprise);
+                const { cleared, invalid } = validate<{ key: string }>({ key: 'x' }, { key: enterprise(string) });
+                expect(cleared).toEqual({ key: 'x' });
+                expect(invalid).toEqual([]);
+            });
+
+            test('strips defined values and warns when enterprise is not registered', () => {
+                const { cleared, invalid } = validate<{ key: string }>(
+                    { key: 'x' },
+                    { key: enterprise(string) },
+                    'series[0]'
+                );
+                expect(cleared).toEqual({ key: null });
+                expect(invalid).toHaveLength(1);
+                expect(invalid[0].toString()).toContain('AG Charts Enterprise');
+                expect(invalid[0].toString()).toContain('series[0].key');
+            });
+
+            test('stays silent when the value is undefined', () => {
+                const { invalid } = validate<{ key?: string }>({ key: undefined }, { key: enterprise(string) });
+                expect(invalid).toEqual([]);
+            });
+
+            test('strips nested enterprise option defs', () => {
+                const { cleared, invalid } = validate<{ scale: { fills: string[] } }>(
+                    { scale: { fills: ['#fff'] } },
+                    { scale: enterprise({ fills: arrayOf(string) }) }
+                );
+                expect(cleared).toEqual({ scale: null });
+                expect(invalid).toHaveLength(1);
+                expect(invalid[0].toString()).toContain('AG Charts Enterprise');
+            });
         });
     });
 

@@ -21,6 +21,19 @@ import { ExpectedModules, type ModulePlaceholder } from './expectedModules';
 
 const SkippedModules = new Set<string>(['foreground']);
 
+// Series whose colour-scale theme defaults are enterprise-only. Populated by the matching
+// theme template in each series module; pruned here so community users receive no colour-scale
+// state and the enterprise() validator on `colorKey` remains the single enforcement point.
+const EnterpriseColorScaleSeries = new Set<string>(['bubble', 'scatter']);
+
+function pruneEnterpriseColorScale(seriesConfig?: PlainObject) {
+    if (!isObject(seriesConfig)) return;
+    const series = seriesConfig.series;
+    if (isObject(series) && 'colorScale' in series) {
+        delete series.colorScale;
+    }
+}
+
 export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
     const missingModules = new Map<string, Set<string>>();
 
@@ -34,7 +47,8 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
         }
     }
 
-    if (missingModules.size === 0) return theme;
+    const needsEnterprisePruning = !ModuleRegistry.isEnterprise();
+    if (missingModules.size === 0 && !needsEnterprisePruning) return theme;
 
     function prunePlugins(target?: PlainObject) {
         const missingPlugins = missingModules.get(ModuleType.Plugin);
@@ -94,6 +108,9 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
             continue;
         }
         pruneSeriesEntry(config[seriesType]);
+        if (needsEnterprisePruning && EnterpriseColorScaleSeries.has(seriesType)) {
+            pruneEnterpriseColorScale(config[seriesType]);
+        }
     }
 
     if (isObject(overrides)) {
@@ -109,6 +126,9 @@ export function sanitizeThemeModules(theme: ChartTheme): ChartTheme {
                 continue;
             }
             pruneSeriesEntry(overridesObj[seriesType] as PlainObject);
+            if (needsEnterprisePruning && EnterpriseColorScaleSeries.has(seriesType)) {
+                pruneEnterpriseColorScale(overridesObj[seriesType] as PlainObject);
+            }
         }
     }
 

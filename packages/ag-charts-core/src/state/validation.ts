@@ -1,4 +1,5 @@
 import { warnOnce } from '../logging/logger';
+import { isEnterprise } from '../modules/registryMode';
 import type { AreExact, IsUnion } from '../types/global';
 import { joinFormatted, levenshteinDistance, stringifyValue } from '../utils/data/strings';
 import { safeCall } from '../utils/functions';
@@ -20,6 +21,7 @@ const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
 const markedSymbol = Symbol('marked');
 const undocumentedSymbol = Symbol('undocumented');
+const enterpriseSymbol = Symbol('enterprise');
 export const unionSymbol = Symbol('union');
 
 const similarOptionsMap = [
@@ -52,6 +54,7 @@ type PrivateSymbols = {
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
     [undocumentedSymbol]?: boolean;
+    [enterpriseSymbol]?: boolean;
     [unionSymbol]?: string;
 };
 
@@ -77,7 +80,7 @@ export interface ValidatorContext {
 }
 
 export enum ErrorType {
-    // Enterprise = 'enterprise',
+    Enterprise = 'enterprise',
     Invalid = 'invalid',
     Required = 'required',
     Unknown = 'unknown',
@@ -123,6 +126,9 @@ export class ValidationError {
         const { description = 'unknown', type, value } = this;
         if (type === ErrorType.Required && value == null) {
             return `${this.getPrefix()} is required and has not been provided; expecting ${description}, ignoring.`;
+        }
+        if (type === ErrorType.Enterprise) {
+            return `${this.getPrefix()} is an AG Charts Enterprise feature; ignoring.`;
         }
         return `${this.getPrefix()} cannot be set to \`${stringifyValue(value, 50)}\`; expecting ${description}, ignoring.`;
     }
@@ -318,6 +324,32 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
             : optionsDefs(validatorOrDefs),
         { [undocumentedSymbol]: true, [descriptionSymbol]: validatorOrDefs[descriptionSymbol] }
     ) as T;
+}
+
+/**
+ * Marks an option as enterprise-only. When AG Charts Enterprise is not registered, supplied values
+ * are stripped during validation and a warning is emitted; the option therefore never reaches the
+ * consuming class. When enterprise is registered the wrapper is transparent.
+ */
+export function enterprise(validatorOrDefs: Validator): Validator;
+export function enterprise<T extends OptionsDefs<any>>(validatorOrDefs: T): T;
+export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDefs: T) {
+    const inner: Validator = isFunction(validatorOrDefs) ? validatorOrDefs : optionsDefs(validatorOrDefs);
+    const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
+    const gated: Validator = (value, context) => {
+        if (value !== undefined && !isEnterprise()) {
+            return {
+                valid: true,
+                cleared: null,
+                invalid: [new ValidationError(ErrorType.Enterprise, description, value, context.path)],
+            };
+        }
+        return inner(value, context);
+    };
+    return Object.assign(gated, {
+        [enterpriseSymbol]: true,
+        [descriptionSymbol]: description,
+    }) as T;
 }
 
 /**
