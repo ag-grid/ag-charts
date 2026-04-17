@@ -779,7 +779,7 @@ export class MapMarkerSeries
             baseStyle.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? baseStyle.fill;
-        } else if (!isHighlight && colorKey != null && missingDataFill != null) {
+        } else if (colorKey != null && missingDataFill != null && highlightStyle?.fill == null) {
             baseStyle.fill = missingDataFill;
         }
 

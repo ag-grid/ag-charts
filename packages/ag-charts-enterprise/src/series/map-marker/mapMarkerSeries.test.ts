@@ -434,6 +434,46 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should preserve missingDataFill on highlighted marker', async () => {
+            const missingNames = new Set(['Wales', 'Northern Ireland']);
+            const data = ukData.map((datum: any) => {
+                if (!missingNames.has(datum.name)) return datum;
+                const rest = { ...datum };
+                delete rest.population;
+                return rest;
+            });
+            const options: AgChartOptions = {
+                data,
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: 'magenta',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
+            const missingNode = seriesImpl?.['contextNodeData']?.nodeData.find((node: any) =>
+                missingNames.has(node.idValue)
+            );
+            expect(missingNode).toBeDefined();
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, missingNode as any);
+            await compare();
+        });
     });
 
     describe('legend', () => {
