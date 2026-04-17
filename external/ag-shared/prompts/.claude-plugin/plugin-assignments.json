@@ -1,0 +1,85 @@
+{
+    "$schema": "./plugin-assignments.schema.json",
+    "description": "Plugin assignments for sync-to-plugin.sh. Maps each item in the extracted prompts/ output to its target plugin subdirectory.",
+    "marketplace": "ag-dev",
+    "version": "0.4.0",
+    "plugins": {
+        "ag-core": {
+            "description": "General productivity — memory, reflection, interviews",
+            "skills": ["interview-me", "recall", "reflect", "remember"]
+        },
+        "ag-prompt": {
+            "description": "Prompt/agentic tooling engineering — rules, skills, subrepo sync",
+            "skills": ["rulesync", "validate-prompts", "ag-shared-sync-log", "sync-ag-shared"],
+            "commands": ["optimise-context"],
+            "guides": ["rulesync-editing.md", "setup-prompts.md"],
+            "patches": ["rulesync+7.0.0.patch"]
+        },
+        "ag-pm": {
+            "description": "Product management — tickets, requirements, PRD publishing",
+            "skills": ["jira", "publish-prd"],
+            "commands": ["product-requirement-analysis"]
+        },
+        "ag-eng": {
+            "description": "Engineering — code, testing, debugging, examples, docs, git, PRs, performance",
+            "skills": [
+                "batch-lint-cleanup",
+                "batch-plunkers",
+                "code-fixup",
+                "codesandbox",
+                "debug-trace",
+                "design-review",
+                "dev-server",
+                "example",
+                "fr",
+                "git-bisect",
+                "git-conventions",
+                "git-split",
+                "git-worktree-clean",
+                "nx-performance",
+                "plan-review",
+                "plan-verify",
+                "plunker",
+                "pr-create",
+                "pr-review",
+                "pr-split",
+                "run-gha-locally",
+                "sonar-fix",
+                "website-astro",
+                "website-css"
+            ],
+            "agents": ["docs-example-browser-tester", "nx-expert", "playwright-expert"],
+            "guides": [
+                "browser-support.md",
+                "code-quality.md",
+                "nx-conventions.md",
+                "website-astro-pages.md",
+                "website-browser-testing.md",
+                "website-css.md",
+                "_docs-review-integration.md"
+            ]
+        },
+        "ag-rel": {
+            "description": "Release management — release notes, blog, options review, triage",
+            "commands": ["prepare-release-notes", "release-blog-writer", "release-options-review"]
+        },
+        "ag-charts": {
+            "description": "AG Charts product-specific — chart docs, series performance, visual QA",
+            "skills": ["docs-create", "optimize-series", "spruce-docs", "spruce-example"],
+            "agents": [
+                "data-viz-designer",
+                "example-tester",
+                "previs-evaluator",
+                "technical-research-analyst",
+                "test-writer",
+                "visual-qa"
+            ],
+            "commands": ["previs"]
+        }
+    },
+    "notes": {
+        "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[releases, technology-stack, triage-rt, triage-rt-board, writing-style], commands[docs-review, release-docs-review, release-summary]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
+        "directCommits": "The 6 agents in ag-charts (data-viz-designer, example-tester, previs-evaluator, technical-research-analyst, test-writer, visual-qa) and all ag-charts skills/commands are direct commits to ag-dev-prompts — they must be placed in plugins/ag-charts/ or plugins/ag-pm/ or plugins/ag-eng/ when committed.",
+        "excludedFromPlugin": "hooks/, .mcp.json, .claude-settings.json, .cursor-worktrees.json are excluded (conflict with project settings when loaded as plugin)."
+    }
+}

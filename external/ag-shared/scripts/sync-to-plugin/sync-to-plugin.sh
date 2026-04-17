@@ -109,16 +109,32 @@ if [ ${#EXCLUDED[@]} -gt 0 ]; then
     git commit --quiet -m "Exclude project-level config from plugin: ${EXCLUDED[*]}"
 fi
 
+# Reorganise into the multi-plugin layout based on
+# .claude-plugin/plugin-assignments.json: each skill/agent/command/guide is
+# moved into plugins/<name>/ and per-plugin plugin.json files are generated.
+if [ -f .claude-plugin/plugin-assignments.json ]; then
+    echo "Reorganising into multi-plugin layout..."
+    SCRIPT_DIR="$(dirname "$(realpath "$0" 2>/dev/null || echo "$0")")"
+    python3 "$SCRIPT_DIR/reorganize-to-plugins.py" --root .
+    if [ -n "$(git status --porcelain)" ]; then
+        git commit --quiet -m "Reorganise into multi-plugin layout"
+    fi
+else
+    echo "WARNING: plugin-assignments.json not found — skipping multi-plugin reorganisation"
+fi
+
 FILTERED_HEAD=$(git rev-parse HEAD)
 FILTERED_SHORT=$(git rev-parse --short HEAD)
 FILTERED_COUNT=$(git rev-list --count HEAD)
 echo "Extracted $FILTERED_COUNT commits (filtered HEAD: $FILTERED_SHORT)"
 
-if [ -f .claude-plugin/plugin.json ]; then
-    PLUGIN_VERSION=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin.json'))['version'])" 2>/dev/null || echo "unknown")
-    echo "Plugin structure present (v$PLUGIN_VERSION) ✓"
+# Report plugin structure — count per-plugin manifests under plugins/
+PLUGIN_COUNT=$(find plugins -maxdepth 3 -name plugin.json 2>/dev/null | wc -l | tr -d ' ')
+MARKETPLACE_VERSION=$(python3 -c "import json; print(json.load(open('.claude-plugin/plugin-assignments.json'))['version'])" 2>/dev/null || echo "unknown")
+if [ "$PLUGIN_COUNT" -gt 0 ]; then
+    echo "Plugin structure: $PLUGIN_COUNT plugins (v$MARKETPLACE_VERSION) ✓"
 else
-    echo "WARNING: .claude-plugin/plugin.json not found"
+    echo "WARNING: no per-plugin plugin.json files found"
 fi
 
 # --- Step 2: Clone plugin repo and detect direct commits --------------------

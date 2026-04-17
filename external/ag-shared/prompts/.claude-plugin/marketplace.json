@@ -1,13 +1,41 @@
 {
     "name": "ag-dev",
+    "metadata": {
+        "description": "AG development tooling — role-based plugins for engineering, product management, release management, prompt authoring, and AG Charts product work"
+    },
     "owner": {
         "name": "AG Grid"
     },
     "plugins": [
         {
-            "name": "ag",
-            "source": "./",
-            "description": "AG development tools — skills, agents, and hooks shared across AG product repos"
+            "name": "ag-core",
+            "source": "./plugins/ag-core",
+            "description": "General productivity — memory, reflection, interviews"
+        },
+        {
+            "name": "ag-prompt",
+            "source": "./plugins/ag-prompt",
+            "description": "Prompt/agentic tooling engineering — rules, skills, subrepo sync"
+        },
+        {
+            "name": "ag-pm",
+            "source": "./plugins/ag-pm",
+            "description": "Product management — tickets, requirements, PRD publishing"
+        },
+        {
+            "name": "ag-eng",
+            "source": "./plugins/ag-eng",
+            "description": "Engineering — code, testing, debugging, examples, docs, git, PRs, performance"
+        },
+        {
+            "name": "ag-rel",
+            "source": "./plugins/ag-rel",
+            "description": "Release management — release notes, blog, options review, triage"
+        },
+        {
+            "name": "ag-charts",
+            "source": "./plugins/ag-charts",
+            "description": "AG Charts product-specific — chart docs, series performance, visual QA"
         }
     ]
 }

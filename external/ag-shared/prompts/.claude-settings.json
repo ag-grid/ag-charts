@@ -140,7 +140,12 @@
     ]
   },
   "enabledPlugins": {
-    "ag@ag-dev": true,
+    "ag-core@ag-dev": true,
+    "ag-prompt@ag-dev": true,
+    "ag-pm@ag-dev": true,
+    "ag-eng@ag-dev": true,
+    "ag-rel@ag-dev": true,
+    "ag-charts@ag-dev": true,
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true
   },

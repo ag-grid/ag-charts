@@ -562,6 +562,20 @@ generate_config() {
 
     cd "$REPO_ROOT"
 
+    # Verify that .rulesync/ does not contain symlinks for plugin-delivered
+    # items. If it does, rulesync would regenerate them in .claude/skills
+    # alongside the same skill delivered by the plugin — duplicate content and
+    # ambiguous trigger behaviour. Fail fast if stale symlinks exist.
+    local cleanup_script="$REPO_ROOT/external/ag-shared/scripts/setup-prompts/cleanup-plugin-delivered.py"
+    if [[ -f "$cleanup_script" ]] && [[ -f "$REPO_ROOT/external/ag-shared/prompts/.claude-plugin/plugin-assignments.json" ]]; then
+        if ! python3 "$cleanup_script" --verify >/dev/null 2>&1; then
+            echo -e "${YELLOW}Warning: .rulesync/ contains symlinks for plugin-delivered items${NC}"
+            python3 "$cleanup_script" --verify || true
+            echo -e "${YELLOW}Removing stale symlinks...${NC}"
+            python3 "$cleanup_script" || true
+        fi
+    fi
+
     if [[ "$verbose" == "true" ]]; then
         echo -e "${BLUE}Generating configurations for: ${NC}$targets"
         echo ""
