@@ -19,6 +19,10 @@ function toStartAndLength(start: number, end: number): [number, number] {
     return [start, end - start];
 }
 
+function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
+    return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
+}
+
 export class DataSelection extends AbstractModuleInstance {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
 
@@ -52,12 +56,13 @@ export class DataSelection extends AbstractModuleInstance {
             return;
         }
 
-        if (clickMode === 'multiple' || event.ctrlOrMeta) {
+        if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
             this.toggleSelection(series, data, datumIndex);
         } else {
             clickMode satisfies 'single';
             this.setSingleSelection(series, data, datumIndex);
         }
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -73,6 +78,8 @@ export class DataSelection extends AbstractModuleInstance {
 
         if (!enabled || !dragStartEvent) return;
 
+        const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+
         const [x, width] = toStartAndLength(dragStartEvent.currentX, dragEndEvent.currentX);
         const [y, height] = toStartAndLength(dragStartEvent.currentY, dragEndEvent.currentY);
         const bbox: BoxBounds = { x, y, width, height };
@@ -80,7 +87,10 @@ export class DataSelection extends AbstractModuleInstance {
         for (const series of this.ctx.chartService.series) {
             const { data } = series;
             if (data === undefined) continue;
-            data.selections.clear();
+
+            if (shouldClearSelections) {
+                data.selections.clear();
+            }
 
             for (const unsafeDatum of series.pickNodesInBBox(bbox)) {
                 // TODO:
@@ -100,7 +110,7 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
         this.dragStartEvent = undefined;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
     private setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {

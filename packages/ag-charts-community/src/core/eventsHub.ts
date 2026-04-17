@@ -75,8 +75,7 @@ export interface SeriesAreaHoverEvent {
 export interface SeriesAreaClickEvent {
     readonly type: 'click' | 'dblclick';
     readonly consumed: boolean;
-    readonly ctrlOrMeta: boolean;
-    readonly sourceEvent: Event;
+    readonly sourceEvent: MouseEvent | TouchEvent | KeyboardEvent;
     readonly clickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
 }
 
