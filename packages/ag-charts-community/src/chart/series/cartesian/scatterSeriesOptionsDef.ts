@@ -41,6 +41,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    colorScale: enterprise(colorScaleOptionsDef),
 };
 
 export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
@@ -56,7 +57,6 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     labelName: string,
     colorName: enterprise(string),
     legendItemName: string,
-    colorScale: colorScaleOptionsDef,
     xKeyAxis: string,
     yKeyAxis: string,
     errorBar: errorBarOptionsDefs,

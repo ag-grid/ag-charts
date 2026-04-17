@@ -56,6 +56,24 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
             },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        // The colour scale is an enterprise feature. $enterprise resolves the whole colorScale
+        // sub-tree: a default divergingColors palette when ag-charts-enterprise is registered,
+        // and undefined otherwise — so community resolved options never contain a colorScale
+        // from the theme, which lets the enterprise() validator on `colorScale` fire on any
+        // user-supplied value without false positives from theme defaults. User-supplied
+        // colorScale options replace the entire default object rather than merging element-wise.
+        colorScale: {
+            $enterprise: [
+                {
+                    fills: [
+                        { color: DEFAULT_FILLS.ORANGE },
+                        { color: DEFAULT_FILLS.YELLOW },
+                        { color: DEFAULT_FILLS.GREEN },
+                    ],
+                },
+                undefined,
+            ],
+        },
     },
     gradientLegend: {
         enabled: {
@@ -70,17 +88,6 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
                 { $path: '/series' },
             ],
         },
-    },
-};
-
-// colorScale is documented only on AgScatterSeriesOptions (non-themeable); declared here so the
-// default palette (matching the default theme's divergingColors) is applied when enterprise is
-// registered. sanitizeThemeModules strips this default for community mode.
-// $shallow prevents the options graph from index-merging user-supplied fills with the default array.
-// @ts-expect-error colorScale is not declared on the themeable options interface
-themeTemplate.series.colorScale = {
-    fills: {
-        $shallow: [{ color: DEFAULT_FILLS.ORANGE }, { color: DEFAULT_FILLS.YELLOW }, { color: DEFAULT_FILLS.GREEN }],
     },
 };
 

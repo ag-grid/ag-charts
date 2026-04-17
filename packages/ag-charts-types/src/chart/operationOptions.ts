@@ -38,7 +38,7 @@ type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
         ? Array<ExtendLiteralLeaves<U, V, E>> | V
         : T[P] extends E
           ? T[P] | V
-          : ExtendLiteralLeaves<T[P], V, E>;
+          : ExtendLiteralLeaves<T[P], V, E> | V;
 
 type ThemeParam = keyof AgChartAllThemeParams;
 
@@ -73,6 +73,7 @@ type PaletteParam =
 type CacheOperation = { $cacheMax: Leaf<number> };
 
 type ChartOperation =
+    | { $enterprise: [AnyLeaf | object, AnyLeaf | object] } // Value when ag-charts-enterprise is registered | Value otherwise
     | { $hasSeriesType: Leaf<string> }
     | { $isChartType: Leaf<string> }
     | { $isSeriesType: Leaf<string> };

@@ -45,6 +45,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    colorScale: enterprise(colorScaleOptionsDef),
 };
 
 export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
@@ -62,7 +63,6 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     labelName: string,
     colorName: enterprise(string),
     legendItemName: string,
-    colorScale: colorScaleOptionsDef,
     xKeyAxis: string,
     yKeyAxis: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),

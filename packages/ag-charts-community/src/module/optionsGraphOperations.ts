@@ -127,16 +127,33 @@ function cacheMaxOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 // --- CHART ---
 
 enum ChartOperation {
+    Enterprise = '$enterprise',
     HasSeriesType = '$hasSeriesType',
     IsChartType = '$isChartType',
     IsSeriesType = '$isSeriesType',
 }
 
 const chartOperations: Record<ChartOperation, OperationFns> = {
+    $enterprise: enterpriseOperation,
     $hasSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: hasSeriesTypeOperation },
     $isChartType: { dependencies: seriesTypeDependencyFactory, resolve: isChartTypeOperation },
     $isSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: isSeriesTypeOperation },
 };
+
+function enterpriseOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [enterpriseVertex, communityVertex] = values;
+    const valueVertex = ModuleRegistry.isEnterprise() ? enterpriseVertex : communityVertex;
+
+    // Attach neighbours from the chosen branch onto the vertex (mirrors $if for path propagation).
+    const neighbours = graph.neighboursWithEdgeValue(valueVertex, PATH_EDGE);
+    if (neighbours) {
+        for (const neighbour of neighbours) {
+            graph.addEdge(vertex, neighbour, PATH_EDGE);
+        }
+    }
+
+    return graph.resolveVertexValue(vertex, valueVertex);
+}
 
 function seriesTypeDependencyFactory(
     graph: OptionsGraphInterface,
