@@ -769,7 +769,8 @@ export class MapMarkerSeries
         isHighlight: boolean
     ): Required<AgMapMarkerSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorKey, colorRange, itemStyler } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
@@ -778,6 +779,8 @@ export class MapMarkerSeries
             baseStyle.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? baseStyle.fill;
+        } else if (!isHighlight && colorKey != null && missingDataFill != null) {
+            baseStyle.fill = missingDataFill;
         }
 
         if (sizeValue != null) {
@@ -919,13 +922,19 @@ export class MapMarkerSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { colorKey, shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            properties;
+        const { missingDataFill } = properties.colorScale;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
             const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
             const colorValue = colorValues[datumIndex];
-            fill = this.colorScale.convert(colorValue);
+            if (colorValue != null) {
+                fill = this.colorScale.convert(colorValue);
+            } else if (colorKey != null && missingDataFill != null) {
+                fill = missingDataFill;
+            }
         }
 
         return {

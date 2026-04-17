@@ -31,6 +31,9 @@ export class ColorScaleProperties extends BaseProperties {
 
     @Property
     mode: ColorScaleMode = 'continuous';
+
+    @Property
+    missingDataFill?: string;
 }
 
 function getDefaultColorStops(defaultColorStops: string[], fillMode: ColorScaleMode) {

@@ -196,6 +196,37 @@ In this configuration:
 -   Tooltips also display the `name` for the matching bin — e.g. hovering a cell with temperature 7 shows 'Cool'.
 -   In continuous mode, `name` values appear at their `stop` positions on the Gradient Legend.
 
+## Missing Data
+
+{% chartExampleRunner title="Missing Data" name="missing-data" type="generated" /%}
+
+By default, data points with a missing colour value (i.e. the `colorKey` field is `null`, `undefined`, or absent from the datum) fall back to a series-specific default — Heatmap cells render as transparent, Treemap and Sunburst segments use the palette fill for their position, Map Markers use the series' default fill, and Map Shapes and Map Lines omit those datums entirely. Use `colorScale.missingDataFill` to paint all of these points with a single explicit placeholder colour instead.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+            colorScale: {
+                fills: [{ color: 'navy' }, { color: 'lightyellow' }, { color: 'darkred' }],
+                missingDataFill: '#e0e0e0',
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   Data points without a `temperature` value are rendered with the light grey `#e0e0e0` fill instead of the default fallback.
+-   `missingDataFill` accepts any CSS colour string (named colour, hex, `rgba(…)`, etc.).
+-   For line-based series (e.g. Map Lines) the value is applied as the line stroke rather than a fill.
+-   The Gradient Legend does not display a separate swatch for missing data — the placeholder colour is only visible on the series itself.
+-   On Map Shapes and Map Lines, setting `missingDataFill` also enables tooltips and hover interactions for datums without a colour value, because those datums are now included in the series' node data rather than being skipped.
+
 ## Legend Type
 
 Both the [Gradient Legend](#gradient-legend) and the standard category [Legend](./legend/) can be used with Colour Scales, in either continuous or discrete mode. The chart automatically selects a default based on the mode:

@@ -401,6 +401,39 @@ describe('MapMarkerSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const missingNames = new Set(['Wales', 'Northern Ireland']);
+            const data = ukData.map((datum: any) => {
+                if (!missingNames.has(datum.name)) return datum;
+                const rest = { ...datum };
+                delete rest.population;
+                return rest;
+            });
+            const options: AgChartOptions = {
+                data,
+                topology: ukTopology,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            // Deliberately contrasting colour: markers render at the theme-default
+                            // fillOpacity of 0.5 against a grey map background, so a neutral grey
+                            // fill would be visually indistinguishable in the snapshot.
+                            missingDataFill: 'magenta',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('legend', () => {
