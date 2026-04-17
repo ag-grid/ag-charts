@@ -29,17 +29,13 @@ export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boole
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
-function getSelection(series: Series, data: DataSet): DataSetSelection {
-    return data.enableSelection(series.id);
-}
-
 export function copySelectionBuffers(chartService: ChartService): BufferMap {
     const result: BufferMap = new Map();
     for (const series of chartService.series) {
         const { data } = series;
         if (data === undefined) continue;
 
-        const selection = getSelection(series, data);
+        const selection = data.enableSelection(series.id);
         const buffer = selection.copyBuffer();
         result.set(series.id, buffer);
     }
@@ -54,7 +50,7 @@ export function restoreSelectionBuffers(chartService: ChartService, bufferMap: B
         const buffer = bufferMap.get(series.id);
         if (buffer === undefined) continue;
 
-        const selection = getSelection(series, data);
+        const selection = data.enableSelection(series.id);
         selection.restoreBuffer(buffer);
     }
 }
@@ -76,7 +72,7 @@ export function diffSelectionBuffers(chartService: ChartService, bufferMap: Buff
         const oldBuffer = bufferMap.get(series.id);
         if (oldBuffer === undefined) continue;
 
-        const selection = getSelection(series, data);
+        const selection = data.enableSelection(series.id);
         const newBuffer = selection.getSelection();
 
         if (oldBuffer.length !== newBuffer.length) {
