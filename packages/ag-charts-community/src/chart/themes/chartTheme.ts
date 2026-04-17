@@ -485,13 +485,7 @@ export class ChartTheme {
                         offset: {
                             $path: [
                                 '/tooltip/position/offset',
-                                {
-                                    $if: [
-                                        { $eq: [{ $path: ['/tooltip/position/anchorTo', 'pointer'] }, 'chart'] },
-                                        0,
-                                        8,
-                                    ],
-                                },
+                                { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 8] },
                             ],
                         },
                     },
