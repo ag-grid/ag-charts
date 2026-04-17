@@ -1,4 +1,4 @@
-import type { _Widget } from 'ag-charts-community';
+import type { AgSelectionItem, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -11,6 +11,9 @@ import {
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
+type DataSetSelection = _ModuleSupport.DataSetSelection;
+type DataSetSelectionBuffers = Map<string, Uint8Array>;
+type ChartService = _ModuleSupport.ModuleContext['chartService'];
 
 function toStartAndLength(start: number, end: number): [number, number] {
     if (start > end) {
@@ -27,6 +30,36 @@ function toBBox(event1: _Widget.DragWidgetEvent, event2: _Widget.DragWidgetEvent
 
 function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
+}
+
+function getSelection(series: Series, data: DataSet): DataSetSelection {
+    return data.enableSelection(series.id);
+}
+
+function copySelectionBuffers(chartService: ChartService): DataSetSelectionBuffers {
+    const result: DataSetSelectionBuffers = new Map();
+    for (const series of chartService.series) {
+        const { data } = series;
+        if (data === undefined) continue;
+
+        const selection = getSelection(series, data);
+        const buffer = selection.copyBuffer();
+        result.set(series.id, buffer);
+    }
+    return result;
+}
+
+function restoreSelectionBuffers(chartService: ChartService, bufferMap: DataSetSelectionBuffers | undefined): void {
+    for (const series of chartService.series) {
+        const data = series.data;
+        if (data === undefined) continue;
+
+        const buffer = bufferMap?.get(series.id);
+        if (buffer === undefined) continue;
+
+        const selection = getSelection(series, data);
+        selection.restoreBuffer(buffer);
+    }
 }
 
 export class DataSelection extends AbstractModuleInstance {
@@ -126,6 +159,10 @@ export class DataSelection extends AbstractModuleInstance {
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         const bbox = toBBox(dragStartEvent, dragEndEvent);
 
+        const bufferMap: DataSetSelectionBuffers | undefined = this.ctx.chartService.hasListener('selectionChange')
+            ? copySelectionBuffers(this.ctx.chartService)
+            : undefined;
+
         for (const series of this.ctx.chartService.series) {
             const { data } = series;
             if (data === undefined) continue;
@@ -152,13 +189,7 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
         this.endDrag();
-        this.ctx.chartService.callListener({
-            type: 'selectionChange',
-            source: 'user-interaction',
-            preventDefault: () => {}, // TODO
-            added: [], // TODO
-            removed: [], // TODO
-        });
+        this.dispatchSelectionChange(bufferMap);
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
@@ -186,5 +217,27 @@ export class DataSelection extends AbstractModuleInstance {
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+    }
+
+    private dispatchSelectionChange(bufferMap: DataSetSelectionBuffers | undefined): void {
+        const added: AgSelectionItem<unknown>[] = [];
+        const removed: AgSelectionItem<unknown>[] = [];
+
+        let defaultPrevented = false;
+        const preventDefault = (): void => {
+            defaultPrevented = true;
+        };
+
+        this.ctx.chartService.callListener({
+            type: 'selectionChange',
+            source: 'user-interaction',
+            preventDefault,
+            added,
+            removed,
+        });
+
+        if (defaultPrevented) {
+            restoreSelectionBuffers(this.ctx.chartService, bufferMap);
+        }
     }
 }

@@ -78,7 +78,7 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     dataIdKey?: DatumKey<TDatum>;
 }
 
-interface AgSelectionItem<TDatum> {
+export interface AgSelectionItem<TDatum> {
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
     /** Datum from the chart or series data array. */

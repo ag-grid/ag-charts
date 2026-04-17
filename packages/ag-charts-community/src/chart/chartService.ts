@@ -23,5 +23,6 @@ export interface ChartService {
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
     overrideFocusVisible(visible: boolean | undefined): void;
+    hasListener(type: ChartServiceEventType): boolean;
     callListener(event: ChartServiceEvent): void;
 }

@@ -489,6 +489,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         callWithContext(this, this.fireEventWrapper, event);
     }
 
+    public hasListener(type: ChartServiceEventType): boolean {
+        return this.hasEventListener(type);
+    }
+
     public callListener(event: ChartServiceEvent): void {
         this.fireEvent(event);
     }
