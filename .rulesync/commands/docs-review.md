@@ -68,15 +68,10 @@ Map features to source implementation files:
 
 The `vanilla` framework variant is used as it loads slightly faster than `typescript`.
 
-### Exceptions File Path
-
-`external/prompts/technical-review-exceptions/${pageName}.md`
-
 ### Output Paths
 
 > Required — referenced by exact name in the core methodology.
 
--   Review plans: `external/prompts/technical-review-plans/${pageName}.md`
 -   Reports: `reports/docs-review/${pageName}.md`
 -   Summary: `reports/docs-review/summary.md`
 

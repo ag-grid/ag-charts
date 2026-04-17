@@ -20,7 +20,7 @@ Quick-reference for all AI agent commands, skills, sub-agents, and rules availab
 
 -   🟢 **Local** — ag-charts specific (normal file in `.rulesync/`)
 -   🔵 **Shared** — reusable across AG products (symlink to `external/ag-shared/`)
--   🟠 **Private** — ag-charts product-specific shared prompt (symlink to `external/prompts/`)
+-   🟠 **Product plugin** — ag-charts product-specific prompt delivered via the `ag-charts` plugin
 
 ---
 

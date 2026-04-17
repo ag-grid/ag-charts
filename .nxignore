@@ -14,6 +14,3 @@ patches/
 .gitrepo
 .nxignore
 .prettierignore
-
-# Ignore external repos.
-external/prompts/
