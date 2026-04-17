@@ -1,5 +1,6 @@
 import type {
     AreMutuallyExclusive,
+    BoxBounds,
     ChartAxisDirection,
     DomainWithMetadata,
     PlacedLabel,
@@ -102,6 +103,7 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     isPointInArea?(x: number, y: number): boolean;
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
     readonly data?: DataSet<any>;
+    pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
 }
 
 /**
