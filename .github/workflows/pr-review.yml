@@ -57,14 +57,7 @@ jobs:
                   fetch-depth: 1
 
             - name: Run Codex PR Review
-              # AG-17085 Phase 3: the action now lives in ag-dev-prompts alongside
-              # the pr-review skill, so no rulesync fetch / cross-repo auth is
-              # needed — the action reads SKILL.md from its own checkout via
-              # ${{ github.action_path }}. Pinned to a branch during Phase 3 soak;
-              # swap for a SHA / tag once the flow lands on ag-dev-prompts latest.
-              # Requires org setting: "Allow actions and reusable workflows from
-              # repositories within the organization".
-              uses: ag-grid/ag-dev-prompts/.github/actions/codex-pr-review@ag-17085/codex-pr-review-action
+              uses: ./external/ag-shared/github/actions/codex-pr-review
               with:
                   codex-api-key: ${{ secrets.CODEX_API_KEY }}
                   pr-number: ${{ github.event.pull_request.number || github.event.issue.number || inputs.pr_number }}
