@@ -7,6 +7,7 @@ type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
 type DataSetSelection = _ModuleSupport.DataSetSelection;
 type ChartService = _ModuleSupport.ModuleContext['chartService'];
+type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 export type BufferMap = Map<string, Uint8Array>;
 export type BufferDiff = Pick<AgSelectionChangeEvent<unknown, never>, 'added' | 'removed'>;
@@ -18,7 +19,7 @@ export function toStartAndLength(start: number, end: number): [number, number] {
     return [start, end - start];
 }
 
-export function toBBox(event1: _Widget.DragWidgetEvent, event2: _Widget.DragWidgetEvent): _ModuleSupport.BBox {
+export function toBBox(event1: DragWidgetEvent, event2: DragWidgetEvent): _ModuleSupport.BBox {
     const [x, width] = toStartAndLength(event1.currentX, event2.currentX);
     const [y, height] = toStartAndLength(event1.currentY, event2.currentY);
     return new _ModuleSupport.BBox(x, y, width, height);
