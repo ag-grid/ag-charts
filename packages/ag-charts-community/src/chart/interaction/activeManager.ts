@@ -1,9 +1,10 @@
 import { objectsEqual, validate } from 'ag-charts-core';
-import type { MementoOriginator } from 'ag-charts-core';
+import type { MementoOriginator, ReactiveState } from 'ag-charts-core';
 import type { AgActiveChangeEvent, AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
 import type { EventsHub } from '../../core/eventsHub';
 import { commonChartOptions } from '../chartOptionsDefs';
+import type { ChartState } from '../chartState';
 import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
 import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
@@ -35,7 +36,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         private readonly chartService: { readonly id: string },
         private readonly eventsHub: EventsHub,
         private readonly interactionManager: InteractionManager,
-        private readonly fireEvent: (event: ActiveChangeEvent) => void
+        private readonly fireEvent: (event: ActiveChangeEvent) => void,
+        private readonly chartState: ReactiveState<ChartState>
     ) {
         const removeListener: () => void = eventsHub.on('update:pre-scene-render', () => {
             this.didLayout = true;
@@ -91,7 +93,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         // Internal dispatch:
         if (!defaultPrevented) {
             this.currentItem = newItemState;
-            this.eventsHub.emit('active:update', newItemState);
+            this.chartState.setValue('activeItem', newItemState);
         }
 
         return defaultPrevented;

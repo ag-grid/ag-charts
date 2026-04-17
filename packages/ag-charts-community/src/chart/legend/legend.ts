@@ -25,7 +25,7 @@ import {
     toPlainText,
     truncateLine,
 } from 'ag-charts-core';
-import type { AgActiveItemState, AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
+import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
 
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -171,7 +171,12 @@ export class Legend {
                 this.updateGroupVisibility();
             }),
             ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
-            ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
+            ctx.chartState.observe((get) => {
+                const activeItem = get('activeItem');
+                if (activeItem?.type === 'series-node') {
+                    this.ctx.highlightManager.updateHighlight(this.id, undefined);
+                }
+            }),
             ctx.chartState.observe((get) => {
                 const legendData = get('legendData');
                 if (legendData == null) return;
@@ -1133,12 +1138,6 @@ export class Legend {
             highlightNodeDatum({ itemId, nodeDatum });
         } else {
             highlightNodeDatum(undefined);
-        }
-    }
-
-    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (activeItem?.type === 'series-node') {
-            this.ctx.highlightManager.updateHighlight(this.id, undefined);
         }
     }
 

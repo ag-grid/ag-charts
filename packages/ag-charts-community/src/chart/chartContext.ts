@@ -139,6 +139,7 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
 
+        this.chartState.setValue('activeItem', undefined);
         this.chartState.setValue('legendData', {});
         this.chartState.setValue('legendVisible', true);
 
@@ -149,7 +150,13 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
         this.optionsGraphService = new OptionsGraphService();
-        this.activeManager = new ActiveManager(this.chartService, this.eventsHub, this.interactionManager, fireEvent);
+        this.activeManager = new ActiveManager(
+            this.chartService,
+            this.eventsHub,
+            this.interactionManager,
+            fireEvent,
+            this.chartState
+        );
         this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
         this.fontManager = new FontManager(this.domManager, this.eventsHub);
         this.historyManager = new HistoryManager(this.eventsHub);

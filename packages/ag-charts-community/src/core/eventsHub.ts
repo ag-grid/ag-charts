@@ -96,7 +96,6 @@ export interface DataModelDiffEvent {
 // Event name convention is 'module:event-name'
 export interface EventsHubMap {
     'active:load-memento': ActiveLoadMementoEvent;
-    'active:update': AgActiveItemState | undefined;
     'annotations:restore': AnnotationsRestoreEvent;
     'axis:change': null;
     'axis-dom-proxy:cursor': { cursor: BaseStyleTypeMap['cursor'] | undefined };
