@@ -328,7 +328,8 @@ export function undocumented<T extends Validator | OptionsDefs<any>>(validatorOr
 
 /**
  * Marks an option as enterprise-only. When AG Charts Enterprise is not registered, supplied values
- * are stripped during validation and a warning is emitted; the option therefore never reaches the
+ * are stripped during validation and a one-shot warning is emitted via `warnOnce` so repeated
+ * chart update cycles don't re-log the same message; the option therefore never reaches the
  * consuming class. When enterprise is registered the wrapper is transparent.
  */
 export function enterprise(validatorOrDefs: Validator): Validator;
@@ -338,11 +339,10 @@ export function enterprise<T extends Validator | OptionsDefs<any>>(validatorOrDe
     const description = (validatorOrDefs as PrivateSymbols)[descriptionSymbol];
     const gated: Validator = (value, context) => {
         if (value !== undefined && !isEnterprise()) {
-            return {
-                valid: true,
-                cleared: null,
-                invalid: [new ValidationError(ErrorType.Enterprise, description, value, context.path)],
-            };
+            // Fire warnOnce directly rather than returning a ValidationError — the enterprise
+            // gate is static within a session, so logging on every validate pass would spam.
+            warnOnce(new ValidationError(ErrorType.Enterprise, description, value, context.path).toString());
+            return { valid: true, cleared: null, invalid: [] };
         }
         return inner(value, context);
     };

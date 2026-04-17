@@ -148,21 +148,34 @@ describe('Validation utils', () => {
                 expect(invalid).toEqual([]);
             });
 
-            test('strips defined values and warns when enterprise is not registered', () => {
+            test('strips defined values and fires a single warnOnce when enterprise is not registered', () => {
                 const { cleared, invalid } = validate<{ key: string }>(
                     { key: 'x' },
                     { key: enterprise(string) },
                     'series[0]'
                 );
                 expect(cleared).toEqual({ key: null });
-                expect(invalid).toHaveLength(1);
-                expect(invalid[0].toString()).toContain('AG Charts Enterprise');
-                expect(invalid[0].toString()).toContain('series[0].key');
+                // The gate uses warnOnce directly so the error is not propagated through the
+                // invalid array (avoids repeat logging across update cycles).
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('series[0].key');
+            });
+
+            test('dedupes repeat validations of the same path', () => {
+                const defs = { key: enterprise(string) };
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                // warnOnce caches by message — the same path logs once.
+                expect(console.warn).toHaveBeenCalledTimes(1);
             });
 
             test('stays silent when the value is undefined', () => {
                 const { invalid } = validate<{ key?: string }>({ key: undefined }, { key: enterprise(string) });
                 expect(invalid).toEqual([]);
+                expect(console.warn).not.toHaveBeenCalled();
             });
 
             test('strips nested enterprise option defs', () => {
@@ -171,8 +184,9 @@ describe('Validation utils', () => {
                     { scale: enterprise({ fills: arrayOf(string) }) }
                 );
                 expect(cleared).toEqual({ scale: null });
-                expect(invalid).toHaveLength(1);
-                expect(invalid[0].toString()).toContain('AG Charts Enterprise');
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
             });
         });
     });

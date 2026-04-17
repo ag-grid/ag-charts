@@ -1297,9 +1297,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             addValueRow('sizeValue', sizeKey, sizeName, 'size');
         }
 
+        let resolvedColorFill: string | undefined;
         if (colorKey != null && this.isColorScaleValid()) {
             const colorValue = addValueRow('colorValue', colorKey, colorName, 'color');
             if (colorValue != null) {
+                resolvedColorFill = colorScale.convert(colorValue);
                 const binLabel = findDiscreteColorBinLabel(
                     colorScale,
                     properties.colorScale.fills,
@@ -1318,6 +1320,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             { xKey, yKey, sizeKey, labelKey, colorKey },
             { resolveMarkerSubPath: [] }
         );
+        if (resolvedColorFill != null) {
+            // `getMarkerStyle` does not apply the colour-scale fill — that lives in
+            // `updateDatumStyles`. Override so the tooltip swatch and fill-bound context match
+            // the on-canvas marker colour.
+            activeStyle.fill = resolvedColorFill;
+        }
 
         return this.formatTooltipWithContext(
             tooltip,
