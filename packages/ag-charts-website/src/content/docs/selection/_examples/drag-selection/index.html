@@ -1,0 +1,17 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select onchange="onChartTypeChange(event.target.value)">
+            <optgroup label="community">
+                <option value="area">area</option>
+                <option value="bar">bar</option>
+                <option value="line">line</option>
+            </optgroup>
+            <optgroup label="enterprise">
+                <option value="range-area">range-area</option>
+                <option value="range-bar">range-bar</option>
+            </optgroup>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>
+<div id="myDragBox"></div>
