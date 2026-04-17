@@ -1,8 +1,0 @@
-{
-    "name": "ag",
-    "version": "0.3.0",
-    "description": "AG development tools — skills, agents, and hooks shared across AG product repos",
-    "author": {
-        "name": "AG Grid"
-    }
-}

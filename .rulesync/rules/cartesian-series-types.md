@@ -181,19 +181,19 @@ Use the appropriate context type:
 
 ## Key Files
 
-- `packages/ag-charts-community/src/chart/series/cartesian/cartesianSeriesTypes.ts` - Base types and extractors
-- `packages/ag-charts-community/src/chart/series/cartesian/cartesianSeries.ts` - CartesianSeries base
-- `packages/ag-charts-community/src/chart/series/cartesian/abstractBarSeries.ts` - AbstractBarSeries base
-- `packages/ag-charts-community/src/module-support.ts` - Exports for enterprise use
+-   `packages/ag-charts-community/src/chart/series/cartesian/cartesianSeriesTypes.ts` - Base types and extractors
+-   `packages/ag-charts-community/src/chart/series/cartesian/cartesianSeries.ts` - CartesianSeries base
+-   `packages/ag-charts-community/src/chart/series/cartesian/abstractBarSeries.ts` - AbstractBarSeries base
+-   `packages/ag-charts-community/src/module-support.ts` - Exports for enterprise use
 
 ## Migration Checklist
 
 When converting a series to consolidated types:
 
-- [ ] Create types interface at top of file
-- [ ] Extend appropriate base types (`CartesianSeriesTypes` or `AbstractBarSeriesTypes`)
-- [ ] Define all 7 type properties (node, options, properties, datum, label, context, stackContext)
-- [ ] Update class declaration to use single `TTypes` parameter
-- [ ] For enterprise: use `_ModuleSupport.` prefix for all imported types
-- [ ] Verify TypeScript compilation passes
-- [ ] Run `yarn nx format`
+-   [ ] Create types interface at top of file
+-   [ ] Extend appropriate base types (`CartesianSeriesTypes` or `AbstractBarSeriesTypes`)
+-   [ ] Define all 7 type properties (node, options, properties, datum, label, context, stackContext)
+-   [ ] Update class declaration to use single `TTypes` parameter
+-   [ ] For enterprise: use `_ModuleSupport.` prefix for all imported types
+-   [ ] Verify TypeScript compilation passes
+-   [ ] Run `yarn nx format`

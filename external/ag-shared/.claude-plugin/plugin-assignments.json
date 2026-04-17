@@ -12,7 +12,7 @@
             "description": "Prompt/agentic tooling engineering — rules, skills, subrepo sync",
             "skills": ["rulesync", "validate-prompts", "ag-shared-sync-log", "sync-ag-shared"],
             "commands": ["optimise-context"],
-            "guides": ["rulesync-editing.md", "setup-prompts.md"],
+            "guides": ["rulesync-editing.md", "setup-prompts.md", "_docs-review-integration.md"],
             "patches": ["rulesync+7.0.0.patch"]
         },
         "ag-pm": {
@@ -55,8 +55,7 @@
                 "nx-conventions.md",
                 "website-astro-pages.md",
                 "website-browser-testing.md",
-                "website-css.md",
-                "_docs-review-integration.md"
+                "website-css.md"
             ]
         },
         "ag-rel": {

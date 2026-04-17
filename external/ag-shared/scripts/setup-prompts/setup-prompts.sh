@@ -236,7 +236,7 @@ copy_extra_configs() {
     local targets="$2"
 
     # Symlink Cursor worktrees config if source exists and cursor is a target
-    local worktrees_src="external/ag-shared/prompts/.cursor-worktrees.json"
+    local worktrees_src="external/ag-shared/.cursor-worktrees.json"
     local worktrees_dest="$REPO_ROOT/.cursor/worktrees.json"
 
     if [[ -f "$REPO_ROOT/$worktrees_src" ]] && [[ -d "$REPO_ROOT/.cursor" ]]; then
@@ -247,7 +247,7 @@ copy_extra_configs() {
     fi
 
     # Symlink Claude Code settings if source exists and claudecode is a target
-    local claude_settings_src="external/ag-shared/prompts/.claude-settings.json"
+    local claude_settings_src="external/ag-shared/.claude-settings.json"
     local claude_settings_dest="$REPO_ROOT/.claude/settings.json"
 
     if [[ -f "$REPO_ROOT/$claude_settings_src" ]] && [[ "$targets" == *"claudecode"* || "$targets" == "*" ]]; then

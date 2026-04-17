@@ -13,12 +13,12 @@ This guide covers writing browser-based benchmarks using the shared benchmark ha
 
 The benchmark harness provides a declarative way to run performance tests in the browser. It automatically:
 
-- Creates a UI with "Run Benchmark" button
-- Executes warmup iterations before measurement
-- Collects timing statistics (min, max, average)
-- Displays results in a table with dynamic columns
-- Supports JSON export
-- Auto-runs via `?benchmark=true` URL parameter
+-   Creates a UI with "Run Benchmark" button
+-   Executes warmup iterations before measurement
+-   Collects timing statistics (min, max, average)
+-   Displays results in a table with dynamic columns
+-   Supports JSON export
+-   Auto-runs via `?benchmark=true` URL parameter
 
 ## Quick Start
 
@@ -221,9 +221,9 @@ Display warnings about test conditions:
 
 The results table automatically generates columns based on the parameter keys found across all variants:
 
-- Column order follows discovery order (first seen)
-- Each unique parameter key becomes a column header
-- Results show parameter values (or empty if not applicable to that variant)
+-   Column order follows discovery order (first seen)
+-   Each unique parameter key becomes a column header
+-   Results show parameter values (or empty if not applicable to that variant)
 
 Example with `{ Method: 'update()', Batch: '100' }`:
 
@@ -239,10 +239,10 @@ Add `?benchmark=true` to the URL to automatically start the benchmark after page
 
 The harness displays:
 
-- **Test Case**: The test case label/id
-- **[Parameter columns]**: Dynamic columns for each parameter key
-- **Avg/Min/Max Time**: Timing statistics in milliseconds
-- **Samples**: Number of measurements collected
+-   **Test Case**: The test case label/id
+-   **[Parameter columns]**: Dynamic columns for each parameter key
+-   **Avg/Min/Max Time**: Timing statistics in milliseconds
+-   **Samples**: Number of measurements collected
 
 Results are also logged to console via `console.table()`.
 
@@ -288,6 +288,6 @@ _examples/my-benchmark/
 
 ## Related Resources
 
-- [Benchmarks Guide](./benchmarks.md) - Jest-based unit benchmarks
-- [Examples Guide](./examples.md) - General example creation patterns
-- [Testing Guide](./testing.md) - Testing strategies overview
+-   [Benchmarks Guide](./benchmarks.md) - Jest-based unit benchmarks
+-   [Examples Guide](./examples.md) - General example creation patterns
+-   [Testing Guide](./testing.md) - Testing strategies overview

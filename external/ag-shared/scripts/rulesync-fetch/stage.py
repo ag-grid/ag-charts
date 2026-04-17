@@ -24,7 +24,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[4]
 CACHE_ROOT = Path(os.environ.get("AG_DEV_PROMPTS_CACHE", os.path.expanduser("~/.cache/ag-dev-prompts")))
 CACHE_REPO = CACHE_ROOT / "repo"
-MANIFEST = REPO_ROOT / "external/ag-shared/prompts/.claude-plugin/plugin-assignments.json"
+MANIFEST = REPO_ROOT / "external/ag-shared/.claude-plugin/plugin-assignments.json"
 RULESYNC = REPO_ROOT / ".rulesync"
 MARKER = RULESYNC / ".fetched-from-ag-dev-prompts"
 
@@ -94,9 +94,7 @@ def rewrite_targets(content: str, new_targets: list[str] | str) -> str:
 
 def _replace_as_regular(dst: Path):
     """Ensure dst is not a symlink — if it exists as a symlink or any other
-    file/dir, remove it so we can write a fresh regular file/dir. Prevents
-    accidental writes through symlinks into external/ag-shared or
-    external/prompts sources."""
+    file/dir, remove it so we can write a fresh regular file/dir."""
     if dst.is_symlink() or dst.exists():
         if dst.is_symlink() or dst.is_file():
             dst.unlink()
@@ -176,6 +174,23 @@ def stage(dry_run: bool = False) -> set[Path]:
             else:
                 stage_file(src, dst, NON_CLAUDE_TARGETS, staged)
 
+        # Auto-stage underscore-prefixed runtime partials (any depth under commands/).
+        # Wrappers read them via project-local paths like .rulesync/commands/docs/_foo.md.
+        # Rulesync generators skip _*.md so they don't produce tool-specific outputs.
+        cmd_dir = plugin_src / "commands"
+        if cmd_dir.exists():
+            for partial in sorted(cmd_dir.rglob("_*.md")):
+                if not partial.is_file():
+                    continue
+                relpath = partial.relative_to(cmd_dir)
+                dst = RULESYNC / "commands" / relpath
+                if dry_run:
+                    print(f"  partial {plugin_name}/{relpath} → {dst.relative_to(REPO_ROOT)}")
+                    staged.add(dst)
+                else:
+                    # Partials don't carry frontmatter, so rewrite_targets is a no-op.
+                    stage_file(partial, dst, "['*']", staged)
+
         for guide_name in plugin.get("guides", []):
             if guide_name.startswith("_"):
                 continue  # internal plugin guide, not a shared rule
@@ -228,6 +243,12 @@ def list_staged() -> set[Path]:
             out.add(RULESYNC / "subagents" / f"{name}.md")
         for name in plugin.get("commands", []):
             out.add(RULESYNC / "commands" / f"{name}.md")
+        plugin_src = CACHE_REPO / "plugins" / plugin_name
+        cmd_dir = plugin_src / "commands"
+        if cmd_dir.exists():
+            for partial in cmd_dir.rglob("_*.md"):
+                if partial.is_file():
+                    out.add(RULESYNC / "commands" / partial.relative_to(cmd_dir))
         for name in plugin.get("guides", []):
             if name.startswith("_"):
                 continue

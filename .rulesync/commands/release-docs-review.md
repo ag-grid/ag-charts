@@ -60,4 +60,4 @@ After each page review, confirm these files exist:
 
 ## Review Methodology
 
-**Read and follow all instructions in `external/ag-shared/prompts/commands/docs/_release-docs-review-core.md` for the review process, applying the product configuration above.**
+**Read and follow all instructions in `.rulesync/commands/docs/_release-docs-review-core.md` for the review process, applying the product configuration above.**
