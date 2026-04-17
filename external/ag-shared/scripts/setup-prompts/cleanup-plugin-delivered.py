@@ -22,9 +22,11 @@ from pathlib import Path
 
 CATEGORIES = {
     "skills": ("skills", True),  # (rulesync dir, is-directory)
-    "agents": ("agents", False),
+    "agents": ("subagents", False),  # Plugin manifest key is "agents"; rulesync source dir is "subagents"
     "commands": ("commands", False),
 }
+# .claude/ output directory uses "agents" not "subagents" — track separately.
+CLAUDE_SUBDIR_OVERRIDE = {"agents": "agents"}
 
 
 def main() -> int:
@@ -94,8 +96,9 @@ def main() -> int:
     #    (rulesync --delete sometimes misses files when the .rulesync source dir
     #    is empty, so we sweep defensively)
     import shutil
-    for cat, (subdir, is_dir) in CATEGORIES.items():
-        claude_dir = args.claude / subdir
+    for cat, (_, is_dir) in CATEGORIES.items():
+        claude_subdir = CLAUDE_SUBDIR_OVERRIDE.get(cat, cat)
+        claude_dir = args.claude / claude_subdir
         if not claude_dir.exists():
             continue
         for item in plugin_delivered[cat]:

@@ -576,6 +576,33 @@ generate_config() {
         fi
     fi
 
+    # AG-17085 Phase 3: fetch ag-dev-prompts content and stage it into .rulesync/
+    # so non-Claude targets (Cursor, Codex, Gemini, Copilot, AGENTS.md) receive
+    # the plugin-delivered skills/agents/commands via rulesync generate. Staged
+    # items have `targets:` rewritten to exclude claudecode — Claude gets them
+    # via the plugin directly, so rulesync does not re-emit under .claude/.
+    local fetch_script="$REPO_ROOT/external/ag-shared/scripts/rulesync-fetch/fetch.sh"
+    local stage_script="$REPO_ROOT/external/ag-shared/scripts/rulesync-fetch/stage.py"
+    if [[ -x "$fetch_script" ]] && [[ -f "$stage_script" ]]; then
+        if [[ "$verbose" == "true" ]]; then
+            echo -e "${BLUE}Fetching ag-dev-prompts...${NC}"
+        fi
+        if resolved_sha=$("$fetch_script" 2>/dev/null); then
+            if [[ "$verbose" == "true" ]]; then
+                echo -e "${GREEN}✓${NC} Fetched ag-dev-prompts @ ${resolved_sha:0:8}"
+            fi
+            if python3 "$stage_script" >/dev/null 2>&1; then
+                if [[ "$verbose" == "true" ]]; then
+                    echo -e "${GREEN}✓${NC} Staged plugin content into .rulesync/"
+                fi
+            else
+                echo -e "${YELLOW}Warning: ag-dev-prompts staging failed — non-Claude tools may miss shared content${NC}"
+            fi
+        else
+            echo -e "${YELLOW}Warning: ag-dev-prompts fetch failed — non-Claude tools will use whatever is already staged${NC}"
+        fi
+    fi
+
     if [[ "$verbose" == "true" ]]; then
         echo -e "${BLUE}Generating configurations for: ${NC}$targets"
         echo ""

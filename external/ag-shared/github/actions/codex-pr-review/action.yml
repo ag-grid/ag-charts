@@ -38,12 +38,16 @@ inputs:
         description: 'PR number to review'
         required: true
     prompt-file:
-        description: 'Path to the prompt file'
+        description: 'Path to the prompt file (resolved after setup-prompts.sh runs fetch+stage — the pr-review skill ships via the ag-eng plugin on ag-dev-prompts)'
         required: false
-        default: 'external/ag-shared/prompts/skills/pr-review/SKILL.md'
+        default: '.codex/skills/pr-review/SKILL.md'
     github-token:
         description: 'GitHub token for PR access and commenting'
         required: true
+    ag-dev-prompts-token:
+        description: 'GitHub PAT with read access to ag-grid/ag-dev-prompts (private). Passed through to fetch.sh as AG_DEV_PROMPTS_TOKEN so rulesync-fetch can clone the plugin content in CI.'
+        required: false
+        default: ''
     post-comment:
         description: 'Whether to post the review as a PR comment'
         required: false
@@ -267,6 +271,11 @@ runs:
         - name: Setup Prompts
           if: steps.check-auth.outputs.skipped != 'true'
           shell: bash
+          env:
+              # AG-17085 Phase 3: rulesync-fetch (invoked by setup-prompts.sh) clones
+              # ag-grid/ag-dev-prompts, which is private. Without a token, the clone
+              # fails and non-Claude targets lose the plugin-delivered skills.
+              AG_DEV_PROMPTS_TOKEN: ${{ inputs.ag-dev-prompts-token }}
           run: |
               # Generate Codex CLI config if setup script exists
               if [ -f "./external/ag-shared/scripts/setup-prompts/setup-prompts.sh" ]; then
