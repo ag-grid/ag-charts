@@ -41,7 +41,6 @@ import type {
     AgInitialStateLegendOptions,
     AgLocaleOptions,
     AgMiniChartSeriesOptions,
-    AgSelectionChangeEvent,
     FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
