@@ -14,7 +14,7 @@ import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
-import { DEFAULT_FILLS } from '../../themes/defaultColors';
+import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
@@ -56,39 +56,9 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
             },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
-        // The colour scale is an enterprise feature. $enterprise resolves the whole colorScale
-        // sub-tree: a default divergingColors palette when ag-charts-enterprise is registered,
-        // and undefined otherwise — so community resolved options never contain a colorScale
-        // from the theme, which lets the enterprise() validator on `colorScale` fire on any
-        // user-supplied value without false positives from theme defaults. User-supplied
-        // colorScale options replace the entire default object rather than merging element-wise.
-        colorScale: {
-            $enterprise: [
-                {
-                    fills: [
-                        { color: DEFAULT_FILLS.ORANGE },
-                        { color: DEFAULT_FILLS.YELLOW },
-                        { color: DEFAULT_FILLS.GREEN },
-                    ],
-                },
-                undefined,
-            ],
-        },
+        colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
-    gradientLegend: {
-        enabled: {
-            $some: [
-                {
-                    $and: [
-                        { $path: '/series/$index/colorKey' },
-                        { $path: '/series/$index/colorScale/fills/0' },
-                        { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
-                    ],
-                },
-                { $path: '/series' },
-            ],
-        },
-    },
+    gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
 export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {
