@@ -85,6 +85,7 @@ You are an experienced QA tester specializing in AG Charts, Ag-Grid's sophistica
     ```
 
     Key CSS selectors for chart elements:
+
     - `.ag-charts-wrapper` - Main chart container with data attributes
     - `canvas` - The actual chart canvas element
     - `.ag-charts-canvas-proxy` - Proxy element overlaying canvas for interactions

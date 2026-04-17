@@ -66,4 +66,3 @@ This guide covers code quality practices, including avoiding code bloat, comment
 -   Check for consistency with similar existing code patterns
 -   For test changes, verify completeness by comparing with related tests in the same file
 -   Ensure naming clearly conveys intent (especially for boolean/flag variables)
-

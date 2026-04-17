@@ -12,15 +12,15 @@ AG products officially support the **two latest major versions** of each browser
 
 ### Desktop
 
-- Chrome (two latest major versions)
-- Firefox (two latest major versions)
-- Microsoft Edge (two latest major versions)
-- Safari (two latest major versions)
+-   Chrome (two latest major versions)
+-   Firefox (two latest major versions)
+-   Microsoft Edge (two latest major versions)
+-   Safari (two latest major versions)
 
 ### Mobile
 
-- Safari on iOS / iPad OS (two latest major versions)
-- Chrome on iOS / iPad OS / Android (two latest major versions)
+-   Safari on iOS / iPad OS (two latest major versions)
+-   Chrome on iOS / iPad OS / Android (two latest major versions)
 
 ## Implications for Code
 

@@ -1,11 +1,7 @@
 ---
 targets: ['*']
 description: 'Astro page conventions for AG product websites — loads /website-astro skill for details'
-globs:
-    [
-        '**/src/pages/**/*.astro',
-        '**/src/layouts/**/*.astro',
-    ]
+globs: ['**/src/pages/**/*.astro', '**/src/layouts/**/*.astro']
 ---
 
 # Website Astro Page Conventions

@@ -1,14 +1,14 @@
 ---
 globs:
-  - '.rulesync/**/*'
-  - '.claude/**/*'
-  - '.cursor/**/*'
-  - '.github/copilot*'
-  - '.codex/**/*'
-  - '.gemini/**/*'
-  - '.opencode/**/*'
-  - 'AGENTS.md'
-  - 'CLAUDE.md'
+    - '.rulesync/**/*'
+    - '.claude/**/*'
+    - '.cursor/**/*'
+    - '.github/copilot*'
+    - '.codex/**/*'
+    - '.gemini/**/*'
+    - '.opencode/**/*'
+    - 'AGENTS.md'
+    - 'CLAUDE.md'
 alwaysApply: false
 targets: ['*']
 ---
