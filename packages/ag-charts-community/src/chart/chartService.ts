@@ -1,11 +1,14 @@
-import type { DeepRequired } from 'ag-charts-core';
-import type { AgChartInstance, AgTouchOptions } from 'ag-charts-types';
+import type { DeepRequired, RequireOptional } from 'ag-charts-core';
+import type { AgChartInstance, AgSelectionChangeEvent, AgTouchOptions } from 'ag-charts-types';
 
 import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ISeries } from './series/seriesTypes';
+
+export type ChartServiceEvent = RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>;
+export type ChartServiceEventType = ChartServiceEvent['type'];
 
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {
@@ -20,4 +23,5 @@ export interface ChartService {
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
     overrideFocusVisible(visible: boolean | undefined): void;
+    callListener(event: ChartServiceEvent): void;
 }

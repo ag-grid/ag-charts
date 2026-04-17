@@ -152,6 +152,13 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
         this.endDrag();
+        this.ctx.chartService.callListener({
+            type: 'selectionChange',
+            source: 'user-interaction',
+            preventDefault: () => {}, // TODO
+            added: [], // TODO
+            removed: [], // TODO
+        });
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
