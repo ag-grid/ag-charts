@@ -48,7 +48,7 @@ State the user-visible effect. Leave the mechanism out.
 
 **Avoid:** "…also enables tooltips and hover interactions for datums without a colour value, because those datums are now included in the series' node data rather than being skipped."
 
-**Prefer:** "…also makes these datums hoverable, since they are no longer skipped."
+**Prefer:** "…also makes these datums respond to hover, since they are no longer skipped."
 
 ## Catalogue hedges
 
