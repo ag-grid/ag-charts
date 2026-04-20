@@ -38,6 +38,15 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
         return changed;
     }
 
+    collapseAppend(ids: string[]) {
+        let changed = false;
+        for (const id of ids) {
+            changed ||= !this.collapsedIds[id];
+            this.collapsedIds[id] = true;
+        }
+        return changed;
+    }
+
     expand(ids: string[]) {
         let changed = false;
         for (const id of ids) {

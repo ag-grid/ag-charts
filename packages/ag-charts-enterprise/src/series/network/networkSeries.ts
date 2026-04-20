@@ -100,7 +100,16 @@ export abstract class AbstractNetworkSeries<
 
         moduleCtx.eventsHub.on('active:update', (blob) => {
             if (blob?.seriesId !== this.id) return;
-            this.expandActive(blob.itemId);
+            this.expandNetworkToItem(blob.itemId);
+        });
+
+        moduleCtx.eventsHub.on('series-area:click', ({ type, clickedNode }) => {
+            if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
+            if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
+                this.expandItem(clickedNode.itemId);
+            } else {
+                this.collapseItem(clickedNode.itemId);
+            }
         });
     }
 
@@ -121,7 +130,9 @@ export abstract class AbstractNetworkSeries<
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
 
-    abstract expandActive(itemIdOrIndex: string | number): void;
+    abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
+    abstract expandItem(itemIdOrIndex: string | number): void;
+    abstract collapseItem(itemIdOrIndex: string | number): void;
 
     dataCount() {
         return this.graph.getVertexCount();

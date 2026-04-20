@@ -185,26 +185,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
-    expandActive(itemIdOrIndex: string | number) {
+    expandNetworkToItem(itemIdOrIndex: string | number) {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
-        let id: string;
-        if (typeof itemIdOrIndex === 'number') {
-            const itemId = this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
-            if (!itemId) return;
-            id = itemId;
-        } else {
-            id = itemIdOrIndex;
-        }
-
-        const ids = [id];
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
 
         let vertex = this.graph.findVertexById(id);
         if (!vertex) return;
 
         // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
         // ancestry to ensure the active node is visible.
+        const ids = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
             (vertex = this.graph.findNeighbour(vertex, 'parent') as
@@ -217,6 +210,20 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         this.expand(ids);
+    }
+
+    expandItem(itemIdOrIndex: string | number) {
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        this.ctx.collapsedManager.expand([id]);
+    }
+
+    collapseItem(itemIdOrIndex: string | number) {
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        this.ctx.collapsedManager.collapseAppend([id]);
     }
 
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
@@ -624,5 +631,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    }
+
+    private getItemId(itemIdOrIndex: string | number): string | undefined {
+        if (typeof itemIdOrIndex === 'number') {
+            return this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
+        }
+        return itemIdOrIndex;
     }
 }
