@@ -15,7 +15,7 @@ import {
 import { type CallbackParamRules, type DeepRequired, Vertex, mergeDefaults } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
-import { AbstractNetworkSeries } from '../network/networkSeries';
+import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -235,6 +235,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (!vertex) return undefined;
 
         return this.createNodeDatumFromVertex(vertex);
+    }
+
+    override getTooltipContent(datumIndex: NetworkSeriesDatumIndex): _ModuleSupport.TooltipContent | undefined {
+        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
+        if (datum == null) return;
+
+        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
+        if (nodeDatum == null) return;
+
+        return this.formatTooltipWithContext(
+            this.properties.tooltip,
+            { heading: nodeDatum.datum.title },
+            {
+                seriesId: this.id,
+                datum: datum,
+            }
+        );
     }
 
     private createGraphData() {
@@ -638,5 +655,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             return this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
         }
         return itemIdOrIndex;
+    }
+
+    private getDatumByDatumIndex(datumIndex: number) {
+        const nodeDatumIndex = this.convertDatumIndexToNodeDatumIndex(datumIndex);
+        if (nodeDatumIndex == null) return;
+
+        return this.datumSelection.at(nodeDatumIndex)?.datum;
+    }
+
+    private convertDatumIndexToNodeDatumIndex(datumIndex: number) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return;
+
+        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
+        const vertex = this.graph.findVertexById(idValues[datumIndex]);
+        if (!vertex) return;
+
+        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex') as number | undefined;
+        if (nodeDatumIndex == null) return;
+
+        return nodeDatumIndex;
     }
 }

@@ -149,13 +149,6 @@ export abstract class AbstractNetworkSeries<
         return false;
     }
 
-    getTooltipContent(
-        _datumIndex: NetworkSeriesDatumIndex,
-        _removeThisDatum: NetworkDatum<TVertex, TEdge> | undefined
-    ): _ModuleSupport.TooltipContent | undefined {
-        return undefined;
-    }
-
     getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
         return;
     }
