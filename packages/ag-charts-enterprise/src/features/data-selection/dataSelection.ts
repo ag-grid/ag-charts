@@ -1,8 +1,8 @@
-import type { _ModuleSupport, _Widget } from 'ag-charts-community';
+import type { _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     type AreExact,
-    type BoxBounds,
     ChartUpdateType,
     Logger,
     type NormalisedSelectionOptions,
@@ -19,12 +19,19 @@ function toStartAndLength(start: number, end: number): [number, number] {
     return [start, end - start];
 }
 
+function toBBox(event1: _Widget.DragWidgetEvent, event2: _Widget.DragWidgetEvent): _ModuleSupport.BBox {
+    const [x, width] = toStartAndLength(event1.currentX, event2.currentX);
+    const [y, height] = toStartAndLength(event1.currentY, event2.currentY);
+    return new _ModuleSupport.BBox(x, y, width, height);
+}
+
 function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
 export class DataSelection extends AbstractModuleInstance {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
+    private readonly dragRect: _ModuleSupport.Rect;
 
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection');
@@ -33,9 +40,19 @@ export class DataSelection extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        this.dragRect = new _ModuleSupport.Rect();
+        this.dragRect.fill = 'rgba(140,140,255)';
+        this.dragRect.opacity = 0.2;
+        this.dragRect.stroke = '#3b82f6';
+        this.dragRect.strokeWidth = 2;
+        this.dragRect.strokeOpacity = 1;
+        this.dragRect.visible = false;
+
         this.cleanup.register(
+            ctx.scene.attachNode(this.dragRect),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
+            ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev))
         );
     }
@@ -65,24 +82,48 @@ export class DataSelection extends AbstractModuleInstance {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
-    private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+    private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
         const { enabled } = this.opts;
         if (!enabled) return;
 
-        this.dragStartEvent = event;
+        this.dragStartEvent = dragStartEvent;
+        this.dragRect.x = dragStartEvent.currentX;
+        this.dragRect.y = dragStartEvent.currentY;
+        this.dragRect.width = 0;
+        this.dragRect.height = 0;
+        this.dragRect.visible = true;
+    }
+
+    private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
+        const { enabled } = this.opts;
+        const { dragStartEvent } = this;
+
+        if (!enabled || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
+
+        const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
+        const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
+
+        this.dragRect.x = canvasBounds.x;
+        this.dragRect.y = canvasBounds.y;
+        this.dragRect.width = canvasBounds.width;
+        this.dragRect.height = canvasBounds.height;
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PRE_SERIES_UPDATE });
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
         const { enabled } = this.opts;
         const { dragStartEvent } = this;
 
-        if (!enabled || !dragStartEvent) return;
+        if (!enabled || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
-
-        const [x, width] = toStartAndLength(dragStartEvent.currentX, dragEndEvent.currentX);
-        const [y, height] = toStartAndLength(dragStartEvent.currentY, dragEndEvent.currentY);
-        const bbox: BoxBounds = { x, y, width, height };
+        const bbox = toBBox(dragStartEvent, dragEndEvent);
 
         for (const series of this.ctx.chartService.series) {
             const { data } = series;
@@ -110,6 +151,7 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
         this.dragStartEvent = undefined;
+        this.dragRect.visible = false;
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 

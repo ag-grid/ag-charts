@@ -45,58 +45,6 @@ ModuleRegistry.registerModules([
     SelectionModule,
 ]);
 
-function initMyDragBox() {
-    const elem = document.getElementById('myDragBox')!;
-    if (elem == null) return -1;
-
-    let downX = NaN;
-    let downY = NaN;
-    function toStartAndLength(start: number, end: number): [`${number}px`, `${number}px`] {
-        if (start > end) {
-            [start, end] = [end, start];
-        }
-        return [`${start}px`, `${end - start}px`];
-    }
-    function updateBounds(ev: { clientX: number; clientY: number }) {
-        const [left, width] = toStartAndLength(downX, ev.clientX);
-        const [top, height] = toStartAndLength(downY, ev.clientY);
-        elem.style.left = left;
-        elem.style.top = top;
-        elem.style.width = width;
-        elem.style.height = height;
-    }
-
-    window.addEventListener(
-        'mousedown',
-        (ev) => {
-            if (ev.button !== 0) return;
-            downX = ev.clientX;
-            downY = ev.clientY;
-            updateBounds(ev);
-            elem.style.display = 'block';
-        },
-        { capture: true }
-    );
-    window.addEventListener(
-        'mousemove',
-        (ev) => {
-            if (ev.button !== 0) return;
-            updateBounds(ev);
-        },
-        { capture: true }
-    );
-    window.addEventListener(
-        'mouseup',
-        (ev) => {
-            if (ev.button !== 0) return;
-            elem.style.display = 'none';
-        },
-        { capture: true }
-    );
-    return 0;
-}
-initMyDragBox();
-
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
     if (params.selectionState === 'selected') {
         return { stroke: 'black', strokeWidth: 2 };
