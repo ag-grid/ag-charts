@@ -98,9 +98,10 @@ export abstract class AbstractNetworkSeries<
             }
         });
 
-        moduleCtx.eventsHub.on('active:update', (blob) => {
-            if (blob?.seriesId !== this.id) return;
-            this.expandActive(blob.itemId);
+        moduleCtx.chartState.observe((get) => {
+            const activeItem = get('activeItem');
+            if (activeItem?.seriesId !== this.id) return;
+            this.expandActive(activeItem.itemId);
         });
     }
 

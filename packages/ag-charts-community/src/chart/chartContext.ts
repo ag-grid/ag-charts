@@ -165,7 +165,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this, fireEvent);
+        this.zoomManager = new ZoomManager(this);
         this.collapsedManager = new CollapsedManager(this.eventsHub);
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {

@@ -70,10 +70,15 @@ export class HighlightManager {
         previousHighlight: HighlightNodeDatum | undefined,
         inViewport?: boolean
     ): void {
-        const highlightInViewport: boolean = inViewport ?? true;
         const currentHighlight = this.getActiveHighlight();
+        const highlightChanged = !this.isEqual(currentHighlight, previousHighlight);
+        // When the caller omits `inViewport` and the highlight hasn't changed, preserve the existing
+        // value — callers that don't know the viewport state (e.g. legend observer clearing its own
+        // entry) must not spuriously reset the flag to `true` and re-show crosshairs for a frozen
+        // datum that has since been panned off-screen.
+        const highlightInViewport: boolean = inViewport ?? (highlightChanged ? true : this.highlightInViewport);
 
-        if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
+        if (highlightChanged || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.highlightInViewport = highlightInViewport;
             this.ctx.chartState.setValue('highlight', currentHighlight);
