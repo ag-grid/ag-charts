@@ -489,6 +489,10 @@ id = "GHSA-xpcf-pg52-r92g"
 reason = "hono is only used in dev tools"
 
 [[IgnoredVulns]]
+id = "GHSA-v8w9-8mx6-g223"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
 id = "GHSA-g735-7g2w-hh3f"
 reason = "astro generates a static webpage, so this is not relevant"
 
