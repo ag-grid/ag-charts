@@ -11,7 +11,6 @@ mcp.json
 !/skills/technology-stack/
 !/skills/triage-rt/
 !/skills/triage-rt-board/
-!/skills/writing-style/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
@@ -21,12 +20,19 @@ mcp.json
 !/commands/release-summary.md
 /commands/docs/
 
-# Plugin-delivered rules — enumerate fetched entries
-/rules/browser-support.md
-/rules/code-quality.md
-/rules/nx-conventions.md
-/rules/rulesync-editing.md
-/rules/setup-prompts.md
-/rules/website-astro-pages.md
-/rules/website-browser-testing.md
-/rules/website-css.md
+# Plugin-delivered rules — allowlist local-only rules
+/rules/*.md
+!/rules/ag-charts.md
+!/rules/api-contracts.md
+!/rules/benchmarks.md
+!/rules/browser-benchmarks.md
+!/rules/cartesian-series-types.md
+!/rules/data-model.md
+!/rules/defaults.md
+!/rules/docs-review-testing.md
+!/rules/dom-performance.md
+!/rules/module-support.md
+!/rules/playbook-bug-fix.md
+!/rules/series.md
+!/rules/server-side-rendering.md
+!/rules/testing.md
