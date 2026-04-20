@@ -15,11 +15,11 @@ Plugin content is mirrored into `.rulesync/` by `external/ag-shared/scripts/rule
 
 These live in this repo because they depend on ag-charts source layout or release process.
 
-**Skills** — `releases`, `technology-stack`, `triage-rt`, `triage-rt-board`
+**Skills** — `releases`, `technology-stack` (chart release schedule + zero-runtime-deps constraint). Release-testing triage (`triage-rt`, `triage-rt-board`) moved to the `ag-shared` plugin since it already covered both CRT (Charts) and RTI (Grid) boards.
 
 **Commands** — `/release-summary`
 
-**Rules** — any file in `.rulesync/rules/` not listed in `.rulesync/.gitignore`. The allowlist covers chart-specific architecture (`ag-charts`, `api-contracts`, `data-model`, `defaults`, `dom-performance`, `module-support`, `series`, `cartesian-series-types`, `server-side-rendering`), chart-tooling guides (`benchmarks`, `browser-benchmarks`, `testing`, `docs-review-testing`), and the `playbook-bug-fix` rule. Wrapper rules that used to point at shared skills (e.g. `examples`, `docs-pages`, `playbook-example`) and generic guides (`link-verification`, `prose-style`, `docker`) now live in `ag-dev-prompts` and arrive via the plugin fetch.
+**Rules** — the nine rules tightly coupled to ag-charts source code evolution: `ag-charts` (root), `api-contracts`, `cartesian-series-types`, `data-model`, `defaults`, `dom-performance`, `module-support`, `series`, `server-side-rendering`. These describe architectural patterns (e.g., `_ModuleSupport` barrel, `DataSet`, series class hierarchy) that evolve in the same PR as the code they describe, so keeping them adjacent avoids cross-repo coordination. Chart-tooling guides (benchmarks, testing, docs-review-testing, playbook-bug-fix) and shared workflow guides (examples, docs, link-verification, prose-style, docker) now live in `ag-dev-prompts` and arrive via the plugin fetch.
 
 ## Editing
 

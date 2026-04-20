@@ -2,7 +2,7 @@
     "$schema": "./plugin-assignments.schema.json",
     "description": "Plugin assignments for sync-to-plugin.sh. Maps each item in the extracted prompts/ output to its target plugin subdirectory.",
     "marketplace": "ag-dev",
-    "version": "0.5.0-beta.2",
+    "version": "0.5.0-beta.3",
     "plugins": {
         "ag-core": {
             "description": "Product-agnostic LLM/agentic tooling — memory, reflection, interviews, plan review/verify",
@@ -36,6 +36,8 @@
                 "run-gha-locally",
                 "sonar-fix",
                 "sync-ag-shared",
+                "triage-rt",
+                "triage-rt-board",
                 "validate-prompts",
                 "website-astro",
                 "website-css"
@@ -85,20 +87,25 @@
             ],
             "commands": ["previs"],
             "guides": [
+                "benchmarks.md",
+                "browser-benchmarks.md",
                 "docs-checklist.md",
                 "docs-pages.md",
+                "docs-review-testing.md",
                 "examples-framework-patterns.md",
                 "examples.md",
+                "playbook-bug-fix.md",
                 "playbook-docs.md",
                 "playbook-example.md",
-                "series-performance-optimization.md"
+                "series-performance-optimization.md",
+                "testing.md"
             ]
         }
     },
     "notes": {
-        "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[releases, technology-stack, triage-rt, triage-rt-board], commands[release-summary]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
+        "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[releases, technology-stack], commands[release-summary]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
         "directCommits": "The 6 agents in ag-charts (data-viz-designer, example-tester, previs-evaluator, technical-research-analyst, test-writer, visual-qa) and all ag-charts skills/commands are direct commits to ag-dev-prompts — they must be placed in plugins/ag-charts/ when committed.",
         "excludedFromPlugin": "hooks/, .mcp.json, .claude-settings.json, .cursor-worktrees.json are excluded (conflict with project settings when loaded as plugin).",
-        "beta": "Version 0.5.0-beta.2 adds the chart-specific wrapper guides (formerly in .rulesync/rules/) and three generic shared guides to the plugin guides inventories. 0.5.0-beta.1 collapsed six plugins (ag-core, ag-prompt, ag-pm, ag-eng, ag-rel, ag-charts) to three (ag-core, ag-shared, ag-charts). Beta tag is retained until every downstream repo (ag-charts, ag-grid, ag-studio) has migrated."
+        "beta": "Version 0.5.0-beta.3 migrates five chart-specific guides (benchmarks, browser-benchmarks, docs-review-testing, playbook-bug-fix, testing) and two cross-product release-triage skills (triage-rt, triage-rt-board) out of the ag-charts .rulesync/ local tier. 0.5.0-beta.2 added the first wave of wrapper guides. 0.5.0-beta.1 collapsed six plugins to three. Beta tag is retained until every downstream repo has migrated."
     }
 }

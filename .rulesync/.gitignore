@@ -9,8 +9,6 @@ mcp.json
 /skills/*
 !/skills/releases/
 !/skills/technology-stack/
-!/skills/triage-rt/
-!/skills/triage-rt-board/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
@@ -20,19 +18,14 @@ mcp.json
 !/commands/release-summary.md
 /commands/docs/
 
-# Plugin-delivered rules — allowlist local-only rules
+# Plugin-delivered rules — allowlist local-only rules (chart-source-coupled)
 /rules/*.md
 !/rules/ag-charts.md
 !/rules/api-contracts.md
-!/rules/benchmarks.md
-!/rules/browser-benchmarks.md
 !/rules/cartesian-series-types.md
 !/rules/data-model.md
 !/rules/defaults.md
-!/rules/docs-review-testing.md
 !/rules/dom-performance.md
 !/rules/module-support.md
-!/rules/playbook-bug-fix.md
 !/rules/series.md
 !/rules/server-side-rendering.md
-!/rules/testing.md
