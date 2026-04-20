@@ -1,15 +1,15 @@
-import { type AgActiveItemState, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
+import { NetworkLinkNode } from './networkLinkNode';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
 export type NetworkSeriesDatumIndex = number;
 
 export interface NetworkDatum<NetworkVertex, TNetworkEdge>
     extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
-    bbox: _ModuleSupport.BBox;
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
@@ -28,7 +28,6 @@ export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
     labelData: any;
 }
 
-export type NetworkLinkNode<TDatum> = _ModuleSupport.TranslatableGroup<TDatum>;
 export interface NetworkLinkDatum<NetworkVertex, TNetworkEdge> {
     from: Vertex<NetworkVertex, TNetworkEdge>;
     to: Vertex<NetworkVertex, TNetworkEdge>;
@@ -81,11 +80,28 @@ export abstract class AbstractNetworkSeries<
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
+    private pendingCollapsedIds?: string[];
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx, pickModes: [] });
+        super({
+            moduleCtx,
+            pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
+        });
 
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
+
+        moduleCtx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
+            if (!collapsed) return;
+            if (this.graph.getVertexCount() === 0) {
+                this.pendingCollapsedIds = collapsed;
+            }
+        });
+
+        moduleCtx.eventsHub.on('active:update', (blob) => {
+            if (blob?.seriesId !== this.id) return;
+            this.expandActive(blob.itemId);
+        });
     }
 
     abstract createNetworkGraph(): TGraph;
@@ -105,12 +121,10 @@ export abstract class AbstractNetworkSeries<
     abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
 
+    abstract expandActive(itemIdOrIndex: string | number): void;
+
     dataCount() {
         return this.graph.getVertexCount();
-    }
-
-    findNodeDatum(_itemIdOrIndex: AgActiveItemState['itemId']): NetworkDatum<TVertex, TEdge> | undefined {
-        return undefined;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
@@ -139,8 +153,22 @@ export abstract class AbstractNetworkSeries<
         return;
     }
 
+    processPendingCollapse() {
+        if (this.pendingCollapsedIds) {
+            this.ctx.collapsedManager.collapse(this.pendingCollapsedIds);
+            this.pendingCollapsedIds = undefined;
+        }
+    }
+
+    protected expand(ids: string[]) {
+        const changed = this.ctx.collapsedManager.expand(ids);
+        if (changed) {
+            this.markNodeDataDirty();
+        }
+    }
+
     private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
-        return new _ModuleSupport.TranslatableGroup();
+        return new NetworkLinkNode();
     }
 
     private updateSelections() {

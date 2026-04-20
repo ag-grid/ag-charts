@@ -6,6 +6,7 @@ import {
     type AgOrganizationSeriesOptionsLink,
     type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
+    type AgOrganizationSeriesOptionsNodeImage,
     type AgOrganizationSeriesOptionsNodeText,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -13,6 +14,7 @@ import {
     type OptionsDefs,
     arrayOf,
     callbackDefs,
+    callbackOf,
     commonSeriesOptionsDefs,
     constant,
     fillOptionsDef,
@@ -22,10 +24,13 @@ import {
     optionsDefs,
     overflowStrategy,
     positiveNumber,
+    positiveNumberNonZero,
     required,
     string,
     strokeOptionsDef,
+    textOrSegments,
     textWrap,
+    union,
 } from 'ag-charts-core';
 
 const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpolation> = {
@@ -44,8 +49,18 @@ const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
     interpolation: stepInterpolation,
 };
 
+const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    key: string,
+    height: positiveNumberNonZero,
+    width: positiveNumberNonZero,
+    position: union('bottom', 'left', 'right', 'top'),
+    shape: union('circle', 'square'),
+    spacing: positiveNumber,
+};
+
 const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeText> = {
     ...fontOptionsDef,
+    formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
         ...fontOptionsDef,
         overflowStrategy: overflowStrategy,
@@ -63,11 +78,13 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: number,
+    image: nodeImage,
     itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,
         ...strokeOptionsDef,
         cornerRadius: number,
+        image: nodeImage,
         maxHeight: number,
         maxWidth: number,
     }),

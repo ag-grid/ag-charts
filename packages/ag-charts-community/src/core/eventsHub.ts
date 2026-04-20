@@ -75,8 +75,7 @@ export interface SeriesAreaHoverEvent {
 export interface SeriesAreaClickEvent {
     readonly type: 'click' | 'dblclick';
     readonly consumed: boolean;
-    readonly ctrlOrMeta: boolean;
-    readonly sourceEvent: Event;
+    readonly sourceEvent: MouseEvent | TouchEvent | KeyboardEvent;
     readonly clickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
 }
 
@@ -129,6 +128,7 @@ export interface EventsHubMap {
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
+    'collapsed:restore': { collapsed?: string[] };
     'rtl:change': null;
     'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;

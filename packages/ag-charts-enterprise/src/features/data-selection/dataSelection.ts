@@ -1,11 +1,38 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, Logger, type NormalisedSelectionOptions } from 'ag-charts-core';
+import type { _Widget } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+import {
+    AbstractModuleInstance,
+    type AreExact,
+    ChartUpdateType,
+    Logger,
+    type NormalisedSelectionOptions,
+} from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
 
+function toStartAndLength(start: number, end: number): [number, number] {
+    if (start > end) {
+        [start, end] = [end, start];
+    }
+    return [start, end - start];
+}
+
+function toBBox(event1: _Widget.DragWidgetEvent, event2: _Widget.DragWidgetEvent): _ModuleSupport.BBox {
+    const [x, width] = toStartAndLength(event1.currentX, event2.currentX);
+    const [y, height] = toStartAndLength(event1.currentY, event2.currentY);
+    return new _ModuleSupport.BBox(x, y, width, height);
+}
+
+function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
+    return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
+}
+
 export class DataSelection extends AbstractModuleInstance {
+    private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
+    private readonly dragRect: _ModuleSupport.Rect;
+
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection');
     }
@@ -13,7 +40,22 @@ export class DataSelection extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.cleanup.register(ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)));
+        this.dragRect = new _ModuleSupport.Rect();
+        this.dragRect.fill = 'rgba(140,140,255)';
+        this.dragRect.opacity = 0.2;
+        this.dragRect.stroke = '#3b82f6';
+        this.dragRect.strokeWidth = 2;
+        this.dragRect.strokeOpacity = 1;
+        this.dragRect.visible = false;
+
+        this.cleanup.register(
+            ctx.scene.attachNode(this.dragRect),
+            ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
+            ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
+            ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
+            ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
+            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
+        );
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
@@ -26,27 +68,116 @@ export class DataSelection extends AbstractModuleInstance {
         const { data } = clickedNode.series;
         if (data === undefined) return;
 
-        const { datumIndex } = clickedNode;
+        const { series, datumIndex } = clickedNode;
         if (typeof datumIndex !== 'number') {
             Logger.errorOnce(`Not Yet Implemented: datumIndex of type ${typeof datumIndex}`);
             return;
         }
 
-        if (clickMode === 'multiple' || event.ctrlOrMeta) {
-            this.toggleSelection(clickedNode, data, datumIndex);
+        if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
+            this.toggleSelection(series, data, datumIndex);
         } else {
             clickMode satisfies 'single';
-            this.setSingleSelection(clickedNode, data, datumIndex);
+            this.setSingleSelection(series, data, datumIndex);
+        }
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+    }
+
+    private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
+        const { enabled, enableDrag } = this.opts;
+        if (!enabled || !enableDrag) return;
+
+        this.dragStartEvent = dragStartEvent;
+        this.dragRect.x = dragStartEvent.currentX;
+        this.dragRect.y = dragStartEvent.currentY;
+        this.dragRect.width = 0;
+        this.dragRect.height = 0;
+        this.dragRect.visible = true;
+    }
+
+    private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
+        const { enabled, enableDrag } = this.opts;
+        const { dragStartEvent } = this;
+
+        if (!enabled || !enableDrag || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
+
+        const seriesBounds = toBBox(dragStartEvent, dragMoveEvent);
+        const canvasBounds = _ModuleSupport.Transformable.toCanvas(this.ctx.chartService.seriesRoot, seriesBounds);
+
+        this.dragRect.x = canvasBounds.x;
+        this.dragRect.y = canvasBounds.y;
+        this.dragRect.width = canvasBounds.width;
+        this.dragRect.height = canvasBounds.height;
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PRE_SERIES_UPDATE });
+    }
+
+    private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
+        const { enabled, enableDrag } = this.opts;
+        const { dragStartEvent } = this;
+
+        if (!enabled || !enableDrag || !dragStartEvent) {
+            this.dragRect.visible = false;
+            return;
+        }
+
+        const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+        const bbox = toBBox(dragStartEvent, dragEndEvent);
+
+        for (const series of this.ctx.chartService.series) {
+            const { data } = series;
+            if (data === undefined) continue;
+
+            if (shouldClearSelections) {
+                data.selections.clear();
+            }
+
+            for (const unsafeDatum of series.pickNodesInBBox(bbox)) {
+                // TODO:
+                // The value this.ctx.chartService.series uses `TDatum = any`, therefore `pickNodesInBBox`
+                // is not type-safe. These runtime checks become irrelevant if `pickNodesInBBox` were type-safe;
+                // Therefore verify that unsafeDatum is of type `any`.
+                true satisfies AreExact<typeof unsafeDatum, any>;
+                const unknownDatum: unknown = unsafeDatum;
+                if (unknownDatum != null && typeof unknownDatum === 'object' && 'datumIndex' in unknownDatum) {
+                    const datumIndex: unknown = unknownDatum.datumIndex;
+                    if (typeof datumIndex === 'number') {
+                        this.setSelected(series, data, datumIndex);
+                    } else {
+                        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                    }
+                }
+            }
+        }
+        this.endDrag();
+    }
+
+    private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
+        if (widgetEvent.sourceEvent.code === 'Escape') {
+            this.endDrag();
         }
     }
 
-    private setSingleSelection(clickedNode: ClickedNode, data: DataSet, datumIndex: number): void {
+    private setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {
         data.selections.clear();
-        this.toggleSelection(clickedNode, data, datumIndex);
+        this.toggleSelection(series, data, datumIndex);
     }
 
-    private toggleSelection(clickedNode: ClickedNode, data: DataSet, datumIndex: number): void {
-        const selections = data.enableSelection(clickedNode.series.id);
+    private toggleSelection(series: Series, data: DataSet, datumIndex: number): void {
+        const selections = data.enableSelection(series.id);
         selections.toggle(datumIndex);
+    }
+
+    private setSelected(series: Series, data: DataSet, datumIndex: number): void {
+        const selections = data.enableSelection(series.id);
+        selections.select(datumIndex);
+    }
+
+    private endDrag(): void {
+        this.dragStartEvent = undefined;
+        this.dragRect.visible = false;
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 }

@@ -31,6 +31,10 @@ const options: AgChartOptions = {
                             cornerRadius: 30,
                         };
                     }
+
+                    if (params.highlightState === 'highlighted-item') {
+                        return { strokeWidth: 4 };
+                    }
                 },
                 title: {
                     key: 'name',

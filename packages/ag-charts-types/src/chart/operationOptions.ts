@@ -38,7 +38,7 @@ type ExtendLiteralLeavesInner<T, V, E, P extends keyof T> =
         ? Array<ExtendLiteralLeaves<U, V, E>> | V
         : T[P] extends E
           ? T[P] | V
-          : ExtendLiteralLeaves<T[P], V, E>;
+          : ExtendLiteralLeaves<T[P], V, E> | V;
 
 type ThemeParam = keyof AgChartAllThemeParams;
 
@@ -75,6 +75,7 @@ type CacheOperation = { $cacheMax: Leaf<number> };
 type ChartOperation =
     | { $hasSeriesType: Leaf<string> }
     | { $isChartType: Leaf<string> }
+    | { $isPackageType: Leaf<'community' | 'enterprise'> } // True when the registered package matches
     | { $isSeriesType: Leaf<string> };
 
 type ColorOperation =
@@ -98,7 +99,7 @@ type LocationOperation =
     | { $ref: ThemeParam }; // Theme param
 
 type LogicOperation =
-    | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] } // Condition | Value if true | Value if false
+    | { $if: [AnyLeaf, AnyLeaf | object, AnyLeaf | object] } // Condition | Value if true | Value if false
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy

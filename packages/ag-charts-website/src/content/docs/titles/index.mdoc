@@ -1,0 +1,65 @@
+---
+title: 'Titles'
+description: 'Configure $framework chart title, subtitle, and footnote captions, including text wrapping, truncation and tooltips.'
+---
+
+Chart captions — `title`, `subtitle` and `footnote` — label and annotate the chart. Each accepts the same set of options for text content, font styling, wrapping and tooltips.
+
+```js format="snippet"
+{
+    title: {
+        text: 'Quarterly Revenue',
+        fontSize: 18,
+    },
+    subtitle: {
+        text: 'Fiscal Year 2025',
+    },
+    footnote: {
+        text: 'Source: Internal CRM',
+    },
+}
+```
+
+## Wrapping & Truncation
+
+Use `maxWidth` and `maxHeight` to constrain caption dimensions. The `wrapping` option controls how text behaves when it exceeds the available space:
+
+-   `'always'` — Wrap text to fit within `maxWidth` (default).
+-   `'hyphenate'` — Similar to `'always'`, but inserts a hyphen if forced to break mid-word.
+-   `'on-space'` — Only wrap on white space; truncate if no break point fits.
+-   `'never'` — No wrapping; text is truncated if it exceeds `maxWidth`.
+
+## Tooltips
+
+Tooltips can be added to any caption to show additional information on hover. This is useful for providing data source notes, methodology details or the full text of a truncated caption.
+
+{% chartExampleRunner title="Caption Tooltips" name="caption-tooltip" type="generated" /%}
+
+In this example, the title and footnote are constrained by `maxWidth` and truncated. Hovering over a truncated caption shows its tooltip automatically. Use the buttons to change the `tooltip.visible` mode:
+
+-   `'auto'` — Show the tooltip only when the caption text is truncated (default).
+-   `'always'` — Always show the tooltip on hover, even when not truncated.
+-   `'never'` — Never show a tooltip, even when the text is truncated.
+
+{% note %}
+When `tooltip.text` or `tooltip.renderer` is provided without an explicit `visible` value, the tooltip defaults to `'always'`.
+{% /note %}
+
+Use `tooltip.text` to display a static tooltip message, or `tooltip.renderer` for dynamic content. The renderer receives the caption's plain text and can return a string or an HTML string.
+
+```js format="snippet"
+{
+    title: {
+        text: 'Annual Revenue',
+        tooltip: {
+            renderer: ({ text }) => `<b>${text}</b><br/>Source: Internal CRM`,
+        },
+    },
+}
+```
+
+Content precedence: `renderer` > `text` > default caption text.
+
+## API Reference
+
+{% apiReference id="AgChartCaptionOptions" /%}

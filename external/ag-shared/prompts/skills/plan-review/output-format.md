@@ -220,5 +220,5 @@ Tasks proposed by sub-agents for out-of-scope work:
 2. [ ] Review important issues
 3. [ ] Consider agentic execution recommendations
 4. [ ] Re-run `/plan-review --quick` after revisions (optional)
-5. [ ] Proceed with `/plan-implementation-review` during execution
+5. [ ] Proceed with `/plan-verify` during execution
 ```

@@ -1,4 +1,5 @@
 import {
+    type AgOrganizationNodeTextFormatterParams,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
@@ -10,6 +11,7 @@ import {
     type FontSize,
     type FontStyle,
     type FontWeight,
+    type Formatter,
     type OverflowStrategy,
     type Styler,
     type TextWrap,
@@ -77,6 +79,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    image = new OrganizationSeriesNodeImageProperties();
+
+    @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<unknown>, AgOrganizationSeriesNodeStyle>;
 
     @Property
@@ -110,6 +115,26 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     labels = new PropertiesArray(OrganizationSeriesNodeTextProperties);
 }
 
+export class OrganizationSeriesNodeImageProperties extends BaseProperties {
+    @Property
+    key!: string;
+
+    @Property
+    height: number = 50;
+
+    @Property
+    width: number = 50;
+
+    @Property
+    position: 'bottom' | 'left' | 'right' | 'top' = 'top';
+
+    @Property
+    shape: 'circle' | 'square' = 'square';
+
+    @Property
+    spacing: number = 0;
+}
+
 export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     @Property
     key!: string;
@@ -128,6 +153,9 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     fontWeight!: FontWeight;
+
+    @Property
+    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
 
     @Property
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<unknown>, AgOrganizationSeriesNodeTextStyle>;

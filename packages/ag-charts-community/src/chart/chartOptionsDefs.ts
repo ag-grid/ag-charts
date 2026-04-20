@@ -1,6 +1,7 @@
 import {
     type OptionsDefs,
     array,
+    arrayOf,
     arrayOfDefs,
     boolean,
     commonChartOptionsDefs,
@@ -49,6 +50,7 @@ export const commonChartOptions = {
     initialState: {
         active: initialStatePickedOptionsDef,
         chartType: string,
+        collapsed: arrayOf(string),
         annotations: defined,
         legend: arrayOfDefs<AgInitialStateLegendOptions>(
             {

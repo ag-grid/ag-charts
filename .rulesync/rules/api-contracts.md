@@ -63,6 +63,10 @@ This is automatically synced from `processedOptions` via `jsonApply()` in `apply
 2. Add validator to all chart option defs in `chartOptionsDefs.ts`
 3. Add `@Property` field on `Chart` class — `jsonApply` handles the rest
 4. If the option affects the DataSet or other persistent state, ensure state is recreated when the option changes (not just when `data` changes)
+5. If the option includes a callback/renderer, use `TContext = ContextDefault` for the `context` parameter — never `any`. Thread `TContext` from the root chart options through all intermediate interfaces so user-supplied generics propagate to the renderer params.
+6. Nested `BaseProperties` sub-objects on a `BaseProperties` class **must** have the `@Property` decorator. Without it, `BaseProperties.set()` cannot find the property via `listDecoratedProperties()` and will reject it at runtime ("property is unknown").
+
+**Lint constraint**: The `aglint/require-explicit-generic` rule requires explicit type arguments on all generic type references in `ag-charts-types`. When making a previously non-generic interface generic, grep for all references and add explicit type args. Prefer `unknown` over `any` for type aliases that don't propagate a specific context.
 
 ## Propagating Undocumented Options
 

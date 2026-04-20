@@ -14,6 +14,7 @@ import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
 import { ScatterSeries } from './scatterSeries';
 import { scatterSeriesOptionsDef } from './scatterSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
@@ -55,21 +56,9 @@ const themeTemplate: ExtensibleTheme<'scatter'> = {
             },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
-    gradientLegend: {
-        enabled: {
-            $some: [
-                {
-                    $and: [
-                        { $path: '/series/$index/colorKey' },
-                        { $path: '/series/$index/colorScale/fills/0' },
-                        { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
-                    ],
-                },
-                { $path: '/series' },
-            ],
-        },
-    },
+    gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
 export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions> = {

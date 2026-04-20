@@ -1,11 +1,11 @@
-# Plan Implementation Review Output Format
+# Plan Verify Output Format
 
 Use this template to generate the final progress report.
 
 ---
 
 ```markdown
-# Plan Implementation Review
+# Plan Verify Report
 
 ## Summary
 
@@ -154,6 +154,31 @@ def5678 - Implement module Y (3 hours ago)
 |------|---------|--------------|
 | `src/feature.ts` | +120, -30 | Step 1 |
 | `src/module.ts` | +45, -10 | Step 2 |
+
+---
+
+## JIRA Acceptance Criteria Verification
+
+> If no JIRA ticket was detected, replace this section with:
+> "JIRA AC verification skipped — no ticket detected."
+
+**Ticket:** [AG-XXXXX]
+**Title:** [Ticket title]
+
+### Acceptance Criteria Status
+
+| AC# | Criterion                    | Status  | Evidence                          | Notes              |
+|-----|------------------------------|---------|-----------------------------------|--------------------|
+| 1   | [Criterion description]      | PASS ✓  | `src/feature.ts:42` — [detail]    |                    |
+| 2   | [Criterion description]      | PARTIAL | `src/module.ts:10` — [detail]     | Missing edge case  |
+| 3   | [Criterion description]      | MISSING | —                                 | Not addressed      |
+
+### Summary
+
+- **X/Y criteria PASS** — fully implemented and verified
+- **Critical gaps:** [Code changes needed, or "None"]
+- **Test-only gaps:** [Missing test coverage, or "None"]
+- **Recommendations:** [Actions to close remaining gaps]
 
 ---
 

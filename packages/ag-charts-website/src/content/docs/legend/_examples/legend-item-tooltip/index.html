@@ -1,0 +1,13 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <label for="tooltip-mode">Tooltip Mode:</label>
+        <select id="tooltip-mode" onchange="setTooltipMode(event.target.value)">
+            <option value="auto">auto (default)</option>
+            <option value="always">always</option>
+            <option value="never">never</option>
+            <option value="custom-text">custom text</option>
+            <option value="renderer">renderer</option>
+        </select>
+    </div>
+</div>
+<div id="myChart"></div>

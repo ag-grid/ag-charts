@@ -1723,8 +1723,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (this.needsViewportSupport(options) && initialState?.zoom != null) {
             stateManager.setState(zoomManager, initialState.zoom);
         }
+
         if (initialState?.active != null) {
             stateManager.setState(activeManager, initialState.active);
+        }
+
+        if (initialState?.collapsed != null) {
+            stateManager.setState(this.ctx.collapsedManager, initialState.collapsed);
         }
 
         if (initialState?.legend != null) {

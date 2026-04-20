@@ -9,14 +9,56 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
 } from 'ag-charts-core';
-import type { AgBubbleSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
+import type {
+    AgBubbleSeriesOptions,
+    AgColorScale,
+    AgGradientLegendOptions,
+    ExtensibleTheme,
+    Operation,
+    WithThemeParams,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
+import { DEFAULT_FILLS } from '../../themes/defaultColors';
 import { BubbleSeries } from './bubbleSeries';
 import { bubbleSeriesOptionsDef } from './bubbleSeriesOptionsDef';
 import { predictCartesianAxis } from './util';
+
+// Shared theme fragments used by scatter as well. The colour scale is an enterprise feature:
+// the $if/$isPackageType pair resolves the whole colorScale sub-tree to a default divergingColors
+// palette when ag-charts-enterprise is registered, and undefined otherwise. Community resolved
+// options therefore never contain a colorScale from the theme, which lets the enterprise()
+// validator on `colorScale` fire on any user-supplied value without false positives from theme
+// defaults. User-supplied colorScale options replace the entire default object rather than
+// merging element-wise.
+export const BUBBLE_SCATTER_COLOR_SCALE_THEME: Operation | WithThemeParams<AgColorScale> = {
+    $if: [
+        { $isPackageType: 'enterprise' },
+        {
+            fills: [{ color: DEFAULT_FILLS.ORANGE }, { color: DEFAULT_FILLS.YELLOW }, { color: DEFAULT_FILLS.GREEN }],
+        },
+        undefined,
+    ],
+};
+
+// Gradient legend enables automatically for any series that supplies `colorKey` together with
+// a non-discrete `colorScale.fills` entry.
+export const BUBBLE_SCATTER_GRADIENT_LEGEND_THEME: WithThemeParams<AgGradientLegendOptions> = {
+    enabled: {
+        $some: [
+            {
+                $and: [
+                    { $path: '/series/$index/colorKey' },
+                    { $path: '/series/$index/colorScale/fills/0' },
+                    { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
+                ],
+            },
+            { $path: '/series' },
+        ],
+    },
+};
 
 const themeTemplate: ExtensibleTheme<'bubble'> = {
     series: {
@@ -56,21 +98,9 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
-    gradientLegend: {
-        enabled: {
-            $some: [
-                {
-                    $and: [
-                        { $path: '/series/$index/colorKey' },
-                        { $path: '/series/$index/colorScale/fills/0' },
-                        { $not: { $eq: [{ $path: '/series/$index/colorScale/mode' }, 'discrete'] } },
-                    ],
-                },
-                { $path: '/series' },
-            ],
-        },
-    },
+    gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,
 };
 
 export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> = {

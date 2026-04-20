@@ -90,6 +90,7 @@ export const colorScaleOptionsDef = optionsDefs<AgColorScale>(
             )
         ),
         mode: union('continuous', 'discrete'),
+        missingDataFill: color,
     },
     'a colour scale configuration'
 );

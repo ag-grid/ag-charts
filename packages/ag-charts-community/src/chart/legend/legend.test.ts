@@ -897,4 +897,194 @@ describe('Legend', () => {
             await compare(chart);
         });
     });
+
+    describe('AG-10316 legend item tooltip', () => {
+        const TOOLTIP_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { x: 'Q1', y: 10, z: 20 },
+                { x: 'Q2', y: 20, z: 30 },
+            ],
+            series: [
+                { type: 'bar', xKey: 'x', yKey: 'y', yName: 'Series Y' },
+                { type: 'bar', xKey: 'x', yKey: 'z', yName: 'Series Z' },
+            ],
+            legend: { enabled: true },
+        };
+
+        let legendX: number;
+        let legendY: number;
+
+        function getTooltipElement() {
+            // Scope to the current chart's container to avoid picking up
+            // stale/unrelated tooltip elements from other charts.
+            return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
+        }
+
+        function isTooltipVisible() {
+            return getTooltipElement()?.hasAttribute('data-presented-as-popover') ?? false;
+        }
+
+        function getTooltipText() {
+            return getTooltipElement()?.textContent ?? '';
+        }
+
+        function getTooltipHTML() {
+            return getTooltipElement()?.innerHTML ?? '';
+        }
+
+        async function setupChart(legendOverrides: AgCartesianChartOptions['legend'] = {}) {
+            const options: AgCartesianChartOptions = prepareTestOptions({
+                ...TOOLTIP_OPTIONS,
+                legend: { ...TOOLTIP_OPTIONS.legend, ...legendOverrides },
+            });
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+            const box = computeLegendBBox(chart);
+            legendX = box.x;
+            legendY = box.y;
+        }
+
+        async function hoverLegendItem() {
+            await hoverAction(legendX, legendY)(chart);
+            await waitForChartStability(chart);
+        }
+
+        test('no tooltip config — non-truncated items do not show tooltip', async () => {
+            await setupChart();
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(false);
+        });
+
+        test('visible: always — tooltip shown on every hover', async () => {
+            await setupChart({ item: { tooltip: { visible: 'always' } } });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Series Y');
+        });
+
+        test('visible: never — tooltip never shown', async () => {
+            await setupChart({
+                item: {
+                    label: { maxLength: 3 }, // force truncation
+                    tooltip: { visible: 'never' },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(false);
+        });
+
+        test('text — static text shown on every hover', async () => {
+            await setupChart({ item: { tooltip: { text: 'Click to toggle' } } });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Click to toggle');
+        });
+
+        test('renderer — dynamic content on every hover', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        renderer: (p) => `${p.text} (${p.seriesId})`,
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipHTML()).toContain('Series Y');
+        });
+
+        test('visible: auto with renderer — tooltip only when truncated', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        visible: 'auto',
+                        renderer: (p) => `${p.text} — details`,
+                    },
+                },
+            });
+
+            // Non-truncated item: no tooltip
+            await hoverLegendItem();
+            expect(isTooltipVisible()).toBe(false);
+        });
+
+        test('renderer returns empty string — no tooltip', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        renderer: () => '',
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(false);
+        });
+
+        test('both text and renderer — renderer takes precedence', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        text: 'Static text',
+                        renderer: (p) => `Custom: ${p.text}`,
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipHTML()).toContain('Custom: Series Y');
+        });
+
+        test('text defaults visible to always', async () => {
+            await setupChart({ item: { tooltip: { text: 'Info' } } });
+
+            await hoverLegendItem();
+
+            // Text provided without explicit visible — should default to 'always'
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Info');
+        });
+
+        test('renderer params contain expected fields', async () => {
+            const rendererFn = jest.fn((_p: any) => 'tooltip');
+            await setupChart({
+                item: { tooltip: { renderer: rendererFn } },
+            });
+
+            await hoverLegendItem();
+
+            expect(rendererFn).toHaveBeenCalledTimes(1);
+            const params = rendererFn.mock.calls[0][0];
+            expect(params).toMatchObject({
+                seriesId: expect.any(String),
+                itemId: 'y',
+                text: 'Series Y',
+                enabled: true,
+            });
+        });
+
+        test('toggleSeries: false — tooltip still works', async () => {
+            await setupChart({
+                toggleSeries: false,
+                item: { tooltip: { visible: 'always' } },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+        });
+    });
 });

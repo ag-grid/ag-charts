@@ -395,6 +395,7 @@ export class MapShapeSeries
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
         const { label, legendItemName, colorKey } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         if (dataModel == null || processedData == null) return;
 
@@ -427,7 +428,7 @@ export class MapShapeSeries
                 missingGeometries.push(dataValues.idValue);
             }
 
-            if (colorKey != null && dataValues.colorValue == null) {
+            if (colorKey != null && dataValues.colorValue == null && missingDataFill == null) {
                 continue;
             }
 
@@ -538,7 +539,8 @@ export class MapShapeSeries
         isHighlight: boolean
     ): Required<AgMapShapeSeriesStyle> {
         const { properties, colorScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorKey, colorRange, itemStyler } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         const baseStyle = properties.getStyle();
 
@@ -547,6 +549,8 @@ export class MapShapeSeries
             if (fillOverride != null) {
                 baseStyle.fill = fillOverride;
             }
+        } else if (colorKey != null && missingDataFill != null) {
+            baseStyle.fill = missingDataFill;
         }
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -722,7 +726,8 @@ export class MapShapeSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { colorKey, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -730,6 +735,8 @@ export class MapShapeSeries
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 fill = this.colorScale.convert(colorValue);
+            } else if (colorKey != null && missingDataFill != null) {
+                fill = missingDataFill;
             }
         }
 

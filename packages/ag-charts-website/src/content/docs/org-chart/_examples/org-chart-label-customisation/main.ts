@@ -35,6 +35,15 @@ const options: AgChartOptions = {
                 },
                 subtitle: {
                     key: 'job',
+                    formatter: (params: any) => {
+                        if (params.value === 'Quality Assurance') {
+                            return [
+                                { text: 'QUALITY', fontSize: 14, fontWeight: 'bold', color: 'purple' },
+                                { text: ' Assurance' },
+                            ];
+                        }
+                        return params.value;
+                    },
                     itemStyler: (params: any) => {
                         if (params.datum.job === 'Developer') {
                             return {

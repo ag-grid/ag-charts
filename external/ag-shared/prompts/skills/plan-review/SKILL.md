@@ -247,7 +247,7 @@ By default, an additional adversarial review pass runs after the standard review
 ## Integration with Other Commands
 
 -   **Before implementation:** Run `/plan-review` to validate the plan
--   **During implementation:** Run `/plan-implementation-review` to track progress
+-   **During implementation:** Run `/plan-verify` to track progress
 -   **After implementation:** Run tests and verification tasks from the plan
 
 ---
