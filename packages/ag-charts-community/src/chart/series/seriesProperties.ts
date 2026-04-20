@@ -145,6 +145,11 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     }
 }
 
+export class SeriesSelectionProperties extends BaseProperties {
+    @Property
+    enabled = false;
+}
+
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
     @Property
     start?: number;
@@ -324,6 +329,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
 
     @Property
     readonly highlight: HighlightProperties<T> = new HighlightProperties();
+
+    @Property
+    readonly selection: SeriesSelectionProperties = new SeriesSelectionProperties();
 
     abstract tooltip: SeriesTooltip<never>;
 
