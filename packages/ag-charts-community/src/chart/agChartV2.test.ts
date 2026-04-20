@@ -233,6 +233,35 @@ describe('AgChartV2', () => {
 
             expect(chart.getState().legend).toBeUndefined();
         });
+
+        it('restores legend-type active initialState', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    { x: 'a', y1: 1, y2: 2 },
+                    { x: 'b', y1: 3, y2: 4 },
+                ],
+                series: [
+                    { type: 'area', xKey: 'x', yKey: 'y1', stacked: true },
+                    { type: 'area', xKey: 'x', yKey: 'y2', stacked: true },
+                ],
+                initialState: {
+                    active: {
+                        activeItem: { type: 'legend', seriesId: 'AreaSeries-2', itemId: 'y2' },
+                        frozen: false,
+                    },
+                },
+            };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const state = chart.getState();
+            expect(state.active).toEqual({
+                frozen: false,
+                activeItem: { type: 'legend', seriesId: 'AreaSeries-2', itemId: 'y2' },
+            });
+        });
     });
 
     describe('AG-16360', () => {

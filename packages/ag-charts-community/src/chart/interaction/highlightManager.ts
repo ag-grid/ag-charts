@@ -76,6 +76,7 @@ export class HighlightManager {
         if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.highlightInViewport = highlightInViewport;
+            this.ctx.chartState.setValue('highlight', currentHighlight);
             this.ctx.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,

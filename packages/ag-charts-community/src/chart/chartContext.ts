@@ -145,6 +145,7 @@ export class ChartContext implements ModuleContext {
         this.scene.setRoot(root);
 
         this.chartState.setValue('activeItem', undefined);
+        this.chartState.setValue('highlight', undefined);
         this.chartState.setValue('legendData', {});
         this.chartState.setValue('legendVisible', true);
 

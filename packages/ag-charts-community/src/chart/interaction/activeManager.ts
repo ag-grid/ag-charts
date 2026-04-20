@@ -39,6 +39,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
             if (pendingMemento) {
                 this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 this.pendingMemento = undefined;
+                // Flush immediately so other pre-scene-render listeners see the restored active item.
+                ctx.chartState.flushChanges('activeItem');
             }
             removeListener();
         });
