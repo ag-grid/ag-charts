@@ -2,6 +2,12 @@
 version: v1.25.1
 # ignores vulnerabilities until expiry date; change duration by modifying expiry date
 ignore:
+    SNYK-JS-LODASH-15869625:
+        - jest-image-snapshot@6.4.0 > lodash@4.17.21:
+              reason: >-
+                  Used in build & dev - not included in final production build
+              expires: 2026-06-08T00:00:00.000Z
+              created: 2026-04-15T13:32:58.751Z
     SNYK-JS-BRACEEXPANSION-15789759:
         - jest-image-snapshot@6.4.0 > rimraf@2.7.1 > glob@7.2.3 > minimatch@3.1.2 > brace-expansion@2.0.2:
               reason: >-
@@ -20,9 +26,4 @@ ignore:
                   Test dependency - not included in final production build
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-03-02T16:57:07.425Z
-    SNYK-JS-GLOB-14040952:
-        - 'skia-canvas@2.0.2 > glob@11.0.2':
-              reason: skia-canvas uses glob's library API (glob.sync) for font file resolution, and not glob CLI, so the vulnerable CLI path is not exercised.
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2026-01-16T09:24:00.007Z
 patch: {}

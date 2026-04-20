@@ -15,6 +15,7 @@ import {
     SeriesContentZIndexMap,
     type SeriesPluginModuleInstance,
     SeriesZIndexMap,
+    boxContains,
     callWithContext,
     createId,
     isEmptyObject,
@@ -959,6 +960,30 @@ export abstract class Series<
         // Override point for subclasses - but if this is invoked, the subclass specified it wants
         // to use this feature.
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
+    }
+
+    public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
+        function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
+            for (const child of node.children()) {
+                if (child.datum !== undefined) {
+                    const result = callback(child);
+                    if (result !== undefined) {
+                        yield result;
+                    }
+                } else if (child instanceof Group) {
+                    yield* walkNodes(child, callback);
+                }
+            }
+        }
+
+        yield* walkNodes(this.contentGroup, (node) => {
+            const { x, y, width, height } = node.getBBox();
+            if (boxContains(selectionBox, x, y, width, height)) {
+                // eslint-disable-next-line sonarjs/deprecation
+                return node.unsafeDatum;
+            }
+            return undefined;
+        });
     }
 
     isPointInArea?(x: number, y: number): boolean;

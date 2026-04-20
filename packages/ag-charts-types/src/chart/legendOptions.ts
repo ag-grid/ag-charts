@@ -13,6 +13,9 @@ import type {
     PixelSize,
 } from './types';
 
+/** Controls when an element tooltip is shown. */
+export type AgElementTooltipVisibility = 'auto' | 'always' | 'never';
+
 export type AgChartLegendPlacement =
     | 'top'
     | 'top-right'
@@ -102,6 +105,37 @@ export interface AgChartLegendLabelOptions<TContext = ContextDefault> {
     formatter?: Formatter<AgChartLegendLabelFormatterParams<TContext>>;
 }
 
+export interface AgChartLegendItemTooltipRendererParams<TContext = ContextDefault> {
+    /** Series id. */
+    seriesId: string;
+    /** Legend item id - usually yKey value for cartesian series. */
+    itemId: string | number;
+    /** The full, untruncated legend item label text. */
+    text: string;
+    /** Whether the legend item is currently enabled (series visible). */
+    enabled: boolean;
+    /** Callback context for this renderer. */
+    context?: TContext;
+}
+
+export interface AgChartLegendItemTooltipOptions<TContext = ContextDefault> {
+    /** Controls when the tooltip is shown.
+     * - `'auto'` shows the tooltip only when the label text is truncated.
+     * - `'always'` shows the tooltip on every hover.
+     * - `'never'` disables the tooltip entirely.
+     *
+     * Default: `'auto'` when no `text` or `renderer` is provided; `'always'` otherwise.
+     */
+    visible?: AgElementTooltipVisibility;
+    /** Static tooltip text shown for all legend items. */
+    text?: string;
+    /** Function to generate tooltip content per legend item. Returns plain text or an HTML string.
+     * Takes precedence over `text`.
+     *
+     * **Note:** Output is rendered as HTML. Ensure content is trusted to avoid XSS. */
+    renderer?: (params: AgChartLegendItemTooltipRendererParams<TContext>) => string;
+}
+
 export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     /** Configuration for the legend markers. */
     marker?: AgChartLegendMarkerOptions;
@@ -109,6 +143,8 @@ export interface AgChartLegendItemOptions<TContext = ContextDefault> {
     line?: AgChartLegendLineOptions;
     /** Configuration for the legend labels. */
     label?: AgChartLegendLabelOptions<TContext>;
+    /** Configuration for the legend item tooltip. */
+    tooltip?: AgChartLegendItemTooltipOptions<TContext>;
     /** Used to constrain the width of legend items. */
     maxWidth?: PixelSize;
     /** The horizontal spacing in pixels to use between legend items. */

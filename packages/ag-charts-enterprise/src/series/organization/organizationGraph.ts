@@ -1,18 +1,7 @@
 import { Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from '../network/networkGraph';
-
-export type OrganizationVertex = string | string[] | number;
-
-export type OrganizationEdge =
-    | 'datumIndex' // The index of the datum within the series' data array.
-    | 'nodeDatumIndex' // The index of the datum within the series' nodeData array.
-    | 'child' // The descending edge from parent to child.
-    | 'parent' // The ascending edge from child to parent.
-    | 'depth'
-    | 'title'
-    | 'subtitle'
-    | 'labels';
+import type { OrganizationEdge, OrganizationVertex } from './organizationTypes';
 
 export class OrganizationGraph extends NetworkGraph<OrganizationVertex, OrganizationEdge> {
     constructor() {
@@ -25,6 +14,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
                 'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
                 'depth',
+                'image',
                 'title',
                 'subtitle',
                 'labels',
@@ -35,6 +25,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
     build(
         idValues: string[],
         parentIdValues: (string | undefined)[],
+        imageValues: (string | undefined)[],
         titleValues: (string | undefined)[],
         subtitleValues: (string | undefined)[],
         labelsValues: (string[] | undefined)[],
@@ -45,6 +36,9 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
         for (const id of idValues) {
             const vertex = this.addVertex(id);
 
+            if (imageValues[index] != null) {
+                this.addEdge(vertex, this.addVertex(imageValues[index] as string), 'image');
+            }
             if (titleValues[index] != null) {
                 this.addEdge(vertex, this.addVertex(titleValues[index] as string), 'title');
             }

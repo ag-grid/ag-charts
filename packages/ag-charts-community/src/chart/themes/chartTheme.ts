@@ -480,7 +480,14 @@ export class ChartTheme {
                         placement: { $path: ['/tooltip/position/placement', undefined] },
                         xOffset: { $path: ['/tooltip/position/xOffset', 0] },
                         yOffset: { $path: ['/tooltip/position/yOffset', 0] },
-                        offset: { $path: ['/tooltip/position/offset', 8] },
+                        // Chart-anchored tooltips default to `0` (backwards-compatible with the
+                        // pre-AG-17064 flush behaviour); pointer/node keep the historical 8px gap.
+                        offset: {
+                            $path: [
+                                '/tooltip/position/offset',
+                                { $if: [{ $eq: [{ $path: './anchorTo' }, 'chart'] }, 0, 8] },
+                            ],
+                        },
                     },
                 },
             },

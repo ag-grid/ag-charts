@@ -6,6 +6,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    enterprise,
     errorBarOptionsDefs,
     errorBarThemeableOptionsDefs,
     markerOptionsDefs,
@@ -40,6 +41,7 @@ export const scatterSeriesThemeableOptionsDef: OptionsDefs<AgScatterSeriesThemea
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    colorScale: enterprise(colorScaleOptionsDef),
 };
 
 export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
@@ -49,13 +51,12 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
     xKey: required(string),
     yKey: required(string),
     labelKey: string,
-    colorKey: string,
+    colorKey: enterprise(string),
     xName: string,
     yName: string,
     labelName: string,
-    colorName: string,
+    colorName: enterprise(string),
     legendItemName: string,
-    colorScale: colorScaleOptionsDef,
     xKeyAxis: string,
     yKeyAxis: string,
     errorBar: errorBarOptionsDefs,

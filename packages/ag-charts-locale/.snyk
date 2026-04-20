@@ -381,10 +381,4 @@ ignore:
                   Test dependency - not included in final production build
               expires: 2026-06-08T00:00:00.000Z
               created: 2026-03-02T16:56:53.216Z
-    SNYK-JS-CROSSSPAWN-8303230:
-        - jest@29.7.0 > @jest/core@29.7.0 > jest-changed-files@29.7.0 > execa@5.1.1 > cross-spawn@7.0.3:
-              reason: >-
-                  Only used for testing, so a ReDoS would only affect a developers machine
-              expires: 2026-06-08T00:00:00.000Z
-              created: 2025-07-15T11:28:00.000Z
 patch: {}

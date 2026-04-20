@@ -20,6 +20,14 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             stroke: { $palette: 'stroke' },
             strokeOpacity: 1,
             strokeWidth: 2,
+            image: {
+                key: 'image',
+                width: 50,
+                height: 50,
+                position: 'top',
+                shape: 'square',
+                spacing: 10,
+            },
             title: {
                 color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },

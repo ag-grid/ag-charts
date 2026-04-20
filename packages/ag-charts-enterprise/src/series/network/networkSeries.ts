@@ -82,7 +82,10 @@ export abstract class AbstractNetworkSeries<
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super({ moduleCtx, pickModes: [] });
+        super({
+            moduleCtx,
+            pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
+        });
 
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
