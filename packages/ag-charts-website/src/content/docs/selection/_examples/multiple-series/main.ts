@@ -81,11 +81,6 @@ const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeries
 };
 const options: AgCartesianChartOptions<unknown> = {
     container: document.getElementById('myChart'),
-    selection: {
-        enabled: true,
-        enableClick: true,
-        enableDrag: true,
-    },
     tooltip: {
         enabled: false,
     },
@@ -330,8 +325,13 @@ export function onChartTypeChange(value: unknown) {
     chart.update(options);
 }
 
-export function onSelectionChange(checked: boolean) {
-    options.selection.enabled = checked;
+export function onSelectionChange(target: HTMLInputElement) {
+    target.removeAttribute('checked');
+    options.selection = {
+        enabled: target.checked,
+        enableClick: true,
+        enableDrag: true,
+    };
     chart.update(options);
 }
 

@@ -11,6 +11,7 @@
     font-family: monospace;
 }
 
+#mySelectionChange[checked='mixed'],
 #mySelectionChangeA[checked='mixed'],
 #mySelectionChangeB[checked='mixed'],
 #mySelectionChangeC[checked='mixed'],
