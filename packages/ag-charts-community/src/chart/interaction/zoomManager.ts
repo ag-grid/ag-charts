@@ -23,7 +23,6 @@ import type {
     DefinedZoomState,
     MementoOriginator,
     OptionsDefs,
-    ReactiveState,
     RequireOptional,
     Scale,
     ZoomMinMax,
@@ -31,20 +30,14 @@ import type {
 } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
-import type {
-    EventsHub,
-    ZoomChangeRequestEvent,
-    ZoomChangeState,
-    ZoomEventSourceDetail,
-    ZoomMemento,
-} from '../../core/eventsHub';
+import type { ZoomChangeRequestEvent, ZoomChangeState, ZoomEventSourceDetail, ZoomMemento } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
 import type { TypedEvent } from '../../util/observable';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
-import type { ChartState } from '../chartState';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
 
@@ -182,24 +175,17 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
           }
         | undefined = undefined;
 
-    private readonly chartState: ReactiveState<ChartState>;
-    private readonly eventsHub: EventsHub;
-
     constructor(
-        ctx: { chartState: ReactiveState<ChartState>; eventsHub: EventsHub },
+        private readonly ctx: ModuleContext,
         private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
     ) {
         super();
 
-        this.chartState = ctx.chartState;
-        this.eventsHub = ctx.eventsHub;
-        const { eventsHub } = ctx;
-
         this.cleanup.register(
-            eventsHub.on('zoom:change-request', (event) => {
+            ctx.eventsHub.on('zoom:change-request', (event) => {
                 this.constrainZoomToRequiredWidth(event);
             }),
-            eventsHub.on('update:pre-series', ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
+            ctx.eventsHub.on('update:pre-series', ({ requiredRangeRatio, requiredRangeDirection, requiredRange }) => {
                 this.didLayoutAxes = true;
 
                 const { pendingMemento } = this;
@@ -215,7 +201,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                     sourceDetail: 'unspecified',
                 });
             }),
-            eventsHub.on('update:complete', ({ wasShortcut }) => {
+            ctx.eventsHub.on('update:complete', ({ wasShortcut }) => {
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource) {
                     const source = this.pendingZoomEventSource;
@@ -326,7 +312,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             zoom.x = { min: 0, max: 1 };
         }
         const { navigatorModule, zoomModule } = this;
-        this.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
+        this.ctx.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
@@ -470,8 +456,8 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
     public fireZoomPanStartEvent(callerId: 'navigator' | 'zoom') {
-        this.chartState.setValue('zoomPanning', true);
-        this.eventsHub.emit('zoom:pan-start', { callerId });
+        this.ctx.chartState.setValue('zoomPanning', true);
+        this.ctx.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
     public updateWith(
@@ -645,7 +631,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             autoScaledAxes: undefined,
         };
 
-        this.eventsHub.emit('zoom:save-memento', { memento });
+        this.ctx.eventsHub.emit('zoom:save-memento', { memento });
         return memento;
     }
 
@@ -797,7 +783,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             },
         } satisfies ZoomChangeRequestEvent;
 
-        this.eventsHub.emit('zoom:change-request', event);
+        this.ctx.eventsHub.emit('zoom:change-request', event);
 
         if (constrainedState && !areEqualCoreZooms(state, constrainedState)) {
             this.state = constrainedState;
@@ -805,10 +791,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
-            this.chartState.setValue('zoom', this.state);
-            this.chartState.setValue('zoomPanning', false);
+            this.ctx.chartState.setValue('zoom', this.state);
+            this.ctx.chartState.setValue('zoomPanning', false);
             const acceptedZoom = this.getZoom() ?? {};
-            this.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
+            this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;
