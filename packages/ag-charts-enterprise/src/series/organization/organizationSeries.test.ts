@@ -278,4 +278,82 @@ describe('OrganizationSeries', () => {
             }
         );
     });
+
+    describe('expand collapse', () => {
+        describe('initialState', () => {
+            it('should not show collapsed nodes', async () => {
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: {
+                        collapsed: ['cto'],
+                    },
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await compare();
+            });
+        });
+
+        describe('setState', () => {
+            it('should collapse nodes', async () => {
+                const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+
+                await compare();
+            });
+
+            it('should expand nodes', async () => {
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: {
+                        collapsed: ['cto'],
+                    },
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: [] });
+
+                await compare();
+            });
+
+            it('should collapse and expand multiple states', async () => {
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: {
+                        collapsed: ['cfo'],
+                    },
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: ['cfo', 'cto'] });
+                await chart.setState({ version: '13.3.0', collapsed: ['cfo'] });
+
+                await compare();
+            });
+        });
+    });
+
+    describe('layout', () => {
+        it('should not overlap younger siblings over older siblings with no children', async () => {
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                data: [
+                    { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', parentId: null },
+                    { id: 'cto', name: 'Bob Smith', job: 'Chief Technology Officer', parentId: 'ceo' },
+                    { id: 'cfo', name: 'Carol Wu', job: 'Chief Financial Officer', parentId: 'ceo' },
+                    { id: 'acc', name: 'Frank Cash', job: 'Accountant', parentId: 'cfo' },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
 });

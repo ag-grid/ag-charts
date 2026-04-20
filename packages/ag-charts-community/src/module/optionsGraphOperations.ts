@@ -129,14 +129,25 @@ function cacheMaxOperation(graph: OptionsGraphInterface, vertex: VertexInterface
 enum ChartOperation {
     HasSeriesType = '$hasSeriesType',
     IsChartType = '$isChartType',
+    IsPackageType = '$isPackageType',
     IsSeriesType = '$isSeriesType',
 }
 
 const chartOperations: Record<ChartOperation, OperationFns> = {
     $hasSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: hasSeriesTypeOperation },
     $isChartType: { dependencies: seriesTypeDependencyFactory, resolve: isChartTypeOperation },
+    $isPackageType: isPackageTypeOperation,
     $isSeriesType: { dependencies: seriesTypeDependencyFactory, resolve: isSeriesTypeOperation },
 };
+
+function isPackageTypeOperation(graph: OptionsGraphInterface, vertex: VertexInterface, values: Array<VertexInterface>) {
+    const [valueVertex] = values;
+    const value = graph.resolveVertexValue(vertex, valueVertex);
+    const isEnterprise = ModuleRegistry.isEnterprise();
+    if (value === 'enterprise') return isEnterprise;
+    if (value === 'community') return !isEnterprise;
+    return false;
+}
 
 function seriesTypeDependencyFactory(
     graph: OptionsGraphInterface,

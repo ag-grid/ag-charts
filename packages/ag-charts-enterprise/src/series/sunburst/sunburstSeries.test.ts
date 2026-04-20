@@ -669,6 +669,45 @@ describe('SunburstSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        name: 'Americas',
+                        children: [
+                            { name: 'United States', gdp: 26.9, change: 6 },
+                            { name: 'Canada', gdp: 2.1, change: null },
+                            { name: 'Brazil', gdp: 2.1 },
+                        ],
+                    },
+                    {
+                        name: 'Asia',
+                        children: [
+                            { name: 'China', gdp: 17.7, change: 0 },
+                            { name: 'Japan', gdp: 4.2, change: -1 },
+                            { name: 'India', gdp: 4, change: 20 },
+                        ],
+                    },
+                ],
+                series: [
+                    {
+                        type: 'sunburst',
+                        labelKey: 'name',
+                        sizeKey: 'gdp',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('legend', () => {

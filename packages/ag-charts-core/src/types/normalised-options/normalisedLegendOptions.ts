@@ -91,4 +91,7 @@ export type NormalisedLegendOptions = Normalised<
     }
 >;
 
-export type NormalisedSelectionOptions = Normalised<AgSelectionOptions, 'enabled' | 'enableClick' | 'clickMode'>;
+export type NormalisedSelectionOptions = Normalised<
+    AgSelectionOptions,
+    'enabled' | 'enableClick' | 'enableDrag' | 'clickMode'
+>;

@@ -1,9 +1,9 @@
 import type { DeepRequired } from 'ag-charts-core';
 import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, TextOrSegments } from 'ag-charts-types';
 
-import type { NetworkDatum, NetworkLinkDatum, NetworkLinkNode } from '../network/networkSeries';
+import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 
-export type OrganizationVertex = string | string[] | number;
+export type OrganizationVertex = string | string[] | number | boolean;
 
 export type OrganizationEdge =
     | 'datumIndex' // The index of the datum within the series' data array.
@@ -24,10 +24,10 @@ export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, Orga
         labels?: (TextOrSegments | undefined)[];
     };
     nodeDatumIndex: number;
+    collapsed: boolean;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
-export type OrganizationLinkNode = NetworkLinkNode<OrganizationLinkDatum>;
 
 export type RequiredOrganizationNodeStyle = DeepRequired<
     AgOrganizationSeriesNodeStyle & {

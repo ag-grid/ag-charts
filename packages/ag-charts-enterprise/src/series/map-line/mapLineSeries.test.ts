@@ -248,6 +248,34 @@ describe('MapLineSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should stroke missing colorValue with colorScale.missingDataFill', async () => {
+            const dataWithMissing = ukRoadData.map((datum: any, i: number) => {
+                if (i % 3 !== 0) return datum;
+                const rest = { ...datum };
+                delete rest.dailyVehicles;
+                return rest;
+            });
+            const options: AgChartOptions = {
+                data: dataWithMissing,
+                topology: ukRoadTopology,
+                series: [
+                    {
+                        type: 'map-line',
+                        idKey: 'name',
+                        colorKey: 'dailyVehicles',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('legend', () => {

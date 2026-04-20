@@ -78,6 +78,8 @@ export interface AgScatterSeriesThemeableOptions<TDatum = DatumDefault, TContext
     errorBar?: AgErrorBarThemeableOptions;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }
 
 export interface AgScatterSeriesOptionsKeys<TDatum = DatumDefault> {
@@ -114,6 +116,4 @@ export interface AgScatterSeriesOptions<TDatum = DatumDefault, TContext = Contex
     type: 'scatter';
     /** Configuration for the Error Bars. */
     errorBar?: AgErrorBarOptions<TDatum, TContext>;
-    /** Configuration for colour scale with fills, domain, and mode. */
-    colorScale?: AgColorScale;
 }

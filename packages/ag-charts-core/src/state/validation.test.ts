@@ -1,6 +1,7 @@
-import { beforeEach, describe, expect, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, jest } from '@jest/globals';
 
 import { reset as resetLogger } from '../logging/logger';
+import { RegistryMode, reset as resetRegistry, setRegistryMode } from '../modules/moduleRegistry';
 import {
     type OptionsDefs,
     type Validator,
@@ -17,6 +18,7 @@ import {
     callbackOf,
     constant,
     date,
+    enterprise,
     greaterThan,
     instanceOf,
     lessThan,
@@ -134,6 +136,63 @@ describe('Validation utils', () => {
                 'a non-empty string'
             );
             expect(validate<{ str: string }>({ str: '' }, { str: describedValidator }).invalid).toMatchSnapshot();
+        });
+
+        describe('enterprise wrapper', () => {
+            afterEach(() => resetRegistry());
+
+            test('passes values through when enterprise is registered', () => {
+                setRegistryMode(RegistryMode.Enterprise);
+                const { cleared, invalid } = validate<{ key: string }>({ key: 'x' }, { key: enterprise(string) });
+                expect(cleared).toEqual({ key: 'x' });
+                expect(invalid).toEqual([]);
+            });
+
+            test('strips defined values and fires a single warnOnce when enterprise is not registered', () => {
+                const { cleared, invalid } = validate<{ key: string }>(
+                    { key: 'x' },
+                    { key: enterprise(string) },
+                    'series[0]'
+                );
+                expect(cleared).toEqual({ key: null });
+                // The gate uses warnOnce directly so the error is not propagated through the
+                // invalid array (avoids repeat logging across update cycles).
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('series[0].key');
+            });
+
+            test('dedupes repeat validations of the same path', () => {
+                const defs = { key: enterprise(string) };
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                validate<{ key: string }>({ key: 'x' }, defs, 'series[0]');
+                // warnOnce caches by message — the same path logs once.
+                expect(console.warn).toHaveBeenCalledTimes(1);
+            });
+
+            test('stays silent when the value is undefined', () => {
+                const { invalid } = validate<{ key?: string }>({ key: undefined }, { key: enterprise(string) });
+                expect(invalid).toEqual([]);
+                expect(console.warn).not.toHaveBeenCalled();
+            });
+
+            test('strips nested enterprise option defs', () => {
+                const { cleared, invalid } = validate<{ scale: { fills: string[] } }>(
+                    { scale: { fills: ['#fff'] } },
+                    { scale: enterprise({ fills: arrayOf(string) }) }
+                );
+                expect(cleared).toEqual({ scale: null });
+                expect(invalid).toEqual([]);
+                expect(console.warn).toHaveBeenCalledTimes(1);
+                expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
+            });
+
+            test('throws when composed with required() in either order', () => {
+                expect(() => enterprise(required(string))).toThrow(/enterprise.*required/);
+                expect(() => required(enterprise(string))).toThrow(/required.*enterprise/);
+            });
         });
     });
 

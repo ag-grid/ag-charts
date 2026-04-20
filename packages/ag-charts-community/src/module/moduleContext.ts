@@ -10,6 +10,7 @@ import type { DataService } from '../chart/data/dataService';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { ActiveManager } from '../chart/interaction/activeManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
+import type { CollapsedManager } from '../chart/interaction/collapsedManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
@@ -51,6 +52,7 @@ export interface ModuleContext {
     readonly activeManager: ActiveManager;
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
+    readonly collapsedManager: CollapsedManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;

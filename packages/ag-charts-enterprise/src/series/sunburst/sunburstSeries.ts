@@ -174,7 +174,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     protected getItemStyle(nodeDatum: SunburstNode, isHighlight: boolean) {
         const { properties, colorScale } = this;
 
-        const { itemStyler } = properties;
+        const { itemStyler, colorKey } = properties;
+        const { missingDataFill } = properties.colorScale;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const highlightedNode = this.getActiveHighlightNode();
@@ -184,6 +185,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         if (nodeDatum.colorValue != null && highlightStyles?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
+        } else if (colorKey != null && missingDataFill != null && highlightStyles?.fill == null) {
+            baseStyle.fill = missingDataFill;
         }
 
         let style = baseStyle;

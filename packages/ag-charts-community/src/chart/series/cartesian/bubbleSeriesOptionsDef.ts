@@ -7,6 +7,7 @@ import {
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
     constant,
+    enterprise,
     markerOptionsDefs,
     multiSeriesHighlightOptionsDef,
     number,
@@ -44,6 +45,7 @@ export const bubbleSeriesThemeableOptionsDef: OptionsDefs<AgBubbleSeriesThemeabl
     ...commonSeriesThemeableOptionsDefs,
     ...without(markerOptionsDefs, ['enabled']),
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),
+    colorScale: enterprise(colorScaleOptionsDef),
 };
 
 export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
@@ -54,14 +56,13 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
     yKey: required(string),
     sizeKey: required(string),
     labelKey: string,
-    colorKey: string,
+    colorKey: enterprise(string),
     xName: string,
     yName: string,
     sizeName: string,
     labelName: string,
-    colorName: string,
+    colorName: enterprise(string),
     legendItemName: string,
-    colorScale: colorScaleOptionsDef,
     xKeyAxis: string,
     yKeyAxis: string,
     highlight: multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef),

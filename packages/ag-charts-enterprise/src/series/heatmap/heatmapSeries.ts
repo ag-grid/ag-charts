@@ -604,11 +604,20 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         highlightState?: _ModuleSupport.HighlightState
     ) {
         const { properties } = this;
-        const { itemStyler, stroke, strokeWidth, strokeOpacity } = properties;
+        const { itemStyler, stroke, strokeWidth, strokeOpacity, colorKey } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        let fill: string;
+        if (this.isColorScaleValid() && colorValue != null) {
+            fill = this.colorScale.convert(colorValue);
+        } else if (colorKey != null && missingDataFill != null) {
+            fill = missingDataFill;
+        } else {
+            fill = 'transparent';
+        }
         const style = mergeDefaults(highlightStyle, {
-            fill: this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : 'transparent',
+            fill,
             fillOpacity: 1,
             stroke,
             strokeWidth,
@@ -751,7 +760,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         let fill: InternalAgColorType;
         if (colorValue == null) {
-            fill = colorRange[0];
+            fill = properties.colorScale.missingDataFill ?? colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;

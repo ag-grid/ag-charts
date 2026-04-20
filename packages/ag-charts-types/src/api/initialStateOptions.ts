@@ -22,10 +22,12 @@ export interface AgInitialStateOptions {
     annotations?: AgAnnotation[];
     /** The initial chart type. */
     chartType?: AgInitialStateChartType;
-    /** The initial zoom state. */
-    zoom?: AgInitialStateZoomOptions;
+    /** The initial collapsed datums by id, for Organization Charts. */
+    collapsed?: string[];
     /** The initial legend series visibility state. */
     legend?: AgInitialStateLegendOptions[];
+    /** The initial zoom state. */
+    zoom?: AgInitialStateZoomOptions;
 }
 
 export type AgInitialStateChartType = AgPriceVolumeChartType;
