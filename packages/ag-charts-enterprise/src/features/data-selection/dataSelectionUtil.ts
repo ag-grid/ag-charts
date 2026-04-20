@@ -28,7 +28,9 @@ export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boole
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
-export function copySelectionBuffers(chartService: ChartService): BufferMap {
+export function copySelectionBuffers(chartService: ChartService): BufferMap | undefined {
+    if (!chartService.hasListener('selectionChange')) return undefined;
+
     const result: BufferMap = new Map();
     for (const series of chartService.series) {
         const { data } = series;

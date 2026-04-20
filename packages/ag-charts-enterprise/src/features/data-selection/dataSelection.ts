@@ -65,6 +65,7 @@ export class DataSelection extends AbstractModuleInstance {
             return;
         }
 
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
             toggleSelection(series, data, datumIndex);
         } else {
@@ -72,6 +73,7 @@ export class DataSelection extends AbstractModuleInstance {
             setSingleSelection(series, data, datumIndex);
         }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+        this.dispatchSelectionChange(bufferMap);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -116,10 +118,7 @@ export class DataSelection extends AbstractModuleInstance {
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         const bbox = toBBox(dragStartEvent, dragEndEvent);
-
-        const bufferMap: BufferMap | undefined = this.ctx.chartService.hasListener('selectionChange')
-            ? copySelectionBuffers(this.ctx.chartService)
-            : undefined;
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
 
         for (const series of this.ctx.chartService.series) {
             const { data } = series;
@@ -147,10 +146,7 @@ export class DataSelection extends AbstractModuleInstance {
             }
         }
 
-        if (bufferMap) {
-            this.dispatchSelectionChange(bufferMap);
-        }
-
+        this.dispatchSelectionChange(bufferMap);
         this.endDrag();
     }
 
@@ -166,7 +162,9 @@ export class DataSelection extends AbstractModuleInstance {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
-    private dispatchSelectionChange(bufferMap: BufferMap): void {
+    private dispatchSelectionChange(bufferMap: BufferMap | undefined): void {
+        if (bufferMap === undefined) return;
+
         const { chartService } = this.ctx;
         const { added, removed } = diffSelectionBuffers(chartService, bufferMap);
 
