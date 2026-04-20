@@ -7,15 +7,13 @@ mcp.json
 
 # Plugin-delivered skills — allowlist local-only skills
 /skills/*
-!/skills/releases/
 !/skills/technology-stack/
 
 # Plugin-delivered agents — all agents live in plugins
 /subagents/*.md
 
-# Plugin-delivered commands — allowlist local-only commands
+# Plugin-delivered commands — all commands live in plugins
 /commands/*.md
-!/commands/release-summary.md
 /commands/docs/
 
 # Plugin-delivered rules — allowlist local-only rules (chart-source-coupled)
