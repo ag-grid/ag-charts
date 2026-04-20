@@ -14,7 +14,7 @@ The `setup-prompts.sh` script (`external/ag-shared/scripts/setup-prompts/setup-p
 
 ## Rulesync Patches
 
-Patches are stored in `external/ag-shared/prompts/patches/` and symlinked from `patches/` for `patch-package` to apply them.
+Patches are stored in `external/ag-shared/patches/` and symlinked from `patches/` for `patch-package` to apply them.
 
 ### Symlink Handling Fix
 
@@ -95,7 +95,7 @@ After modifying `node_modules/rulesync/dist/index.js`:
 npx patch-package rulesync
 ```
 
-This updates `patches/rulesync+*.patch` (which symlinks to `external/ag-shared/prompts/patches/`).
+This updates `patches/rulesync+*.patch` (which symlinks to `external/ag-shared/patches/`).
 
 ## Verify-rulesync Skill File Patterns
 

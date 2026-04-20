@@ -2,6 +2,8 @@
 # AG-17085 Phase 3: plugin-delivered items staged from ag-dev-prompts.
 # These are regenerated on each setup-prompts run.
 .fetched-from-ag-dev-prompts
+commands/docs/_docs-review-core.md
+commands/docs/_release-docs-review-core.md
 commands/optimise-context.md
 commands/prepare-release-notes.md
 commands/previs.md
