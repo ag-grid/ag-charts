@@ -226,11 +226,12 @@ export class DataSelection extends AbstractModuleInstance {
                 }
             }
         }
-        this.endDrag();
 
         if (bufferMap) {
             this.dispatchSelectionChange(bufferMap);
         }
+
+        this.endDrag();
     }
 
     private onKeyDown(widgetEvent: _ModuleSupport.KeyboardWidgetEvent<'keydown'>): void {
