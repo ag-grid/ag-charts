@@ -89,6 +89,14 @@ id = "GHSA-jr5f-v2jv-69x6"
 reason = "We only use axios for build and testing"
 
 [[IgnoredVulns]]
+id = "GHSA-3p68-rc4w-qgx5"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
+id = "GHSA-fvcv-3m26-pcqx"
+reason = "We only use axios for build and testing"
+
+[[IgnoredVulns]]
 id = "GHSA-qwcr-r2fm-qrc7"
 reason = "We only use body-parser for the dev server"
 
@@ -122,6 +130,10 @@ reason = "express is used in development/testing - it's not used in the final pr
 
 [[IgnoredVulns]]
 id = "GHSA-cxjh-pqwp-8mfp"
+reason = "follow-redirects is used in development/testing - it's not used in the final production build"
+
+[[IgnoredVulns]]
+id = "GHSA-r4q5-vmmm-2653"
 reason = "follow-redirects is used in development/testing - it's not used in the final production build"
 
 [[IgnoredVulns]]
@@ -238,6 +250,14 @@ reason = "Angular version used determined by end user"
 
 [[IgnoredVulns]]
 id = "GHSA-xxjr-mmjv-4gpg"
+reason = "Lodash not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-f23m-r3pf-42rh"
+reason = "Lodash not used directly and not accessible to end users/external users"
+
+[[IgnoredVulns]]
+id = "GHSA-r5fr-rjxr-66jc"
 reason = "Lodash not used directly and not accessible to end users/external users"
 
 [[IgnoredVulns]]
@@ -440,3 +460,114 @@ reason = "h3 is not used in final prod docs build"
 id = "GHSA-rf6f-7fwh-wjgh"
 reason = "used by dev/test - not used in final prod build"
 
+[[IgnoredVulns]]
+id = "GHSA-92pp-h63x-v22m"
+reason = "@hono/node-server only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-26pp-8wgv-hjvm"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-458j-xx4x-4375"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-r5rp-j6wh-rvv4"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-wmmm-f939-6g9c"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-xf4j-xp2r-rqqx"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-xpcf-pg52-r92g"
+reason = "hono is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-g735-7g2w-hh3f"
+reason = "astro generates a static webpage, so this is not relevant"
+
+[[IgnoredVulns]]
+id = "GHSA-6v7q-wjvx-w8wg"
+reason = "basic-ftp is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-rp42-5vxx-qpwr"
+reason = "basic-ftp is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-f886-m6hf-6m8v"
+reason = "brace-expansion is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-737v-mqg7-c878"
+reason = "defu is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-cfw5-2vxh-hr84"
+reason = "devalue is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-mwv9-gp5h-frr4"
+reason = "devalue is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-39q2-94rc-95cp"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-cj63-jhhr-wcxv"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-cjmm-f4jc-qw8r"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-h8r8-wccr-v5f2"
+reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-38f7-945m-qr2g"
+reason = "effect is only used in dev - not used in final prod build"
+
+[[IgnoredVulns]]
+id = "GHSA-37ch-88jc-xwx2"
+reason = "path-to-regexp is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-27v5-c462-wpq7"
+reason = "path-to-regexp is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-j3q9-mxjg-w52f"
+reason = "path-to-regexp is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-3v7f-55p6-f55p"
+reason = "picomatch is only used in testing and dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-c2c7-rcm5-vvqj"
+reason = "picomatch is only used in testing and dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-qj8w-gfj5-8c6v"
+reason = "serialize-javascript is only used in testing and dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-v3rj-xjv7-4jmq"
+reason = "smol-toml is only used in dev tools"
+
+[[IgnoredVulns]]
+id = "GHSA-677m-j7p3-52f9"
+reason = "socket.io-parser is only used in testing tools"
+
+[[IgnoredVulns]]
+id = "GHSA-48c2-rrv3-qjmp"
+reason = "yaml is only used in dev tools"
