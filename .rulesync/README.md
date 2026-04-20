@@ -1,261 +1,30 @@
-# Agentic Tooling Crib-Sheet
+# Agentic Tooling — AG Charts
 
-Quick-reference for all AI agent commands, skills, sub-agents, and rules available in this repo.
+Most skills, agents, commands, and shared rules come from the [`ag-grid/ag-dev-prompts`](https://github.com/ag-grid/ag-dev-prompts) marketplace. See its [README](https://github.com/ag-grid/ag-dev-prompts#readme) for the full inventory and what each item does.
 
-## How It Works
+## Where things come from
 
-| Folder       | Purpose                                                                                           | Loaded by              |
-| ------------ | ------------------------------------------------------------------------------------------------- | ---------------------- |
-| `.rulesync/` | Canonical shared source — works across tools (Cursor, Claude Code, etc.)                          | All supported AI tools |
-| `.claude/`   | Claude Code extensions — mirrors `.rulesync/` plus Claude Code-specific agents, skills, and rules | Claude Code only       |
+| Channel                                                             | Claude Code                          | Cursor / Codex / Gemini / Copilot                           |
+| ------------------------------------------------------------------- | ------------------------------------ | ----------------------------------------------------------- |
+| Plugin marketplace (`ag-dev` → `ag-charts`, `ag-shared`, `ag-core`) | Loaded directly as a plugin          | N/A                                                         |
+| `.rulesync/` (this directory)                                       | Rules + a few product-specific items | Everything — staged from ag-dev-prompts by `rulesync-fetch` |
 
-**Loading behaviour:**
+Plugin content is mirrored into `.rulesync/` by `external/ag-shared/scripts/rulesync-fetch/stage.py` so non-Claude tools receive the same surface via `rulesync generate`. Staged items are gitignored (`.rulesync/.gitignore`); only the AG Charts-local items below are tracked here.
 
--   **Rules** load automatically based on file-pattern globs (e.g. editing a `.test.ts` file loads the `testing` rule). The root rule (`ag-charts`) loads for all files.
--   **Skills** load on-demand when invoked via `/skill-name`. Skills marked **(user)** are user-invocable only — the LLM should not invoke them autonomously via the Skill tool.
--   **Sub-agents** are spawned automatically by the AI when a task matches their speciality.
--   **Commands** are invoked explicitly via `/command-name`.
+## AG Charts-local items (not in any plugin)
 
-**Provenance key:**
+These live in this repo because they depend on ag-charts source layout or release process.
 
--   🟢 **Local** — ag-charts specific (normal file in `.rulesync/`)
--   🔵 **Shared** — reusable across AG products (symlink to `external/ag-shared/`)
--   🟠 **Product plugin** — ag-charts product-specific prompt delivered via the `ag-charts` plugin
+**Skills** — `releases`, `technology-stack`, `triage-rt`, `triage-rt-board`, `writing-style`
 
----
+**Commands** — `/release-summary`
 
-## Everyday Development
+**Rules** — any file in `.rulesync/rules/` not listed in `.rulesync/.gitignore`. Highlights: `ag-charts` (root), `api-contracts`, `data-model`, `defaults`, `dom-performance`, `module-support`, `series`, `server-side-rendering`, `docs-review-testing`, and the three `playbook-*` rules.
 
-| Type  | Name                  | Invoke                                     | What it does                                               |
-| ----- | --------------------- | ------------------------------------------ | ---------------------------------------------------------- |
-| Skill | 🔵 `fr`               | `/fr <AG-XXXXX>` (user)                    | End-to-end feature implementation from JIRA to PR          |
-| Skill | 🔵 `code-fixup`       | `/code-fixup <package>` (user)             | Fix build and lint errors across a package                 |
-| Skill | 🔵 `pr-create`        | `/pr-create` (user)                        | Commit, push, and open a PR                                |
-| Skill | 🔵 `pr-review`        | `/pr-review [--json] [--all] <PR#>` (user) | Review a PR (Markdown default; `--all` adds DA + Simplify) |
-| Skill | 🔵 `dev-server`       | `/dev-server`                              | Start dev server, check build status                       |
-| Skill | 🔵 `git-conventions`  | `/git-conventions`                         | Branch, commit, and PR naming conventions                  |
-| Skill | 🟢 `technology-stack` | `/technology-stack`                        | Architecture constraints and zero-dependency rules         |
+## Editing
 
-## Testing and Quality
+-   Tool-specific output directories (`.claude/`, `.cursor/`, `.codex/`, `.gemini/`, `.github/copilot*`, `AGENTS.md`) are **generated** — never edit them directly.
+-   Change local files in `.rulesync/` and run `./external/ag-shared/scripts/setup-prompts/setup-prompts.sh` to regenerate.
+-   Plugin-delivered items must be edited in `ag-dev-prompts`, then picked up on the next `setup-prompts` run (which fetches the latest published version).
 
-| Type    | Name                    | Invoke                       | What it does                                         |
-| ------- | ----------------------- | ---------------------------- | ---------------------------------------------------- |
-| Skill   | 🔵 `debug-trace`        | `/debug-trace`               | Hypothesis-driven debugging with transient logging   |
-| Skill   | 🔵 `git-bisect`         | `/git-bisect` (user)         | Find the commit that introduced a regression         |
-| Skill   | 🟠 `sonar-fix`          | `/sonar-fix` (user)          | Fetch and fix SonarCloud issues                      |
-| Skill   | 🔵 `batch-lint-cleanup` | `/batch-lint-cleanup` (user) | Auto-fix ESLint violations by rule                   |
-| Skill   | 🔵 `run-gha-locally`    | `/run-gha-locally` (user)    | Run GitHub Actions workflow jobs locally             |
-| Command | 🟠 `/previs`            | `/previs`                    | PREVis visual quality evaluation on gallery examples |
-| Skill   | 🟠 `optimize-series`    | `/optimize-series`           | Series rendering performance and GC optimisation     |
-| Agent   | 🟠 `test-writer`        | Auto                         | Create Jest snapshot and Playwright E2E tests        |
-| Agent   | 🔵 `playwright-expert`  | Auto                         | Playwright test architecture and debugging           |
-| Agent   | 🟠 `example-tester`     | Auto                         | Validate AG Charts example correctness               |
-| Agent   | 🟠 `visual-qa`          | Auto                         | Review visual regression image diffs                 |
-
-## Documentation and Examples
-
-| Type    | Name                             | Invoke                | What it does                                             |
-| ------- | -------------------------------- | --------------------- | -------------------------------------------------------- |
-| Skill   | 🟠 `docs-create`                 | `/docs-create` (user) | Scaffold a new documentation page                        |
-| Command | 🟠 `/docs-review`                | `/docs-review`        | Review docs for accuracy and example consistency         |
-| Skill   | 🟠 `spruce-docs`                 | `/spruce-docs`        | Create or improve docs following established patterns    |
-| Skill   | 🟠 `plunker`                     | `/plunker`            | Create and manage Plunker demos for AG Charts            |
-| Skill   | 🔵 `batch-plunkers`              | `/batch-plunkers`     | Create multiple Plunkers in parallel via sub-agents      |
-| Skill   | 🟠 `spruce-example`              | `/spruce-example`     | Improve gallery examples to professional quality         |
-| Skill   | 🔵 `website-astro`               | `/website-astro`      | Astro page patterns, content collections, and components |
-| Skill   | 🔵 `website-css`                 | `/website-css`        | CSS architecture, design tokens, and styling patterns    |
-| Agent   | 🟠 `data-viz-designer`           | Auto                  | Dataset selection, chart type guidance                   |
-| Agent   | 🔵 `docs-example-browser-tester` | Auto                  | Browser-test a single docs example at its direct URL     |
-
-## Planning and Analysis
-
-| Type    | Name                               | Invoke                          | What it does                                         |
-| ------- | ---------------------------------- | ------------------------------- | ---------------------------------------------------- |
-| Skill   | 🔵 `plan-review`                   | `/plan-review` (user)           | Review plans for completeness and correctness        |
-| Skill   | 🔵 `plan-verify`                   | `/plan-verify` (user)           | Review plan execution, identify delivery gaps        |
-| Skill   | 🔵 `interview-me`                  | `/interview-me` (user)          | Surface ambiguities and open questions via interview |
-| Skill   | 🔵 `design-review`                 | `/design-review` (user)         | Multi-agent expert panel review of design documents  |
-| Command | 🟠 `/product-requirement-analysis` | `/product-requirement-analysis` | Analyse requirements with competitor research        |
-| Skill   | 🔵 `jira`                          | `/jira`                         | Create, estimate, or analyse JIRA tickets            |
-| Skill   | 🟢 `triage-rt`                     | `/triage-rt`                    | Triage release testing tickets (CRT/RTI)             |
-| Skill   | 🟢 `triage-rt-board`               | `/triage-rt-board`              | Triage an entire regression testing board end-to-end |
-| Agent   | 🟠 `technical-research-analyst`    | Auto                            | In-depth technical research with citations           |
-| Skill   | 🔵 `nx-performance`                | `/nx-performance`               | Nx monorepo performance diagnostics and optimization |
-| Agent   | 🔵 `nx-expert`                     | Auto                            | Nx monorepo configuration and build optimisation     |
-
-## Prompt Hygiene
-
-| Type  | Name                  | Invoke                     | What it does                                     |
-| ----- | --------------------- | -------------------------- | ------------------------------------------------ |
-| Skill | 🔵 `rulesync`         | `/rulesync`                | Configure AI/agentic tooling via `.rulesync/`    |
-| Skill | 🔵 `validate-prompts` | `/validate-prompts` (user) | Validate prompt file references for path hygiene |
-| Skill | 🔵 `reflect`          | `/reflect` (user)          | Analyse conversation friction and improve config |
-
-## Memory
-
-| Type    | Name                   | Invoke              | What it does                                       |
-| ------- | ---------------------- | ------------------- | -------------------------------------------------- |
-| Skill   | 🔵 `remember`          | `/remember` (user)  | Save branch context or project learnings as memory |
-| Skill   | 🔵 `recall`            | `/recall` (user)    | Load branch context, browse project memories       |
-| Command | 🟠 `/optimise-context` | `/optimise-context` | Audit and reduce agentic tooling token usage       |
-
-## Git and Branch Management
-
-| Type  | Name                    | Invoke                       | What it does                                 |
-| ----- | ----------------------- | ---------------------------- | -------------------------------------------- |
-| Skill | 🔵 `ag-shared-sync-log` | `/ag-shared-sync-log`        | Generate migration log for ag-shared changes |
-| Skill | 🔵 `sync-ag-shared`     | `/sync-ag-shared` (user)     | Sync ag-shared subrepo across AG repos       |
-| Skill | 🔵 `git-worktree-clean` | `/git-worktree-clean` (user) | Hard-reset worktree to `origin/latest`       |
-| Skill | 🔵 `git-split`          | `/git-split` (user)          | Split large files preserving git history     |
-| Skill | 🔵 `pr-split`           | `/pr-split` (user)           | Split a branch into stacked PRs              |
-
-## Release Management
-
-| Type    | Name                         | Invoke                    | What it does                                      |
-| ------- | ---------------------------- | ------------------------- | ------------------------------------------------- |
-| Command | 🟢 `/release-summary`        | `/release-summary`        | Summarise feature threads by author for a release |
-| Command | 🟠 `/prepare-release-notes`  | `/prepare-release-notes`  | Generate release notes for a version              |
-| Command | 🟠 `/release-blog-writer`    | `/release-blog-writer`    | Write a release blog post from template           |
-| Command | 🟠 `/release-docs-review`    | `/release-docs-review`    | Review all doc changes between releases           |
-| Command | 🟠 `/release-options-review` | `/release-options-review` | Check API compatibility and breaking changes      |
-| Skill   | 🟢 `releases`                | `/releases`               | Release conventions, branch naming, constraints   |
-| Skill   | 🟠 `publish-prd`             | `/publish-prd` (user)     | Publish PRD or design doc to docs repo            |
-
----
-
-## Rules Reference
-
-Rules load automatically when you edit files matching their glob patterns.
-
-### Root Rule (always loaded)
-
-| Rule           | Description                                           |
-| -------------- | ----------------------------------------------------- |
-| 🟢 `ag-charts` | Project overview, build chain, development guidelines |
-
-### Core Code Rules
-
-| Rule                                 | Activates on                                           | Description                                           |
-| ------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------- |
-| 🟢 `api-contracts`                   | `ag-charts-types/**/*.ts`, `**/config/**/*.ts`         | Public API vs undocumented options patterns           |
-| 🔵 `browser-support`                 | `packages/*/src/**/*.ts`                               | Browser support policy — minimum API/feature baseline |
-| 🟢 `data-model`                      | `**/data-model/**/*.ts`                                | DataModel principles and data processing patterns     |
-| 🟢 `defaults`                        | `**/*Module.ts`, `**/*Properties.ts`, `**/*Options.ts` | Three-tier default system and theme configuration     |
-| 🟢 `dom-performance`                 | `**/dom/**`, `**/chart/tooltip/**`                     | DOM perf patterns — caching, invalidation, reflow     |
-| 🟢 `module-support`                  | `module-support.ts`                                    | Barrel export guidelines and tree-shaking impact      |
-| 🟢 `series`                          | `**/series/**/*.ts`                                    | Series architecture, rendering, and performance       |
-| 🟠 `series-performance-optimization` | `**/series/**/*.ts`                                    | Series perf optimisation guide                        |
-| 🟠 `cartesian-series-types`          | `**/series/cartesian/**/*.ts`                          | Consolidated generic type patterns                    |
-| 🔵 `code-quality`                    | `packages/*/src/**/*.ts`                               | Bloat avoidance and comment guidelines                |
-| 🟢 `server-side-rendering`           | `ag-charts-server-side/src/**/*`                       | SSR patterns and global usage constraints             |
-
-### Testing and Benchmarks
-
-| Rule                    | Activates on                            | Description                                        |
-| ----------------------- | --------------------------------------- | -------------------------------------------------- |
-| 🟢 `testing`            | `**/*.test.ts`, `**/*.spec.ts`          | Testing strategies, philosophy, and best practices |
-| 🟢 `benchmarks`         | `**/benchmarks/**`, `**/*.benchmark.ts` | Running and creating performance benchmarks        |
-| 🟠 `browser-benchmarks` | `**/*-test/_examples/**/main.ts`        | Browser-based benchmark harness                    |
-
-### Documentation and Examples
-
-| Rule                             | Activates on                                           | Description                                        |
-| -------------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
-| 🟢 `docs-pages`                  | `**/docs/**/*.mdoc`, `**/docs/**/_examples/**`         | Slim pointer → `/spruce-docs` skill                |
-| 🟢 `docs-checklist`              | `**/docs/**/*.mdoc`                                    | Slim pointer → `/spruce-docs` skill                |
-| 🟢 `docs-review-testing`         | _(no globs — loaded on demand)_                        | Browser testing tips for canvas-rendered AG Charts |
-| 🟢 `examples`                    | `**/_examples/**`, `**/gallery/**`                     | Slim pointer → `/example` skill                    |
-| 🟢 `examples-framework-patterns` | `**/_examples/**`, `**/generate-example-files/**`      | Slim pointer → `/example` skill                    |
-| 🟢 `link-verification`           | `plans/**/*.md`, `**/docs/**/*.mdoc`                   | Verify all URLs before including in documents      |
-| 🔵 `website-astro-pages`         | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Astro page patterns, layouts, and code conventions |
-| 🔵 `website-browser-testing`     | `**/src/pages/**/*.astro`, `**/src/layouts/**/*.astro` | Chrome DevTools MCP browser testing workflow       |
-| 🔵 `website-css`                 | `**/src/pages-styles/**/*.scss`, design-system         | CSS architecture, design system, and styling       |
-
-### Playbooks
-
-| Rule                  | Activates on                            | Description                                |
-| --------------------- | --------------------------------------- | ------------------------------------------ |
-| 🟢 `playbook-bug-fix` | `**/chart/**/*.ts`, `**/series/**/*.ts` | Bug fix and feature work playbook          |
-| 🟢 `playbook-docs`    | `**/docs/**/*`                          | Documentation update playbook              |
-| 🟢 `playbook-example` | `**/_examples/**`                       | Example creation and modification playbook |
-
-### Infrastructure and Tooling
-
-| Rule                  | Activates on                                  | Description                                |
-| --------------------- | --------------------------------------------- | ------------------------------------------ |
-| 🟢 `docker`           | `**/.docker/**`, `**/Dockerfile`              | Docker usage patterns for examples and SSR |
-| 🔵 `nx-conventions`   | `**/project.json`, `nx.json`                  | Nx project configuration conventions       |
-| 🔵 `rulesync-editing` | `.rulesync/**`, `.claude/**`, `.cursor/**`    | Agentic tooling configuration guide        |
-| 🔵 `setup-prompts`    | `**/setup-prompts/**`, `**/patches/rulesync*` | Rulesync patching guide                    |
-
----
-
-## Skills Reference
-
-Skills load on-demand when invoked. All skills are invoked via `/skill-name`. All skills are shared across AI tools via `.rulesync/skills/`.
-
--   **✂ = context fork** — runs in a forked context (`context: fork`), so loaded instructions don't persist after completion.
--   **👤 = user-only** — `disable-model-invocation: true`; the LLM cannot invoke autonomously via the Skill tool.
--   **🤖 = auto** — the LLM may invoke via the Skill tool when it matches the task.
-
-| Skill                   | Fork | Invoke | Description                                                 |
-| ----------------------- | ---- | ------ | ----------------------------------------------------------- |
-| 🔵 `ag-shared-sync-log` |      | 🤖     | Generate migration log entries for ag-shared changes        |
-| 🔵 `batch-lint-cleanup` |      | 👤     | Auto-fix ESLint violations by rule                          |
-| 🔵 `batch-plunkers`     | ✂   | 🤖     | Create multiple Plunkers in parallel via sub-agents         |
-| 🔵 `code-fixup`         |      | 👤     | Fix build and lint errors across a package                  |
-| 🔵 `debug-trace`        |      | 🤖     | Hypothesis-driven debugging with transient log tracing      |
-| 🔵 `design-review`      | ✂   | 👤     | Multi-agent expert panel review of design documents         |
-| 🔵 `dev-server`         |      | 🤖     | Start dev server, check build status                        |
-| 🟠 `docs-create`        | ✂   | 👤     | Scaffold a new documentation page                           |
-| 🔵 `example`            | ✂   | 🤖     | AG Charts/Grid/Studio example conventions and patterns      |
-| 🔵 `fr`                 | ✂   | 👤     | End-to-end feature implementation from JIRA to PR           |
-| 🔵 `git-bisect`         |      | 👤     | Find the commit that introduced a regression                |
-| 🔵 `git-conventions`    |      | 🤖     | Branch, commit, and PR naming conventions                   |
-| 🔵 `git-split`          |      | 👤     | Split large files preserving git history                    |
-| 🔵 `git-worktree-clean` |      | 👤     | Hard-reset worktree to `origin/latest`                      |
-| 🔵 `interview-me`       |      | 👤     | Surface ambiguities and open questions via interview        |
-| 🔵 `jira`               | ✂   | 🤖     | Create, estimate, or analyse JIRA tickets (all AG products) |
-| 🔵 `nx-performance`     |      | 🤖     | Nx monorepo performance diagnostics and optimization        |
-| 🟠 `optimize-series`    | ✂   | 🤖     | Series performance optimisation and GC pressure reduction   |
-| 🔵 `plan-verify`        | ✂   | 👤     | Review plan execution, identify delivery gaps               |
-| 🔵 `plan-review`        | ✂   | 👤     | Review plans for completeness and correctness               |
-| 🟠 `plunker`            | ✂   | 🤖     | Create and manage Plunker demos for AG Charts               |
-| 🔵 `pr-create`          |      | 👤     | Commit, push, and open a PR                                 |
-| 🔵 `pr-review`          |      | 👤     | Review a PR (Markdown default, JSON with `--json`)          |
-| 🔵 `pr-split`           |      | 👤     | Split a branch into stacked PRs                             |
-| 🟠 `publish-prd`        | ✂   | 👤     | Publish PRD or design doc to docs repo                      |
-| 🔵 `recall`             | ✂   | 👤     | Load branch context, browse project memories                |
-| 🔵 `reflect`            |      | 👤     | Analyse conversation friction and improve agentic config    |
-| 🟢 `releases`           |      | 🤖     | Release conventions, branch naming, and constraints         |
-| 🔵 `remember`           | ✂   | 👤     | Save branch context or project learnings as memory          |
-| 🔵 `rulesync`           |      | 🤖     | Configure AI/agentic tooling via `.rulesync/`               |
-| 🔵 `run-gha-locally`    |      | 👤     | Run GitHub Actions workflow jobs locally                    |
-| 🟠 `sonar-fix`          | ✂   | 👤     | Fetch and fix SonarCloud issues                             |
-| 🟠 `spruce-docs`        | ✂   | 🤖     | Create or improve documentation following patterns          |
-| 🟠 `spruce-example`     | ✂   | 🤖     | Improve gallery examples to professional quality            |
-| 🔵 `sync-ag-shared`     | ✂   | 👤     | Sync ag-shared subrepo changes across AG repos              |
-| 🟢 `technology-stack`   |      | 🤖     | Architecture constraints and zero-dependency requirements   |
-| 🟢 `triage-rt`          | ✂   | 🤖     | Triage release testing tickets (CRT/RTI)                    |
-| 🟢 `triage-rt-board`    | ✂   | 🤖     | Triage an entire regression testing board end-to-end        |
-| 🔵 `validate-prompts`   |      | 👤     | Validate prompt file references for consistency and hygiene |
-| 🔵 `website-astro`      |      | 🤖     | Astro page patterns, content collections, and components    |
-| 🔵 `website-css`        |      | 🤖     | CSS architecture, design tokens, and styling patterns       |
-
----
-
-## Sub-Agents Reference
-
-Sub-agents are spawned automatically when the AI determines a task matches their speciality. They cannot be invoked directly.
-
-| Agent                            | Description                                      |
-| -------------------------------- | ------------------------------------------------ |
-| 🟠 `data-viz-designer`           | Guides dataset selection and chart type choices  |
-| 🔵 `docs-example-browser-tester` | Browser-test a single docs example at its URL    |
-| 🟠 `example-tester`              | Tests AG Charts examples for correctness         |
-| 🔵 `nx-expert`                   | Nx monorepo configuration and build optimisation |
-| 🔵 `playwright-expert`           | Playwright E2E test architecture and debugging   |
-| 🟠 `previs-evaluator`            | PREVis methodology evaluation of visualisations  |
-| 🟠 `technical-research-analyst`  | In-depth technical research with citations       |
-| 🟠 `test-writer`                 | Creates Jest snapshot and Playwright E2E tests   |
-| 🟠 `visual-qa`                   | Reviews visual regression test diffs             |
+Full contributor guide: `.rulesync/rules/rulesync-editing.md`.

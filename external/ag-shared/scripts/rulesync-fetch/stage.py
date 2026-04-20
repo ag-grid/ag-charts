@@ -204,31 +204,27 @@ def stage(dry_run: bool = False) -> set[Path]:
                 # so keep targets: ['*'].
                 stage_file(src, dst, "['*']", staged)
 
+    # Top-level shared artefacts outside any plugin (e.g. mcp.json consumed by
+    # rulesync's `mcp` generator). Source of truth lives in ag-dev-prompts/shared/.
+    shared_src = CACHE_REPO / "shared" / "mcp.json"
+    shared_dst = RULESYNC / "mcp.json"
+    if shared_src.exists():
+        if dry_run:
+            print(f"  shared mcp.json → {shared_dst.relative_to(REPO_ROOT)}")
+            staged.add(shared_dst)
+        else:
+            _replace_as_regular(shared_dst)
+            shutil.copyfile(shared_src, shared_dst)
+            staged.add(shared_dst)
+
     if not dry_run:
         MARKER.write_text(
             "# Managed by external/ag-shared/scripts/rulesync-fetch/stage.py\n"
             "# Do not edit — regenerated on each setup-prompts run.\n"
         )
-        write_gitignore(staged)
 
     print(f"Staged {len(staged)} items into .rulesync/", file=sys.stderr)
     return staged
-
-
-def write_gitignore(staged: set[Path]):
-    """Write .rulesync/.gitignore so staged plugin content doesn't pollute
-    git status. Paths are rulesync-relative."""
-    gitignore = RULESYNC / ".gitignore"
-    entries = sorted({str(p.relative_to(RULESYNC)) for p in staged})
-    lines = [
-        "# Managed by external/ag-shared/scripts/rulesync-fetch/stage.py",
-        "# AG-17085 Phase 3: plugin-delivered items staged from ag-dev-prompts.",
-        "# These are regenerated on each setup-prompts run.",
-        ".fetched-from-ag-dev-prompts",
-        *entries,
-        "",
-    ]
-    gitignore.write_text("\n".join(lines))
 
 
 def list_staged() -> set[Path]:
@@ -253,6 +249,8 @@ def list_staged() -> set[Path]:
             if name.startswith("_"):
                 continue
             out.add(RULESYNC / "rules" / name)
+    if (CACHE_REPO / "shared" / "mcp.json").exists():
+        out.add(RULESYNC / "mcp.json")
     return out
 
 

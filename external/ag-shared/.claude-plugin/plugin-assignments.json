@@ -63,7 +63,15 @@
         },
         "ag-charts": {
             "description": "AG Charts product-specific — chart docs, series performance, visual QA",
-            "skills": ["competitor-research", "docs-create", "optimize-series", "spruce-docs", "spruce-example"],
+            "skills": [
+                "competitor-research",
+                "docs-create",
+                "docs-review",
+                "optimize-series",
+                "release-docs-review",
+                "spruce-docs",
+                "spruce-example"
+            ],
             "agents": [
                 "data-viz-designer",
                 "example-tester",
@@ -76,7 +84,7 @@
         }
     },
     "notes": {
-        "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[releases, technology-stack, triage-rt, triage-rt-board, writing-style], commands[docs-review, release-docs-review, release-summary]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
+        "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[releases, technology-stack, triage-rt, triage-rt-board, writing-style], commands[release-summary]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
         "directCommits": "The 6 agents in ag-charts (data-viz-designer, example-tester, previs-evaluator, technical-research-analyst, test-writer, visual-qa) and all ag-charts skills/commands are direct commits to ag-dev-prompts — they must be placed in plugins/ag-charts/ when committed.",
         "excludedFromPlugin": "hooks/, .mcp.json, .claude-settings.json, .cursor-worktrees.json are excluded (conflict with project settings when loaded as plugin).",
         "beta": "Version 0.5.0-beta.1 marks the collapse from six plugins (ag-core, ag-prompt, ag-pm, ag-eng, ag-rel, ag-charts) to three (ag-core, ag-shared, ag-charts). Beta tag is retained until every downstream repo (ag-charts, ag-grid, ag-studio) has migrated."

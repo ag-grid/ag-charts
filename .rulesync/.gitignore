@@ -1,20 +1,32 @@
-# Managed by external/ag-shared/scripts/rulesync-fetch/stage.py
-# AG-17085 Phase 3: plugin-delivered items staged from ag-dev-prompts.
-# These are regenerated on each setup-prompts run.
+# AG-17085 Phase 3 — content staged by external/ag-shared/scripts/rulesync-fetch/.
+# Patterns cover everything delivered via ag-dev-prompts plugins; local-only
+# items (skills, commands, rules) remain tracked via allowlist entries.
+
 .fetched-from-ag-dev-prompts
-commands/previs.md
-skills/competitor-research
-skills/docs-create
-skills/interview-me
-skills/optimize-series
-skills/recall
-skills/reflect
-skills/remember
-skills/spruce-docs
-skills/spruce-example
-subagents/data-viz-designer.md
-subagents/example-tester.md
-subagents/previs-evaluator.md
-subagents/technical-research-analyst.md
-subagents/test-writer.md
-subagents/visual-qa.md
+mcp.json
+
+# Plugin-delivered skills — allowlist local-only skills
+/skills/*
+!/skills/releases/
+!/skills/technology-stack/
+!/skills/triage-rt/
+!/skills/triage-rt-board/
+!/skills/writing-style/
+
+# Plugin-delivered agents — all agents live in plugins
+/subagents/*.md
+
+# Plugin-delivered commands — allowlist local-only commands
+/commands/*.md
+!/commands/release-summary.md
+/commands/docs/
+
+# Plugin-delivered rules — enumerate fetched entries
+/rules/browser-support.md
+/rules/code-quality.md
+/rules/nx-conventions.md
+/rules/rulesync-editing.md
+/rules/setup-prompts.md
+/rules/website-astro-pages.md
+/rules/website-browser-testing.md
+/rules/website-css.md
