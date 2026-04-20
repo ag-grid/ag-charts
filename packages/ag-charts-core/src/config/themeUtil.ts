@@ -4,6 +4,7 @@ import type {
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
     AgSeriesSegmentation,
+    AgSeriesSelectionOptions,
     LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
@@ -407,6 +408,10 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
     unhighlightedItem: {
         opacity: 0.2,
     },
+};
+
+export const SERIES_SELECTION_THEME: WithThemeParams<AgSeriesSelectionOptions> = {
+    enabled: { $circular: { $path: '/selection/enabled' } },
 };
 
 export const LEGEND_CONTAINER_THEME: any = {

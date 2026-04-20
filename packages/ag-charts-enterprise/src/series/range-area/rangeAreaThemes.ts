@@ -9,6 +9,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     type NonNullablePath,
     SEGMENTATION_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 
 type RangeAreaItemOptions = NonNullablePath<AgChartThemeOverrides, 'range-area', 'series', 'item'>;
@@ -160,6 +161,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
         highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
         invertedStyle: {
             enabled: false,

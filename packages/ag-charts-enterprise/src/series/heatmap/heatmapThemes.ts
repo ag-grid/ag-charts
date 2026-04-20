@@ -1,4 +1,4 @@
-import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION } from 'ag-charts-core';
+import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION, SERIES_SELECTION_THEME } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
@@ -28,6 +28,7 @@ export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
                 opacity: 0.6,
             },
         },
+        selection: SERIES_SELECTION_THEME,
     },
     legend: {
         enabled: { $eq: [{ $path: '../series/0/colorScale/mode' }, 'discrete'] },

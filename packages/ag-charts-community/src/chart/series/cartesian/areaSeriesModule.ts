@@ -11,6 +11,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { AgAreaSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -79,6 +80,7 @@ const themeTemplate: ExtensibleTheme<'area'> = {
             },
         },
         highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

@@ -4,6 +4,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     radialGaugeSeriesOptionsDef,
 } from 'ag-charts-core';
@@ -100,6 +101,7 @@ export const RadialGaugeModule: SeriesModuleDefinition<AgRadialGaugePreset> = {
             tooltip: {
                 range: { $path: ['/tooltip/range', 10] },
             },
+            selection: SERIES_SELECTION_THEME,
         },
     },
 

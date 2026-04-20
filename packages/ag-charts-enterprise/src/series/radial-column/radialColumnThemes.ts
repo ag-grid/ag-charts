@@ -6,6 +6,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_SHAPE,
     POLAR_AXIS_TYPE,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -33,6 +34,7 @@ export const RADIAL_COLUMN_SERIES_THEME: ExtensibleTheme<'radial-column'> = {
             color: { $ref: 'textColor' },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {

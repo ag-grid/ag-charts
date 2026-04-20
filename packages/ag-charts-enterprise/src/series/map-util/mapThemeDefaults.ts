@@ -1,4 +1,4 @@
-import { deepClone, jsonWalk } from 'ag-charts-core';
+import { SERIES_SELECTION_THEME, deepClone, jsonWalk } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map-marker'> = {
@@ -15,6 +15,7 @@ export const MAP_THEME_DEFAULTS: ExtensibleTheme<'map-shape' | 'map-line' | 'map
     legend: {
         enabled: false,
     },
+    selection: SERIES_SELECTION_THEME,
 };
 
 export function applyMapPalette<T extends object>(object: T): T {
