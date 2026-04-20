@@ -61,6 +61,7 @@ const options: AgCartesianChartOptions<DataType> = {
     selection: {
         enabled: true,
         enableClick: true,
+        enableDrag: true,
     },
     tooltip: {
         enabled: false,
