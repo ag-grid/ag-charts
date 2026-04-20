@@ -509,6 +509,32 @@ describe('MapShapeSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await compare();
         });
+
+        it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const missingStates = new Set(['California', 'Colorado']);
+            const data = usData.map((datum) =>
+                missingStates.has(datum.name) ? { name: datum.name, code: datum.code } : datum
+            );
+            const options: AgChartOptions = {
+                data,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        colorKey: 'gdp',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
     });
 
     describe('legend', () => {

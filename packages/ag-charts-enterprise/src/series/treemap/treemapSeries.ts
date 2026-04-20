@@ -331,7 +331,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         isHighlight: boolean
     ) {
         const { properties, colorScale } = this;
-        const { itemStyler } = properties;
+        const { itemStyler, colorKey } = properties;
+        const { missingDataFill } = properties.colorScale;
         const rootIndex = nodeDatum.datumIndex?.[0] ?? 0;
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
@@ -350,6 +351,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         if (isLeaf && nodeDatum.colorValue != null && highlightStyle?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
+        } else if (isLeaf && colorKey != null && missingDataFill != null && highlightStyle?.fill == null) {
+            baseStyle.fill = missingDataFill;
         }
 
         let style = baseStyle;

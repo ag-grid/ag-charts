@@ -88,6 +88,15 @@ export interface AgColorScale {
      * Default: `continuous`
      */
     mode?: AgGradientColorMode;
+    /**
+     * Fill colour used for datums with missing colour values — those where the
+     * `colorKey` resolves to `null`, `undefined`, or is absent from the datum.
+     *
+     * For line-based colour-scale series (e.g. `map-line`) this is applied as
+     * the stroke colour. If unset, each series preserves its default behaviour
+     * for missing data.
+     */
+    missingDataFill?: CssColor;
 }
 
 export interface AgGradientColor {

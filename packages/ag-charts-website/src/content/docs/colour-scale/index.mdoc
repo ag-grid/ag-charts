@@ -196,6 +196,35 @@ In this configuration:
 -   Tooltips also display the `name` for the matching bin — e.g. hovering a cell with temperature 7 shows 'Cool'.
 -   In continuous mode, `name` values appear at their `stop` positions on the Gradient Legend.
 
+## Missing Data
+
+{% chartExampleRunner title="Missing Data" name="missing-data" type="generated" /%}
+
+When a datum has no `colorKey` value, each series type falls back to its own default: Heatmap cells are transparent, Treemap and Sunburst segments use their palette fill, Map Markers use the series fill, and Map Shapes and Map Lines skip the datum entirely.
+
+Set `colorScale.missingDataFill` to use one placeholder colour across all of these cases instead.
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'heatmap',
+            xKey: 'month',
+            yKey: 'year',
+            colorKey: 'temperature',
+            colorScale: {
+                fills: [{ color: 'navy' }, { color: 'lightyellow' }, { color: 'darkred' }],
+                missingDataFill: '#e0e0e0',
+            },
+        },
+    ],
+}
+```
+
+-   Datums without a `temperature` value are rendered in `#e0e0e0`.
+-   On Map Lines, the value is applied as the stroke.
+-   On Map Shapes and Map Lines, setting `missingDataFill` also makes these datums respond to hover and tooltips, since they are no longer skipped.
+
 ## Legend Type
 
 Both the [Gradient Legend](#gradient-legend) and the standard category [Legend](./legend/) can be used with Colour Scales, in either continuous or discrete mode. The chart automatically selects a default based on the mode:

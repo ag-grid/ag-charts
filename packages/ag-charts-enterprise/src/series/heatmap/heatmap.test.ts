@@ -636,6 +636,68 @@ describe('HeatmapSeries', () => {
             await compare();
         });
 
+        it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: 'Julian', spending: null },
+                    { year: '2020', person: 'Martian' },
+                    { year: '2021', person: 'Florian', spending: 20 },
+                    { year: '2021', person: 'Julian', spending: 30 },
+                    { year: '2021', person: 'Martian', spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should allow itemStyler to override missingDataFill', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'Florian', spending: 10 },
+                    { year: '2020', person: 'Julian', spending: null },
+                    { year: '2020', person: 'Martian' },
+                    { year: '2021', person: 'Florian', spending: 20 },
+                    { year: '2021', person: 'Julian', spending: 30 },
+                    { year: '2021', person: 'Martian', spending: 40 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                        itemStyler: ({ datum }) => {
+                            if (datum.spending == null) {
+                                return { fill: 'magenta' };
+                            }
+                            return {};
+                        },
+                    },
+                ],
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
         it('should treat null and undefined as distinct categories', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: [

@@ -554,6 +554,34 @@ describe('TreemapSeries', () => {
             await compare();
         });
 
+        it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const options: AgChartOptions = {
+                ...TREEMAP_BASE,
+                data: [
+                    { name: 'A', valuation: 100, change: 3 },
+                    { name: 'B', valuation: 80, change: null },
+                    { name: 'C', valuation: 60 },
+                    { name: 'D', valuation: 40, change: -4 },
+                ],
+                series: [
+                    {
+                        type: 'treemap',
+                        labelKey: 'name',
+                        sizeKey: 'valuation',
+                        colorKey: 'change',
+                        colorScale: {
+                            fills: [{ color: 'red' }, { color: 'yellow' }, { color: 'green' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await compare();
+        });
+
         it('should render with discrete named stops colorScale', async () => {
             const options: AgChartOptions = {
                 ...TREEMAP_BASE,

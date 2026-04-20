@@ -343,6 +343,7 @@ export class MapLineSeries
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
         const { label, legendItemName, colorKey } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         if (dataModel == null || processedData == null) return;
 
@@ -380,7 +381,7 @@ export class MapLineSeries
                 missingGeometries.push(dataValues.idValue);
             }
 
-            if (colorKey != null && dataValues.colorValue == null) {
+            if (colorKey != null && dataValues.colorValue == null && missingDataFill == null) {
                 continue;
             }
 
@@ -465,7 +466,8 @@ export class MapLineSeries
         isHighlight: boolean
     ): Required<AgMapLineSeriesStyle> {
         const { properties, colorScale, sizeScale } = this;
-        const { colorRange, itemStyler } = properties;
+        const { colorKey, colorRange, itemStyler } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         const baseStyle = properties.getStyle();
 
@@ -473,6 +475,8 @@ export class MapLineSeries
             baseStyle.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
                 : colorRange?.[0] ?? properties.stroke;
+        } else if (colorKey != null && missingDataFill != null) {
+            baseStyle.stroke = missingDataFill;
         }
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
@@ -655,7 +659,8 @@ export class MapLineSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { strokeWidth, strokeOpacity, lineDash } = properties;
+        const { colorKey, strokeWidth, strokeOpacity, lineDash } = properties;
+        const { missingDataFill } = properties.colorScale;
 
         let { stroke } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -663,6 +668,8 @@ export class MapLineSeries
             const colorValue = colorValues[datumIndex];
             if (colorValue != null) {
                 stroke = this.colorScale.convert(colorValue);
+            } else if (colorKey != null && missingDataFill != null) {
+                stroke = missingDataFill;
             }
         }
 
