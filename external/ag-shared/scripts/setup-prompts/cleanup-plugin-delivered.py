@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Remove plugin-delivered content from .rulesync/ and stale .claude/ output.
 
-Reads ``external/ag-shared/.claude-plugin/plugin-assignments.json`` and:
+Reads the plugin-assignments manifest from the ag-dev-prompts cache (populated
+by ``rulesync-fetch/fetch.sh``) and:
 
 1. Removes SYMLINKS from ``.rulesync/{skills,agents,commands}/`` that correspond
    to plugin-delivered items. Actual local files are left untouched.
@@ -17,8 +18,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+CACHE_ROOT = Path(os.environ.get("AG_DEV_PROMPTS_CACHE", os.path.expanduser("~/.cache/ag-dev-prompts")))
+DEFAULT_MANIFEST = CACHE_ROOT / "repo" / ".claude-plugin" / "plugin-assignments.json"
 
 CATEGORIES = {
     "skills": ("skills", True),  # (rulesync dir, is-directory)
@@ -34,8 +39,8 @@ def main() -> int:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=Path("external/ag-shared/.claude-plugin/plugin-assignments.json"),
-        help="Plugin-assignments manifest (default: repo-relative path)",
+        default=DEFAULT_MANIFEST,
+        help=f"Plugin-assignments manifest (default: {DEFAULT_MANIFEST})",
     )
     parser.add_argument(
         "--rulesync",

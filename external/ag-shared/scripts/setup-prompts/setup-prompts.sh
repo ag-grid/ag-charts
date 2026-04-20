@@ -357,25 +357,15 @@ generate_config() {
 
     cd "$REPO_ROOT"
 
-    # Verify that .rulesync/ does not contain symlinks for plugin-delivered
-    # items. If it does, rulesync would regenerate them in .claude/skills
-    # alongside the same skill delivered by the plugin — duplicate content and
-    # ambiguous trigger behaviour. Fail fast if stale symlinks exist.
-    local cleanup_script="$REPO_ROOT/external/ag-shared/scripts/setup-prompts/cleanup-plugin-delivered.py"
-    if [[ -f "$cleanup_script" ]] && [[ -f "$REPO_ROOT/external/ag-shared/.claude-plugin/plugin-assignments.json" ]]; then
-        if ! python3 "$cleanup_script" --verify >/dev/null 2>&1; then
-            echo -e "${YELLOW}Warning: .rulesync/ contains symlinks for plugin-delivered items${NC}"
-            python3 "$cleanup_script" --verify || true
-            echo -e "${YELLOW}Removing stale symlinks...${NC}"
-            python3 "$cleanup_script" || true
-        fi
-    fi
-
     # AG-17085 Phase 3: fetch ag-dev-prompts content and stage it into .rulesync/
     # so non-Claude targets (Cursor, Codex, Gemini, Copilot, AGENTS.md) receive
     # the plugin-delivered skills/agents/commands via rulesync generate. Staged
     # items have `targets:` rewritten to exclude claudecode — Claude gets them
     # via the plugin directly, so rulesync does not re-emit under .claude/.
+    #
+    # Must run before the cleanup step below: both read the plugin-assignments
+    # manifest from the ag-dev-prompts cache populated by fetch.sh.
+    local cache_manifest="${AG_DEV_PROMPTS_CACHE:-$HOME/.cache/ag-dev-prompts}/repo/.claude-plugin/plugin-assignments.json"
     local fetch_script="$REPO_ROOT/external/ag-shared/scripts/rulesync-fetch/fetch.sh"
     local stage_script="$REPO_ROOT/external/ag-shared/scripts/rulesync-fetch/stage.py"
     if [[ -x "$fetch_script" ]] && [[ -f "$stage_script" ]]; then
@@ -395,6 +385,20 @@ generate_config() {
             fi
         else
             echo -e "${YELLOW}Warning: ag-dev-prompts fetch failed — non-Claude tools will use whatever is already staged${NC}"
+        fi
+    fi
+
+    # Verify that .rulesync/ does not contain symlinks for plugin-delivered
+    # items. If it does, rulesync would regenerate them in .claude/skills
+    # alongside the same skill delivered by the plugin — duplicate content and
+    # ambiguous trigger behaviour. Fail fast if stale symlinks exist.
+    local cleanup_script="$REPO_ROOT/external/ag-shared/scripts/setup-prompts/cleanup-plugin-delivered.py"
+    if [[ -f "$cleanup_script" ]] && [[ -f "$cache_manifest" ]]; then
+        if ! python3 "$cleanup_script" --verify >/dev/null 2>&1; then
+            echo -e "${YELLOW}Warning: .rulesync/ contains symlinks for plugin-delivered items${NC}"
+            python3 "$cleanup_script" --verify || true
+            echo -e "${YELLOW}Removing stale symlinks...${NC}"
+            python3 "$cleanup_script" || true
         fi
     fi
 

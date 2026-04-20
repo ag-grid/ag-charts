@@ -24,7 +24,10 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[4]
 CACHE_ROOT = Path(os.environ.get("AG_DEV_PROMPTS_CACHE", os.path.expanduser("~/.cache/ag-dev-prompts")))
 CACHE_REPO = CACHE_ROOT / "repo"
-MANIFEST = REPO_ROOT / "external/ag-shared/.claude-plugin/plugin-assignments.json"
+# Manifest is read from the ag-dev-prompts cache (populated by fetch.sh) — the
+# downloaded copy is the source of truth at runtime, so the consumer repo does
+# not need its own copy under external/ag-shared/.claude-plugin/.
+MANIFEST = CACHE_REPO / ".claude-plugin" / "plugin-assignments.json"
 RULESYNC = REPO_ROOT / ".rulesync"
 MARKER = RULESYNC / ".fetched-from-ag-dev-prompts"
 
