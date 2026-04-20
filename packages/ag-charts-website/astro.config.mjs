@@ -12,6 +12,7 @@ import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSite
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
+import agCssAsString from './plugins/agCssAsString';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
@@ -69,6 +70,7 @@ console.log(
 
 const plugins = [
     svgr(),
+    agCssAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
 ];
@@ -81,10 +83,6 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
-    experimental: {
-        // Prepare for Astro 6
-        preserveScriptOrder: true,
-    },
     devToolbar: {
         enabled: false,
     },
