@@ -310,6 +310,12 @@ export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
     };
 }
 
+export function selectionOptionsDef() {
+    return {
+        enabled: boolean,
+    };
+}
+
 export function multiSeriesHighlightOptionsDef<I, S>(itemHighlightOptionsDef: I, seriesHighlightOptionsDef: S) {
     return {
         enabled: boolean,

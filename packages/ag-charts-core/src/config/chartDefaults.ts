@@ -78,6 +78,7 @@ import {
     lineDashOptionsDef,
     overflowStrategy,
     padding,
+    selectionOptionsDef,
     shapeHighlightOptionsDef,
     strokeOptionsDef,
     textWrap,
@@ -672,6 +673,7 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
         seriesNodeDoubleClick: callback,
     },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
+    selection: selectionOptionsDef(),
 };
 
 // @ts-expect-error undocumented option
