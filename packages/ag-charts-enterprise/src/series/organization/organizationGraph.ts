@@ -4,6 +4,8 @@ import { NetworkGraph } from '../network/networkGraph';
 import type { OrganizationEdge, OrganizationVertex } from './organizationTypes';
 
 export class OrganizationGraph extends NetworkGraph<OrganizationVertex, OrganizationEdge> {
+    private verticesById: Record<string, Vertex<OrganizationVertex, OrganizationEdge>> = {};
+
     constructor() {
         super({
             // Cache the child edges for optimal descendent traversal.
@@ -31,7 +33,8 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
         labelsValues: (string[] | undefined)[],
         root: Vertex<OrganizationVertex, OrganizationEdge>
     ) {
-        const verticesById: Record<string, Vertex<OrganizationVertex, OrganizationEdge>> = {};
+        this.verticesById = {};
+
         let index = 0;
         for (const id of idValues) {
             const vertex = this.addVertex(id);
@@ -49,7 +52,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             this.addEdge(vertex, this.addVertex(labels), 'labels');
             this.addEdge(vertex, this.addVertex(index), 'datumIndex');
 
-            verticesById[id] = vertex;
+            this.verticesById[id] = vertex;
 
             index++;
         }
@@ -58,7 +61,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
         for (const parentId of parentIdValues) {
             const childId = idValues[index];
-            const childVertex = verticesById[childId];
+            const childVertex = this.verticesById[childId];
 
             if (childVertex == null) {
                 // throw an error?
@@ -71,7 +74,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
                 continue;
             }
 
-            const parentVertex = verticesById[parentId];
+            const parentVertex = this.verticesById[parentId];
             if (!parentVertex) {
                 // throw an error?
                 return;
@@ -81,6 +84,10 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             index++;
         }
+    }
+
+    findVertexById(id: string): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
+        return this.verticesById[id];
     }
 
     private attachChild(

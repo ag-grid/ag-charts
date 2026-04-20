@@ -155,7 +155,8 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         return {
             descendentsContainerBBox: containerBBox,
             childrenBBoxes,
-            mergedChildrenBBoxes: BBox.merge(childrenBBoxes.map(({ bbox }) => bbox)),
+            mergedChildrenBBoxes:
+                childrenBBoxes.length > 0 ? BBox.merge(childrenBBoxes.map(({ bbox }) => bbox)) : undefined,
         };
     }
 
@@ -178,6 +179,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             Math.min(Math.abs(start.x - end.x), Math.abs(start.y - end.y))
         );
 
+        path.clear();
         path.moveTo(start.x, start.y);
         path.lineTo(elbow1.x, elbow1.y);
         if (cornerRadius > 0) {

@@ -128,6 +128,7 @@ export interface EventsHubMap {
     'legend:item-click': LegendItemClickEvent;
     'legend:item-double-click': LegendItemDoubleClickEvent;
     'locale:change': null;
+    'collapsed:restore': { collapsed?: string[] };
     'rtl:change': null;
     'scrollbar:wheel': ScrollbarWheelEvent;
     'series:focus-change': null;
