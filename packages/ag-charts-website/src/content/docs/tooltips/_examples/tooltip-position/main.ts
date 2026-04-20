@@ -17,7 +17,10 @@ const options: AgCartesianChartOptions = {
         },
     ],
     tooltip: {
-        position: {},
+        position: {
+            placement: 'top',
+            offset: 8,
+        },
     },
 };
 

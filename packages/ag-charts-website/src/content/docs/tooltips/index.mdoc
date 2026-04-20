@@ -52,7 +52,7 @@ The options for `mode` are:
 
 ## Tooltip Position
 
-The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and optionally `tooltip.position.placement`, to change this.
+By default the tooltip is anchored to the hovered datapoint. Use `placement`, `anchorTo` and `offset` to customise this.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -62,10 +62,15 @@ The tooltip is anchored to the node. Use `tooltip.position.anchorTo`, and option
         position: {
             anchorTo: 'node',
             placement: 'top',
+            offset: 8,
         },
     },
 }
 ```
+
+### Placement
+
+The `placement` option positions the tooltip relative to its [anchor point](#anchor-point), such as `top` or `top-right`. See the [API Reference](#reference-AgChartTooltipOptions-position-placement) for the full list of values.
 
 Fallback positions can be provided in an array of `placement` values. The tooltip will use the first position that has sufficient space.
 
@@ -85,15 +90,17 @@ In the above example:
 -   Change the 'Placement' dropdown to 'Left + Right fallback'.
 -   Hover the leftmost datapoint and see that the tooltip goes to the right of the marker as there is no room on the left.
 
+### Anchor Point
+
 The options for `anchorTo` are:
 
--   `node` - the datapoint, such as the marker or bar.
+-   `node` - the active datapoint, such as the marker or bar.
 -   `pointer` - the mouse pointer or [single finger touch](./touch/#single-finger-touch-dragging) position.
 -   `chart` - the chart container.
 
-### Directional Offset
+### Offset
 
-Use `tooltip.position.offset` to control the gap between the tooltip and its anchor point. The offset is applied in the direction determined by the current `placement` — for example, `placement: 'right'` with `offset: 20` pushes the tooltip 20px to the right of the anchor, while `placement: 'top'` pushes it 20px above.
+Use `tooltip.position.offset` to control the gap between the tooltip and its anchor point in the placement direction, or `xOffset` and `yOffset` for specific horizontal and vertical offsets.
 
 ```js format="snippet"
 {
@@ -107,13 +114,11 @@ Use `tooltip.position.offset` to control the gap between the tooltip and its anc
 }
 ```
 
-Unlike `xOffset` and `yOffset`, the directional `offset` adapts automatically when fallback placements are used. In the above example, the 20px gap is maintained regardless of whether the tooltip appears to the right or left of the anchor.
+In the above example:
 
-The default `offset` is `8`. Setting `offset: 0` removes the gap entirely.
-
-### Screen-Space Offset
-
-The tooltip position can be further customised by setting the `tooltip.position.xOffset` and `tooltip.position.yOffset` properties, which move the tooltip by the specified number of pixels in the x and y directions, respectively. These are applied in addition to the directional `offset`.
+-   Change the 'Placement' dropdown to 'Left + Right fallback' and change the 'Offset' value.
+-   Hover the leftmost datapoint and see that the offset is applied to the right of the marker, hover the rightmost datapoint and see that the offset is applied to the left.
+-   The directional `offset` can be used together with `xOffset` and `yOffset`.
 
 ## Tooltip Arrow
 
