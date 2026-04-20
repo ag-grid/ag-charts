@@ -64,7 +64,7 @@
         },
         "ag-charts": {
             "description": "AG Charts product-specific — chart docs, series performance, visual QA",
-            "skills": ["docs-create", "optimize-series", "spruce-docs", "spruce-example"],
+            "skills": ["competitor-research", "docs-create", "optimize-series", "spruce-docs", "spruce-example"],
             "agents": [
                 "data-viz-designer",
                 "example-tester",
