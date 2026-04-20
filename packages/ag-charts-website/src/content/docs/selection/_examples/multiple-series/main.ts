@@ -45,6 +45,29 @@ ModuleRegistry.registerModules([
     SelectionModule,
 ]);
 
+const fullData = getData();
+
+function getDataAB() {
+    return fullData.map((datum: DataType) => {
+        const { year, a_low, a_high, b_low, b_high } = datum;
+        return { year, a_low, a_high, b_low, b_high };
+    });
+}
+
+function getDataC() {
+    return fullData.map((datum: DataType) => {
+        const { year, c_low: low, c_high: high } = datum;
+        return { year, low, high };
+    });
+}
+
+function getDataD() {
+    return fullData.map((datum: DataType) => {
+        const { year, d_low: low, d_high: high } = datum;
+        return { year, low, high };
+    });
+}
+
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
     if (params.selectionState === 'selected') {
         return { stroke: 'black', strokeWidth: 2 };
@@ -56,7 +79,7 @@ const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeries
         return { stroke: 'black', strokeWidth: 2, size: 15 };
     }
 };
-const options: AgCartesianChartOptions<DataType> = {
+const options: AgCartesianChartOptions<unknown> = {
     container: document.getElementById('myChart'),
     selection: {
         enabled: true,
@@ -94,40 +117,112 @@ const options: AgCartesianChartOptions<DataType> = {
             console.log(ev);
         },
     },
-    data: getData(),
+    data: getDataAB(),
     series: getAreaSeriesOptions(),
 };
 
 const chart = AgCharts.create(options);
 
-function getAreaSeriesOptions(): AgAreaSeriesOptions<DataType>[] {
+function getAreaSeriesOptions(): AgAreaSeriesOptions<unknown>[] {
     return [
-        { type: 'area', xKey: 'year', yKey: 'a_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'area', xKey: 'year', yKey: 'b_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'area', xKey: 'year', yKey: 'c_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'area', xKey: 'year', yKey: 'd_low', marker: { itemStyler: markerItemStyler } },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'a_low',
+            marker: { itemStyler: markerItemStyler },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'b_low',
+            marker: { itemStyler: markerItemStyler },
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'c_low',
+            marker: { itemStyler: markerItemStyler },
+            data: getDataC(),
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'd_low',
+            marker: { itemStyler: markerItemStyler },
+            data: getDataD(),
+        },
     ];
 }
 
-function getBarSeriesOptions(): AgBarSeriesOptions<DataType>[] {
+function getBarSeriesOptions(): AgBarSeriesOptions<unknown>[] {
     return [
-        { type: 'bar', xKey: 'year', yKey: 'a_low', itemStyler: barItemStyler },
-        { type: 'bar', xKey: 'year', yKey: 'b_low', itemStyler: barItemStyler },
-        { type: 'bar', xKey: 'year', yKey: 'c_low', itemStyler: barItemStyler },
-        { type: 'bar', xKey: 'year', yKey: 'd_low', itemStyler: barItemStyler },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'a_low',
+            itemStyler: barItemStyler,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'b_low',
+            itemStyler: barItemStyler,
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'c_low',
+            itemStyler: barItemStyler,
+            data: getDataC(),
+        },
+        {
+            type: 'bar',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'd_low',
+            itemStyler: barItemStyler,
+            data: getDataD(),
+        },
     ];
 }
 
-function getLineSeriesOptions(): AgLineSeriesOptions<DataType>[] {
+function getLineSeriesOptions(): AgLineSeriesOptions<unknown>[] {
     return [
-        { type: 'line', xKey: 'year', yKey: 'a_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'line', xKey: 'year', yKey: 'b_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'line', xKey: 'year', yKey: 'c_low', marker: { itemStyler: markerItemStyler } },
-        { type: 'line', xKey: 'year', yKey: 'd_low', marker: { itemStyler: markerItemStyler } },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'a_low',
+            marker: { itemStyler: markerItemStyler },
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'b_low',
+            marker: { itemStyler: markerItemStyler },
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'c_low',
+            marker: { itemStyler: markerItemStyler },
+            data: getDataC(),
+        },
+        {
+            type: 'line',
+            xKey: 'year',
+            yKey: 'low',
+            yName: 'd_low',
+            marker: { itemStyler: markerItemStyler },
+            data: getDataD(),
+        },
     ];
 }
 
-function getRangeAreaSeriesOptions(): AgRangeAreaSeriesOptions<DataType>[] {
+function getRangeAreaSeriesOptions(): AgRangeAreaSeriesOptions<unknown>[] {
     return [
         {
             type: 'range-area',
@@ -146,21 +241,27 @@ function getRangeAreaSeriesOptions(): AgRangeAreaSeriesOptions<DataType>[] {
         {
             type: 'range-area',
             xKey: 'year',
-            yLowKey: 'c_low',
-            yHighKey: 'c_high',
+            yLowKey: 'low',
+            yLowName: 'c_low',
+            yHighKey: 'high',
+            yHighName: 'c_high',
             marker: { itemStyler: markerItemStyler },
+            data: getDataC(),
         },
         {
             type: 'range-area',
             xKey: 'year',
-            yLowKey: 'd_low',
-            yHighKey: 'd_high',
+            yLowKey: 'low',
+            yLowName: 'd_low',
+            yHighKey: 'high',
+            yHighName: 'd_high',
             marker: { itemStyler: markerItemStyler },
+            data: getDataD(),
         },
     ];
 }
 
-function getRangeBarSeriesOptions(): AgRangeBarSeriesOptions<DataType>[] {
+function getRangeBarSeriesOptions(): AgRangeBarSeriesOptions<unknown>[] {
     return [
         {
             type: 'range-bar',
@@ -179,16 +280,22 @@ function getRangeBarSeriesOptions(): AgRangeBarSeriesOptions<DataType>[] {
         {
             type: 'range-bar',
             xKey: 'year',
-            yLowKey: 'c_low',
-            yHighKey: 'c_high',
+            yLowKey: 'low',
+            yLowName: 'c_low',
+            yHighKey: 'high',
+            yHighName: 'c_high',
             itemStyler: barItemStyler,
+            data: getDataC(),
         },
         {
             type: 'range-bar',
             xKey: 'year',
-            yLowKey: 'd_low',
-            yHighKey: 'd_high',
+            yLowKey: 'low',
+            yLowName: 'd_low',
+            yHighKey: 'high',
+            yHighName: 'd_high',
             itemStyler: barItemStyler,
+            data: getDataD(),
         },
     ];
 }
