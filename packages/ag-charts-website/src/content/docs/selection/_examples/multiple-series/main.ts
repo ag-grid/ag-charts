@@ -335,8 +335,14 @@ export function onSelectionChange(checked: boolean) {
     chart.update(options);
 }
 
-export function onSeriesSelectionChange(series: 'a' | 'b' | 'c' | 'd', checked: boolean) {
-    const i = { a: 0, b: 1, c: 2, d: 3 }[series];
-    options.series![i]!.selection.enabled = checked;
+export function onSeriesSelectionChange(target: HTMLInputElement) {
+    target.removeAttribute('checked');
+    const i: number = {
+        mySelectionChangeA: 0,
+        mySelectionChangeB: 1,
+        mySelectionChangeC: 2,
+        mySelectionChangeD: 3,
+    }[target.id]!;
+    options.series![i]!.selection = { enabled: target.checked };
     chart.update(options);
 }
