@@ -31,6 +31,7 @@ import { FontManager } from './fonts/fontManager';
 import { FormatManager } from './formatter/formatManager';
 import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
+import { CollapsedManager } from './interaction/collapsedManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
@@ -60,19 +61,20 @@ export class ChartContext implements ModuleContext {
     readonly cleanup = new CleanupRegistry();
 
     readonly activeManager: ActiveManager;
+    agDocument: AgDocument;
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
-    legendManager: LegendManager;
     chartService: ChartService;
     chartTypeOriginator: ChartTypeOriginator;
+    collapsedManager: CollapsedManager;
     contextMenuRegistry: ContextMenuRegistry;
     dataService: DataService<any>;
-    agDocument: AgDocument;
     domManager: DOMManager;
     fontManager: FontManager;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
+    legendManager: LegendManager;
     optionsGraphService: OptionsGraphService;
     proxyInteractionService: ProxyInteractionService;
     scene: Scene;
@@ -157,6 +159,7 @@ export class ChartContext implements ModuleContext {
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
         this.zoomManager = new ZoomManager(this.eventsHub, fireEvent);
+        this.collapsedManager = new CollapsedManager(this.eventsHub);
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             if (!module.chartType || module.chartType === chartType) {

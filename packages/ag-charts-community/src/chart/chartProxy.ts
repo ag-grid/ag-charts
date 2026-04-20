@@ -215,7 +215,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         const originators = this.getEnabledOriginators();
         const originatorsSet = new Set(originators);
 
-        // console.log(interactionManager.getStates());
         if (interactionManager.isState(InteractionState.AnnotationsSelected)) return;
 
         // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
@@ -373,6 +372,8 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
 
         originators.push(this.chart.ctx.activeManager);
+        originators.push(this.chart.ctx.collapsedManager);
+
         return originators;
     }
 
