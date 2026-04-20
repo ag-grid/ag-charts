@@ -188,6 +188,11 @@ describe('Validation utils', () => {
                 expect(console.warn).toHaveBeenCalledTimes(1);
                 expect((console.warn as jest.Mock).mock.calls[0][0]).toContain('AG Charts Enterprise');
             });
+
+            test('throws when composed with required() in either order', () => {
+                expect(() => enterprise(required(string))).toThrow(/enterprise.*required/);
+                expect(() => required(enterprise(string))).toThrow(/required.*enterprise/);
+            });
         });
     });
 

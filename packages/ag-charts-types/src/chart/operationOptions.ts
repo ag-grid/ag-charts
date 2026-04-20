@@ -73,9 +73,9 @@ type PaletteParam =
 type CacheOperation = { $cacheMax: Leaf<number> };
 
 type ChartOperation =
-    | { $enterprise: [AnyLeaf | object, AnyLeaf | object] } // Value when ag-charts-enterprise is registered | Value otherwise
     | { $hasSeriesType: Leaf<string> }
     | { $isChartType: Leaf<string> }
+    | { $isPackageType: Leaf<'community' | 'enterprise'> } // True when the registered package matches
     | { $isSeriesType: Leaf<string> };
 
 type ColorOperation =
@@ -99,7 +99,7 @@ type LocationOperation =
     | { $ref: ThemeParam }; // Theme param
 
 type LogicOperation =
-    | { $if: [AnyLeaf, AnyLeaf, AnyLeaf] } // Condition | Value if true | Value if false
+    | { $if: [AnyLeaf, AnyLeaf | object, AnyLeaf | object] } // Condition | Value if true | Value if false
     | { $or: AnyLeaf[] } // Array of values that are truthy
     | { $and: AnyLeaf[] } // Array of values that are truthy
     | { $eq: AnyLeaf[] } // Array of values that are truthy
