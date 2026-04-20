@@ -789,10 +789,14 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.state = constrainedState;
         }
 
+        // Panning kicks off via fireZoomPanStartEvent() before the update pipeline runs; clear the
+        // flag unconditionally once the pipeline completes so rejected / no-op gestures don't leave
+        // it stuck at true.
+        this.ctx.chartState.setValue('zoomPanning', false);
+
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
             this.ctx.chartState.setValue('zoom', this.state);
-            this.ctx.chartState.setValue('zoomPanning', false);
             const acceptedZoom = this.getZoom() ?? {};
             this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
