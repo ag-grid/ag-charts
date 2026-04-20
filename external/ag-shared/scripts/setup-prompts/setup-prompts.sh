@@ -362,7 +362,7 @@ generate_config() {
     # alongside the same skill delivered by the plugin — duplicate content and
     # ambiguous trigger behaviour. Fail fast if stale symlinks exist.
     local cleanup_script="$REPO_ROOT/external/ag-shared/scripts/setup-prompts/cleanup-plugin-delivered.py"
-    if [[ -f "$cleanup_script" ]] && [[ -f "$REPO_ROOT/external/ag-shared/prompts/.claude-plugin/plugin-assignments.json" ]]; then
+    if [[ -f "$cleanup_script" ]] && [[ -f "$REPO_ROOT/external/ag-shared/.claude-plugin/plugin-assignments.json" ]]; then
         if ! python3 "$cleanup_script" --verify >/dev/null 2>&1; then
             echo -e "${YELLOW}Warning: .rulesync/ contains symlinks for plugin-delivered items${NC}"
             python3 "$cleanup_script" --verify || true

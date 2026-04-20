@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Remove plugin-delivered content from .rulesync/ and stale .claude/ output.
 
-Reads ``external/ag-shared/prompts/.claude-plugin/plugin-assignments.json`` and:
+Reads ``external/ag-shared/.claude-plugin/plugin-assignments.json`` and:
 
 1. Removes SYMLINKS from ``.rulesync/{skills,agents,commands}/`` that correspond
    to plugin-delivered items. Actual local files are left untouched.
@@ -34,7 +34,7 @@ def main() -> int:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=Path("external/ag-shared/prompts/.claude-plugin/plugin-assignments.json"),
+        default=Path("external/ag-shared/.claude-plugin/plugin-assignments.json"),
         help="Plugin-assignments manifest (default: repo-relative path)",
     )
     parser.add_argument(

@@ -16,15 +16,14 @@ Location: `packages/ag-charts-{community,enterprise}/src/**/*.test.ts`
 ### Standard Pattern
 
 ```typescript
-import { AgChartInstance, AgChartOptions, AgCharts } from 'ag-charts-community';
-
+import { AgChartInstance, AgCharts, AgChartOptions } from 'ag-charts-community';
 import {
-    IMAGE_SNAPSHOT_DEFAULTS,
-    extractImageData,
-    prepareTestOptions,
-    setupMockCanvas,
     setupMockConsole,
+    setupMockCanvas,
+    extractImageData,
     waitForChartStability,
+    prepareTestOptions,
+    IMAGE_SNAPSHOT_DEFAULTS,
 } from '../test/utils';
 
 describe('MySeries', () => {
@@ -151,12 +150,12 @@ Location: `packages/ag-charts-website/e2e/*.spec.ts`
 ```typescript
 import { expect, test } from './fixture';
 import {
-    SELECTORS,
     gotoExample,
     locateCanvas,
     setupIntrinsicAssertions,
     toExamplePageUrl,
     waitForAllChartUpdates,
+    SELECTORS,
 } from './util';
 
 test.describe('feature', () => {
