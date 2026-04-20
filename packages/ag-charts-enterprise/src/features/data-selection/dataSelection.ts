@@ -265,6 +265,11 @@ export class DataSelection extends AbstractModuleInstance {
         const { chartService } = this.ctx;
         const { added, removed } = diffSelectionBuffers(chartService, bufferMap);
 
+        if (added.length === 0 && removed.length === 0) {
+            // No selection changes to emit.
+            return;
+        }
+
         let defaultPrevented = false;
         const preventDefault = (): void => {
             defaultPrevented = true;
