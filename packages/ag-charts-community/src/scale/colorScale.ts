@@ -53,6 +53,12 @@ export class ColorScale extends AbstractScale<number, string> {
     range = ['red', 'blue'];
     @Invalidating
     mode: 'continuous' | 'discrete' = 'continuous';
+    /**
+     * User-visible axis domain for the gradient legend. Decoupled from
+     * `domain` (which carries interpolation pivots) so that colour-stop
+     * positions do not distort the legend axis range.
+     */
+    displayDomain?: [number, number];
 
     private parsedRange = this.range.map(convertColorStringToOklcha);
 

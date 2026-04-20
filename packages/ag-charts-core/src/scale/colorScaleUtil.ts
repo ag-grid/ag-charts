@@ -25,6 +25,12 @@ export interface ColorScaleState {
     domain: number[];
     range: string[];
     mode: ColorScaleMode;
+    /**
+     * The user-visible domain shown on the gradient legend axis. Independent
+     * of `domain`, which carries interpolation pivots derived from the fill
+     * stops. When omitted, defaults to `[domain[0], domain.at(-1)]`.
+     */
+    displayDomain?: [number, number];
 }
 
 function findNextDefinedStop(fills: Array<{ stop?: number }>, from: number): number {
@@ -158,19 +164,20 @@ function buildDiscreteBins(
  * domain, range, and mode. Suitable for gradient rendering (e.g. gradient legend).
  */
 export function deriveNormalizedStops(colorScale: ColorScaleState): GradientColorStop[] {
-    const { domain, range, mode } = colorScale;
+    const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return [];
 
-    const d0 = domain[0];
-    const d1 = domain.at(-1)!;
+    const [d0, d1] = displayDomain ?? [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
 
     if (mode === 'discrete') {
-        // domain has N+1 boundaries for N colours.
+        // domain has N+1 boundaries for N colours. Clamp to [0, 1] so
+        // boundaries outside `displayDomain` collapse to the nearest edge.
         const stops: GradientColorStop[] = [];
         for (let i = 0; i < range.length; i++) {
-            const start = (domain[i] - d0) / extent;
-            const end = (domain[i + 1] - d0) / extent;
+            const start = clamp(0, (domain[i] - d0) / extent, 1);
+            const end = clamp(0, (domain[i + 1] - d0) / extent, 1);
+            if (end < start) continue;
             stops.push({ stop: start, color: range[i] });
             if (end > start) stops.push({ stop: end, color: range[i] });
         }

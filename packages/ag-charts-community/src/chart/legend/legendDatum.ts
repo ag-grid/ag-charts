@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-core';
 import type { AgChartLegendListeners, AgColorScaleColorStop, AgMarkerShape, TextOrSegments } from 'ag-charts-types';
 
+import type { ColorScale } from '../../scale/colorScale';
 import type { Scene } from '../../scene/scene';
 import type { LegendSymbolOptions } from './legendSymbol';
 
@@ -82,17 +83,17 @@ export interface GradientLegendDatum extends BaseChartLegendDatum {
 /**
  * Derives named labels for the gradient legend from fills that have a `name`.
  * For discrete mode, labels are placed at bin midpoints; for continuous mode,
- * at the resolved stop positions.
+ * at the resolved stop positions. Labels whose data position falls outside
+ * the visible `displayDomain` are dropped.
  */
 function deriveNamedLabels(
     colorScale: ColorScaleState,
     fills: AgColorScaleColorStop[]
 ): GradientLegendNamedLabel[] | undefined {
-    const { domain, range, mode } = colorScale;
+    const { domain, range, mode, displayDomain } = colorScale;
     if (range.length === 0) return undefined;
 
-    const d0 = domain[0];
-    const d1 = domain.at(-1)!;
+    const [d0, d1] = displayDomain ?? [domain[0], domain.at(-1)!];
     const extent = d1 - d0 || 1;
     const labels: GradientLegendNamedLabel[] = [];
 
@@ -101,10 +102,38 @@ function deriveNamedLabels(
         if (name == null) continue;
 
         const dataPosition = mode === 'discrete' ? (domain[i] + domain[i + 1]) / 2 : domain[i];
-        labels.push({ position: (dataPosition - d0) / extent, label: name });
+        const position = (dataPosition - d0) / extent;
+        if (position < 0 || position > 1) continue;
+        labels.push({ position, label: name });
     }
 
     return labels.length > 0 ? labels : undefined;
+}
+
+/**
+ * Clips continuous gradient stops so all positions lie within [0, 1].
+ * Boundary colours are sampled via `colorScale.convert()` so the visible
+ * slice of the gradient reflects the true scale at the display-domain edges.
+ */
+function clipGradientStopsToVisibleRange(
+    stops: GradientColorStop[],
+    colorScale: ColorScale,
+    d0: number,
+    d1: number
+): GradientColorStop[] {
+    if (stops.length === 0) return stops;
+
+    // All stops already inside [0, 1] — no clipping needed.
+    const first = stops[0];
+    const last = stops.at(-1)!;
+    if (first.stop >= 0 && last.stop <= 1) return stops;
+
+    const clipped: GradientColorStop[] = [{ stop: 0, color: colorScale.convert(d0) }];
+    for (const s of stops) {
+        if (s.stop > 0 && s.stop < 1) clipped.push(s);
+    }
+    clipped.push({ stop: 1, color: colorScale.convert(d1) });
+    return clipped;
 }
 
 /**
@@ -112,20 +141,26 @@ function deriveNamedLabels(
  * normalised colour stops from its domain/range/mode.
  */
 export function buildGradientLegendDatum(
-    colorScale: ColorScaleState,
+    colorScale: ColorScale,
     fills: AgColorScaleColorStop[],
     seriesId: string,
     enabled: boolean,
     series: FormatterBoundSeries[]
 ): GradientLegendDatum {
-    const { domain } = colorScale;
+    const { domain, displayDomain, mode } = colorScale;
+    const axisDomain: [number, number] = displayDomain ?? [domain[0], domain.at(-1)!];
+    const rawStops = deriveNormalizedStops(colorScale);
+    const colorStops =
+        mode === 'continuous'
+            ? clipGradientStopsToVisibleRange(rawStops, colorScale, axisDomain[0], axisDomain[1])
+            : rawStops;
     return {
         legendType: 'gradient',
         enabled,
         seriesId,
         series,
-        colorStops: deriveNormalizedStops(colorScale),
-        axisDomain: [domain[0], domain.at(-1)!] as [number, number],
+        colorStops,
+        axisDomain,
         namedLabels: deriveNamedLabels(colorScale, fills),
     };
 }
