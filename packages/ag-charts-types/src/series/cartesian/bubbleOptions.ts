@@ -89,6 +89,8 @@ export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext 
     itemStyler?: Styler<AgBubbleSeriesItemStylerParams<TDatum, TContext>, AgBubbleSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    /** Configuration for colour scale with fills, domain, and mode. */
+    colorScale?: AgColorScale;
 }
 
 export interface AgBubbleSeriesOptionsKeys<TDatum = DatumDefault> {
@@ -127,6 +129,4 @@ export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = Context
         AgBubbleSeriesOptionsNames {
     /** Configuration for Bubble Series. */
     type: 'bubble';
-    /** Configuration for colour scale with fills, domain, and mode. */
-    colorScale?: AgColorScale;
 }
