@@ -5,10 +5,13 @@ import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import type { ISeries } from './series/seriesTypes';
+import type { SeriesProperties } from './series/seriesProperties';
+import type { DatumIndexType, ISeries, SeriesNodeDatum } from './series/seriesTypes';
 
 export type ChartServiceEvent = RequireOptional<Omit<AgSelectionChangeEvent<unknown, unknown>, 'context'>>;
 export type ChartServiceEventType = ChartServiceEvent['type'];
+
+type BaseSeries = ISeries<DatumIndexType, SeriesNodeDatum<DatumIndexType>, SeriesProperties<object>>;
 
 // Subset of chart.ts exposed in the module context:
 export interface ChartService {
@@ -16,7 +19,7 @@ export interface ChartService {
     readonly mode: ChartMode;
     readonly styleNonce?: string;
     readonly title: CaptionLike;
-    readonly series: ISeries<any, any, any>[];
+    readonly series: BaseSeries[];
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
     readonly touch: DeepRequired<AgTouchOptions>;
