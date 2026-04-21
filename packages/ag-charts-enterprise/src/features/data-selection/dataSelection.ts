@@ -55,26 +55,27 @@ export class DataSelection extends AbstractModuleInstance {
         const { type, clickedNode } = event;
         if (type !== 'click') return;
 
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         if (clickedNode === undefined) {
             return this.clearAllSelections();
         }
+        else {
+            const { data } = clickedNode.series;
+            if (data === undefined) return;
 
-        const { data } = clickedNode.series;
-        if (data === undefined) return;
+            const { series, datumIndex } = clickedNode;
+            if (typeof datumIndex !== 'number') {
+                Logger.errorOnce(`Not Yet Implemented: datumIndex of type ${typeof datumIndex}`);
+                return;
+            }
 
-        const { series, datumIndex } = clickedNode;
-        if (typeof datumIndex !== 'number') {
-            Logger.errorOnce(`Not Yet Implemented: datumIndex of type ${typeof datumIndex}`);
-            return;
-        }
-
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
-        if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
-            toggleSelection(series, data, datumIndex);
-        } else {
-            clickMode satisfies 'single';
-            this.clearAllSelections();
-            setSelected(series, data, datumIndex);
+            if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
+                toggleSelection(series, data, datumIndex);
+            } else {
+                clickMode satisfies 'single';
+                this.clearAllSelections();
+                setSelected(series, data, datumIndex);
+            }
         }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
         this.dispatchSelectionChange(bufferMap);
