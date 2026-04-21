@@ -92,11 +92,6 @@ export function diffSelectionBuffers(chartService: ChartService, bufferMap: Buff
     return { added, removed };
 }
 
-export function setSingleSelection(series: Series, data: DataSet, datumIndex: number): void {
-    data.selections.clear();
-    toggleSelection(series, data, datumIndex);
-}
-
 export function toggleSelection(series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
     selections.toggle(datumIndex);
