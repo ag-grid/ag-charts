@@ -107,6 +107,18 @@ const options: AgCartesianChartOptions<unknown> = {
     navigator: {
         enabled: true,
     },
+    zoom: {
+        enableAxisDragging: false,
+        enableAxisScrolling: false,
+        enableDoubleClickToReset: false,
+        enablePanning: false,
+        enableScrolling: false,
+        enableSelecting: false,
+        enableTwoFingerZoom: false,
+        onDataChange: {
+            strategy: 'preserveRatios',
+        },
+    },
     listeners: {
         selectionChange: (ev: unknown) => {
             console.log(ev);
