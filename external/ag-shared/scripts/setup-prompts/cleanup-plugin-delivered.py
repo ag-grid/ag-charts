@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -100,7 +101,6 @@ def main() -> int:
     # 2. .claude/ — remove stale generated files for plugin-delivered items
     #    (rulesync --delete sometimes misses files when the .rulesync source dir
     #    is empty, so we sweep defensively)
-    import shutil
     for cat, (_, is_dir) in CATEGORIES.items():
         claude_subdir = CLAUDE_SUBDIR_OVERRIDE.get(cat, cat)
         claude_dir = args.claude / claude_subdir

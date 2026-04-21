@@ -133,6 +133,10 @@ def stage_skill_dir(src: Path, dst: Path, targets: list[str] | str, staged: set[
 def stage(dry_run: bool = False) -> set[Path]:
     manifest = load_manifest()
     staged: set[Path] = set()
+    # Track partial destinations to their source plugin so we can detect
+    # cross-plugin filename collisions (e.g. two plugins shipping
+    # commands/docs/_shared.md) rather than silently overwriting.
+    partial_owner: dict[Path, str] = {}
 
     if not CACHE_REPO.exists():
         print(f"ERROR: cache missing at {CACHE_REPO}. Run fetch.sh first.", file=sys.stderr)
@@ -187,6 +191,16 @@ def stage(dry_run: bool = False) -> set[Path]:
                     continue
                 relpath = partial.relative_to(cmd_dir)
                 dst = RULESYNC / "commands" / relpath
+                prior_owner = partial_owner.get(dst)
+                if prior_owner is not None and prior_owner != plugin_name:
+                    print(
+                        f"ERROR: partial collision — both {prior_owner!r} and "
+                        f"{plugin_name!r} provide commands/{relpath}. "
+                        f"Namespace the file under the plugin directory to resolve.",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                partial_owner[dst] = plugin_name
                 if dry_run:
                     print(f"  partial {plugin_name}/{relpath} → {dst.relative_to(REPO_ROOT)}")
                     staged.add(dst)

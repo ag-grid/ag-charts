@@ -398,7 +398,7 @@ generate_config() {
             echo -e "${YELLOW}Warning: .rulesync/ contains symlinks for plugin-delivered items${NC}"
             python3 "$cleanup_script" --verify || true
             echo -e "${YELLOW}Removing stale symlinks...${NC}"
-            python3 "$cleanup_script" || true
+            python3 "$cleanup_script"
         fi
     fi
 

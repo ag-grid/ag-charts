@@ -225,10 +225,15 @@ runs:
               echo "PR refs fetched successfully"
 
         - name: Setup Node.js
+          # `registry-url` + `scope` configure a process-scoped .npmrc that
+          # references $NODE_AUTH_TOKEN literally (not interpolated), so the
+          # token is never persisted to disk. See AG-17085 review.
           if: steps.check-auth.outputs.skipped != 'true'
           uses: actions/setup-node@v4
           with:
               node-version-file: package.json
+              registry-url: https://npm.pkg.github.com
+              scope: '@ag-grid'
 
         - name: Install Codex CLI
           if: steps.check-auth.outputs.skipped != 'true'
@@ -250,10 +255,6 @@ runs:
               install_dir="$RUNNER_TEMP/ag-dev-prompts"
               mkdir -p "$install_dir"
               cd "$install_dir"
-              cat > .npmrc <<EOF
-              @ag-grid:registry=https://npm.pkg.github.com
-              //npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-              EOF
               echo '{"name":"ag-dev-prompts-install","private":true}' > package.json
               npm install --no-save --silent "@ag-grid/dev-prompts@${DEV_PROMPTS_VERSION}"
               package_root="$install_dir/node_modules/@ag-grid/dev-prompts"
