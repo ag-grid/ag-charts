@@ -4,10 +4,19 @@
 # via rulesync generate. Part of AG-17085 Phase 3.
 #
 # Auth precedence:
-#   1. AG_DEV_PROMPTS_REPO env — explicit URL (overrides everything below)
+#   1. AG_DEV_PROMPTS_REPO env — explicit URL (overrides everything below).
+#      Use this to force SSH (e.g. AG_DEV_PROMPTS_REPO=git@github.com:...).
 #   2. GITHUB_TOKEN env        — https clone via per-call Authorization header
 #                                (not persisted to .git/config). CI path.
-#   3. Fallback                 — SSH (git@github.com:...), the dev workstation path
+#   3. gh CLI                  — if `gh auth token` resolves a token, use it
+#                                the same way as GITHUB_TOKEN. Transparent for
+#                                developers already logged in with `gh`.
+#   4. Fallback                 — https clone with no explicit credentials; git's
+#                                credential helper (osxkeychain, manager, etc.)
+#                                supplies auth. The dev workstation path.
+#
+# HTTPS is the default because SSH keys are not universally registered with
+# GitHub on dev workstations, whereas `gh` and credential helpers are common.
 #
 # AG_DEV_PROMPTS_REF must resolve to a branch or tag name. SHAs are not supported.
 set -euo pipefail
@@ -24,17 +33,20 @@ if [[ -n "${AG_DEV_PROMPTS_REPO:-}" ]]; then
     AUTH_MODE="override"
 elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
     AUTH_MODE="token"
+elif command -v gh >/dev/null 2>&1 && GITHUB_TOKEN="$(gh auth token 2>/dev/null)" && [[ -n "$GITHUB_TOKEN" ]]; then
+    export GITHUB_TOKEN
+    AUTH_MODE="gh"
 else
-    AUTH_MODE="ssh"
+    AUTH_MODE="https"
 fi
 
-# Git config args for the current invocation only. When GITHUB_TOKEN is set we
+# Git config args for the current invocation only. When a token is available we
 # attach an Authorization header via `-c http.extraHeader=...` instead of
 # embedding credentials in the remote URL, so nothing secret lands in
 # .git/config. Assignment happens at top level (not inside a subshell) so the
 # array is visible to the git invocations below.
 GIT_AUTH_ARGS=()
-if [[ "$AUTH_MODE" == "token" ]]; then
+if [[ "$AUTH_MODE" == "token" || "$AUTH_MODE" == "gh" ]]; then
     _basic=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 | tr -d '\n')
     GIT_AUTH_ARGS=(-c "http.extraHeader=Authorization: Basic ${_basic}")
     unset _basic
@@ -43,8 +55,7 @@ fi
 resolve_repo_url() {
     case "$AUTH_MODE" in
         override) echo "$AG_DEV_PROMPTS_REPO" ;;
-        token)    echo "https://github.com/${REPO_SLUG}.git" ;;
-        ssh|*)    echo "git@github.com:${REPO_SLUG}.git" ;;
+        *)        echo "https://github.com/${REPO_SLUG}.git" ;;
     esac
 }
 
@@ -57,30 +68,52 @@ print_remediation() {
     echo "ag-dev-prompts fetch failed (exit $exit_code) from $REPO_URL" >&2
     echo "" >&2
     case "$AUTH_MODE" in
-        ssh)
+        https)
             cat >&2 <<EOF
-Auth path: SSH (default for dev workstations).
+Auth path: HTTPS via git credential helper (no GITHUB_TOKEN, no gh login found).
+
+Git asked your system credential helper (osxkeychain / manager / libsecret)
+for ${REPO_SLUG} credentials and either got none or got credentials that
+don't grant access.
 
 To fix, pick one:
 
-  A. Ensure your SSH key is registered with GitHub and has access to
-     ag-grid/ag-dev-prompts:
-       ssh -T git@github.com           # should greet you by username
-       ssh-add -l                      # check a key is loaded
-
-  B. Install GitHub CLI and authenticate, then export a token for this
-     session (no .git/config persistence — GITHUB_TOKEN overrides SSH):
+  A. Install GitHub CLI and authenticate — easiest path, no tokens to manage:
        brew install gh                 # or: https://cli.github.com/
        gh auth login --hostname github.com --git-protocol https --web
-       export GITHUB_TOKEN=\$(gh auth token)
        yarn                            # re-run install to retry the fetch
 
-  C. If you already have a Personal Access Token with repo scope:
+  B. Export a Personal Access Token with repo scope for this session:
        export GITHUB_TOKEN=ghp_...
        yarn
 
-Verify access directly:
-  git ls-remote git@github.com:${REPO_SLUG}.git
+  C. If you prefer SSH and your key is registered with GitHub:
+       export AG_DEV_PROMPTS_REPO=git@github.com:${REPO_SLUG}.git
+       yarn
+
+Verify HTTPS access directly:
+  git ls-remote https://github.com/${REPO_SLUG}.git
+EOF
+            ;;
+        gh)
+            cat >&2 <<EOF
+Auth path: token sourced from \`gh auth token\`.
+
+The token was accepted by gh but rejected by GitHub for ${REPO_SLUG}.
+
+Common causes:
+  * gh session expired — re-authenticate:
+      gh auth refresh -h github.com -s repo
+      yarn
+  * gh account lacks access to ${REPO_SLUG}. Log in with an account that
+    has access, or switch accounts:
+      gh auth switch
+      yarn
+
+Verify the token directly:
+  curl -sSf -H "Authorization: Bearer \$(gh auth token)" \\
+    https://api.github.com/repos/${REPO_SLUG} >/dev/null \\
+    && echo "token OK" || echo "token rejected"
 EOF
             ;;
         token)
