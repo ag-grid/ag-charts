@@ -12,7 +12,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, Vertex, mergeDefaults } from 'ag-charts-core';
+import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDefaults } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
@@ -58,6 +58,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     getRootVertices() {
         if (!this.rootVertex) return [];
         return [this.rootVertex];
+    }
+
+    getFocusedVertex() {
+        return undefined;
+    }
+
+    getDefaultFocusedVertices() {
+        if (!this.rootVertex) return undefined;
+        return this.graph.neighboursWithEdgeValue(this.rootVertex, 'child') as Vertex<
+            OrganizationVertex,
+            OrganizationEdge
+        >[];
+    }
+
+    updateOffset(offset: Point) {
+        this.dataNodeGroup.translationX = offset.x;
+        this.dataNodeGroup.translationY = offset.y;
+
+        this.linkGroup.translationX = offset.x;
+        this.linkGroup.translationY = offset.y;
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -127,6 +147,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     nodeFactory(): OrganizationNode {
         return new OrganizationNode();
+    }
+
+    hasItemStylers() {
+        const { node, link } = this.properties;
+        return (
+            node.itemStyler != null ||
+            link.itemStyler != null ||
+            node.title.itemStyler != null ||
+            node.subtitle.itemStyler != null ||
+            node.labels.some((label) => label.itemStyler != null)
+        );
     }
 
     updateDatumSelection(
