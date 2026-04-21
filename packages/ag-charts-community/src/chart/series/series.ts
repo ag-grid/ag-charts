@@ -1358,7 +1358,6 @@ export abstract class Series<
         const { datumCallbackCache } = this;
         const existing = datumCallbackCache.get(id) as T;
         if (existing != null) return existing;
-        this.properties.highlight;
 
         try {
             const value = fn();
