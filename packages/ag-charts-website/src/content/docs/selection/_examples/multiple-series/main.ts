@@ -14,6 +14,7 @@ import {
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
     SelectionModule,
+    ZoomModule,
 } from 'ag-charts-enterprise';
 import {
     AgAreaSeriesOptions,
@@ -43,6 +44,7 @@ ModuleRegistry.registerModules([
     RangeAreaSeriesModule,
     RangeBarSeriesModule,
     SelectionModule,
+    ZoomModule,
 ]);
 
 const fullData = getData();
@@ -104,6 +106,7 @@ const options: AgCartesianChartOptions<unknown> = {
             },
         },
     },
+    selection: undefined,
     navigator: {
         enabled: true,
     },
