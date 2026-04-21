@@ -46,7 +46,20 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly defaultPrevented: boolean;
 }
 
-export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLabel = TDatum> {
+export interface ISeriesProperties {
+    cursor: string;
+    xKey?: string;
+    yKey?: string;
+    context?: unknown;
+    selection: { enabled: boolean };
+}
+
+export interface ISeries<
+    TDatumIndex extends DatumIndexType,
+    TDatum,
+    TProps extends ISeriesProperties,
+    TLabel = TDatum,
+> {
     id: string;
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
@@ -106,12 +119,14 @@ export interface ISeries<TDatumIndex extends DatumIndexType, TDatum, TProps, TLa
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
 }
 
+type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;
+
 /**
  * Processed series datum used in node selections,
  * contains information used to render pie sectors, bars, markers, etc.
  */
 export interface SeriesNodeDatum<I extends DatumIndexType> {
-    readonly series: ISeries<I, any, any>;
+    readonly series: SeriesNodeDatumSeries<I>;
     readonly itemId?: ItemId;
     readonly itemType?: ItemType;
     readonly datum: unknown;

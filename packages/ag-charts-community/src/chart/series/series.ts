@@ -76,6 +76,7 @@ import type {
     DatumIndexType,
     INodeEvent,
     ISeries,
+    ISeriesProperties,
     NodeDataDependencies,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
@@ -160,7 +161,7 @@ export class SeriesNodeEvent<
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, unknown, unknown>
+        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;

@@ -352,8 +352,8 @@ export class ContextMenu extends AbstractModuleInstance {
                 const { showEvent } = this;
                 const { chartService: chart } = this.ctx;
 
-                const pickedNode: undefined | { series: UnknownSeries } = this.pickedNode;
-                const callers: Caller[] = [pickedNode?.series.properties, chart];
+                const pickedNode = this.pickedNode;
+                const callers: (Caller | undefined)[] = [pickedNode?.series.properties, chart];
                 const apiEvent = pickedNode?.series.createNodeContextMenuActionEvent(showEvent!, pickedNode);
                 if (apiEvent) {
                     callWithContext(callers, callback, apiEvent);

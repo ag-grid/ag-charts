@@ -85,12 +85,13 @@ export class FlowProportionSeriesNodeEvent<
         series: _ModuleSupport.ISeries<
             FlowProportionNodeDatumIndex,
             _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex>,
+            _ModuleSupport.ISeriesProperties,
             unknown
         > & {
             contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
                 FlowProportionNodeDatumIndex,
                 TDatum<FlowProportionNodeDatum<any, any>, FlowProportionLinkDatum<any, any>>,
-                unknown
+                _ModuleSupport.ISeriesProperties
             >;
         }
     ) {

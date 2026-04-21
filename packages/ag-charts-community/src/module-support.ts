@@ -188,6 +188,7 @@ export type {
     DatumIndexType,
     ErrorBoundSeriesNodeDatum,
     ISeries,
+    ISeriesProperties,
     ItemId,
     SeriesNodeDatum,
     SeriesNodeEventTypes,
