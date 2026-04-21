@@ -1,5 +1,5 @@
 import { type AgMapLineBackgroundOptions, VERSION } from 'ag-charts-community';
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import { type SeriesModuleDefinition } from 'ag-charts-core';
 
 import { TopologyChartModule } from '../../charts/topologyChartModule';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';

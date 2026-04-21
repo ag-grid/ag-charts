@@ -3,6 +3,7 @@ import {
     FILL_GRADIENT_LINEAR_HIERARCHY_DEFAULTS,
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_HIERARCHY_DEFAULTS,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -34,6 +35,7 @@ export const MapShapeBackgroundSeriesModule: SeriesModuleDefinition<AgMapShapeBa
             }),
             stroke: { $ref: 'chartBackgroundColor' },
             strokeWidth: 1,
+            selection: SERIES_SELECTION_THEME,
         },
     },
 
