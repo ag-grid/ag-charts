@@ -18,6 +18,7 @@ import {
     isNumberEqual,
     pickDirectionZoom,
     roundTo,
+    toZoomState,
 } from 'ag-charts-core';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
@@ -908,7 +909,7 @@ export class Zoom extends AbstractModuleInstance {
         // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
         // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
         // breaking the behaviour.
-        const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
+        const partialZoom = toZoomState(changes) ?? {};
         const currentZoom = this.getZoom();
         this.updateZoom(sourcing, {
             x: partialZoom.x ?? currentZoom.x,

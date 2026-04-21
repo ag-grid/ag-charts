@@ -6,13 +6,13 @@ import {
     attachDescription,
     clamp,
     deepClone,
-    deepFreeze,
     defined,
     definedZoomState,
     isFiniteNumber,
     isObject,
     isValidDate,
     strictObjectKeys,
+    toZoomState,
     validate,
 } from 'ag-charts-core';
 import type {
@@ -57,6 +57,11 @@ export type CartesianAxisLike = SimpleAxis & {
     boundSeries: ISeries<any, any, any>[];
     min?: number;
     max?: number;
+    // Axis-local zoom — added during the zoom-state-migration work. `CartesianAxis` implements
+    // these; `SimpleAxis` literals (e.g. topologyChart) do not, and ZoomManager must guard with
+    // `'setZoom' in axis`.
+    getZoom(): ZoomMinMax;
+    setZoom(zoom: ZoomMinMax): void;
 };
 
 const rangeValidator = (axis?: CartesianAxisLike) =>
@@ -148,12 +153,38 @@ export function userInteraction<D extends ZoomEventSourceDetail>(sourceDetail: D
 export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMemento> {
     public mementoOriginatorKey = 'zoom' as const;
 
-    private state: CoreZoomStateSafeRetrieval = {};
+    private get state(): CoreZoomStateSafeRetrieval {
+        // Rich axes own their zoom via getZoom(); simple axes (topologyChart) fall back to the
+        // direction zoom in chartState since they cannot carry per-axis state.
+        const directionZoom = this.ctx.chartState.getValue('zoom');
+        const result: CoreZoomState = {};
+        for (const axis of this.allAxes) {
+            const rich = this.axes.find((a) => a.id === axis.id);
+            let min: number;
+            let max: number;
+            if (rich) {
+                ({ min, max } = rich.getZoom());
+            } else {
+                const fallback = axis.direction === 'x' ? directionZoom?.x : directionZoom?.y;
+                min = fallback?.min ?? 0;
+                max = fallback?.max ?? 1;
+            }
+            result[axis.id] = { min, max, direction: axis.direction };
+        }
+        return result;
+    }
+    private set state(value: CoreZoomStateSafeRetrieval) {
+        for (const axis of this.axes) {
+            const entry = value[axis.id];
+            if (!entry) continue;
+            axis.setZoom({ min: entry.min, max: entry.max });
+        }
+    }
     private readonly axes: CartesianAxisLike[] = [];
+    private readonly allAxes: SimpleAxis[] = [];
     private didLayoutAxes = false;
     private pendingZoomEventSource?: AgZoomEventSource;
 
-    private lastRestoredState: CoreZoomStateSafeRetrieval = {};
     private lastRestoredRequiredRange?: number; // The ratio (_requiredRange / dimension) last applied to zoom
     private lastRestoredRequiredRangeDirection?: CartesianAxisDirection;
     private lastRequiredRange?: number; // The raw pixel value from processRanges(), used to detect genuine option changes
@@ -242,26 +273,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return result;
     }
 
-    // FIXME: should be private
-    public toZoomState(coreZoom: DeepReadonly<CoreZoomStateSafeRetrieval>): ZoomState | undefined {
-        let x: ZoomMinMax | undefined;
-        let y: ZoomMinMax | undefined;
-
-        // Use the zoom on the primary (first) axis in each direction
-        for (const id of strictObjectKeys(coreZoom)) {
-            const { min, max, direction } = coreZoom[id]!;
-            if (direction === ChartAxisDirection.X) {
-                x ??= { min, max };
-            } else if (direction === ChartAxisDirection.Y) {
-                y ??= { min, max };
-            }
-        }
-
-        if (x || y) {
-            return { x, y };
-        }
-    }
-
     public createMemento(): ZoomMemento {
         return this.getMementoRanges();
     }
@@ -300,7 +311,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         // Migration from older versions can be implemented here.
 
-        const zoom = definedZoomState(this.getZoom());
+        const zoom = definedZoomState(toZoomState(this.state));
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatioDirection(ChartAxisDirection.X, memento.rangeX) ?? { min: 0, max: 1 };
         } else if (memento?.ratioX) {
@@ -315,8 +326,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.ctx.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
-        this.lastRestoredState = deepFreeze(deepClone(changes));
-        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
+        this.ctx.chartState.setValue('initialZoom', toZoomState(changes));
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-restoreMemento',
@@ -336,9 +346,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public setAxes(nextAxes: Parameters<typeof refreshCoreState>[0]) {
-        const { axes } = this;
+        const { axes, allAxes } = this;
         axes.length = 0;
+        allAxes.length = 0;
         for (const axis of nextAxes) {
+            allAxes.push({ id: axis.id, direction: axis.direction });
             if ('range' in axis) {
                 axes.push(axis);
             }
@@ -347,8 +359,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const oldState = this.state;
         const changes = refreshCoreState(nextAxes, oldState);
         this.state = changes;
-        this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
-        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
 
         this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes, isReset: false });
     }
@@ -416,14 +426,25 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public resetZoom({ source, sourceDetail }: UpdateZoomSourcing) {
-        this.updateChanges({ source, sourceDetail, changes: this.getRestoredZoom(), isReset: true });
+        const initial = this.ctx.chartState.getValue('initialZoom');
+        const changes: UpdateZoomChanges = {};
+        for (const axis of this.allAxes) {
+            const directionZoom = axis.direction === 'x' ? initial?.x : initial?.y;
+            changes[axis.id] = directionZoom ? { min: directionZoom.min, max: directionZoom.max } : { min: 0, max: 1 };
+        }
+        this.updateChanges({ source, sourceDetail, changes, isReset: true });
     }
 
     public resetAxisZoom({ source, sourceDetail }: UpdateZoomSourcing, axisId: AxisID) {
+        const axis = this.allAxes.find((a) => a.id === axisId);
+        if (!axis) return;
+        const initial = this.ctx.chartState.getValue('initialZoom');
+        const directionZoom = axis.direction === 'x' ? initial?.x : initial?.y;
+        const entry = directionZoom ? { min: directionZoom.min, max: directionZoom.max } : { min: 0, max: 1 };
         this.updateChanges({
             source,
             sourceDetail,
-            changes: { [axisId]: this.getRestoredZoom()[axisId] },
+            changes: { [axisId]: entry },
             isReset: true,
         });
     }
@@ -431,7 +452,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     public panToBBox(seriesRect: BBox, target: BoxBounds): boolean {
         if (!this.isZoomEnabled() && !this.isNavigatorEnabled()) return false;
 
-        const zoom = this.getZoom();
+        const zoom = toZoomState(this.state);
         if (zoom === undefined || (!zoom.x && !zoom.y)) return false;
 
         const { panToBBoxScalingMode } = this;
@@ -527,24 +548,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return valid;
     }
 
-    public getZoom(): ZoomState | undefined {
-        return this.toZoomState(this.state);
-    }
-
-    public getAxisZoom(axisId: AxisID): ZoomMinMax {
-        return this.state[axisId] ?? { min: 0, max: 1 };
-    }
-
+    /**
+     * Snapshot of the per-axis zoom map built from axis-local state. Used by per-axis iteration
+     * consumers (panner, scroller, toolbar independent-axes branch). New code should prefer reading
+     * `chartState.zoom` (per-direction) or `axis.getZoom()` (per-axis).
+     */
     public getAxisZooms(): CoreZoomStateSafeRetrieval {
         return this.state;
-    }
-
-    public getCoreZoom(): CoreZoomStateSafeRetrieval {
-        return this.state;
-    }
-
-    public getRestoredZoom(): CoreZoomStateSafeRetrieval {
-        return this.lastRestoredState;
     }
 
     public getPrimaryAxisId(direction: CartesianAxisDirection) {
@@ -620,7 +630,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     private getMementoRanges() {
-        const zoom = definedZoomState(this.getZoom());
+        const zoom = definedZoomState(toZoomState(this.state));
         const memento: RequireOptional<ZoomMemento> & {
             ratioX: Required<AgZoomRatio>;
             ratioY: Required<AgZoomRatio>;
@@ -681,7 +691,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const crossAxisId = this.getPrimaryAxisId(requiredRangeDirection);
         if (!crossAxisId) return;
 
-        const crossAxisZoom = this.getAxisZoom(crossAxisId);
+        const crossAxisZoom = this.state[crossAxisId] ?? { min: 0, max: 1 };
         const requiredZoom = Math.min(1, 1 / requiredRangeRatio);
 
         let min = 0;
@@ -708,8 +718,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
-        this.lastRestoredState = deepFreeze(deepClone(changes));
-        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
+        this.ctx.chartState.setValue('initialZoom', toZoomState(changes));
 
         this.updateChanges({
             source: 'state-change',
@@ -747,7 +756,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         isReset: boolean,
         oldState: CoreZoomStateSafeRetrieval
     ): boolean {
-        const { x, y } = this.getZoom() ?? {};
+        const { x, y } = toZoomState(this.state) ?? {};
         const state = this.state;
         let constrainedState: typeof state | undefined;
 
@@ -763,7 +772,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             x,
             y,
             stateAsDefinedZoom(): DefinedZoomState {
-                return definedZoomState(zoomManager.toZoomState(event.state));
+                return definedZoomState(toZoomState(event.state));
             },
             constrainZoom(restrictions: ZoomState): void {
                 this.constrainChanges(zoomManager.toCoreZoomState(restrictions));
@@ -791,7 +800,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.state = constrainedState;
         }
 
-        const acceptedZoom = this.getZoom();
+        const acceptedZoom = toZoomState(this.state);
         this.ctx.chartState.setValue('zoom', acceptedZoom);
 
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);

@@ -539,11 +539,9 @@ export class CartesianChart extends Chart {
 
         let start = 0;
         let end = maxEnd;
-        // Cartesian axes (including secondary axes in independent-axes mode) need their own zoom,
-        // not the direction's. Read per-axis from ZoomManager; secondary axes may diverge from the
-        // direction primary in independent mode. Migrating the read path is tracked alongside the
-        // axis-local zoom adjustment work.
-        let { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
+        // Per-axis zoom is axis-local — secondary axes in independent-axes mode diverge from their
+        // direction primary. Read directly from the axis rather than the central chart state.
+        let { min, max } = axis.getZoom();
 
         const { width: axisWidth, unit, align } = axis.layoutConstraints;
 
