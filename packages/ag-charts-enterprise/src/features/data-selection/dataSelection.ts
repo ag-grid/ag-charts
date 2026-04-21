@@ -58,8 +58,7 @@ export class DataSelection extends AbstractModuleInstance {
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         if (clickedNode === undefined) {
             return this.clearAllSelections();
-        }
-        else {
+        } else {
             const { data } = clickedNode.series;
             if (data === undefined) return;
 
