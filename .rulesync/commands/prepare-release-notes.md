@@ -1,1 +1,0 @@
-../../external/prompts/commands/prepare-release-notes.md
