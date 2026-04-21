@@ -20,10 +20,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
     update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {
         const { containerBBox } = this.updateChildren(options, undefined);
-
-        // Remove the last unused side of outer padding from the container
-        containerBBox.width -= this.outerPadding;
-
         this.updateOffset(options, containerBBox);
     }
 
@@ -193,22 +189,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        // offset = this.clampOffset(offset, containerBBox, options);
-        options.updateOffset(offset);
-    }
+        offset = Vec2.add(offset, options.offset);
 
-    private clampOffset(
-        offset: Point,
-        containerBBox: TBBox,
-        options: Pick<NetworkLayoutUpdateOptions<TVertex, TEdge>, 'height' | 'width'>
-    ): Point {
-        return {
-            x: clamp(-containerBBox.width, offset.x, containerBBox.width),
-            y: clamp(
-                containerBBox.y - containerBBox.height + options.height,
-                offset.y,
-                containerBBox.y + options.height
-            ),
-        };
+        // TODO: clamp the offset so that any one node is always visible
+
+        options.updateOffset(offset);
     }
 }

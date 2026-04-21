@@ -1,5 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type ChartAnimationPhase, type ChartAxisDirection, type Point, Property, Vertex } from 'ag-charts-core';
+import {
+    type ChartAnimationPhase,
+    type ChartAxisDirection,
+    ChartUpdateType,
+    type Point,
+    Property,
+    Vertex,
+} from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
@@ -84,34 +91,36 @@ export abstract class AbstractNetworkSeries<
 
     private height?: number;
     private width?: number;
+    private startDragOffset: Point = { x: 0, y: 0 };
+    private dragOffset: Point = { x: 0, y: 0 };
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: _ModuleSupport.ModuleContext) {
         super({
-            moduleCtx,
+            moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
-        moduleCtx.eventsHub.on('layout:complete', (event) => {
+        ctx.eventsHub.on('layout:complete', (event) => {
             this.height = event.series.rect.height;
             this.width = event.series.rect.width;
         });
 
-        moduleCtx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
+        ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
             if (!collapsed) return;
             if (this.graph.getVertexCount() === 0) {
                 this.pendingCollapsedIds = collapsed;
             }
         });
 
-        moduleCtx.eventsHub.on('active:update', (blob) => {
+        ctx.eventsHub.on('active:update', (blob) => {
             if (blob?.seriesId !== this.id) return;
             this.expandNetworkToItem(blob.itemId);
         });
 
-        moduleCtx.eventsHub.on('series-area:click', ({ type, clickedNode }) => {
+        ctx.eventsHub.on('series-area:click', ({ type, clickedNode }) => {
             if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
             if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
                 this.expandItem(clickedNode.itemId);
@@ -119,6 +128,13 @@ export abstract class AbstractNetworkSeries<
                 this.collapseItem(clickedNode.itemId);
             }
         });
+
+        if (ctx.widgets.seriesDragInterpreter) {
+            this.cleanup.register(
+                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
+            );
+        }
     }
 
     abstract createNetworkGraph(): TGraph;
@@ -147,6 +163,18 @@ export abstract class AbstractNetworkSeries<
 
     dataCount() {
         return this.datumSelection.length;
+    }
+
+    private onSeriesAreaDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
+        this.dragOffset = {
+            x: this.startDragOffset.x + event.originDeltaX,
+            y: this.startDragOffset.y + event.originDeltaY,
+        };
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    private onSeriesAreaDragEnd() {
+        this.startDragOffset = { ...this.dragOffset };
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
@@ -198,6 +226,7 @@ export abstract class AbstractNetworkSeries<
         this.layout.update({
             height: this.height ?? 0,
             width: this.width ?? 0,
+            offset: this.dragOffset,
             graph: this.graph,
             vertices: this.getRootVertices(),
             getFocusedVertex: this.getFocusedVertex.bind(this),

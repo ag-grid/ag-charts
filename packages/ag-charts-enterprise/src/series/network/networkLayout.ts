@@ -7,6 +7,7 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     height: number;
     width: number;
+    offset: Point;
     graph: NetworkGraph<TVertex, TEdge>;
     vertices: Vertex<TVertex, TEdge>[];
     getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => _ModuleSupport.BBox | undefined;
