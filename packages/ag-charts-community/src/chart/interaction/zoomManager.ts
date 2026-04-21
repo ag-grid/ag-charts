@@ -11,6 +11,7 @@ import {
     isFiniteNumber,
     isObject,
     isValidDate,
+    pickDirectionZoom,
     strictObjectKeys,
     toZoomState,
     validate,
@@ -165,7 +166,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             if (rich) {
                 ({ min, max } = rich.getZoom());
             } else {
-                const fallback = axis.direction === 'x' ? directionZoom?.x : directionZoom?.y;
+                const fallback = pickDirectionZoom(directionZoom, axis.direction);
                 min = fallback?.min ?? 0;
                 max = fallback?.max ?? 1;
             }
@@ -429,7 +430,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const initial = this.ctx.chartState.getValue('initialZoom');
         const changes: UpdateZoomChanges = {};
         for (const axis of this.allAxes) {
-            const directionZoom = axis.direction === 'x' ? initial?.x : initial?.y;
+            const directionZoom = pickDirectionZoom(initial, axis.direction);
             changes[axis.id] = directionZoom ? { min: directionZoom.min, max: directionZoom.max } : { min: 0, max: 1 };
         }
         this.updateChanges({ source, sourceDetail, changes, isReset: true });
@@ -439,7 +440,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const axis = this.allAxes.find((a) => a.id === axisId);
         if (!axis) return;
         const initial = this.ctx.chartState.getValue('initialZoom');
-        const directionZoom = axis.direction === 'x' ? initial?.x : initial?.y;
+        const directionZoom = pickDirectionZoom(initial, axis.direction);
         const entry = directionZoom ? { min: directionZoom.min, max: directionZoom.max } : { min: 0, max: 1 };
         this.updateChanges({
             source,
