@@ -372,19 +372,37 @@ generate_config() {
         if [[ "$verbose" == "true" ]]; then
             echo -e "${BLUE}Fetching ag-dev-prompts...${NC}"
         fi
-        if resolved_sha=$("$fetch_script" 2>/dev/null); then
+        # fetch.sh emits its own tailored remediation on failure (SSH/token/
+        # override); do not suppress its stderr.
+        if resolved_sha=$("$fetch_script"); then
             if [[ "$verbose" == "true" ]]; then
                 echo -e "${GREEN}✓${NC} Fetched ag-dev-prompts @ ${resolved_sha:0:8}"
             fi
-            if python3 "$stage_script" >/dev/null 2>&1; then
+            local stage_output
+            local stage_exit=0
+            stage_output=$(python3 "$stage_script" 2>&1) || stage_exit=$?
+            if [[ $stage_exit -eq 0 ]]; then
                 if [[ "$verbose" == "true" ]]; then
                     echo -e "${GREEN}✓${NC} Staged plugin content into .rulesync/"
                 fi
             else
-                echo -e "${YELLOW}Warning: ag-dev-prompts staging failed — non-Claude tools may miss shared content${NC}"
+                echo -e "${YELLOW}Warning: ag-dev-prompts staging failed (exit $stage_exit) — non-Claude tools may miss shared content${NC}" >&2
+                echo "$stage_output" >&2
+                echo "" >&2
+                echo "To fix:" >&2
+                echo "  1. Check the Python error above — most stage.py failures are caused by a stale" >&2
+                echo "     cache. Wipe it and retry:" >&2
+                echo "       rm -rf \"${AG_DEV_PROMPTS_CACHE:-\$HOME/.cache/ag-dev-prompts}\"" >&2
+                echo "       yarn" >&2
+                echo "  2. If the error mentions a missing plugin-assignments.json, the fetched" >&2
+                echo "     ag-dev-prompts branch is missing it — confirm AG_DEV_PROMPTS_REF (currently" >&2
+                echo "     '${AG_DEV_PROMPTS_REF:-latest}') points at a branch with that file." >&2
+                echo "  3. If the error persists, file a bug in ag-grid/ag-charts with the output above." >&2
+                echo "" >&2
             fi
         else
-            echo -e "${YELLOW}Warning: ag-dev-prompts fetch failed — non-Claude tools will use whatever is already staged${NC}"
+            echo -e "${YELLOW}Warning: ag-dev-prompts fetch failed — non-Claude tools will use whatever is already staged.${NC}" >&2
+            echo -e "${YELLOW}See the remediation printed above by rulesync-fetch.${NC}" >&2
         fi
     fi
 
