@@ -1,4 +1,4 @@
-import type { _Widget } from 'ag-charts-community';
+import type { AgSelectionChangeEvent, AgSelectionItem, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -11,6 +11,11 @@ import {
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
+type DataSetSelection = _ModuleSupport.DataSetSelection;
+type ChartService = _ModuleSupport.ModuleContext['chartService'];
+
+type BufferMap = Map<string, Uint8Array>;
+type BufferDiff = Pick<AgSelectionChangeEvent<unknown, never>, 'added' | 'removed'>;
 
 function toStartAndLength(start: number, end: number): [number, number] {
     if (start > end) {
@@ -27,6 +32,72 @@ function toBBox(event1: _Widget.DragWidgetEvent, event2: _Widget.DragWidgetEvent
 
 function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boolean; metaKey: boolean } }): boolean {
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
+}
+
+function getSelection(series: Series, data: DataSet): DataSetSelection {
+    return data.enableSelection(series.id);
+}
+
+function copySelectionBuffers(chartService: ChartService): BufferMap {
+    const result: BufferMap = new Map();
+    for (const series of chartService.series) {
+        const { data } = series;
+        if (data === undefined) continue;
+
+        const selection = getSelection(series, data);
+        const buffer = selection.copyBuffer();
+        result.set(series.id, buffer);
+    }
+    return result;
+}
+
+function restoreSelectionBuffers(chartService: ChartService, bufferMap: BufferMap): void {
+    for (const series of chartService.series) {
+        const data = series.data;
+        if (data === undefined) continue;
+
+        const buffer = bufferMap.get(series.id);
+        if (buffer === undefined) continue;
+
+        const selection = getSelection(series, data);
+        selection.restoreBuffer(buffer);
+    }
+}
+
+function diffSelectionBuffers(chartService: ChartService, bufferMap: BufferMap): BufferDiff {
+    const added: AgSelectionItem<unknown>[] = [];
+    const removed: AgSelectionItem<unknown>[] = [];
+
+    function makeAgSelectionItem(seriesId: string, index: number, data: DataSet): AgSelectionItem<unknown> {
+        const datum = data.data[index];
+        const itemId = data.getIdArray()?.[index] ?? index;
+        return { seriesId, datum, itemId };
+    }
+
+    for (const series of chartService.series) {
+        const data = series.data;
+        if (data === undefined) continue;
+
+        const oldBuffer = bufferMap.get(series.id);
+        if (oldBuffer === undefined) continue;
+
+        const selection = getSelection(series, data);
+        const newBuffer = selection.getSelection();
+
+        if (oldBuffer.length !== newBuffer.length) {
+            Logger.error(`length mismatch (seriesId: ${series.id}): ${oldBuffer.length} !== ${newBuffer.length}`);
+            continue;
+        }
+
+        for (let i = 0; i < oldBuffer.length; i++) {
+            if (oldBuffer[i] && !newBuffer[i]) {
+                removed.push(makeAgSelectionItem(series.id, i, data));
+            } else if (!oldBuffer[i] && newBuffer[i]) {
+                added.push(makeAgSelectionItem(series.id, i, data));
+            }
+        }
+    }
+    return { added, removed };
 }
 
 export class DataSelection extends AbstractModuleInstance {
@@ -126,6 +197,10 @@ export class DataSelection extends AbstractModuleInstance {
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         const bbox = toBBox(dragStartEvent, dragEndEvent);
 
+        const bufferMap: BufferMap | undefined = this.ctx.chartService.hasListener('selectionChange')
+            ? copySelectionBuffers(this.ctx.chartService)
+            : undefined;
+
         for (const series of this.ctx.chartService.series) {
             const { data } = series;
             if (data === undefined) continue;
@@ -151,6 +226,11 @@ export class DataSelection extends AbstractModuleInstance {
                 }
             }
         }
+
+        if (bufferMap) {
+            this.dispatchSelectionChange(bufferMap);
+        }
+
         this.endDrag();
     }
 
@@ -179,5 +259,32 @@ export class DataSelection extends AbstractModuleInstance {
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+    }
+
+    private dispatchSelectionChange(bufferMap: BufferMap): void {
+        const { chartService } = this.ctx;
+        const { added, removed } = diffSelectionBuffers(chartService, bufferMap);
+
+        if (added.length === 0 && removed.length === 0) {
+            // No selection changes to emit.
+            return;
+        }
+
+        let defaultPrevented = false;
+        const preventDefault = (): void => {
+            defaultPrevented = true;
+        };
+
+        this.ctx.chartService.callListener({
+            type: 'selectionChange',
+            source: 'user-interaction',
+            preventDefault,
+            added,
+            removed,
+        });
+
+        if (defaultPrevented) {
+            restoreSelectionBuffers(chartService, bufferMap);
+        }
     }
 }
