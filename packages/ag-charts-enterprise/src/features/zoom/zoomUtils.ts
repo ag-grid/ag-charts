@@ -150,8 +150,8 @@ export function constrainAxis(axis: { min: number; max: number }) {
     return { min, max };
 }
 
-export function canResetZoom(zoomManager: _ModuleSupport.ZoomManager) {
-    const current = zoomManager.getCoreZoom();
-    const restore = zoomManager.getRestoredZoom();
+export function canResetZoom(ctx: Pick<_ModuleSupport.ModuleContext, 'chartState'>) {
+    const current = ctx.chartState.getValue('zoom');
+    const restore = ctx.chartState.getValue('initialZoom');
     return jsonDiff(current, restore) != null;
 }

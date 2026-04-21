@@ -346,7 +346,7 @@ describe('Scrollbar visibility on barWidth change', () => {
     // getState().zoom is only populated when navigator/zoom modules are enabled, not for scrollbar-only
     // charts. Use deproxy() for zoom assertions (internal state reads for assertions are level 3 per testing guide).
     function getZoomX() {
-        return (deproxy(proxy!) as any).ctx.zoomManager.getZoom()?.x;
+        return (deproxy(proxy!) as any).ctx.chartState.getValue('zoom')?.x;
     }
 
     function createOptions(seriesOverrides?: Record<string, unknown>): AgCartesianChartOptions {

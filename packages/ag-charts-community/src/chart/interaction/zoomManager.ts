@@ -316,6 +316,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
+        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-restoreMemento',
@@ -347,6 +348,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const changes = refreshCoreState(nextAxes, oldState);
         this.state = changes;
         this.lastRestoredState = refreshCoreState(nextAxes, this.lastRestoredState);
+        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
 
         this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes, isReset: false });
     }
@@ -456,7 +458,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
     public fireZoomPanStartEvent(callerId: 'navigator' | 'zoom') {
-        this.ctx.chartState.setValue('zoomPanning', true);
         this.ctx.eventsHub.emit('zoom:pan-start', { callerId });
     }
 
@@ -708,6 +709,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
         this.lastRestoredState = deepFreeze(deepClone(changes));
+        this.ctx.chartState.setValue('initialZoom', this.toZoomState(this.lastRestoredState));
 
         this.updateChanges({
             source: 'state-change',
@@ -789,16 +791,12 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.state = constrainedState;
         }
 
-        // Panning kicks off via fireZoomPanStartEvent() before the update pipeline runs; clear the
-        // flag unconditionally once the pipeline completes so rejected / no-op gestures don't leave
-        // it stuck at true.
-        this.ctx.chartState.setValue('zoomPanning', false);
+        const acceptedZoom = this.getZoom();
+        this.ctx.chartState.setValue('zoom', acceptedZoom);
 
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {
-            this.ctx.chartState.setValue('zoom', this.state);
-            const acceptedZoom = this.getZoom() ?? {};
-            this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom.x });
+            this.ctx.eventsHub.emit('zoom:change-complete', { source, sourceDetail, x: acceptedZoom?.x });
             this.pendingZoomEventSource = source; // emit API AgZoomEvent when the redraw completes
         }
         return changeAccepted;

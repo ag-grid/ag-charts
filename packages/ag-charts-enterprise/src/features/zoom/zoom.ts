@@ -16,6 +16,7 @@ import {
     definedZoomState,
     entries,
     isNumberEqual,
+    pickDirectionZoom,
     roundTo,
 } from 'ag-charts-core';
 
@@ -115,6 +116,7 @@ export class Zoom extends AbstractModuleInstance {
         this.contextMenu = new ZoomContextMenu(
             ctx.eventsHub,
             ctx.contextMenuRegistry,
+            ctx.chartState,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
             () => this.paddedRect,
@@ -131,6 +133,7 @@ export class Zoom extends AbstractModuleInstance {
         };
         // eslint-disable-next-line sonarjs/constructor-for-side-effects -- event handlers keep instance alive via cleanup registry
         new ZoomOnDataChange({
+            chartState: ctx.chartState,
             eventsHub: ctx.eventsHub,
             zoomManager: ctx.zoomManager,
             axisManager: ctx.axisManager,
@@ -179,6 +182,7 @@ export class Zoom extends AbstractModuleInstance {
         this.autoScaler = new ZoomAutoScaler({
             zoomManager: ctx.zoomManager,
             eventsHub: ctx.eventsHub,
+            chartState: ctx.chartState,
             cleanup: this.cleanup,
             opts: {
                 get enabled() {
@@ -475,7 +479,7 @@ export class Zoom extends AbstractModuleInstance {
             dragState,
             seriesRect,
             shouldFlipXY,
-            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
+            ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
 
         if (!enabled || !enableAxisDragging || !seriesRect) return;
@@ -492,7 +496,10 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-            const axisZoom = zoomManager.getAxisZoom(axisId);
+            const axisZoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), direction) ?? {
+                min: 0,
+                max: 1,
+            };
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(
@@ -902,7 +909,7 @@ export class Zoom extends AbstractModuleInstance {
         // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
         // breaking the behaviour.
         const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
-        const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        const currentZoom = this.getZoom();
         this.updateZoom(sourcing, {
             x: partialZoom.x ?? currentZoom.x,
             y: partialZoom.y ?? currentZoom.y,
@@ -981,7 +988,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private getZoom() {
-        return definedZoomState(this.ctx.zoomManager.getZoom());
+        return definedZoomState(this.ctx.chartState.getValue('zoom'));
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {

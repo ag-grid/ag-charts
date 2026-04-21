@@ -27,3 +27,13 @@ export function definedZoomState(zoom?: ZoomState): DefinedZoomState {
         y: { min: zoom?.y?.min ?? UNIT_MIN, max: zoom?.y?.max ?? UNIT_MAX },
     };
 }
+
+/**
+ * Pick the zoom entry for a given direction. Returns `undefined` for angle / radius directions
+ * where per-direction cartesian zoom does not apply.
+ */
+export function pickDirectionZoom(zoom: ZoomState | undefined, direction: string): ZoomMinMax | undefined {
+    if (direction === 'x') return zoom?.x;
+    if (direction === 'y') return zoom?.y;
+    return undefined;
+}

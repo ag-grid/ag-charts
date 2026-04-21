@@ -1,5 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { CartesianAxisDirection, CleanupRegistry, NormalisedZoomAutoScaling, ZoomMinMax } from 'ag-charts-core';
+import type {
+    CartesianAxisDirection,
+    CleanupRegistry,
+    NormalisedZoomAutoScaling,
+    ReactiveState,
+    ZoomMinMax,
+} from 'ag-charts-core';
 import { ChartAxisDirection, isFiniteNumber, objectsEqual, strictObjectKeys } from 'ag-charts-core';
 
 type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[number];
@@ -7,6 +13,7 @@ type CartesianAxisLike = ReturnType<_ModuleSupport.ZoomManager['getAxes']>[numbe
 export interface ZoomAutoScalerCtx {
     readonly zoomManager: _ModuleSupport.ZoomManager;
     readonly eventsHub: _ModuleSupport.EventsHub;
+    readonly chartState: ReactiveState<_ModuleSupport.ChartState>;
     readonly cleanup: CleanupRegistry;
     // Reactive option access delegated from parent via getter properties.
     readonly opts: {
@@ -123,8 +130,8 @@ export class ZoomAutoScaler {
     }
 
     private autoScaleYZoom(changes?: _ModuleSupport.UpdateZoomChanges): _ModuleSupport.CoreZoomState | undefined {
-        const zoom = this.zoomManager.getZoom();
-        if (zoom && changes) {
+        const zoom = { ...this.ctx.chartState.getValue('zoom') };
+        if (changes) {
             // The `zoom` is outdated, let's patch in the updates from `changes`.
             const state = this.zoomManager.getAxisZooms();
             for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y] as const) {
@@ -136,7 +143,7 @@ export class ZoomAutoScaler {
                 }
             }
         }
-        if (zoom?.x == null) return;
+        if (zoom.x == null) return;
 
         const zoomY = this.getAutoScaleYZoom(zoom.x);
         if (zoomY == null || objectsEqual(zoom.y, zoomY)) return;

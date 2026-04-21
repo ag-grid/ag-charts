@@ -1,10 +1,8 @@
 import type {
-    AxisID,
-    CartesianAxisDirection,
     NormalisedLegendOptions,
     NormalisedSelectionOptions,
     NormalisedZoomOptions,
-    ZoomMinMax,
+    ZoomState,
 } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -16,12 +14,10 @@ export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'selection' |
     zoom: NormalisedZoomOptions;
 };
 
-export type ZoomState = { readonly [K in AxisID]: (ZoomMinMax & { direction: CartesianAxisDirection }) | undefined };
-
 export interface ChartState {
     options: ResolvedChartOptions;
     legendData: Record<string, CategoryLegendDatum[]>;
     legendVisible: boolean;
-    zoom: ZoomState;
-    zoomPanning: boolean;
+    zoom: ZoomState | undefined;
+    initialZoom: ZoomState | undefined;
 }
