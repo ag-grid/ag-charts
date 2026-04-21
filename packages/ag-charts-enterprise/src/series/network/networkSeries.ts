@@ -86,6 +86,7 @@ export abstract class AbstractNetworkSeries<
     >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
+    protected vertexDatumIndex: Record<string, number> = {};
 
     private pendingCollapsedIds?: string[];
 
@@ -239,35 +240,37 @@ export abstract class AbstractNetworkSeries<
         });
     }
 
-    private getDatumNodeBBox(vertex: Vertex<any, any>) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+    private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        const group = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
-        if (!group) return;
+        const node = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
+        if (!node) return;
 
-        return this.datumSelection.at(nodeDatumIndex)?.getBBox();
+        return node.getBBox();
     }
 
     private layoutDatumNode(vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        this.positionDatumNode(this.datumSelection.at(nodeDatumIndex)!, groupBBox);
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        this.positionDatumNode(node, groupBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
         const link = this.linkSelection.at(nodeDatumIndex);
         if (!link) return;
 
-        const path = link.children().next().value as _ModuleSupport.Path | undefined;
+        const path = link.getPath();
         if (!path) return;
 
         drawLink(path.path);
-
         path.visible = true;
     }
 

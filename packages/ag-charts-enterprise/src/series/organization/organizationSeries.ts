@@ -132,6 +132,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const nodeData: OrganizationDatum[] = [];
         const linkData: OrganizationLinkDatum[] = [];
 
+        this.vertexDatumIndex = {};
+
         if (this.rootVertex) {
             const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
             if (vertices) {
@@ -322,21 +324,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number = 1
     ) {
         const nodeDatumIndex = nodeData.length;
-        this.graph.removeEdges(vertex, 'nodeDatumIndex');
-        this.graph.addEdge(vertex, this.graph.addVertex(nodeDatumIndex), 'nodeDatumIndex');
+        this.vertexDatumIndex[vertex.value as string] = nodeDatumIndex;
+
         this.graph.addEdge(vertex, this.graph.addVertex(depth), 'depth');
 
         const nodeDatum = this.createNodeDatumFromVertex(vertex);
         nodeData.push(nodeDatum);
 
+        const children = this.graph.neighboursWithEdgeValue(vertex, 'child') as
+            | Vertex<OrganizationVertex, OrganizationEdge>[]
+            | undefined;
+        if (!children) return;
+
         if (this.ctx.collapsedManager.isCollapsed(vertex.value as string)) {
             return;
         }
 
-        const vertices = this.graph.neighboursWithEdgeValue(vertex, 'child');
-        if (!vertices) return;
-
-        for (const childVertex of vertices as Vertex<OrganizationVertex, OrganizationEdge>[]) {
+        for (const childVertex of children) {
             const linkDatum: OrganizationLinkDatum = {
                 from: vertex,
                 to: childVertex,
@@ -375,8 +379,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             },
             itemId: vertex.value as string,
             datumIndex: this.graph.findNeighbourValue(vertex, 'datumIndex') as number,
-            nodeDatumIndex: this.graph.findNeighbourValue(vertex, 'nodeDatumIndex') as number,
-            collapsed: this.ctx.collapsedManager.isCollapsed(vertex.value as string),
             vertex,
         };
     }
@@ -703,7 +705,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const vertex = this.graph.findVertexById(idValues[datumIndex]);
         if (!vertex) return;
 
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex') as number | undefined;
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (nodeDatumIndex == null) return;
 
         return nodeDatumIndex;
