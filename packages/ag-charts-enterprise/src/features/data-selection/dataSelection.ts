@@ -53,7 +53,11 @@ export class DataSelection extends AbstractModuleInstance {
         if (!enabled || !enableClick) return;
 
         const { type, clickedNode } = event;
-        if (type !== 'click' || clickedNode === undefined) return;
+        if (type !== 'click') return;
+
+        if (clickedNode === undefined) {
+            return this.clearAllSelections();
+        }
 
         const { data } = clickedNode.series;
         if (data === undefined) return;
