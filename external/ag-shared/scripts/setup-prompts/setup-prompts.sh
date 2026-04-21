@@ -372,8 +372,8 @@ generate_config() {
         if [[ "$verbose" == "true" ]]; then
             echo -e "${BLUE}Fetching ag-dev-prompts...${NC}"
         fi
-        # fetch.sh emits its own tailored remediation on failure (SSH/token/
-        # override); do not suppress its stderr.
+        # fetch.sh emits its own tailored remediation on failure (https/gh/
+        # token/override); do not suppress its stderr.
         if resolved_sha=$("$fetch_script"); then
             if [[ "$verbose" == "true" ]]; then
                 echo -e "${GREEN}✓${NC} Fetched ag-dev-prompts @ ${resolved_sha:0:8}"
