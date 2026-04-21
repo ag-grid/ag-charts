@@ -13,7 +13,6 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             singleValueEdges: new Set([
                 'datumIndex',
-                'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
                 'depth',
                 'image',

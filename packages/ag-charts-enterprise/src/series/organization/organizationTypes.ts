@@ -7,7 +7,6 @@ export type OrganizationVertex = string | string[] | number | boolean;
 
 export type OrganizationEdge =
     | 'datumIndex' // The index of the datum within the series' data array.
-    | 'nodeDatumIndex' // The index of the datum within the series' nodeData array.
     | 'child' // The descending edge from parent to child.
     | 'parent' // The ascending edge from child to parent.
     | 'depth'
@@ -23,8 +22,6 @@ export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, Orga
         subtitle?: TextOrSegments;
         labels?: (TextOrSegments | undefined)[];
     };
-    nodeDatumIndex: number;
-    collapsed: boolean;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
