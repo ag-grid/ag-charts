@@ -72,7 +72,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         layoutScenesColumn(columnScenes, this.padding, columnGaps);
         layoutScenesRow(rowScenes, this.padding, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(this.padding);
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(this.padding); // TODO: add stroke width by side
 
         if (this.shapeNode) {
             this.shapeNode.x = 0;
