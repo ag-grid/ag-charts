@@ -131,8 +131,9 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const highlighted = get('highlight');
-                if (!this.enabled) return;
-                this.updateArrows(highlighted);
+                if (this.enabled) {
+                    this.updateArrows(highlighted);
+                }
             }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.remove()

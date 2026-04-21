@@ -100,8 +100,9 @@ export abstract class AbstractNetworkSeries<
 
         moduleCtx.chartState.observe((get) => {
             const activeItem = get('activeItem');
-            if (activeItem?.seriesId !== this.id) return;
-            this.expandActive(activeItem.itemId);
+            if (activeItem?.seriesId === this.id) {
+                this.expandActive(activeItem.itemId);
+            }
         });
     }
 
