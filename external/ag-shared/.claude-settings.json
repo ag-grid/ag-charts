@@ -141,7 +141,7 @@
   },
   "enabledPlugins": {
     "ag-core@ag-dev": true,
-    "ag-shared@ag-dev": true,
+    "ag-prodeng@ag-dev": true,
     "ag-charts@ag-dev": true,
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true

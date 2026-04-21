@@ -2,14 +2,14 @@
     "$schema": "./plugin-assignments.schema.json",
     "description": "Plugin assignments for sync-to-plugin.sh. Maps each item in the extracted prompts/ output to its target plugin subdirectory.",
     "marketplace": "ag-dev",
-    "version": "0.5.0-beta.4",
+    "version": "1.0.0-beta.1",
     "plugins": {
         "ag-core": {
             "description": "Product-agnostic LLM/agentic tooling — memory, reflection, interviews, plan review/verify",
             "skills": ["interview-me", "plan-review", "plan-verify", "recall", "reflect", "remember"]
         },
-        "ag-shared": {
-            "description": "Shared tooling across ag-charts/ag-grid/ag-studio — engineering, PM, release, prompt/rulesync",
+        "ag-prodeng": {
+            "description": "Product-engineering tooling across ag-charts/ag-grid/ag-studio — engineering, PM, release, prompt/rulesync, shared docs-review methodology",
             "skills": [
                 "ag-shared-sync-log",
                 "batch-lint-cleanup",
@@ -19,6 +19,7 @@
                 "debug-trace",
                 "design-review",
                 "dev-server",
+                "docs-review",
                 "example",
                 "fr",
                 "git-bisect",
@@ -32,11 +33,11 @@
                 "pr-review",
                 "pr-split",
                 "publish-prd",
+                "release-docs-review",
                 "release-summary",
                 "releases",
                 "rulesync",
                 "run-gha-locally",
-                "sonar-fix",
                 "sync-ag-shared",
                 "triage-rt",
                 "triage-rt-board",
@@ -45,15 +46,8 @@
                 "website-css"
             ],
             "agents": ["docs-example-browser-tester", "nx-expert", "playwright-expert"],
-            "commands": [
-                "optimise-context",
-                "prepare-release-notes",
-                "product-requirement-analysis",
-                "release-blog-writer",
-                "release-options-review"
-            ],
+            "commands": ["optimise-context", "product-requirement-analysis"],
             "guides": [
-                "_docs-review-integration.md",
                 "browser-support.md",
                 "code-quality.md",
                 "docker.md",
@@ -69,13 +63,12 @@
             "patches": ["rulesync+7.0.0.patch"]
         },
         "ag-charts": {
-            "description": "AG Charts product-specific — chart docs, series performance, visual QA",
+            "description": "AG Charts product-specific — chart docs config, series performance, visual QA, release tooling, SonarCloud",
             "skills": [
                 "competitor-research",
                 "docs-create",
-                "docs-review",
                 "optimize-series",
-                "release-docs-review",
+                "sonar-fix",
                 "spruce-docs",
                 "spruce-example"
             ],
@@ -87,7 +80,12 @@
                 "test-writer",
                 "visual-qa"
             ],
-            "commands": ["previs"],
+            "commands": [
+                "prepare-release-notes",
+                "previs",
+                "release-blog-writer",
+                "release-options-review"
+            ],
             "guides": [
                 "benchmarks.md",
                 "browser-benchmarks.md",
@@ -106,8 +104,8 @@
     },
     "notes": {
         "localItems": "The following items currently in .rulesync/ (local tier) stay local and are NOT in any plugin: skills[technology-stack]. These appear alongside plugin skills as bare /name (no namespace conflict because plugin items use /ag-*:name).",
-        "directCommits": "The 6 agents in ag-charts (data-viz-designer, example-tester, previs-evaluator, technical-research-analyst, test-writer, visual-qa) and all ag-charts skills/commands are direct commits to ag-dev-prompts — they must be placed in plugins/ag-charts/ when committed.",
+        "directCommits": "The 6 agents in ag-charts (data-viz-designer, example-tester, previs-evaluator, technical-research-analyst, test-writer, visual-qa), all ag-charts skills, all ag-charts commands (prepare-release-notes, previs, release-blog-writer, release-options-review), and the ag-prodeng docs-review + release-docs-review skills (inverted from the old ag-charts docs-review + release-docs-review wrappers) are direct commits to ag-dev-prompts.",
         "excludedFromPlugin": "hooks/, .mcp.json, .claude-settings.json, .cursor-worktrees.json are excluded (conflict with project settings when loaded as plugin).",
-        "beta": "Version 0.5.0-beta.4 promotes the cross-product release skills (releases, release-summary) out of the ag-charts .rulesync/ local tier into ag-shared. release-summary was previously a /release-summary command; it is now a skill because auto-triggering on release-branch discussion is more useful than an explicit invocation. 0.5.0-beta.3 migrated chart-tooling guides and release-triage skills. 0.5.0-beta.2 added the first wave of wrapper guides. 0.5.0-beta.1 collapsed six plugins to three. Beta tag is retained until every downstream repo has migrated."
+        "beta": "Version 0.5.0-beta.5 inverts the docs-review partial pattern: generic methodology now lives in plugins/ag-prodeng/skills/{docs-review,release-docs-review}/SKILL.md with product configs under product subfolders (e.g. ag-charts/config.md). The old ag-charts docs-review + release-docs-review wrappers and the _docs-review-core.md / _release-docs-review-core.md partials are removed. Four AG-Charts-specific artefacts moved from ag-prodeng to ag-charts: sonar-fix (skill), prepare-release-notes, release-blog-writer, release-options-review (commands). Also fixes leaked .rulesync/ path references across the remaining skills. Beta tag retained until every downstream repo has migrated."
     }
 }

@@ -277,7 +277,7 @@ runs:
               if [ -n "$INPUT_PROMPT_FILE" ]; then
                 prompt_file="$INPUT_PROMPT_FILE"
               else
-                prompt_file="${PACKAGE_ROOT}/plugins/ag-shared/skills/pr-review/SKILL.md"
+                prompt_file="${PACKAGE_ROOT}/plugins/ag-prodeng/skills/pr-review/SKILL.md"
               fi
               if [ ! -f "$prompt_file" ]; then
                 echo "::error::Prompt file not found at: $prompt_file"
