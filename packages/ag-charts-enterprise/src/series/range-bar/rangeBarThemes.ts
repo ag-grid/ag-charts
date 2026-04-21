@@ -7,6 +7,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SEGMENTATION_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 
 export const RANGE_BAR_SERIES_THEME: WithThemeParams<
@@ -36,6 +37,7 @@ export const RANGE_BAR_SERIES_THEME: WithThemeParams<
             padding: { $isUserOption: ['./spacing', 0, 6] }, // compatibility with old `padding` property (now named `spacing`).
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {

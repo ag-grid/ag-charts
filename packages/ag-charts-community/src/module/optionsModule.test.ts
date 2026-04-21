@@ -533,6 +533,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -600,6 +603,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -669,6 +675,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -736,6 +745,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -808,6 +820,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -864,6 +879,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -930,6 +948,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -997,6 +1018,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1066,6 +1090,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "seriesGrouping": {
       "groupCount": 4,
       "groupId": "bar-quarter-grouped",
@@ -1133,6 +1160,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1205,6 +1235,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -1261,6 +1294,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -1326,6 +1362,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1394,6 +1433,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1463,6 +1505,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "seriesGrouping": {
       "groupCount": 1,
       "groupId": "bar-quarter-stacked",
@@ -1530,6 +1575,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1602,6 +1650,9 @@ describe('ChartOptions', () => {
       "enabled": false,
       "key": "x",
     },
+    "selection": {
+      "enabled": false,
+    },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
     "strokeWidth": 2,
@@ -1658,6 +1709,9 @@ describe('ChartOptions', () => {
     "segmentation": {
       "enabled": false,
       "key": "x",
+    },
+    "selection": {
+      "enabled": false,
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,

@@ -5,6 +5,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -30,6 +31,7 @@ export const RADIAL_BAR_SERIES_THEME: ExtensibleTheme<'radial-bar'> = {
             color: { $ref: 'chartBackgroundColor' },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
     axes: {
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: {

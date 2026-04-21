@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     SAFE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -47,6 +48,7 @@ export const BOX_PLOT_SERIES_THEME: ExtensibleTheme<'box-plot'> = {
                 opacity: 0.1,
             },
         },
+        selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
     axes: {

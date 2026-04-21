@@ -5,6 +5,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -45,6 +46,7 @@ export const CANDLESTICK_SERIES_THEME: ExtensibleTheme<'candlestick'> = {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
     animation: { enabled: false },
     axes: {

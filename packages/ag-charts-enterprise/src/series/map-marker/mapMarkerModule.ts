@@ -6,6 +6,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     ValidationError,
     validate,
@@ -57,6 +58,7 @@ export const MapMarkerSeriesModule: SeriesModuleDefinition<AgMapMarkerSeriesOpti
                 color: { $ref: 'textColor' },
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
+            selection: SERIES_SELECTION_THEME,
         },
         tooltip: {
             range: 'exact',

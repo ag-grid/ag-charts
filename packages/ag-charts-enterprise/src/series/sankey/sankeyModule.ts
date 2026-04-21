@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_FILLS_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -43,6 +44,7 @@ export const SankeySeriesModule: SeriesModuleDefinition<AgSankeySeriesOptions> =
                     opacity: 0.5,
                 },
             },
+            selection: SERIES_SELECTION_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,
