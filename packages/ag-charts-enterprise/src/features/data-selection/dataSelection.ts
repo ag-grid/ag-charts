@@ -15,7 +15,6 @@ import {
     hasAddToSelectionModifier,
     restoreSelectionBuffers,
     setSelected,
-    setSingleSelection,
     toBBox,
     toggleSelection,
 } from './dataSelectionUtil';
@@ -70,7 +69,8 @@ export class DataSelection extends AbstractModuleInstance {
             toggleSelection(series, data, datumIndex);
         } else {
             clickMode satisfies 'single';
-            setSingleSelection(series, data, datumIndex);
+            this.clearAllSelections();
+            setSelected(series, data, datumIndex);
         }
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
         this.dispatchSelectionChange(bufferMap);
@@ -188,6 +188,18 @@ export class DataSelection extends AbstractModuleInstance {
 
         if (defaultPrevented) {
             restoreSelectionBuffers(chartService, bufferMap);
+        }
+    }
+
+    private clearAllSelections(): void {
+        const dataSets: Set<_ModuleSupport.DataSet<unknown>> = new Set();
+        for (const series of this.ctx.chartService.series) {
+            if (series.data) {
+                dataSets.add(series.data);
+            }
+        }
+        for (const data of dataSets) {
+            data.selections.clear();
         }
     }
 }
