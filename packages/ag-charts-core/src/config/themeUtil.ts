@@ -411,7 +411,7 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 };
 
 export const SERIES_SELECTION_THEME: WithThemeParams<AgSeriesSelectionOptions> = {
-    enabled: { $circular: { $path: '/selection/enabled' } },
+    enabled: { $path: ['/selection/enabled', false] },
 };
 
 export const LEGEND_CONTAINER_THEME: any = {
