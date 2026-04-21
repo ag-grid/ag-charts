@@ -33,3 +33,5 @@ tsconfig.base.json
 
 # External subrepo (managed separately)
 external/ag-shared/
+
+.rulesync
