@@ -16,7 +16,6 @@ import {
     definedZoomState,
     entries,
     isNumberEqual,
-    pickDirectionZoom,
     roundTo,
     toZoomState,
 } from 'ag-charts-core';
@@ -497,10 +496,7 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-            const axisZoom = pickDirectionZoom(this.ctx.chartState.getValue('zoom'), direction) ?? {
-                min: 0,
-                max: 1,
-            };
+            const axisZoom = this.ctx.zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(

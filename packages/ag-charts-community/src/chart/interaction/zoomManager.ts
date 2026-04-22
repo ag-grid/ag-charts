@@ -558,6 +558,10 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         return this.state;
     }
 
+    public getAxisZoom(axisId: AxisID): ZoomMinMax {
+        return this.state[axisId] ?? { min: 0, max: 1 };
+    }
+
     public getPrimaryAxisId(direction: CartesianAxisDirection) {
         return this.getPrimaryAxis(direction)?.id;
     }

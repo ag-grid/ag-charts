@@ -201,11 +201,11 @@ export class ZoomOnDataChange {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
         this.desiredChanges = { type: 'domain', domains: [] };
-        const ratios = this.ctx.chartState.getValue('zoom')?.x ?? { min: 0, max: 1 };
         const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
             const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
             if (domainMinMax) {
+                const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
                 const entry = toVisibleMinMax(axisId, domainMinMax, ratios);
                 this.desiredChanges.domains.push(entry);
             }
@@ -219,9 +219,7 @@ export class ZoomOnDataChange {
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios = this.ctx.chartState.getValue('zoom')?.x;
-        if (!ratios) return;
-
+        const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);
         const difference = visibleMax - visibleMin;
         this.desiredChanges = { type: 'stickToEnd', axisId, difference };
