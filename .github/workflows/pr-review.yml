@@ -42,6 +42,10 @@ jobs:
             contents: read
             pull-requests: write
             issues: write
+            # AG-17085 Phase 3: the pr-review skill is delivered via the
+            # @ag-grid/dev-prompts package on GitHub Packages. The action
+            # authenticates with the default GITHUB_TOKEN via this scope.
+            packages: read
         # Only run if permissions check passed and PR is not a draft
         # For issue_comment, also verify it's on a PR (not a regular issue)
         if: |

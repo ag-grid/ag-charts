@@ -1,1 +1,0 @@
-../../external/prompts/subagents/technical-research-analyst.md

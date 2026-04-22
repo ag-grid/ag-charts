@@ -12,10 +12,10 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, Vertex, mergeDefaults } from 'ag-charts-core';
+import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDefaults } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
-import { AbstractNetworkSeries } from '../network/networkSeries';
+import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
 import { NetworkTreeLayout } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
@@ -58,6 +58,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     getRootVertices() {
         if (!this.rootVertex) return [];
         return [this.rootVertex];
+    }
+
+    getFocusedVertex() {
+        return undefined;
+    }
+
+    getDefaultFocusedVertices() {
+        if (!this.rootVertex) return undefined;
+        return this.graph.neighboursWithEdgeValue(this.rootVertex, 'child') as Vertex<
+            OrganizationVertex,
+            OrganizationEdge
+        >[];
+    }
+
+    updateOffset(offset: Point) {
+        this.dataNodeGroup.translationX = offset.x;
+        this.dataNodeGroup.translationY = offset.y;
+
+        this.linkGroup.translationX = offset.x;
+        this.linkGroup.translationY = offset.y;
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -112,6 +132,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const nodeData: OrganizationDatum[] = [];
         const linkData: OrganizationLinkDatum[] = [];
 
+        this.vertexDatumIndex = {};
+
         if (this.rootVertex) {
             const vertices = this.graph.neighboursWithEdgeValue(this.rootVertex, 'child');
             if (vertices) {
@@ -127,6 +149,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     nodeFactory(): OrganizationNode {
         return new OrganizationNode();
+    }
+
+    hasItemStylers() {
+        const { node, link } = this.properties;
+        return (
+            node.itemStyler != null ||
+            link.itemStyler != null ||
+            node.title.itemStyler != null ||
+            node.subtitle.itemStyler != null ||
+            node.labels.some((label) => label.itemStyler != null)
+        );
     }
 
     updateDatumSelection(
@@ -185,26 +218,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return { type: styles.interpolation.type, cornerRadius: styles.interpolation.cornerRadius };
     }
 
-    expandActive(itemIdOrIndex: string | number) {
+    expandNetworkToItem(itemIdOrIndex: string | number) {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return;
 
-        let id: string;
-        if (typeof itemIdOrIndex === 'number') {
-            const itemId = this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
-            if (!itemId) return;
-            id = itemId;
-        } else {
-            id = itemIdOrIndex;
-        }
-
-        const ids = [id];
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
 
         let vertex = this.graph.findVertexById(id);
         if (!vertex) return;
 
         // Iterate up the parents until we reach the root node, which does not have a datumIndex, and expand the full
         // ancestry to ensure the active node is visible.
+        const ids = [];
         const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
         while (
             (vertex = this.graph.findNeighbour(vertex, 'parent') as
@@ -219,6 +245,20 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.expand(ids);
     }
 
+    expandItem(itemIdOrIndex: string | number) {
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        this.ctx.collapsedManager.expand([id]);
+    }
+
+    collapseItem(itemIdOrIndex: string | number) {
+        const id = this.getItemId(itemIdOrIndex);
+        if (id == null) return;
+
+        this.ctx.collapsedManager.collapseAppend([id]);
+    }
+
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
         if (typeof itemIdOrIndex === 'number') {
             return this.datumSelection.at(itemIdOrIndex)?.datum;
@@ -228,6 +268,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (!vertex) return undefined;
 
         return this.createNodeDatumFromVertex(vertex);
+    }
+
+    override getTooltipContent(datumIndex: NetworkSeriesDatumIndex): _ModuleSupport.TooltipContent | undefined {
+        const datum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
+        if (datum == null) return;
+
+        const nodeDatum = this.getDatumByDatumIndex(datumIndex);
+        if (nodeDatum == null) return;
+
+        return this.formatTooltipWithContext(
+            this.properties.tooltip,
+            { heading: nodeDatum.datum.title },
+            {
+                seriesId: this.id,
+                datum: datum,
+            }
+        );
     }
 
     private createGraphData() {
@@ -267,21 +324,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         depth: number = 1
     ) {
         const nodeDatumIndex = nodeData.length;
-        this.graph.removeEdges(vertex, 'nodeDatumIndex');
-        this.graph.addEdge(vertex, this.graph.addVertex(nodeDatumIndex), 'nodeDatumIndex');
+        this.vertexDatumIndex[vertex.value as string] = nodeDatumIndex;
+
         this.graph.addEdge(vertex, this.graph.addVertex(depth), 'depth');
 
         const nodeDatum = this.createNodeDatumFromVertex(vertex);
         nodeData.push(nodeDatum);
 
+        const children = this.graph.neighboursWithEdgeValue(vertex, 'child') as
+            | Vertex<OrganizationVertex, OrganizationEdge>[]
+            | undefined;
+        if (!children) return;
+
         if (this.ctx.collapsedManager.isCollapsed(vertex.value as string)) {
             return;
         }
 
-        const vertices = this.graph.neighboursWithEdgeValue(vertex, 'child');
-        if (!vertices) return;
-
-        for (const childVertex of vertices as Vertex<OrganizationVertex, OrganizationEdge>[]) {
+        for (const childVertex of children) {
             const linkDatum: OrganizationLinkDatum = {
                 from: vertex,
                 to: childVertex,
@@ -320,8 +379,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             },
             itemId: vertex.value as string,
             datumIndex: this.graph.findNeighbourValue(vertex, 'datumIndex') as number,
-            nodeDatumIndex: this.graph.findNeighbourValue(vertex, 'nodeDatumIndex') as number,
-            collapsed: this.ctx.collapsedManager.isCollapsed(vertex.value as string),
             vertex,
         };
     }
@@ -624,5 +681,33 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+    }
+
+    private getItemId(itemIdOrIndex: string | number): string | undefined {
+        if (typeof itemIdOrIndex === 'number') {
+            return this.datumSelection.at(itemIdOrIndex)?.datum?.itemId;
+        }
+        return itemIdOrIndex;
+    }
+
+    private getDatumByDatumIndex(datumIndex: number) {
+        const nodeDatumIndex = this.convertDatumIndexToNodeDatumIndex(datumIndex);
+        if (nodeDatumIndex == null) return;
+
+        return this.datumSelection.at(nodeDatumIndex)?.datum;
+    }
+
+    private convertDatumIndexToNodeDatumIndex(datumIndex: number) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return;
+
+        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
+        const vertex = this.graph.findVertexById(idValues[datumIndex]);
+        if (!vertex) return;
+
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
+        if (nodeDatumIndex == null) return;
+
+        return nodeDatumIndex;
     }
 }

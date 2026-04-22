@@ -1,1 +1,0 @@
-../../external/prompts/commands/previs.md

@@ -6,6 +6,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -58,6 +59,7 @@ export const MapShapeSeriesModule: SeriesModuleDefinition<AgMapShapeSeriesOption
                 overflowStrategy: 'hide',
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
+            selection: SERIES_SELECTION_THEME,
         },
         tooltip: {
             range: 'exact',

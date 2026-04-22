@@ -68,7 +68,7 @@ import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import type { ChartService } from './chartService';
+import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
 import type { ChartState } from './chartState';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
@@ -486,6 +486,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private readonly fireEventWrapper = (event: TypedEvent): void => super.fireEvent(event);
     protected override fireEvent<TEvent extends TypedEvent>(event: TEvent): void {
         callWithContext(this, this.fireEventWrapper, event);
+    }
+
+    public hasListener(type: ChartServiceEventType): boolean {
+        return this.hasEventListener(type);
+    }
+
+    public callListener(event: ChartServiceEvent): void {
+        this.fireEvent(event);
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {

@@ -4,6 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_KEYED_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SERIES_SELECTION_THEME,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -60,6 +61,7 @@ export const WATERFALL_SERIES_THEME: ExtensibleTheme<'waterfall'> = {
             strokeWidth: 2,
         },
         highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
     legend: {
         enabled: true,

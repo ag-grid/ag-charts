@@ -8,6 +8,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type {
     AgBubbleSeriesOptions,
@@ -98,6 +99,7 @@ const themeTemplate: ExtensibleTheme<'bubble'> = {
             },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         colorScale: BUBBLE_SCATTER_COLOR_SCALE_THEME,
     },
     gradientLegend: BUBBLE_SCATTER_GRADIENT_LEGEND_THEME,

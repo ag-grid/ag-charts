@@ -4,6 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -60,5 +61,6 @@ export const PYRAMID_SERIES_THEME: ExtensibleTheme<'pyramid'> = {
                 opacity: 0.4,
             },
         },
+        selection: SERIES_SELECTION_THEME,
     },
 };

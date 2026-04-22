@@ -4,6 +4,7 @@ import {
     LABEL_BOXING_DEFAULTS,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
     linearGaugeSeriesOptionsDef,
 } from 'ag-charts-core';
@@ -83,6 +84,7 @@ const themeTemplate: ExtensibleTheme<'linear-gauge'> = {
         tooltip: {
             range: { $path: ['/tooltip/range', 10] },
         },
+        selection: SERIES_SELECTION_THEME,
     },
 };
 
