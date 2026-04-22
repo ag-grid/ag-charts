@@ -246,15 +246,60 @@ copy_extra_configs() {
         fi
     fi
 
-    # Symlink Claude Code settings if source exists and claudecode is a target
-    local claude_settings_src="external/ag-shared/.claude-settings.json"
+    # Render Claude Code settings from per-product template if claudecode is a target.
+    # Source: external/ag-shared/.claude-settings.template.json with ${PRODUCT} placeholder.
+    # Product is read from $AG_PRODUCT env var, falling back to the workspace root's
+    # package.json `name` field (the same source scripts/sonar/sync-sonar-issues.ts
+    # uses for product detection).
+    local claude_settings_template="external/ag-shared/.claude-settings.template.json"
     local claude_settings_dest="$REPO_ROOT/.claude/settings.json"
 
-    if [[ -f "$REPO_ROOT/$claude_settings_src" ]] && [[ "$targets" == *"claudecode"* || "$targets" == "*" ]]; then
+    if [[ -f "$REPO_ROOT/$claude_settings_template" ]] && [[ "$targets" == *"claudecode"* || "$targets" == "*" ]]; then
+        local product="${AG_PRODUCT:-}"
+        if [[ -z "$product" && -f "$REPO_ROOT/package.json" ]]; then
+            product=$(jq -r '.name // empty' "$REPO_ROOT/package.json" 2>/dev/null)
+        fi
+
+        if [[ -z "$product" ]]; then
+            echo -e "${RED}✗${NC} Cannot render .claude/settings.json: no product detected."
+            echo -e "${YELLOW}  Expected workspace root package.json .name to be one of: ag-charts | ag-grid | ag-studio.${NC}"
+            echo -e "${YELLOW}  Override with AG_PRODUCT env var if running from a non-standard checkout.${NC}"
+            return 1
+        fi
+
+        case "$product" in
+            ag-charts|ag-grid|ag-studio) ;;
+            *)
+                echo -e "${RED}✗${NC} Unknown product '$product' (expected: ag-charts | ag-grid | ag-studio)"
+                echo -e "${YELLOW}  Detected from package.json .name; override with AG_PRODUCT if needed.${NC}"
+                return 1
+                ;;
+        esac
+
+        # Derive marketplace ref suffix from AG_DEV_PROMPTS_REF. An unset or
+        # 'latest' value leaves the source unqualified (Claude picks the default
+        # branch); any other value pins the marketplace to that branch/tag via
+        # the `repo#ref` syntax. This lets a single consumer opt into the
+        # canary track without changing settings for the other products.
+        local dev_prompts_ref="${AG_DEV_PROMPTS_REF:-}"
+        local ref_suffix=""
+        if [[ -n "$dev_prompts_ref" && "$dev_prompts_ref" != "latest" ]]; then
+            ref_suffix="#$dev_prompts_ref"
+        fi
+
         mkdir -p "$REPO_ROOT/.claude"
-        ln -sf "../$claude_settings_src" "$claude_settings_dest"
+        # Atomic render via temp file + mv. Drop any stale symlink first.
+        local tmp_file="$claude_settings_dest.tmp.$$"
+        sed \
+            -e "s|\${PRODUCT}|$product|g" \
+            -e "s|\${AG_DEV_PROMPTS_REF_SUFFIX}|$ref_suffix|g" \
+            "$REPO_ROOT/$claude_settings_template" > "$tmp_file"
+        rm -f "$claude_settings_dest"
+        mv "$tmp_file" "$claude_settings_dest"
         if [[ "$verbose" == "true" ]]; then
-            echo -e "${GREEN}✓${NC} Symlinked Claude Code settings"
+            local track_note=""
+            [[ -n "$ref_suffix" ]] && track_note=" (marketplace pinned to ${dev_prompts_ref})"
+            echo -e "${GREEN}✓${NC} Rendered Claude Code settings for product: ${product}${track_note}"
         fi
     fi
 }

@@ -142,7 +142,7 @@
   "enabledPlugins": {
     "ag-core@ag-dev": true,
     "ag-prodeng@ag-dev": true,
-    "ag-charts@ag-dev": true,
+    "${PRODUCT}@ag-dev": true,
     "codex@openai-codex": true,
     "skill-creator@claude-plugins-official": true
   },
@@ -150,7 +150,7 @@
     "ag-dev": {
       "source": {
         "source": "github",
-        "repo": "ag-grid/ag-dev-prompts"
+        "repo": "ag-grid/ag-dev-prompts${AG_DEV_PROMPTS_REF_SUFFIX}"
       }
     },
     "openai-codex": {
