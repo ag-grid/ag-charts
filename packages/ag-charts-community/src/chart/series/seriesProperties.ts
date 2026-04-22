@@ -22,6 +22,7 @@ import type {
     Opacity,
     PixelSize,
     HighlightState as PublicHighlightState,
+    SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
 import type { SeriesTooltip } from './seriesTooltip';
@@ -32,6 +33,11 @@ export enum HighlightState {
     Series,
     OtherSeries,
     OtherItem,
+}
+
+export enum SelectionState {
+    Selected,
+    Unselected,
 }
 
 export const highlightStates = [
@@ -48,6 +54,8 @@ export type HighlightStyleOptionKey =
     | 'highlightedSeries'
     | 'unhighlightedSeries';
 
+export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem';
+
 export function getHighlightStyleOptionKeys(highlightState: HighlightState): HighlightStyleOptionKey[] {
     switch (highlightState) {
         case HighlightState.Item:
@@ -60,6 +68,19 @@ export function getHighlightStyleOptionKeys(highlightState: HighlightState): Hig
             return ['unhighlightedSeries'];
         case HighlightState.None:
             return [];
+    }
+}
+
+export function getSelectionStyleOptionKeys(selectionState: SelectionState): SelectionStyleOptionKey[] {
+    switch (selectionState) {
+        case SelectionState.Selected:
+            return ['selectedItem'];
+        case SelectionState.Unselected:
+            return ['unselectedItem'];
+        default: {
+            const unreachable = (a: never): never => a;
+            return unreachable(selectionState);
+        }
     }
 }
 
@@ -87,6 +108,18 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
             return 'unhighlighted-series';
         case HighlightState.None:
             return 'none';
+        default:
+            return unreachable(state);
+    }
+}
+
+export function toSelectionString(state: SelectionState): PublicSelectionState {
+    const unreachable = (a: never): never => a;
+    switch (state) {
+        case SelectionState.Selected:
+            return 'selected';
+        case SelectionState.Unselected:
+            return 'unselected';
         default:
             return unreachable(state);
     }
@@ -159,6 +192,12 @@ export class SeriesSelectionProperties<TOpts extends object> extends BasePropert
 
     @Property
     readonly unselectedItem: SelectionOptions<TOpts> = {};
+
+    getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
+        const keys = getSelectionStyleOptionKeys(selectionState);
+        if (keys.length === 0) return {};
+        return mergeDefaults<SelectionOptions<TOpts>>(...keys.map((key) => this[key]));
+    }
 }
 
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {

@@ -538,6 +538,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -546,7 +547,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageKey,
             valueKey,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgPyramidSeriesItemStylerParams<unknown, unknown>>;

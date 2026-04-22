@@ -786,7 +786,7 @@ export class DonutSeries extends PolarSeries<
                 isHighlight,
                 datumIndex
             ),
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: this.getSelectionStateString(datumIndex),
             seriesId: this.id,
         } satisfies CallbackParamRules<
             AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
@@ -804,6 +804,7 @@ export class DonutSeries extends PolarSeries<
                 highlighted,
                 nodeDatum.datumIndex
             );
+            const selectionState = this.getSelectionStateString(nodeDatum.datumIndex);
             const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
                 angleKey: properties.angleKey,
                 angleName: properties.angleName ?? properties.angleKey,
@@ -811,7 +812,7 @@ export class DonutSeries extends PolarSeries<
                 calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
                 datum: nodeDatum.datum,
                 highlightState,
-                selectionState: this.getDataSelectionState(nodeDatum.datumIndex),
+                selectionState,
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,
                 radiusName: properties.radiusName ?? properties.radiusKey,
