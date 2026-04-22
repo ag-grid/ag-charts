@@ -1,15 +1,13 @@
 import { objectsEqual, validate } from 'ag-charts-core';
 import type { MementoOriginator } from 'ag-charts-core';
-import type { AgActiveChangeEvent, AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
+import type { AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
-import type { EventsHub } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import { commonChartOptions } from '../chartOptionsDefs';
 import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
-import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
 
 type ActiveItem = AgActiveItemState | undefined;
-type ActiveChangeEvent = Omit<AgActiveChangeEvent<unknown, unknown>, 'context'>;
 type DatumArg = Readonly<SeriesNodeDatum<DatumIndexType>> | undefined;
 
 /**
@@ -18,6 +16,7 @@ type DatumArg = Readonly<SeriesNodeDatum<DatumIndexType>> | undefined;
 export class ActiveManager implements MementoOriginator<AgActiveState> {
     mementoOriginatorKey: string = 'active';
 
+    private readonly ctx: ModuleContext;
     private currentItem?: ActiveItem;
     private updateable: boolean = true;
 
@@ -31,25 +30,24 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
           }
         | undefined = undefined;
 
-    constructor(
-        private readonly chartService: { readonly id: string },
-        private readonly eventsHub: EventsHub,
-        private readonly interactionManager: InteractionManager,
-        private readonly fireEvent: (event: ActiveChangeEvent) => void
-    ) {
-        const removeListener: () => void = eventsHub.on('update:pre-scene-render', () => {
+    constructor(ctx: ModuleContext) {
+        this.ctx = ctx;
+
+        const removeListener: () => void = ctx.eventsHub.on('update:pre-scene-render', () => {
             this.didLayout = true;
             const { pendingMemento } = this;
             if (pendingMemento) {
                 this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
                 this.pendingMemento = undefined;
+                // Flush immediately so other pre-scene-render listeners see the restored active item.
+                ctx.chartState.flushChanges('activeItem');
             }
             removeListener();
         });
     }
 
     private isFrozen(): boolean {
-        return this.interactionManager.isState(InteractionState.Frozen);
+        return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
 
     public clear(): boolean {
@@ -75,7 +73,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
             const { frozen, activeItem } = this.createMementoWithItem(newItemState);
             const { datum } = nodeDatum ?? {};
 
-            this.fireEvent({
+            this.ctx.fireEvent({
                 type: 'activeChange',
                 source,
                 frozen,
@@ -91,7 +89,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         // Internal dispatch:
         if (!defaultPrevented) {
             this.currentItem = newItemState;
-            this.eventsHub.emit('active:update', newItemState);
+            this.ctx.chartState.setValue('activeItem', newItemState);
         }
 
         return defaultPrevented;
@@ -139,9 +137,9 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
             newFrozen === undefined ? false : (oldFrozen satisfies boolean) !== (newFrozen satisfies boolean);
 
         if (newFrozen === true) {
-            this.interactionManager.pushState(InteractionState.Frozen);
+            this.ctx.interactionManager.pushState(InteractionState.Frozen);
         } else if (newFrozen === false) {
-            this.interactionManager.popState(InteractionState.Frozen);
+            this.ctx.interactionManager.popState(InteractionState.Frozen);
         } else {
             newFrozen satisfies undefined;
         }
@@ -157,8 +155,8 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
         const setDatum = (d: SeriesNodeDatum<DatumIndexType> | undefined) => (nodeDatum = d);
 
         const initialState: boolean = this.pendingMemento !== undefined;
-        const chartId = this.chartService.id;
-        this.eventsHub.emit('active:load-memento', { initialState, chartId, activeItem, reject, setDatum });
+        const chartId = this.ctx.chartService.id;
+        this.ctx.eventsHub.emit('active:load-memento', { initialState, chartId, activeItem, reject, setDatum });
         return rejection ? [undefined, undefined] : [activeItem, nodeDatum];
     }
 }

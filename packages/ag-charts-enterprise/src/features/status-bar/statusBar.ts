@@ -106,7 +106,6 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
 
     readonly id = 'status-bar';
 
-    private readonly highlightManager: _ModuleSupport.HighlightManager;
     private chartData?: _ModuleSupport.DataSet<any>;
     private readonly layer = new Group({
         name: 'StatusBar',
@@ -243,15 +242,16 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.highlightManager = ctx.highlightManager;
-
         this.labelGroup.visible = false;
 
         this.cleanup.register(
             ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.eventsHub.on('layout:complete', (e) => this.onLayoutComplete(e)),
-            ctx.eventsHub.on('highlight:change', () => this.updateHighlight()),
+            ctx.chartState.observe((get) => {
+                const highlight = get('highlight');
+                this.updateHighlight(highlight);
+            }),
             ctx.eventsHub.on('data:update', (data) => {
                 this.chartData = data;
             })
@@ -390,13 +390,12 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
 
-        this.updateHighlight();
+        this.updateHighlight(this.ctx.chartState.getValue('highlight'));
     }
 
-    private updateHighlight() {
+    private updateHighlight(activeHighlight: _ModuleSupport.HighlightNodeDatum | undefined) {
         if (!this.enabled) return;
 
-        const activeHighlight = this.highlightManager.getActiveHighlight();
         // Get fallback from chart data when nothing is highlighted
         const datum = activeHighlight?.datum ?? this.chartData?.data?.at(-1);
 

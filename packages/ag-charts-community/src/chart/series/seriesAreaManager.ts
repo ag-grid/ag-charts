@@ -251,7 +251,13 @@ export class SeriesAreaManager extends BaseManager {
             containerWidget.addListener('dblclick', (event, current) => this.onClick(event, current)),
             chart.ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
             chart.ctx.eventsHub.on('active:load-memento', (event) => this.onActiveLoadMemento(event)),
-            chart.ctx.eventsHub.on('active:update', (event) => this.onActiveUpdate(event)),
+            chart.ctx.chartState.observe((get) => {
+                const activeItem = get('activeItem');
+                if (activeItem?.type === 'legend') {
+                    this.clearStaleHighlightTooltip();
+                    this.activeState.lastActive = 'legend';
+                }
+            }),
             chart.ctx.eventsHub.on('dom:resize', () => this.onResize()),
             chart.ctx.eventsHub.on('dom:container-change', () => this.resetHoverScheduler()),
             chart.ctx.eventsHub.on('highlight:change', (event) => this.changeHighlightDatum(event)),
@@ -1453,13 +1459,6 @@ export class SeriesAreaManager extends BaseManager {
                 return this.onActiveDatum(event.activeItem, event);
             default:
                 return event.activeItem?.type satisfies undefined;
-        }
-    }
-
-    private onActiveUpdate(activeItem: AgActiveItemState | undefined): void {
-        if (activeItem?.type === 'legend') {
-            this.clearStaleHighlightTooltip();
-            this.activeState.lastActive = 'legend';
         }
     }
 

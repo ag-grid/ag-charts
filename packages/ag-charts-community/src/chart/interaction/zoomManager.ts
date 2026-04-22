@@ -38,7 +38,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { BaseManager } from '../../util/baseManager';
-import type { TypedEvent } from '../../util/observable';
 import { PanToBBoxScalingModeEnum, calcPanToBBoxRatios } from '../../util/panToBBox';
 import { rangeAlignment } from '../rangeAlignment';
 import type { ISeries } from '../series/seriesTypes';
@@ -208,10 +207,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
           }
         | undefined = undefined;
 
-    constructor(
-        private readonly ctx: ModuleContext,
-        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void
-    ) {
+    constructor(private readonly ctx: ModuleContext) {
         super();
 
         this.cleanup.register(
@@ -238,7 +234,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
                 if (wasShortcut) return;
                 if (this.pendingZoomEventSource) {
                     const source = this.pendingZoomEventSource;
-                    this.fireChartEvent<AgZoomEvent>({ type: 'zoom', source, ...this.getMementoRanges() });
+                    this.ctx.fireEvent<AgZoomEvent>({ type: 'zoom', source, ...this.getMementoRanges() });
                     this.pendingZoomEventSource = undefined;
                 }
             })

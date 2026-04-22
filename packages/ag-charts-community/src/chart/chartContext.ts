@@ -51,7 +51,7 @@ export class ChartContext implements ModuleContext {
 
     readonly callbackCache = new CallbackCache();
     readonly chartState = new ReactiveState<ChartState>();
-    readonly highlightManager = new HighlightManager(this.eventsHub);
+    readonly highlightManager: HighlightManager;
     readonly formatManager = new FormatManager();
     readonly layoutManager = new LayoutManager(this.eventsHub);
     readonly localeManager = new LocaleManager(this.eventsHub);
@@ -61,6 +61,8 @@ export class ChartContext implements ModuleContext {
     readonly cleanup = new CleanupRegistry();
 
     readonly activeManager: ActiveManager;
+    readonly annotationRoot: Group;
+    readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
     agDocument: AgDocument;
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
@@ -118,6 +120,9 @@ export class ChartContext implements ModuleContext {
         this.chartService = chart;
         this.syncManager = syncManager;
         this.agDocument = agDocument;
+        this.fireEvent = fireEvent;
+        this.annotationRoot = chart.annotationRoot;
+        this.highlightManager = new HighlightManager(this);
         this.domManager = new DOMManager(
             this.eventsHub,
             this.chartService,
@@ -141,24 +146,26 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
         this.scene.setRoot(root);
 
+        this.chartState.setValue('activeItem', undefined);
+        this.chartState.setValue('highlight', undefined);
         this.chartState.setValue('legendData', {});
         this.chartState.setValue('legendVisible', true);
 
         this.axisManager = new AxisManager(this.eventsHub, root);
         this.legendManager = new LegendManager(this);
-        this.annotationManager = new AnnotationManager(this.eventsHub, chart.annotationRoot, fireEvent);
+        this.annotationManager = new AnnotationManager(this);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.interactionManager = new InteractionManager();
-        this.contextMenuRegistry = new ContextMenuRegistry(this.eventsHub);
+        this.contextMenuRegistry = new ContextMenuRegistry(this);
         this.optionsGraphService = new OptionsGraphService();
-        this.activeManager = new ActiveManager(this.chartService, this.eventsHub, this.interactionManager, fireEvent);
-        this.proxyInteractionService = new ProxyInteractionService(this.eventsHub, this.localeManager, this.domManager);
-        this.fontManager = new FontManager(this.domManager, this.eventsHub);
-        this.historyManager = new HistoryManager(this.eventsHub);
+        this.activeManager = new ActiveManager(this);
+        this.proxyInteractionService = new ProxyInteractionService(this);
+        this.fontManager = new FontManager(this);
+        this.historyManager = new HistoryManager(this);
         this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
         this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this, fireEvent);
+        this.zoomManager = new ZoomManager(this);
         this.collapsedManager = new CollapsedManager(this.eventsHub);
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {

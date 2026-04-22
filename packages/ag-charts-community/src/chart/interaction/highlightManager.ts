@@ -1,6 +1,7 @@
 import { type Point, objectsEqual } from 'ag-charts-core';
 
-import type { EventsHub, HighlightNodeDatum } from '../../core/eventsHub';
+import type { HighlightNodeDatum } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
@@ -20,7 +21,7 @@ export class HighlightManager {
 
     private static readonly HIGHLIGHT_CHANGE_EVENT = 'highlight:change';
 
-    constructor(private readonly eventsHub: EventsHub) {}
+    constructor(private readonly ctx: ModuleContext) {}
 
     private highlightInViewport: boolean = true;
 
@@ -69,13 +70,19 @@ export class HighlightManager {
         previousHighlight: HighlightNodeDatum | undefined,
         inViewport?: boolean
     ): void {
-        const highlightInViewport: boolean = inViewport ?? true;
         const currentHighlight = this.getActiveHighlight();
+        const highlightChanged = !this.isEqual(currentHighlight, previousHighlight);
+        // When the caller omits `inViewport` and the highlight hasn't changed, preserve the existing
+        // value — callers that don't know the viewport state (e.g. legend observer clearing its own
+        // entry) must not spuriously reset the flag to `true` and re-show crosshairs for a frozen
+        // datum that has since been panned off-screen.
+        const highlightInViewport: boolean = inViewport ?? (highlightChanged ? true : this.highlightInViewport);
 
-        if (!this.isEqual(currentHighlight, previousHighlight) || this.highlightInViewport !== highlightInViewport) {
+        if (highlightChanged || this.highlightInViewport !== highlightInViewport) {
             const highlightSuppressed = currentHighlight?.series?.isHighlightEnabled() === false;
             this.highlightInViewport = highlightInViewport;
-            this.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
+            this.ctx.chartState.setValue('highlight', currentHighlight);
+            this.ctx.eventsHub.emit(HighlightManager.HIGHLIGHT_CHANGE_EVENT, {
                 callerId,
                 currentHighlight,
                 previousHighlight,

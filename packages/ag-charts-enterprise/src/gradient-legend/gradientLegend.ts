@@ -61,8 +61,6 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     readonly id = createId(this);
 
-    private readonly highlightManager: _ModuleSupport.HighlightManager;
-
     private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
     private readonly containerNode = this.legendGroup.appendChild(new Rect({ name: 'legend-container' }));
     private readonly gradientRectSelection = Selection.select(this.legendGroup, Rect);
@@ -127,12 +125,16 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
-        this.highlightManager = ctx.highlightManager;
 
         this.scale = new GradientLegendScale(this.scaleConfig);
 
         this.cleanup.register(
-            ctx.eventsHub.on('highlight:change', () => this.onChartHoverChange()),
+            ctx.chartState.observe((get) => {
+                const highlighted = get('highlight');
+                if (this.enabled) {
+                    this.updateArrows(highlighted);
+                }
+            }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.onStartLayout(e)),
             () => this.legendGroup.remove()
         );
@@ -196,7 +198,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         const { left, top } = this.getMeasurements(layoutBox, legendBBox);
 
         this.updateContainer(legendBBox);
-        this.updateArrows();
+        this.updateArrows(this.ctx.chartState.getValue('highlight'));
 
         this.legendGroup.visible = true;
         this.legendGroup.translationX = left;
@@ -287,8 +289,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         this.containerNode.height = bbox.height;
     }
 
-    private updateArrows() {
-        const highlighted = this.highlightManager.getActiveHighlight();
+    private updateArrows(highlighted: _ModuleSupport.HighlightNodeDatum | undefined) {
         const highlightSeriesId = highlighted?.series?.id;
 
         for (let i = 0; i < this.enabledData.length; i++) {
@@ -430,10 +431,5 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             strokeOpacity,
             strokeWidth: this.border.enabled ? strokeWidth : 0,
         };
-    }
-
-    private onChartHoverChange() {
-        if (!this.enabled) return;
-        this.updateArrows();
     }
 }

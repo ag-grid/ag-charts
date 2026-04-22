@@ -216,7 +216,7 @@ module.exports = {
                 pathNot: [
                     'ag-charts-core',
                     'ag-charts-types',
-                    '^src/(dom|scene|widget|locale|util|core)/',
+                    '^src/(dom|module|scene|widget|locale|util|core)/',
                     '^src/.*\\.css',
                     'node_modules',
                 ],

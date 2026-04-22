@@ -1,7 +1,7 @@
 import type { MementoOriginator } from 'ag-charts-core';
 import { CleanupRegistry, Debug } from 'ag-charts-core';
 
-import type { EventsHub } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import { VERSION } from '../../version';
 
 interface HistoricalAction {
@@ -21,10 +21,10 @@ export class HistoryManager {
     private readonly debug = Debug.create(true, 'history');
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(eventsHub: EventsHub) {
+    constructor(ctx: ModuleContext) {
         this.cleanup.register(
-            eventsHub.on('series:undo', this.undo.bind(this)),
-            eventsHub.on('series:redo', this.redo.bind(this))
+            ctx.eventsHub.on('series:undo', this.undo.bind(this)),
+            ctx.eventsHub.on('series:redo', this.redo.bind(this))
         );
     }
 

@@ -1,7 +1,8 @@
 import type { Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
-import type { ContextMenuEvent, EventsHub } from '../../core/eventsHub';
+import type { ContextMenuEvent } from '../../core/eventsHub';
+import type { ModuleContext } from '../../module/moduleContext';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
@@ -10,7 +11,7 @@ export class ContextMenuRegistry {
     public readonly builtins = new ContextMenuBuiltins();
     private readonly hiddenActions: Set<string> = new Set();
 
-    constructor(private readonly eventsHub: EventsHub) {
+    constructor(private readonly ctx: ModuleContext) {
         this.toggle('zoom-to-cursor', 'hide');
         this.toggle('pan-to-cursor', 'hide');
         this.toggle('reset-zoom', 'hide');
@@ -46,8 +47,8 @@ export class ContextMenuRegistry {
         const y = position?.y ?? pointerEvent.canvasY;
 
         const event: Writeable<ContextMenuEvent> = { showOn, x, y, context, widgetEvent };
-        this.eventsHub.emit('context-menu:setup', event);
-        this.eventsHub.emit('context-menu:complete', event);
+        this.ctx.eventsHub.emit('context-menu:setup', event);
+        this.ctx.eventsHub.emit('context-menu:complete', event);
     }
 
     public isVisible(id: AgContextMenuItemLiteral): boolean {
