@@ -49,7 +49,7 @@ export interface AgSeriesSelectionOptions {
     enabled?: boolean;
 
     /**
-     * Override the drag-to-select containment rule for this series
+     * Override the drag-to-select containment rule for this series.
      *
      * Default: `chart.selection.containment`
      */
