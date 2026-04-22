@@ -11,6 +11,7 @@ import {
     isFiniteNumber,
     isObject,
     isValidDate,
+    objectsEqual,
     pickDirectionZoom,
     strictObjectKeys,
     toZoomState,
@@ -327,13 +328,19 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         this.ctx.eventsHub.emit('zoom:load-memento', { zoom, memento, navigatorModule, zoomModule });
 
         const changes = this.toCoreZoomState(zoom);
-        this.ctx.chartState.setValue('initialZoom', toZoomState(changes));
+        this.writeInitialZoom(toZoomState(changes));
         this.updateChanges({
             source: 'state-change',
             sourceDetail: 'internal-restoreMemento',
             changes,
             isReset: false,
         });
+    }
+
+    private writeInitialZoom(next: ZoomState | undefined) {
+        const current = this.ctx.chartState.getValue('initialZoom');
+        if (objectsEqual(current, next)) return;
+        this.ctx.chartState.setValue('initialZoom', next);
     }
 
     private findAxis(axisId: AxisID): CartesianAxisLike | undefined {
@@ -347,6 +354,11 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     }
 
     public setAxes(nextAxes: Parameters<typeof refreshCoreState>[0]) {
+        // Snapshot outgoing per-axis zoom BEFORE replacing the axis arrays — otherwise the `state`
+        // getter would read from freshly-constructed axis instances (defaults) whenever the chart
+        // recreates axes with the same IDs.
+        const oldState = this.state;
+
         const { axes, allAxes } = this;
         axes.length = 0;
         allAxes.length = 0;
@@ -357,7 +369,6 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             }
         }
 
-        const oldState = this.state;
         const changes = refreshCoreState(nextAxes, oldState);
         this.state = changes;
 
@@ -723,7 +734,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const zoom = { [requiredRangeDirection]: { min, max } };
         const changes = this.toCoreZoomState(zoom);
-        this.ctx.chartState.setValue('initialZoom', toZoomState(changes));
+        this.writeInitialZoom(toZoomState(changes));
 
         this.updateChanges({
             source: 'state-change',
@@ -805,8 +816,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             this.state = constrainedState;
         }
 
+        // Write to chartState only when the stored value actually differs — `toZoomState` allocates
+        // a fresh object each call, and ReactiveState notifies on reference inequality, so an
+        // unconditional write would wake every `zoom`-subscribed observer on no-op reconciliations.
         const acceptedZoom = toZoomState(this.state);
-        this.ctx.chartState.setValue('zoom', acceptedZoom);
+        if (!objectsEqual(this.ctx.chartState.getValue('zoom'), acceptedZoom)) {
+            this.ctx.chartState.setValue('zoom', acceptedZoom);
+        }
 
         const changeAccepted: boolean = !areEqualCoreZooms(oldState, this.state);
         if (changeAccepted) {

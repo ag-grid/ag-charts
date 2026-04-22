@@ -35,6 +35,7 @@ export function definedZoomState(zoom?: ZoomState): DefinedZoomState {
 export function pickDirectionZoom(zoom: ZoomState | undefined, direction: string): ZoomMinMax | undefined {
     if (direction === 'x') return zoom?.x;
     if (direction === 'y') return zoom?.y;
+    return undefined;
 }
 
 type CoreZoomLike = Readonly<Record<string, Readonly<ZoomMinMaxDirection> | undefined>>;
