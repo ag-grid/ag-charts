@@ -9,6 +9,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { AgHistogramSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -52,6 +53,7 @@ const themeTemplate: ExtensibleTheme<'histogram'> = {
             blur: 5,
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
 };
 

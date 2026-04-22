@@ -1,0 +1,61 @@
+<div class="example-controls">
+    <div class="controls-row">
+        <select onchange="onChartTypeChange(event.target.value)">
+            <optgroup label="community">
+                <option value="area">area</option>
+                <option value="bar">bar</option>
+                <option value="line">line</option>
+            </optgroup>
+            <optgroup label="enterprise">
+                <option value="range-area">range-area</option>
+                <option value="range-bar">range-bar</option>
+            </optgroup>
+        </select>
+    </div>
+    <div class="controls-row">
+        <code>chart.selection.enabled:</code>
+        <div class="control-box">
+            <input id="mySelectionChange" type="checkbox" checked="mixed" onchange="onSelectionChange(event.target)" />
+        </div>
+    </div>
+    <div class="controls-row">
+        <code>chart.series[].selection.enabled:</code>
+        <div class="control-box">
+            <input
+                id="mySelectionChangeA"
+                type="checkbox"
+                checked="mixed"
+                onchange="onSeriesSelectionChange(event.target)"
+            />
+            <label for="mySelectionChangeA"><code>a</code></label>
+        </div>
+        <div class="control-box">
+            <input
+                id="mySelectionChangeB"
+                type="checkbox"
+                checked="mixed"
+                onchange="onSeriesSelectionChange(event.target)"
+            />
+            <label for="mySelectionChangeB"><code>b</code></label>
+        </div>
+        <div class="control-box">
+            <input
+                id="mySelectionChangeC"
+                type="checkbox"
+                checked="mixed"
+                onchange="onSeriesSelectionChange(event.target)"
+            />
+            <label for="mySelectionChangeC"><code>c</code></label>
+        </div>
+        <div class="control-box">
+            <input
+                id="mySelectionChangeD"
+                type="checkbox"
+                checked="mixed"
+                onchange="onSeriesSelectionChange(event.target)"
+            />
+            <label for="mySelectionChangeD"><code>d</code></label>
+        </div>
+    </div>
+</div>
+<div id="myChart"></div>

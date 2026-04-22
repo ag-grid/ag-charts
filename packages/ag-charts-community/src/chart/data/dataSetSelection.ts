@@ -54,6 +54,14 @@ export class DataSetSelection {
         this.selection = desc.applyToTypedArray(this.selection);
     }
 
+    copyBuffer(): Uint8Array {
+        return new Uint8Array(this.selection);
+    }
+
+    restoreBuffer(buffer: Uint8Array): void {
+        this.selection = buffer;
+    }
+
     // --- Query ---
 
     /** Direct access for the render loop. */

@@ -1,5 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type ChartAnimationPhase, type ChartAxisDirection, Property, Vertex } from 'ag-charts-core';
+import {
+    type ChartAnimationPhase,
+    type ChartAxisDirection,
+    ChartUpdateType,
+    type Point,
+    Property,
+    Vertex,
+} from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
 import type { NetworkLayout } from './networkLayout';
@@ -79,38 +86,64 @@ export abstract class AbstractNetworkSeries<
     >(this.linkGroup, () => this.linkFactory());
 
     protected contextNodeData?: NetworkSeriesContextNodeData<TVertex, TEdge>;
+    protected vertexDatumIndex: Record<string, number> = {};
 
     private pendingCollapsedIds?: string[];
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    private height?: number;
+    private width?: number;
+    private startDragOffset: Point = { x: 0, y: 0 };
+    private dragOffset: Point = { x: 0, y: 0 };
+
+    constructor(ctx: _ModuleSupport.ModuleContext) {
         super({
-            moduleCtx,
+            moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
-        moduleCtx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
+        ctx.eventsHub.on('layout:complete', (event) => {
+            this.height = event.series.rect.height;
+            this.width = event.series.rect.width;
+        });
+
+        ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
             if (!collapsed) return;
             if (this.graph.getVertexCount() === 0) {
                 this.pendingCollapsedIds = collapsed;
             }
         });
 
-        moduleCtx.chartState.observe((get) => {
+        ctx.chartState.observe((get) => {
             const activeItem = get('activeItem');
             if (activeItem?.seriesId === this.id) {
-                this.expandActive(activeItem.itemId);
+                this.expandNetworkToItem(activeItem.itemId);
             }
         });
+
+        ctx.eventsHub.on('series-area:click', ({ type, clickedNode }) => {
+            if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
+            if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
+                this.expandItem(clickedNode.itemId);
+            } else {
+                this.collapseItem(clickedNode.itemId);
+            }
+        });
+
+        if (ctx.widgets.seriesDragInterpreter) {
+            this.cleanup.register(
+                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
+                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
+            );
+        }
     }
 
     abstract createNetworkGraph(): TGraph;
     abstract createNetworkLayout(): TLayout;
     abstract nodeFactory(): TNode;
 
-    abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract updateDatumSelection(nodeData: TDatum[], datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
     abstract updateDatumNodes(datumSelection: _ModuleSupport.Selection<TDatum, TNode>): void;
     abstract updateLinkNodes(
@@ -120,13 +153,31 @@ export abstract class AbstractNetworkSeries<
         >
     ): void;
 
-    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
+    abstract getRootVertices(): Vertex<TVertex, TEdge>[];
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
+    abstract getFocusedVertex(): Vertex<TVertex, TEdge> | undefined;
+    abstract getDefaultFocusedVertices(): Vertex<TVertex, TEdge>[] | undefined;
+    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox): void;
+    abstract updateOffset(offset: Point): void;
 
-    abstract expandActive(itemIdOrIndex: string | number): void;
+    abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
+    abstract expandItem(itemIdOrIndex: string | number): void;
+    abstract collapseItem(itemIdOrIndex: string | number): void;
 
     dataCount() {
-        return this.graph.getVertexCount();
+        return this.datumSelection.length;
+    }
+
+    private onSeriesAreaDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
+        this.dragOffset = {
+            x: this.startDragOffset.x + event.originDeltaX,
+            y: this.startDragOffset.y + event.originDeltaY,
+        };
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
+    }
+
+    private onSeriesAreaDragEnd() {
+        this.startDragOffset = { ...this.dragOffset };
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
@@ -134,25 +185,6 @@ export abstract class AbstractNetworkSeries<
 
         this.updateSelections();
         this.updateNodes();
-    }
-
-    hasItemStylers() {
-        return false;
-    }
-
-    getTooltipContent(
-        _datumIndex: NetworkSeriesDatumIndex,
-        _removeThisDatum: NetworkDatum<TVertex, TEdge> | undefined
-    ): _ModuleSupport.TooltipContent | undefined {
-        return undefined;
-    }
-
-    getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
-        return;
-    }
-
-    datumIndexForCategoryValue(_categoryValue: any): NetworkSeriesDatumIndex | undefined {
-        return;
     }
 
     processPendingCollapse() {
@@ -194,50 +226,72 @@ export abstract class AbstractNetworkSeries<
     private updateNodes() {
         this.updateDatumNodes(this.datumSelection);
         this.updateLinkNodes(this.linkSelection);
-        this.layout.update(
-            this.graph,
-            this.getRootVertices(),
-            this.getDatumNodeBBox.bind(this),
-            this.getLinkInterpolation.bind(this),
-            this.layoutDatumNode.bind(this),
-            this.layoutLinkNode.bind(this)
-        );
+        this.layout.update({
+            height: this.height ?? 0,
+            width: this.width ?? 0,
+            regularDimensions: true,
+            hiddenOnCollapse: true,
+            offset: this.dragOffset,
+            graph: this.graph,
+            vertices: this.getRootVertices(),
+            getFocusedVertex: this.getFocusedVertex.bind(this),
+            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
+            getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
+            getLinkInterpolation: this.getLinkInterpolation.bind(this),
+            layoutDatumNode: this.layoutDatumNode.bind(this),
+            layoutLinkNode: this.layoutLinkNode.bind(this),
+            updateOffset: this.updateOffset.bind(this),
+        });
     }
 
-    private getDatumNodeBBox(vertex: Vertex<any, any>) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+    private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        const group = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
-        if (!group) return;
+        const node = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
+        if (!node) return;
 
-        return this.datumSelection.at(nodeDatumIndex)?.getBBox();
+        return node.getBBox();
     }
 
-    private layoutDatumNode(vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+    private layoutDatumNode(
+        vertex: Vertex<TVertex, TEdge>,
+        groupBBox: _ModuleSupport.BBox,
+        regularBBox?: _ModuleSupport.BBox
+    ) {
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        this.positionDatumNode(this.datumSelection.at(nodeDatumIndex)!, groupBBox);
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        this.positionDatumNode(node, groupBBox, regularBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
-        const nodeDatumIndex = this.graph.findNeighbourValue(vertex, 'nodeDatumIndex' as TEdge);
+        const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
         const link = this.linkSelection.at(nodeDatumIndex);
         if (!link) return;
 
-        const path = link.children().next().value as _ModuleSupport.Path | undefined;
+        const path = link.getPath();
         if (!path) return;
 
         drawLink(path.path);
-
         path.visible = true;
     }
 
     // ---
     // UNUSED METHODS
+
+    getCategoryValue(_datumIndex: NetworkSeriesDatumIndex): any {
+        return;
+    }
+
+    datumIndexForCategoryValue(_categoryValue: any): NetworkSeriesDatumIndex | undefined {
+        return;
+    }
 
     getLegendData(_legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         return [];

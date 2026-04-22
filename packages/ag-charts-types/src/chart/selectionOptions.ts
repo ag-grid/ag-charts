@@ -31,3 +31,8 @@ export interface AgSelectionOptions {
      */
     clickMode?: AgSelectionClickMode;
 }
+
+export interface AgSeriesSelectionOptions {
+    /** Set to `true` to enable the data-selection on this series. */
+    enabled?: boolean;
+}

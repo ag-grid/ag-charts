@@ -364,7 +364,7 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private getZoomRange(orientation: ScrollbarOrientation) {
-        const zoom = this.ctx.zoomManager.getZoom();
+        const zoom = this.ctx.chartState.getValue('zoom');
         const isHorizontal = orientation === 'horizontal';
         const range = isHorizontal ? zoom?.x : zoom?.y;
         if (!isHorizontal && range != null) {
@@ -465,7 +465,7 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private getZoom() {
-        return definedZoomState(this.ctx.zoomManager.getZoom());
+        return definedZoomState(this.ctx.chartState.getValue('zoom'));
     }
 
     override destroy() {

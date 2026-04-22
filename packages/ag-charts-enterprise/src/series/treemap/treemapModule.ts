@@ -5,6 +5,7 @@ import {
     FILL_PATTERN_DEFAULTS,
     FONT_SIZE_RATIO,
     LABEL_BOXING_DEFAULTS,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -112,6 +113,7 @@ export const TreemapSeriesModule: SeriesModuleDefinition<AgTreemapSeriesOptions>
                     },
                 },
             },
+            selection: SERIES_SELECTION_THEME,
         },
         legend: {
             enabled: {

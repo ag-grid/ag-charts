@@ -4,6 +4,7 @@ import {
     MULTI_SERIES_HIGHLIGHT_STYLE,
     SAFE_RANGE2_OPERATION,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 
@@ -45,6 +46,7 @@ export const MapLineSeriesModule: SeriesModuleDefinition<AgMapLineSeriesOptions>
                 color: { $ref: 'textColor' },
             },
             highlight: applyMapPalette(MULTI_SERIES_HIGHLIGHT_STYLE),
+            selection: SERIES_SELECTION_THEME,
         },
         tooltip: {
             range: 'exact',

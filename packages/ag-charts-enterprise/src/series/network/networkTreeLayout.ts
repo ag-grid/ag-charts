@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Vec2, type Vertex, clamp } from 'ag-charts-core';
+import { type Point, Vec2, type Vertex, clamp } from 'ag-charts-core';
 
-import type { NetworkGraph } from './networkGraph';
-import { NetworkLayout } from './networkLayout';
+import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
 type TBBox = _ModuleSupport.BBox;
@@ -13,47 +12,28 @@ const { BBox } = _ModuleSupport;
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    public interpolation: { type: 'step'; cornerRadius?: number } = { type: 'step' };
-
     private readonly verticalPadding = 40;
-    private readonly outerPadding = 10;
+    private readonly outerPadding = 0;
     private readonly innerPadding = 10;
 
-    constructor() {
-        super();
+    update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {
+        if (options.regularDimensions) {
+            this.calculateRegularDimensions(options);
+        }
+
+        const { containerBBox } = this.updateNodes(options, undefined);
+        this.updateOffset(options, containerBBox);
     }
 
-    update(
-        graph: NetworkGraph<TVertex, TEdge>,
-        vertices: Vertex<TVertex, TEdge>[],
-        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
-        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
-        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
-        layoutLinkNode: (
-            vertex: Vertex<TVertex, TEdge>,
-            drawLink: (path: _ModuleSupport.ExtendedPath2D) => void
-        ) => void
-    ) {
-        this.updateChildren(graph, vertices, getDatumNodeBBox, getLinkInterpolation, layoutDatumNode, layoutLinkNode);
-
-        // TODO: use `containerBBox` for global positioning of the network
-    }
-
-    private updateChildren(
-        graph: NetworkGraph<TVertex, TEdge>,
-        vertices: Vertex<TVertex, TEdge>[],
-        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
-        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
-        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
-        layoutLinkNode: (
-            vertex: Vertex<TVertex, TEdge>,
-            drawLink: (path: _ModuleSupport.ExtendedPath2D) => void
-        ) => void,
+    private updateNodes(
+        options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
+        offset: Point | undefined,
         groupBBox: TBBox = new BBox(0, 0, 0, 0)
     ): {
         containerBBox: TBBox;
         childrenBBoxes: { vertex: Vertex<TVertex, TEdge>; bbox: TBBox }[];
     } {
+        const { getDatumNodeBBox, getLinkInterpolation, layoutDatumNode, layoutLinkNode, vertices } = options;
         const layoutBBoxes = [];
 
         // Iterate through the sibling vertices calculating their layout positions.
@@ -61,26 +41,20 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         for (const vertex of vertices) {
             index++;
 
-            const nodeBBox = getDatumNodeBBox(vertex);
+            let nodeBBox = getDatumNodeBBox(vertex);
+            if (!nodeBBox && options.hiddenOnCollapse) continue;
+
+            nodeBBox = this.regularBBox ?? nodeBBox;
+            if (!nodeBBox) continue;
 
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.findAndUpdateChildren(
-                graph,
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
+                options,
                 vertex,
-                getDatumNodeBBox,
-                getLinkInterpolation,
-                layoutDatumNode,
-                layoutLinkNode,
+                offset,
                 groupBBox,
                 nodeBBox
             );
-
-            // When the node has no bbox, set the group to be just the descendents. This should only occur for the
-            // non-rendered root node.
-            if (!nodeBBox) {
-                if (descendentsContainerBBox) groupBBox = descendentsContainerBBox;
-                continue;
-            }
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -92,7 +66,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
 
             // Request the series to layout the node per the calculated bbox.
-            layoutDatumNode(vertex, layoutBBox);
+            layoutDatumNode(vertex, layoutBBox, this.regularBBox);
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
@@ -123,32 +97,23 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }
 
-    private findAndUpdateChildren(
-        graph: NetworkGraph<TVertex, TEdge>,
+    private updateChildren(
+        options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
-        getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => TBBox | undefined,
-        getLinkInterpolation: (from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>) => NetworkLinkInterpolation,
-        layoutDatumNode: (vertex: Vertex<TVertex, TEdge>, groupBBox: TBBox) => void,
-        layoutLinkNode: (
-            vertex: Vertex<TVertex, TEdge>,
-            drawLink: (path: _ModuleSupport.ExtendedPath2D) => void
-        ) => void,
+        offset: Point | undefined,
         groupBBox: TBBox,
         datumBBox?: TBBox
     ) {
+        const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
         if (!children) return {};
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
         if (datumBBox) childrenGroupBBox.y += datumBBox.height + this.verticalPadding;
 
-        const { containerBBox, childrenBBoxes } = this.updateChildren(
-            graph,
-            children,
-            getDatumNodeBBox,
-            getLinkInterpolation,
-            layoutDatumNode,
-            layoutLinkNode,
+        const { containerBBox, childrenBBoxes } = this.updateNodes(
+            { ...options, vertices: children },
+            offset,
             childrenGroupBBox
         );
 
@@ -194,5 +159,39 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             path.lineTo(elbow2.x, elbow2.y);
         }
         path.lineTo(end.x, end.y);
+    }
+
+    private updateOffset(options: NetworkLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox) {
+        let offset = {
+            x: containerBBox.x + containerBBox.width / 2,
+            y: 0,
+        };
+
+        const focusedVertex = options.getFocusedVertex();
+        if (focusedVertex) {
+            const focusedBBox = options.getDatumNodeBBox(focusedVertex);
+            if (focusedBBox) {
+                offset = {
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
+                    y: -focusedBBox.y,
+                };
+            }
+        } else {
+            const defaultFocusedVertices = options.getDefaultFocusedVertices();
+            const bboxes = defaultFocusedVertices?.map((vertex) => options.getDatumNodeBBox(vertex)).filter(Boolean);
+            if (bboxes && bboxes.length > 0) {
+                const focusedBBox = BBox.merge(bboxes as TBBox[]);
+                offset = {
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
+                    y: -focusedBBox.y,
+                };
+            }
+        }
+
+        offset = Vec2.add(offset, options.offset);
+
+        // TODO: clamp the offset so that any one node is always visible
+
+        options.updateOffset(offset);
     }
 }

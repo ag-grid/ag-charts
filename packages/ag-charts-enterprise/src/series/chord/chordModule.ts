@@ -4,6 +4,7 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
+    SERIES_SELECTION_THEME,
     SINGLE_SERIES_HIGHLIGHT_STYLE,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
@@ -30,6 +31,7 @@ export const ChordSeriesModule: SeriesModuleDefinition<AgChordSeriesOptions> = {
             fillPatternDefaults: FILL_PATTERN_DEFAULTS,
             fillImageDefaults: FILL_IMAGE_DEFAULTS,
             highlight: SINGLE_SERIES_HIGHLIGHT_STYLE,
+            selection: SERIES_SELECTION_THEME,
             label: {
                 ...LABEL_BOXING_DEFAULTS,
                 enabled: true,

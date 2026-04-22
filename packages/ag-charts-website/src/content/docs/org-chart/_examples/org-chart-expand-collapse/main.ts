@@ -24,6 +24,17 @@ const options: AgStandaloneChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            tooltip: {
+                renderer: ({ datum }) => {
+                    return {
+                        heading: datum.title,
+                        data: [
+                            { label: 'Job', value: datum.job },
+                            { label: 'Location', value: datum.location },
+                        ],
+                    };
+                },
+            },
             node: {
                 image: {
                     key: 'avatar',

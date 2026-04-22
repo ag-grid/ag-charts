@@ -10,6 +10,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     SAFE_STROKE_FILL_OPERATION,
     SEGMENTATION_DEFAULTS,
+    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { AgLineSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
@@ -66,6 +67,7 @@ const themeTemplate: ExtensibleTheme<'line'> = {
             },
         },
         highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         segmentation: SEGMENTATION_DEFAULTS,
     },
 };

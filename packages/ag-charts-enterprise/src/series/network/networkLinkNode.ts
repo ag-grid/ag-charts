@@ -13,4 +13,8 @@ export class NetworkLinkNode<TDatum> extends _ModuleSupport.TranslatableGroup<TD
 
         applyStrokeStyles(this.pathNode, styles);
     }
+
+    getPath() {
+        return this.pathNode;
+    }
 }

@@ -13,7 +13,6 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             singleValueEdges: new Set([
                 'datumIndex',
-                'nodeDatumIndex',
                 'parent', // Each child only has one parent in an Organization graph.
                 'depth',
                 'image',
@@ -88,6 +87,12 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
     findVertexById(id: string): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
         return this.verticesById[id];
+    }
+
+    *vertices(): Generator<Vertex<OrganizationVertex, OrganizationEdge>, void, undefined> {
+        for (const vertex of Object.values(this.verticesById)) {
+            yield vertex;
+        }
     }
 
     private attachChild(

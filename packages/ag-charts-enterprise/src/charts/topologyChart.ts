@@ -95,8 +95,9 @@ export class TopologyChart extends Chart {
             const x1 = viewBoxOriginX + viewBoxWidth;
             const y1 = viewBoxOriginY + viewBoxHeight;
 
-            const xZoom = this.ctx.zoomManager.getAxisZoom(this.xAxis.id);
-            const yZoom = this.ctx.zoomManager.getAxisZoom(this.yAxis.id);
+            const zoom = this.ctx.chartState.getValue('zoom');
+            const xZoom = zoom?.x ?? { min: 0, max: 1 };
+            const yZoom = zoom?.y ?? { min: 0, max: 1 };
             const xSpan = (x1 - x0) / (xZoom.max - xZoom.min);
             const xStart = x0 - xSpan * xZoom.min;
             const ySpan = (y1 - y0) / (1 - yZoom.min - (1 - yZoom.max));

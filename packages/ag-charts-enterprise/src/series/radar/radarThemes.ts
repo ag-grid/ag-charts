@@ -7,6 +7,7 @@ import {
     MARKER_SERIES_HIGHLIGHT_STYLE,
     POLAR_AXIS_TYPE,
     SAFE_STROKE_FILL_OPERATION,
+    SERIES_SELECTION_THEME,
     mergeDefaults,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -41,6 +42,7 @@ const BASE_RADAR_SERIES_THEME: ExtensibleTheme<'radar-line' | 'radar-area'> = {
             strokeWidth: { $isUserOption: ['./stroke', 1, 0] },
         },
         highlight: MARKER_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
         tooltip: {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },

@@ -4,6 +4,7 @@ import {
     CARTESIAN_POSITION,
     ChartAxisDirection,
     MULTI_SERIES_HIGHLIGHT_STYLE,
+    SERIES_SELECTION_THEME,
     type SeriesModuleDefinition,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
@@ -40,6 +41,7 @@ const themeTemplate: ExtensibleTheme<'ohlc'> = {
             range: { $path: ['/tooltip/range', 'nearest'] },
         },
         highlight: MULTI_SERIES_HIGHLIGHT_STYLE,
+        selection: SERIES_SELECTION_THEME,
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {
