@@ -22,6 +22,7 @@ import {
     extent,
     findDiscreteColorBinLabel,
     formatValue,
+    joinFormatted,
     mergeDefaults,
     toPlainText,
 } from 'ag-charts-core';
@@ -280,7 +281,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const supportedAxisTypes = ['category', 'grouped-category'];
         if (!supportedAxisTypes.includes(xAxis.type) || !supportedAxisTypes.includes(yAxis.type)) {
             Logger.warnOnce(
-                `Heatmap series expected axes to have "category" type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
+                `Heatmap series expected axes to have ${joinFormatted(supportedAxisTypes, 'or', JSON.stringify)} type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
             );
             return undefined;
         }
