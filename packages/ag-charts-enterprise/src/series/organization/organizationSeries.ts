@@ -89,6 +89,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { data } = this;
         if (data == null) return;
 
+        this.layout.clear();
+
         const {
             idKey,
             parentIdKey,
