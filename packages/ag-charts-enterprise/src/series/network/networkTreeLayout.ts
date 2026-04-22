@@ -172,7 +172,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             const focusedBBox = options.getDatumNodeBBox(focusedVertex);
             if (focusedBBox) {
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - focusedBBox.width / 2,
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
@@ -182,7 +182,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             if (bboxes && bboxes.length > 0) {
                 const focusedBBox = BBox.merge(bboxes as TBBox[]);
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - focusedBBox.width / 2,
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
