@@ -4,6 +4,7 @@ import {
     CleanupRegistry,
     type ReactiveState,
     isFiniteNumber,
+    pickDirectionZoom,
 } from 'ag-charts-core';
 import type { ZoomMinMax } from 'ag-charts-core';
 
@@ -77,7 +78,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         let shouldRefresh = true;
 
         if (axis) {
-            const zoom = this.chartState.getValue('zoom')?.x ?? DEFAULT_ZOOM;
+            const zoom = pickDirectionZoom(this.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
             window = this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
