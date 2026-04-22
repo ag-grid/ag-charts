@@ -2,6 +2,12 @@ import { LABEL_BOXING_DEFAULTS, SAFE_RANGE2_OPERATION, SERIES_SELECTION_THEME } 
 import type { ExtensibleTheme } from 'ag-charts-types';
 
 export const HEATMAP_SERIES_THEME: ExtensibleTheme<'heatmap'> = {
+    axes: {
+        'grouped-category': {
+            paddingInner: 0,
+            groupPaddingInner: 0,
+        },
+    },
     series: {
         stroke: {
             $if: [

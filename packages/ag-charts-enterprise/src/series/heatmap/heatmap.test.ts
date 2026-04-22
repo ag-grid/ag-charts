@@ -697,7 +697,207 @@ describe('HeatmapSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+    });
 
+    describe('grouped-category axes', () => {
+        const GROUPED_DATA = [
+            { category: ['Fruit', 'Apple'], quarter: 'Q1', sales: 10 },
+            { category: ['Fruit', 'Apple'], quarter: 'Q2', sales: 20 },
+            { category: ['Fruit', 'Apple'], quarter: 'Q3', sales: 30 },
+            { category: ['Fruit', 'Apple'], quarter: 'Q4', sales: 40 },
+            { category: ['Fruit', 'Banana'], quarter: 'Q1', sales: 15 },
+            { category: ['Fruit', 'Banana'], quarter: 'Q2', sales: 25 },
+            { category: ['Fruit', 'Banana'], quarter: 'Q3', sales: 35 },
+            { category: ['Fruit', 'Banana'], quarter: 'Q4', sales: 45 },
+            { category: ['Veg', 'Carrot'], quarter: 'Q1', sales: 5 },
+            { category: ['Veg', 'Carrot'], quarter: 'Q2', sales: 15 },
+            { category: ['Veg', 'Carrot'], quarter: 'Q3', sales: 25 },
+            { category: ['Veg', 'Carrot'], quarter: 'Q4', sales: 50 },
+            { category: ['Veg', 'Potato'], quarter: 'Q1', sales: 18 },
+            { category: ['Veg', 'Potato'], quarter: 'Q2', sales: 28 },
+            { category: ['Veg', 'Potato'], quarter: 'Q3', sales: 38 },
+            { category: ['Veg', 'Potato'], quarter: 'Q4', sales: 48 },
+        ];
+
+        it('should render with grouped-category X axis', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: GROUPED_DATA,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'category',
+                        yKey: 'quarter',
+                        colorKey: 'sales',
+                        colorRange: ['yellow', 'red', 'blue'],
+                        label: { enabled: true },
+                    },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                },
+                legend: { enabled: false },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with grouped-category Y axis', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: GROUPED_DATA,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'quarter',
+                        yKey: 'category',
+                        colorKey: 'sales',
+                        colorRange: ['yellow', 'red', 'blue'],
+                        label: { enabled: true },
+                    },
+                ],
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'grouped-category', position: 'left' },
+                },
+                legend: { enabled: false },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with grouped-category on both axes', async () => {
+            const data = [];
+            for (const x of [
+                ['H1', 'Q1'],
+                ['H1', 'Q2'],
+                ['H2', 'Q3'],
+                ['H2', 'Q4'],
+            ]) {
+                for (const y of [
+                    ['Fruit', 'Apple'],
+                    ['Fruit', 'Banana'],
+                    ['Veg', 'Carrot'],
+                    ['Veg', 'Potato'],
+                ]) {
+                    data.push({
+                        period: x,
+                        category: y,
+                        sales: x[1].charCodeAt(1) * y[1].charCodeAt(0),
+                    });
+                }
+            }
+
+            const options = prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'period',
+                        yKey: 'category',
+                        colorKey: 'sales',
+                        colorRange: ['yellow', 'red', 'blue'],
+                    },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'grouped-category', position: 'left' },
+                },
+                legend: { enabled: false },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        // Mirrors plunker https://plnkr.co/edit/8wpS0AylLFG3GSsZ — baud rate (Even/Odd)
+        // grouped on X, line-rate category on Y (reversed). Guards the tick/cell
+        // alignment the user observed on that specific config.
+        it('should render plunker 8wpS0AylLFG3GSsZ baud/parity scenario', async () => {
+            const baudRates = [187.6, 187.7, 187.8];
+            const parities = ['E', 'O'];
+            const lineRates = [100, 200, 300, 400];
+            const data = [];
+            for (const baud of baudRates) {
+                for (const parity of parities) {
+                    for (const lineRate of lineRates) {
+                        const base = (baud - 187.5) * 40;
+                        const parityOffset = parity === 'E' ? 5 : -3;
+                        const lineFactor = lineRate / 100;
+                        const value = Number(
+                            (base + parityOffset + lineFactor * 7 + Math.sin(baud * lineRate) * 4).toFixed(2)
+                        );
+                        data.push({
+                            baud: baud.toFixed(1),
+                            parity,
+                            baudParity: [baud.toFixed(1), parity],
+                            lineRate,
+                            value,
+                        });
+                    }
+                }
+            }
+
+            const options = prepareEnterpriseTestOptions({
+                title: { text: 'Link Quality by Baud Rate (Even/Odd) and Line Rate' },
+                subtitle: {
+                    text: 'AG Charts 13.2.1 heatmap requires category axes — Even/Odd pairs are grouped via category ordering and two-line label formatting (baud rate above, parity below).',
+                },
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'baudParity',
+                        xName: 'Baud / Parity',
+                        yKey: 'lineRate',
+                        yName: 'Line Rate',
+                        colorKey: 'value',
+                        colorName: 'Value',
+                        label: { enabled: true },
+                    },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', title: { text: 'Baud Rate (Even / Odd pairs)' } },
+                    y: { type: 'category', title: { text: 'Line Rate' }, reverse: true },
+                },
+                gradientLegend: { position: 'right' } as any,
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render with a single group (degenerate grouping)', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { category: ['Fruit', 'Apple'], quarter: 'Q1', sales: 10 },
+                    { category: ['Fruit', 'Apple'], quarter: 'Q2', sales: 20 },
+                    { category: ['Fruit', 'Banana'], quarter: 'Q1', sales: 15 },
+                    { category: ['Fruit', 'Banana'], quarter: 'Q2', sales: 25 },
+                ],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'category',
+                        yKey: 'quarter',
+                        colorKey: 'sales',
+                        colorRange: ['yellow', 'red', 'blue'],
+                    },
+                ],
+                axes: {
+                    x: { type: 'grouped-category', position: 'bottom' },
+                    y: { type: 'category', position: 'left' },
+                },
+                legend: { enabled: false },
+            });
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('null category key', () => {
         it('should treat null and undefined as distinct categories', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: [

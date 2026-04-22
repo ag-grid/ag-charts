@@ -277,7 +277,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const { xAxis, yAxis } = result;
 
-        if (xAxis.type !== 'category' || yAxis.type !== 'category') {
+        const supportedAxisTypes = ['category', 'grouped-category'];
+        if (!supportedAxisTypes.includes(xAxis.type) || !supportedAxisTypes.includes(yAxis.type)) {
             Logger.warnOnce(
                 `Heatmap series expected axes to have "category" type, but received "${xAxis.type}" and "${yAxis.type}" instead.`
             );
