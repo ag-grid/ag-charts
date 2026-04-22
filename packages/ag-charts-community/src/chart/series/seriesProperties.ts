@@ -63,7 +63,7 @@ export function getHighlightStyleOptionKeys(highlightState: HighlightState): Hig
     }
 }
 
-type HighlightMixins = {
+type StyleMixins = {
     fill: AgColorType;
     fillOpacity: number;
     stroke: string;
@@ -92,7 +92,8 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
     }
 }
 
-type HighlightOptions<TOpts extends object> = Partial<TOpts & HighlightMixins>;
+type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
+type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
 export class SeriesItemHighlightStyle extends BaseProperties {
     @Property
@@ -146,12 +147,18 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     }
 }
 
-export class SeriesSelectionProperties extends BaseProperties {
+export class SeriesSelectionProperties<TOpts extends object> extends BaseProperties {
     @Property
     enabled = false;
 
     @Property
     containment: AgSelectionContainment = 'any';
+
+    @Property
+    readonly selectedItem: SelectionOptions<TOpts> = {};
+
+    @Property
+    readonly unselectedItem: SelectionOptions<TOpts> = {};
 }
 
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
@@ -335,7 +342,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     readonly highlight: HighlightProperties<T> = new HighlightProperties();
 
     @Property
-    readonly selection: SeriesSelectionProperties = new SeriesSelectionProperties();
+    readonly selection: SeriesSelectionProperties<T> = new SeriesSelectionProperties();
 
     abstract tooltip: SeriesTooltip<never>;
 
