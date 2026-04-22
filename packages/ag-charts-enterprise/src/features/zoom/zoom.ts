@@ -1,27 +1,31 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, BaseStyleTypeMap, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import type {
+    AxisID,
+    BaseStyleTypeMap,
+    CartesianAxisDirection,
+    DefinedZoomState,
+    NormalisedZoomOptions,
+    ZoomMinMax,
+} from 'ag-charts-core';
 import {
     AbstractModuleInstance,
-    ActionOnSet,
     ChartAxisDirection,
     ChartUpdateType,
-    Property,
-    ProxyProperty,
     UNIT_MAX,
     UNIT_MIN,
     definedZoomState,
     entries,
     isNumberEqual,
     roundTo,
+    toZoomState,
 } from 'ag-charts-core';
-import type { AgZoomAnchorPoint } from 'ag-charts-types';
 
 import { ZoomScrollPanner } from '../zoom-interaction/zoomScrollPanner';
 import { ZoomRect } from './scenes/zoomRect';
-import { ZoomAutoScaler, ZoomAutoScalingProperties } from './zoomAutoScale';
+import { ZoomAutoScaler } from './zoomAutoScale';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
-import { ZoomOnDataChange, ZoomOnDataChangeProperties } from './zoomOnDataChange';
+import { ZoomOnDataChange } from './zoomOnDataChange';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
@@ -29,8 +33,6 @@ import { ZoomToolbar } from './zoomToolbar';
 import { ZoomTwoFingers } from './zoomTwoFingers';
 import type { ZoomProperties } from './zoomTypes';
 import {
-    DEFAULT_ANCHOR_POINT_X,
-    DEFAULT_ANCHOR_POINT_Y,
     UNIT_SIZE,
     constrainAxis,
     constrainZoom,
@@ -56,86 +58,20 @@ enum DragState {
     TwoFingers,
 }
 
+// Extends the normalised type with undocumented options available at runtime.
+type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
+
+const DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
+
 export class Zoom extends AbstractModuleInstance {
-    @ActionOnSet<Zoom>({
-        newValue(enabled) {
-            this.onEnabledChange(enabled);
-        },
-    })
-    @Property
-    public enabled = false;
+    private get opts(): ZoomOpts {
+        return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
+    }
 
-    @Property
-    public enableAxisDragging = true;
-
-    @Property
-    public enableAxisScrolling = true;
-
-    @Property
-    public enableDoubleClickToReset = true;
-
-    @ActionOnSet<Zoom>({
-        changeValue(newValue) {
-            this.ctx.zoomManager.setIndependentAxes(Boolean(newValue));
-        },
-    })
-    @Property
-    public enableIndependentAxes?: boolean;
-
-    @Property
-    public enablePanning = true;
-
-    @Property
-    public enableScrolling = true;
-
-    @Property
-    public enableSelecting = false;
-
-    @Property
-    public enableTwoFingerZoom = true;
-
-    @Property
-    public panKey: 'alt' | 'ctrl' | 'meta' | 'shift' = 'alt';
-
-    @Property
-    public axes: 'x' | 'y' | 'xy' = 'x';
-
-    @Property
-    public scrollingMode: 'pan' | 'zoom' = 'zoom';
-
-    @Property
-    public scrollingStep = UNIT_SIZE / 10;
-
-    @Property
-    public keepAspectRatio = false;
-
-    @Property
-    public minVisibleItems = 2;
-
-    @Property
-    public anchorPointX: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_X;
-
-    @Property
-    public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
-
-    @Property
-    public readonly autoScaling: ZoomAutoScalingProperties = new ZoomAutoScalingProperties();
-
-    @Property
-    public axisDraggingMode: 'pan' | 'zoom' = 'zoom';
-
-    @Property
-    public buttons = new ZoomToolbar(
-        this.ctx,
-        this.getModuleProperties.bind(this),
-        this.updateZoom.bind(this),
-        this.updateAxisZoom.bind(this),
-        this.resetZoom.bind(this),
-        this.isZoomValid.bind(this)
-    );
-
-    @Property
-    public readonly onDataChange: ZoomOnDataChangeProperties = new ZoomOnDataChangeProperties();
+    // Public getter required by `hasViewportSupport()` in chart.ts.
+    get enabled(): boolean {
+        return this.opts.enabled;
+    }
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
@@ -145,18 +81,14 @@ export class Zoom extends AbstractModuleInstance {
     private readonly axisDragger = new ZoomAxisDragger();
     private readonly autoScaler: ZoomAutoScaler;
     private readonly contextMenu: ZoomContextMenu;
-    private readonly dataChangeHandler: ZoomOnDataChange;
     private readonly panner = new ZoomPanner(this.ctx);
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
     private readonly twoFingers = new ZoomTwoFingers();
+    private readonly buttons: ZoomToolbar;
 
     private hoveredAxisId?: AxisID;
-
-    @ProxyProperty('panner.deceleration')
-    @Property
-    public deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State
     private dragState = DragState.None;
@@ -168,11 +100,23 @@ export class Zoom extends AbstractModuleInstance {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        const self = this;
+
+        this.buttons = new ZoomToolbar(
+            ctx,
+            this.getModuleProperties.bind(this),
+            this.updateZoom.bind(this),
+            this.updateAxisZoom.bind(this),
+            this.resetZoom.bind(this),
+            this.isZoomValid.bind(this)
+        );
+
         const selectionRect = new ZoomRect();
         this.selector = new ZoomSelector(selectionRect, this.getZoom.bind(this), this.isZoomValid.bind(this));
         this.contextMenu = new ZoomContextMenu(
             ctx.eventsHub,
             ctx.contextMenuRegistry,
+            ctx.chartState,
             ctx.zoomManager,
             this.getModuleProperties.bind(this),
             () => this.paddedRect,
@@ -182,17 +126,23 @@ export class Zoom extends AbstractModuleInstance {
 
         // FIXME(AG-8627 TC10; AG-16414) `minVisibleItems` should have its own zoom:change-request handling
         const minVisibleItemsCallback = (event: _ModuleSupport.ZoomChangeRequestEvent): void => {
-            if (this.minVisibleItems > 0) {
+            if (this.opts.minVisibleItems > 0) {
                 const restrictions = event.stateAsDefinedZoom();
                 event.constrainZoom(this.constrainZoom(restrictions));
             }
         };
-        this.dataChangeHandler = new ZoomOnDataChange(
-            minVisibleItemsCallback,
-            this.onDataChange,
-            this.ctx,
-            this.cleanup
-        );
+        // eslint-disable-next-line sonarjs/constructor-for-side-effects -- event handlers keep instance alive via cleanup registry
+        new ZoomOnDataChange({
+            chartState: ctx.chartState,
+            eventsHub: ctx.eventsHub,
+            zoomManager: ctx.zoomManager,
+            axisManager: ctx.axisManager,
+            cleanup: this.cleanup,
+            onConstrainChanges: minVisibleItemsCallback,
+            get opts() {
+                return self.opts.onDataChange;
+            },
+        });
 
         if (ctx.widgets.seriesDragInterpreter) {
             this.cleanup.register(
@@ -229,24 +179,58 @@ export class Zoom extends AbstractModuleInstance {
         );
 
         // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
-        this.autoScaler = new ZoomAutoScaler(this.autoScaling, ctx.zoomManager, this, ctx.eventsHub, this.cleanup);
+        this.autoScaler = new ZoomAutoScaler({
+            zoomManager: ctx.zoomManager,
+            eventsHub: ctx.eventsHub,
+            chartState: ctx.chartState,
+            cleanup: this.cleanup,
+            opts: {
+                get enabled() {
+                    return self.opts.enabled;
+                },
+                get enableIndependentAxes() {
+                    return self.opts.enableIndependentAxes;
+                },
+                get autoScaling() {
+                    return self.opts.autoScaling;
+                },
+            },
+        });
+
+        // Observe option changes. The callback runs immediately during registration
+        // (chartState is populated before module creation), handling initial setup too.
+        let prevEnabled: boolean | undefined;
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                const opts = get('options', 'zoom');
+                if (opts == null) return;
+
+                ctx.zoomManager.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
+                this.panner.deceleration = opts.deceleration;
+
+                // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
+                if (opts.buttons) {
+                    this.buttons.set(opts.buttons);
+                }
+
+                if (prevEnabled !== opts.enabled) {
+                    prevEnabled = opts.enabled;
+                    this.onEnabledChange(opts.enabled);
+                }
+            })
+        );
     }
 
     private teardown() {
         this.ctx.zoomManager.setZoomModuleEnabled(false);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
-        this.dataChangeHandler.destroy();
     }
 
     private onEnabledChange(enabled: boolean) {
         this.ctx.zoomManager.setZoomModuleEnabled(enabled);
-
-        // The constructor may not yet have been called, so `contextMenu` may be undefined.
-        if (this.contextMenu) {
-            this.destroyContextMenuActions?.();
-            this.destroyContextMenuActions = this.contextMenu.registerActions(enabled);
-        }
+        this.destroyContextMenuActions?.();
+        this.destroyContextMenuActions = this.contextMenu.registerActions(enabled);
     }
 
     private isIgnoredTouch(event: Pick<_Widget.DragWidgetEvent, 'device'> | undefined): boolean {
@@ -256,10 +240,11 @@ export class Zoom extends AbstractModuleInstance {
         if (this.ctx.chartService.touch.dragAction !== 'drag') {
             return true;
         }
-        if (this.enableSelecting) {
+        const { enableSelecting, enablePanning } = this.opts;
+        if (enableSelecting) {
             return false;
         }
-        if (!this.enablePanning) {
+        if (!enablePanning) {
             return true;
         }
         return isMaxZoom(this.getZoom());
@@ -268,7 +253,7 @@ export class Zoom extends AbstractModuleInstance {
     private onSeriesAreaDoubleClick(
         event?: _ModuleSupport.DragInterpreterDblClickEvent & { preventZoomDblClick?: boolean }
     ) {
-        const { enabled, enableDoubleClickToReset } = this;
+        const { enabled, enableDoubleClickToReset } = this.opts;
 
         if (!enabled || !enableDoubleClickToReset) return;
         if (event?.preventZoomDblClick || !this.isState(InteractionState.ZoomClickable)) return;
@@ -277,10 +262,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+        const { enabled, enablePanning, enableSelecting } = this.opts;
         const {
-            enabled,
-            enablePanning,
-            enableSelecting,
             ctx: { domManager, zoomManager },
         } = this;
 
@@ -316,9 +299,9 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onSeriesAreaDragMove(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        const { enabled } = this.opts;
         const {
             dragState,
-            enabled,
             paddedRect,
             panner,
             selector,
@@ -367,7 +350,7 @@ export class Zoom extends AbstractModuleInstance {
 
         interactionManager.popState(_ModuleSupport.InteractionState.ZoomDrag);
 
-        if (!this.enabled || this.dragState === DragState.None) return;
+        if (!this.opts.enabled || this.dragState === DragState.None) return;
 
         this.handleRegularDragEnd();
         this.resetDragState();
@@ -401,7 +384,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisMouseEnter(event: _ModuleSupport.ZoomInteractionAxisMouseEvent<'mouseenter'>) {
-        const { anchorPointX, anchorPointY, axisDraggingMode, enabled, enableAxisDragging } = this;
+        const { anchorPointX, anchorPointY, axisDraggingMode, enabled, enableAxisDragging } = this.opts;
 
         this.hoveredAxisId = event.axisId;
 
@@ -451,13 +434,13 @@ export class Zoom extends AbstractModuleInstance {
         this.hoveredAxisId = undefined;
         this.ctx.domManager.updateCursor(CURSOR_ID);
 
-        if (!this.enabled || !this.enableAxisDragging) return;
+        const { enabled, enableAxisDragging } = this.opts;
+        if (!enabled || !enableAxisDragging) return;
     }
 
     private onAxisDoubleClick(id: AxisID) {
+        const { enabled, enableDoubleClickToReset } = this.opts;
         const {
-            enabled,
-            enableDoubleClickToReset,
             ctx: { zoomManager },
         } = this;
 
@@ -468,10 +451,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisDragStart(direction: ChartAxisDirection) {
+        const { axisDraggingMode, enabled, enableAxisDragging } = this.opts;
         const {
-            axisDraggingMode,
-            enabled,
-            enableAxisDragging,
             panner,
             ctx: { zoomManager },
         } = this;
@@ -492,16 +473,13 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisDragMove(axisId: AxisID, direction: ChartAxisDirection, event: _Widget.DragWidgetEvent<'drag-move'>) {
+        const { anchorPointX, anchorPointY, enabled, enableAxisDragging } = this.opts;
         const {
-            anchorPointX,
-            anchorPointY,
             axisDragger,
             dragState,
-            enabled,
-            enableAxisDragging,
             seriesRect,
             shouldFlipXY,
-            ctx: { interactionManager, tooltipManager, eventsHub, zoomManager },
+            ctx: { interactionManager, tooltipManager, eventsHub },
         } = this;
 
         if (!enabled || !enableAxisDragging || !seriesRect) return;
@@ -518,7 +496,7 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-            const axisZoom = zoomManager.getAxisZoom(axisId);
+            const axisZoom = this.ctx.zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(
@@ -538,12 +516,10 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisDragEnd() {
+        const { axisDraggingMode, enabled, enableAxisDragging } = this.opts;
         const {
-            axisDraggingMode,
             axisDragger,
             dragState,
-            enabled,
-            enableAxisDragging,
             ctx: { domManager, interactionManager, tooltipManager },
         } = this;
 
@@ -564,7 +540,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomEvent) {
-        const { enabled, enableScrolling, scroller } = this;
+        const { enabled, enableScrolling } = this.opts;
+        const { scroller } = this;
         const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
         if (!isFocusableState || !enabled || !enableScrolling) return;
@@ -577,7 +554,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onNavPanX(event: _ModuleSupport.SeriesKeyNavPanXEvent) {
-        const { enabled } = this;
+        const { enabled } = this.opts;
         const isFocusableState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Focusable);
 
         if (!isFocusableState || !enabled) return;
@@ -604,7 +581,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
-        const { enabled, enablePanning, enableScrolling, paddedRect, scrollingMode } = this;
+        const { enabled, enablePanning, enableScrolling, scrollingMode } = this.opts;
+        const { paddedRect } = this;
 
         if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
@@ -621,11 +599,10 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onWheelPanning(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
+        const { scrollingStep, scrollingMode = 'zoom' } = this.opts;
         const {
-            scrollingStep,
             scrollPanner,
             seriesRect,
-            scrollingMode,
             ctx: { zoomManager },
         } = this;
 
@@ -663,7 +640,8 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onAxisWheel(baseEvent: _ModuleSupport.ZoomInteractionAxisWheelEvent) {
-        if (!this.enabled || !this.enableAxisScrolling) return;
+        const { enabled, enableAxisScrolling } = this.opts;
+        if (!enabled || !enableAxisScrolling) return;
 
         baseEvent.stopProcessing();
 
@@ -692,7 +670,6 @@ export class Zoom extends AbstractModuleInstance {
         props: ZoomProperties = this.getModuleProperties()
     ) {
         const {
-            enableIndependentAxes,
             scroller,
             seriesRect,
             ctx: { zoomManager },
@@ -708,7 +685,7 @@ export class Zoom extends AbstractModuleInstance {
         let updated = true;
 
         const sourcing = userInteraction('zoom-axis-wheel');
-        if (enableIndependentAxes === true) {
+        if (this.opts.enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
             for (const [axisId, { direction, min, max }] of entries(newZooms)) {
                 const constrainedZoom =
@@ -731,20 +708,20 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
-        if (!this.enableTwoFingerZoom || this.dragState !== DragState.None) return;
+        if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.None) return;
         if (this.twoFingers.start(event, current, this.getZoom())) {
             this.dragState = DragState.TwoFingers;
         }
     }
 
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
-        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
+        if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
         this.updateZoom(userInteraction('zoom-seriesarea-twofingers'), constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
-        if (!this.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
+        if (!this.opts.enableTwoFingerZoom || this.dragState !== DragState.TwoFingers) return;
         event.sourceEvent.preventDefault();
         if (this.twoFingers.end(event)) {
             this.dragState = DragState.None;
@@ -756,15 +733,17 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        const { enabled, enableDoubleClickToReset, enableAxisDragging, enableAxisScrolling } = this.opts;
+
         this.ctx.eventsHub.emit('axis-dom-proxy:update', {
             source: 'zoom',
-            enabled: this.enabled,
-            enableDoubleClick: this.enableDoubleClickToReset,
-            enableDragging: this.enableAxisDragging,
-            enableScrolling: this.enableAxisScrolling,
+            enabled,
+            enableDoubleClick: enableDoubleClickToReset,
+            enableDragging: enableAxisDragging,
+            enableScrolling: enableAxisScrolling,
         });
 
-        if (!this.enabled) return;
+        if (!enabled) return;
 
         this.seriesRect = event.series.rect;
         this.paddedRect = event.series.paddedRect;
@@ -802,7 +781,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
-        switch (this.panKey) {
+        switch (this.opts.panKey) {
             case 'alt':
                 return event.altKey;
             case 'ctrl':
@@ -814,26 +793,22 @@ export class Zoom extends AbstractModuleInstance {
         }
     }
 
-    private isScalingX() {
-        if (this.axes === 'xy') return true;
-        return this.shouldFlipXY ? this.axes === 'y' : this.axes === 'x';
+    private isScalingX(axes: ZoomOpts['axes']) {
+        if (axes === 'xy') return true;
+        return this.shouldFlipXY ? axes === 'y' : axes === 'x';
     }
 
-    private isScalingY() {
-        if (this.axes === 'xy') return true;
-        return this.shouldFlipXY ? this.axes === 'x' : this.axes === 'y';
-    }
-
-    private getAnchorPointX() {
-        return this.shouldFlipXY ? this.anchorPointY : this.anchorPointX;
-    }
-
-    private getAnchorPointY() {
-        return this.shouldFlipXY ? this.anchorPointX : this.anchorPointY;
+    private isScalingY(axes: ZoomOpts['axes']) {
+        if (axes === 'xy') return true;
+        return this.shouldFlipXY ? axes === 'x' : axes === 'y';
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
-        return this.ctx.zoomManager.constrainZoomToItemCount(newZoom, this.minVisibleItems, this.autoScaler.enabled);
+        return this.ctx.zoomManager.constrainZoomToItemCount(
+            newZoom,
+            this.opts.minVisibleItems,
+            this.autoScaler.enabled
+        );
     }
 
     private previousZoomValid = true;
@@ -841,8 +816,8 @@ export class Zoom extends AbstractModuleInstance {
         newZoom: DefinedZoomState,
         options?: { directional?: boolean; includeYVisibleRange?: boolean }
     ) {
+        const { minVisibleItems } = this.opts;
         const {
-            minVisibleItems,
             ctx: { zoomManager },
         } = this;
 
@@ -887,8 +862,8 @@ export class Zoom extends AbstractModuleInstance {
         axisZoom: ZoomMinMax,
         options?: { directional?: boolean }
     ) {
+        const { minVisibleItems } = this.opts;
         const {
-            minVisibleItems,
             ctx: { zoomManager },
         } = this;
 
@@ -930,8 +905,8 @@ export class Zoom extends AbstractModuleInstance {
         // TODO: constrainZoom should operate on a partial CoreZoomState instead of DefinedZoomState.
         // For compatibility, we calculate the final DefinedZoomState for constrainZoom to continue to work without
         // breaking the behaviour.
-        const partialZoom = this.ctx.zoomManager.toZoomState(changes) ?? {};
-        const currentZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        const partialZoom = toZoomState(changes) ?? {};
+        const currentZoom = this.getZoom();
         this.updateZoom(sourcing, {
             x: partialZoom.x ?? currentZoom.x,
             y: partialZoom.y ?? currentZoom.y,
@@ -939,7 +914,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private updateZoom(sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) {
-        if (this.enableIndependentAxes) {
+        if (this.opts.enableIndependentAxes) {
             this.updatePrimaryAxisZooms(sourcing, zoom);
         } else {
             this.updateUnifiedZoom(sourcing, zoom);
@@ -988,8 +963,8 @@ export class Zoom extends AbstractModuleInstance {
         axisZoom: ZoomMinMax | undefined,
         validOptions?: { directional?: boolean }
     ) {
+        const { enableIndependentAxes } = this.opts;
         const {
-            enableIndependentAxes,
             ctx: { zoomManager },
         } = this;
 
@@ -1010,19 +985,21 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private getZoom() {
-        return definedZoomState(this.ctx.zoomManager.getZoom());
+        return definedZoomState(this.ctx.chartState.getValue('zoom'));
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
+        const { anchorPointX, anchorPointY, axes, enabled, enableIndependentAxes, keepAspectRatio, scrollingStep } =
+            this.opts;
         return {
-            anchorPointX: overrides?.anchorPointX ?? this.getAnchorPointX(),
-            anchorPointY: overrides?.anchorPointY ?? this.getAnchorPointY(),
-            enabled: overrides?.enabled ?? this.enabled,
-            independentAxes: overrides?.independentAxes ?? this.enableIndependentAxes === true,
-            isScalingX: overrides?.isScalingX ?? this.isScalingX(),
-            isScalingY: overrides?.isScalingY ?? this.isScalingY(),
-            keepAspectRatio: overrides?.keepAspectRatio ?? this.keepAspectRatio,
-            scrollingStep: overrides?.scrollingStep ?? this.scrollingStep,
+            anchorPointX: overrides?.anchorPointX ?? (this.shouldFlipXY ? anchorPointY : anchorPointX),
+            anchorPointY: overrides?.anchorPointY ?? (this.shouldFlipXY ? anchorPointX : anchorPointY),
+            enabled: overrides?.enabled ?? enabled,
+            independentAxes: overrides?.independentAxes ?? enableIndependentAxes === true,
+            isScalingX: overrides?.isScalingX ?? this.isScalingX(axes),
+            isScalingY: overrides?.isScalingY ?? this.isScalingY(axes),
+            keepAspectRatio: overrides?.keepAspectRatio ?? keepAspectRatio ?? false,
+            scrollingStep: overrides?.scrollingStep ?? scrollingStep,
         };
     }
 }

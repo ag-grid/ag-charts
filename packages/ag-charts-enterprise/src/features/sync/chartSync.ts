@@ -522,9 +522,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
     }
 
     private prepareZoomUpdate() {
-        const { zoomManager } = this.moduleContext;
-
-        const zoom = zoomManager.getZoom();
+        const zoom = { ...this.moduleContext.chartState.getValue('zoom') };
         if (this.axes === 'x') {
             delete zoom?.y;
         } else if (this.axes === 'y') {

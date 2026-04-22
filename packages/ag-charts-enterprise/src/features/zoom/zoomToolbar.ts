@@ -209,7 +209,7 @@ export class ZoomToolbar extends BaseProperties {
         trailing: true,
     });
     private toggleButtons() {
-        const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.zoomManager.getZoom());
+        const zoom: Readonly<DefinedZoomState> = definedZoomState(this.ctx.chartState.getValue('zoom'));
 
         // Only change the buttons if zoom has changed to prevent churn
         if (this.previousZoom && isZoomEqual(this.previousZoom, zoom)) return;
@@ -240,7 +240,7 @@ export class ZoomToolbar extends BaseProperties {
                     );
                     break;
                 case 'reset':
-                    enabled = canResetZoom(this.ctx.zoomManager);
+                    enabled = canResetZoom(this.ctx);
                     break;
             }
 
@@ -323,7 +323,7 @@ export class ZoomToolbar extends BaseProperties {
     private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
         const { scrollingStep } = props;
 
-        const oldZoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        const oldZoom = definedZoomState(this.ctx.chartState.getValue('zoom'));
         let zoom = definedZoomState(oldZoom);
 
         switch (event.value) {

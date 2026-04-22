@@ -398,7 +398,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             );
 
         this.processors = [
-            new DataWindowProcessor(this, ctx.eventsHub, ctx.dataService, ctx.zoomManager, ctx.animationManager),
+            new DataWindowProcessor(this, ctx.eventsHub, ctx.chartState, ctx.dataService, ctx.animationManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
@@ -1566,6 +1566,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
+        // Store options in chartState BEFORE creating modules, so modules can read
+        // their initial options via chartState from construction.
+        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
+
         const modulesChanged = this.applyModules();
 
         const skip = [
@@ -1576,6 +1580,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'preset',
             'theme',
             'legend',
+            'zoom',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
             'locale.localeText',
@@ -1641,8 +1646,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             // overrides (e.g. HierarchyDataSet for treemap) are installed.
             this.data = this.createDataSet(this.data.data);
         }
-
-        this.ctx.chartState.setValue('options', newChartOptions.processedOptions as ChartState['options']);
 
         if (deltaOptions.locale?.localeText) {
             this.pendingLocaleText = deltaOptions.locale?.localeText;

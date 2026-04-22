@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgSeriesAreaContextMenuActionEvent } from 'ag-charts-community';
-import type { BoxBounds, DefinedZoomState, Point } from 'ag-charts-core';
+import type { BoxBounds, DefinedZoomState, Point, ReactiveState } from 'ag-charts-core';
 import { definedZoomState } from 'ag-charts-core';
 
 import type { ZoomProperties } from './zoomTypes';
@@ -22,6 +22,7 @@ export class ZoomContextMenu {
     constructor(
         private readonly eventsHub: _ModuleSupport.EventsHub,
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
+        private readonly chartState: ReactiveState<_ModuleSupport.ChartState>,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly getRect: () => BoxBounds | undefined,
@@ -52,12 +53,14 @@ export class ZoomContextMenu {
             return this.iterateFindNextZoomAtPoint(origin) != null;
         };
         const shouldEnablePanToHere = () => {
-            return !isMaxZoom(definedZoomState(this.zoomManager.getZoom()));
+            return !isMaxZoom(definedZoomState(this.chartState.getValue('zoom')));
         };
         const removeListener = this.eventsHub.on('context-menu:setup', (event) => {
             contextMenuRegistry.builtins.items['zoom-to-cursor'].enabled = shouldEnableZoomToHere(event);
             contextMenuRegistry.builtins.items['pan-to-cursor'].enabled = shouldEnablePanToHere();
-            contextMenuRegistry.builtins.items['reset-zoom'].enabled = canResetZoom(this.zoomManager);
+            contextMenuRegistry.builtins.items['reset-zoom'].enabled = canResetZoom({
+                chartState: this.chartState,
+            });
         });
 
         return () => {
@@ -92,7 +95,7 @@ export class ZoomContextMenu {
         const origin = this.computeOrigin(event);
         if (!origin) return;
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = definedZoomState(this.chartState.getValue('zoom'));
 
         const scaleX = dx(zoom);
         const scaleY = dy(zoom);
@@ -131,7 +134,7 @@ export class ZoomContextMenu {
     private getNextZoomAtPoint(origin: Point, step: number) {
         const { isScalingX, isScalingY } = this.getModuleProperties();
 
-        const zoom = definedZoomState(this.zoomManager.getZoom());
+        const zoom = definedZoomState(this.chartState.getValue('zoom'));
 
         const scaledOriginX = origin.x * dx(zoom);
         const scaledOriginY = origin.y * dy(zoom);

@@ -1,11 +1,20 @@
-import { ChartAxisDirection, ChartUpdateType, CleanupRegistry, isFiniteNumber } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    ChartUpdateType,
+    CleanupRegistry,
+    type ReactiveState,
+    isFiniteNumber,
+    pickDirectionZoom,
+} from 'ag-charts-core';
 import type { ZoomMinMax } from 'ag-charts-core';
 
 import type { EventsHub, UpdateCompleteEvent } from '../../core/eventsHub';
+import type { ChartState } from '../chartState';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { ZoomManager } from '../interaction/zoomManager';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
+
+const DEFAULT_ZOOM: ZoomMinMax = { min: 0, max: 1 };
 
 export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     private dirtyZoom = false;
@@ -17,8 +26,8 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     constructor(
         private readonly chart: ChartLike,
         private readonly eventsHub: EventsHub,
+        private readonly chartState: ReactiveState<ChartState>,
         private readonly dataService: DataService<D>,
-        private readonly zoomManager: ZoomManager,
         private readonly animationManager: AnimationManager
     ) {
         this.cleanup.register(
@@ -69,7 +78,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         let shouldRefresh = true;
 
         if (axis) {
-            const zoom = this.zoomManager.getAxisZoom(axis.id);
+            const zoom = pickDirectionZoom(this.chartState.getValue('zoom'), axis.direction) ?? DEFAULT_ZOOM;
             window = this.getAxisWindow(axis, zoom);
             shouldRefresh = this.shouldRefresh(event, axis, zoom);
         }
