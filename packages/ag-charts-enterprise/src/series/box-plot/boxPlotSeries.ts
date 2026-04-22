@@ -778,7 +778,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        let style = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            this.getStyle(datumIndex === undefined, highlightState)
+        );
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(

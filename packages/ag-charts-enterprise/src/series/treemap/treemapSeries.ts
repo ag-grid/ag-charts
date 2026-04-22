@@ -347,7 +347,12 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         const highlightStyle = isLeaf
             ? this.getTileHighlightStyle(tileHighlightState, groupHighlightState, highlightedNode)
             : this.getGroupHighlightStyle(groupHighlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(isLeaf, fills, strokes, index));
+        const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            properties.getStyle(isLeaf, fills, strokes, index)
+        );
 
         if (isLeaf && nodeDatum.colorValue != null && highlightStyle?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);

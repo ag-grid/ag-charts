@@ -783,7 +783,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
 

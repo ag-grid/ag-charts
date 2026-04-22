@@ -480,7 +480,8 @@ export class MapLineSeries
         }
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const style = mergeDefaults(highlightStyle, baseStyle);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const style = mergeDefaults(highlightStyle, selectionStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });

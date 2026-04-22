@@ -844,7 +844,8 @@ export abstract class Series<
         return this.properties.highlight.getStyle(highlightState);
     }
 
-    public getSelectionStyle(selectionState?: SelectionState) {
+    public getSelectionStyle(datumIndex?: TDatumIndex, selectionState?: SelectionState) {
+        selectionState ??= this.getDataSelectionState(datumIndex);
         if (selectionState === undefined) return undefined;
         return this.properties.selection.getStyle(selectionState);
     }
@@ -1278,7 +1279,7 @@ export abstract class Series<
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
         const selectionStyle: AgSeriesMarkerStyle | undefined = this.properties.selection.enabled
-            ? this.getSelectionStyle(selectionState)
+            ? this.getSelectionStyle(datumIndex, selectionState)
             : undefined;
         const baseStyle = mergeDefaults(
             highlightStyle,

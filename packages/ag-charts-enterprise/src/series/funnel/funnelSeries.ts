@@ -108,7 +108,8 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
         const { stageKey, valueKey, itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(datumIndex));
         let style = baseStyle;
 
         if (itemStyler != null) {

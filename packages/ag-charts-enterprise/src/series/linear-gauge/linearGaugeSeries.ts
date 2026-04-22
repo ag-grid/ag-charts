@@ -998,8 +998,9 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     private getTargetStyle(isHighlight: boolean, { datumIndex, style }: LinearGaugeTargetDatum) {
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
 
-        return mergeDefaults(highlightStyle, {
+        return mergeDefaults(highlightStyle, selectionStyle, {
             ...style,
             opacity: 1,
         });

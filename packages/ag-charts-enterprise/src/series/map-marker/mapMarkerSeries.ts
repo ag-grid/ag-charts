@@ -773,7 +773,8 @@ export class MapMarkerSeries
         const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle());
 
         if (!isHighlight && colorValue != null) {
             baseStyle.fill = this.isColorScaleValid()
