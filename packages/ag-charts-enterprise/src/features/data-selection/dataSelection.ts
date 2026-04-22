@@ -124,6 +124,10 @@ export class DataSelection extends AbstractModuleInstance {
         }
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+        if (shouldClearSelections) {
+            this.clearAllSelections();
+        }
+
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
 
@@ -132,10 +136,6 @@ export class DataSelection extends AbstractModuleInstance {
 
             const { data } = series;
             if (data === undefined) continue;
-
-            if (shouldClearSelections) {
-                data.selections.clear();
-            }
 
             for (const datum of series.pickNodesInBBox(bbox)) {
                 const datumIndex: unknown = datum.datumIndex;
