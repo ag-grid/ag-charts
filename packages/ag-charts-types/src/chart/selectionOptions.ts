@@ -44,7 +44,7 @@ export interface AgSelectionOptions {
     containment?: AgSelectionClickMode;
 }
 
-export interface AgSeriesSelectionOptions {
+export interface AgSeriesSelectionOptions<ItemSelectionStyleOptions> {
     /** Set to `true` to enable the data-selection on this series. */
     enabled?: boolean;
 
@@ -54,4 +54,10 @@ export interface AgSeriesSelectionOptions {
      * Default: `chart.selection.containment`
      */
     containment?: AgSelectionClickMode;
+
+    /** Styling options for selected items.  */
+    selectedItem?: ItemSelectionStyleOptions;
+
+    /** Styling Options for unselected items. */
+    unselectedItem?: ItemSelectionStyleOptions;
 }

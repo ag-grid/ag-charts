@@ -1,6 +1,6 @@
 import type { AgSelectionClickMode, AgSelectionOptions } from 'ag-charts-community';
 import { VERSION } from 'ag-charts-community';
-import { type PluginModuleDefinition, boolean, selectionOptionsDef, strictUnion } from 'ag-charts-core';
+import { type PluginModuleDefinition, boolean, selectionContainmentValidator, strictUnion } from 'ag-charts-core';
 
 import { DataSelection } from './dataSelection';
 
@@ -16,7 +16,7 @@ export const SelectionModule: PluginModuleDefinition<AgSelectionOptions> = {
         enableClick: boolean,
         enableDrag: boolean,
         clickMode: strictUnion<AgSelectionClickMode>()('single', 'multiple'),
-        containment: selectionOptionsDef().containment,
+        containment: selectionContainmentValidator,
     },
     themeTemplate: {
         enabled: false,
