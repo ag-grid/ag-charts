@@ -7,7 +7,7 @@ import type {
 } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { ContextDefault, CssColor, DatumDefault, OverflowStrategy, PixelSize, TextWrap } from '../../chart/types';
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
+import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -22,15 +22,12 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
-    direction?: AgOrganizationSeriesOptionsDirection;
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
-
-export type AgOrganizationSeriesOptionsDirection = 'vertical';
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOrganizationSeriesLinkStyle {
@@ -51,15 +48,18 @@ export interface AgOrganizationSeriesOptionsLinkStepInterpolation {
 export interface AgOrganizationSeriesThemeableOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgOrganizationSeriesNodeStyle {
     labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
-    subtitle?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>;
-    title?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>;
+    subtitle?: AgOrganizationSeriesOptionsNodeSubtitle<TDatum, TContext>;
+    title?: AgOrganizationSeriesOptionsNodeTitle<TDatum, TContext>;
 }
 
 export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
+    height?: PixelSize;
     image?: AgOrganizationSeriesOptionsNodeImage;
     maxHeight?: PixelSize;
     maxWidth?: PixelSize;
+    padding?: PixelSize;
+    width?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
@@ -69,6 +69,9 @@ export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext
 }
 
 export interface AgOrganizationSeriesOptionsNodeImage {
+    /**
+     * Default: `image`
+     */
     key?: string;
     height?: number;
     width?: number;
@@ -80,9 +83,25 @@ export interface AgOrganizationSeriesOptionsNodeImage {
 export type AgOrganizationSeriesOptionsNodeImageShape = 'circle' | 'square';
 export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | 'right' | 'top';
 
-export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesNodeTextStyle {
+export interface AgOrganizationSeriesOptionsNodeSubtitle<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+    /**
+     * Default: 'subtitle'
+     */
     key?: string;
+}
+
+export interface AgOrganizationSeriesOptionsNodeTitle<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+    /**
+     * Default: 'title'
+     */
+    key?: string;
+}
+
+export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesNodeTextStyle,
+        Toggleable {
     formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeTextStyle>;
 }

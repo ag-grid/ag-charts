@@ -29,7 +29,7 @@ const options: AgStandaloneChartOptions = {
                     key: 'avatar',
                     height: 50,
                     width: 50,
-                    position: 'left',
+                    position: 'top',
                 },
                 title: {
                     key: 'name',

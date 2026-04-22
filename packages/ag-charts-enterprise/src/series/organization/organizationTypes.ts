@@ -1,5 +1,10 @@
 import type { DeepRequired } from 'ag-charts-core';
-import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, TextOrSegments } from 'ag-charts-types';
+import type {
+    AgOrganizationSeriesNodeStyle,
+    AgOrganizationSeriesNodeTextStyle,
+    PaddingOptions,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 

@@ -11,8 +11,6 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private subtitleNode?: _ModuleSupport.Text;
     private labelNodes?: (_ModuleSupport.Text | undefined)[];
 
-    private readonly padding = 20;
-
     update(datum: OrganizationDatum['datum'], styles: RequiredOrganizationNodeStyle) {
         this.updateShapeNode(styles);
         this.updateImageNode(datum.image, styles);
@@ -27,7 +25,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
-            this.imageNode.x = this.padding;
+            this.imageNode.x = styles.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -54,27 +52,31 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
-            this.imageNode.x = this.padding;
+            this.imageNode.x = styles.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
 
         if (this.imageNode && styles.image.position === 'left') {
-            this.imageNode.y = this.padding;
+            this.imageNode.y = styles.padding;
             rowScenes = [this.imageNode, columnScenes];
             rowGaps = [styles.image.spacing];
         } else if (this.imageNode && styles.image.position === 'right') {
-            this.imageNode.y = this.padding;
+            this.imageNode.y = styles.padding;
             rowScenes = [columnScenes, this.imageNode];
             rowGaps = [styles.image.spacing];
         } else {
             rowScenes = [columnScenes];
         }
 
-        layoutScenesColumn(columnScenes, this.padding, columnGaps);
-        layoutScenesRow(rowScenes, this.padding, rowGaps);
+        layoutScenesColumn(columnScenes, styles.padding, columnGaps);
+        layoutScenesRow(rowScenes, styles.padding, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(this.padding); // TODO: add stroke width by side
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
+
+        // if (this.imageNode && (styles.image.position === 'top' || styles.image.position === 'bottom')) {
+        //     this.imageNode.x = bbox.width / 2 - this.imageNode.width / 2;
+        // }
 
         if (this.shapeNode) {
             this.shapeNode.x = 0;

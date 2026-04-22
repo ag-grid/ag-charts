@@ -511,19 +511,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius,
             fill,
             fillOpacity,
+            height,
             image,
             lineDash,
             lineDashOffset,
             maxHeight,
             maxWidth,
+            padding,
             stroke,
             strokeOpacity,
             strokeWidth,
+            width,
         } = this.properties.node;
         return {
             cornerRadius,
             fill,
             fillOpacity,
+            height: height ?? NaN,
             image: {
                 key: image.key,
                 height: image.height,
@@ -536,9 +540,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             lineDashOffset: lineDashOffset ?? 0,
             maxHeight: maxHeight ?? Infinity,
             maxWidth: maxWidth ?? Infinity,
+            padding,
             stroke,
             strokeOpacity,
             strokeWidth,
+            width: width ?? NaN,
         };
     }
 

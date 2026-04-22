@@ -16,7 +16,7 @@ import {
     type Styler,
     type TextWrap,
 } from 'ag-charts-community';
-import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
+import { BaseProperties, Padding, PropertiesArray, Property } from 'ag-charts-core';
 
 import { NetworkSeriesProperties } from '../network/networkSeries';
 
@@ -79,6 +79,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    height?: number;
+
+    @Property
     image = new OrganizationSeriesNodeImageProperties();
 
     @Property
@@ -97,6 +100,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     maxWidth?: number;
 
     @Property
+    padding: number = 0;
+
+    @Property
     stroke: CssColor = 'black';
 
     @Property
@@ -104,6 +110,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 
     @Property
     strokeWidth: number = 1;
+
+    @Property
+    width?: number;
 
     @Property
     title = new OrganizationSeriesNodeTextProperties();
