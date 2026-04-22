@@ -82,6 +82,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
+    updateBBox(bbox: _ModuleSupport.BBox) {
+        if (this.shapeNode) {
+            this.shapeNode.width = bbox.width;
+            this.shapeNode.height = bbox.height;
+        }
+    }
+
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
         this.shapeNode.cornerRadius = styles.cornerRadius;

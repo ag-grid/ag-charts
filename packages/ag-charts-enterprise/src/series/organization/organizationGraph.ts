@@ -89,6 +89,12 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
         return this.verticesById[id];
     }
 
+    *vertices(): Generator<Vertex<OrganizationVertex, OrganizationEdge>, void, undefined> {
+        for (const vertex of Object.values(this.verticesById)) {
+            yield vertex;
+        }
+    }
+
     private attachChild(
         parent: Vertex<OrganizationVertex, OrganizationEdge>,
         child: Vertex<OrganizationVertex, OrganizationEdge>

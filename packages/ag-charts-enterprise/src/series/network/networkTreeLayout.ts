@@ -12,18 +12,20 @@ const { BBox } = _ModuleSupport;
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    public interpolation: { type: 'step'; cornerRadius?: number } = { type: 'step' };
-
     private readonly verticalPadding = 40;
-    private readonly outerPadding = 10;
+    private readonly outerPadding = 0;
     private readonly innerPadding = 10;
 
     update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {
-        const { containerBBox } = this.updateChildren(options, undefined);
+        if (options.regularDimensions) {
+            this.calculateRegularDimensions(options);
+        }
+
+        const { containerBBox } = this.updateNodes(options, undefined);
         this.updateOffset(options, containerBBox);
     }
 
-    private updateChildren(
+    private updateNodes(
         options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
         offset: Point | undefined,
         groupBBox: TBBox = new BBox(0, 0, 0, 0)
@@ -39,23 +41,20 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         for (const vertex of vertices) {
             index++;
 
-            const nodeBBox = getDatumNodeBBox(vertex);
+            let nodeBBox = getDatumNodeBBox(vertex);
+            if (!nodeBBox && options.hiddenOnCollapse) continue;
+
+            nodeBBox = this.regularBBox ?? nodeBBox;
+            if (!nodeBBox) continue;
 
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.findAndUpdateChildren(
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
                 options,
                 vertex,
                 offset,
                 groupBBox,
                 nodeBBox
             );
-
-            // When the node has no bbox, set the group to be just the descendents. This should only occur for the
-            // non-rendered root node.
-            if (!nodeBBox) {
-                if (descendentsContainerBBox) groupBBox = descendentsContainerBBox;
-                continue;
-            }
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -67,7 +66,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
 
             // Request the series to layout the node per the calculated bbox.
-            layoutDatumNode(vertex, layoutBBox);
+            layoutDatumNode(vertex, layoutBBox, this.regularBBox);
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
@@ -98,7 +97,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }
 
-    private findAndUpdateChildren(
+    private updateChildren(
         options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         offset: Point | undefined,
@@ -112,7 +111,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
         if (datumBBox) childrenGroupBBox.y += datumBBox.height + this.verticalPadding;
 
-        const { containerBBox, childrenBBoxes } = this.updateChildren(
+        const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
             offset,
             childrenGroupBBox
@@ -173,7 +172,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             const focusedBBox = options.getDatumNodeBBox(focusedVertex);
             if (focusedBBox) {
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - focusedBBox.width / 2,
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
@@ -183,7 +182,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             if (bboxes && bboxes.length > 0) {
                 const focusedBBox = BBox.merge(bboxes as TBBox[]);
                 offset = {
-                    x: options.width / 2 - focusedBBox.x - focusedBBox.width / 2,
+                    x: options.width / 2 - focusedBBox.x - (this.regularBBox?.width ?? focusedBBox.width) / 2,
                     y: -focusedBBox.y,
                 };
             }
