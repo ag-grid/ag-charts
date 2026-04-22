@@ -373,6 +373,19 @@ export class WidgetEventUtil {
         event: { clientX: number; clientY: number }
     ): { currentX: number; currentY: number } {
         const currentRect = current.getBoundingClientRect();
-        return { currentX: event.clientX - currentRect.x, currentY: event.clientY - currentRect.y };
+        // `getBoundingClientRect()` is transform-aware (its dimensions reflect
+        // ancestor CSS transforms) while `clientX`/`clientY` are viewport
+        // pixels, so `clientX - rect.x` is a screen-space delta. Callers
+        // interpret `currentXY` in the chart's logical coordinate system, so
+        // if an ancestor applies `transform: scale(...)`, divide by the scale
+        // factor. `clientWidth`/`clientHeight` are preserved through ancestor
+        // transforms, so the ratio is the ancestor scale.
+        const { clientWidth, clientHeight } = current;
+        const scaleX = currentRect.width > 0 && clientWidth > 0 ? clientWidth / currentRect.width : 1;
+        const scaleY = currentRect.height > 0 && clientHeight > 0 ? clientHeight / currentRect.height : 1;
+        return {
+            currentX: (event.clientX - currentRect.x) * scaleX,
+            currentY: (event.clientY - currentRect.y) * scaleY,
+        };
     }
 }
