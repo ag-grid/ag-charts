@@ -39,9 +39,10 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum, xKey, yKey, colorKey }) => {
                     const [year, quarter] = datum[xKey];
+                    const temp = colorKey ? datum[colorKey] : 0;
                     return {
                         title: `${datum[yKey]} ${quarter} ${year}`,
-                        data: [{ label: 'Temperature', value: `${datum[colorKey].toFixed(1)}°C` }],
+                        data: [{ label: 'Temperature', value: `${temp.toFixed(1)}°C` }],
                     };
                 },
             },
