@@ -27,6 +27,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
+            this.imageNode.x = this.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -53,6 +54,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
+            this.imageNode.x = this.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
