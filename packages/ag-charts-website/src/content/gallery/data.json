@@ -597,6 +597,10 @@
                         "name": "heatmap-with-labels"
                     },
                     {
+                        "title": "Heatmap Chart with Grouped Category Axis",
+                        "name": "grouped-category-heatmap"
+                    },
+                    {
                         "title": "Calendar Heatmap Chart",
                         "name": "calendar-heatmap"
                     }
