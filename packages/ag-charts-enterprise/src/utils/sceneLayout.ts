@@ -14,7 +14,7 @@ export function layoutScenesRow(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] : gaps;
+        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
@@ -22,7 +22,7 @@ export function layoutScenesRow(
             x += _ModuleSupport.Group.computeChildrenBBox(scene).width + gap;
         } else {
             layoutSetX(scene, x);
-            x += scene.getBBox().width + gap;
+            x += scene.getBBox().width + (gap ?? 0);
         }
         index++;
     }
@@ -37,7 +37,7 @@ export function layoutScenesColumn(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] : gaps;
+        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetY(scene_, y);

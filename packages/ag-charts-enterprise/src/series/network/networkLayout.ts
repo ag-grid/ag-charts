@@ -32,6 +32,10 @@ export abstract class NetworkLayout<TVertex, TEdge> {
 
     abstract update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>): void;
 
+    clear() {
+        this.regularBBox = undefined;
+    }
+
     protected calculateRegularDimensions(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {
         // Only calculate this once, to prevent it from changing when nodes are collapsed / expanded.
         if (this.regularBBox) return;
