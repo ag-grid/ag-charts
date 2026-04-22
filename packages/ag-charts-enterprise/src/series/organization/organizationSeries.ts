@@ -57,7 +57,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     getRootVertices() {
         if (!this.rootVertex) return [];
-        return [this.rootVertex];
+        return (
+            (this.graph.neighboursWithEdgeValue(this.rootVertex, 'child') as Vertex<
+                OrganizationVertex,
+                OrganizationEdge
+            >[]) ?? []
+        );
     }
 
     getFocusedVertex() {
@@ -202,9 +207,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         });
     }
 
-    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox) {
+    positionDatumNode(node: OrganizationNode, bbox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox) {
         node.translationX = bbox.x;
         node.translationY = bbox.y;
+
+        if (regularBBox) {
+            node.updateBBox(regularBBox);
+        }
     }
 
     getLinkInterpolation(

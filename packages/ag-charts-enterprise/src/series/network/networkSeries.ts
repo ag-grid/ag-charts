@@ -155,7 +155,7 @@ export abstract class AbstractNetworkSeries<
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
     abstract getFocusedVertex(): Vertex<TVertex, TEdge> | undefined;
     abstract getDefaultFocusedVertices(): Vertex<TVertex, TEdge>[] | undefined;
-    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox): void;
+    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox): void;
     abstract updateOffset(offset: Point): void;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
@@ -227,6 +227,8 @@ export abstract class AbstractNetworkSeries<
         this.layout.update({
             height: this.height ?? 0,
             width: this.width ?? 0,
+            regularDimensions: true,
+            hiddenOnCollapse: true,
             offset: this.dragOffset,
             graph: this.graph,
             vertices: this.getRootVertices(),
@@ -250,14 +252,18 @@ export abstract class AbstractNetworkSeries<
         return node.getBBox();
     }
 
-    private layoutDatumNode(vertex: Vertex<TVertex, TEdge>, groupBBox: _ModuleSupport.BBox) {
+    private layoutDatumNode(
+        vertex: Vertex<TVertex, TEdge>,
+        groupBBox: _ModuleSupport.BBox,
+        regularBBox?: _ModuleSupport.BBox
+    ) {
         const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
         const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
-        this.positionDatumNode(node, groupBBox);
+        this.positionDatumNode(node, groupBBox, regularBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {
