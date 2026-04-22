@@ -1,3 +1,5 @@
+import { ChartAxisDirection } from '../types/axisDirection';
+
 export interface ZoomMinMax {
     min: number;
     max: number;
@@ -32,9 +34,9 @@ export function definedZoomState(zoom?: ZoomState): DefinedZoomState {
  * Pick the zoom entry for a given direction. Returns `undefined` for angle / radius directions
  * where per-direction cartesian zoom does not apply.
  */
-export function pickDirectionZoom(zoom: ZoomState | undefined, direction: string): ZoomMinMax | undefined {
-    if (direction === 'x') return zoom?.x;
-    if (direction === 'y') return zoom?.y;
+export function pickDirectionZoom(zoom: ZoomState | undefined, direction: ChartAxisDirection): ZoomMinMax | undefined {
+    if (direction === ChartAxisDirection.X) return zoom?.x;
+    if (direction === ChartAxisDirection.Y) return zoom?.y;
     return undefined;
 }
 
