@@ -72,13 +72,18 @@ else
 fi
 
 # Set up the worktree. Strategy:
-#   1. Run preinstall-worktree.sh directly — it fixes external symlinks and
-#      COW-clones node_modules, .nx cache, and plugins/*/dist. On success it
-#      writes node_modules/.ag-worktree-fast-path-ok.
-#   2. If the marker exists → skip yarn install entirely and run only the
-#      essential post-install steps (git hooks, prompts).
-#   3. If the marker is missing → fall back to full `yarn install` with the
-#      preinstall guard set so we don't duplicate the COW work.
+#   1. Run preinstall-worktree.sh directly — it fixes external symlinks,
+#      COW-clones node_modules, .nx cache, and plugins/*/dist, and writes
+#      node_modules/.ag-worktree-fast-path-ok when the COW'd state is
+#      equivalent to a full `yarn install`.
+#   2. If the marker is present → skip `yarn install` and just run the
+#      postinstall chain with AG_WORKTREE_FAST_PATH=1. Expensive steps
+#      (patches, plugin-build, nx daemon reset) self-skip via that env
+#      var; cheap idempotent steps (git hooks, setup-prompts) still run.
+#      Future postinstall steps run by default unless explicitly gated.
+#   3. If the marker is missing → fall back to full `yarn install`, with
+#      AG_PREINSTALL_ACTIVE=1 so the yarn preinstall hook does not
+#      duplicate work we just did.
 export ROOT_WORKTREE_PATH="$CWD"
 export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -88,15 +93,11 @@ if [[ -f "$WT_PATH/package.json" ]]; then
     (cd "$WT_PATH" && bash "$SCRIPT_DIR/preinstall-worktree.sh" 2>&1 | while IFS= read -r line; do log "$line"; done) || true
 
     if [[ -f "$WT_PATH/node_modules/.ag-worktree-fast-path-ok" ]]; then
-        log "Fast path: skipping yarn install, running minimal post-setup..."
-        # Git hooks — set up on the worktree's shared .git dir (cheap, idempotent).
-        (cd "$WT_PATH" && ./external/ag-shared/scripts/git-hooks/setup-hooks.sh 2>&1 | while IFS= read -r line; do log "$line"; done) || log "WARNING: git hooks setup failed"
-        # Prompts — stage rulesync content for non-Claude tools.
-        (cd "$WT_PATH" && AG_DEV_PROMPTS_REF=canary ./external/ag-shared/scripts/setup-prompts/setup-prompts.sh --postinstall 2>&1 | while IFS= read -r line; do log "$line"; done) || log "WARNING: setup-prompts failed"
+        log "Fast path: skipping yarn install, running gated postinstall chain..."
+        (cd "$WT_PATH" && AG_WORKTREE_FAST_PATH=1 yarn run postinstall 2>&1 | tail -20) >&2 || \
+            log "WARNING: fast-path postinstall failed"
     else
         log "Slow path: running yarn install --offline --frozen-lockfile..."
-        # AG_PREINSTALL_ACTIVE=1 prevents yarn's preinstall hook from
-        # re-running the COW work we just completed.
         (cd "$WT_PATH" && AG_PREINSTALL_ACTIVE=1 yarn install --offline --frozen-lockfile 2>&1 | tail -20) >&2 || \
             (cd "$WT_PATH" && AG_PREINSTALL_ACTIVE=1 yarn install --prefer-offline 2>&1 | tail -20) >&2
     fi

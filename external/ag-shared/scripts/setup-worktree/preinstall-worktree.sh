@@ -319,12 +319,41 @@ try_cow_clone_nx_cache() {
     fi
 }
 
-# COW-clone gitignored plugin build outputs so postinstall:plugin-build can
-# cache-hit via Nx without having to re-run tsc or pay daemon startup costs.
+# Validate that every source plugin with a `build` target has a corresponding
+# dist/. The fast path skips `yarn install`, which means `postinstall:plugin-
+# build` does not run. If the source was `yarn nx clean`ed before the worktree
+# was created, dists would be missing and subsequent Nx invocations in the
+# new worktree would need to rebuild them unexpectedly.
+source_has_all_plugin_dists() {
+    local source="$1"
+    shopt -s nullglob
+    local pj
+    for pj in "$source"/plugins/*/project.json; do
+        local plugin_dir
+        plugin_dir=$(dirname "$pj")
+        # Only require dist/ for plugins that declare a build target.
+        if node -e '
+            try {
+                const p = require(process.argv[1]);
+                process.exit(p.targets && p.targets.build ? 0 : 1);
+            } catch (e) { process.exit(1); }
+        ' "$pj" 2>/dev/null; then
+            if [[ ! -d "$plugin_dir/dist" ]]; then
+                log_info "Source missing expected plugin dist: ${plugin_dir#${source}/}/dist — fast path disabled"
+                shopt -u nullglob
+                return 1
+            fi
+        fi
+    done
+    shopt -u nullglob
+    return 0
+}
+
+# COW-clone gitignored plugin build outputs so `postinstall:plugin-build` can
+# be skipped on the fast path. Only runs after source_has_all_plugin_dists
+# has confirmed the source is fully built.
 try_cow_clone_plugin_dists() {
     local source="$1"
-    local any_failed=0
-    local any_cloned=0
 
     shopt -s nullglob
     local src_dist
@@ -333,26 +362,23 @@ try_cow_clone_plugin_dists() {
         local rel="${src_dist#${source}/}"
         local dest="$REPO_ROOT/$rel"
 
-        # Skip if target already exists (e.g. a previous partial install).
+        # Skip if target already exists (partial prior install).
         if [[ -d "$dest" ]]; then
             continue
         fi
 
         mkdir -p "$(dirname "$dest")"
-        if clone_directory "$src_dist" "$dest"; then
-            any_cloned=1
-        else
-            log_info "Failed to clone $rel, skipping"
+        if ! clone_directory "$src_dist" "$dest"; then
+            log_info "Failed to clone $rel"
             rm -rf "$dest"
-            any_failed=1
+            shopt -u nullglob
+            return 1
         fi
     done
     shopt -u nullglob
 
-    if [[ $any_cloned -eq 1 ]]; then
-        log_info "COW-cloned plugin dist outputs from $source"
-    fi
-    return $any_failed
+    log_info "COW-cloned plugin dist outputs from $source"
+    return 0
 }
 
 # Hash the set of workspace package.json files to detect when a worktree
@@ -452,6 +478,13 @@ run_fast_path_setup() {
     # would be missing its node_modules/<name> symlink.
     if ! workspace_layouts_match "$source" "$REPO_ROOT"; then
         log_info "Workspace layout differs from source — fast path disabled"
+        return 1
+    fi
+
+    # Source must have every plugin dist built. Fast path skips
+    # postinstall:plugin-build, so missing dists would leave the worktree
+    # in a state inconsistent with a normal install.
+    if ! source_has_all_plugin_dists "$source"; then
         return 1
     fi
 
