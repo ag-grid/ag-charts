@@ -283,6 +283,38 @@ describe('GradientLegend', () => {
         expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(true);
     });
 
+    it('AG-9758 should hide arrow when hovered value is outside colorScale.domain', async () => {
+        // Data values span 10-50. With an explicit domain of [45, 100], the
+        // centre cell (value 30) falls outside the visible axis range, so the
+        // highlight arrow must not render — otherwise it points off-scale.
+        const options: AgChartOptions = {
+            ...EXAMPLE_OPTIONS,
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'year',
+                    yKey: 'person',
+                    colorKey: 'spending',
+                    colorScale: {
+                        fills: [{ color: 'white' }, { color: 'black' }],
+                        domain: [45, 100],
+                    },
+                },
+            ],
+        };
+        prepareEnterpriseTestOptions(options);
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+
+        const chartInstance = deproxy(chart);
+        const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+
+        await hoverAction(300, 200)(chart);
+        await waitForChartStability(chart);
+
+        expect(gradientLegend?.arrowSelection.at(0)?.visible).toBe(false);
+    });
+
     describe('AG-16048 multi-series gradient legend', () => {
         const SCATTER_DATA = [
             { x: 1, y1: 10, y2: 12, temp: 5, pressure: 100 },
