@@ -289,6 +289,29 @@ describe('DynamicContext', () => {
             expect(destroy).toHaveBeenCalledTimes(1);
         });
 
+        it('should destroy in reverse-registration (LIFO) order', () => {
+            interface OrderRegistry {
+                first: { destroy: () => void };
+                second: { destroy: () => void };
+                third: { destroy: () => void };
+            }
+
+            const order: string[] = [];
+            const container = createDynamicContext<OrderRegistry>();
+            container.service('first', () => ({ destroy: () => order.push('first') }));
+            container.service('second', () => ({ destroy: () => order.push('second') }));
+            container.service('third', () => ({ destroy: () => order.push('third') }));
+
+            // Force initialisation so destroy has something to call
+            expect(container.first).toBeDefined();
+            expect(container.second).toBeDefined();
+            expect(container.third).toBeDefined();
+
+            container.destroy();
+
+            expect(order).toEqual(['third', 'second', 'first']);
+        });
+
         it('should throw on registration after destroy', () => {
             const container = createDynamicContext<TestRegistry>();
             container.destroy();

@@ -621,9 +621,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) return;
-        // Set early: `this.ctx.destroy()` below cascades into any resolved registry entry
-        // with a `destroy()` method. Because the chart itself is registered as `chartService`,
-        // the cascade would otherwise re-enter this method.
+        // Set the flag before `this.ctx.destroy()` so any event emitted or callback fired
+        // during the cascade sees a destroyed chart and early-exits via this guard.
         this.destroyed = true;
 
         const keepTransferableResources = opts?.keepTransferableResources;

@@ -37,6 +37,8 @@ import type { TypedEvent } from '../util/observable';
  * Minimal contract for a shared toolbar instance registered by enterprise plugins.
  * Enterprise modules provide the concrete implementation; community only relies on
  * the destroy cascade. Consumers that need the full toolbar API cast at the use site.
+ * TODO: widen this interface once the generic return-type mismatch with the enterprise
+ * `SharedToolbar.getSharedToolbar<ButtonOptions>` signature can be resolved.
  */
 export interface SharedToolbarLike {
     destroy(): void;

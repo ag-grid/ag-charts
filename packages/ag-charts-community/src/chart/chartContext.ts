@@ -65,8 +65,9 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
 
     // Eager construction for services that must be alive from t=0 (DOM/canvas setup,
     // seeded state, chart inputs). Every other service is lazy — see the `.service(...)`
-    // block below. Order matters for destroy-cascade: entries registered earlier are
-    // destroyed earlier (DynamicContext.destroy iterates insertion order).
+    // block below. Order matters for destroy-cascade: entries registered later are
+    // destroyed earlier (DynamicContext.destroy iterates in reverse-insertion order),
+    // so dependents tear down before their dependencies.
     const eventsHub = new EventEmitter<EventsHubMap>();
 
     const chartState = new ReactiveState<ChartState>();

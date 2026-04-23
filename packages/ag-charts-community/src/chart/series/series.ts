@@ -438,6 +438,7 @@ export abstract class Series<
     }
 
     public readonly ctx: DynamicContext<ChartRegistry>;
+    private moduleContext?: DynamicContext<ChartSeriesRegistry>;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
@@ -566,6 +567,7 @@ export abstract class Series<
         this.cleanup.flush();
         this.resetDatumCallbackCache();
         this.ctx.seriesStateManager.deregisterSeries(this);
+        this.moduleContext?.destroy();
     }
 
     abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;
@@ -1098,7 +1100,8 @@ export abstract class Series<
     }
 
     createModuleContext(): DynamicContext<ChartSeriesRegistry> {
-        return this.ctx.child<{ series: { type: string } }>().constant('series', this);
+        this.moduleContext ??= this.ctx.child<{ series: { type: string } }>().constant('series', this);
+        return this.moduleContext;
     }
 
     protected getAxisValueText(

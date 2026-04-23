@@ -140,7 +140,11 @@ class DynamicContextImpl<TRegistry> {
         }
         s.children.clear();
 
-        for (const key of Object.keys(this)) {
+        // Destroy in reverse-registration order (LIFO): dependents registered later
+        // tear down before the foundational services they rely on.
+        const keys = Object.keys(this);
+        for (let i = keys.length - 1; i >= 0; i--) {
+            const key = keys[i];
             // Externally-managed references opt out of the destroy cascade.
             if (s.refs.has(key)) continue;
 

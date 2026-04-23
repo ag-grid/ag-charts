@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
 import type {
     AxisID,
     CleanupRegistry,
@@ -70,8 +70,11 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
     };
 }
 
-export interface ZoomOnDataChangeCtx
-    extends Pick<_ModuleSupport.ChartRegistry, 'chartState' | 'eventsHub' | 'zoomManager' | 'axisManager'> {
+export interface ZoomOnDataChangeCtx extends Pick<ChartRegistry, 'chartState' | 'eventsHub' | 'axisManager'> {
+    // `zoomManager` is optional on ChartRegistry, but ZoomOnDataChange is only ever
+    // instantiated by the zoom module, which guarantees its presence. Narrow once at
+    // the boundary so consumers don't need `!` assertions at every call site.
+    readonly zoomManager: _ModuleSupport.ZoomManager;
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
     // Reactive option access delegated from parent via getter property.
@@ -186,7 +189,7 @@ export class ZoomOnDataChange {
         const { strategy } = this.ctx.opts;
         switch (strategy) {
             case 'reset':
-                return this.ctx.zoomManager!.resetZoom(userInteraction('onDataChange-reset'));
+                return this.ctx.zoomManager.resetZoom(userInteraction('onDataChange-reset'));
             case 'preserveRatios':
                 return; // do nothing (keep ZoomManager min/max ratios unchanged).
             case 'preserveDomain':
@@ -201,11 +204,11 @@ export class ZoomOnDataChange {
         // Data has changes, remember the current domain for all X axes. We'll constrain the next zoom:change-request
         // event to these domain:
         this.desiredChanges = { type: 'domain', domains: [] };
-        const xaxes = this.ctx.zoomManager!.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
+        const xaxes = this.ctx.zoomManager.getAxes().filter((a) => a.direction === ChartAxisDirection.X);
         for (const { id: axisId } of xaxes) {
             const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
             if (domainMinMax) {
-                const ratios = this.ctx.zoomManager!.getAxisZoom(axisId);
+                const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
                 const entry = toVisibleMinMax(axisId, domainMinMax, ratios);
                 this.desiredChanges.domains.push(entry);
             }
@@ -213,13 +216,13 @@ export class ZoomOnDataChange {
     }
 
     private performStickToEnd(): void {
-        const axisId = this.ctx.zoomManager!.getPrimaryAxisId(ChartAxisDirection.X);
+        const axisId = this.ctx.zoomManager.getPrimaryAxisId(ChartAxisDirection.X);
         if (!axisId) return;
 
         const domainMinMax: DomainMinMax | undefined = this.computeDomainMinMax(axisId);
         if (!domainMinMax) return;
 
-        const ratios = this.ctx.zoomManager!.getAxisZoom(axisId);
+        const ratios = this.ctx.zoomManager.getAxisZoom(axisId);
         const { visibleMin, visibleMax } = toVisibleMinMax(axisId, domainMinMax, ratios);
         const difference = visibleMax - visibleMin;
         this.desiredChanges = { type: 'stickToEnd', axisId, difference };

@@ -333,6 +333,7 @@ export abstract class Axis<
     };
 
     protected axisContext: AxisContext | undefined = undefined;
+    private moduleContext?: DynamicContext<ChartAxisRegistry<AxisContext>>;
 
     protected readonly cleanup = new CleanupRegistry();
 
@@ -397,6 +398,7 @@ export abstract class Axis<
 
     destroy() {
         this.moduleMap.destroy();
+        this.moduleContext?.destroy();
         this.cleanup.flush();
     }
 
@@ -1055,7 +1057,8 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        return this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
+        this.moduleContext ??= this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
+        return this.moduleContext;
     }
 
     createAxisContext(): AxisContext {
