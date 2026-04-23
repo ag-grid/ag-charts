@@ -111,15 +111,13 @@ function deriveNamedLabels(
 }
 
 /**
- * Clips continuous gradient stops so all positions lie within [0, 1].
- * Boundary colours are sampled via `colorScale.convert()` so the visible
- * slice of the gradient reflects the true scale at the display-domain edges.
+ * Clips continuous gradient stops so all positions lie within [0, 1],
+ * using pre-sampled boundary colours for the collapsed edges.
  */
 function clipGradientStopsToVisibleRange(
     stops: GradientColorStop[],
-    colorScale: ColorScale,
-    d0: number,
-    d1: number
+    d0Color: string,
+    d1Color: string
 ): GradientColorStop[] {
     if (stops.length === 0) return stops;
 
@@ -128,17 +126,19 @@ function clipGradientStopsToVisibleRange(
     const last = stops.at(-1)!;
     if (first.stop >= 0 && last.stop <= 1) return stops;
 
-    const clipped: GradientColorStop[] = [{ stop: 0, color: colorScale.convert(d0) }];
+    const clipped: GradientColorStop[] = [{ stop: 0, color: d0Color }];
     for (const s of stops) {
         if (s.stop > 0 && s.stop < 1) clipped.push(s);
     }
-    clipped.push({ stop: 1, color: colorScale.convert(d1) });
+    clipped.push({ stop: 1, color: d1Color });
     return clipped;
 }
 
 /**
  * Builds a gradient legend datum from a configured ColorScale, deriving
- * normalised colour stops from its domain/range/mode.
+ * normalised colour stops from its domain/range/mode. Takes the concrete
+ * `ColorScale` so the visible slice of the gradient can be sampled at
+ * the display-domain edges via `colorScale.convert()`.
  */
 export function buildGradientLegendDatum(
     colorScale: ColorScale,
@@ -152,7 +152,11 @@ export function buildGradientLegendDatum(
     const rawStops = deriveNormalizedStops(colorScale);
     const colorStops =
         mode === 'continuous'
-            ? clipGradientStopsToVisibleRange(rawStops, colorScale, axisDomain[0], axisDomain[1])
+            ? clipGradientStopsToVisibleRange(
+                  rawStops,
+                  colorScale.convert(axisDomain[0]),
+                  colorScale.convert(axisDomain[1])
+              )
             : rawStops;
     return {
         legendType: 'gradient',

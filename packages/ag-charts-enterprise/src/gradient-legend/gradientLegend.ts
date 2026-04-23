@@ -302,7 +302,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             if (
                 highlighted?.colorValue == null ||
                 highlighted.series?.isHighlightEnabled() === false ||
-                (highlightSeriesId != null && data?.seriesId !== highlightSeriesId) ||
+                (highlightSeriesId != null && data.seriesId !== highlightSeriesId) ||
                 highlighted.colorValue < dMin ||
                 highlighted.colorValue > dMax
             ) {
