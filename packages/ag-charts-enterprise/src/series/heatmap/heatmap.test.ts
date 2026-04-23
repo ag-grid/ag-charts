@@ -556,6 +556,50 @@ describe('HeatmapSeries', () => {
             // (treemap/sunburst whose datumIndex is a path array).
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
+
+        it('AG-16043: hovering a discrete-bin legend item clears any legend-scoped highlight', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const { highlightManager } = (chart as Chart).ctx;
+            const legendModule = (chart as Chart).modulesManager.getModule('legend') as unknown as { id: string };
+            const [series0] = (chart as Chart).series;
+
+            // Seed a highlight under the legend's own caller id, as would be the case if the
+            // user had just hovered a non-suppressed legend item in a mixed scenario.
+            highlightManager.updateHighlight(legendModule.id, {
+                series: series0,
+                itemId: undefined,
+                datum: undefined,
+                datumIndex: 0,
+                legendItemName: undefined,
+            } as any);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            const legendBBox = computeLegendBBox(chart);
+            await hoverAction(legendBBox.x + 5, legendBBox.y + legendBBox.height / 2)(chart);
+            await waitForChartStability(chart);
+
+            // The suppressed bin hover must still push an undefined highlight for the legend's
+            // caller id so any prior legend-scoped highlight is cleared.
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
     });
 
     describe('null category key', () => {
