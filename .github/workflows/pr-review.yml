@@ -1,5 +1,14 @@
 name: PR Review
 
+# Trampoline: delegates to the reusable workflow hosted in ag-dev-prompts.
+# Consumer-specific concerns (triggers, permissions, secret wiring) stay here;
+# all the PR-review logic — fork-PR guards, comment re-dispatch, resolve
+# metadata, Run Codex — lives in the reusable workflow.
+#
+# ag-charts tracks the `canary` ref on ag-dev-prompts (the same track the
+# @ag-grid/dev-prompts package follows, per AG-17085 Phase 4). ag-grid and
+# ag-studio will track `latest` when they roll onto this pattern.
+
 on:
     pull_request:
         types: [opened, ready_for_review]
@@ -12,132 +21,17 @@ on:
                 type: string
                 required: true
 
-env:
-    NX_NO_CLOUD: true
-
-permissions:
-    contents: read
-
-# Security model (public repo, Codex runs with --sandbox danger-full-access):
-#
-# - Fork PRs are **never** reviewed by Codex. The prompt-injection surface (attacker
-#   diff content) combined with full-access Codex would let a hostile PR exfiltrate
-#   CODEX_API_KEY / GITHUB_TOKEN. Fork-safety is enforced at every entry point below,
-#   not relied on implicitly through GitHub's secret scoping.
-# - Same-repo PRs are trusted: only org members with push access can create them.
-# - `/pr-review` comments are gated on author_association AND on the PR being same-repo.
-#   They re-dispatch workflow_dispatch against the PR branch so workflow/action changes
-#   on the PR branch take effect without merging to latest.
-# - workflow_dispatch is implicitly gated on actions:write access (write collaborators).
 jobs:
-    # /pr-review comment trigger: verify commenter permission, verify PR is same-repo,
-    # then re-dispatch workflow_dispatch against the PR branch. The actual review runs
-    # from the branch's workflow file, so changes to pr-review.yml or the underlying
-    # action can be iterated on from a PR without merging first.
-    comment-trigger:
-        if: github.event_name == 'issue_comment' && github.event.issue.pull_request
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            issues: write # for permission-denial comment and fork-refusal comment
-            actions: write # to gh workflow run the branch version
-            pull-requests: read
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-
-            - name: Check commenter permission
-              id: permissions
-              uses: ./external/ag-shared/github/actions/check-issue-comment-permissions
-              with:
-                  command: '/pr-review'
-
-            - name: Verify PR is same-repo and re-dispatch against its branch
-              if: steps.permissions.outputs.allowed == 'true'
-              env:
-                  GH_TOKEN: ${{ github.token }}
-                  PR_NUMBER: ${{ github.event.issue.number }}
-              run: |
-                  set -euo pipefail
-                  PR_JSON=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-                      --json headRefName,isCrossRepository)
-                  IS_FORK=$(echo "$PR_JSON" | jq -r '.isCrossRepository')
-                  HEAD_REF=$(echo "$PR_JSON" | jq -r '.headRefName')
-
-                  if [ "$IS_FORK" = "true" ]; then
-                      echo "::error::Refusing /pr-review on fork PR #${PR_NUMBER} — Codex runs with network access and would be exposed to prompt-injection from untrusted diff content."
-                      gh pr comment "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --body \
-                          ":no_entry: \`/pr-review\` is disabled on fork PRs. The Codex reviewer runs with network + secret access, so reviewing attacker-controlled diff content would be unsafe. If needed, run \`/pr-review\` locally after checking the branch out yourself."
-                      exit 1
-                  fi
-
-                  echo "Dispatching pr-review.yml@${HEAD_REF} for PR #${PR_NUMBER}"
-                  gh workflow run pr-review.yml --ref "$HEAD_REF" \
-                      --field pr_number="$PR_NUMBER"
-
-    # Run the Codex PR review.
-    #
-    # Entry points:
-    # - pull_request (opened/ready_for_review): same-repo only — forks blocked below.
-    # - workflow_dispatch: direct manual dispatch OR re-dispatch from comment-trigger.
-    #   In both cases the dispatcher has actions:write access.
-    #
-    # The fork check is repeated inside this job (via the resolve-pr-metadata step)
-    # because workflow_dispatch inputs are user-supplied and could reference any PR,
-    # including a fork one.
-    pr-review:
-        if: |
-            (github.event_name == 'pull_request' &&
-                github.event.pull_request.draft == false &&
-                github.event.pull_request.head.repo.full_name == github.repository) ||
-            github.event_name == 'workflow_dispatch'
-        runs-on: ubuntu-latest
+    review:
+        # Permissions at least as permissive as both jobs the reusable
+        # workflow declares (comment-trigger + pr-review). Reusable workflows
+        # cannot escalate beyond what the caller grants.
         permissions:
             contents: read
             pull-requests: write
             issues: write
-            # AG-17085 Phase 3: the pr-review skill is delivered via the
-            # @ag-grid/dev-prompts package on GitHub Packages. The action
-            # authenticates with the default GITHUB_TOKEN via this scope.
+            actions: write
             packages: read
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            # For workflow_dispatch we only have pr_number; resolve the rest.
-            # Also re-checks fork status — blocks dispatch against a fork PR.
-            - name: Resolve PR metadata
-              id: pr-meta
-              env:
-                  GH_TOKEN: ${{ github.token }}
-                  PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
-              run: |
-                  set -euo pipefail
-                  PR_JSON=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
-                      --json title,author,headRefName,baseRefName,isCrossRepository)
-                  IS_FORK=$(echo "$PR_JSON" | jq -r '.isCrossRepository')
-                  if [ "$IS_FORK" = "true" ]; then
-                      echo "::error::Refusing to review fork PR #${PR_NUMBER} — Codex runs with unrestricted network/secret access."
-                      exit 1
-                  fi
-                  {
-                      echo "pr_number=${PR_NUMBER}"
-                      echo "base_ref=$(echo "$PR_JSON" | jq -r '.baseRefName')"
-                      echo "head_ref=$(echo "$PR_JSON" | jq -r '.headRefName')"
-                      echo "pr_title=$(echo "$PR_JSON" | jq -r '.title')"
-                      echo "pr_author=$(echo "$PR_JSON" | jq -r '.author.login')"
-                  } >> "$GITHUB_OUTPUT"
-
-            - name: Run Codex PR Review
-              uses: ./external/ag-shared/github/actions/codex-pr-review
-              with:
-                  codex-api-key: ${{ secrets.CODEX_API_KEY }}
-                  pr-number: ${{ steps.pr-meta.outputs.pr_number }}
-                  base-ref: ${{ steps.pr-meta.outputs.base_ref }}
-                  head-ref: ${{ steps.pr-meta.outputs.head_ref }}
-                  pr-title: ${{ steps.pr-meta.outputs.pr_title }}
-                  pr-author: ${{ steps.pr-meta.outputs.pr_author }}
-                  github-token: ${{ github.token }}
-                  inline-comments: 'true'
+        uses: ag-grid/ag-dev-prompts/.github/workflows/pr-review.yml@canary
+        secrets:
+            CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
