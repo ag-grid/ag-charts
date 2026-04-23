@@ -1,10 +1,10 @@
-import type { BoxBounds } from 'ag-charts-core';
+import type { BoxBounds, DynamicContext } from 'ag-charts-core';
 import { BaseProperties } from 'ag-charts-core';
 
 import type { EventsHub } from '../../core/eventsHub';
 import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Listeners } from '../../util/listeners';
 import { CollapseMode } from '../../widget/collapseMode';
@@ -55,7 +55,7 @@ export abstract class BaseToolbar<
     private readonly updateAriaLabel = () => this.setAriaLabel(this.localeManager.t(this.ariaLabelId));
 
     constructor(
-        { eventsHub, localeManager, domManager }: ModuleContext,
+        { eventsHub, localeManager, domManager }: DynamicContext<ChartRegistry>,
         private ariaLabelId: string,
         orientation: RovingDirection
     ) {

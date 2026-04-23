@@ -1,4 +1,4 @@
-import type { Callback, CallbackParam, IsAny, Point, RequireOptional } from 'ag-charts-core';
+import type { Callback, CallbackParam, DynamicContext, IsAny, Point, RequireOptional } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
 import type {
     AgChartLabelStyleOptions,
@@ -9,14 +9,14 @@ import type {
 } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { Text } from '../scene/shape/text';
 import type { Label } from './label';
 import type { DatumIndexType, SeriesNodeDatum } from './series/seriesTypes';
 
 interface SeriesLike<TDatumIndex extends DatumIndexType> {
     id: string;
-    ctx: ModuleContext;
+    ctx: DynamicContext<ChartRegistry>;
     declarationOrder: number;
     get visible(): boolean;
     cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined;

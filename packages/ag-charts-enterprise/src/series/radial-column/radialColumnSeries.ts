@@ -14,7 +14,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
 
     override properties = new RadialColumnSeriesProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, {
             animationResetFns: {
                 item: resetRadialColumnSelectionFn,

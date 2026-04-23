@@ -1,7 +1,7 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import type { AgPieSeriesOptions } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { PolarChartModule } from '../../polarChartModule';
 import { PieSeries } from './pieSeries';
@@ -18,5 +18,5 @@ export const PieSeriesModule: SeriesModuleDefinition<AgPieSeriesOptions> = {
     options: pieSeriesOptionsDef,
     themeTemplate: pieTheme,
 
-    create: (ctx: ModuleContext) => new PieSeries(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>) => new PieSeries(ctx),
 };

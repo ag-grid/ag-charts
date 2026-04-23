@@ -83,7 +83,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.state = {

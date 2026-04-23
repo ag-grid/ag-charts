@@ -40,9 +40,9 @@ export class DataSource extends AbstractModuleInstance {
     })
     public updateDuringInteraction?: boolean;
 
-    private readonly dataService: _ModuleSupport.ModuleContext['dataService'];
+    private readonly dataService: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['dataService'];
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.dataService = ctx.dataService;
 

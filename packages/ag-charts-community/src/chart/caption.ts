@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     BaseProperties,
     FONT_SIZE,
@@ -22,7 +23,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
@@ -124,7 +125,7 @@ export class Caption extends BaseProperties implements CaptionLike {
     private lastProxyTextContent?: string;
     private lastProxyBBox?: { x: number; y: number; width: number; height: number };
 
-    registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
+    registerInteraction(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
         return moduleCtx.eventsHub.on('layout:complete', () => this.updateA11yText(moduleCtx, where));
     }
 
@@ -152,7 +153,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.node.text = wrappedText;
     }
 
-    private updateA11yText(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
+    private updateA11yText(moduleCtx: DynamicContext<ChartRegistry>, where: 'beforebegin' | 'afterend') {
         const { proxyInteractionService } = moduleCtx;
         if (!this.enabled || !this.text) {
             this.destroyProxyText();
@@ -200,7 +201,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         return text != null || renderer != null ? 'always' : 'auto';
     }
 
-    private getTooltipContent(moduleCtx: ModuleContext): TooltipContent | undefined {
+    private getTooltipContent(moduleCtx: DynamicContext<ChartRegistry>): TooltipContent | undefined {
         const captionText = toPlainText(this.text);
         const { renderer, text } = this.tooltip;
 
@@ -215,7 +216,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         return { type: 'structured', title: displayText };
     }
 
-    private showTooltip(moduleCtx: ModuleContext, canvasX: number, canvasY: number) {
+    private showTooltip(moduleCtx: DynamicContext<ChartRegistry>, canvasX: number, canvasY: number) {
         if (!this.enabled) return;
 
         const effectiveVisible = this.getEffectiveTooltipVisible();
@@ -228,7 +229,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         moduleCtx.tooltipManager.updateTooltip(this.id, { canvasX, canvasY, showArrow: false }, [content]);
     }
 
-    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent<'mousemove'>) {
+    private handleMouseMove(moduleCtx: DynamicContext<ChartRegistry>, event?: MouseWidgetEvent<'mousemove'>) {
         if (event == null) return;
 
         const { x, y } = Transformable.toCanvas(this.node);
@@ -237,7 +238,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.showTooltip(moduleCtx, canvasX, canvasY);
     }
 
-    private handleFocus(moduleCtx: ModuleContext) {
+    private handleFocus(moduleCtx: DynamicContext<ChartRegistry>) {
         const bbox = Transformable.toCanvas(this.node);
         if (!bbox) return;
 
@@ -246,7 +247,7 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.showTooltip(moduleCtx, canvasX, canvasY);
     }
 
-    private handleTooltipHide(moduleCtx: ModuleContext) {
+    private handleTooltipHide(moduleCtx: DynamicContext<ChartRegistry>) {
         moduleCtx.tooltipManager.removeTooltip(this.id, undefined, true);
     }
 

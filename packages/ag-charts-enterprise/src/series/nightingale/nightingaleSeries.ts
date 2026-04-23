@@ -18,7 +18,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     // @TempValidate
     // sectorSpacing = 1;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
     }
 

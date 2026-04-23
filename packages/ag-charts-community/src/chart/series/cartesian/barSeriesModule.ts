@@ -1,4 +1,4 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     DEFAULT_SHADOW_COLOUR,
@@ -13,7 +13,7 @@ import {
 } from 'ag-charts-core';
 import type { AgBarSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BarSeries } from './barSeries';
@@ -87,5 +87,5 @@ export const BarSeriesModule: SeriesModuleDefinition<AgBarSeriesOptions> = {
     axisKeysFlipped: { [ChartAxisDirection.X]: 'yKeyAxis', [ChartAxisDirection.Y]: 'xKeyAxis' },
     themeTemplate,
 
-    create: (ctx: ModuleContext) => new BarSeries(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>) => new BarSeries(ctx),
 };

@@ -362,6 +362,8 @@ export class Scene extends EventEmitter<EventMap> {
     }
 
     destroy() {
+        if (this.canvas == null) return;
+
         this.strip();
 
         this.canvas.destroy();

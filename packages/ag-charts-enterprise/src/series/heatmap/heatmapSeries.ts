@@ -153,7 +153,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     readonly colorScale = new ColorScale();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: {

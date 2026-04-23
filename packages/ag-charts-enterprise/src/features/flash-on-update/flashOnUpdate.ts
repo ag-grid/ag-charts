@@ -16,7 +16,7 @@ import type { AgFlashOnUpdateItem, AgFlashOnUpdateOptions } from './flashOnUpdat
 
 const { Group, Rect, Selection, TranslatableGroup } = _ModuleSupport;
 
-type AxisContext = ReturnType<_ModuleSupport.ModuleContext['axisManager']['getAxisContext']>[number];
+type AxisContext = ReturnType<_ModuleSupport.ChartRegistry['axisManager']['getAxisContext']>[number];
 export type BandFlashDatum = {
     firstKey: string;
     lastKey: string;
@@ -59,7 +59,9 @@ function classifyDiffCategories(
     return phases;
 }
 
-function findPrimaryCategoryAxisContext(ctx: _ModuleSupport.ModuleContext): AxisContext | undefined {
+function findPrimaryCategoryAxisContext(
+    ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>
+): AxisContext | undefined {
     for (const dir of [ChartAxisDirection.X, ChartAxisDirection.Y]) {
         for (const axisCtx of ctx.axisManager.getAxisContext(dir)) {
             if (_ModuleSupport.BandScale.is(axisCtx.scale)) {
@@ -149,7 +151,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
     private previousBoundsCache?: Map<string, BoxBounds>;
     private readonly pendingDiffs: _ModuleSupport.DataModelDiff[] = [];
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.chartFlashRect = this.flashGroup.appendChild(new Rect({ name: 'chart-flash-on-update' }));

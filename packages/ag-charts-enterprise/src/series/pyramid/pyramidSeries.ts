@@ -126,7 +126,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         () => this.checkProcessedDataAnimatable()
     );
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

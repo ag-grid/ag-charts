@@ -1,4 +1,11 @@
-import type { BoxBounds, ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ChartAnimationPhase,
+    DomainWithMetadata,
+    DynamicContext,
+    PlacedLabel,
+    PointLabelDatum,
+} from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
@@ -50,7 +57,7 @@ import type {
     LegendItemDoubleClickEvent,
 } from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
-import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import type { ChartRegistry, ChartSeriesRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -201,7 +208,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 }
 
 export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
-    moduleCtx: ModuleContext;
+    moduleCtx: DynamicContext<ChartRegistry>;
     pickModes: SeriesNodePickMode[];
     propertyKeys?: SeriesDirectionKeysMapping<TProps>;
     propertyNames?: SeriesDirectionKeysMapping<TProps>;
@@ -430,7 +437,7 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    public readonly ctx: ModuleContext;
+    public readonly ctx: DynamicContext<ChartRegistry>;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
@@ -1090,8 +1097,8 @@ export abstract class Series<
         return this.moduleMap;
     }
 
-    createModuleContext(): SeriesContext {
-        return { ...this.ctx, series: this };
+    createModuleContext(): DynamicContext<ChartSeriesRegistry> {
+        return this.ctx.child<{ series: { type: string } }>().constant('series', this);
     }
 
     protected getAxisValueText(

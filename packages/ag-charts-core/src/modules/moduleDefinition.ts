@@ -1,5 +1,6 @@
 import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
+import type { DynamicContext } from '../module/dynamicContext';
 import type { OptionsDefs, ValidationResult } from '../state/validation';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
@@ -76,7 +77,8 @@ export interface ModuleDefinition<
     themeTemplate?: ExtensibleTheme<any>; // module's default theme template
     style?: string; // css string to inject into a style element
 
-    // Utility Methods:
+    // Lifecycle:
+    register?(this: void, ctx: DynamicContext<any>): void;
     create(this: void, ...args: any[]): TInstance;
     validate?(
         this: void,
@@ -126,10 +128,11 @@ export interface SeriesModuleDefinition<TOptions>
     options: OptionsDefs<TOptions>;
 }
 
-export interface PluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Plugin, TOptions> {
+export interface PluginModuleDefinition<TOptions, TRegistry = unknown>
+    extends ModuleDefinition<ModuleType.Plugin, TOptions> {
     readonly chartType?: string;
 
-    patchContext?(this: void, ctx: any): void;
+    register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
 
 export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.AxisPlugin, TOptions> {

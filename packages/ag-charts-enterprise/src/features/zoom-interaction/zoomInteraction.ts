@@ -8,7 +8,7 @@ const processorPriority = ['zoom', 'scrollbar'] as const;
 export class ZoomInteraction extends AbstractModuleInstance {
     private readonly wheelSequencer = new ZoomWheelSequencer();
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(

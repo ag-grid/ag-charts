@@ -33,7 +33,7 @@ export class SharedToolbar extends AbstractModuleInstance {
     };
     private firstLayoutSection?: SharedToolbarSection;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
         this.container.role = 'presentation';

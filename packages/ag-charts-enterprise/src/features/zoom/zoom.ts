@@ -97,7 +97,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         const self = this;

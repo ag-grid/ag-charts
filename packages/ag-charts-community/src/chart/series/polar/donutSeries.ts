@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
@@ -38,7 +39,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
@@ -217,7 +218,7 @@ export class DonutSeries extends PolarSeries<
 
     override surroundingRadius?: number = undefined;
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

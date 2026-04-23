@@ -4,6 +4,7 @@ import type {
     ChartAxisDirection,
     ChartUpdateType,
     DomainWithMetadata,
+    DynamicContext,
     Padding,
     Scale,
 } from 'ag-charts-core';
@@ -23,7 +24,7 @@ import type {
 
 import type { AxisLayout } from '../core/eventsHub';
 import type { AxisContext, AxisFormattableLabel } from '../module/axisContext';
-import type { ModuleContextWithParent } from '../module/moduleContext';
+import type { ChartAxisRegistry } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
@@ -77,7 +78,7 @@ export interface ChartAxis {
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;
-    createModuleContext(): ModuleContextWithParent<AxisContext>;
+    createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>>;
     destroy(): void;
     detachAxis(): void;
     formatDatum(

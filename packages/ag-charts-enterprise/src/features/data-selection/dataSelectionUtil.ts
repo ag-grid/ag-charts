@@ -5,7 +5,7 @@ import { Logger } from 'ag-charts-core';
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
-type ChartService = _ModuleSupport.ModuleContext['chartService'];
+type ChartService = _ModuleSupport.ChartRegistry['chartService'];
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 export type BufferMap = Map<string, Uint8Array>;

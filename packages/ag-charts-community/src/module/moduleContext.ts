@@ -1,5 +1,6 @@
 import { AgDocument, type CallbackCache, type ReactiveState } from 'ag-charts-core';
 
+import type { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import type { HistoryManager } from '../api/state/historyManager';
 import type { StateManager } from '../api/state/stateManager';
 import type { AnnotationManager } from '../chart/annotation/annotationManager';
@@ -7,6 +8,7 @@ import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { ChartState } from '../chart/chartState';
 import type { DataService } from '../chart/data/dataService';
+import type { FontManager } from '../chart/fonts/fontManager';
 import type { FormatManager } from '../chart/formatter/formatManager';
 import type { ActiveManager } from '../chart/interaction/activeManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
@@ -31,7 +33,21 @@ import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import type { TypedEvent } from '../util/observable';
 
-export interface ModuleContext {
+/**
+ * Minimal contract for a shared toolbar instance registered by enterprise plugins.
+ * Enterprise modules provide the concrete implementation; community only relies on
+ * the destroy cascade. Consumers that need the full toolbar API cast at the use site.
+ */
+export interface SharedToolbarLike {
+    destroy(): void;
+}
+
+/**
+ * Typed registry enumerating every service exposed by the chart's DynamicContext.
+ * This is the source of truth for the chart's service surface — both reads
+ * (`ctx.foo`) and registrations (`ctx.service('foo', ...)`) are constrained by it.
+ */
+export interface ChartRegistry {
     readonly scene: Scene;
     readonly annotationRoot: Group;
 
@@ -41,6 +57,7 @@ export interface ModuleContext {
     readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
 
     readonly chartService: ChartService;
+    readonly chartTypeOriginator: ChartTypeOriginator;
     readonly dataService: DataService<any>;
     readonly layoutManager: LayoutManager;
     readonly optionsGraphService: OptionsGraphService;
@@ -56,6 +73,7 @@ export interface ModuleContext {
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;
+    readonly fontManager: FontManager;
     readonly highlightManager: HighlightManager;
     readonly historyManager: HistoryManager;
     readonly interactionManager: InteractionManager;
@@ -68,12 +86,14 @@ export interface ModuleContext {
     readonly tooltipManager: TooltipManager;
     readonly widgets: WidgetSet;
     readonly zoomManager: ZoomManager;
+
+    readonly sharedToolbar?: SharedToolbarLike;
 }
 
-export interface ModuleContextWithParent<P> extends ModuleContext {
+export interface ChartAxisRegistry<P> extends ChartRegistry {
     parent: P;
 }
 
-export interface SeriesContext extends ModuleContext {
+export interface ChartSeriesRegistry extends ChartRegistry {
     series: { type: string };
 }

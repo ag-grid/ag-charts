@@ -27,7 +27,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     override resetInvalidToZero = true;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
         this.areaGroup.zIndex = -1;
     }

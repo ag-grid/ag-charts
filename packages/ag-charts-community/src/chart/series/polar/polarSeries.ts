@@ -1,8 +1,8 @@
-import type { ChartAnimationPhase } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
 import { ChartAxisDirection, PolarZIndexMap, StateMachine } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { BBox } from '../../../scene/bbox';
@@ -135,7 +135,7 @@ export abstract class PolarSeries<
         animationResetFns,
         ...opts
     }: {
-        moduleCtx: ModuleContext;
+        moduleCtx: DynamicContext<ChartRegistry>;
         categoryKey: string | undefined;
         pickModes?: SeriesNodePickMode[];
         canHaveAxes?: boolean;

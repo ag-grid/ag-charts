@@ -1,8 +1,8 @@
-import type { DomainWithMetadata } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { UnitTimeScale } from '../../scale/unitTimeScale';
@@ -51,7 +51,7 @@ export class CategoryAxis<
     override requiredRange?: number;
 
     constructor(
-        moduleCtx: ModuleContext,
+        moduleCtx: DynamicContext<ChartRegistry>,
         scale = new CategoryScale<string | object>() as S,
         includeInvisibleDomains: boolean = true
     ) {

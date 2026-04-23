@@ -88,7 +88,7 @@ export class ZoomToolbar extends BaseProperties {
     private previousZoom?: DefinedZoomState;
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (

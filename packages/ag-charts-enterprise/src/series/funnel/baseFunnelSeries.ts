@@ -140,7 +140,7 @@ export abstract class BaseFunnelSeries<
         moduleCtx,
         animationResetFns,
     }: {
-        moduleCtx: _ModuleSupport.ModuleContext;
+        moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>;
         animationResetFns: {
             datum: (
                 node: _ModuleSupport.NodeOf<TTypes>,

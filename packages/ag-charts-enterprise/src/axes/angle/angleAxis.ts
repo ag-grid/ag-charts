@@ -64,7 +64,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
     protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>, scale: TScale) {
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
     }

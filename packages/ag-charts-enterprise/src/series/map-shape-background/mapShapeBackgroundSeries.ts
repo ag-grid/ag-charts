@@ -71,7 +71,7 @@ export class MapShapeBackgroundSeries
 
     private contextNodeData?: MapShapeBackgroundNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

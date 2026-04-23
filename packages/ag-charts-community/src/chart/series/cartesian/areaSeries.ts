@@ -1,6 +1,7 @@
 import type {
     CallbackParamRules,
     DomainWithMetadata,
+    DynamicContext,
     InternalAgColorType,
     Point,
     RequireOptional,
@@ -26,7 +27,7 @@ import {
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -196,7 +197,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return 'main' as const;
     }
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,

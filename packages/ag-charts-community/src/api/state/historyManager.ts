@@ -1,7 +1,7 @@
-import type { MementoOriginator } from 'ag-charts-core';
+import type { DynamicContext, MementoOriginator } from 'ag-charts-core';
 import { CleanupRegistry, Debug } from 'ag-charts-core';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { VERSION } from '../../version';
 
 interface HistoricalAction {
@@ -21,7 +21,7 @@ export class HistoryManager {
     private readonly debug = Debug.create(true, 'history');
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(ctx: ModuleContext) {
+    constructor(ctx: DynamicContext<ChartRegistry>) {
         this.cleanup.register(
             ctx.eventsHub.on('series:undo', this.undo.bind(this)),
             ctx.eventsHub.on('series:redo', this.redo.bind(this))

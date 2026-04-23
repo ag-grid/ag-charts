@@ -90,7 +90,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private readonly domainSync = new AsyncAwaitQueue();
 
-    constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
+    constructor(protected moduleContext: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
     }
 

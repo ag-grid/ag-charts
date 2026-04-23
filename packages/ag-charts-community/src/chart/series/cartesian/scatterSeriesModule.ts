@@ -1,4 +1,4 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
@@ -12,7 +12,7 @@ import {
 } from 'ag-charts-core';
 import type { AgScatterSeriesOptions, ExtensibleTheme } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { BUBBLE_SCATTER_COLOR_SCALE_THEME, BUBBLE_SCATTER_GRADIENT_LEGEND_THEME } from './bubbleSeriesModule';
@@ -85,5 +85,5 @@ export const ScatterSeriesModule: SeriesModuleDefinition<AgScatterSeriesOptions>
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 
-    create: (ctx: ModuleContext) => new ScatterSeries(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>) => new ScatterSeries(ctx),
 };

@@ -71,7 +71,7 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 }
 
 export interface ZoomOnDataChangeCtx
-    extends Pick<_ModuleSupport.ModuleContext, 'chartState' | 'eventsHub' | 'zoomManager' | 'axisManager'> {
+    extends Pick<_ModuleSupport.ChartRegistry, 'chartState' | 'eventsHub' | 'zoomManager' | 'axisManager'> {
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
     // Reactive option access delegated from parent via getter property.

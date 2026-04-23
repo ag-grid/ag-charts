@@ -30,7 +30,7 @@ export class RadiusNumberAxis extends RadiusAxis {
     @Property
     preferredMax?: number;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new LinearScale());
     }
 

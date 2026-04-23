@@ -53,7 +53,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         coords: Bounds4,
         context: AnnotationContext,
         verticalDirection?: 'up' | 'down',
-        localeManager?: _ModuleSupport.ModuleContext['localeManager']
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
     ) {
         this.verticalDirection = verticalDirection;
 
@@ -77,7 +77,7 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         datum: MeasurerTypeProperties,
         stats: Statistics,
         anchor: Point,
-        localeManager?: _ModuleSupport.ModuleContext['localeManager']
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
     ) {
         const {
             dateRangeBarsText,
@@ -232,7 +232,10 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         };
     }
 
-    private formatDateRangeBars(bars: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
+    private formatDateRangeBars(
+        bars: number,
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
+    ) {
         return localeManager?.t('measurerDateRangeBars', { value: bars }) ?? `${bars}`;
     }
 
@@ -262,18 +265,24 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
         return range.join(' ');
     }
 
-    private formatPriceRangeValue(value: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
+    private formatPriceRangeValue(
+        value: number,
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
+    ) {
         return localeManager?.t('measurerPriceRangeValue', { value: Number(value.toFixed(2)) }) ?? `${value}`;
     }
 
     private formatPriceRangePercentage(
         percentage: number,
-        localeManager?: _ModuleSupport.ModuleContext['localeManager']
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
     ) {
         return localeManager?.t('measurerPriceRangePercent', { value: percentage }) ?? `${percentage}`;
     }
 
-    private formatVolume(volume: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
+    private formatVolume(
+        volume: number,
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']
+    ) {
         const volumeString = Number.isNaN(volume) ? '' : this.volumeFormatter.format(volume);
         return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
     }

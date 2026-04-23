@@ -70,7 +70,7 @@ export abstract class RadiusAxis<
         return ChartAxisDirection.Radius;
     }
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: S) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>, scale: S) {
         super(moduleCtx, scale);
 
         this.headingLabelGroup.appendChild(this.title.caption.node);

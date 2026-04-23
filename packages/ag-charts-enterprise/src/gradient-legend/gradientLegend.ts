@@ -123,7 +123,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.scale = new GradientLegendScale(this.scaleConfig);

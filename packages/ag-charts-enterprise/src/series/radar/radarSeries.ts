@@ -105,7 +105,7 @@ export abstract class RadarSeries<
 
     public contextNodeData?: RadarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'angleValue',

@@ -42,7 +42,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         const accurateScale = new OrdinalTimeScale();
         super(moduleCtx, accurateScale);
         this.accurateScale = accurateScale;

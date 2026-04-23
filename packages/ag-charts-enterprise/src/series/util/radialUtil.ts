@@ -21,7 +21,7 @@ export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesSty
 
 interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly id: string;
-    readonly ctx: _ModuleSupport.ModuleContext;
+    readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>;
     readonly declarationOrder: number;
     readonly context?: { nodeData: D[] };
     readonly properties: {

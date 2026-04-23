@@ -131,7 +131,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         Sector
     );
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
 
         this.sectorLabelGroup.pointerEvents = PointerEvents.None;

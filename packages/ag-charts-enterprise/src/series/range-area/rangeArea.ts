@@ -197,7 +197,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],

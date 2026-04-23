@@ -11,7 +11,7 @@ type SliderDragHandlers = {
 };
 
 type NavigatorDOMProxyModuleContext = Pick<
-    _ModuleSupport.ModuleContext,
+    _ModuleSupport.ChartRegistry,
     'zoomManager' | 'proxyInteractionService' | 'localeManager' | 'contextMenuRegistry'
 >;
 

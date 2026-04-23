@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     type Callback,
     type CallbackParam,
@@ -28,7 +29,7 @@ import {
 import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
 
 import type { ActiveLoadMementoEvent, HighlightNodeDatum } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { Node } from '../../scene/node';
@@ -144,7 +145,7 @@ export class Legend {
         return this.ctx.chartState.getValue('options', 'legend');
     }
 
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         // Start invisible — updateGroupVisibility() will enable when legend has data and options.
         // This prevents a spurious true→false dirty mark during the first flushChanges() for chart
         // types where the legend is disabled (sparklines, gauges).

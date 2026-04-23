@@ -27,7 +27,7 @@ export class DataSelection extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'selection');
     }
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.dragRect = new _ModuleSupport.Rect();

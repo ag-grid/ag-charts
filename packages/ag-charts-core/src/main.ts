@@ -16,6 +16,7 @@ export * as DebugMetrics from './logging/debugMetrics';
 export * from './modules/enterpriseRegistry';
 export * as ModuleRegistry from './modules/moduleRegistry';
 export { AbstractModuleInstance } from './modules/moduleInstance';
+export { type DynamicContext, type DynamicContextApi, createDynamicContext } from './module/dynamicContext';
 
 // Scales
 export * from './scale/colorScaleUtil';

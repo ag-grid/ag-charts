@@ -27,7 +27,7 @@ export class TextInput {
     };
     private visible = false;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 

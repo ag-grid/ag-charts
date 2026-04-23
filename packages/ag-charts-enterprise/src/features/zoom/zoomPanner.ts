@@ -28,7 +28,7 @@ const decelerationValues = {
 };
 
 export class ZoomPanner {
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {}
 
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {

@@ -1,4 +1,4 @@
-import type { Point } from 'ag-charts-core';
+import type { DynamicContext, Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
@@ -16,6 +16,7 @@ import type {
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
@@ -32,7 +33,6 @@ import type {
     MouseWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
-import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import type { ChartType } from '../factory/expectedModules';
@@ -102,7 +102,7 @@ export interface SeriesAreaChartDependencies {
     ) => TooltipContent[];
     chartType: ChartType;
     seriesRoot: TranslatableGroup;
-    ctx: ChartContext;
+    ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
     highlight: ChartHighlight;
     keyboard: Keyboard;

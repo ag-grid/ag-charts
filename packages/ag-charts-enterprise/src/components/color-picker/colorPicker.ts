@@ -28,7 +28,10 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     private onChangeHide?: () => void;
     private i18nUpdater?: () => void;
 
-    constructor(ctx: _ModuleSupport.ModuleContext, options?: _ModuleSupport.PopoverConstructorOptions) {
+    constructor(
+        ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
+        options?: _ModuleSupport.PopoverConstructorOptions
+    ) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.i18nUpdater = undefined;

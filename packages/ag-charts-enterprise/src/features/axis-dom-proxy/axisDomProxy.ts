@@ -33,7 +33,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private seriesRect: _ModuleSupport.BBox | undefined;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         if (ctx.widgets.seriesDragInterpreter) {

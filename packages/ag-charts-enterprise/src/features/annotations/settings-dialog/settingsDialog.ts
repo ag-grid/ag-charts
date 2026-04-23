@@ -66,7 +66,7 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
         this.hideFns.push(() => this.events.emit('hidden', null));
     }

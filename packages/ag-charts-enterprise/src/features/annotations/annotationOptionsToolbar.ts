@@ -145,7 +145,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
     private lineStrokeWidthMenuMinWidth?: number;
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getActiveDatum: () => AnnotationProperties | undefined
     ) {
         super();

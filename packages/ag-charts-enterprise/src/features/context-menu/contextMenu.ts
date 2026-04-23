@@ -79,7 +79,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         // Module context

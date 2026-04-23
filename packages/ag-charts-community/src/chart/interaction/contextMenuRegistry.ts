@@ -1,8 +1,8 @@
-import type { Writeable } from 'ag-charts-core';
+import type { DynamicContext, Writeable } from 'ag-charts-core';
 import type { AgContextMenuItemLiteral, AgContextMenuItemShowOn } from 'ag-charts-types';
 
 import type { ContextMenuEvent } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { ContextMenuCallback, ContextShowOnMap } from './contextMenuTypes';
 import { ContextMenuBuiltins } from './contextMenuTypes';
@@ -11,7 +11,7 @@ export class ContextMenuRegistry {
     public readonly builtins = new ContextMenuBuiltins();
     private readonly hiddenActions: Set<string> = new Set();
 
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         this.toggle('zoom-to-cursor', 'hide');
         this.toggle('pan-to-cursor', 'hide');
         this.toggle('reset-zoom', 'hide');

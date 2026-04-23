@@ -83,7 +83,7 @@ export class AnnotationsToolbar extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');

@@ -1,11 +1,11 @@
-import { cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
+import { type DynamicContext, cachedTextMeasurer, getResizeObserver } from 'ag-charts-core';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 
 export class FontManager {
     private observers: Array<ResizeObserver> = [];
 
-    constructor(private readonly ctx: ModuleContext) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     public updateFonts(fonts?: Set<string>) {
         if (!fonts || fonts.size === 0) return;

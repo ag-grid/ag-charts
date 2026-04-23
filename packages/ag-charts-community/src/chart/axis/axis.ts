@@ -4,6 +4,7 @@ import type {
     CallbackParam,
     ChartAnimationPhase,
     DomainWithMetadata,
+    DynamicContext,
     Point,
     RequireOptional,
     Scale,
@@ -39,7 +40,7 @@ import type {
 
 import type { AxisLayout } from '../../core/eventsHub';
 import type { AxisBandDatum, AxisBandMeasurement, AxisContext, AxisFormattableLabel } from '../../module/axisContext';
-import type { ModuleContext, ModuleContextWithParent } from '../../module/moduleContext';
+import type { ChartAxisRegistry, ChartRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BandScale } from '../../scale/bandScale';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -336,7 +337,7 @@ export abstract class Axis<
     protected readonly cleanup = new CleanupRegistry();
 
     constructor(
-        protected readonly moduleCtx: ModuleContext,
+        protected readonly moduleCtx: DynamicContext<ChartRegistry>,
         readonly scale: S
     ) {
         this.range = this.scale.range.slice() as [number, number];
@@ -1052,9 +1053,9 @@ export abstract class Axis<
         return ChartUpdateType.PERFORM_LAYOUT;
     }
 
-    createModuleContext(): ModuleContextWithParent<AxisContext> {
+    createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        return { ...this.moduleCtx, parent: this.axisContext };
+        return this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
     }
 
     createAxisContext(): AxisContext {

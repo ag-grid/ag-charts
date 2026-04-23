@@ -106,7 +106,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.state = this.setupStateMachine();
         this.setupListeners();

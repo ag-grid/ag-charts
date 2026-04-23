@@ -60,7 +60,7 @@ export class Navigator extends AbstractModuleInstance {
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(

@@ -35,7 +35,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
     override properties = new FunnelProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             animationResetFns: {

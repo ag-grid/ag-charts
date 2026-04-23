@@ -28,7 +28,7 @@ export class ChartToolbar extends AbstractModuleInstance {
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
     private menuShowing = false;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('chartToolbar');

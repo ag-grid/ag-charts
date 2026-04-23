@@ -16,7 +16,7 @@ export class AxisButton extends AbstractModuleInstance {
     private coords?: Point;
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
         private readonly onButtonClick: (coords?: Point) => void,
         private seriesRect: _ModuleSupport.BBox

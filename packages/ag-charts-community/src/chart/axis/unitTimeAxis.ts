@@ -1,4 +1,4 @@
-import type { DomainWithMetadata } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
     Property,
     dateTruncationForDomain,
@@ -13,7 +13,7 @@ import {
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
@@ -55,7 +55,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx, new UnitTimeScale(), false);
     }
 

@@ -22,7 +22,7 @@ export class Animation extends AbstractModuleInstance {
     @Property
     public maxAnimatableItems?: number;
 
-    constructor(protected readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(protected readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         ctx.animationManager.skip(false);
         this.cleanup.register(() => ctx.animationManager.skip(true));

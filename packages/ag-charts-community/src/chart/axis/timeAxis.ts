@@ -1,4 +1,4 @@
-import type { ChartAxisDirection, DomainWithMetadata } from 'ag-charts-core';
+import type { ChartAxisDirection, DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
     BaseProperties,
     Logger,
@@ -17,7 +17,7 @@ import {
 } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { DatumIndexType, ISeries } from '../series/seriesTypes';
@@ -68,7 +68,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @ProxyPropertyOnWrite('_unit')
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx, new TimeScale());
     }
 

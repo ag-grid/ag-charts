@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -48,7 +49,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { UpdateOpts } from '../core/eventsHub';
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
@@ -65,7 +66,7 @@ import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { ChartCaptions } from './chartCaptions';
-import { ChartContext } from './chartContext';
+import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
@@ -283,7 +284,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    public readonly ctx: ChartContext;
+    public readonly ctx: DynamicContext<ChartRegistry>;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
 
@@ -350,7 +351,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
         this.styleNonce = options.processedOptions.styleNonce;
-        const ctx = (this.ctx = new ChartContext(this, {
+        const ctx = (this.ctx = createChartContext(this, {
             chartType: this.getChartType(),
             scene,
             root,
@@ -527,7 +528,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         };
     }
 
-    getModuleContext(): ModuleContext {
+    getModuleContext(): DynamicContext<ChartRegistry> {
         return this.ctx;
     }
 
@@ -620,6 +621,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) return;
+        // Set early: `this.ctx.destroy()` below cascades into any resolved registry entry
+        // with a `destroy()` method. Because the chart itself is registered as `chartService`,
+        // the cascade would otherwise re-enter this method.
+        this.destroyed = true;
 
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;
@@ -657,7 +662,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.animationRect = undefined;
 
         this.ctx.destroy();
-        this.destroyed = true;
 
         Object.freeze(this);
 

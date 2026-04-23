@@ -1,6 +1,6 @@
-import { AbstractModuleInstance, type Point, createElement, getLastFocus } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, type Point, createElement, getLastFocus } from 'ag-charts-core';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { ExpandableWidget, ExpansionControllerWidget } from '../../widget/expandableWidget';
 
 const canvasOverlay = 'canvas-overlay';
@@ -32,7 +32,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions> e
     private initialFocus?: HTMLElement;
 
     constructor(
-        protected readonly ctx: ModuleContext,
+        protected readonly ctx: DynamicContext<ChartRegistry>,
         id: string,
         options?: PopoverConstructorOptions
     ) {

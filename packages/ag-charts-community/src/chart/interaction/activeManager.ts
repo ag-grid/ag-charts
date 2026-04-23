@@ -1,8 +1,8 @@
 import { objectsEqual, validate } from 'ag-charts-core';
-import type { MementoOriginator } from 'ag-charts-core';
+import type { DynamicContext, MementoOriginator } from 'ag-charts-core';
 import type { AgActiveChangeEventSource, AgActiveItemState, AgActiveState } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { commonChartOptions } from '../chartOptionsDefs';
 import type { DatumIndexType, SeriesNodeDatum } from '../series/seriesTypes';
 import { InteractionState } from './interactionManager';
@@ -16,7 +16,7 @@ type DatumArg = Readonly<SeriesNodeDatum<DatumIndexType>> | undefined;
 export class ActiveManager implements MementoOriginator<AgActiveState> {
     mementoOriginatorKey: string = 'active';
 
-    private readonly ctx: ModuleContext;
+    private readonly ctx: DynamicContext<ChartRegistry>;
     private currentItem?: ActiveItem;
     private updateable: boolean = true;
 
@@ -30,7 +30,7 @@ export class ActiveManager implements MementoOriginator<AgActiveState> {
           }
         | undefined = undefined;
 
-    constructor(ctx: ModuleContext) {
+    constructor(ctx: DynamicContext<ChartRegistry>) {
         this.ctx = ctx;
 
         const removeListener: () => void = ctx.eventsHub.on('update:pre-scene-render', () => {

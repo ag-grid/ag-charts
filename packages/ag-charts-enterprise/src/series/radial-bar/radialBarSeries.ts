@@ -102,7 +102,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private contextNodeData?: RadialBarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'radiusValue',

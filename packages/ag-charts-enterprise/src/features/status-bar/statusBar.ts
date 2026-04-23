@@ -239,7 +239,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         },
     ];
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.labelGroup.visible = false;

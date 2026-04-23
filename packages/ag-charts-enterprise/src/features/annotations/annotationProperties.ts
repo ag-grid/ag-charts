@@ -196,9 +196,9 @@ function Writeable<T extends Constructor>(Parent: T) {
 
 export function Localisable<T extends Constructor>(Parent: T) {
     class LocalisableInternal extends Parent {
-        localeManager?: _ModuleSupport.ModuleContext['localeManager'];
+        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager'];
 
-        setLocaleManager(localeManager: _ModuleSupport.ModuleContext['localeManager']) {
+        setLocaleManager(localeManager: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']) {
             this.localeManager ??= localeManager;
         }
     }

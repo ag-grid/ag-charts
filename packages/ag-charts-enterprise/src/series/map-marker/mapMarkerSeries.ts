@@ -143,7 +143,7 @@ export class MapMarkerSeries
 
     private readonly animationState: StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

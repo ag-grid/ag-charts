@@ -20,7 +20,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     @Property
     override interval = new AngleAxisInterval();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new CategoryScale());
     }
 

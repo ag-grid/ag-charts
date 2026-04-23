@@ -103,7 +103,7 @@ export abstract class RadialColumnSeriesBase<
     public contextNodeData?: RadialColumnSeriesNodeDataContext;
 
     constructor(
-        moduleCtx: _ModuleSupport.ModuleContext,
+        moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
         {
             animationResetFns,
         }: {

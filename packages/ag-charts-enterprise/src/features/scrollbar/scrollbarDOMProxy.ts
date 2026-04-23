@@ -154,7 +154,7 @@ export class ScrollbarDOMProxy {
     private readonly repeater = new StepRepeater((target) => this.applyStepToward(target));
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly orientation: 'horizontal' | 'vertical',
         private readonly onChange: (min: number, max: number) => void,
         private readonly onHoverChange: (hovered: boolean) => void
