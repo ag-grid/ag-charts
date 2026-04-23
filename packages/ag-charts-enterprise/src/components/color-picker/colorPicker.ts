@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { Color, clamp } from 'ag-charts-core';
+import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { Color, type DynamicContext, clamp } from 'ag-charts-core';
 
 import colorPickerTemplate from './colorPickerTemplate.html';
 
@@ -28,10 +28,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     private onChangeHide?: () => void;
     private i18nUpdater?: () => void;
 
-    constructor(
-        ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
-        options?: _ModuleSupport.PopoverConstructorOptions
-    ) {
+    constructor(ctx: DynamicContext<ChartRegistry>, options?: _ModuleSupport.PopoverConstructorOptions) {
         super(ctx, 'color-picker', options);
         this.hideFns.push(() => {
             this.i18nUpdater = undefined;

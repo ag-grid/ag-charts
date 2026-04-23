@@ -1,10 +1,11 @@
-import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgChartSyncOptions, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
 import {
     AsyncAwaitQueue,
     BaseProperties,
     ChartAxisDirection,
     ChartUpdateType,
     Debug,
+    type DynamicContext,
     Logger,
     type ModuleInstance,
     ObserveChanges,
@@ -90,7 +91,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private readonly domainSync = new AsyncAwaitQueue();
 
-    constructor(protected moduleContext: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(protected moduleContext: DynamicContext<ChartRegistry>) {
         super();
     }
 

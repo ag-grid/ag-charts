@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { clamp } from 'ag-charts-core';
+import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { type DynamicContext, clamp } from 'ag-charts-core';
 import type { BoxBounds } from 'ag-charts-core';
 
 const { SliderWidget } = _ModuleSupport;
@@ -154,7 +154,7 @@ export class ScrollbarDOMProxy {
     private readonly repeater = new StepRepeater((target) => this.applyStepToward(target));
 
     constructor(
-        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
+        private readonly ctx: DynamicContext<ChartRegistry>,
         private readonly orientation: 'horizontal' | 'vertical',
         private readonly onChange: (min: number, max: number) => void,
         private readonly onHoverChange: (hovered: boolean) => void

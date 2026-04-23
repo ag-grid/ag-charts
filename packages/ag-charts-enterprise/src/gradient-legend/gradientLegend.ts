@@ -2,6 +2,7 @@ import {
     type AgChartLegendPosition,
     type AgGradientLegendOptions,
     type AgGradientLegendScaleOptions,
+    type ChartRegistry,
     type Padding,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -9,6 +10,7 @@ import {
     BaseProperties,
     Border,
     CleanupRegistry,
+    type DynamicContext,
     type GradientColorStop,
     Property,
     ProxyProperty,
@@ -123,7 +125,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.scale = new GradientLegendScale(this.scaleConfig);

@@ -1,4 +1,4 @@
-import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgContextMenuOptions, type ChartRegistry, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     IS_DARK_THEME,
     type PluginModuleDefinition,
@@ -10,7 +10,7 @@ import {
 
 import { ContextMenu } from './contextMenu';
 
-export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _ModuleSupport.ChartRegistry> = {
+export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, ChartRegistry> = {
     type: 'plugin',
     name: 'contextMenu',
     enterprise: true,

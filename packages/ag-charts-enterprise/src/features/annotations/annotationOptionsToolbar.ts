@@ -1,9 +1,10 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
 import {
     BaseProperties,
     type BoxBounds,
     CleanupRegistry,
     Color,
+    type DynamicContext,
     EventEmitter,
     PropertiesArray,
     Property,
@@ -145,7 +146,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
     private lineStrokeWidthMenuMinWidth?: number;
 
     constructor(
-        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
+        private readonly ctx: DynamicContext<ChartRegistry>,
         private readonly getActiveDatum: () => AnnotationProperties | undefined
     ) {
         super();

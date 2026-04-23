@@ -1,5 +1,6 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { type ChartRegistry, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
+    type DynamicContext,
     type ScaleTickParams,
     ZIndexMap,
     cachedTextMeasurer,
@@ -49,7 +50,7 @@ export class AxisTicks {
     /** Bound series for formatter context — scoped to a single gradient legend item. */
     boundSeries: Array<{ seriesId: string; key: string; name?: string }> = [];
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     private get horizontal(): boolean {
         return this.placement.startsWith('top') || this.placement.startsWith('bottom');

@@ -1,5 +1,13 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, Logger, ObserveChanges, Property, clamp } from 'ag-charts-core';
+import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import {
+    AbstractModuleInstance,
+    type BoxBounds,
+    type DynamicContext,
+    Logger,
+    ObserveChanges,
+    Property,
+    clamp,
+} from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -60,7 +68,7 @@ export class Navigator extends AbstractModuleInstance {
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
-    public constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    public constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.cleanup.register(

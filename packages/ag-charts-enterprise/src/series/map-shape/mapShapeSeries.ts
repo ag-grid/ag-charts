@@ -1,6 +1,7 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { type ChartRegistry, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
+    DynamicContext,
     Feature,
     FeatureCollection,
     Geometry,
@@ -129,7 +130,7 @@ export class MapShapeSeries
 
     public contextNodeData?: MapShapeNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

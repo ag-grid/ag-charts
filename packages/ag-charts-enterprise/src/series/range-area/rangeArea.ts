@@ -7,6 +7,7 @@ import {
     type AgRangeAreaSeriesStyle,
     type AgRangeAreaSeriesStylerParams,
     type AgSeriesMarkerStyle,
+    type ChartRegistry,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -20,6 +21,7 @@ import {
     DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     type RequireOptional,
     extent,
@@ -197,7 +199,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],

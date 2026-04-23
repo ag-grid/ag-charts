@@ -2,12 +2,14 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    ChartRegistry,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     isDefined,
     isGradientFill,
@@ -103,7 +105,7 @@ export abstract class RadialColumnSeriesBase<
     public contextNodeData?: RadialColumnSeriesNodeDataContext;
 
     constructor(
-        moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
+        moduleCtx: DynamicContext<ChartRegistry>,
         {
             animationResetFns,
         }: {

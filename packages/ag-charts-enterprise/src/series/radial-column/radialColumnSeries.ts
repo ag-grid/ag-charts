@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { ChartAxisDirection } from 'ag-charts-core';
+import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { ChartAxisDirection, type DynamicContext } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
@@ -14,7 +14,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.Ra
 
     override properties = new RadialColumnSeriesProperties();
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx, {
             animationResetFns: {
                 item: resetRadialColumnSelectionFn,

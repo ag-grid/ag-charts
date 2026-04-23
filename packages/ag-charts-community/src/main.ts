@@ -10,6 +10,12 @@ export { ModuleRegistry } from 'ag-charts-core';
 export * as _ModuleSupport from './module-support';
 export * as _Widget from './widget/exports';
 
+// Undocumented types used by Enterprise Modules. Exposed as top-level type-only exports
+// so enterprise can import them directly (without going through the _ModuleSupport barrel)
+// while keeping type identity consistent with the module resolution used everywhere else.
+export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
+export type { AxisContext } from './module/axisContext';
+
 // Module exports
 export { SparklinePresetModule } from './api/preset/presetModules';
 

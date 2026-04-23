@@ -1,6 +1,8 @@
 import {
     type AgAnnotation,
     type AgAnnotationLineStyleType,
+    type AxisContext,
+    type ChartRegistry,
     type Direction,
     _ModuleSupport,
     _Widget,
@@ -9,6 +11,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
+    type DynamicContext,
     ObserveChanges,
     type Point,
     PropertiesArray,
@@ -48,7 +51,7 @@ const { InteractionState, keyProperty, valueProperty, Selection, BBox } = _Modul
 
 interface AnnotationAxis {
     layout: _ModuleSupport.AxisLayout;
-    context: _ModuleSupport.AxisContext;
+    context: AxisContext;
     bounds: _ModuleSupport.BBox;
     button?: AxisButton;
 }
@@ -106,7 +109,7 @@ export class Annotations extends AbstractModuleInstance {
 
     private postUpdateFns: Array<() => void> = [];
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
         this.state = this.setupStateMachine();
         this.setupListeners();

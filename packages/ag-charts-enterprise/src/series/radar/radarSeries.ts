@@ -4,6 +4,7 @@ import {
     type AgRadarSeriesLabelFormatterParams,
     type AgRadarSeriesStyle,
     type AgSeriesMarkerStyle,
+    type ChartRegistry,
     type ContextDefault,
     type DatumDefault,
     _ModuleSupport,
@@ -12,6 +13,7 @@ import {
     type CallbackParam,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     type RequireOptional,
     extent,
@@ -105,7 +107,7 @@ export abstract class RadarSeries<
 
     public contextNodeData?: RadarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'angleValue',

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
 import { type BoxBounds, clamp } from 'ag-charts-core';
 
 const { SliderWidget } = _ModuleSupport;
@@ -11,7 +11,7 @@ type SliderDragHandlers = {
 };
 
 type NavigatorDOMProxyModuleContext = Pick<
-    _ModuleSupport.ChartRegistry,
+    ChartRegistry,
     'zoomManager' | 'proxyInteractionService' | 'localeManager' | 'contextMenuRegistry'
 >;
 

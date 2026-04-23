@@ -1,4 +1,4 @@
-import { VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type ChartRegistry, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     arrayOfDefs,
@@ -19,7 +19,7 @@ import { Zoom } from './zoom';
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
-export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.ChartRegistry> = {
+export const ZoomModule: PluginModuleDefinition<AgZoomOptions, ChartRegistry> = {
     type: 'plugin',
     name: 'zoom',
     enterprise: true,

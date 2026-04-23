@@ -1,5 +1,5 @@
-import { type AgMapLineBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import type { FeatureCollection } from 'ag-charts-core';
+import { type AgMapLineBackgroundOptions, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import type { DynamicContext, FeatureCollection } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -70,7 +70,7 @@ export class MapLineBackgroundSeries
 
     private contextNodeData?: MapLineNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

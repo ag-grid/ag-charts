@@ -2,6 +2,7 @@ import {
     type AgCandlestickSeriesItemOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesItemType,
+    type ChartRegistry,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -17,6 +18,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
+    type DynamicContext,
     Logger,
     type Mutable,
     type Point,
@@ -224,7 +226,7 @@ export abstract class OhlcSeriesBase<
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],

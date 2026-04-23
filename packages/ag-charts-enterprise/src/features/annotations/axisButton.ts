@@ -1,5 +1,12 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection, type Point, Property, getIconClassNames } from 'ag-charts-core';
+import { type AxisContext, type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
+import {
+    AbstractModuleInstance,
+    ChartAxisDirection,
+    type DynamicContext,
+    type Point,
+    Property,
+    getIconClassNames,
+} from 'ag-charts-core';
 
 import { convert, invert } from './utils/values';
 
@@ -16,8 +23,8 @@ export class AxisButton extends AbstractModuleInstance {
     private coords?: Point;
 
     constructor(
-        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
-        private readonly axisCtx: _ModuleSupport.AxisContext & { snapToGroup: boolean },
+        private readonly ctx: DynamicContext<ChartRegistry>,
+        private readonly axisCtx: AxisContext & { snapToGroup: boolean },
         private readonly onButtonClick: (coords?: Point) => void,
         private seriesRect: _ModuleSupport.BBox
     ) {

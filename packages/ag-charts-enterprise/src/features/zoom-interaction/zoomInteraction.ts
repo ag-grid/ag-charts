@@ -1,5 +1,5 @@
-import type { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartAxisDirection } from 'ag-charts-core';
+import type { ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { AbstractModuleInstance, ChartAxisDirection, type DynamicContext } from 'ag-charts-core';
 
 import { ZoomWheelSequencer, type ZoomWheelSequencerCbResult } from './zoomWheelSequencer';
 
@@ -8,7 +8,7 @@ const processorPriority = ['zoom', 'scrollbar'] as const;
 export class ZoomInteraction extends AbstractModuleInstance {
     private readonly wheelSequencer = new ZoomWheelSequencer();
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.cleanup.register(

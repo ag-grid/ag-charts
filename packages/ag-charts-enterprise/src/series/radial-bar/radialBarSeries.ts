@@ -2,12 +2,14 @@ import {
     type AgRadialBarSeriesOptions,
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
+    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     angleBetween,
     isDefined,
@@ -102,7 +104,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private contextNodeData?: RadialBarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'radiusValue',

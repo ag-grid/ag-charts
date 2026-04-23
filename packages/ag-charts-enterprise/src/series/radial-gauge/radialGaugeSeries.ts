@@ -4,6 +4,7 @@ import {
     type AgRadialGaugeOptions,
     type AgRadialGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
+    type ChartRegistry,
     type FontStyle,
     type FontWeight,
     type TextAlign,
@@ -13,6 +14,7 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
+    type DynamicContext,
     type Point,
     StateMachine,
     isBetweenAngles,
@@ -217,7 +219,7 @@ export class RadialGaugeSeries
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],

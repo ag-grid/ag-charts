@@ -4,9 +4,10 @@ import {
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
+    type ChartRegistry,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired, Mutable } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -117,7 +118,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],

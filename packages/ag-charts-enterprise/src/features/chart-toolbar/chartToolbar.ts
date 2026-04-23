@@ -1,5 +1,10 @@
-import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ActionOnSet, Logger, Property } from 'ag-charts-core';
+import {
+    type AgFinancialChartOptions,
+    type AgPriceVolumeChartType,
+    type ChartRegistry,
+    _ModuleSupport,
+} from 'ag-charts-community';
+import { AbstractModuleInstance, ActionOnSet, type DynamicContext, Logger, Property } from 'ag-charts-core';
 
 import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
@@ -28,7 +33,7 @@ export class ChartToolbar extends AbstractModuleInstance {
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
     private menuShowing = false;
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('chartToolbar');

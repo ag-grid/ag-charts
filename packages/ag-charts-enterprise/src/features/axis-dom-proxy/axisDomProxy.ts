@@ -1,5 +1,5 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
+import { type AxisContext, type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { AbstractModuleInstance, type AxisID, ChartAxisDirection, type DynamicContext, boxEmpty } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -33,7 +33,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private seriesRect: _ModuleSupport.BBox | undefined;
 
-    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         if (ctx.widgets.seriesDragInterpreter) {
@@ -358,12 +358,12 @@ export class AxisDOMProxy extends AbstractModuleInstance {
         return { axisId, div, direction };
     }
 
-    private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {
+    private diffAxisIds(axesCtx: AxisContext[]) {
         const currentIds = this.axes.map((entry) => entry.axisId);
         const ctxIds = axesCtx.map((ctx) => ctx.axisId);
 
         const removed: string[] = currentIds.filter((id) => !ctxIds.includes(id));
-        const added: _ModuleSupport.AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
+        const added: AxisContext[] = axesCtx.filter((ac) => !currentIds.includes(ac.axisId));
 
         return { removed, added };
     }

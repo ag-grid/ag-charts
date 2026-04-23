@@ -3,6 +3,7 @@ import type {
     AgHeatmapSeriesLabelFormatterParams,
     AgHeatmapSeriesOptions,
     AgHeatmapSeriesStyle,
+    ChartRegistry,
     FontStyle,
     FontWeight,
     TextAlign,
@@ -14,6 +15,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type InternalAgColorType,
     Logger,
     type Mutable,
@@ -153,7 +155,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     readonly colorScale = new ColorScale();
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: {

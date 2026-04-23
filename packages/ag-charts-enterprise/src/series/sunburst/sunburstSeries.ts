@@ -1,11 +1,13 @@
 import {
     type AgSunburstHighlightState,
     type AgSunburstSeriesLabelFormatterParams,
+    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    type DynamicContext,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
@@ -131,7 +133,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         Sector
     );
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx);
 
         this.sectorLabelGroup.pointerEvents = PointerEvents.None;

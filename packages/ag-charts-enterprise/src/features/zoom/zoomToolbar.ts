@@ -1,5 +1,11 @@
-import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import {
+    type AgZoomAnchorPoint,
+    type AgZoomButtonValue,
+    type ChartRegistry,
+    _ModuleSupport,
+    _Widget,
+} from 'ag-charts-community';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, DynamicContext, ZoomMinMax } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -88,7 +94,7 @@ export class ZoomToolbar extends BaseProperties {
     private previousZoom?: DefinedZoomState;
 
     constructor(
-        private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>,
+        private readonly ctx: DynamicContext<ChartRegistry>,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (

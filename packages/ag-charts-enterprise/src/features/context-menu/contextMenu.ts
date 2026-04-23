@@ -4,10 +4,12 @@ import type {
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
+    ChartRegistry,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type DynamicContext,
     Logger,
     Property,
     callWithContext,
@@ -79,7 +81,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
-    constructor(readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         // Module context

@@ -1,5 +1,6 @@
 import type {
     AgAnnotationLineStyleType,
+    ChartRegistry,
     FontStyle,
     FontWeight,
     Formatter,
@@ -7,7 +8,7 @@ import type {
     TextAlign,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, FONT_SIZE, Property, generateUUID } from 'ag-charts-core';
+import { BaseProperties, type DynamicContext, FONT_SIZE, Property, generateUUID } from 'ag-charts-core';
 
 import type {
     AnnotationOptionsColorPickerType,
@@ -196,9 +197,9 @@ function Writeable<T extends Constructor>(Parent: T) {
 
 export function Localisable<T extends Constructor>(Parent: T) {
     class LocalisableInternal extends Parent {
-        localeManager?: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager'];
+        localeManager?: DynamicContext<ChartRegistry>['localeManager'];
 
-        setLocaleManager(localeManager: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']) {
+        setLocaleManager(localeManager: DynamicContext<ChartRegistry>['localeManager']) {
             this.localeManager ??= localeManager;
         }
     }

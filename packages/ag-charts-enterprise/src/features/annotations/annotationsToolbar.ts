@@ -1,10 +1,11 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     ActionOnSet,
     BaseProperties,
     type BoxBounds,
     ChartAxisDirection,
     CleanupRegistry,
+    type DynamicContext,
     EventEmitter,
     PropertiesArray,
     Property,
@@ -83,7 +84,7 @@ export class AnnotationsToolbar extends BaseProperties {
     private readonly cleanup = new CleanupRegistry();
     private readonly menuMargin: number = 6;
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');

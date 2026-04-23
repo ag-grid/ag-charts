@@ -1,6 +1,13 @@
-import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type ChartRegistry,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    type DynamicContext,
     Logger,
     type RequireOptional,
     angleBetween,
@@ -86,7 +93,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     override properties = new ChordSeriesProperties();
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],

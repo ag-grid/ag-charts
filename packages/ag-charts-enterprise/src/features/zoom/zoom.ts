@@ -1,9 +1,10 @@
-import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
 import type {
     AxisID,
     BaseStyleTypeMap,
     CartesianAxisDirection,
     DefinedZoomState,
+    DynamicContext,
     NormalisedZoomOptions,
     ZoomMinMax,
 } from 'ag-charts-core';
@@ -97,7 +98,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
-    constructor(private readonly ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         const self = this;

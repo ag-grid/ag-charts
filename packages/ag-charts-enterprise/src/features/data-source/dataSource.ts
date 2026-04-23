@@ -1,5 +1,5 @@
-import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ActionOnSet, Property } from 'ag-charts-core';
+import type { ChartRegistry } from 'ag-charts-community';
+import { AbstractModuleInstance, ActionOnSet, type DynamicContext, Property } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 export class DataSource extends AbstractModuleInstance {
@@ -40,9 +40,9 @@ export class DataSource extends AbstractModuleInstance {
     })
     public updateDuringInteraction?: boolean;
 
-    private readonly dataService: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>['dataService'];
+    private readonly dataService: DynamicContext<ChartRegistry>['dataService'];
 
-    constructor(ctx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(ctx: DynamicContext<ChartRegistry>) {
         super();
         this.dataService = ctx.dataService;
 

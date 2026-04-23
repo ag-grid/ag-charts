@@ -1,10 +1,11 @@
 import {
     type AgFunnelSeriesLabelFormatterParams,
     type AgFunnelSeriesStyle,
+    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, Point, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -140,7 +141,7 @@ export abstract class BaseFunnelSeries<
         moduleCtx,
         animationResetFns,
     }: {
-        moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>;
+        moduleCtx: DynamicContext<ChartRegistry>;
         animationResetFns: {
             datum: (
                 node: _ModuleSupport.NodeOf<TTypes>,

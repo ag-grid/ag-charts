@@ -1,5 +1,12 @@
-import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
-import type { CallbackParamRules, Feature, FeatureCollection, Geometry, PlacedLabel } from 'ag-charts-core';
+import { type AgMapLineSeriesStyle, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import type {
+    CallbackParamRules,
+    DynamicContext,
+    Feature,
+    FeatureCollection,
+    Geometry,
+    PlacedLabel,
+} from 'ag-charts-core';
 import {
     type ITextMeasurer,
     Logger,
@@ -106,7 +113,7 @@ export class MapLineSeries
 
     public contextNodeData?: MapLineNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,
