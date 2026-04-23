@@ -934,7 +934,7 @@ export class SankeySeries extends FlowProportionSeries<
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const selectionStyle = this.getSelectionStyle( datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             highlightStyle,
             selectionStyle,
