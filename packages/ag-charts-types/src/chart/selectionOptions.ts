@@ -2,7 +2,7 @@ export type AgSelectionClickMode = 'single' | 'multiple';
 
 export type AgSelectionContainment = 'any' | 'all';
 
-export interface AgSelectionOptions {
+export interface AgChartSelectionOptions {
     /**
      * Set to `true` to enable the data-selection module.
      *
