@@ -1,7 +1,9 @@
 import {
     type OptionsDefs,
+    arrayOf,
     boolean,
     callbackDefs,
+    color,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -65,3 +67,10 @@ export const scatterSeriesOptionsDef: OptionsDefs<AgScatterSeriesOptions> = {
 
 // @ts-expect-error undocumented option
 scatterSeriesOptionsDef.selectedKey = undocumented(string);
+
+// Undocumented `colorRange` — mirrors BubbleSeries (ScatterSeries extends BubbleSeries and
+// shares its colour-scale code path). See BubbleSeriesProperties.colorRange for the rationale.
+// @ts-expect-error undocumented option
+scatterSeriesThemeableOptionsDef.colorRange = enterprise(undocumented(arrayOf(color)));
+// @ts-expect-error undocumented option
+scatterSeriesOptionsDef.colorRange = enterprise(undocumented(arrayOf(color)));

@@ -318,7 +318,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             const domain = extent(rawDomain);
 
             if (domain != null) {
-                configureColorScale(this.colorScale, this.properties.colorScale, domain, []);
+                // `colorRange` is the palette-bound fallback used when `colorScale.fills` is
+                // empty — see BubbleSeriesProperties.colorRange for why this can't live inside
+                // the `colorScale` sub-tree.
+                configureColorScale(this.colorScale, this.properties.colorScale, domain, this.properties.colorRange);
                 this.colorScaleValid = true;
             }
         }
