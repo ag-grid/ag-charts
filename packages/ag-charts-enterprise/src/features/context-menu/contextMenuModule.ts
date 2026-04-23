@@ -8,7 +8,7 @@ import {
     undocumented,
 } from 'ag-charts-core';
 
-import { ContextMenu } from './contextMenu';
+import { ContextMenu, type ContextMenuCtx } from './contextMenu';
 
 export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, ChartRegistry> = {
     type: 'plugin',
@@ -26,7 +26,9 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, Cha
         darkTheme: IS_DARK_THEME,
     },
 
-    create: (ctx) => new ContextMenu(ctx),
+    // `register()` runs first and guarantees `contextMenuRegistry` is present, so we
+    // narrow the ctx type to ContextMenuCtx at the boundary and avoid `!` assertions.
+    create: (ctx) => new ContextMenu(ctx as ContextMenuCtx),
     register: (ctx) => {
         if (ctx.has('contextMenuRegistry')) return;
         ctx.service('contextMenuRegistry', (c) => new _ModuleSupport.ContextMenuRegistry(c));

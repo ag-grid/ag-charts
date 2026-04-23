@@ -64,6 +64,13 @@ type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
 
 const DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
 
+// `zoomManager` is optional on ChartRegistry, but the zoom module registers it in
+// its own `register()` hook, so it is guaranteed present whenever Zoom is
+// instantiated. Narrow once here rather than asserting `!` at every call site.
+export type ZoomCtx = Omit<DynamicContext<ChartRegistry>, 'zoomManager'> & {
+    readonly zoomManager: _ModuleSupport.ZoomManager;
+};
+
 export class Zoom extends AbstractModuleInstance {
     private get opts(): ZoomOpts {
         return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
@@ -98,7 +105,7 @@ export class Zoom extends AbstractModuleInstance {
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: ZoomCtx) {
         super();
 
         const self = this;
@@ -118,7 +125,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx.eventsHub,
             ctx.contextMenuRegistry,
             ctx.chartState,
-            ctx.zoomManager!,
+            ctx.zoomManager,
             this.getModuleProperties.bind(this),
             () => this.paddedRect,
             this.updateZoom.bind(this),
@@ -136,7 +143,7 @@ export class Zoom extends AbstractModuleInstance {
         new ZoomOnDataChange({
             chartState: ctx.chartState,
             eventsHub: ctx.eventsHub,
-            zoomManager: ctx.zoomManager!,
+            zoomManager: ctx.zoomManager,
             axisManager: ctx.axisManager,
             cleanup: this.cleanup,
             onConstrainChanges: minVisibleItemsCallback,
@@ -181,7 +188,7 @@ export class Zoom extends AbstractModuleInstance {
 
         // Init last, because we want `autoScaling` to be the last listener for `zoom:change-event` events:
         this.autoScaler = new ZoomAutoScaler({
-            zoomManager: ctx.zoomManager!,
+            zoomManager: ctx.zoomManager,
             eventsHub: ctx.eventsHub,
             chartState: ctx.chartState,
             cleanup: this.cleanup,
@@ -206,7 +213,7 @@ export class Zoom extends AbstractModuleInstance {
                 const opts = get('options', 'zoom');
                 if (opts == null) return;
 
-                ctx.zoomManager!.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
+                ctx.zoomManager.setIndependentAxes(Boolean((opts as ZoomOpts).enableIndependentAxes));
                 this.panner.deceleration = opts.deceleration;
 
                 // ZoomToolbar still uses @Property/@ActionOnSet — sync options via set()
@@ -223,13 +230,13 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private teardown() {
-        this.ctx.zoomManager!.setZoomModuleEnabled(false);
+        this.ctx.zoomManager.setZoomModuleEnabled(false);
         this.buttons.destroy();
         this.destroyContextMenuActions?.();
     }
 
     private onEnabledChange(enabled: boolean) {
-        this.ctx.zoomManager!.setZoomModuleEnabled(enabled);
+        this.ctx.zoomManager.setZoomModuleEnabled(enabled);
         this.destroyContextMenuActions?.();
         this.destroyContextMenuActions = this.contextMenu.registerActions(enabled);
     }
@@ -268,7 +275,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { domManager },
             ctx,
         } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (
             !enabled ||
@@ -444,7 +451,7 @@ export class Zoom extends AbstractModuleInstance {
     private onAxisDoubleClick(id: AxisID) {
         const { enabled, enableDoubleClickToReset } = this.opts;
         const { ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
@@ -455,7 +462,7 @@ export class Zoom extends AbstractModuleInstance {
     private onAxisDragStart(direction: ChartAxisDirection) {
         const { axisDraggingMode, enabled, enableAxisDragging } = this.opts;
         const { panner, ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
         if (!enabled || !enableAxisDragging) return;
 
         panner.stopInteractions();
@@ -496,7 +503,7 @@ export class Zoom extends AbstractModuleInstance {
         } else {
             let anchor = direction === ChartAxisDirection.X ? anchorPointX : anchorPointY;
             if (shouldFlipXY) anchor = direction === ChartAxisDirection.X ? anchorPointY : anchorPointX;
-            const axisZoom = this.ctx.zoomManager!.getAxisZoom(axisId);
+            const axisZoom = this.ctx.zoomManager.getAxisZoom(axisId);
             const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
             this.autoScaler.onManualAdjustment(direction);
             this.updateAxisZoom(
@@ -601,7 +608,7 @@ export class Zoom extends AbstractModuleInstance {
     private onWheelPanning(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
         const { scrollingStep, scrollingMode = 'zoom' } = this.opts;
         const { scrollPanner, seriesRect, ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (!seriesRect) {
             baseEvent.abort();
@@ -667,7 +674,7 @@ export class Zoom extends AbstractModuleInstance {
         props: ZoomProperties = this.getModuleProperties()
     ) {
         const { scroller, seriesRect, ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (!seriesRect) {
             baseEvent.abort();
@@ -765,7 +772,7 @@ export class Zoom extends AbstractModuleInstance {
             ctx: { tooltipManager, interactionManager },
             ctx,
         } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (!seriesRect) return;
 
@@ -800,7 +807,7 @@ export class Zoom extends AbstractModuleInstance {
     }
 
     private constrainZoom(newZoom: DefinedZoomState) {
-        return this.ctx.zoomManager!.constrainZoomToItemCount(
+        return this.ctx.zoomManager.constrainZoomToItemCount(
             newZoom,
             this.opts.minVisibleItems,
             this.autoScaler.enabled
@@ -814,7 +821,7 @@ export class Zoom extends AbstractModuleInstance {
     ) {
         const { minVisibleItems } = this.opts;
         const { ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (minVisibleItems === 0) {
             this.previousZoomValid = true;
@@ -859,7 +866,7 @@ export class Zoom extends AbstractModuleInstance {
     ) {
         const { minVisibleItems } = this.opts;
         const { ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         const zoom = this.getZoom();
 
@@ -888,7 +895,7 @@ export class Zoom extends AbstractModuleInstance {
     private resetZoom(sourceDetail: _ModuleSupport.ZoomEventSourceDetail) {
         this.previousZoomValid = true;
         this.previousAxisZoomValid = { [ChartAxisDirection.X]: true, [ChartAxisDirection.Y]: true };
-        this.ctx.zoomManager!.resetZoom({ source: 'user-interaction', sourceDetail });
+        this.ctx.zoomManager.resetZoom({ source: 'user-interaction', sourceDetail });
     }
 
     public updateSyncZoom(zoom: DefinedZoomState) {
@@ -931,7 +938,7 @@ export class Zoom extends AbstractModuleInstance {
             return false;
         }
 
-        this.ctx.zoomManager!.updateZoom(sourcing, zoom);
+        this.ctx.zoomManager.updateZoom(sourcing, zoom);
         return true;
     }
 
@@ -945,7 +952,7 @@ export class Zoom extends AbstractModuleInstance {
         zoom: DefinedZoomState,
         direction: CartesianAxisDirection
     ) {
-        const axisId = this.ctx.zoomManager!.getPrimaryAxisId(direction);
+        const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
         if (axisId == null) return;
         this.updateAxisZoom(sourcing, axisId, direction, zoom[direction]);
     }
@@ -959,7 +966,7 @@ export class Zoom extends AbstractModuleInstance {
     ) {
         const { enableIndependentAxes } = this.opts;
         const { ctx } = this;
-        const zoomManager = ctx.zoomManager!;
+        const zoomManager = ctx.zoomManager;
 
         if (!axisZoom) return false;
 

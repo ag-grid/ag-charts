@@ -36,6 +36,13 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
+// `contextMenuRegistry` is optional on ChartRegistry, but the context-menu module
+// registers it in its own `register()` hook, so it is guaranteed present whenever
+// ContextMenu is instantiated. Narrow once here rather than asserting `!`.
+export type ContextMenuCtx = Omit<DynamicContext<ChartRegistry>, 'contextMenuRegistry'> & {
+    readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
+};
+
 const DATUM_KEYS = [
     'angleKey',
     'calloutLabelKey',
@@ -81,7 +88,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
-    constructor(readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(readonly ctx: ContextMenuCtx) {
         super();
 
         // Module context
@@ -118,7 +125,7 @@ export class ContextMenu extends AbstractModuleInstance {
             this.cleanup.register(() => observer.disconnect());
         }
 
-        this.ctx.contextMenuRegistry!.builtins.items['download'].action = () => {
+        this.ctx.contextMenuRegistry.builtins.items['download'].action = () => {
             const title = ctx.chartService.title;
             let fileName = 'image';
             if (title?.enabled) {
@@ -135,7 +142,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private makeGetItemsParams(event: ContextMenuEvent): AgContextMenuGetItemsParams {
         const { showOn } = event;
         const { context } = this.ctx.chartService; // TODO: callWithContext
-        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, this.items, this.ctx.contextMenuRegistry!);
+        const defaultItems: AgContextMenuItem[] = expandBuiltinLists(showOn, this.items, this.ctx.contextMenuRegistry);
         switch (showOn) {
             case 'always':
             case 'series-area':
@@ -181,7 +188,7 @@ export class ContextMenu extends AbstractModuleInstance {
         }
         items ??= this.items;
 
-        expandItems(event.showOn, this.ctx.contextMenuRegistry!, items, result);
+        expandItems(event.showOn, this.ctx.contextMenuRegistry, items, result);
 
         return result;
     }

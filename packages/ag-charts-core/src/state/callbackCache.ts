@@ -88,4 +88,8 @@ export class CallbackCache {
     invalidateCache() {
         this.cache = new WeakMap();
     }
+
+    destroy(): void {
+        this.invalidateCache();
+    }
 }
