@@ -196,6 +196,7 @@ export class Tooltip extends BaseProperties {
     }
 
     private localeManager: LocaleManager | undefined = undefined;
+    private domManager: DOMManager | undefined = undefined;
     setup(localeManager: LocaleManager, domManager: DOMManager) {
         this.elementProxy = domManager.addDeferredProxyChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
         this.elementProxy.toggleClass(DEFAULT_TOOLTIP_CLASS, true);
@@ -207,6 +208,7 @@ export class Tooltip extends BaseProperties {
             this.updateTooltipPosition();
         });
         this.localeManager = localeManager;
+        this.domManager = domManager;
 
         return () => {
             domManager.removeChild('tooltip-container', DEFAULT_TOOLTIP_CLASS);
@@ -228,7 +230,14 @@ export class Tooltip extends BaseProperties {
         if (elementProxy == null || elementSize == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
-        const { x: canvasX, y: canvasY } = this.springAnimation;
+        // The tooltip is promoted to the top layer via the Popover API, so its containing block
+        // is the viewport and `elementSize` / `canvasRect` / `relativeRect` are all in screen
+        // pixels regardless of ancestor transforms. `springAnimation` holds a chart-logical
+        // coordinate, so convert it to screen pixels before feeding it into placement math that
+        // mixes it with the other screen-space inputs. At scale == 1 this is a no-op.
+        const scale = this.domManager?.getCanvasScale() ?? { x: 1, y: 1 };
+        const canvasX = this.springAnimation.x * scale.x;
+        const canvasY = this.springAnimation.y * scale.y;
 
         const anchorTo = meta.position?.anchorTo ?? 'pointer';
         let placements = meta.position?.placement ?? defaultPlacements[anchorTo];

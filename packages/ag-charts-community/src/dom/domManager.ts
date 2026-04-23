@@ -498,6 +498,30 @@ export class DOMManager extends BaseManager {
     }
 
     /**
+     * Ancestor CSS transform scale applied to the canvas, as reflected by the ratio between
+     * `getBoundingClientRect()` (transform-aware) and `clientWidth`/`clientHeight` (preserved
+     * through ancestor transforms). Multiply a chart-logical coordinate by these factors to
+     * convert it to screen pixels; divide a screen-space length to convert back.
+     *
+     * Reads the element fresh rather than using the cached rect: ancestor transform changes
+     * do not fire the resize/scroll listeners that invalidate `_cachedCanvasRect`, so the
+     * cache can be arbitrarily stale with respect to the live transform. Callers of this are
+     * infrequent (tooltip/popover positioning) and the cost of one `getBoundingClientRect()`
+     * plus two property reads is negligible.
+     *
+     * Returns `{ x: 1, y: 1 }` when there is no ancestor transform.
+     */
+    getCanvasScale(): { x: number; y: number } {
+        const el = this.rootElements['canvas'].element;
+        const rect = el.getBoundingClientRect();
+        const { clientWidth, clientHeight } = el;
+        return {
+            x: clientWidth > 0 && rect.width > 0 ? rect.width / clientWidth : 1,
+            y: clientHeight > 0 && rect.height > 0 ? rect.height / clientHeight : 1,
+        };
+    }
+
+    /**
      * Get the client bounding rect for overlay elements that might float outside the bounds of the
      * main chart area.
      */
