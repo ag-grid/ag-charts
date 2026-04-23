@@ -2,14 +2,14 @@ import {
     AgCharts,
     AgPolarChartOptions,
     AnimationModule,
-    ContextMenuModule,
     ModuleRegistry,
     PieSeriesModule,
+    SelectionModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AnimationModule, PieSeriesModule]);
+ModuleRegistry.registerModules([AnimationModule, PieSeriesModule, SelectionModule]);
 const currencyFormatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -72,7 +72,7 @@ const options: AgPolarChartOptions = {
                 },
             },
             selection: {
-                selectionOffset: 15,
+                selectedOffset: 15,
             },
         },
     ],
