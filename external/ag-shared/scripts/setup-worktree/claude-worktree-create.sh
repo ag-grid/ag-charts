@@ -71,12 +71,35 @@ else
     git -C "$CWD" worktree add "$WT_PATH" -b "$NAME" origin/latest >&2
 fi
 
-# Run yarn install — preinstall-worktree.sh handles symlink fixes and COW cloning.
+# Set up the worktree. Strategy:
+#   1. Run preinstall-worktree.sh directly — it fixes external symlinks and
+#      COW-clones node_modules, .nx cache, and plugins/*/dist. On success it
+#      writes node_modules/.ag-worktree-fast-path-ok.
+#   2. If the marker exists → skip yarn install entirely and run only the
+#      essential post-install steps (git hooks, prompts).
+#   3. If the marker is missing → fall back to full `yarn install` with the
+#      preinstall guard set so we don't duplicate the COW work.
 export ROOT_WORKTREE_PATH="$CWD"
 export AG_SKIP_NATIVE_DEP_VERSION_CHECK=1
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 if [[ -f "$WT_PATH/package.json" ]]; then
-    log "Running yarn install (preinstall hook handles worktree setup)..."
-    (cd "$WT_PATH" && yarn install --prefer-offline 2>&1 | tail -20) >&2
+    log "Running preinstall (COW clone + symlink fix)..."
+    (cd "$WT_PATH" && bash "$SCRIPT_DIR/preinstall-worktree.sh" 2>&1 | while IFS= read -r line; do log "$line"; done) || true
+
+    if [[ -f "$WT_PATH/node_modules/.ag-worktree-fast-path-ok" ]]; then
+        log "Fast path: skipping yarn install, running minimal post-setup..."
+        # Git hooks — set up on the worktree's shared .git dir (cheap, idempotent).
+        (cd "$WT_PATH" && ./external/ag-shared/scripts/git-hooks/setup-hooks.sh 2>&1 | while IFS= read -r line; do log "$line"; done) || log "WARNING: git hooks setup failed"
+        # Prompts — stage rulesync content for non-Claude tools.
+        (cd "$WT_PATH" && AG_DEV_PROMPTS_REF=canary ./external/ag-shared/scripts/setup-prompts/setup-prompts.sh --postinstall 2>&1 | while IFS= read -r line; do log "$line"; done) || log "WARNING: setup-prompts failed"
+    else
+        log "Slow path: running yarn install --offline --frozen-lockfile..."
+        # AG_PREINSTALL_ACTIVE=1 prevents yarn's preinstall hook from
+        # re-running the COW work we just completed.
+        (cd "$WT_PATH" && AG_PREINSTALL_ACTIVE=1 yarn install --offline --frozen-lockfile 2>&1 | tail -20) >&2 || \
+            (cd "$WT_PATH" && AG_PREINSTALL_ACTIVE=1 yarn install --prefer-offline 2>&1 | tail -20) >&2
+    fi
 fi
 
 log "Worktree ready at: ${WT_PATH}"
