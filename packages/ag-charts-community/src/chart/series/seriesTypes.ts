@@ -3,7 +3,6 @@ import type {
     BoxBounds,
     ChartAxisDirection,
     DomainWithMetadata,
-    EventEmitter,
     PlacedLabel,
     Point,
     PointLabelDatum,
@@ -14,7 +13,6 @@ import type { AgActiveItemState } from 'ag-charts-types';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
-import type { DataModel, ProcessedData } from '../data/dataModel';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
@@ -36,17 +34,6 @@ export type SeriesNodeEventTypes =
     | 'groupingChanged'
     | 'seriesNodeClick'
     | 'seriesNodeDoubleClick';
-
-export interface SeriesDataEvent {
-    readonly dataModel: DataModel<any, any, any>;
-    readonly processedData: ProcessedData<any>;
-}
-
-export type ISeriesEventsMaps = {
-    'data-update': SeriesDataEvent;
-    'data-processed': SeriesDataEvent;
-    'data-selection-change': null;
-};
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -77,7 +64,7 @@ export interface ISeries<
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
     properties: TProps;
-    readonly events: EventEmitter<ISeriesEventsMaps>;
+    events: { emit: (type: 'data-selection-change', event: null) => void };
     hasEventListener(type: string): boolean;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;

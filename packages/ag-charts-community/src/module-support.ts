@@ -171,6 +171,7 @@ export type {
     SeriesNodeDataContext,
     SeriesNodePickMatch,
     SeriesNodeStyleContext,
+    SeriesDataEvent,
     UnknownSeries,
 } from './chart/series/series';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
@@ -193,7 +194,6 @@ export type {
     ISeriesProperties,
     ItemId,
     SeriesNodeDatum,
-    SeriesDataEvent,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
