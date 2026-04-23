@@ -101,6 +101,33 @@ describe('BaseProperties', () => {
         expect(instance.prop2).toBeUndefined();
         expect(instance.nested.nestedValue).toBeUndefined();
     });
+
+    it('AG-16048 should clear a nested PropertiesArray without throwing when set(null) is called', () => {
+        // Regression: BaseProperties.clear() walks every decorated field where isProperties(value)
+        // returns true — which includes PropertiesArray. Prior to AG-16048 pt4 follow-up, clear()
+        // threw `TypeError: currentValue.clear is not a function` when reaching an array-typed
+        // child. This happens whenever a parent property is set to null (e.g. when the enterprise()
+        // validator strips a community-supplied colorScale in ag-charts-community bundles).
+        class Item extends BaseProperties<{ value: string }> {
+            @Property
+            value!: string;
+        }
+        class Container extends BaseProperties<{ items: { value: string }[] }> {
+            @Property
+            items = new PropertiesArray(Item);
+        }
+        class Parent extends BaseProperties<{ container: { items: { value: string }[] } }> {
+            @Property
+            container = new Container();
+        }
+
+        const instance = new Parent();
+        instance.container.set({ items: [{ value: 'a' }, { value: 'b' }] });
+        expect(instance.container.items).toHaveLength(2);
+
+        expect(() => instance.set({ container: null as any })).not.toThrow();
+        expect(instance.container.items).toHaveLength(0);
+    });
 });
 
 describe('PropertiesArray', () => {
