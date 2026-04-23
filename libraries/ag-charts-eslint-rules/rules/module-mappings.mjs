@@ -411,6 +411,7 @@ export const bundleContents = new Map([
             'NavigatorModule',
             'RangesModule',
             'ScrollbarModule',
+            'SelectionModule',
             'StatusBarModule',
             'SyncModule',
             'ZoomModule',
