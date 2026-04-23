@@ -35,9 +35,20 @@ env:
 jobs:
     review:
         runs-on: ubuntu-latest
+        # Top-level gating — keeps the runner from spinning up at all for
+        # events that would only short-circuit at a step-level `if:`:
+        # - pull_request: same-repo, non-draft (forks also blocked inside
+        #   pr-resolve-metadata as a second line of defence).
+        # - issue_comment: must be on a PR AND start with /pr-review.
+        # - workflow_dispatch: always eligible (caller has actions:write).
         if: |
-            github.event_name != 'pull_request' ||
-            github.event.pull_request.draft == false
+            (github.event_name == 'pull_request' &&
+                github.event.pull_request.draft == false &&
+                github.event.pull_request.head.repo.full_name == github.repository) ||
+            github.event_name == 'workflow_dispatch' ||
+            (github.event_name == 'issue_comment' &&
+                github.event.issue.pull_request != null &&
+                startsWith(github.event.comment.body, '/pr-review'))
         permissions:
             contents: read
             pull-requests: write
