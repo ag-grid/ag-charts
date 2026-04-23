@@ -3,6 +3,14 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { AbstractModuleInstance, ChartUpdateType, Logger, type NormalisedSelectionOptions } from 'ag-charts-core';
 
 import {
+    SELECTION_FILLOPACITY,
+    SELECTION_FILL_VALID,
+    SELECTION_LINEDASH,
+    SELECTION_STROKE,
+    SELECTION_STROKEOPACITY,
+    SELECTION_STROKEWIDTH,
+} from './dataSelectionConstants';
+import {
     type BufferMap,
     copySelectionBuffers,
     diffSelectionBuffers,
@@ -25,11 +33,12 @@ export class DataSelection extends AbstractModuleInstance {
         super();
 
         this.dragRect = new _ModuleSupport.Rect();
-        this.dragRect.fill = 'rgba(140,140,255)';
-        this.dragRect.opacity = 0.2;
-        this.dragRect.stroke = '#3b82f6';
-        this.dragRect.strokeWidth = 2;
-        this.dragRect.strokeOpacity = 1;
+        this.dragRect.fill = SELECTION_FILL_VALID;
+        this.dragRect.fillOpacity = SELECTION_FILLOPACITY;
+        this.dragRect.stroke = SELECTION_STROKE;
+        this.dragRect.strokeWidth = SELECTION_STROKEWIDTH;
+        this.dragRect.strokeOpacity = SELECTION_STROKEOPACITY;
+        this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
         this.cleanup.register(
