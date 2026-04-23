@@ -9,7 +9,7 @@ import { BBox } from '../../../scene/bbox';
 import type { Rect } from '../../../scene/shape/rect';
 import { Transformable } from '../../../scene/transformable';
 import type { ChartAxis } from '../../chartAxis';
-import type { DatumIndexType, ISeries } from '../seriesTypes';
+import type { DatumIndexType, ISeries, ISeriesProperties } from '../seriesTypes';
 
 export function checkCrisp(
     scale: Scale<any, any> | undefined,
@@ -260,7 +260,7 @@ export function resetBarSelectionsDirect<D extends AnimatableBarDatum & { crisp?
 }
 
 export function computeBarFocusBounds(
-    series: ISeries<DatumIndexType, unknown, unknown>,
+    series: ISeries<DatumIndexType, unknown, ISeriesProperties>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;

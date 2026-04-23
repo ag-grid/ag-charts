@@ -12,6 +12,7 @@ import type {
     AgImageFill,
     AgLineHighlightStyleOptions,
     AgPatternColor,
+    AgSelectionContainment,
     AgSeriesLineSegmentOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
@@ -44,6 +45,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    strictUnion,
     string,
     stringLength,
     typeUnion,
@@ -313,6 +315,7 @@ export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
 export function selectionOptionsDef() {
     return {
         enabled: boolean,
+        containment: strictUnion<AgSelectionContainment>()('any', 'all'),
     };
 }
 

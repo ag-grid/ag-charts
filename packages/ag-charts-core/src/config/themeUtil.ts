@@ -412,6 +412,7 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
 
 export const SERIES_SELECTION_THEME: WithThemeParams<AgSeriesSelectionOptions> = {
     enabled: { $path: ['/selection/enabled', false] },
+    containment: { $path: '/selection/containment' },
 };
 
 export const LEGEND_CONTAINER_THEME: any = {

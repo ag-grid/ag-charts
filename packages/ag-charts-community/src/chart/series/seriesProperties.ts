@@ -14,6 +14,7 @@ import type {
     AgGradientType,
     AgImageFillFit,
     AgPatternName,
+    AgSelectionContainment,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
     CssColor,
@@ -148,6 +149,9 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
 export class SeriesSelectionProperties extends BaseProperties {
     @Property
     enabled = false;
+
+    @Property
+    containment: AgSelectionContainment = 'any';
 }
 
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {

@@ -2,13 +2,20 @@ import type { ChartRegistry, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
-    type AreExact,
     ChartUpdateType,
     type DynamicContext,
     Logger,
     type NormalisedSelectionOptions,
 } from 'ag-charts-core';
 
+import {
+    SELECTION_FILLOPACITY,
+    SELECTION_FILL_VALID,
+    SELECTION_LINEDASH,
+    SELECTION_STROKE,
+    SELECTION_STROKEOPACITY,
+    SELECTION_STROKEWIDTH,
+} from './dataSelectionConstants';
 import {
     type BufferMap,
     copySelectionBuffers,
@@ -32,11 +39,12 @@ export class DataSelection extends AbstractModuleInstance {
         super();
 
         this.dragRect = new _ModuleSupport.Rect();
-        this.dragRect.fill = 'rgba(140,140,255)';
-        this.dragRect.opacity = 0.2;
-        this.dragRect.stroke = '#3b82f6';
-        this.dragRect.strokeWidth = 2;
-        this.dragRect.strokeOpacity = 1;
+        this.dragRect.fill = SELECTION_FILL_VALID;
+        this.dragRect.fillOpacity = SELECTION_FILLOPACITY;
+        this.dragRect.stroke = SELECTION_STROKE;
+        this.dragRect.strokeWidth = SELECTION_STROKEWIDTH;
+        this.dragRect.strokeOpacity = SELECTION_STROKEOPACITY;
+        this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
         this.cleanup.register(
@@ -57,7 +65,7 @@ export class DataSelection extends AbstractModuleInstance {
         if (type !== 'click') return;
 
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
-        if (clickedNode === undefined || !(clickedNode.series.properties.selection.enabled as boolean)) {
+        if (clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean)) {
             this.clearAllSelections();
         } else {
             const { data } = clickedNode.series;
@@ -122,6 +130,10 @@ export class DataSelection extends AbstractModuleInstance {
         }
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+        if (shouldClearSelections) {
+            this.clearAllSelections();
+        }
+
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
 
@@ -131,24 +143,12 @@ export class DataSelection extends AbstractModuleInstance {
             const { data } = series;
             if (data === undefined) continue;
 
-            if (shouldClearSelections) {
-                data.selections.clear();
-            }
-
-            for (const unsafeDatum of series.pickNodesInBBox(bbox)) {
-                // TODO:
-                // The value this.ctx.chartService.series uses `TDatum = any`, therefore `pickNodesInBBox`
-                // is not type-safe. These runtime checks become irrelevant if `pickNodesInBBox` were type-safe;
-                // Therefore verify that unsafeDatum is of type `any`.
-                true satisfies AreExact<typeof unsafeDatum, any>;
-                const unknownDatum: unknown = unsafeDatum;
-                if (unknownDatum != null && typeof unknownDatum === 'object' && 'datumIndex' in unknownDatum) {
-                    const datumIndex: unknown = unknownDatum.datumIndex;
-                    if (typeof datumIndex === 'number') {
-                        setSelected(series, data, datumIndex);
-                    } else {
-                        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
-                    }
+            for (const datum of series.pickNodesInBBox(bbox)) {
+                const datumIndex: unknown = datum.datumIndex;
+                if (typeof datumIndex === 'number') {
+                    setSelected(series, data, datumIndex);
+                } else {
+                    Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
                 }
             }
         }

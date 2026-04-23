@@ -119,7 +119,6 @@ class FunnelSeriesNodeEvent<
 export abstract class BaseFunnelSeries<
     TTypes extends BaseFunnelSeriesTypes,
 > extends _ModuleSupport.AbstractBarSeries<TTypes> {
-    // @ts-expect-error xKey/yKey renamed
     protected override readonly NodeEvent = FunnelSeriesNodeEvent;
 
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(

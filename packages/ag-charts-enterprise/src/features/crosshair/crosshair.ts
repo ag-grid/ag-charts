@@ -379,8 +379,14 @@ export class Crosshair extends AbstractModuleInstance {
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
 
-        for (const key of seriesKeyProperties) {
+        for (const unsafeKey of seriesKeyProperties) {
+            // `getKeyProperties()` should return keys of series.properties members of type `string | undefined`:
+            type AssertedKey = Exclude<keyof typeof series.properties, 'context' | 'selection'>;
+            const key = unsafeKey as AssertedKey;
+
             const keyValue = series.properties[key];
+            if (keyValue === undefined) continue;
+
             const value = datum?.[keyValue];
             const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);

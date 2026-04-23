@@ -1,24 +1,27 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import { ZIndexMap } from 'ag-charts-core';
 
-const VALID_COLOR = '#2196f3';
-const INVALID_COLOR = '#8a8a8a';
+import {
+    SELECTION_FILLOPACITY,
+    SELECTION_FILL_INVALID,
+    SELECTION_FILL_VALID,
+} from '../../data-selection/dataSelectionConstants';
 
 export class ZoomRect extends _ModuleSupport.Rect {
     static override readonly className = 'ZoomRect';
 
     constructor() {
         super();
-        this.fill = VALID_COLOR;
-        this.fillOpacity = 0.2;
+        this.fill = SELECTION_FILL_VALID;
+        this.fillOpacity = SELECTION_FILLOPACITY;
         this.zIndex = ZIndexMap.ZOOM_SELECTION;
     }
 
     public updateValid() {
-        this.fill = VALID_COLOR;
+        this.fill = SELECTION_FILL_VALID;
     }
 
     public updateInvalid() {
-        this.fill = INVALID_COLOR;
+        this.fill = SELECTION_FILL_INVALID;
     }
 }

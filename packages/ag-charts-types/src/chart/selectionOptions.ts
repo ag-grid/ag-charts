@@ -1,5 +1,7 @@
 export type AgSelectionClickMode = 'single' | 'multiple';
 
+export type AgSelectionContainment = 'any' | 'all';
+
 export interface AgSelectionOptions {
     /**
      * Set to `true` to enable the data-selection module.
@@ -30,9 +32,26 @@ export interface AgSelectionOptions {
      * Default: `'single'`
      */
     clickMode?: AgSelectionClickMode;
+
+    /**
+     * Drag-to-select containment rule. Mode `'any'` selects a datum if any part of it overlaps the
+     * drag rectangle, including overlapping items at the same position. Mode `'all'` selects a datum
+     * only if it is entirely enclosed within the drag rectangle. Unlike click selection, which
+     * targets the topmost datum, drag selection includes all qualifying overlapping items.
+     *
+     * Default: `'any'`
+     */
+    containment?: AgSelectionClickMode;
 }
 
 export interface AgSeriesSelectionOptions {
     /** Set to `true` to enable the data-selection on this series. */
     enabled?: boolean;
+
+    /**
+     * Override the drag-to-select containment rule for this series.
+     *
+     * Default: `chart.selection.containment`
+     */
+    containment?: AgSelectionClickMode;
 }
