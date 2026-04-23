@@ -54,7 +54,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         isHighlight?: boolean,
         datumIndex?: number
     ): HighlightStateString;
-    getSelectionStyle(datumIndex?: number): AgRadialSeriesStyle;
+    getSelectionStyle(datumIndex?: number): AgRadialSeriesStyle | undefined;
 }
 
 export function makeStylerParams(
