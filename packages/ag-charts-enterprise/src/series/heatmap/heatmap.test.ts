@@ -2,9 +2,13 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
+    type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    computeLegendBBox,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -518,6 +522,39 @@ describe('HeatmapSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        it('AG-16043: hovering a discrete-bin legend item must not register a highlight', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const { highlightManager } = (chart as Chart).ctx;
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            const legendBBox = computeLegendBBox(chart);
+            await hoverAction(legendBBox.x + 5, legendBBox.y + legendBBox.height / 2)(chart);
+            await waitForChartStability(chart);
+
+            // The bin's itemId is a bin index, not a datum index; feeding it through the
+            // highlight pipeline would either dim everything (heatmap/maps) or throw
+            // (treemap/sunburst whose datumIndex is a path array).
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
     });
 

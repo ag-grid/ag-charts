@@ -1140,7 +1140,12 @@ export class Legend {
             }
         };
 
-        if (enabled === true && series !== undefined && legendDatum !== undefined) {
+        if (
+            enabled === true &&
+            series !== undefined &&
+            legendDatum !== undefined &&
+            legendDatum.suppressHighlight !== true
+        ) {
             const itemId = legendDatum.itemId;
             const nodeDatum = toHighlightNodeDatum(series, legendDatum);
             highlightNodeDatum({ itemId, nodeDatum });

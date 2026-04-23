@@ -50,6 +50,13 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     skipAnimations?: boolean;
     isFixed?: boolean;
     hideToggleOtherSeries?: true; // used to hide "Toggle Other Series" for Multi-Donut and Pie/Donut combo charts.
+    /**
+     * When true, hovering or clicking this legend item must not drive the series highlight.
+     * Used by discrete colour-scale bin items whose `itemId` is a bin index, not a datum index,
+     * so feeding it through the highlight pipeline would either un-highlight everything
+     * (heatmap/map series) or throw (hierarchy series whose `datumIndex` is a path array).
+     */
+    suppressHighlight?: true;
 }
 
 interface FormatterBoundSeries {
@@ -204,6 +211,7 @@ export function buildColorCategoryLegendData(
             label: { text: name ?? formatColorBinLabel(start, end, i, range.length, formatValue) },
             isFixed: true,
             hideToggleOtherSeries: true,
+            suppressHighlight: true,
         };
     });
 }
