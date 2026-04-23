@@ -316,15 +316,18 @@ runs:
               # Run Codex with ALL output suppressed.
               # - stdin: just the skill prompt; Codex runs git/gh directly for diff + metadata
               #   using the ARGUMENTS/BASE_REF/HEAD_REF/etc. env vars and the pre-fetched PR refs.
-              # - sandbox workspace-write: shares host network namespace (avoids the bwrap
-              #   loopback failure that --sandbox read-only hits on GHA) and lets Codex exec
-              #   git/gh within the already-checked-out, ephemeral runner workspace.
+              # - sandbox danger-full-access: both read-only and workspace-write modes use bwrap,
+              #   which fails on GHA runners with `loopback: Failed RTM_NEWADDR: Operation not permitted`
+              #   (unprivileged user namespaces are restricted). Skipping the sandbox is safe here:
+              #   the runner is ephemeral, all relevant secrets (GITHUB_TOKEN, CODEX_API_KEY) are
+              #   already exposed via the process env regardless of sandbox mode, and the primary
+              #   untrusted input (the PR diff) is read-only attacker content we're feeding to an LLM.
               # - stdout (>/dev/null): suppresses reasoning/streaming output
               # - stderr (2>file): captured to file for debugging, not logged
               set +e
               cat "${{ steps.prompt.outputs.prompt_file }}" | codex exec \
                 --output-last-message "${output_file}" \
-                --sandbox workspace-write \
+                --sandbox danger-full-access \
                 2>"${error_file}" \
                 >/dev/null
               exit_code=$?
