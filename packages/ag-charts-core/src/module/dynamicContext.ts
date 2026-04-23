@@ -164,15 +164,22 @@ class DynamicContextImpl<TRegistry> {
     }
 
     private resolve<K extends string & keyof TRegistry>(name: K, fn: ServiceFactory<TRegistry, K>): TRegistry[K] {
-        const { resolving, self } = internal(this);
-        if (resolving.has(name)) {
+        const s = internal(this);
+        // Block lazy construction on a destroyed context. Without this, a getter that
+        // fires after destroy() (e.g. from an event callback that still runs during
+        // teardown) would spin up a brand-new service on a dead chart and reattach
+        // listeners/DOM bindings — a zombie leak.
+        if (s.destroyed) {
+            throw new Error(`AG Charts - DynamicContext: cannot resolve '${name}' on a destroyed context.`);
+        }
+        if (s.resolving.has(name)) {
             throw new Error(`AG Charts - DynamicContext: circular dependency detected while resolving '${name}'.`);
         }
-        resolving.add(name);
+        s.resolving.add(name);
         try {
-            return fn(self);
+            return fn(s.self);
         } finally {
-            resolving.delete(name);
+            s.resolving.delete(name);
         }
     }
 

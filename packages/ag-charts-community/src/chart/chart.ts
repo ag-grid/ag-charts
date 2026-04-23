@@ -1889,6 +1889,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
+                // Register any services this module contributes before constructing it.
+                // Modules registered after `createChartContext()` (e.g. a plugin added via
+                // `AgCharts.registerModule()` post-construction) would otherwise miss the
+                // one-shot `register()` loop in `createChartContext`. `ctx.has()` guards in
+                // each register hook keep repeated registration a no-op.
+                module.register?.(this.getModuleContext());
                 const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
                 (this as any)[module.name] = moduleInstance; // TODO remove

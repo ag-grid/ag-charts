@@ -320,6 +320,44 @@ describe('DynamicContext', () => {
             expect(() => container.service('count', () => 1)).toThrow('destroyed context');
             expect(() => container.factory('count', () => 1)).toThrow('destroyed context');
         });
+
+        it('should throw on lazy service resolution after destroy', () => {
+            const factory = jest.fn(() => 42);
+            const container = createDynamicContext<TestRegistry>();
+            container.service('count', factory);
+
+            container.destroy();
+
+            // Access after destroy must NOT spin up a new service — otherwise a
+            // late callback could spawn a zombie manager on a dead chart.
+            expect(() => container.count).toThrow("cannot resolve 'count' on a destroyed context");
+            expect(factory).not.toHaveBeenCalled();
+        });
+
+        it('should throw on factory resolution after destroy', () => {
+            const factory = jest.fn(() => 1);
+            const container = createDynamicContext<TestRegistry>();
+            container.factory('count', factory);
+
+            container.destroy();
+
+            expect(() => container.count).toThrow("cannot resolve 'count' on a destroyed context");
+            expect(factory).not.toHaveBeenCalled();
+        });
+
+        it('should still return cached values accessed before destroy', () => {
+            const container = createDynamicContext<TestRegistry>();
+            container.service('count', () => 42);
+
+            // Force resolution before destroy.
+            expect(container.count).toBe(42);
+
+            container.destroy();
+
+            // Already-resolved services become plain value descriptors and remain
+            // readable after destroy — the destroy-guard only blocks fresh resolution.
+            expect(container.count).toBe(42);
+        });
     });
 
     describe('chaining', () => {
