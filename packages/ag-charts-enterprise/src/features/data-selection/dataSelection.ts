@@ -85,8 +85,8 @@ export class DataSelection extends AbstractModuleInstance {
                 setSelected(series, data, datumIndex);
             }
         }
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
         this.dispatchSelectionChange(bufferMap);
+        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -207,6 +207,9 @@ export class DataSelection extends AbstractModuleInstance {
         }
         for (const data of dataSets) {
             data.selections.clear();
+        }
+        for (const series of this.ctx.chartService.series) {
+            series.events.emit('data-selection-change', null);
         }
     }
 }

@@ -67,6 +67,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         this.cleanup.register(
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
+            series.events.on('data-selection-change', (e) => this.onDataSelectionChange(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => this.groupNode.remove(),
             () => annotationSelections.delete(this.sceneSelection)
@@ -187,6 +188,10 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
             this.createNodeData();
             this.update();
         }
+    }
+
+    private onDataSelectionChange(_event: null) {
+        this.update();
     }
 
     private getNodeData(): ErrorBarNodeDatum[] | undefined {

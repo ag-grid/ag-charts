@@ -70,7 +70,6 @@ import { Observable } from '../../util/observable';
 import type { ChartAxis } from '../chartAxis';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import type { DataModel, ProcessedData } from '../data/dataModel';
 import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
@@ -85,6 +84,7 @@ import type {
     DatumIndexType,
     INodeEvent,
     ISeries,
+    ISeriesEventsMaps,
     ISeriesProperties,
     NodeDataDependencies,
     SeriesNodeDatum,
@@ -92,11 +92,6 @@ import type {
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
-
-export interface SeriesDataEvent {
-    readonly dataModel: DataModel<any, any, any>;
-    readonly processedData: ProcessedData<any>;
-}
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -536,7 +531,7 @@ export abstract class Series<
         };
     }
 
-    readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
+    readonly events = new EventEmitter<ISeriesEventsMaps>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
     override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;

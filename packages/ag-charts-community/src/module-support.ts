@@ -168,7 +168,6 @@ export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/seri
 export type {
     PickFocusInputs,
     PickFocusOutputs,
-    SeriesDataEvent,
     SeriesNodeDataContext,
     SeriesNodePickMatch,
     SeriesNodeStyleContext,
@@ -194,6 +193,7 @@ export type {
     ISeriesProperties,
     ItemId,
     SeriesNodeDatum,
+    SeriesDataEvent,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
