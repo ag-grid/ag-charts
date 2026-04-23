@@ -89,7 +89,7 @@ import { Series, SeriesGroupingChangedEvent, SeriesNodeEvent, type UnknownSeries
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
-import type { DatumIndexType, ISeries } from './series/seriesTypes';
+import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 import { Tooltip, type TooltipContent } from './tooltip/tooltip';
 import { Touch } from './touch';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
@@ -504,7 +504,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
         const getTooltipContent = <DatumIndex extends DatumIndexType>(
-            series: ISeries<DatumIndex, unknown, unknown>,
+            series: ISeries<DatumIndex, unknown, ISeriesProperties>,
             datumIndex: DatumIndex,
             removeThisDatum: unknown,
             purpose: 'aria-label' | 'tooltip'
@@ -1439,10 +1439,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         });
     }
 
-    protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, unknown>[]) {
+    protected async updateSeries(seriesToUpdate: ISeries<DatumIndexType, unknown, ISeriesProperties>[]) {
         const { seriesRect } = this;
 
-        function seriesUpdate(series: ISeries<DatumIndexType, unknown, unknown>) {
+        function seriesUpdate(series: ISeries<DatumIndexType, unknown, ISeriesProperties>) {
             return series.update({ seriesRect });
         }
 

@@ -46,7 +46,7 @@ import type {
 } from '../series';
 import { SeriesNodeEvent } from '../series';
 import { Segmentation, SeriesProperties } from '../seriesProperties';
-import type { DatumIndexType, ISeries, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { DatumIndexType, ISeries, ISeriesProperties, SeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import { type ShapeFillBBox } from '../shapeUtil';
 import { countExpandingSearch, visibleRangeIndices } from '../util';
 import type {
@@ -103,7 +103,7 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: Event,
         datum: SeriesNodeDatum<number>,
-        series: ISeries<number, SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
+        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
