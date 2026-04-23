@@ -18,6 +18,7 @@ import {
 } from './dataSelectionConstants';
 import {
     type BufferMap,
+    clearAllSelections,
     copySelectionBuffers,
     diffSelectionBuffers,
     hasAddToSelectionModifier,
@@ -68,7 +69,7 @@ export class DataSelection extends AbstractModuleInstance {
 
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         if (clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean)) {
-            this.clearAllSelections();
+            clearAllSelections(this.ctx.chartService.series);
             this.dispatchInternalSelectionChange(this.ctx.chartService.series);
         } else {
             const { data } = clickedNode.series;
@@ -84,7 +85,7 @@ export class DataSelection extends AbstractModuleInstance {
                 toggleSelection(series, data, datumIndex);
             } else {
                 clickMode satisfies 'single';
-                this.clearAllSelections();
+                clearAllSelections(this.ctx.chartService.series);
                 setSelected(series, data, datumIndex);
             }
             this.dispatchInternalSelectionChange([series]);
@@ -135,7 +136,7 @@ export class DataSelection extends AbstractModuleInstance {
 
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         if (shouldClearSelections) {
-            this.clearAllSelections();
+            clearAllSelections(this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
@@ -213,21 +214,6 @@ export class DataSelection extends AbstractModuleInstance {
 
         if (defaultPrevented) {
             restoreSelectionBuffers(chartService, bufferMap);
-        }
-    }
-
-    private clearAllSelections(): void {
-        const dataSets: Set<_ModuleSupport.DataSet<unknown>> = new Set();
-        for (const series of this.ctx.chartService.series) {
-            if (series.data) {
-                dataSets.add(series.data);
-            }
-        }
-        for (const data of dataSets) {
-            data.selections.clear();
-        }
-        for (const series of this.ctx.chartService.series) {
-            series.events.emit('data-selection-change', null);
         }
     }
 }
