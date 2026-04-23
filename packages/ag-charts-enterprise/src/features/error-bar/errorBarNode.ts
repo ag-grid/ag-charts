@@ -1,6 +1,6 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { PickNodeDatumResult } from 'ag-charts-core';
+import type { PickNodeDatumResult, RequireOptional } from 'ag-charts-core';
 import {
     type NearestResult,
     mergeDefaults,
@@ -8,14 +8,35 @@ import {
     nearestSquaredInContainer,
     partialAssign,
 } from 'ag-charts-core';
-import type { HighlightState } from 'ag-charts-types';
+import type {
+    AgBarSeriesItemStylerParams,
+    AgLineSeriesMarkerItemStylerParams,
+    AgScatterSeriesItemStylerParams,
+    HighlightState,
+    SelectionState,
+} from 'ag-charts-types';
 
 const { BBox } = _ModuleSupport;
 
-export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
+export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum &
+    _ModuleSupport.ErrorBoundSeriesNodeDatum & { yKey: string };
 export type ErrorBarStylingOptions = Omit<AgErrorBarThemeableOptions, 'cap'>;
 
-type FormatOptions = Pick<AgErrorBarOptions<any>, 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey' | 'itemStyler'>;
+type ErrorBarKey = 'xLowerKey' | 'xUpperKey' | 'yLowerKey' | 'yUpperKey';
+type IgnoredSeriesKey = 'context' | 'size' | 'shape' | 'fill' | 'fillOpacity' | 'labelKey' | 'colorKey';
+
+type ErrorBarItemStylerParams =
+    | AgBarSeriesItemStylerParams<unknown, unknown>
+    | AgLineSeriesMarkerItemStylerParams<unknown, unknown>
+    | AgScatterSeriesItemStylerParams<unknown, unknown>;
+
+// Turn `A | B | ...` into `Rule<A> | Rule<B> | ...`
+type DistributeItemStylerRule<T> = T extends any
+    ? RequireOptional<Omit<T, IgnoredSeriesKey> & Pick<AgErrorBarOptions<unknown, unknown>, ErrorBarKey>>
+    : never;
+type ErrorBarItemStylerParamsRules = DistributeItemStylerRule<ErrorBarItemStylerParams>;
+
+type FormatOptions = Pick<AgErrorBarOptions<any>, ErrorBarKey | 'itemStyler'>;
 type Caller = {
     callWithContext<I, O, F extends (params: I) => O>(callback: F, params: I): O;
     callWithContext<I, O, F extends (params: I) => O | undefined>(callback: F, params: I): O | undefined;
@@ -92,8 +113,8 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
     private getItemStylerParams(
         options: FormatOptions,
         style: AgErrorBarThemeableOptions,
-        highlighted: boolean,
-        highlightState: HighlightState
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined
     ) {
         const { datum } = this;
         if (datum == null || options.itemStyler == null) return;
@@ -109,21 +130,21 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
             xUpperKey,
             yLowerKey,
             yUpperKey,
-            highlighted,
             highlightState,
-        };
+            selectionState,
+        } satisfies ErrorBarItemStylerParamsRules;
     }
 
     private formatStyles(
         style: AgErrorBarThemeableOptions,
         options: FormatOptions,
         caller: Caller,
-        highlighted: boolean,
-        highlightState: HighlightState
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined
     ) {
         let { cap: capsStyle, ...whiskerStyle } = style;
 
-        const params = this.getItemStylerParams(options, style, highlighted, highlightState);
+        const params = this.getItemStylerParams(options, style, highlightState, selectionState);
         if (params != null && options.itemStyler != null) {
             type F = NonNullable<typeof options.itemStyler>;
             type I = Parameters<F>[0];
@@ -150,14 +171,20 @@ export class ErrorBarNode extends _ModuleSupport.Group<ErrorBarNodeDatum> {
         style: AgErrorBarThemeableOptions,
         formatters: FormatOptions,
         caller: Caller,
-        highlighted: boolean,
-        highlightState: HighlightState
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined
     ) {
         if (this.datum === undefined) {
             return;
         }
 
-        const { whiskerStyle, capsStyle } = this.formatStyles(style, formatters, caller, highlighted, highlightState);
+        const { whiskerStyle, capsStyle } = this.formatStyles(
+            style,
+            formatters,
+            caller,
+            highlightState,
+            selectionState
+        );
         const { xBar, yBar, capDefaults } = this.datum;
 
         const whisker = this.whiskerPath;
