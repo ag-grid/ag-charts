@@ -101,7 +101,10 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             blur: 5,
         },
         highlight: PART_WHOLE_HIGHLIGHT_STYLE,
-        selection: SERIES_SELECTION_THEME,
+        selection: {
+            ...SERIES_SELECTION_THEME,
+            selectedOffset: 0,
+        },
     },
     legend: { enabled: true },
 };

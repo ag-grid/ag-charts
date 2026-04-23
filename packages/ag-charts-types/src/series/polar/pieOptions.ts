@@ -1,6 +1,7 @@
 import type { ContextCallbackParams, DatumCallbackParams, HighlightState, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
+import type { AgSeriesSelectionOptions } from '../../chart/selectionOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type {
     ContextDefault,
@@ -25,6 +26,7 @@ import type {
     AgBaseSeriesThemeableOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
+    AgSelectionStyleOptions,
 } from '../seriesOptions';
 
 export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
@@ -92,6 +94,15 @@ export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = Con
     itemStyler?: Styler<AgPieCalloutLineItemStylerParams<TDatum, TContext>, AgPieCalloutLineItemStylerResult>;
 }
 
+export interface AgPieSeriesSelectionOptions extends AgSeriesSelectionOptions<AgSelectionStyleOptions> {
+    /**
+     * The radial-offset of selected pie slices.
+     *
+     * Default: `0`
+     */
+    selectedOffset?: PixelSize;
+}
+
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
         LineDashOptions {
@@ -137,13 +148,15 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum, TContext>, AgPieSeriesStyle>;
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgMultiSeriesHighlightOptions<AgHighlightStyleOptions, AgHighlightStyleOptions>;
+    /** Configuration for data selection. */
+    selection?: AgPieSeriesSelectionOptions;
 }
 
 export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }

@@ -18,6 +18,7 @@ import {
     positiveNumber,
     ratio,
     required,
+    selectionOptionsDef,
     shadowOptionsDefs,
     shapeHighlightOptionsDef,
     string,
@@ -31,11 +32,16 @@ import type {
     AgChartLabelStyleOptions,
     AgPieCalloutLineItemStylerResult,
     AgPieSeriesOptions,
+    AgPieSeriesSelectionOptions,
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
 } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
+const selection: OptionsDefs<AgPieSeriesSelectionOptions> = {
+    ...selectionOptionsDef(shapeHighlightOptionsDef),
+    selectedOffset: positiveNumber,
+};
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
@@ -104,6 +110,7 @@ export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptio
     tooltip: tooltipOptionsDefs,
     shadow: shadowOptionsDefs,
     highlight,
+    selection,
     ...lineDashOptionsDef,
     ...without(fillOptionsDef, ['fill']),
     ...without(strokeOptionsDef, ['stroke']),
@@ -123,6 +130,7 @@ export const pieSeriesOptionsDef: OptionsDefs<AgPieSeriesOptions> = {
     calloutLabelName: string,
     sectorLabelName: string,
     highlight,
+    selection,
 };
 
 // @ts-expect-error undocumented option
