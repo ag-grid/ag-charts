@@ -347,7 +347,7 @@ export abstract class HierarchySeries<
             return [];
         }
 
-        const enabled = visible && legendManager.getItemEnabled({ seriesId });
+        const enabled = visible && (legendManager?.getItemEnabled({ seriesId }) ?? true);
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
             return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);

@@ -31,9 +31,11 @@ export class TopologyChart extends Chart {
     constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
         super(options, resources);
 
-        this.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
-        this.ctx.zoomManager.panToBBoxScalingMode =
-            _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+        if (this.ctx.zoomManager) {
+            this.ctx.zoomManager.setAxes([this.xAxis, this.yAxis]);
+            this.ctx.zoomManager.panToBBoxScalingMode =
+                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+        }
     }
 
     override getChartType() {

@@ -157,15 +157,17 @@ export class Legend {
         );
         this.pagination.attachPagination(this.group);
 
-        const { items } = ctx.contextMenuRegistry.builtins;
-        items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
-        items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
+        const items = ctx.contextMenuRegistry?.builtins.items;
+        if (items) {
+            items['toggle-series-visibility'].action = (params) => this.contextToggleVisibility(params);
+            items['toggle-other-series'].action = (params) => this.contextToggleOtherSeries(params);
+        }
 
         let prevEnabled = this.opts?.enabled;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const enabled = get('options', 'legend.enabled');
-                if (prevEnabled === false && enabled === true) {
+                if (prevEnabled === false && enabled === true && ctx.legendManager) {
                     ctx.stateManager.restoreState(ctx.legendManager);
                 }
                 prevEnabled = enabled;
@@ -186,14 +188,20 @@ export class Legend {
             }),
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.eventsHub.on('locale:change', () => this.onLocaleChanged()),
-            () => delete items['toggle-series-visibility'].action,
-            () => delete items['toggle-other-series'].action,
+            () => {
+                if (items) {
+                    delete items['toggle-series-visibility'].action;
+                    delete items['toggle-other-series'].action;
+                }
+            },
             () => this.group.remove()
         );
 
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
 
-        this.ctx.historyManager.addMementoOriginator(ctx.legendManager);
+        if (ctx.legendManager) {
+            this.ctx.historyManager.addMementoOriginator(ctx.legendManager);
+        }
     }
 
     public destroy() {
@@ -742,8 +750,8 @@ export class Legend {
 
     private updateContextMenu() {
         const action = this.opts.toggleSeries ? 'show' : 'hide';
-        this.ctx.contextMenuRegistry.toggle('toggle-series-visibility', action);
-        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
+        this.ctx.contextMenuRegistry?.toggle('toggle-series-visibility', action);
+        this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -866,21 +874,24 @@ export class Legend {
 
         this.clearHighlight();
 
-        if (this.opts.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
-            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = false;
-        } else {
-            this.ctx.contextMenuRegistry.builtins.items['toggle-series-visibility'].enabled = true;
+        const registryItems = this.ctx.contextMenuRegistry?.builtins.items;
+        if (registryItems) {
+            registryItems['toggle-series-visibility'].enabled = !(
+                this.opts.preventHidingAll &&
+                this.contextMenuDatum?.enabled &&
+                this.getVisibleItemCount() <= 1
+            );
         }
 
         const toggleOtherSeriesVisible =
             this.ctx.chartService.series.length > 1 &&
             this.ctx.chartService.series[0]?.getLegendData('category')[0]?.hideToggleOtherSeries !== true;
         const action = toggleOtherSeriesVisible ? 'show' : 'hide';
-        this.ctx.contextMenuRegistry.toggle('toggle-other-series', action);
+        this.ctx.contextMenuRegistry?.toggle('toggle-other-series', action);
 
         const { offsetX, offsetY } = sourceEvent;
         const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        this.ctx.contextMenuRegistry.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
+        this.ctx.contextMenuRegistry?.dispatchContext('legend-item', { widgetEvent, canvasX, canvasY }, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {

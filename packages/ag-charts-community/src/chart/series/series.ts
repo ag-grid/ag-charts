@@ -372,13 +372,13 @@ export abstract class Series<
     set visible(newVisibility: boolean) {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem(newVisibility, this.id);
+        this.ctx.legendManager?.toggleItem(newVisibility, this.id);
         this.visibleMaybeChanged();
     }
 
     get visible() {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        return this.ctx.legendManager.getSeriesEnabled(this.id) ?? this.properties.visible;
+        return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this.properties.visible;
     }
 
     get hasData() {
@@ -1086,7 +1086,7 @@ export abstract class Series<
         };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem(enabled, seriesId, itemId, legendItemName);
+        this.ctx.legendManager?.toggleItem(enabled, seriesId, itemId, legendItemName);
     }
 
     isEnabled() {

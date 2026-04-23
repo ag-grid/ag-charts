@@ -64,13 +64,13 @@ export interface ChartRegistry {
 
     readonly axisManager: AxisManager;
     readonly chartState: ReactiveState<ChartState>;
-    readonly legendManager: LegendManager;
+    readonly legendManager?: LegendManager;
 
     readonly activeManager: ActiveManager;
     readonly animationManager: AnimationManager;
-    readonly annotationManager: AnnotationManager;
+    readonly annotationManager?: AnnotationManager;
     readonly collapsedManager: CollapsedManager;
-    readonly contextMenuRegistry: ContextMenuRegistry;
+    readonly contextMenuRegistry?: ContextMenuRegistry;
     readonly formatManager: FormatManager;
     readonly domManager: DOMManager;
     readonly fontManager: FontManager;
@@ -85,7 +85,7 @@ export interface ChartRegistry {
     readonly syncManager: SyncManager;
     readonly tooltipManager: TooltipManager;
     readonly widgets: WidgetSet;
-    readonly zoomManager: ZoomManager;
+    readonly zoomManager?: ZoomManager;
 
     readonly sharedToolbar?: SharedToolbarLike;
 }

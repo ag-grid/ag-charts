@@ -24,7 +24,7 @@ export class Navigator extends AbstractModuleInstance {
 
     @Property
     @ObserveChanges<Navigator>((target, value) => {
-        target.ctx.zoomManager.setNavigatorEnabled(Boolean(value));
+        target.ctx.zoomManager?.setNavigatorEnabled(Boolean(value));
         target.updateGroupVisibility();
     })
     public enabled: boolean = false;
@@ -140,7 +140,7 @@ export class Navigator extends AbstractModuleInstance {
             this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
         }
 
-        this.ctx.zoomManager.fireZoomPanStartEvent('navigator');
+        this.ctx.zoomManager?.fireZoomPanStartEvent('navigator');
     }
 
     onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {

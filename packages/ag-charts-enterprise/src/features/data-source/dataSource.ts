@@ -53,7 +53,7 @@ export class DataSource extends AbstractModuleInstance {
             }),
             ctx.eventsHub.on('layout:complete', () => {
                 if (dirty) {
-                    ctx.zoomManager.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
+                    ctx.zoomManager?.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
                 }
             })
         );

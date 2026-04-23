@@ -568,7 +568,7 @@ export abstract class RadarSeries<
                 id: seriesId,
                 itemId: radiusKey,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: radiusKey }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: radiusKey }) ?? true),
                 label: {
                     text: legendItemName ?? radiusName ?? radiusKey,
                 },

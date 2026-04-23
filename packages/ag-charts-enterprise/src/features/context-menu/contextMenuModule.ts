@@ -1,4 +1,4 @@
-import { type AgContextMenuOptions, VERSION } from 'ag-charts-community';
+import { type AgContextMenuOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     IS_DARK_THEME,
     type PluginModuleDefinition,
@@ -10,7 +10,7 @@ import {
 
 import { ContextMenu } from './contextMenu';
 
-export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
+export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'contextMenu',
     enterprise: true,
@@ -27,6 +27,10 @@ export const ContextMenuModule: PluginModuleDefinition<AgContextMenuOptions> = {
     },
 
     create: (ctx) => new ContextMenu(ctx),
+    register: (ctx) => {
+        if (ctx.has('contextMenuRegistry')) return;
+        ctx.service('contextMenuRegistry', (c) => new _ModuleSupport.ContextMenuRegistry(c));
+    },
 };
 
 // @ts-expect-error undocumented option

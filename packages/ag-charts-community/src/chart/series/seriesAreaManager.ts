@@ -441,7 +441,7 @@ export class SeriesAreaManager extends BaseManager {
         if (current !== this.chart.ctx.widgets.seriesWidget) {
             if (this.isState(InteractionState.ContextMenuable)) {
                 const { currentX: canvasX, currentY: canvasY } = event;
-                this.chart.ctx.contextMenuRegistry.dispatchContext(
+                this.chart.ctx.contextMenuRegistry?.dispatchContext(
                     'always',
                     { widgetEvent: event, canvasX, canvasY },
                     undefined
@@ -478,14 +478,14 @@ export class SeriesAreaManager extends BaseManager {
         const canvasY = event.currentY + current.cssTop();
         const { datumIndex } = pickedNode ?? {};
         if (pickedSeries && pickedNode && datumIndex != null) {
-            this.chart.ctx.contextMenuRegistry.dispatchContext(
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(
                 'series-node',
                 { widgetEvent: event, canvasX, canvasY },
                 { pickedSeries, pickedNode: { ...pickedNode, datumIndex } },
                 position
             );
         } else {
-            this.chart.ctx.contextMenuRegistry.dispatchContext(
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(
                 'series-area',
                 { widgetEvent: event, canvasX, canvasY },
                 undefined,
@@ -979,7 +979,7 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panSuccess = this.chart.ctx.zoomManager.panToBBox(hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, focusBBox);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

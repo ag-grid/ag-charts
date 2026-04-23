@@ -501,7 +501,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 id: seriesId,
                 itemId: seriesId,
                 seriesId: seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: seriesId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: seriesId }) ?? true),
                 label: {
                     text: legendItemName ?? yName ?? seriesId,
                 },

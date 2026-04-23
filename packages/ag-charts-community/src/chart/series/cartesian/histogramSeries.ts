@@ -845,7 +845,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 id: seriesId,
                 itemId,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: yName ?? itemId ?? 'Frequency',
                 },

@@ -1552,7 +1552,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 itemId,
                 legendItemName,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: legendItemName ?? yName ?? itemId,
                 },

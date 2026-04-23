@@ -961,7 +961,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 itemId,
                 legendItemName,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },

@@ -113,7 +113,9 @@ export class Annotations extends AbstractModuleInstance {
         this.setupDOM();
 
         // Add originators to the history only when this module is enabled to prevent memory increases
-        this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
+        if (ctx.annotationManager) {
+            this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
+        }
         this.ctx.historyManager.addMementoOriginator(this.defaults);
         this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
 
@@ -548,7 +550,7 @@ export class Annotations extends AbstractModuleInstance {
     private setupDOM() {
         const { ctx, toolbar, optionsToolbar } = this;
 
-        this.cleanup.register(ctx.annotationManager.attachNode(this.container), () => {
+        this.cleanup.register(ctx.annotationManager!.attachNode(this.container), () => {
             ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
             toolbar.destroy();
             optionsToolbar.destroy();
@@ -610,7 +612,7 @@ export class Annotations extends AbstractModuleInstance {
         this.annotationData.push(datum);
 
         if (applyDefaults) {
-            const styles = this.ctx.annotationManager.getAnnotationTypeStyles(type);
+            const styles = this.ctx.annotationManager?.getAnnotationTypeStyles(type);
             if (styles) datum.set(styles);
             this.defaults.applyDefaults(datum);
         }
@@ -716,7 +718,7 @@ export class Annotations extends AbstractModuleInstance {
         }
 
         this.postUpdateFns.push(() => {
-            this.ctx.annotationManager.fireChangedEvent();
+            this.ctx.annotationManager?.fireChangedEvent();
         });
         this.update();
     }
@@ -827,8 +829,11 @@ export class Annotations extends AbstractModuleInstance {
     private recordActionAfterNextUpdate(label: string, types: Array<'annotations' | 'defaults'> = ['annotations']) {
         const {
             defaults,
-            ctx: { annotationManager, historyManager },
+            ctx: { historyManager },
+            ctx,
         } = this;
+        const annotationManager = ctx.annotationManager;
+        if (!annotationManager) return;
 
         const originators = types.map((type) => (type === 'defaults' ? defaults : annotationManager));
         this.postUpdateFns.push(() => {
@@ -871,17 +876,13 @@ export class Annotations extends AbstractModuleInstance {
     }
 
     private updateAnnotations() {
-        const {
-            annotationData,
-            annotations,
-            seriesRect,
-            ctx: { annotationManager },
-        } = this;
+        const { annotationData, annotations, seriesRect, ctx } = this;
+        const annotationManager = ctx.annotationManager;
 
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        annotationManager.updateData(annotationData.toJson() as AgAnnotation[]);
+        annotationManager?.updateData(annotationData.toJson() as AgAnnotation[]);
 
         const showAnnotations = this.showAnnotations();
         this.toolbar.refreshButtonsEnabled(showAnnotations);

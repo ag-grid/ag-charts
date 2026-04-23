@@ -17,7 +17,11 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _Mo
 
     create: (ctx) => new Annotations(ctx),
     register: (ctx) => {
-        if (ctx.has('sharedToolbar')) return;
-        ctx.service('sharedToolbar', (c) => new SharedToolbar(c));
+        if (!ctx.has('annotationManager')) {
+            ctx.service('annotationManager', (c) => new _ModuleSupport.AnnotationManager(c));
+        }
+        if (!ctx.has('sharedToolbar')) {
+            ctx.service('sharedToolbar', (c) => new SharedToolbar(c));
+        }
     },
 };

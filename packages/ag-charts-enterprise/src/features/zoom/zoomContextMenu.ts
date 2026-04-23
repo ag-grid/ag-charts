@@ -21,7 +21,7 @@ const { userInteraction } = _ModuleSupport;
 export class ZoomContextMenu {
     constructor(
         private readonly eventsHub: _ModuleSupport.EventsHub,
-        private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
+        private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry | undefined,
         private readonly chartState: ReactiveState<_ModuleSupport.ChartState>,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
@@ -32,6 +32,7 @@ export class ZoomContextMenu {
 
     public registerActions(enabled: boolean | undefined) {
         const { contextMenuRegistry } = this;
+        if (!contextMenuRegistry) return;
 
         const action = enabled ? 'show' : 'hide';
         contextMenuRegistry.toggle('zoom-to-cursor', action);

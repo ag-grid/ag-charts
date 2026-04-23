@@ -1355,11 +1355,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const legendData = this.series.flatMap((s) => {
             const seriesLegendData = s.getLegendData('category');
-            legendManager.updateData(s.id, seriesLegendData);
+            legendManager?.updateData(s.id, seriesLegendData);
             return seriesLegendData;
         });
 
-        if (initialState) {
+        if (initialState && legendManager) {
             stateManager.setStateAndRestore(legendManager, initialState);
             return;
         }
@@ -1661,7 +1661,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
-            this.ctx.zoomManager.updateZoom(
+            this.ctx.zoomManager?.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
                 { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );
@@ -1677,7 +1677,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             miniChart.axes = []; // TODO axes should be an object, but that throws a "mutex callback error"
         }
 
-        this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
+        this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1685,7 +1685,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.maybeResetAnimations(seriesStatus);
 
         if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) {
-            this.ctx.legendManager.clearData();
+            this.ctx.legendManager?.clearData();
         }
 
         this.applyInitialState(newOpts);
@@ -1719,7 +1719,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.ctx;
         const { initialState } = options;
 
-        if ('annotations' in options && options.annotations?.enabled && initialState?.annotations != null) {
+        if (
+            'annotations' in options &&
+            options.annotations?.enabled &&
+            initialState?.annotations != null &&
+            annotationManager
+        ) {
             const annotations = initialState.annotations.map((annotation) => {
                 const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
                 return mergeDefaults(annotation, annotationTheme);
@@ -1732,7 +1737,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
-        if (this.needsViewportSupport(options) && initialState?.zoom != null) {
+        if (this.needsViewportSupport(options) && initialState?.zoom != null && zoomManager) {
             stateManager.setState(zoomManager, initialState.zoom);
         }
 

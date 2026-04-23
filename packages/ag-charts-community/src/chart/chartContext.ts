@@ -22,7 +22,6 @@ import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import type { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
-import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
@@ -33,16 +32,13 @@ import { FormatManager } from './formatter/formatManager';
 import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
 import { CollapsedManager } from './interaction/collapsedManager';
-import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
-import { ZoomManager } from './interaction/zoomManager';
 import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
-import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
@@ -120,22 +116,18 @@ export function createChartContext(chart: ChartHost, vars: ChartContextVars): Dy
         .service('optionsGraphService', () => new OptionsGraphService())
         .service('chartTypeOriginator', () => new ChartTypeOriginator(chart))
         .service('widgets', (c) => new WidgetSet(c.domManager, { withDragInterpretation: vars.withDragInterpretation }))
-        .service('contextMenuRegistry', (c) => new ContextMenuRegistry(c))
         .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
         .service('highlightManager', (c) => new HighlightManager(c))
         .service('layoutManager', (c) => new LayoutManager(c.eventsHub))
         .service('localeManager', (c) => new LocaleManager(c.eventsHub))
         .service('historyManager', (c) => new HistoryManager(c))
         .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub))
-        .service('zoomManager', (c) => new ZoomManager(c))
-        .service('annotationManager', (c) => new AnnotationManager(c))
         .service('animationManager', (c) => new AnimationManager(c.agDocument, c.interactionManager, vars.updateMutex))
         .service('activeManager', (c) => new ActiveManager(c))
         .service('proxyInteractionService', (c) => new ProxyInteractionService(c))
         .service('fontManager', (c) => new FontManager(c))
         .service('tooltipManager', (c) => new TooltipManager(c.eventsHub, c.localeManager, c.domManager, chart.tooltip))
-        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager))
-        .service('legendManager', (c) => new LegendManager(c));
+        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager));
 
     // Plugin modules register their own services (e.g. sharedToolbar) after the
     // core registry is complete but before any consumer reads from the context.

@@ -21,10 +21,12 @@ import {
 } from 'ag-charts-core';
 import type { AgChartLegendOptions } from 'ag-charts-types';
 
+import type { ChartRegistry } from '../../module/moduleContext';
 import { VERSION } from '../../version';
 import { Legend } from './legend';
+import { LegendManager } from './legendManager';
 
-export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
+export const LegendModule: PluginModuleDefinition<AgChartLegendOptions, ChartRegistry> = {
     type: 'plugin',
     name: 'legend',
     version: VERSION,
@@ -177,5 +179,9 @@ export const LegendModule: PluginModuleDefinition<AgChartLegendOptions> = {
         const moduleInstance = new Legend(ctx);
         moduleInstance.attachLegend(ctx.scene);
         return moduleInstance;
+    },
+    register: (ctx) => {
+        if (ctx.has('legendManager')) return;
+        ctx.service('legendManager', (c) => new LegendManager(c));
     },
 };

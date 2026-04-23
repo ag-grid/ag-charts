@@ -1650,7 +1650,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 id: seriesId,
                 itemId,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: { text: legendItemName ?? yName ?? itemId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,
