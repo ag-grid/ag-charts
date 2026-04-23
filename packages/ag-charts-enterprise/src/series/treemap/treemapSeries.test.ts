@@ -792,4 +792,42 @@ describe('TreemapSeries', () => {
             await compare();
         });
     });
+
+    describe('AG-17130 tooltip after options-replacement update', () => {
+        const fullData = [
+            { value: 14.35, displayName: 'Jan.10' },
+            { value: 14.36, displayName: 'Feb.10' },
+            { value: 14.37, displayName: 'Mar.10' },
+            { value: 14.34, displayName: 'Apr.10' },
+            { value: 9_294_717_981.55, displayName: 'Jan.14' },
+            { value: 145_293_355.65, displayName: 'Mar.14' },
+        ];
+        const filteredData = fullData.filter((d) => d.displayName.includes('.10'));
+
+        const buildOptions = (data: typeof fullData): AgChartOptions => ({
+            data,
+            series: [{ type: 'treemap', labelKey: 'displayName', sizeKey: 'value', childrenKey: 'children' }],
+            animation: { enabled: false },
+        });
+
+        it('shows the new top-left tile on hover after replacing options', async () => {
+            const proxy = AgCharts.create(prepareEnterpriseTestOptions(buildOptions(filteredData)));
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            await proxy.update(prepareEnterpriseTestOptions(buildOptions(fullData)));
+            await waitForChartStability(chart);
+
+            // Jan.14 dwarfs every other datum, so the new layout places it top-left.
+            // Hovering near the top-left also overlaps where Mar.10's tile was positioned
+            // before the update, which is the scenario covered by the regression.
+            const { x, y } = chart.seriesRect!;
+            await hoverAction(x + 30, y + 30)(chart);
+            await waitForChartStability(chart);
+
+            const tooltip = document.querySelector('.ag-charts-tooltip');
+            expect(tooltip?.textContent).toContain('Jan.14');
+            expect(tooltip?.textContent).not.toContain('Mar.10');
+        });
+    });
 });

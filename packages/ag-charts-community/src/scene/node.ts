@@ -357,12 +357,18 @@ export abstract class Node<TDatum = unknown> {
     }
 
     pickNode(x: number, y: number): Node | undefined {
+        if (!this.visible || this.pointerEvents === PointerEvents.None) {
+            return;
+        }
         if (this.containsPoint(x, y)) {
             return this;
         }
     }
 
     pickNodes(x: number, y: number, into: Node<any>[] = []): Node<any>[] {
+        if (!this.visible || this.pointerEvents === PointerEvents.None) {
+            return into;
+        }
         if (this.containsPoint(x, y)) {
             into.push(this);
         }
