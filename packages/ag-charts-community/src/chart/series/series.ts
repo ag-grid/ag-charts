@@ -15,6 +15,7 @@ import {
     SeriesContentZIndexMap,
     type SeriesPluginModuleInstance,
     SeriesZIndexMap,
+    boxCollides,
     boxContains,
     callWithContext,
     createId,
@@ -977,9 +978,22 @@ export abstract class Series<
             }
         }
 
+        const predicate: (bounds: BoxBounds, x: number, y: number, width: number, height: number) => boolean = (() => {
+            const { containment } = this.properties.selection;
+            const unreachable = (a: never): never => a;
+            switch (containment) {
+                case 'any':
+                    return boxCollides;
+                case 'all':
+                    return boxContains;
+                default:
+                    return unreachable(containment);
+            }
+        })();
+
         yield* walkNodes(this.contentGroup, (node) => {
             const { x, y, width, height } = node.getBBox();
-            if (boxContains(selectionBox, x, y, width, height)) {
+            if (predicate(selectionBox, x, y, width, height)) {
                 // eslint-disable-next-line sonarjs/deprecation
                 return node.unsafeDatum;
             }
