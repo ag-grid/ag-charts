@@ -1,12 +1,6 @@
 import type { _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import {
-    AbstractModuleInstance,
-    type AreExact,
-    ChartUpdateType,
-    Logger,
-    type NormalisedSelectionOptions,
-} from 'ag-charts-core';
+import { AbstractModuleInstance, ChartUpdateType, Logger, type NormalisedSelectionOptions } from 'ag-charts-core';
 
 import {
     type BufferMap,
@@ -134,20 +128,12 @@ export class DataSelection extends AbstractModuleInstance {
                 data.selections.clear();
             }
 
-            for (const unsafeDatum of series.pickNodesInBBox(bbox)) {
-                // TODO:
-                // The value this.ctx.chartService.series uses `TDatum = any`, therefore `pickNodesInBBox`
-                // is not type-safe. These runtime checks become irrelevant if `pickNodesInBBox` were type-safe;
-                // Therefore verify that unsafeDatum is of type `any`.
-                true satisfies AreExact<typeof unsafeDatum, any>;
-                const unknownDatum: unknown = unsafeDatum;
-                if (unknownDatum != null && typeof unknownDatum === 'object' && 'datumIndex' in unknownDatum) {
-                    const datumIndex: unknown = unknownDatum.datumIndex;
-                    if (typeof datumIndex === 'number') {
-                        setSelected(series, data, datumIndex);
-                    } else {
-                        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
-                    }
+            for (const datum of series.pickNodesInBBox(bbox)) {
+                const datumIndex: unknown = datum.datumIndex;
+                if (typeof datumIndex === 'number') {
+                    setSelected(series, data, datumIndex);
+                } else {
+                    Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
                 }
             }
         }
