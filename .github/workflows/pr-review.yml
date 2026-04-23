@@ -1,13 +1,18 @@
 name: PR Review
 
-# Trampoline: delegates to the reusable workflow hosted in ag-dev-prompts.
-# Consumer-specific concerns (triggers, permissions, secret wiring) stay here;
-# all the PR-review logic — fork-PR guards, comment re-dispatch, resolve
-# metadata, Run Codex — lives in the reusable workflow.
+# Installs @ag-grid/dev-prompts from GitHub Packages and delegates to the
+# composite actions shipped inside the package. This is the consumer
+# counterpart to ag-grid/ag-dev-prompts's own dogfood workflow.
 #
-# ag-charts tracks the `canary` ref on ag-dev-prompts (the same track the
-# @ag-grid/dev-prompts package follows, per AG-17085 Phase 4). ag-grid and
-# ag-studio will track `latest` when they roll onto this pattern.
+# Why npm instead of a reusable workflow: ag-dev-prompts is a private repo,
+# and GitHub Actions does not permit public-repo callers to consume
+# reusable workflows from private-repo hosts. The npm package route works
+# because GitHub Packages honours `GITHUB_TOKEN` + `packages: read` from any
+# repo in the same org, regardless of visibility.
+#
+# Channel: ag-charts tracks the `canary` dist-tag (aligned with
+# AG-17085 Phase 4). ag-grid and ag-studio will pin to `latest` when they
+# migrate.
 
 on:
     pull_request:
@@ -21,17 +26,75 @@ on:
                 type: string
                 required: true
 
+permissions:
+    contents: read
+
+env:
+    DEV_PROMPTS_CHANNEL: canary
+
 jobs:
     review:
-        # Permissions at least as permissive as both jobs the reusable
-        # workflow declares (comment-trigger + pr-review). Reusable workflows
-        # cannot escalate beyond what the caller grants.
+        runs-on: ubuntu-latest
+        if: |
+            github.event_name != 'pull_request' ||
+            github.event.pull_request.draft == false
         permissions:
             contents: read
             pull-requests: write
             issues: write
             actions: write
             packages: read
-        uses: ag-grid/ag-dev-prompts/.github/workflows/pr-review.yml@canary
-        secrets:
-            CODEX_API_KEY: ${{ secrets.CODEX_API_KEY }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Setup Node (GitHub Packages for @ag-grid scope)
+              uses: actions/setup-node@v4
+              with:
+                  node-version-file: package.json
+                  registry-url: https://npm.pkg.github.com
+                  scope: '@ag-grid'
+
+            - name: Install @ag-grid/dev-prompts
+              env:
+                  NODE_AUTH_TOKEN: ${{ github.token }}
+              run: |
+                  set -euo pipefail
+                  mkdir -p "$GITHUB_WORKSPACE/.ag-dev-prompts"
+                  cd "$GITHUB_WORKSPACE/.ag-dev-prompts"
+                  echo '{"name":"ag-dev-prompts-install","private":true}' > package.json
+                  npm install --no-save --silent "@ag-grid/dev-prompts@${DEV_PROMPTS_CHANNEL}"
+
+            # --- Comment trigger path (/pr-review) -----------------------------
+            - name: Handle /pr-review comment
+              if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/pr-review-comment-trigger
+              with:
+                  github-token: ${{ github.token }}
+
+            # --- Review path (pull_request + workflow_dispatch) ---------------
+            - name: Resolve PR metadata
+              id: pr-meta
+              if: |
+                  (github.event_name == 'pull_request' &&
+                      github.event.pull_request.head.repo.full_name == github.repository) ||
+                  github.event_name == 'workflow_dispatch'
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/pr-resolve-metadata
+              with:
+                  github-token: ${{ github.token }}
+                  pr-number: ${{ github.event.pull_request.number || inputs.pr_number }}
+
+            - name: Run Codex PR Review
+              if: steps.pr-meta.outputs.pr-number != ''
+              uses: ./.ag-dev-prompts/node_modules/@ag-grid/dev-prompts/.github/actions/codex-pr-review
+              with:
+                  codex-api-key: ${{ secrets.CODEX_API_KEY }}
+                  pr-number: ${{ steps.pr-meta.outputs.pr-number }}
+                  base-ref: ${{ steps.pr-meta.outputs.base-ref }}
+                  head-ref: ${{ steps.pr-meta.outputs.head-ref }}
+                  pr-title: ${{ steps.pr-meta.outputs.pr-title }}
+                  pr-author: ${{ steps.pr-meta.outputs.pr-author }}
+                  github-token: ${{ github.token }}
+                  inline-comments: 'true'
