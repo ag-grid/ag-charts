@@ -83,5 +83,10 @@ const options: AgPolarChartOptions = {
         enabled: true,
         duration: 800,
     },
+    selection: {
+        enabled: true,
+        enableClick: true,
+        enableDrag: true,
+    },
 };
 AgCharts.create(options);
