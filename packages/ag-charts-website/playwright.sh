@@ -98,6 +98,22 @@ if [ "$1" == "--host" ] ; then
   trap cleanup SIGINT SIGTERM ERR EXIT
 
   cd $(git rev-parse --show-toplevel)
+
+  playwright_image=mcr.microsoft.com/playwright:v1.57.0-jammy
+  pull_attempts=3
+  for attempt in $(seq 1 ${pull_attempts}) ; do
+    if docker pull ${playwright_image} ; then
+      break
+    fi
+    if [[ ${attempt} -eq ${pull_attempts} ]] ; then
+      echo "Failed to pull ${playwright_image} after ${pull_attempts} attempts."
+      exit 1
+    fi
+    backoff=$((attempt * 10))
+    echo "Pull attempt ${attempt} failed, retrying in ${backoff}s..."
+    sleep ${backoff}
+  done
+
   docker run -d --rm --ipc=host --init \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
@@ -111,7 +127,7 @@ if [ "$1" == "--host" ] ; then
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
     ${EXTRA_DOCKER_ARGS} \
     --name ${container_name} \
-    mcr.microsoft.com/playwright:v1.57.0-jammy \
+    ${playwright_image} \
     /bin/bash -l playwright.sh $@
 
   docker logs -f ${container_name} &
