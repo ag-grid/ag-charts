@@ -128,7 +128,7 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
-export type SeriesItemHighlightStyle = HighlightOptions<{}>;
+export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
 export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
