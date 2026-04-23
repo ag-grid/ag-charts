@@ -1,3 +1,4 @@
+// @ag-skip-fws
 import { AgCharts, AllEnterpriseModule, ModuleRegistry } from 'ag-charts-enterprise';
 import type { AgCartesianChartOptions, AgErrorBarItemStylerParams } from 'ag-charts-types';
 
