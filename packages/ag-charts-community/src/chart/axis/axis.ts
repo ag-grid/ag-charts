@@ -153,6 +153,38 @@ const EMPTY_SKIP: ReadonlySet<string> = new Set();
  * recurse via the instance's own `applyOptions()` or `.set()` entry point so nested structure
  * (e.g. `parentLevel.label`) is preserved rather than replaced with the raw options object.
  */
+function applyNestedFieldOption(currentValue: any, value: unknown): boolean {
+    // Undefined on an existing class-instance sub-object: delegate to its reset entry point
+    // rather than replacing the instance reference. Mirrors the old jsonApply path which
+    // called `currentValue.clear()` when the diff produced `undefined` for a Properties field.
+    if (value === undefined) {
+        if (typeof currentValue.applyOptions === 'function') {
+            currentValue.applyOptions(undefined);
+            return true;
+        }
+        if (typeof currentValue.clear === 'function') {
+            currentValue.clear();
+            return true;
+        }
+        return false;
+    }
+    // Prefer dedicated option-application entry points so nested structure (class instances,
+    // PropertiesArray item reconciliation, etc.) is preserved rather than replaced.
+    if (typeof currentValue.applyOptions === 'function') {
+        currentValue.applyOptions(value);
+        return true;
+    }
+    if (typeof currentValue.set === 'function') {
+        currentValue.set(value);
+        return true;
+    }
+    if (!Array.isArray(value) && !Array.isArray(currentValue)) {
+        Object.assign(currentValue, value);
+        return true;
+    }
+    return false;
+}
+
 function applyFieldOption(target: any, key: string, value: unknown): void {
     // `context` is a user pass-through reference; assign as-is without recursion.
     if (key === 'context') {
@@ -160,24 +192,11 @@ function applyFieldOption(target: any, key: string, value: unknown): void {
         return;
     }
     const currentValue = target[key];
-    const valueIsObject = value != null && typeof value === 'object';
     const currentIsObject = currentValue != null && typeof currentValue === 'object';
+    const valueIsObject = value != null && typeof value === 'object';
 
-    if (valueIsObject && currentIsObject) {
-        // Prefer dedicated option-application entry points so nested structure (class instances,
-        // PropertiesArray item reconciliation, etc.) is preserved rather than replaced.
-        if (typeof currentValue.applyOptions === 'function') {
-            currentValue.applyOptions(value);
-            return;
-        }
-        if (typeof currentValue.set === 'function') {
-            currentValue.set(value);
-            return;
-        }
-        if (!Array.isArray(value) && !Array.isArray(currentValue)) {
-            Object.assign(currentValue, value);
-            return;
-        }
+    if (currentIsObject && (valueIsObject || value === undefined) && applyNestedFieldOption(currentValue, value)) {
+        return;
     }
     target[key] = value;
 }
@@ -221,6 +240,7 @@ export abstract class Axis<
     id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
+    private _lastCrossLinesOptions: object[] | undefined;
     get crossLines() {
         return this._crossLines;
     }
@@ -229,8 +249,14 @@ export abstract class Axis<
      * Reconcile the cross-line set from raw options. Replaces the old `set crossLines` setter —
      * constructs fresh CrossLine instances for each options entry, detaches any previous set,
      * and re-attaches. Behaviour mirrors the pre-refactor setter exactly.
+     *
+     * Short-circuits on reference-equal repeat calls: theme-merged options are reference-stable
+     * when the underlying user config hasn't changed, so the full rebuild runs only when the
+     * options object actually differs.
      */
     protected applyCrossLines(options: object[] | undefined): void {
+        if (options === this._lastCrossLinesOptions) return;
+        this._lastCrossLinesOptions = options;
         const { CrossLineConstructor } = this.constructor as typeof Axis;
         for (const crossLine of this._crossLines) {
             this.detachCrossLine(crossLine);
@@ -448,16 +474,16 @@ export abstract class Axis<
         for (const crossLine of this.crossLines) {
             this.initCrossLine(crossLine);
         }
-        let prevGridLength = 0;
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
+            // The observer fires synchronously on registration with gridLength === 0 and no
+            // cross-lines present, so the first run is an intentional no-op. ReactiveState
+            // only notifies on actual value change (oldValue !== newValue), matching the old
+            // @ObserveChanges(gridLength) decorator.
             this.layoutState.observe((get) => {
-                const gridLength = get('gridLength') ?? 0;
-                if ((prevGridLength === 0) !== (gridLength === 0)) {
-                    this.onGridVisibilityChange();
-                }
-                prevGridLength = gridLength;
+                get('gridLength'); // track the dependency so the observer fires on gridLength changes.
+                this.onGridVisibilityChange();
                 for (const crossLine of this.crossLines) {
                     this.initCrossLine(crossLine);
                 }

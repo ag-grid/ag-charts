@@ -2015,11 +2015,21 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Try to optimise updates if axis count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
             const pluginSkip = this.combineAxisPluginSkip(skipSet);
+            const prevAxes = oldOpts.axes ?? {};
             for (const axis of chart.axes) {
+                const prevOpts = (prevAxes as any)[axis.id] ?? {};
                 const newOpts = (axes as any)[axis.id] ?? {};
-                debug(`Chart.applyAxes() - applying axis options for ${axis.id}`, newOpts);
-                this.applyAxisModules(axis, newOpts);
-                axis.applyOptions(newOpts, pluginSkip);
+                // Synthesise undefined entries for keys present in the previous options but
+                // absent from the new ones so `applyOptions` resets them back to defaults —
+                // preserves the "removed key clears the field" semantics the old jsonDiff
+                // path provided.
+                const merged: Record<string, any> = { ...newOpts };
+                for (const key of Object.keys(prevOpts)) {
+                    if (!(key in merged)) merged[key] = undefined;
+                }
+                debug(`Chart.applyAxes() - applying axis options for ${axis.id}`, merged);
+                this.applyAxisModules(axis, merged);
+                axis.applyOptions(merged, pluginSkip);
             }
             return true;
         }

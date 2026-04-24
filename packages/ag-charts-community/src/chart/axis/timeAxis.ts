@@ -31,10 +31,10 @@ export class TimeAxisParentLevel {
     readonly tick = new AxisTick();
 
     applyOptions(options: { enabled?: boolean; label?: object; tick?: object } | undefined): void {
-        if (options == null) return;
-        if ('enabled' in options) this.enabled = options.enabled!;
-        if (options.label !== undefined) this.label.applyOptions(options.label as any);
-        if (options.tick !== undefined) this.tick.applyOptions(options.tick as any);
+        // Reset-then-apply: options replace state, so removed keys revert to class defaults.
+        this.enabled = options?.enabled ?? false;
+        this.label.applyOptions(options?.label as any);
+        this.tick.applyOptions(options?.tick as any);
     }
 }
 

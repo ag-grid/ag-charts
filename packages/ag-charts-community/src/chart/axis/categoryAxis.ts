@@ -42,10 +42,12 @@ export class CategoryAxis<
     }
 
     override applyOptions(options: object | undefined, skip?: ReadonlySet<string>): void {
-        if (options != null && 'bandAlignment' in options) {
-            this.layoutConstraints.align =
-                (options as { bandAlignment?: 'justify' | 'start' | 'center' | 'end' }).bandAlignment ?? 'justify';
-        }
+        // Always sync `layoutConstraints.align` from `bandAlignment`: a missing or undefined
+        // value must revert to the documented 'justify' default, otherwise removing the option
+        // from the caller's config leaves the previous alignment sticky.
+        this.layoutConstraints.align =
+            (options as { bandAlignment?: 'justify' | 'start' | 'center' | 'end' } | undefined)?.bandAlignment ??
+            'justify';
         // `bandAlignment` lives on `layoutConstraints.align`; skip it in the generic apply path so
         // the default branch doesn't shadow that with a separate field on the axis instance.
         const combined = skip?.has('bandAlignment') ? skip : new Set([...(skip ?? []), 'bandAlignment']);
@@ -54,9 +56,9 @@ export class CategoryAxis<
 
     override applyRequiredRange(value: number | undefined): void {
         const oldValue = this.requiredRange;
+        if (value === oldValue) return;
         this.requiredRange = value;
-        if (value === oldValue || value === undefined) return;
-        if (value <= 0) {
+        if (value == null || value <= 0) {
             this.layoutConstraints.width = 100;
             this.layoutConstraints.unit = 'percent';
         } else {

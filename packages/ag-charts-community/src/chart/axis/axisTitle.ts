@@ -10,36 +10,55 @@ import type {
 
 import { Caption } from '../caption';
 
+const DEFAULTS = {
+    enabled: false,
+    text: undefined as string | undefined,
+    spacing: undefined as number | undefined,
+    fontStyle: undefined as FontStyle | undefined,
+    fontWeight: undefined as FontWeight | undefined,
+    fontSize: FONT_SIZE.SMALLER,
+    fontFamily: 'sans-serif',
+    color: undefined as string | undefined,
+    maxWidth: undefined as number | undefined,
+    maxHeight: undefined as number | undefined,
+    wrapping: 'always' as TextWrap,
+    truncate: true,
+    formatter: undefined as RichFormatter<AgAxisCaptionFormatterParams> | undefined,
+};
+
 export class AxisTitle implements AgAxisCaptionOptions {
     readonly caption = new Caption();
 
-    enabled: boolean = false;
+    enabled: boolean = DEFAULTS.enabled;
 
-    text?: string;
+    text?: string = DEFAULTS.text;
 
     spacing!: number;
 
-    fontStyle?: FontStyle;
+    fontStyle?: FontStyle = DEFAULTS.fontStyle;
 
-    fontWeight?: FontWeight;
+    fontWeight?: FontWeight = DEFAULTS.fontWeight;
 
-    fontSize: number = FONT_SIZE.SMALLER;
+    fontSize: number = DEFAULTS.fontSize;
 
-    fontFamily: string = 'sans-serif';
+    fontFamily: string = DEFAULTS.fontFamily;
 
-    color?: string;
+    color?: string = DEFAULTS.color;
 
-    maxWidth?: number;
+    maxWidth?: number = DEFAULTS.maxWidth;
 
-    maxHeight?: number;
+    maxHeight?: number = DEFAULTS.maxHeight;
 
-    wrapping: TextWrap = 'always';
+    wrapping: TextWrap = DEFAULTS.wrapping;
 
-    truncate: boolean = true;
+    truncate: boolean = DEFAULTS.truncate;
 
-    formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
+    formatter?: RichFormatter<AgAxisCaptionFormatterParams> = DEFAULTS.formatter;
 
     applyOptions(options: AgAxisCaptionOptions | undefined): void {
-        if (options != null) Object.assign(this, options);
+        for (const key of Object.keys(DEFAULTS) as (keyof typeof DEFAULTS)[]) {
+            const override = options != null && key in options ? (options as any)[key] : DEFAULTS[key];
+            (this as any)[key] = override;
+        }
     }
 }
