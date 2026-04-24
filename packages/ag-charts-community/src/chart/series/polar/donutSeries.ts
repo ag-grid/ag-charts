@@ -1097,6 +1097,17 @@ export class DonutSeries extends PolarSeries<
             );
             sector.inset = inset;
             sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+
+            const isSelected: boolean = this.data?.selections?.get(this.id)?.isSelected(datum.datumIndex) ?? false;
+            const selectedOffset: number = this.properties.selection.selectedOffset;
+            if (isSelected && selectedOffset > 0) {
+                const midAngle = (sector.endAngle + sector.startAngle) / 2;
+                sector.centerX = selectedOffset * Math.cos(midAngle);
+                sector.centerY = selectedOffset * Math.sin(midAngle);
+            } else {
+                sector.centerX = 0;
+                sector.centerY = 0;
+            }
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
