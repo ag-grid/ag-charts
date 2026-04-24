@@ -1004,6 +1004,23 @@ describe('BubbleSeries', () => {
             const series = deproxy(chart).series[0] as any;
             expect(series.dataAggregation).toBeDefined();
         });
+
+        it('should not aggregate when renderable (non-missing sizeKey) count is within maxRenderedItems', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    ...Array.from({ length: 10 }, (_, i) => ({ x: i, y: i, s: 1 + (i % 5) })),
+                    ...Array.from({ length: 10 }, (_, i) => ({ x: 10 + i, y: i })),
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeUndefined();
+        });
     });
 
     describe('AG-15743 legendItemName', () => {
