@@ -1,8 +1,9 @@
 import type { InternalFramework, Library } from '@ag-grid-types';
 import type { CollectionEntry } from 'astro:content';
-import fs from 'fs';
 import fsPromise from 'fs/promises';
 import glob from 'glob';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import {
     FAIL_ON_UNMATCHED_GLOBS,
@@ -55,66 +56,36 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
 };
 
-let rootUrl: URL;
 /**
  * The root url where the monorepo exists
+ *
+ * Anchored to `process.cwd()` (the `packages/ag-charts-website` project dir for both
+ * `astro dev` and the nx build). Avoids `import.meta.url`, which resolves to the
+ * bundled chunk location at build time and so breaks when Astro's output structure
+ * changes (e.g. the extra `dist/.prerender/chunks/` level added in Astro 6).
  */
 export const getRootUrl = (): URL => {
-    if (rootUrl == null) {
-        let url = new URL(import.meta.url);
-        while (!fs.existsSync(new URL('./.git', url))) {
-            url = new URL('../', url);
-        }
-
-        rootUrl = url;
-    }
-
-    return rootUrl;
-};
-
-let websiteRootUrl: URL;
-/**
- * The `ag-charts-website` root url where the monorepo exists
- */
-const getWebsiteRootUrl = (): URL => {
-    if (websiteRootUrl == null) {
-        let url = new URL(import.meta.url);
-        while (!fs.existsSync(new URL('./package.json', url))) {
-            url = new URL('../', url);
-        }
-
-        websiteRootUrl = url;
-    }
-
-    return websiteRootUrl;
+    return pathToFileURL(path.resolve(process.cwd(), '../../') + path.sep);
 };
 
 export const getPublicFileUrl = (): URL => {
-    const websiteRoot = getWebsiteRootUrl();
-    const contentRoot = pathJoin(websiteRoot, 'public');
-    return new URL(contentRoot, import.meta.url);
+    return pathToFileURL(path.resolve(process.cwd(), 'public') + path.sep);
 };
 
 export const getContentRootFileUrl = (): URL => {
-    const websiteRoot = getWebsiteRootUrl();
-    const contentRoot = pathJoin(websiteRoot, 'src/content');
-    return new URL(contentRoot, import.meta.url);
+    return pathToFileURL(path.resolve(process.cwd(), 'src/content') + path.sep);
 };
 
 export const getExampleRootFileUrl = (): URL => {
-    const root = getRootUrl().pathname;
-    return new URL(`${root}/dist/generated-examples/ag-charts-website/`, import.meta.url);
+    return pathToFileURL(path.resolve(getRootUrl().pathname, 'dist/generated-examples/ag-charts-website') + path.sep);
 };
 
 export const getThumbnailRootFileUrl = (): URL => {
-    const root = getRootUrl().pathname;
-    return new URL(`${root}/dist/generated-thumbnails/ag-charts-website/`, import.meta.url);
+    return pathToFileURL(path.resolve(getRootUrl().pathname, 'dist/generated-thumbnails/ag-charts-website') + path.sep);
 };
 
 export const getDebugFolderUrl = (): URL => {
-    const websiteRoot = getWebsiteRootUrl();
-    const contentRoot = pathJoin(websiteRoot, 'src/pages/debug');
-    return new URL(contentRoot, import.meta.url);
+    return pathToFileURL(path.resolve(process.cwd(), 'src/pages/debug') + path.sep);
 };
 
 export const getDebugPageUrls = async ({
