@@ -118,6 +118,18 @@ export default defineConfig({
                 ],
             },
             allowedHosts: [new URL(PUBLIC_SITE_URL).hostname],
+            headers: {
+                'Content-Security-Policy': [
+                    "default-src 'self'",
+                    "script-src 'self' https://*.ag-grid.com https://localhost:4600 https://localhost:4601 https://www.googletagmanager.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'",
+                    "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+                    "font-src 'self' https://fonts.gstatic.com data:",
+                    "img-src 'self' data: blob: https:",
+                    "connect-src 'self' https:",
+                    "worker-src 'self' blob:",
+                ].join('; '),
+                'X-Content-Type-Options': 'nosniff',
+            },
         },
         css: {
             preprocessorOptions: {
