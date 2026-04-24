@@ -32,16 +32,18 @@ import type {
     AgChartLabelStyleOptions,
     AgPieCalloutLineItemStylerResult,
     AgPieSeriesOptions,
-    AgPieSeriesSelectionOptions,
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
+    AgSelectionStyleOptions,
+    AgSeriesSelectionOptions,
 } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
-const selection: OptionsDefs<AgPieSeriesSelectionOptions> = {
+const selection: OptionsDefs<AgSeriesSelectionOptions<AgSelectionStyleOptions>> = {
     ...selectionOptionsDef(shapeHighlightOptionsDef),
-    selectedOffset: number,
 };
+// @ts-expect-error undocumented option
+selection.selectedOffset = undocumented(number);
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,

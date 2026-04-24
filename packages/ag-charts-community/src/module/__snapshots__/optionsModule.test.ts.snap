@@ -12861,7 +12861,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
           "stroke": "black",
           "strokeWidth": 2,
         },
-        "selectedOffset": 0,
       },
       "shadow": {
         "blur": 5,
