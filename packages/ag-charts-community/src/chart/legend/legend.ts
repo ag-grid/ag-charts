@@ -1152,11 +1152,18 @@ export class Legend {
             }
         };
 
-        if (enabled === true && series !== undefined && legendDatum !== undefined) {
+        const hasHighlightTarget = enabled === true && series !== undefined && legendDatum !== undefined;
+        const legendItemSuppressesHighlight = legendDatum?.suppressHighlight === true;
+
+        if (hasHighlightTarget && !legendItemSuppressesHighlight) {
             const itemId = legendDatum.itemId;
             const nodeDatum = toHighlightNodeDatum(series, legendDatum);
             highlightNodeDatum({ itemId, nodeDatum });
         } else {
+            // Either no highlightable target, or the current legend item opts out
+            // (e.g. a discrete colour-scale bin whose itemId is a bin index, not a
+            // datum index). Push an undefined highlight so any prior highlight under
+            // this caller id is cleared on hover transition.
             highlightNodeDatum(undefined);
         }
     }

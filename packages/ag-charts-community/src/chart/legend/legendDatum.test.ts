@@ -23,6 +23,7 @@ describe('legendDatum', () => {
             expect(result[0].symbol.marker.shape).toBe('square');
             expect(result[0].isFixed).toBe(true);
             expect(result[0].hideToggleOtherSeries).toBe(true);
+            expect(result[0].suppressHighlight).toBe(true);
             expect(result[1].symbol.marker.fill).toBe('green');
         });
 
