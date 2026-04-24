@@ -7,26 +7,54 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
+export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkLayoutUpdateOptions<TVertex, TEdge> {
+    nodeHeight?: number;
+    nodeWidth?: number;
+    nodeMaxHeight?: number;
+    nodeMaxWidth?: number;
+    regularDimensions: boolean;
+    hiddenOnCollapse: boolean;
+    verticalSpacing: number;
+    outerSpacing: number;
+    innerSpacing: number;
+}
+
 /**
  * A Network Tree Layout presents the nodes in a hierarchical non-circular network, for example an org chart or family
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    private readonly verticalPadding = 40;
-    private readonly outerPadding = 0;
-    private readonly innerPadding = 10;
-
-    update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {
-        if (options.regularDimensions) {
-            this.calculateRegularDimensions(options);
-        }
+    update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
+        this.calculateRegularDimensions(options);
 
         const { containerBBox } = this.updateNodes(options, undefined);
         this.updateOffset(options, containerBBox);
     }
 
+    protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
+        if (options.regularDimensions && (options.nodeWidth == null || options.nodeHeight == null)) {
+            super.calculateRegularDimensions(options);
+
+            if (!this.regularBBox) return;
+
+            if (options.nodeWidth != null) {
+                this.regularBBox.width = options.nodeWidth;
+            } else if (options.nodeMaxWidth != null) {
+                this.regularBBox.width = Math.min(options.nodeMaxWidth, this.regularBBox.width);
+            }
+
+            if (options.nodeHeight != null) {
+                this.regularBBox.height = options.nodeHeight;
+            } else if (options.nodeMaxHeight != null) {
+                this.regularBBox.height = Math.min(options.nodeMaxHeight, this.regularBBox.height);
+            }
+        } else if (options.nodeWidth != null && options.nodeHeight != null) {
+            this.regularBBox = new BBox(0, 0, options.nodeWidth, options.nodeHeight);
+        }
+    }
+
     private updateNodes(
-        options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         offset: Point | undefined,
         groupBBox: TBBox = new BBox(0, 0, 0, 0)
     ): {
@@ -38,6 +66,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         // Iterate through the sibling vertices calculating their layout positions.
         let index = -1;
+        let prevHasChildren = false;
         for (const vertex of vertices) {
             index++;
 
@@ -47,14 +76,18 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             nodeBBox = this.regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
+            // TODO: Fix outer padding, see `org-chart-tudor` example for issue.
+            if (prevHasChildren) {
+                groupBBox.width += options.outerSpacing;
+            }
+
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
-                options,
-                vertex,
-                offset,
-                groupBBox,
-                nodeBBox
-            );
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
+                this.updateChildren(options, vertex, offset, groupBBox, nodeBBox);
+
+            const hasVisibleChildren =
+                childrenCount > 0 && descendentsContainerBBox != null && descendentsContainerBBox.width > 0;
+            prevHasChildren = hasVisibleChildren;
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -75,9 +108,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
 
-            // Add inner padding to the group except for the last node.
+            // Add inner padding to childless siblings in the group except for the last node.
+            // TODO: Fix outerSpacing and add `!hasVisibleChildren` condition here
             if (index < vertices.length - 1) {
-                groupBBox.width += this.innerPadding;
+                groupBBox.width += options.innerSpacing;
             }
 
             // Request the series to layout the links between children and their parents.
@@ -92,13 +126,13 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         }
 
         // Add outer padding between this set of siblings and their cousins.
-        groupBBox.width += this.outerPadding;
+        // groupBBox.width += this.outerPadding;
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }
 
     private updateChildren(
-        options: NetworkLayoutUpdateOptions<TVertex, TEdge>,
+        options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         offset: Point | undefined,
         groupBBox: TBBox,
@@ -106,10 +140,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
     ) {
         const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
-        if (!children) return {};
+        if (!children) return { childrenCount: 0 };
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
-        if (datumBBox) childrenGroupBBox.y += datumBBox.height + this.verticalPadding;
+        if (datumBBox) childrenGroupBBox.y += datumBBox.height + options.verticalSpacing;
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
@@ -122,6 +156,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             childrenBBoxes,
             mergedChildrenBBoxes:
                 childrenBBoxes.length > 0 ? BBox.merge(childrenBBoxes.map(({ bbox }) => bbox)) : undefined,
+            childrenCount: children.length,
         };
     }
 
@@ -161,7 +196,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         path.lineTo(end.x, end.y);
     }
 
-    private updateOffset(options: NetworkLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox) {
+    private updateOffset(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>, containerBBox: TBBox) {
         let offset = {
             x: containerBBox.x + containerBBox.width / 2,
             y: 0,

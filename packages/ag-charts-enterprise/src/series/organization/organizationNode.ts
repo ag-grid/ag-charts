@@ -1,4 +1,4 @@
-import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
@@ -10,8 +10,6 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private titleNode?: _ModuleSupport.Text;
     private subtitleNode?: _ModuleSupport.Text;
     private labelNodes?: (_ModuleSupport.Text | undefined)[];
-
-    private readonly padding = 20;
 
     update(datum: OrganizationDatum['datum'], styles: RequiredOrganizationNodeStyle) {
         this.updateShapeNode(styles);
@@ -27,7 +25,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         const columnGaps: number[] = [];
 
         if (this.imageNode && styles.image.position === 'top') {
-            this.imageNode.x = this.padding;
+            this.imageNode.x = styles.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
@@ -54,27 +52,27 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         if (this.imageNode && styles.image.position === 'bottom') {
-            this.imageNode.x = this.padding;
+            this.imageNode.x = styles.padding;
             columnScenes.push(this.imageNode);
             columnGaps.push(styles.image.spacing);
         }
 
         if (this.imageNode && styles.image.position === 'left') {
-            this.imageNode.y = this.padding;
+            this.imageNode.y = styles.padding;
             rowScenes = [this.imageNode, columnScenes];
             rowGaps = [styles.image.spacing];
         } else if (this.imageNode && styles.image.position === 'right') {
-            this.imageNode.y = this.padding;
+            this.imageNode.y = styles.padding;
             rowScenes = [columnScenes, this.imageNode];
             rowGaps = [styles.image.spacing];
         } else {
             rowScenes = [columnScenes];
         }
 
-        layoutScenesColumn(columnScenes, this.padding, columnGaps);
-        layoutScenesRow(rowScenes, this.padding, rowGaps);
+        layoutScenesColumn(columnScenes, styles.padding, columnGaps);
+        layoutScenesRow(rowScenes, styles.padding, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(this.padding); // TODO: add stroke width by side
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
 
         if (this.shapeNode) {
             this.shapeNode.x = 0;
@@ -91,6 +89,69 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
+    realign(
+        styles: {
+            image: {
+                position: 'top' | 'right' | 'bottom' | 'left';
+                spacing: number;
+            };
+            padding: number;
+            title: { textAlign: TextAlign };
+            subtitle: { textAlign: TextAlign };
+            labels: { textAlign: TextAlign }[];
+        },
+        bbox: _ModuleSupport.BBox
+    ) {
+        const { imageNode, titleNode, subtitleNode, labelNodes } = this;
+
+        let imageOffset = 0;
+        const imageSide = styles.image.position === 'left' ? 1 : -1;
+
+        if (imageNode) {
+            if (styles.image.position === 'top' || styles.image.position === 'bottom') {
+                imageNode.x = bbox.width / 2 - imageNode.width / 2;
+            } else {
+                imageOffset = imageNode.width + (styles.image.spacing ?? 0);
+            }
+
+            if (styles.image.position === 'right') {
+                imageNode.x = bbox.width - imageNode.width - styles.padding;
+            }
+        }
+
+        if (titleNode) {
+            if (styles.title.textAlign === 'right') {
+                titleNode.x += bbox.width - styles.padding * 2 - imageOffset;
+            } else if (styles.title.textAlign === 'center') {
+                titleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
+            }
+            titleNode.textAlign = styles.title.textAlign;
+        }
+
+        if (subtitleNode) {
+            if (styles.subtitle.textAlign === 'right') {
+                subtitleNode.x += bbox.width - styles.padding * 2 - imageOffset;
+            } else if (styles.subtitle.textAlign === 'center') {
+                subtitleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
+            }
+            subtitleNode.textAlign = styles.subtitle.textAlign;
+        }
+
+        let index = 0;
+        for (const labelStyles of styles.labels) {
+            const labelNode = labelNodes?.[index];
+            if (labelNode) {
+                if (labelStyles.textAlign === 'right') {
+                    labelNode.x += bbox.width - styles.padding * 2 - imageOffset;
+                } else if (labelStyles.textAlign === 'center') {
+                    labelNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
+                }
+                labelNode.textAlign = labelStyles.textAlign;
+            }
+            index++;
+        }
+    }
+
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
         this.shapeNode.cornerRadius = styles.cornerRadius;
@@ -99,7 +160,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateImageNode(url: string | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (url == null) {
+        if (url == null || !styles.image.enabled) {
             this.imageNode?.remove();
             this.imageNode = undefined;
             return;
@@ -121,7 +182,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (text == null) {
+        if (text == null || !styles.title.enabled) {
             this.titleNode?.remove();
             this.titleNode = undefined;
             return;
@@ -129,11 +190,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.titleNode.text = text;
-        applyTextStyles(this.titleNode, styles.title);
+        applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
     }
 
     private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
-        if (text == null) {
+        if (text == null || !styles.subtitle.enabled) {
             this.subtitleNode?.remove();
             this.subtitleNode = undefined;
             return;
@@ -141,7 +202,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.subtitleNode.text = text;
-        applyTextStyles(this.subtitleNode, styles.subtitle);
+        applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
     }
 
     private updateLabelNodes(
@@ -154,7 +215,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         let index = 0;
         for (const labelText of labels) {
-            if (labelText == null) {
+            if (labelText == null || !styles.labels[index].enabled) {
                 this.labelNodes[index]?.remove();
                 this.labelNodes[index] = undefined;
                 index++;
@@ -162,7 +223,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
             this.labelNodes[index]!.text = labelText;
-            applyTextStyles(this.labelNodes[index]!, styles.labels[index]);
+            applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             index++;
         }
     }

@@ -389,9 +389,12 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
+// TODO: duplicate series options defs here?
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
-    direction: defined,
+    innerSpacing: defined,
+    // outerSpacing: defined,
+    verticalSpacing: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

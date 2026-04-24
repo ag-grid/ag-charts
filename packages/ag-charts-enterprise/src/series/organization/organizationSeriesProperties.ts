@@ -14,6 +14,7 @@ import {
     type Formatter,
     type OverflowStrategy,
     type Styler,
+    type TextAlign,
     type TextWrap,
 } from 'ag-charts-community';
 import { BaseProperties, PropertiesArray, Property } from 'ag-charts-core';
@@ -29,6 +30,15 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
 
     @Property
     direction = 'vertical' as const;
+
+    @Property
+    innerSpacing?: number;
+
+    @Property
+    outerSpacing?: number;
+
+    @Property
+    verticalSpacing?: number;
 
     @Property
     link = new OrganizationSeriesLinkProperties();
@@ -79,6 +89,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     fillOpacity: number = 1;
 
     @Property
+    height?: number;
+
+    @Property
     image = new OrganizationSeriesNodeImageProperties();
 
     @Property
@@ -97,6 +110,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
     maxWidth?: number;
 
     @Property
+    padding: number = 0;
+
+    @Property
     stroke: CssColor = 'black';
 
     @Property
@@ -104,6 +120,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 
     @Property
     strokeWidth: number = 1;
+
+    @Property
+    width?: number;
 
     @Property
     title = new OrganizationSeriesNodeTextProperties();
@@ -116,6 +135,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 }
 
 export class OrganizationSeriesNodeImageProperties extends BaseProperties {
+    @Property
+    enabled: boolean = true;
+
     @Property
     key!: string;
 
@@ -136,6 +158,9 @@ export class OrganizationSeriesNodeImageProperties extends BaseProperties {
 }
 
 export class OrganizationSeriesNodeTextProperties extends BaseProperties {
+    @Property
+    enabled: boolean = true;
+
     @Property
     key!: string;
 
@@ -162,6 +187,9 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     spacing: number = 0;
+
+    @Property
+    textAlign: TextAlign = 'left';
 
     @Property
     wrapping: TextWrap = 'on-space';
