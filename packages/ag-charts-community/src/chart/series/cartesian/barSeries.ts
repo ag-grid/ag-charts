@@ -1428,6 +1428,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return mergeDefaults(
                 overrides,
                 highlightStyle,
+                selectionStyle,
                 this.getStyle(false, highlightState)
             ) as Required<AgBarSeriesStyle>;
         }
