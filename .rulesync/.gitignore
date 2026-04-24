@@ -24,6 +24,7 @@ mcp.json
 !/rules/data-model.md
 !/rules/defaults.md
 !/rules/dom-performance.md
+!/rules/entry-point-hygiene.md
 !/rules/module-support.md
 !/rules/series.md
 !/rules/server-side-rendering.md
