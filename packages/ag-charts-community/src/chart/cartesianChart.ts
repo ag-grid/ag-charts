@@ -77,7 +77,7 @@ export class CartesianChart extends Chart {
         this.syncAxisChanges(newValue, oldValue);
 
         if (this.ctx != null) {
-            this.ctx.zoomManager.setAxes(newValue);
+            this.ctx.zoomManager?.setAxes(newValue);
         }
     }
 
@@ -427,7 +427,7 @@ export class CartesianChart extends Chart {
         const annotationsModule = this.modulesManager.getModule('annotations') as { enabled: boolean } | undefined;
         const hasAnnotations =
             annotationsModule?.enabled === true ||
-            this.ctx.annotationManager.createMemento().some((annotation) => {
+            this.ctx.annotationManager?.createMemento().some((annotation) => {
                 switch (annotation.type) {
                     case 'vertical-line':
                         return axis.direction === ChartAxisDirection.X;

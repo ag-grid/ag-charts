@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ObserveChanges, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, ObserveChanges, Property } from 'ag-charts-core';
 
 export class Animation extends AbstractModuleInstance {
     @ObserveChanges<Animation>((target: Animation, newValue?: boolean) => {
@@ -22,7 +22,7 @@ export class Animation extends AbstractModuleInstance {
     @Property
     public maxAnimatableItems?: number;
 
-    constructor(protected readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(protected readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         ctx.animationManager.skip(false);
         this.cleanup.register(() => ctx.animationManager.skip(true));

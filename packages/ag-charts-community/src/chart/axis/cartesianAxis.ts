@@ -1,4 +1,4 @@
-import type { ChartAnimationPhase, Scale, ZoomMinMax } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext, Scale, ZoomMinMax } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Property,
@@ -13,7 +13,7 @@ import {
 import type { AgCartesianAxisPosition, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { type FromToDiff, fromToMotion } from '../../motion/fromToMotion';
 import { resetMotion } from '../../motion/resetMotion';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -131,7 +131,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return this.position === 'top' || this.position === 'bottom';
     }
 
-    constructor(moduleCtx: ModuleContext, scale: S) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale: S) {
         super(moduleCtx, scale);
 
         this.animationManager = moduleCtx.animationManager;

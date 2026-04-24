@@ -1,5 +1,5 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
-import { AbstractModuleInstance, type AxisID, ChartAxisDirection, boxEmpty } from 'ag-charts-core';
+import { AbstractModuleInstance, type AxisID, ChartAxisDirection, type DynamicContext, boxEmpty } from 'ag-charts-core';
 
 type AxisHit = { axisId: AxisID; direction: ChartAxisDirection };
 
@@ -33,7 +33,7 @@ export class AxisDOMProxy extends AbstractModuleInstance {
 
     private seriesRect: _ModuleSupport.BBox | undefined;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         if (ctx.widgets.seriesDragInterpreter) {

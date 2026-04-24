@@ -20,6 +20,7 @@ import {
     DebugMetrics,
     type DeepRequired,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     type RequireOptional,
     extent,
@@ -197,7 +198,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pathsPerSeries: ['fill', 'lowStroke', 'highStroke'],

@@ -2,6 +2,7 @@ import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-comm
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
+    type DynamicContext,
     Property,
     type Scale,
     type ScaleTickParams,
@@ -64,7 +65,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
     protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, scale: TScale) {
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
     }

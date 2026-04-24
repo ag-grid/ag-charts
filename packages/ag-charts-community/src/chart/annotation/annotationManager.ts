@@ -1,8 +1,8 @@
-import type { MementoOriginator } from 'ag-charts-core';
+import type { DynamicContext, MementoOriginator } from 'ag-charts-core';
 import { deepClone, isArray, mergeDefaults } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import type { Node } from '../../scene/node';
 
 type AnnotationsMemento = AgAnnotation[];
@@ -13,7 +13,7 @@ export class AnnotationManager implements MementoOriginator<AnnotationsMemento> 
     private annotations: AnnotationsMemento = [];
     private styles?: AgAnnotationsThemeableOptions;
 
-    constructor(private readonly ctx: ModuleContext) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     public createMemento() {
         return this.annotations;

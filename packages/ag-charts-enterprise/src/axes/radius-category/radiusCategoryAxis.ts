@@ -1,5 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import { Property, ProxyPropertyOnWrite } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
@@ -22,7 +22,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
     @Property
     paddingOuter: number = 0;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new CategoryScale());
     }
 

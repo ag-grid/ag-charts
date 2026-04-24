@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type BoxBounds, ChartAxisDirection, UNIT_MAX, UNIT_MIN, definedZoomState, entries } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    ChartAxisDirection,
+    type DynamicContext,
+    UNIT_MAX,
+    UNIT_MIN,
+    definedZoomState,
+    entries,
+} from 'ag-charts-core';
 
 import type { ZoomCoords } from './zoomTypes';
 import { constrainZoom, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
@@ -28,7 +36,7 @@ const decelerationValues = {
 };
 
 export class ZoomPanner {
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {}
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {}
 
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {

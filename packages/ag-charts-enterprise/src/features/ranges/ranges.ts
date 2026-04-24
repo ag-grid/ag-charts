@@ -14,6 +14,7 @@ import {
     ChartAxisDirection,
     CleanupRegistry,
     Color,
+    type DynamicContext,
     type ModuleInstance,
     PropertiesArray,
     Property,
@@ -127,7 +128,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(
@@ -461,7 +462,8 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private updateZoomWithButtonIndex(index: number) {
-        const { zoomManager } = this.ctx;
+        const zoomManager = this.ctx.zoomManager;
+        if (!zoomManager) return;
 
         const button = this.buttons.at(index);
         if (!button) return;
@@ -514,10 +516,8 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     }
 
     private getButtonEnabled(button: RangesButtonProperties) {
-        const {
-            enableOutOfRange,
-            ctx: { zoomManager },
-        } = this;
+        const { enableOutOfRange, ctx } = this;
+        const zoomManager = ctx.zoomManager;
 
         let buttonEnabled = button.enabled ?? enableOutOfRange;
 
@@ -526,7 +526,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             if (updateWithFn.valid === false) return false;
 
             buttonEnabled =
-                updateWithFn.fn == null
+                updateWithFn.fn == null || zoomManager == null
                     ? true
                     : zoomManager.isValidUpdateWith(ChartAxisDirection.X, updateWithFn.fn, 'range-check');
         }

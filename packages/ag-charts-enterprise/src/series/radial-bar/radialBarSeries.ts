@@ -8,6 +8,7 @@ import {
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     angleBetween,
     isDefined,
@@ -102,7 +103,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     private contextNodeData?: RadialBarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'radiusValue',

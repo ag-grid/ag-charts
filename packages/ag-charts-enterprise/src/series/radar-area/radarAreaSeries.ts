@@ -5,7 +5,7 @@ import {
     type AgSeriesMarkerStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection } from 'ag-charts-core';
 
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
@@ -27,7 +27,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     override resetInvalidToZero = true;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
         this.areaGroup.zIndex = -1;
     }

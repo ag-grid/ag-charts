@@ -1,12 +1,13 @@
 import {
     AgDocument,
     CallbackCache,
-    CleanupRegistry,
+    type DynamicContext,
     EventEmitter,
     ModuleRegistry,
     ModuleType,
     ReactiveState,
     type StrictHTMLElement,
+    createDynamicContext,
 } from 'ag-charts-core';
 
 import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
@@ -16,12 +17,11 @@ import type { EventsHubMap } from '../core/eventsHub';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import type { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
-import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import type { ChartState } from './chartState';
@@ -32,161 +32,111 @@ import { FormatManager } from './formatter/formatManager';
 import { ActiveManager } from './interaction/activeManager';
 import { AnimationManager } from './interaction/animationManager';
 import { CollapsedManager } from './interaction/collapsedManager';
-import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
-import { ZoomManager } from './interaction/zoomManager';
 import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
-import { LegendManager } from './legend/legendManager';
 import { OptionsGraphService } from './optionsGraphService';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 
-export class ChartContext implements ModuleContext {
-    readonly eventsHub = new EventEmitter<EventsHubMap>();
-
-    readonly callbackCache = new CallbackCache();
-    readonly chartState = new ReactiveState<ChartState>();
-    readonly highlightManager: HighlightManager;
-    readonly formatManager = new FormatManager();
-    readonly layoutManager = new LayoutManager(this.eventsHub);
-    readonly localeManager = new LocaleManager(this.eventsHub);
-    readonly seriesStateManager = new SeriesStateManager();
-    readonly stateManager = new StateManager();
-    readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
-    readonly cleanup = new CleanupRegistry();
-
-    readonly activeManager: ActiveManager;
-    readonly annotationRoot: Group;
-    readonly fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
-    agDocument: AgDocument;
-    animationManager: AnimationManager;
-    annotationManager: AnnotationManager;
-    axisManager: AxisManager;
-    chartService: ChartService;
-    chartTypeOriginator: ChartTypeOriginator;
-    collapsedManager: CollapsedManager;
-    contextMenuRegistry: ContextMenuRegistry;
-    dataService: DataService<any>;
-    domManager: DOMManager;
-    fontManager: FontManager;
-    historyManager: HistoryManager;
-    interactionManager: InteractionManager;
-    legendManager: LegendManager;
-    optionsGraphService: OptionsGraphService;
-    proxyInteractionService: ProxyInteractionService;
-    scene: Scene;
+export interface ChartContextVars {
+    chartType: ChartType;
+    scene?: Scene;
+    root: Group;
     syncManager: SyncManager;
-    tooltipManager: TooltipManager;
-    widgets: WidgetSet;
-    zoomManager: ZoomManager;
+    container?: HTMLElement;
+    agDocument: AgDocument;
+    styleContainer?: HTMLElement;
+    skipCss?: boolean;
+    domMode?: 'normal' | 'minimal';
+    withDragInterpretation: boolean;
+    fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
+    updateMutex: Mutex;
+}
 
-    constructor(
-        chart: ChartService & { annotationRoot: Group; tooltip: Tooltip },
-        vars: {
-            chartType: ChartType;
-            scene?: Scene;
-            root: Group;
-            syncManager: SyncManager;
-            container?: HTMLElement;
-            agDocument: AgDocument;
-            styleContainer?: HTMLElement;
-            skipCss?: boolean;
-            domMode?: 'normal' | 'minimal';
-            withDragInterpretation: boolean;
-            fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
-            updateMutex: Mutex;
-        }
-    ) {
-        const {
-            scene,
-            root,
-            syncManager,
-            agDocument,
-            container,
-            fireEvent,
-            updateMutex,
-            styleContainer,
-            skipCss,
-            chartType,
-            domMode,
-            withDragInterpretation,
-        } = vars;
+type ChartHost = ChartService & { annotationRoot: Group; tooltip: Tooltip };
 
-        this.chartService = chart;
-        this.syncManager = syncManager;
-        this.agDocument = agDocument;
-        this.fireEvent = fireEvent;
-        this.annotationRoot = chart.annotationRoot;
-        this.highlightManager = new HighlightManager(this);
-        this.domManager = new DOMManager(
-            this.eventsHub,
-            this.chartService,
-            this.agDocument,
-            container,
-            styleContainer,
-            skipCss,
-            domMode
-        );
-        this.widgets = new WidgetSet(this.domManager, { withDragInterpretation });
+export function createChartContext(chart: ChartHost, vars: ChartContextVars): DynamicContext<ChartRegistry> {
+    const ctx = createDynamicContext<ChartRegistry>();
 
-        const localWindow = this.agDocument.window;
+    // Eager construction for services that must be alive from t=0 (DOM/canvas setup,
+    // seeded state, chart inputs). Every other service is lazy — see the `.service(...)`
+    // block below. Order matters for destroy-cascade: entries registered later are
+    // destroyed earlier (DynamicContext.destroy iterates in reverse-insertion order),
+    // so dependents tear down before their dependencies.
+    const eventsHub = new EventEmitter<EventsHubMap>();
 
-        // Sets canvas element if scene exists, otherwise use return value with scene constructor
-        const canvasElement = this.domManager.addChild(
-            'canvas',
-            'scene-canvas',
-            scene?.canvas.element
-        ) as HTMLCanvasElement & StrictHTMLElement;
+    const chartState = new ReactiveState<ChartState>();
+    chartState.setValue('activeItem', undefined);
+    chartState.setValue('highlight', undefined);
+    chartState.setValue('legendData', {});
+    chartState.setValue('legendVisible', true);
 
-        this.scene = scene ?? new Scene({ canvasElement, pixelRatio: localWindow.devicePixelRatio ?? 1 });
-        this.scene.setRoot(root);
+    const domManager = new DOMManager(
+        eventsHub,
+        chart,
+        vars.agDocument,
+        vars.container,
+        vars.styleContainer,
+        vars.skipCss,
+        vars.domMode
+    );
+    const canvasElement = domManager.addChild(
+        'canvas',
+        'scene-canvas',
+        vars.scene?.canvas.element
+    ) as HTMLCanvasElement & StrictHTMLElement;
+    const scene = vars.scene ?? new Scene({ canvasElement, pixelRatio: vars.agDocument.window.devicePixelRatio ?? 1 });
+    scene.setRoot(vars.root);
 
-        this.chartState.setValue('activeItem', undefined);
-        this.chartState.setValue('highlight', undefined);
-        this.chartState.setValue('legendData', {});
-        this.chartState.setValue('legendVisible', true);
+    ctx.constant('eventsHub', eventsHub)
+        .constant('agDocument', vars.agDocument)
+        // The chart is the host — it manages its own lifecycle and the context's.
+        // Registering as `ref` keeps it readable via `ctx.chartService` without the
+        // destroy cascade looping back into `chart.destroy()`.
+        .ref('chartService', chart)
+        .ref('annotationRoot', chart.annotationRoot)
+        .constant('fireEvent', vars.fireEvent)
+        .constant('syncManager', vars.syncManager)
+        .constant('chartState', chartState)
+        .constant('domManager', domManager)
+        // Scene lifecycle is managed by `Chart.destroy()` — it may strip-without-destroy
+        // when transferable resources are preserved across chart-type switches.
+        .ref('scene', scene);
 
-        this.axisManager = new AxisManager(this.eventsHub, root);
-        this.legendManager = new LegendManager(this);
-        this.annotationManager = new AnnotationManager(this);
-        this.chartTypeOriginator = new ChartTypeOriginator(chart);
-        this.interactionManager = new InteractionManager();
-        this.contextMenuRegistry = new ContextMenuRegistry(this);
-        this.optionsGraphService = new OptionsGraphService();
-        this.activeManager = new ActiveManager(this);
-        this.proxyInteractionService = new ProxyInteractionService(this);
-        this.fontManager = new FontManager(this);
-        this.historyManager = new HistoryManager(this);
-        this.animationManager = new AnimationManager(this.agDocument, this.interactionManager, updateMutex);
-        this.dataService = new DataService<any>(this.eventsHub, chart, this.animationManager);
-        this.tooltipManager = new TooltipManager(this.eventsHub, this.localeManager, this.domManager, chart.tooltip);
-        this.zoomManager = new ZoomManager(this);
-        this.collapsedManager = new CollapsedManager(this.eventsHub);
+    ctx.service('callbackCache', () => new CallbackCache())
+        .service('formatManager', () => new FormatManager())
+        .service('seriesStateManager', () => new SeriesStateManager())
+        .service('stateManager', () => new StateManager())
+        .service('seriesLabelLayoutManager', () => new SeriesLabelLayoutManager())
+        .service('interactionManager', () => new InteractionManager())
+        .service('optionsGraphService', () => new OptionsGraphService())
+        .service('chartTypeOriginator', () => new ChartTypeOriginator(chart))
+        .service('widgets', (c) => new WidgetSet(c.domManager, { withDragInterpretation: vars.withDragInterpretation }))
+        .service('axisManager', (c) => new AxisManager(c.eventsHub, vars.root))
+        .service('highlightManager', (c) => new HighlightManager(c))
+        .service('layoutManager', (c) => new LayoutManager(c.eventsHub))
+        .service('localeManager', (c) => new LocaleManager(c.eventsHub))
+        .service('historyManager', (c) => new HistoryManager(c))
+        .service('collapsedManager', (c) => new CollapsedManager(c.eventsHub))
+        .service('animationManager', (c) => new AnimationManager(c.agDocument, c.interactionManager, vars.updateMutex))
+        .service('activeManager', (c) => new ActiveManager(c))
+        .service('proxyInteractionService', (c) => new ProxyInteractionService(c))
+        .service('fontManager', (c) => new FontManager(c))
+        .service('tooltipManager', (c) => new TooltipManager(c.eventsHub, c.localeManager, c.domManager, chart.tooltip))
+        .service('dataService', (c) => new DataService<any>(c.eventsHub, chart, c.animationManager));
 
-        for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
-            if (!module.chartType || module.chartType === chartType) {
-                module.patchContext?.(this);
-            }
+    // Plugin modules register their own services (e.g. sharedToolbar) after the
+    // core registry is complete but before any consumer reads from the context.
+    for (const module of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
+        if (!module.chartType || module.chartType === vars.chartType) {
+            module.register?.(ctx);
         }
     }
 
-    destroy() {
-        // chart.ts handles the destruction of the scene.
-        this.chartState.destroy();
-        this.animationManager.destroy();
-        this.axisManager.destroy();
-        this.callbackCache.invalidateCache();
-        this.domManager.destroy();
-        this.fontManager.destroy();
-        this.proxyInteractionService.destroy();
-        this.tooltipManager.destroy();
-        this.zoomManager.destroy();
-        this.widgets.destroy();
-        this.cleanup.flush();
-    }
+    return ctx;
 }

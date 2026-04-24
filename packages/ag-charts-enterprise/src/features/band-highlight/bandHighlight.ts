@@ -68,7 +68,7 @@ export class BandHighlight extends AbstractModuleInstance {
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
-    constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
+    constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;

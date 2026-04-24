@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     ActionOnSet,
     AgDocument,
@@ -48,7 +49,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { UpdateOpts } from '../core/eventsHub';
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
@@ -65,7 +66,7 @@ import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { ChartCaptions } from './chartCaptions';
-import { ChartContext } from './chartContext';
+import { createChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
@@ -283,7 +284,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    public readonly ctx: ChartContext;
+    public readonly ctx: DynamicContext<ChartRegistry>;
     protected readonly seriesLayerManager: SeriesLayerManager;
     protected readonly seriesAreaManager: SeriesAreaManager;
 
@@ -350,7 +351,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
         this.styleNonce = options.processedOptions.styleNonce;
-        const ctx = (this.ctx = new ChartContext(this, {
+        const ctx = (this.ctx = createChartContext(this, {
             chartType: this.getChartType(),
             scene,
             root,
@@ -527,7 +528,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         };
     }
 
-    getModuleContext(): ModuleContext {
+    getModuleContext(): DynamicContext<ChartRegistry> {
         return this.ctx;
     }
 
@@ -620,6 +621,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) return;
+        // Set the flag before `this.ctx.destroy()` so any event emitted or callback fired
+        // during the cascade sees a destroyed chart and early-exits via this guard.
+        this.destroyed = true;
 
         const keepTransferableResources = opts?.keepTransferableResources;
         let result: TransferableResources | undefined;
@@ -657,7 +661,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.animationRect = undefined;
 
         this.ctx.destroy();
-        this.destroyed = true;
 
         Object.freeze(this);
 
@@ -1351,11 +1354,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         const legendData = this.series.flatMap((s) => {
             const seriesLegendData = s.getLegendData('category');
-            legendManager.updateData(s.id, seriesLegendData);
+            legendManager?.updateData(s.id, seriesLegendData);
             return seriesLegendData;
         });
 
-        if (initialState) {
+        if (initialState && legendManager) {
             stateManager.setStateAndRestore(legendManager, initialState);
             return;
         }
@@ -1657,7 +1660,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         if (!this.hasViewportSupport()) {
             // reset zoom to initial state
-            this.ctx.zoomManager.updateZoom(
+            this.ctx.zoomManager?.updateZoom(
                 { source: 'chart-update', sourceDetail: 'internal-applyOptions' },
                 { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } }
             );
@@ -1673,7 +1676,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             miniChart.axes = []; // TODO axes should be an object, but that throws a "mutex callback error"
         }
 
-        this.ctx.annotationManager.setAnnotationStyles(newChartOptions.annotationThemes);
+        this.ctx.annotationManager?.setAnnotationStyles(newChartOptions.annotationThemes);
 
         forceNodeDataRefresh ||= this.shouldForceNodeDataRefresh(deltaOptions, seriesStatus);
         const majorChange = forceNodeDataRefresh || modulesChanged;
@@ -1681,7 +1684,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.maybeResetAnimations(seriesStatus);
 
         if (this.shouldClearLegendData(newOpts, oldOpts, seriesStatus)) {
-            this.ctx.legendManager.clearData();
+            this.ctx.legendManager?.clearData();
         }
 
         this.applyInitialState(newOpts);
@@ -1715,7 +1718,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.ctx;
         const { initialState } = options;
 
-        if ('annotations' in options && options.annotations?.enabled && initialState?.annotations != null) {
+        if (
+            'annotations' in options &&
+            options.annotations?.enabled &&
+            initialState?.annotations != null &&
+            annotationManager
+        ) {
             const annotations = initialState.annotations.map((annotation) => {
                 const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
                 return mergeDefaults(annotation, annotationTheme);
@@ -1728,7 +1736,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
-        if (this.needsViewportSupport(options) && initialState?.zoom != null) {
+        if (this.needsViewportSupport(options) && initialState?.zoom != null && zoomManager) {
             stateManager.setState(zoomManager, initialState.zoom);
         }
 
@@ -1881,6 +1889,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (shouldBeEnabled === this.modulesManager.isEnabled(module.name)) continue;
 
             if (shouldBeEnabled) {
+                // Register any services this module contributes before constructing it.
+                // Modules registered after `createChartContext()` (e.g. a plugin added via
+                // `AgCharts.registerModule()` post-construction) would otherwise miss the
+                // one-shot `register()` loop in `createChartContext`. `ctx.has()` guards in
+                // each register hook keep repeated registration a no-op.
+                module.register?.(this.getModuleContext());
                 const moduleInstance = module.create(this.getModuleContext());
                 this.modulesManager.addModule(module.name, moduleInstance);
                 (this as any)[module.name] = moduleInstance; // TODO remove

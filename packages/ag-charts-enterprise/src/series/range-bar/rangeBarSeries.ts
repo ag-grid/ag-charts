@@ -17,6 +17,7 @@ import {
     ChartAxisDirection,
     DebugMetrics,
     type DomainWithMetadata,
+    type DynamicContext,
     type Mutable,
     type Point,
     type RequireOptional,
@@ -219,7 +220,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],

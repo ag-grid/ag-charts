@@ -5,6 +5,7 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     Debug,
+    type DynamicContext,
     Logger,
     type ModuleInstance,
     ObserveChanges,
@@ -90,7 +91,7 @@ export class ChartSync extends BaseProperties implements ModuleInstance, AgChart
 
     private readonly domainSync = new AsyncAwaitQueue();
 
-    constructor(protected moduleContext: _ModuleSupport.ModuleContext) {
+    constructor(protected moduleContext: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
     }
 

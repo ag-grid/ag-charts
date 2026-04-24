@@ -1,5 +1,5 @@
 import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
-import type { FeatureCollection } from 'ag-charts-core';
+import type { DynamicContext, FeatureCollection } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -71,7 +71,7 @@ export class MapShapeBackgroundSeries
 
     private contextNodeData?: MapShapeBackgroundNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

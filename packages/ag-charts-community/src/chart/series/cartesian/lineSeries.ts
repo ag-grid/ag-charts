@@ -1,4 +1,4 @@
-import type { CallbackParamRules, DomainWithMetadata, RequireOptional } from 'ag-charts-core';
+import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
@@ -11,7 +11,7 @@ import {
     type AgSeriesMarkerStyle,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -112,7 +112,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return this.properties.sparklineMode ? 'main' : 'main-category';
     }
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
@@ -961,7 +961,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 itemId,
                 legendItemName,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },

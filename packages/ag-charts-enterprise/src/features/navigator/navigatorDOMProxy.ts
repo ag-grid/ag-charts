@@ -11,7 +11,7 @@ type SliderDragHandlers = {
 };
 
 type NavigatorDOMProxyModuleContext = Pick<
-    _ModuleSupport.ModuleContext,
+    _ModuleSupport.ChartRegistry,
     'zoomManager' | 'proxyInteractionService' | 'localeManager' | 'contextMenuRegistry'
 >;
 
@@ -96,7 +96,7 @@ export class NavigatorDOMProxy {
         const { _min: min, _max: max } = this;
         if (min == null || max == null) return;
 
-        this.ctx.zoomManager.updateZoom(
+        this.ctx.zoomManager?.updateZoom(
             { source: 'user-interaction', sourceDetail: 'navigatorDOM' },
             { x: { min, max } }
         );
@@ -176,7 +176,7 @@ export class NavigatorDOMProxy {
         const { x: sliderX, y: sliderY } = slider.getBounds();
         const canvasX = offsetX + toolbarX + sliderX;
         const canvasY = offsetY + toolbarY + sliderY;
-        this.ctx.contextMenuRegistry.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
+        this.ctx.contextMenuRegistry?.dispatchContext('always', { widgetEvent, canvasX, canvasY }, undefined);
     }
 
     private onPanSliderChange() {

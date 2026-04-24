@@ -1,7 +1,7 @@
-import { type Point, objectsEqual } from 'ag-charts-core';
+import { type DynamicContext, type Point, objectsEqual } from 'ag-charts-core';
 
 import type { HighlightNodeDatum } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { debouncedCallback } from '../../util/render';
 import { StateTracker } from '../../util/stateTracker';
 import type { ErrorBoundSeriesNodeDatum } from '../series/seriesTypes';
@@ -21,7 +21,7 @@ export class HighlightManager {
 
     private static readonly HIGHLIGHT_CHANGE_EVENT = 'highlight:change';
 
-    constructor(private readonly ctx: ModuleContext) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     private highlightInViewport: boolean = true;
 

@@ -10,6 +10,7 @@ import {
     type CallbackParamRules,
     type ChartAnimationPhase,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     StateMachine,
     type Writeable,
@@ -126,7 +127,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         () => this.checkProcessedDataAnimatable()
     );
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,
@@ -170,7 +171,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const yScaleType = 'number';
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>
-            visible && legendManager.getItemEnabled({ seriesId, itemId: index });
+            visible && (legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true);
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const allowNullKey = this.properties.allowNullKeys ?? false;
         await this.requestDataModel<any, any, true>(dataController, this.data, {
@@ -236,7 +237,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
             if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
-            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
+            const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
             yTotal += yValue;
 
@@ -326,7 +327,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             if (xValue === undefined && !this.properties.allowNullKeys) continue; // eslint-disable-line sonarjs/different-types-comparison
             const yValue = yValues[datumIndex];
 
-            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
+            const enabled = visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
             const yEnd = yStart + yValue;
 
@@ -779,7 +780,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                     datum,
                     itemId: datumIndex,
                     seriesId,
-                    enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                    enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true),
                     label: { text: String(stageValue) },
                     symbol: this.legendItemSymbol(datumIndex),
                     hideInLegend: !showInLegend,

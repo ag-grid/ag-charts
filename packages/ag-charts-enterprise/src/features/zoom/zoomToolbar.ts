@@ -1,5 +1,5 @@
 import { type AgZoomAnchorPoint, type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
-import type { AxisID, CartesianAxisDirection, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
+import type { AxisID, CartesianAxisDirection, DefinedZoomState, DynamicContext, ZoomMinMax } from 'ag-charts-core';
 import {
     ActionOnSet,
     BaseProperties,
@@ -88,7 +88,7 @@ export class ZoomToolbar extends BaseProperties {
     private previousZoom?: DefinedZoomState;
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getModuleProperties: () => ZoomProperties,
         private readonly updateZoom: (sourcing: _ModuleSupport.UpdateZoomSourcing, zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
@@ -254,7 +254,7 @@ export class ZoomToolbar extends BaseProperties {
         const props = this.getModuleProperties();
 
         if (props.independentAxes && button.value !== 'reset') {
-            const axisZooms = this.ctx.zoomManager.getAxisZooms();
+            const axisZooms = this.ctx.zoomManager!.getAxisZooms();
             for (const [axisId, value] of entries(axisZooms)) {
                 if (value == null) continue;
                 const { direction, min, max } = value;

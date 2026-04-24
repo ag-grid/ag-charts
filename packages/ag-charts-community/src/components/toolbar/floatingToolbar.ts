@@ -1,6 +1,13 @@
-import { type BoxBounds, type Point, clamp, createElement, getIconClassNames } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    type DynamicContext,
+    type Point,
+    clamp,
+    createElement,
+    getIconClassNames,
+} from 'ag-charts-core';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { DraggablePopover } from '../popover/draggablePopover';
@@ -25,7 +32,7 @@ class FloatingToolbarPopover extends DraggablePopover {
     override dragHandleDraggingClass = 'ag-charts-floating-toolbar__drag-handle--dragging';
 
     constructor(
-        ctx: ModuleContext,
+        ctx: DynamicContext<ChartRegistry>,
         id: string,
         private readonly onPopoverMoved: () => void
     ) {
@@ -112,7 +119,7 @@ export abstract class FloatingToolbar<
     private popoverBounds?: BBox;
     private readonly dragHandle: DragHandleWidget;
 
-    constructor(ctx: ModuleContext, ariaLabelId: string, id: string) {
+    constructor(ctx: DynamicContext<ChartRegistry>, ariaLabelId: string, id: string) {
         super(ctx, ariaLabelId, 'horizontal');
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
         this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'));

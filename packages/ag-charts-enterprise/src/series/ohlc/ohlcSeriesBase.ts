@@ -17,6 +17,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     DebugMetrics,
+    type DynamicContext,
     Logger,
     type Mutable,
     type Point,
@@ -224,7 +225,7 @@ export abstract class OhlcSeriesBase<
 
     private readonly aggregationManager = new AggregationManager<OhlcSeriesDataAggregationFilter>();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],

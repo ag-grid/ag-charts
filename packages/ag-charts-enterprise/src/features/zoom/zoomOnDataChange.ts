@@ -71,7 +71,11 @@ function fromVisibleMinMax(domainMinMax: DomainMinMax, visibleMinMax: VisibleMin
 }
 
 export interface ZoomOnDataChangeCtx
-    extends Pick<_ModuleSupport.ModuleContext, 'chartState' | 'eventsHub' | 'zoomManager' | 'axisManager'> {
+    extends Pick<_ModuleSupport.ChartRegistry, 'chartState' | 'eventsHub' | 'axisManager'> {
+    // `zoomManager` is optional on _ModuleSupport.ChartRegistry, but ZoomOnDataChange is only ever
+    // instantiated by the zoom module, which guarantees its presence. Narrow once at
+    // the boundary so consumers don't need `!` assertions at every call site.
+    readonly zoomManager: _ModuleSupport.ZoomManager;
     readonly cleanup: CleanupRegistry;
     readonly onConstrainChanges: (e: _ModuleSupport.ZoomChangeRequestEvent) => void;
     // Reactive option access delegated from parent via getter property.

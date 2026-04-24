@@ -48,7 +48,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: _ModuleSupport.SeriesContext) {
+    constructor(ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
 
         const series = ctx.series as ErrorBoundCartesianSeries;

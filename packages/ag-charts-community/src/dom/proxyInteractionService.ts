@@ -1,7 +1,14 @@
-import { type BaseStyleTypeMap, CleanupRegistry, type ElementID, createElement, setElementStyle } from 'ag-charts-core';
+import {
+    type BaseStyleTypeMap,
+    CleanupRegistry,
+    type DynamicContext,
+    type ElementID,
+    createElement,
+    setElementStyle,
+} from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
 
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 import { BoundedTextWidget } from '../widget/boundedTextWidget';
 import { ButtonWidget } from '../widget/buttonWidget';
 import { GroupWidget } from '../widget/groupWidget';
@@ -122,7 +129,7 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 export class ProxyInteractionService {
     private readonly cleanup = new CleanupRegistry();
 
-    constructor(private readonly ctx: ModuleContext) {}
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
 
     destroy() {
         this.cleanup.flush();

@@ -1,9 +1,9 @@
-import type { ChartAnimationPhase } from 'ag-charts-core';
+import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
 import { Logger, type Point, StateMachine, arraysEqual, clamp, formatValue, mergeDefaults } from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { BBox } from '../../../scene/bbox';
@@ -127,7 +127,7 @@ export abstract class HierarchySeries<
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNodeClass, TNode>>;
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -347,7 +347,7 @@ export abstract class HierarchySeries<
             return [];
         }
 
-        const enabled = visible && legendManager.getItemEnabled({ seriesId });
+        const enabled = visible && (legendManager?.getItemEnabled({ seriesId }) ?? true);
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
             return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);

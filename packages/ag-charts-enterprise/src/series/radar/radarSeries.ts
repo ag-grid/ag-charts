@@ -12,6 +12,7 @@ import {
     type CallbackParam,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     type RequireOptional,
     extent,
@@ -105,7 +106,7 @@ export abstract class RadarSeries<
 
     public contextNodeData?: RadarSeriesNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: 'angleValue',
@@ -568,7 +569,7 @@ export abstract class RadarSeries<
                 id: seriesId,
                 itemId: radiusKey,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: radiusKey }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: radiusKey }) ?? true),
                 label: {
                     text: legendItemName ?? radiusName ?? radiusKey,
                 },

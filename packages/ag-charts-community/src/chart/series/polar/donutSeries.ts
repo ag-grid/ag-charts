@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
@@ -38,7 +39,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
@@ -217,7 +218,7 @@ export class DonutSeries extends PolarSeries<
 
     override surroundingRadius?: number = undefined;
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,
@@ -294,7 +295,7 @@ export class DonutSeries extends PolarSeries<
         const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const processor = () => (value: unknown, index: number) => {
-            if (visible && legendManager.getItemEnabled({ seriesId, itemId: index })) {
+            if (visible && (legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true)) {
                 return value;
             }
             return 0;
@@ -520,7 +521,7 @@ export class DonutSeries extends PolarSeries<
                 sectorFormat,
                 radiusValue,
                 legendItemValue,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true),
                 focusable: true,
                 ...nodeLabels,
             };
@@ -1550,7 +1551,7 @@ export class DonutSeries extends PolarSeries<
         const innerRadius = this.radiusScale.convert(0);
         const shouldPutTextInCenter =
             innerRadius <= 0 && // is donut?
-            this.ctx.legendManager.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
+            this.ctx.legendManager?.getData(this.id)?.filter((d) => d.enabled).length === 1; // single visible sector?
 
         const align = { textAlign: 'center', textBaseline: 'middle' } as const;
         const updateSelection = (selection: Selection<PieDonutNodeDatum, Text<PieDonutNodeDatum>>) =>
@@ -1817,7 +1818,7 @@ export class DonutSeries extends PolarSeries<
                 itemId: datumIndex,
                 seriesId,
                 hideToggleOtherSeries: true,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true),
                 label: {
                     text: labelParts.map((s) => toPlainText(s)).join(' - '),
                 },
@@ -1837,7 +1838,7 @@ export class DonutSeries extends PolarSeries<
             ctx: { legendManager, eventsHub },
         } = this;
         for (const [itemId, enabled] of enabledItems.entries()) {
-            legendManager.toggleItem(enabled, seriesId, itemId);
+            legendManager?.toggleItem(enabled, seriesId, itemId);
         }
         eventsHub.emit('chart:request-update', { type: ChartUpdateType.SERIES_UPDATE });
     }

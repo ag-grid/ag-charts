@@ -1,4 +1,12 @@
-import type { CallbackParamRules, DomainWithMetadata, Mutable, Point, RequireOptional, Scale } from 'ag-charts-core';
+import type {
+    CallbackParamRules,
+    DomainWithMetadata,
+    DynamicContext,
+    Mutable,
+    Point,
+    RequireOptional,
+    Scale,
+} from 'ag-charts-core';
 import {
     AGGREGATION_INDEX_UNSET,
     AGGREGATION_INDEX_X_MAX,
@@ -22,7 +30,7 @@ import type {
     TextOrSegments,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { BBox } from '../../../scene/bbox';
@@ -258,7 +266,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         false
     );
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
@@ -1642,7 +1650,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 id: seriesId,
                 itemId,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: { text: legendItemName ?? yName ?? itemId },
                 symbol: this.legendItemSymbol(),
                 legendItemName,

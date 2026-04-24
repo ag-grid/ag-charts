@@ -219,7 +219,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
         // has updated the axis scale domains.
-        if (originatorsSet.has(legendManager) && originatorsSet.has(zoomManager)) {
+        if (legendManager && zoomManager && originatorsSet.has(legendManager) && originatorsSet.has(zoomManager)) {
             originatorsSet.delete(zoomManager);
             await this.setStateOriginators(state, Array.from(originatorsSet));
             await this.setStateOriginators(state, [zoomManager]);
@@ -305,7 +305,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         // sync zoom
         const sourcing: UpdateZoomSourcing = { source: 'chart-update', sourceDetail: 'internal-prepareResizedChart' };
-        cloneProxy.chart?.ctx.zoomManager.updateZoom(sourcing, chart.ctx.chartState.getValue('zoom'));
+        cloneProxy.chart?.ctx.zoomManager?.updateZoom(sourcing, chart.ctx.chartState.getValue('zoom'));
 
         cloneProxy.chart?.update(ChartUpdateType.FULL, { forceNodeDataRefresh: true });
         await cloneProxy.waitForUpdate();
@@ -353,7 +353,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const originators: MementoOriginator<unknown>[] = [];
 
-        if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
+        if ('annotations' in processedOptions && processedOptions.annotations?.enabled && annotationManager) {
             originators.push(annotationManager);
         }
 
@@ -362,12 +362,12 @@ export class AgChartInstanceProxy implements AgChartProxy {
             originators.push(chartTypeOriginator);
         }
 
-        if (processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) {
+        if ((processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) && zoomManager) {
             originators.push(zoomManager);
         }
 
         const legendEnabled = modulesManager.isEnabled('legend') && processedOptions.legend?.enabled !== false;
-        if (legendEnabled) {
+        if (legendEnabled && legendManager) {
             originators.push(legendManager);
         }
 

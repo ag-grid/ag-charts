@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, type BoxBounds, Logger, ObserveChanges, Property, clamp } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    type BoxBounds,
+    type DynamicContext,
+    Logger,
+    ObserveChanges,
+    Property,
+    clamp,
+} from 'ag-charts-core';
 
 import { MiniChart } from './miniChart';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -24,7 +32,7 @@ export class Navigator extends AbstractModuleInstance {
 
     @Property
     @ObserveChanges<Navigator>((target, value) => {
-        target.ctx.zoomManager.setNavigatorEnabled(Boolean(value));
+        target.ctx.zoomManager?.setNavigatorEnabled(Boolean(value));
         target.updateGroupVisibility();
     })
     public enabled: boolean = false;
@@ -60,7 +68,7 @@ export class Navigator extends AbstractModuleInstance {
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(
@@ -140,7 +148,7 @@ export class Navigator extends AbstractModuleInstance {
             this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
         }
 
-        this.ctx.zoomManager.fireZoomPanStartEvent('navigator');
+        this.ctx.zoomManager?.fireZoomPanStartEvent('navigator');
     }
 
     onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {

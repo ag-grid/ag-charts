@@ -107,7 +107,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
                 id,
                 itemId: id,
                 seriesId: id,
-                enabled: visible && legendManager.getItemEnabled({ seriesId: id, itemId: id }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId: id, itemId: id }) ?? true),
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },

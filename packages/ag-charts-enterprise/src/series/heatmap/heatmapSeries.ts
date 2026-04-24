@@ -14,6 +14,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type InternalAgColorType,
     Logger,
     type Mutable,
@@ -153,7 +154,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     readonly colorScale = new ColorScale();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: {

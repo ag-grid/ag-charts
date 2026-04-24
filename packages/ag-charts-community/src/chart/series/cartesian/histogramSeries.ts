@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
@@ -19,7 +20,7 @@ import type {
     AgHistogramSeriesStyle,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
@@ -129,7 +130,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
 
     override properties = new HistogramSeriesProperties();
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
@@ -844,7 +845,7 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
                 id: seriesId,
                 itemId,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: yName ?? itemId ?? 'Frequency',
                 },

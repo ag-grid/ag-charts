@@ -1,7 +1,7 @@
-import { AbstractModuleInstance, Property, ProxyPropertyOnWrite, ZIndexMap } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, Property, ProxyPropertyOnWrite, ZIndexMap } from 'ag-charts-core';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
@@ -28,7 +28,7 @@ export class Background<TImage = never> extends AbstractModuleInstance {
     @ProxyPropertyOnWrite('textNode')
     text?: string;
 
-    constructor(protected readonly ctx: ModuleContext) {
+    constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.node = this.createNode();

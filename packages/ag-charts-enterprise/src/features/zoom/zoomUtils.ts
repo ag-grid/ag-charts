@@ -155,7 +155,7 @@ const FULL_ZOOM: DefinedZoomState = {
     y: { min: UNIT_MIN, max: UNIT_MAX },
 };
 
-export function canResetZoom(ctx: Pick<_ModuleSupport.ModuleContext, 'chartState'>) {
+export function canResetZoom(ctx: Pick<_ModuleSupport.ChartRegistry, 'chartState'>) {
     const current = definedZoomState(ctx.chartState.getValue('zoom'));
     const restore = definedZoomState(ctx.chartState.getValue('initialZoom') ?? FULL_ZOOM);
     return jsonDiff(current, restore) != null;

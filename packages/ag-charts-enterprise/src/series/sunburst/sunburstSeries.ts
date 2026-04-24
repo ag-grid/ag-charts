@@ -6,6 +6,7 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    type DynamicContext,
     type InternalAgColorType,
     type Point,
     type RequireOptional,
@@ -131,7 +132,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         Sector
     );
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx);
 
         this.sectorLabelGroup.pointerEvents = PointerEvents.None;

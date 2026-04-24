@@ -1,5 +1,5 @@
 import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
-import { PolarZIndexMap } from 'ag-charts-core';
+import { type DynamicContext, PolarZIndexMap } from 'ag-charts-core';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
@@ -18,7 +18,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
     // @TempValidate
     // sectorSpacing = 1;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
     }
 

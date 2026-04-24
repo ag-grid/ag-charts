@@ -8,6 +8,7 @@ import type {
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
+    type DynamicContext,
     Logger,
     Property,
     callWithContext,
@@ -33,6 +34,13 @@ type UnknownSeries = _ModuleSupport.ISeries<
 type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
+
+// `contextMenuRegistry` is optional on _ModuleSupport.ChartRegistry, but the context-menu module
+// registers it in its own `register()` hook, so it is guaranteed present whenever
+// ContextMenu is instantiated. Narrow once here rather than asserting `!`.
+export type ContextMenuCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'contextMenuRegistry'> & {
+    readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
+};
 
 const DATUM_KEYS = [
     'angleKey',
@@ -79,7 +87,7 @@ export class ContextMenu extends AbstractModuleInstance {
     private readonly menuWidget: _Widget.MenuWidget = new _Widget.MenuWidget();
     private readonly mutationObserver?: MutationObserver;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: ContextMenuCtx) {
         super();
 
         // Module context

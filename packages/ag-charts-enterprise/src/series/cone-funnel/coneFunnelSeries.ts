@@ -4,7 +4,7 @@ import {
     type AgConeFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection } from 'ag-charts-core';
 
 import {
@@ -34,7 +34,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     override properties = new ConeFunnelProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             animationResetFns: {
@@ -49,7 +49,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
             ctx: { legendManager },
         } = this;
         const visibleItems = this.data?.data.reduce(
-            (accum, _, datumIndex) => accum + (legendManager.getItemEnabled({ seriesId, itemId: datumIndex }) ? 1 : 0),
+            (accum, _, datumIndex) =>
+                accum + (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true ? 1 : 0),
             0
         );
         return visibleItems != null && visibleItems > 1;

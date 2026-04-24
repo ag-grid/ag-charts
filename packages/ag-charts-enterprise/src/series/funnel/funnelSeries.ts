@@ -4,7 +4,7 @@ import {
     type AgFunnelSeriesStyle,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { RequireOptional } from 'ag-charts-core';
+import type { DynamicContext, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, mergeDefaults } from 'ag-charts-core';
 
 import {
@@ -35,7 +35,7 @@ export class FunnelSeries extends BaseFunnelSeries<FunnelSeriesTypes> {
 
     override properties = new FunnelProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             animationResetFns: {

@@ -6,7 +6,7 @@ import {
     type AgBoxPlotSeriesStylerParams,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired, Mutable } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -117,7 +117,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
@@ -501,7 +501,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 id: seriesId,
                 itemId: seriesId,
                 seriesId: seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: seriesId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: seriesId }) ?? true),
                 label: {
                     text: legendItemName ?? yName ?? seriesId,
                 },

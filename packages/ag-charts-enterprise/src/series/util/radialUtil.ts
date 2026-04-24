@@ -7,7 +7,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import type { Callback, CallbackParam, CallbackParamRules, InternalAgColorType } from 'ag-charts-core';
+import type { Callback, CallbackParam, CallbackParamRules, DynamicContext, InternalAgColorType } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
 
 const { createDatumId, toHighlightString } = _ModuleSupport;
@@ -21,7 +21,7 @@ export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesSty
 
 interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly id: string;
-    readonly ctx: _ModuleSupport.ModuleContext;
+    readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
     readonly declarationOrder: number;
     readonly context?: { nodeData: D[] };
     readonly properties: {

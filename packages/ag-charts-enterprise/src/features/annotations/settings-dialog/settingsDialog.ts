@@ -1,5 +1,5 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
-import { EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
+import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
@@ -66,7 +66,7 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
         this.hideFns.push(() => this.events.emit('hidden', null));
     }

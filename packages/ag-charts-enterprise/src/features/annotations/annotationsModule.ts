@@ -5,7 +5,7 @@ import { SharedToolbar } from '../shared-toolbar/sharedToolbar';
 import { Annotations } from './annotations';
 import { annotationsTheme } from './annotationsTheme';
 
-export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
+export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'annotations',
     chartType: 'cartesian',
@@ -16,9 +16,12 @@ export const AnnotationsModule: PluginModuleDefinition<AgAnnotationsOptions> = {
     themeTemplate: annotationsTheme,
 
     create: (ctx) => new Annotations(ctx),
-    patchContext: (ctx) => {
-        if (ctx.sharedToolbar) return;
-        ctx.sharedToolbar = new SharedToolbar(ctx);
-        ctx.cleanup.register(() => ctx.sharedToolbar.destroy());
+    register: (ctx) => {
+        if (!ctx.has('annotationManager')) {
+            ctx.service('annotationManager', (c) => new _ModuleSupport.AnnotationManager(c));
+        }
+        if (!ctx.has('sharedToolbar')) {
+            ctx.service('sharedToolbar', (c) => new SharedToolbar(c));
+        }
     },
 };

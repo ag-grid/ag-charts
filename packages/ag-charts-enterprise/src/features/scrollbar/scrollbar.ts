@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
+    type DynamicContext,
     Property,
     UNIT_MAX,
     UNIT_MIN,
@@ -83,7 +84,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.state = {
@@ -388,7 +389,7 @@ export class Scrollbar extends AbstractModuleInstance {
         }
 
         const zoom = isHorizontal ? { x: { min, max } } : { y: { min, max } };
-        this.ctx.zoomManager.updateZoom(
+        this.ctx.zoomManager?.updateZoom(
             {
                 source: 'user-interaction',
                 sourceDetail: 'scrollbar',
@@ -422,10 +423,8 @@ export class Scrollbar extends AbstractModuleInstance {
     }
 
     private handleWheel(baseEvent: _ModuleSupport.ZoomInteractionWheelEvent) {
-        const {
-            seriesRect,
-            ctx: { zoomManager },
-        } = this;
+        const { seriesRect, ctx } = this;
+        const zoomManager = ctx.zoomManager!;
         const { event } = baseEvent;
 
         const isHorizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
@@ -436,7 +435,7 @@ export class Scrollbar extends AbstractModuleInstance {
         baseEvent.stopProcessing();
 
         const direction = isHorizontal ? ChartAxisDirection.X : ChartAxisDirection.Y;
-        const axisId = this.ctx.zoomManager.getPrimaryAxisId(direction);
+        const axisId = zoomManager.getPrimaryAxisId(direction);
 
         if (!seriesRect || !axisId) {
             baseEvent.abort();

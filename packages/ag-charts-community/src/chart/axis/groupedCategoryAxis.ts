@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     BaseProperties,
     PropertiesArray,
@@ -21,7 +22,7 @@ import {
 } from 'ag-charts-core';
 import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
@@ -152,7 +153,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx, new GroupedCategoryScale<GroupedCategoryKey>());
 
         this.includeInvisibleDomains = true;

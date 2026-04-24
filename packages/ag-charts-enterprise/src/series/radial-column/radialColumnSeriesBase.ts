@@ -8,6 +8,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Point,
     isDefined,
     isGradientFill,
@@ -103,7 +104,7 @@ export abstract class RadialColumnSeriesBase<
     public contextNodeData?: RadialColumnSeriesNodeDataContext;
 
     constructor(
-        moduleCtx: _ModuleSupport.ModuleContext,
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
         {
             animationResetFns,
         }: {

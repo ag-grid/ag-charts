@@ -1,7 +1,7 @@
-import { AbstractModuleInstance, ObserveChanges, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, type DynamicContext, ObserveChanges, Property } from 'ag-charts-core';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
 
-import type { ModuleContext } from '../module/moduleContext';
+import type { ChartRegistry } from '../module/moduleContext';
 
 export class Locale extends AbstractModuleInstance {
     @ObserveChanges<Locale>((target) => {
@@ -16,7 +16,7 @@ export class Locale extends AbstractModuleInstance {
     @Property
     getLocaleText: Formatter<MessageFormatterParams> | undefined;
 
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
     }
 }

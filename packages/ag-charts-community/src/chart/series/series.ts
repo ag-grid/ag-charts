@@ -1,4 +1,11 @@
-import type { BoxBounds, ChartAnimationPhase, DomainWithMetadata, PlacedLabel, PointLabelDatum } from 'ag-charts-core';
+import type {
+    BoxBounds,
+    ChartAnimationPhase,
+    DomainWithMetadata,
+    DynamicContext,
+    PlacedLabel,
+    PointLabelDatum,
+} from 'ag-charts-core';
 import {
     ActionOnSet,
     type Callback,
@@ -51,7 +58,7 @@ import type {
     LegendItemDoubleClickEvent,
 } from '../../core/eventsHub';
 import type { AxisFormattableLabel } from '../../module/axisContext';
-import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
+import type { ChartRegistry, ChartSeriesRegistry } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
@@ -203,7 +210,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 }
 
 export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
-    moduleCtx: ModuleContext;
+    moduleCtx: DynamicContext<ChartRegistry>;
     pickModes: SeriesNodePickMode[];
     propertyKeys?: SeriesDirectionKeysMapping<TProps>;
     propertyNames?: SeriesDirectionKeysMapping<TProps>;
@@ -367,13 +374,13 @@ export abstract class Series<
     set visible(newVisibility: boolean) {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem(newVisibility, this.id);
+        this.ctx.legendManager?.toggleItem(newVisibility, this.id);
         this.visibleMaybeChanged();
     }
 
     get visible() {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        return this.ctx.legendManager.getSeriesEnabled(this.id) ?? this.properties.visible;
+        return this.ctx.legendManager?.getSeriesEnabled(this.id) ?? this.properties.visible;
     }
 
     get hasData() {
@@ -432,7 +439,8 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    public readonly ctx: ModuleContext;
+    public readonly ctx: DynamicContext<ChartRegistry>;
+    private moduleContext?: DynamicContext<ChartSeriesRegistry>;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
@@ -561,6 +569,7 @@ export abstract class Series<
         this.cleanup.flush();
         this.resetDatumCallbackCache();
         this.ctx.seriesStateManager.deregisterSeries(this);
+        this.moduleContext?.destroy();
     }
 
     abstract resetAnimation(chartAnimationPhase: ChartAnimationPhase): void;
@@ -1094,7 +1103,7 @@ export abstract class Series<
         };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem(enabled, seriesId, itemId, legendItemName);
+        this.ctx.legendManager?.toggleItem(enabled, seriesId, itemId, legendItemName);
     }
 
     isEnabled() {
@@ -1105,8 +1114,9 @@ export abstract class Series<
         return this.moduleMap;
     }
 
-    createModuleContext(): SeriesContext {
-        return { ...this.ctx, series: this };
+    createModuleContext(): DynamicContext<ChartSeriesRegistry> {
+        this.moduleContext ??= this.ctx.child<{ series: { type: string } }>().constant('series', this);
+        return this.moduleContext;
     }
 
     protected getAxisValueText(

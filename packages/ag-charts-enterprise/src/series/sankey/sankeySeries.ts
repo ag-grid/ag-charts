@@ -10,6 +10,7 @@ import {
 } from 'ag-charts-community';
 import {
     type CallbackParamRules,
+    type DynamicContext,
     Logger,
     type RequireOptional,
     TextMeasurer,
@@ -87,7 +88,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     override properties = new SankeySeriesProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],

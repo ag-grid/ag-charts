@@ -36,7 +36,7 @@ export type SyncChartLike = {
         eventsHub: EventEmitter<EventsHubMap>;
         highlightManager: HighlightManager;
         tooltipManager: TooltipManager;
-        zoomManager: ZoomManager;
+        zoomManager?: ZoomManager;
     };
     getTooltipContent(
         series: ISeries<DatumIndexType, unknown, ISeriesProperties>,

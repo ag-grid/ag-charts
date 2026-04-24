@@ -4,7 +4,7 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { DomainWithMetadata, Point, RequireOptional } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, Point, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, SeriesZIndexMap } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -139,7 +139,7 @@ export abstract class BaseFunnelSeries<
         moduleCtx,
         animationResetFns,
     }: {
-        moduleCtx: _ModuleSupport.ModuleContext;
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>;
         animationResetFns: {
             datum: (
                 node: _ModuleSupport.NodeOf<TTypes>,
@@ -200,7 +200,7 @@ export abstract class BaseFunnelSeries<
         const { visible, id: seriesId } = this;
 
         const validation = (_value: unknown, _datum: unknown, index: number) =>
-            visible && this.ctx.legendManager.getItemEnabled({ seriesId, itemId: index });
+            visible && (this.ctx.legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true);
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -249,7 +249,9 @@ export abstract class BaseFunnelSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
                 if (!this.hasData) return { domain: [] };
-                const domain = keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
+                const domain = keys.filter(
+                    (_key, index) => legendManager?.getItemEnabled({ seriesId, itemId: index }) ?? true
+                );
                 const sortMetadata = dataModel.getKeySortMetadata(this, 'xValue', processedData);
                 return { domain, sortMetadata };
             }
@@ -324,7 +326,7 @@ export abstract class BaseFunnelSeries<
         let previousConnection: ConnectorConfig | undefined;
         const rawData = processedData.dataSources.get(this.id)?.data ?? [];
         for (const [datumIndex, datum] of rawData.entries()) {
-            const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
+            const visible = isVisible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true);
 
             const xDatum = xValues[datumIndex];
             // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
@@ -672,7 +674,7 @@ export abstract class BaseFunnelSeries<
                     datum,
                     itemId: datumIndex,
                     seriesId,
-                    enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
+                    enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true),
                     label: { text: String(stageValue) },
                     symbol: this.legendItemSymbol(datumIndex),
                     skipAnimations: true,

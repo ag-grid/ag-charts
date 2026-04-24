@@ -23,6 +23,7 @@ import type {
     CartesianAxisDirection,
     DeepReadonly,
     DefinedZoomState,
+    DynamicContext,
     MementoOriginator,
     OptionsDefs,
     RequireOptional,
@@ -33,7 +34,7 @@ import type {
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { ZoomChangeRequestEvent, ZoomChangeState, ZoomEventSourceDetail, ZoomMemento } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { BBox } from '../../scene/bbox';
@@ -207,7 +208,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
           }
         | undefined = undefined;
 
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.cleanup.register(

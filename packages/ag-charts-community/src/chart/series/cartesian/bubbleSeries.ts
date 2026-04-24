@@ -1,3 +1,4 @@
+import type { DynamicContext } from 'ag-charts-core';
 import {
     type CallbackParamRules,
     ChartAxisDirection,
@@ -40,7 +41,7 @@ import {
     type StrokeOptions,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import { configureColorScale } from '../../../scale/colorScaleUtil';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -249,7 +250,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return super.type as 'bubble' | 'scatter';
     }
 
-    constructor(moduleCtx: ModuleContext) {
+    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: {
@@ -1425,7 +1426,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 id: seriesId,
                 itemId,
                 seriesId,
-                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                enabled: visible && (legendManager?.getItemEnabled({ seriesId, itemId }) ?? true),
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },

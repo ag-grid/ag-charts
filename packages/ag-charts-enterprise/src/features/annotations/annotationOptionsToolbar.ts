@@ -4,6 +4,7 @@ import {
     type BoxBounds,
     CleanupRegistry,
     Color,
+    type DynamicContext,
     EventEmitter,
     PropertiesArray,
     Property,
@@ -145,7 +146,7 @@ export class AnnotationOptionsToolbar extends BaseProperties {
     private lineStrokeWidthMenuMinWidth?: number;
 
     constructor(
-        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>,
         private readonly getActiveDatum: () => AnnotationProperties | undefined
     ) {
         super();

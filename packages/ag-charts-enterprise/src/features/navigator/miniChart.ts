@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     ActionOnSet,
     ChartAxisDirection,
+    type DynamicContext,
     Logger,
     Padding,
     Property,
@@ -96,7 +97,7 @@ export class MiniChart extends AbstractModuleInstance {
     })
     series: _ModuleSupport.UnknownSeries[] = [];
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(this.ctx.eventsHub.on('data:update', (data) => this.updateData(data)));

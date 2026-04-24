@@ -1,6 +1,12 @@
 import type { _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ChartUpdateType, Logger, type NormalisedSelectionOptions } from 'ag-charts-core';
+import {
+    AbstractModuleInstance,
+    ChartUpdateType,
+    type DynamicContext,
+    Logger,
+    type NormalisedSelectionOptions,
+} from 'ag-charts-core';
 
 import {
     SELECTION_FILLOPACITY,
@@ -29,7 +35,7 @@ export class DataSelection extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'selection');
     }
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.dragRect = new _ModuleSupport.Rect();

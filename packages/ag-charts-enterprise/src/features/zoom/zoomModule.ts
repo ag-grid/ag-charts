@@ -1,4 +1,4 @@
-import { VERSION } from 'ag-charts-community';
+import { VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type PluginModuleDefinition,
     arrayOfDefs,
@@ -15,11 +15,11 @@ import {
 import type { AgZoomButton, AgZoomOnDataChangeStrategy, AgZoomOptions } from 'ag-charts-types';
 
 import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
-import { Zoom } from './zoom';
+import { Zoom, type ZoomCtx } from './zoom';
 
 const zoomAnchorPoint = union('pointer', 'start', 'middle', 'end');
 
-export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
+export const ZoomModule: PluginModuleDefinition<AgZoomOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'zoom',
     enterprise: true,
@@ -110,7 +110,13 @@ export const ZoomModule: PluginModuleDefinition<AgZoomOptions> = {
         },
     },
 
-    create: (ctx) => new Zoom(ctx),
+    // `register()` runs first and guarantees `zoomManager` is present, so we narrow
+    // the ctx type to ZoomCtx at the boundary and avoid `!` assertions inside Zoom.
+    create: (ctx) => new Zoom(ctx as ZoomCtx),
+    register: (ctx) => {
+        if (ctx.has('zoomManager')) return;
+        ctx.service('zoomManager', (c) => new _ModuleSupport.ZoomManager(c));
+    },
 };
 
 // @ts-expect-error undocumented option

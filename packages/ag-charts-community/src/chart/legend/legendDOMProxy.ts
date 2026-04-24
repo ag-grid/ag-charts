@@ -1,7 +1,13 @@
-import { type BoxBounds, type StrictHTMLElement, createElementId, toPlainText } from 'ag-charts-core';
+import {
+    type BoxBounds,
+    type DynamicContext,
+    type StrictHTMLElement,
+    createElementId,
+    toPlainText,
+} from 'ag-charts-core';
 import type { TextOrSegments } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { Node } from '../../scene/node';
 import type { Selection } from '../../scene/selection';
@@ -30,7 +36,7 @@ interface ButtonListener {
 interface LegendDOMProxyUpdateParams {
     visible: boolean;
     interactive: boolean;
-    ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>;
+    ctx: Pick<ChartRegistry, 'proxyInteractionService' | 'localeManager'>;
     itemSelection: ItemSelection;
     group: Node;
     pagination: Pagination;
@@ -60,7 +66,7 @@ export class LegendDOMProxy {
     }
 
     public constructor(
-        private readonly ctx: ModuleContext,
+        private readonly ctx: DynamicContext<ChartRegistry>,
         idPrefix: string
     ) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({

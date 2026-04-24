@@ -1,4 +1,4 @@
-import type { SeriesModuleDefinition } from 'ag-charts-core';
+import type { DynamicContext, SeriesModuleDefinition } from 'ag-charts-core';
 import {
     CARTESIAN_AXIS_TYPE,
     CARTESIAN_POSITION,
@@ -19,7 +19,7 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
+import type { ChartRegistry } from '../../../module/moduleContext';
 import { VERSION } from '../../../version';
 import { CartesianChartModule } from '../../cartesianChartModule';
 import { DEFAULT_FILLS } from '../../themes/defaultColors';
@@ -153,5 +153,5 @@ export const BubbleSeriesModule: SeriesModuleDefinition<AgBubbleSeriesOptions> =
     axisKeys: { [ChartAxisDirection.X]: 'xKeyAxis', [ChartAxisDirection.Y]: 'yKeyAxis' },
     themeTemplate,
 
-    create: (ctx: ModuleContext) => new BubbleSeries(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>) => new BubbleSeries(ctx),
 };

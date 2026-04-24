@@ -68,7 +68,7 @@ export class Crosshair extends AbstractModuleInstance {
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
+    constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;

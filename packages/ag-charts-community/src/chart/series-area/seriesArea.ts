@@ -1,8 +1,16 @@
-import { BaseProperties, Border, CleanupRegistry, Property, ProxyPropertyOnWrite, ZIndexMap } from 'ag-charts-core';
+import {
+    BaseProperties,
+    Border,
+    CleanupRegistry,
+    type DynamicContext,
+    Property,
+    ProxyPropertyOnWrite,
+    ZIndexMap,
+} from 'ag-charts-core';
 import type { Padding } from 'ag-charts-types';
 
 import type { LayoutCompleteEvent } from '../../core/eventsHub';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { Group } from '../../scene/group';
 import { Rect } from '../../scene/shape/rect';
 
@@ -25,7 +33,7 @@ export class SeriesArea extends BaseProperties {
 
     protected readonly cleanup = new CleanupRegistry();
 
-    constructor(protected readonly ctx: ModuleContext) {
+    constructor(protected readonly ctx: DynamicContext<ChartRegistry>) {
         super();
 
         this.node = this.createNode();

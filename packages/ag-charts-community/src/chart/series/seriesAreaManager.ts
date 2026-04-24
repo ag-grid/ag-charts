@@ -1,4 +1,4 @@
-import type { Point } from 'ag-charts-core';
+import type { DynamicContext, Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
@@ -16,6 +16,7 @@ import type {
 } from '../../core/eventsHub';
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
+import type { ChartRegistry } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
@@ -32,7 +33,6 @@ import type {
     MouseWidgetEvent,
     WheelWidgetEvent,
 } from '../../widget/widgetEvents';
-import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import type { ChartType } from '../factory/expectedModules';
@@ -102,7 +102,7 @@ export interface SeriesAreaChartDependencies {
     ) => TooltipContent[];
     chartType: ChartType;
     seriesRoot: TranslatableGroup;
-    ctx: ChartContext;
+    ctx: DynamicContext<ChartRegistry>;
     tooltip: Tooltip;
     highlight: ChartHighlight;
     keyboard: Keyboard;
@@ -441,7 +441,7 @@ export class SeriesAreaManager extends BaseManager {
         if (current !== this.chart.ctx.widgets.seriesWidget) {
             if (this.isState(InteractionState.ContextMenuable)) {
                 const { currentX: canvasX, currentY: canvasY } = event;
-                this.chart.ctx.contextMenuRegistry.dispatchContext(
+                this.chart.ctx.contextMenuRegistry?.dispatchContext(
                     'always',
                     { widgetEvent: event, canvasX, canvasY },
                     undefined
@@ -478,14 +478,14 @@ export class SeriesAreaManager extends BaseManager {
         const canvasY = event.currentY + current.cssTop();
         const { datumIndex } = pickedNode ?? {};
         if (pickedSeries && pickedNode && datumIndex != null) {
-            this.chart.ctx.contextMenuRegistry.dispatchContext(
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(
                 'series-node',
                 { widgetEvent: event, canvasX, canvasY },
                 { pickedSeries, pickedNode: { ...pickedNode, datumIndex } },
                 position
             );
         } else {
-            this.chart.ctx.contextMenuRegistry.dispatchContext(
+            this.chart.ctx.contextMenuRegistry?.dispatchContext(
                 'series-area',
                 { widgetEvent: event, canvasX, canvasY },
                 undefined,
@@ -979,7 +979,7 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panSuccess = this.chart.ctx.zoomManager.panToBBox(hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, focusBBox);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

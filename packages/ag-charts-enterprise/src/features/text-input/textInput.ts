@@ -1,5 +1,13 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { CleanupRegistry, type Point, attachListener, ceilTo, focusCursorAtEnd, setAttributes } from 'ag-charts-core';
+import {
+    CleanupRegistry,
+    type DynamicContext,
+    type Point,
+    attachListener,
+    ceilTo,
+    focusCursorAtEnd,
+    setAttributes,
+} from 'ag-charts-core';
 import type { TextAlign, TextOptions } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -27,7 +35,7 @@ export class TextInput {
     };
     private visible = false;
 
-    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 

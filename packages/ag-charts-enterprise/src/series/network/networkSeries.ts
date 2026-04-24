@@ -3,6 +3,7 @@ import {
     type ChartAnimationPhase,
     type ChartAxisDirection,
     ChartUpdateType,
+    type DynamicContext,
     type Point,
     Property,
     Vertex,
@@ -95,7 +96,7 @@ export abstract class AbstractNetworkSeries<
     private startDragOffset: Point = { x: 0, y: 0 };
     private dragOffset: Point = { x: 0, y: 0 };
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],

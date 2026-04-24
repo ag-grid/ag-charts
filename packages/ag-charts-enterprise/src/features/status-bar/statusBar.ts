@@ -3,6 +3,7 @@ import {
     AbstractModuleInstance,
     BaseProperties,
     ChartAxisDirection,
+    type DynamicContext,
     Property,
     ZIndexMap,
     cachedTextMeasurer,
@@ -239,7 +240,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         },
     ];
 
-    public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.labelGroup.visible = false;

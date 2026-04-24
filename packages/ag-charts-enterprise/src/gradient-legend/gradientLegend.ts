@@ -9,6 +9,7 @@ import {
     BaseProperties,
     Border,
     CleanupRegistry,
+    type DynamicContext,
     type GradientColorStop,
     Property,
     ProxyProperty,
@@ -123,7 +124,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     data: _ModuleSupport.GradientLegendDatum[] = [];
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.scale = new GradientLegendScale(this.scaleConfig);

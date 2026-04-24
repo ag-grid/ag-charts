@@ -13,6 +13,7 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
+    type DynamicContext,
     type Point,
     StateMachine,
     isBetweenAngles,
@@ -217,7 +218,7 @@ export class RadialGaugeSeries
 
     public contextNodeData?: RadialGaugeNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],

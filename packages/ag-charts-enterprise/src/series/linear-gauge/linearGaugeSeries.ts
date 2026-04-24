@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
+    type DynamicContext,
     type Point,
     StateMachine,
     cachedTextMeasurer,
@@ -187,7 +188,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],

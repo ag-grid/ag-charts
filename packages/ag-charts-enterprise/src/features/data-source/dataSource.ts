@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { AbstractModuleInstance, ActionOnSet, Property } from 'ag-charts-core';
+import { AbstractModuleInstance, ActionOnSet, type DynamicContext, Property } from 'ag-charts-core';
 import type { AgDataSourceCallbackParams } from 'ag-charts-types';
 
 export class DataSource extends AbstractModuleInstance {
@@ -40,9 +40,9 @@ export class DataSource extends AbstractModuleInstance {
     })
     public updateDuringInteraction?: boolean;
 
-    private readonly dataService: _ModuleSupport.ModuleContext['dataService'];
+    private readonly dataService: DynamicContext<_ModuleSupport.ChartRegistry>['dataService'];
 
-    constructor(ctx: _ModuleSupport.ModuleContext) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.dataService = ctx.dataService;
 
@@ -53,7 +53,7 @@ export class DataSource extends AbstractModuleInstance {
             }),
             ctx.eventsHub.on('layout:complete', () => {
                 if (dirty) {
-                    ctx.zoomManager.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
+                    ctx.zoomManager?.updateZoom({ source: 'data-update', sourceDetail: 'dataSource' });
                 }
             })
         );

@@ -11,6 +11,7 @@ import {
     type CallbackParamRules,
     ChartAxisDirection,
     type DomainWithMetadata,
+    type DynamicContext,
     type Mutable,
     type Point,
     type RequireOptional,
@@ -140,7 +141,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override properties = new WaterfallSeriesProperties();
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
