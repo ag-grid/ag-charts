@@ -265,13 +265,13 @@ export class MiniChart extends AbstractModuleInstance {
                 case 'top':
                 case 'bottom':
                     axis.range = [0, seriesRect.width];
-                    axis.gridLength = seriesRect.height;
+                    axis.setGridLength(seriesRect.height);
                     break;
                 case 'right':
                 case 'left': {
                     const isCategoryAxis = axis instanceof CategoryAxis;
                     axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
-                    axis.gridLength = seriesRect.width;
+                    axis.setGridLength(seriesRect.width);
                     break;
                 }
             }

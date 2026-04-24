@@ -1322,7 +1322,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         for (const axis of this.axes) {
-            axis.requiredRange = this._requiredRange;
+            axis.applyRequiredRange(this._requiredRange);
         }
     }
 

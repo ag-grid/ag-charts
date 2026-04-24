@@ -131,6 +131,8 @@ export interface ChartAxis {
     processData(): void;
     update(animated?: boolean): void;
     applyOptions(options: object | undefined, skip?: ReadonlySet<string>): void;
+    applyRequiredRange(value: number | undefined): void;
+    setGridLength(value: number): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];

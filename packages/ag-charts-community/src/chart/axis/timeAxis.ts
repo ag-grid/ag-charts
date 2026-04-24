@@ -1,7 +1,6 @@
 import type { ChartAxisDirection, DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
     Logger,
-    ProxyPropertyOnWrite,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -53,19 +52,18 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     preferredMax?: Date | number = undefined;
 
-    // eslint-disable-next-line sonarjs/use-type-alias
-    get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
-        return undefined;
-    }
-    set _unit(_unit: AgTimeInterval | AgTimeIntervalUnit | undefined) {
-        Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
-    }
-
-    @ProxyPropertyOnWrite('_unit')
-    unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
-
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {
         super(moduleCtx, new TimeScale());
+    }
+
+    override applyOptions(options: object | undefined, skip?: ReadonlySet<string>): void {
+        if (options != null && 'unit' in options) {
+            Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
+        }
+        // `unit` is not a valid option on TimeAxis — dropping it prevents the base-class default
+        // branch from storing a meaningless value on the instance.
+        const combined = skip?.has('unit') ? skip : new Set([...(skip ?? []), 'unit']);
+        super.applyOptions(options, combined);
     }
 
     override hasDefinedDomain(): boolean {

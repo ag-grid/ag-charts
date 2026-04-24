@@ -1,5 +1,5 @@
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { ActionOnSet, ChartUpdateType, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import { ChartUpdateType, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -27,24 +27,7 @@ export class CategoryAxis<
 
     paddingOuter?: number;
 
-    @ProxyPropertyOnWrite('layoutConstraints', 'align')
-    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
-
     skipNullBars?: boolean;
-
-    @ActionOnSet<CategoryAxis>({
-        newValue(value?: number) {
-            if (value == null || value <= 0) {
-                this.layoutConstraints.width = 100;
-                this.layoutConstraints.unit = 'percent';
-            } else {
-                this.layoutConstraints.width = value;
-                this.layoutConstraints.unit = 'px';
-                this.animationManager.skipCurrentBatch();
-            }
-        },
-    })
-    override requiredRange?: number;
 
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
@@ -56,6 +39,31 @@ export class CategoryAxis<
         this.includeInvisibleDomains = includeInvisibleDomains;
         // Has no effect and can speed up tick generation
         this.nice = false;
+    }
+
+    override applyOptions(options: object | undefined, skip?: ReadonlySet<string>): void {
+        if (options != null && 'bandAlignment' in options) {
+            this.layoutConstraints.align =
+                (options as { bandAlignment?: 'justify' | 'start' | 'center' | 'end' }).bandAlignment ?? 'justify';
+        }
+        // `bandAlignment` lives on `layoutConstraints.align`; skip it in the generic apply path so
+        // the default branch doesn't shadow that with a separate field on the axis instance.
+        const combined = skip?.has('bandAlignment') ? skip : new Set([...(skip ?? []), 'bandAlignment']);
+        super.applyOptions(options, combined);
+    }
+
+    override applyRequiredRange(value: number | undefined): void {
+        const oldValue = this.requiredRange;
+        this.requiredRange = value;
+        if (value === oldValue || value === undefined) return;
+        if (value <= 0) {
+            this.layoutConstraints.width = 100;
+            this.layoutConstraints.unit = 'percent';
+        } else {
+            this.layoutConstraints.width = value;
+            this.layoutConstraints.unit = 'px';
+            this.animationManager.skipCurrentBatch();
+        }
     }
 
     override isCategoryLike(): boolean {
@@ -71,7 +79,7 @@ export class CategoryAxis<
     }
 
     override getUpdateTypeOnResize(): ChartUpdateType {
-        if (this.bandAlignment == null || this.bandAlignment === 'justify') {
+        if (this.layoutConstraints.align === 'justify') {
             return super.getUpdateTypeOnResize();
         }
         return ChartUpdateType.PROCESS_DOMAIN;

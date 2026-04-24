@@ -72,7 +72,7 @@ export class PolarChart extends Chart {
 
         angleAxis.innerRadiusRatio = innerRadiusRatio;
         angleAxis.computeRange();
-        angleAxis.gridLength = radius;
+        angleAxis.setGridLength(radius);
 
         radiusAxis.gridAngles = angleScale
             .ticks({

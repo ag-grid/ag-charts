@@ -13,7 +13,7 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
-    ObserveChanges,
+    ReactiveState,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -149,10 +149,9 @@ const EMPTY_SKIP: ReadonlySet<string> = new Set();
 
 /**
  * Apply a single top-level options field onto the axis. Primitives and the `context` pass-through
- * are assigned directly (so decorator-backed setters — `@ActionOnSet`, `@ProxyPropertyOnWrite` —
- * still fire). Object-valued fields whose current value is an existing class instance recurse via
- * the instance's own `applyOptions()` or `.set()` entry point so nested structure (e.g.
- * `parentLevel.label`) is preserved rather than replaced with the raw options object.
+ * are assigned directly. Object-valued fields whose current value is an existing class instance
+ * recurse via the instance's own `applyOptions()` or `.set()` entry point so nested structure
+ * (e.g. `parentLevel.label`) is preserved rather than replaced with the raw options object.
  */
 function applyFieldOption(target: any, key: string, value: unknown): void {
     // `context` is a user pass-through reference; assign as-is without recursion.
@@ -305,10 +304,24 @@ export abstract class Axis<
     readonly title = new AxisTitle();
 
     /**
-     * The length of the grid. The grid is only visible in case of a non-zero value.
+     * Per-axis layout-scope reactive state. `gridLength` is pushed here by the chart layout
+     * pipeline and consumers (crossLines + grid-visibility subclasses) subscribe in the
+     * constructor.
      */
-    @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
-    gridLength: number = 0;
+    private readonly layoutState = new ReactiveState<{ gridLength: number }>();
+
+    /**
+     * The length of the grid. The grid is only visible in case of a non-zero value.
+     * Read-only; use {@link setGridLength} to update.
+     */
+    get gridLength(): number {
+        return this.layoutState.getValue('gridLength') ?? 0;
+    }
+
+    setGridLength(value: number): void {
+        this.layoutState.setValue('gridLength', value);
+        this.layoutState.flushChanges('gridLength');
+    }
 
     /**
      * The distance between the grid ticks and the axis ticks.
@@ -334,6 +347,15 @@ export abstract class Axis<
     };
 
     requiredRange?: number;
+
+    /**
+     * Push a chart-computed required pixel range onto this axis. Base implementation just stores
+     * the value; {@link CategoryAxis} overrides to sync `layoutConstraints` and skip the next
+     * animation batch.
+     */
+    applyRequiredRange(value: number | undefined): void {
+        this.requiredRange = value;
+    }
 
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -426,9 +448,20 @@ export abstract class Axis<
         for (const crossLine of this.crossLines) {
             this.initCrossLine(crossLine);
         }
+        let prevGridLength = 0;
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
+            this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering()),
+            this.layoutState.observe((get) => {
+                const gridLength = get('gridLength') ?? 0;
+                if ((prevGridLength === 0) !== (gridLength === 0)) {
+                    this.onGridVisibilityChange();
+                }
+                prevGridLength = gridLength;
+                for (const crossLine of this.crossLines) {
+                    this.initCrossLine(crossLine);
+                }
+            })
         );
     }
 
@@ -557,16 +590,6 @@ export abstract class Axis<
         if (value < min) return value - min;
         if (value > max) return value - max;
         return 0;
-    }
-
-    protected onGridLengthChange(value: number, prevValue: number) {
-        // Was visible and now invisible, or was invisible and now visible.
-        if (prevValue ^ value) {
-            this.onGridVisibilityChange();
-        }
-        for (const crossLine of this.crossLines) {
-            this.initCrossLine(crossLine);
-        }
     }
 
     protected onGridVisibilityChange() {}
