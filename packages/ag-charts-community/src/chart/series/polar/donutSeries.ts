@@ -2007,11 +2007,11 @@ export class DonutSeries extends PolarSeries<
 
     protected override hasItemStylers(): boolean {
         return !(
-            this.properties.selection.enabled ||
-            (this.properties.itemStyler == null &&
-                this.properties.calloutLabel.itemStyler == null &&
-                this.properties.sectorLabel.itemStyler == null &&
-                this.properties.innerLabels.every((innerLabel) => innerLabel.itemStyler == null))
+            !this.properties.selection.enabled &&
+            this.properties.itemStyler == null &&
+            this.properties.calloutLabel.itemStyler == null &&
+            this.properties.sectorLabel.itemStyler == null &&
+            this.properties.innerLabels.every((innerLabel) => innerLabel.itemStyler == null)
         );
     }
 }
