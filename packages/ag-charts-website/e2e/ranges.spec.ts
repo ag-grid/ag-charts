@@ -1,5 +1,12 @@
 import { expect, test } from './fixture';
-import { gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl, waitForAllChartUpdates } from './util';
+import {
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+    waitForAllChartUpdates,
+    waitForChartUpdate,
+} from './util';
 
 test.describe('range buttons', () => {
     setupIntrinsicAssertions(test);
@@ -67,7 +74,7 @@ test.describe('range buttons', () => {
         const { url } = toExamplePageUrl('range-buttons-test', 'e2e-range-buttons', 'vanilla');
         await gotoExample(page, url);
 
-        const { canvas } = await locateCanvas(page);
+        const { canvas, wrapper } = await locateCanvas(page);
 
         await page.getByText('3 Months (number)').click();
         await expect(canvas).toHaveScreenshot('range-buttons-actions-number.png');
@@ -89,6 +96,12 @@ test.describe('range buttons', () => {
         await page.keyboard.type('+');
 
         await page.getByText('Visible Window Function').click();
+        // Move the mouse off the chart area to avoid hover-state differences on
+        // zoom-pan toolbar buttons, and wait for the chart animation to settle
+        // before capturing the screenshot. Without these guards the forward-nav
+        // button's hover/enabled transition produces a flaky 24x24 diff region.
+        await page.mouse.move(0, 0);
+        await waitForChartUpdate(wrapper);
         await expect(canvas).toHaveScreenshot('range-buttons-actions-visible-window-function.png');
     });
 
