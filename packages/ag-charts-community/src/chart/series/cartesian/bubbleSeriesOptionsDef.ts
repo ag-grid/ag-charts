@@ -3,6 +3,7 @@ import {
     arrayOf,
     boolean,
     callbackDefs,
+    color,
     colorScaleOptionsDef,
     commonSeriesOptionsDefs,
     commonSeriesThemeableOptionsDefs,
@@ -70,3 +71,12 @@ export const bubbleSeriesOptionsDef: OptionsDefs<AgBubbleSeriesOptions> = {
 
 // @ts-expect-error undocumented option
 bubbleSeriesOptionsDef.selectedKey = undocumented(string);
+
+// Undocumented `colorRange` — see BubbleSeriesProperties.colorRange for the rationale. Exposed
+// on both the themeable and full options def so theme template injection survives user-level
+// option merging. Wrapped in `enterprise()` because `colorScale` / `colorKey` are themselves
+// enterprise-gated, keeping the community validator surface consistent.
+// @ts-expect-error undocumented option
+bubbleSeriesThemeableOptionsDef.colorRange = enterprise(undocumented(arrayOf(color)));
+// @ts-expect-error undocumented option
+bubbleSeriesOptionsDef.colorRange = enterprise(undocumented(arrayOf(color)));

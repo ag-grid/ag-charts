@@ -599,5 +599,39 @@ describe('GradientLegend', () => {
 
             await compare();
         });
+
+        // Regression for AG-16048 QA feedback point 2: an empty user-supplied `colorScale: {}`
+        // must still pick up the theme's diverging palette for `fills`. Prior to moving the
+        // theme default from the `colorScale` object to the `colorScale.fills` leaf, the user's
+        // partial object wiped the theme wholesale and the series fell back to the raw
+        // ColorScale defaults (red→blue), producing all-blue markers in David's plunker.
+        it('AG-16048 should apply the theme fills palette when user supplies an empty colorScale', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: SCATTER_DATA,
+                series: [
+                    {
+                        type: 'scatter' as const,
+                        xKey: 'x',
+                        yKey: 'y1',
+                        colorKey: 'temp',
+                        colorScale: {},
+                    },
+                ],
+            });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const series: any = chartInstance.series[0];
+            // `configureColorScale`'s fallback branch sets `domain` to the raw data-domain
+            // tuple (it bypasses `computeColorBins`), so the expectation here is [min, max]
+            // over the `temp` values rather than a 3-stop binned domain.
+            expect(series.colorScale.domain).toEqual([5, 45]);
+            // Range resolves to the active palette's `divergingColors` (3 entries on the
+            // default chart theme). Guard against a regression to the ColorScale constructor
+            // defaults (`range = ['red', 'blue']`).
+            expect(series.colorScale.range).toHaveLength(3);
+            expect(series.colorScale.range).not.toEqual(['red', 'blue']);
+        });
     });
 });
