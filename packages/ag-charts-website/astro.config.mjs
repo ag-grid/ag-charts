@@ -10,8 +10,10 @@ import svgr from 'vite-plugin-svgr';
 
 import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSitemap';
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
+import agMkcertPreview from '../../external/ag-website-shared/plugins/agMkcertPreview';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
+import agCssAsString from './plugins/agCssAsString';
 import agHotModuleReload from './plugins/agHotModuleReload';
 import agHtaccessGen from './plugins/agHtaccessGen';
 import agRedirectsChecker from './plugins/agRedirectsChecker';
@@ -44,6 +46,8 @@ const {
     PUBLIC_ENABLE_HOT_RELOAD,
 } = dotenvExpand.expand(dotenv).parsed;
 
+const httpsEnabled = !['0', 'false'].includes(PUBLIC_HTTPS_SERVER);
+
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
 console.log(
@@ -69,6 +73,7 @@ console.log(
 
 const plugins = [
     svgr(),
+    agCssAsString(),
     agHotModuleReload(),
     agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
 ];
@@ -81,12 +86,19 @@ export default defineConfig({
     site: PUBLIC_SITE_URL,
     base: PUBLIC_BASE_URL,
     outDir: OUTPUT_DIR,
-    experimental: {
-        // Prepare for Astro 6
-        preserveScriptOrder: true,
-    },
     devToolbar: {
         enabled: false,
+    },
+    security: {
+        /**
+         * Astro 6's secFetchMiddleware 403s cross-origin subresource requests
+         * unless the origin is in this allow-list. Needed for example embedders
+         * (Plunkr, CodeSandbox) to load the dev-server UMD bundles.
+         */
+        allowedDomains: [
+            { hostname: 'run.plnkr.co', protocol: 'https' },
+            { hostname: '**.csb.app', protocol: 'https' },
+        ],
     },
     vite: {
         plugins,
@@ -102,7 +114,7 @@ export default defineConfig({
             ],
         },
         server: {
-            https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
+            https: httpsEnabled,
             cors: {
                 /**
                  * CORS allow list for opening examples on external sites
@@ -117,6 +129,18 @@ export default defineConfig({
                 ],
             },
             allowedHosts: [new URL(PUBLIC_SITE_URL).hostname],
+            headers: {
+                'Content-Security-Policy': [
+                    "default-src 'self'",
+                    "script-src 'self' https://*.ag-grid.com https://localhost:4600 https://localhost:4601 https://www.googletagmanager.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'",
+                    "style-src 'self' https://fonts.googleapis.com 'unsafe-inline'",
+                    "font-src 'self' https://fonts.gstatic.com data:",
+                    "img-src 'self' data: blob: https:",
+                    "connect-src 'self' https:",
+                    "worker-src 'self' blob:",
+                ].join('; '),
+                'X-Content-Type-Options': 'nosniff',
+            },
         },
         css: {
             preprocessorOptions: {
@@ -149,6 +173,7 @@ export default defineConfig({
         agCacheSitemap({
             cacheFolder: SITEMAP_CACHE_DIR,
         }),
+        agMkcertPreview({ enabled: httpsEnabled }),
     ],
     redirects: getAstroRedirectRules(),
 });

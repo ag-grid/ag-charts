@@ -32,7 +32,7 @@ const {
 } = Astro.props as Props;
 
 import { MetaData } from './lib/MetaData';
-import { Styles } from './lib/Styles';
+import Styles from './lib/Styles.astro';
 import { Scripts } from './lib/Scripts';
 import { SITE_BASE_URL } from '@constants';
 import { pathJoin } from '@utils/pathJoin';
@@ -63,8 +63,8 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
 
     <body>
         <Fragment set:html={indexFragment} />
-        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
-        {hasLocale && <script src={chartScriptLocalePath} />}
+        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath} crossorigin="anonymous"></script>
+        {hasLocale && <script src={chartScriptLocalePath} crossorigin="anonymous" />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <slot />
     </body>
