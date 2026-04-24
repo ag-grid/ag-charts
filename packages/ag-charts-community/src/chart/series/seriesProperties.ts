@@ -172,6 +172,9 @@ export class SeriesSelectionProperties<TOpts extends object> extends BasePropert
     @Property
     readonly unselectedItem: SelectionOptions<TOpts> = {};
 
+    @Property
+    selectedOffset = 0; // pie-only
+
     getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
         const keys = getSelectionStyleOptionKeys(selectionState);
         if (keys.length === 0) return {};
