@@ -524,6 +524,67 @@ describe('HeatmapSeries', () => {
             await compare();
         });
 
+        it('AG-16043: moving from a normal legend item onto a suppressed bin clears the legend-scoped highlight', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { x: 1, y: 1, size: 10, v: 10 },
+                    { x: 2, y: 2, size: 20, v: 30 },
+                    { x: 3, y: 3, size: 30, v: 50 },
+                    { x: 4, y: 4, size: 40, v: 70 },
+                    { x: 5, y: 5, size: 50, v: 90 },
+                ],
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        title: 'Series A',
+                    },
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        colorKey: 'v',
+                        colorScale: {
+                            mode: 'discrete' as const,
+                            fills: [{ color: 'red' }, { color: 'green' }, { color: 'blue' }],
+                        },
+                        title: 'Series B',
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Drive Legend.onHover directly rather than simulating canvas coordinates — the
+            // legend's own markerLabel nodes already carry the datum association, and the
+            // MouseEvent argument is only used for tooltip positioning, not highlight state.
+            const legendModule = (chart as Chart).modulesManager.getModule('legend') as any;
+            const items: any[] = [];
+            legendModule.itemSelection.each((item: any) => items.push(item));
+            // 1 toggleable Series A + 3 bin items from Series B.
+            expect(items).toHaveLength(4);
+            expect(items[0].datum.suppressHighlight).toBeUndefined();
+            expect(items[1].datum.suppressHighlight).toBe(true);
+
+            const { highlightManager } = (chart as Chart).ctx;
+            const mockEvent = new MouseEvent('mousemove');
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+
+            // Hover the toggleable Series A item — the legend sets a highlight under its caller id.
+            legendModule.onHover(mockEvent, items[0]);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeDefined();
+
+            // Move onto a suppressed bin item — the prior legend-scoped highlight must be cleared.
+            legendModule.onHover(mockEvent, items[1]);
+            await waitForChartStability(chart);
+            expect(highlightManager.getActiveHighlight()).toBeUndefined();
+        });
+
         it('AG-16043: hovering a discrete-bin legend item must not register a highlight', async () => {
             const options = prepareEnterpriseTestOptions({
                 data: EXAMPLE_OPTIONS.data,
