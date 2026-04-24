@@ -708,8 +708,10 @@ export class DonutSeries extends PolarSeries<
     ) {
         const { fills, strokes, itemStyler } = this.properties;
 
-        const defaultStroke = strokes[datumIndex];
-        const defaultFill = fills[datumIndex];
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex] };
+
         const {
             fill,
             fillOpacity,
@@ -720,11 +722,7 @@ export class DonutSeries extends PolarSeries<
             lineDashOffset,
             cornerRadius,
             opacity,
-        } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues),
-            { fill: defaultFill, stroke: defaultStroke },
-            this.properties
-        );
+        } = mergeDefaults(highlightStyle, selectionStyle, defaultStyle, this.properties);
 
         let overrides: PieDonutSeriesStyle | undefined;
         if (itemStyler) {
