@@ -101,10 +101,6 @@ id = "GHSA-qwcr-r2fm-qrc7"
 reason = "We only use body-parser for the dev server"
 
 [[IgnoredVulns]]
-id = "GHSA-v6h2-p8h4-qcjw"
-reason = "Low risk and determined to not be exploitable in our use case"
-
-[[IgnoredVulns]]
 id = "GHSA-grv7-fg5c-xmjg"
 reason = "braces is only used in development/testing - it's not used in the final production build"
 
@@ -115,18 +111,6 @@ reason = "cookie is only used in development/testing - it's not used in the fina
 [[IgnoredVulns]]
 id = "GHSA-3xgq-45jj-v275"
 reason = "cross-spawn is used in development/testing - it's not used in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-ghr5-ch3p-vcr6"
-reason = "ejs is used in development/testing - it's not used in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-qw6h-vgh9-j6wx"
-reason = "express is used in development/testing - it's not used in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-rv95-896h-c2vc"
-reason = "express is used in development/testing - it's not used in the final production build"
 
 [[IgnoredVulns]]
 id = "GHSA-cxjh-pqwp-8mfp"
@@ -149,35 +133,11 @@ id = "GHSA-76c9-3jph-rj3q"
 reason = "We do not use on-headers directly and where it is used is only for development"
 
 [[IgnoredVulns]]
-id = "GHSA-9wv6-86v2-598j"
-reason = "We do not use path-to-regexp directly and where it is used is only for development"
-
-[[IgnoredVulns]]
-id = "GHSA-rhx6-c78j-4q9w"
-reason = "We do not use path-to-regexp directly and where it is used is only for development"
-
-[[IgnoredVulns]]
-id = "GHSA-7mvr-c777-76hp"
-reason = "playwright is only used in development/testing - it's not used in the final production build"
-
-[[IgnoredVulns]]
-id = "GHSA-x7hr-w5r2-h6wg"
-reason = "prismjs is only used during the build - it's not used in the final production build"
-
-[[IgnoredVulns]]
 id = "GHSA-p8p7-x288-28g6"
 reason = "request calls are only used in our build"
 
 [[IgnoredVulns]]
-id = "GHSA-m6fv-jmcg-4jfg"
-reason = "send is only used in development"
-
-[[IgnoredVulns]]
 id = "GHSA-76p7-773f-r4q5"
-reason = "serialize-javascript is only used in development"
-
-[[IgnoredVulns]]
-id = "GHSA-cm22-4g7w-348p"
 reason = "serialize-javascript is only used in development"
 
 [[IgnoredVulns]]
@@ -197,14 +157,6 @@ id = "GHSA-72xf-g2v4-qvf3"
 reason = "tough-cookie is only used for testing and development"
 
 [[IgnoredVulns]]
-id = "GHSA-c76h-2ccp-4975"
-reason = "undici is only used for development"
-
-[[IgnoredVulns]]
-id = "GHSA-cxrh-j4jr-qwg3"
-reason = "undici is only used for development"
-
-[[IgnoredVulns]]
 id = "GHSA-3h5v-q93c-6h6q"
 reason = "ws is only used for development/testing - it's not used in the final production build"
 
@@ -215,10 +167,6 @@ reason = "esbuild dev server is only used for development/testing - it's not use
 [[IgnoredVulns]]
 id = "GHSA-968p-4wvh-cqc8"
 reason = "babel is only used for development, so inefficiencies only impact dev experience"
-
-[[IgnoredVulns]]
-id = "GHSA-gcx4-mw62-g8wm"
-reason = "rollup is only used for development, so does not impact production code"
 
 [[IgnoredVulns]]
 id = "GHSA-5j98-mcp5-4vw2"
@@ -267,10 +215,6 @@ reason = "tar not used directly and not accessible to end users/external users"
 [[IgnoredVulns]]
 id = "GHSA-r6q2-hw4h-h46w"
 reason = "tar not used directly and not accessible to end users/external users"
-
-[[IgnoredVulns]]
-id = "GHSA-wqch-xfxh-vrr4"
-reason = "used by expressjs which is only used for dev purposes"
 
 [[IgnoredVulns]]
 id = "GHSA-34x7-hfp2-rc4v"
@@ -493,10 +437,6 @@ id = "GHSA-v8w9-8mx6-g223"
 reason = "hono is only used in dev tools"
 
 [[IgnoredVulns]]
-id = "GHSA-g735-7g2w-hh3f"
-reason = "astro generates a static webpage, so this is not relevant"
-
-[[IgnoredVulns]]
 id = "GHSA-6v7q-wjvx-w8wg"
 reason = "basic-ftp is only used in dev - not used in final prod build"
 
@@ -535,6 +475,10 @@ reason = "dompurify is only used in dev on the website"
 [[IgnoredVulns]]
 id = "GHSA-h8r8-wccr-v5f2"
 reason = "dompurify is only used in dev on the website"
+
+[[IgnoredVulns]]
+id = "GHSA-w5hq-g745-h8pq"
+reason = "uuid is only used in dev/test - not used in final prod build"
 
 [[IgnoredVulns]]
 id = "GHSA-38f7-945m-qr2g"
