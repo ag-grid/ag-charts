@@ -10,6 +10,7 @@ import svgr from 'vite-plugin-svgr';
 
 import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSitemap';
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
+import agMkcertPreview from '../../external/ag-website-shared/plugins/agMkcertPreview';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
@@ -44,6 +45,8 @@ const {
     CHECK_REDIRECTS = 'false',
     PUBLIC_ENABLE_HOT_RELOAD,
 } = dotenvExpand.expand(dotenv).parsed;
+
+const httpsEnabled = !['0', 'false'].includes(PUBLIC_HTTPS_SERVER);
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
 
@@ -100,7 +103,7 @@ export default defineConfig({
             ],
         },
         server: {
-            https: !['0', 'false'].includes(PUBLIC_HTTPS_SERVER),
+            https: httpsEnabled,
             cors: {
                 /**
                  * CORS allow list for opening examples on external sites
@@ -147,6 +150,7 @@ export default defineConfig({
         agCacheSitemap({
             cacheFolder: SITEMAP_CACHE_DIR,
         }),
+        agMkcertPreview({ enabled: httpsEnabled }),
     ],
     redirects: getAstroRedirectRules(),
 });
