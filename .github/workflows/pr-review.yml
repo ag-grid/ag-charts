@@ -10,9 +10,8 @@ name: PR Review
 # because GitHub Packages honours `GITHUB_TOKEN` + `packages: read` from any
 # repo in the same org, regardless of visibility.
 #
-# Channel: ag-charts tracks the `canary` dist-tag (aligned with
-# AG-17085 Phase 4). ag-grid and ag-studio will pin to `latest` when they
-# migrate.
+# Channel: ag-charts tracks `canary` during the in-flight AG-17085
+# rollout. ag-grid and ag-studio track `latest`.
 
 on:
     pull_request:
