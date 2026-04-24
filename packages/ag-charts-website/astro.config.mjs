@@ -89,6 +89,17 @@ export default defineConfig({
     devToolbar: {
         enabled: false,
     },
+    security: {
+        /**
+         * Astro 6's secFetchMiddleware 403s cross-origin subresource requests
+         * unless the origin is in this allow-list. Needed for example embedders
+         * (Plunkr, CodeSandbox) to load the dev-server UMD bundles.
+         */
+        allowedDomains: [
+            { hostname: 'run.plnkr.co', protocol: 'https' },
+            { hostname: '**.csb.app', protocol: 'https' },
+        ],
+    },
     vite: {
         plugins,
         optimizeDeps: {

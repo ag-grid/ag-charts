@@ -63,8 +63,8 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
 
     <body>
         <Fragment set:html={indexFragment} />
-        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
-        {hasLocale && <script src={chartScriptLocalePath} />}
+        <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath} crossorigin="anonymous"></script>
+        {hasLocale && <script src={chartScriptLocalePath} crossorigin="anonymous" />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
         <slot />
     </body>
