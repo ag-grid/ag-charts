@@ -103,7 +103,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         highlight: PART_WHOLE_HIGHLIGHT_STYLE,
         selection: {
             ...SERIES_SELECTION_THEME,
-            selectedOffset: 10,
+            selectedOffset: 0,
         },
     },
     legend: { enabled: true },

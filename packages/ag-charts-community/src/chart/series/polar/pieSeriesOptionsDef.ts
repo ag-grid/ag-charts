@@ -40,7 +40,7 @@ import type {
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
 const selection: OptionsDefs<AgPieSeriesSelectionOptions> = {
     ...selectionOptionsDef(shapeHighlightOptionsDef),
-    selectedOffset: positiveNumber,
+    selectedOffset: number,
 };
 
 export const pieSeriesThemeableOptionsDef: OptionsDefs<AgPieSeriesThemeableOptions> = {
