@@ -67,8 +67,17 @@ export class DataSelection extends AbstractModuleInstance {
         const { type, clickedNode } = event;
         if (type !== 'click') return;
 
+        const modifierPressed = hasAddToSelectionModifier(event);
+        const clickMiss =
+            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
+
+        if (clickMiss && modifierPressed) {
+            // Ctrl+Click only toggles selection; it shouldn't clear the selection.
+            return;
+        }
+
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
-        if (clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean)) {
+        if (clickMiss) {
             clearAllSelections(this.ctx.chartService.series);
             this.dispatchInternalSelectionChange(this.ctx.chartService.series);
         } else {
@@ -81,7 +90,7 @@ export class DataSelection extends AbstractModuleInstance {
                 return;
             }
 
-            if (clickMode === 'multiple' || hasAddToSelectionModifier(event)) {
+            if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(series, data, datumIndex);
             } else {
                 clickMode satisfies 'single';
