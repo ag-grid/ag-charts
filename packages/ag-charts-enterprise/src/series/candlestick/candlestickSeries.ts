@@ -160,6 +160,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.selection.enabled || this.properties.itemStyler != null;
     }
 }

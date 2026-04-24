@@ -159,8 +159,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     hasItemStylers() {
-        const { node, link } = this.properties;
+        const { node, link, selection } = this.properties;
         return (
+            selection.enabled ||
             node.itemStyler != null ||
             link.itemStyler != null ||
             node.title.itemStyler != null ||

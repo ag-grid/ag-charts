@@ -938,6 +938,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.styler != null;
+        return (
+            this.properties.selection.enabled || this.properties.itemStyler != null || this.properties.styler != null
+        );
     }
 }

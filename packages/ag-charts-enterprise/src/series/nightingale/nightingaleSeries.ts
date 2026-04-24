@@ -68,6 +68,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.itemStyler != null ||
             this.properties.styler != null ||
             this.properties.label.itemStyler != null

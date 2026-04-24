@@ -1504,8 +1504,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        const { styler, itemStyler, marker, label } = this.properties;
-        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler) || this.isColorScaleValid();
+        const { selection, styler, itemStyler, marker, label } = this.properties;
+        return (
+            selection.enabled ||
+            !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler) ||
+            this.isColorScaleValid()
+        );
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {

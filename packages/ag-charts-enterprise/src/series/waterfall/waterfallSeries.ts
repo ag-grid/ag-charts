@@ -1231,6 +1231,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     protected override hasItemStylers(): boolean {
         const { positive, negative, total } = this.properties.item;
         return (
+            this.properties.selection.enabled ||
             positive.itemStyler != null ||
             positive.label.itemStyler != null ||
             negative.itemStyler != null ||

@@ -129,6 +129,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null;
+        return this.properties.selection.enabled || this.properties.itemStyler != null;
     }
 }

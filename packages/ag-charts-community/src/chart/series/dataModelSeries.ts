@@ -262,6 +262,6 @@ export abstract class DataModelSeries<
         if (datumIndex === undefined || !this.properties.selection.enabled) return undefined;
 
         const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
-        return (isSelected) ? SelectionState.Selected : SelectionState.Unselected;
+        return isSelected ? SelectionState.Selected : SelectionState.Unselected;
     }
 }

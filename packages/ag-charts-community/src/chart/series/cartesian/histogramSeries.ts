@@ -903,6 +903,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.label.itemStyler != null;
+        return this.properties.selection.enabled || this.properties.label.itemStyler != null;
     }
 }

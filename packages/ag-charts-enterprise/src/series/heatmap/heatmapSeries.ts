@@ -915,7 +915,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.itemStyler != null || this.properties.label.itemStyler != null || this.isColorScaleValid()
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null ||
+            this.isColorScaleValid()
         );
     }
 }
