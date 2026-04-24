@@ -193,7 +193,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
             );
 
-            node.update({ image: datum.datum.image, title, subtitle, labels }, styles);
+            const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
+
+            node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles);
         });
     }
 
@@ -257,14 +259,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.expand(ids);
     }
 
-    expandItem(itemIdOrIndex: string | number) {
+    expandItem(itemIdOrIndex: string | number, _point: Point) {
         const id = this.getItemId(itemIdOrIndex);
         if (id == null) return;
+
+        const vertex = this.graph.findVertexById(id);
+        if (vertex == null) return;
+
+        // const node = this.datumSelection.at(this.graph.findNeighbourValue(vertex, 'datumIndex') as number);
+        // if (node == null || !node.expanderContainsPoint(point)) {
+        //     return;
+        // }
 
         this.ctx.collapsedManager.expand([id]);
     }
 
-    collapseItem(itemIdOrIndex: string | number) {
+    collapseItem(itemIdOrIndex: string | number, _point: Point) {
         const id = this.getItemId(itemIdOrIndex);
         if (id == null) return;
 
@@ -306,6 +316,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: this.properties.node.width,
             nodeMaxHeight: this.properties.node.maxHeight,
             nodeMaxWidth: this.properties.node.maxWidth,
+            expanderPillHeight: 24,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
@@ -342,6 +353,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             labelsValues,
             this.rootVertex
         );
+
+        this.graph.computeDescendants(this.getRootVertices());
     }
 
     private createNodeDataFromVertex(

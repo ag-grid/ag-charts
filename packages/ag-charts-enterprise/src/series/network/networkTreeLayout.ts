@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { type Point, Vec2, type Vertex, clamp } from 'ag-charts-core';
+import { Vec2, type Vertex, clamp } from 'ag-charts-core';
 
 import { NetworkLayout, type NetworkLayoutUpdateOptions } from './networkLayout';
 import type { NetworkLinkInterpolation } from './networkTypes';
@@ -12,6 +12,7 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     nodeWidth?: number;
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
+    expanderPillHeight: number;
     regularDimensions: boolean;
     hiddenOnCollapse: boolean;
     verticalSpacing: number;
@@ -27,7 +28,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
-        const { containerBBox } = this.updateNodes(options, undefined);
+        const { containerBBox } = this.updateNodes(options);
         this.updateOffset(options, containerBBox);
     }
 
@@ -55,7 +56,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
     private updateNodes(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
-        offset: Point | undefined,
         groupBBox: TBBox = new BBox(0, 0, 0, 0)
     ): {
         containerBBox: TBBox;
@@ -83,7 +83,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             // Layout children before their parent so that the parent can be aligned to match the children.
             const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(options, vertex, offset, groupBBox, nodeBBox);
+                this.updateChildren(options, vertex, groupBBox, nodeBBox);
 
             const hasVisibleChildren =
                 childrenCount > 0 && descendentsContainerBBox != null && descendentsContainerBBox.width > 0;
@@ -119,7 +119,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation)
+                        this.drawLink(path, layoutBBox, bbox, interpolation, options.expanderPillHeight)
                     );
                 }
             }
@@ -134,7 +134,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
     private updateChildren(
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
-        offset: Point | undefined,
         groupBBox: TBBox,
         datumBBox?: TBBox
     ) {
@@ -143,11 +142,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         if (!children) return { childrenCount: 0 };
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
-        if (datumBBox) childrenGroupBBox.y += datumBBox.height + options.verticalSpacing;
+        if (datumBBox) childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.expanderPillHeight;
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
-            offset,
             childrenGroupBBox
         );
 
@@ -164,14 +162,16 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         path: _ModuleSupport.ExtendedPath2D,
         parentBBox: TBBox,
         childBBox: TBBox,
-        interpolation: NetworkLinkInterpolation = { type: 'step' }
+        interpolation: NetworkLinkInterpolation = { type: 'step' },
+        expanderPillHeight: number
     ) {
         const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height);
         const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
-        const elbowDist = Vec2.from(0, (end.y - start.y) / 2);
 
-        const elbow1 = Vec2.add(start, elbowDist);
-        const elbow2 = Vec2.sub(end, elbowDist);
+        const elbowDist = (end.y - start.y) / 2;
+
+        const elbow1 = Vec2.add(start, Vec2.from(0, elbowDist + expanderPillHeight / 2));
+        const elbow2 = Vec2.sub(end, Vec2.from(0, elbowDist - expanderPillHeight / 2));
 
         const cornerRadius = clamp(
             0,

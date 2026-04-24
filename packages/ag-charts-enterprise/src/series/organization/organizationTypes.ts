@@ -10,6 +10,7 @@ export type OrganizationEdge =
     | 'child' // The descending edge from parent to child.
     | 'parent' // The ascending edge from child to parent.
     | 'depth'
+    | 'descendants'
     | 'image'
     | 'title'
     | 'subtitle'

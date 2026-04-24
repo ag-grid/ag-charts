@@ -124,12 +124,16 @@ export abstract class AbstractNetworkSeries<
             }
         });
 
-        ctx.eventsHub.on('series-area:click', ({ type, clickedNode }) => {
+        ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
             if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
+            const point = {
+                x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
+                y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
+            };
             if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                this.expandItem(clickedNode.itemId);
+                this.expandItem(clickedNode.itemId, point);
             } else {
-                this.collapseItem(clickedNode.itemId);
+                this.collapseItem(clickedNode.itemId, point);
             }
         });
 
@@ -162,8 +166,8 @@ export abstract class AbstractNetworkSeries<
     abstract updateOffset(offset: Point): void;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
-    abstract expandItem(itemIdOrIndex: string | number): void;
-    abstract collapseItem(itemIdOrIndex: string | number): void;
+    abstract expandItem(itemIdOrIndex: string | number, point: Point): void;
+    abstract collapseItem(itemIdOrIndex: string | number, point: Point): void;
 
     dataCount() {
         return this.datumSelection.length;

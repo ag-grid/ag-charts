@@ -1,4 +1,5 @@
 import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import type { Point } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
@@ -11,12 +12,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private subtitleNode?: _ModuleSupport.Text;
     private labelNodes?: (_ModuleSupport.Text | undefined)[];
 
-    update(datum: OrganizationDatum['datum'], styles: RequiredOrganizationNodeStyle) {
+    private expanderNode?: OrganizationExpanderNode;
+
+    update(datum: OrganizationDatum['datum'], descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
         this.updateShapeNode(styles);
         this.updateImageNode(datum.image, styles);
         this.updateTitleNode(datum.title, styles);
         this.updateSubtitleNode(datum.subtitle, styles);
         this.updateLabelNodes(datum.labels, styles);
+        this.updateExpanderNode(descendantsCount, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -87,6 +91,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.shapeNode.width = bbox.width;
             this.shapeNode.height = bbox.height;
         }
+
+        if (this.expanderNode) {
+            const expanderBBox = this.expanderNode.getBBox();
+            this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
+            this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
+        }
     }
 
     realign(
@@ -150,6 +160,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
             index++;
         }
+    }
+
+    expanderContainsPoint(point: Point) {
+        if (!this.expanderNode) return false;
+        return this.expanderNode.containsPoint(point.x, point.y);
     }
 
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
@@ -227,4 +242,48 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             index++;
         }
     }
+
+    private updateExpanderNode(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+        if (descendantsCount === 0) {
+            this.expanderNode?.remove();
+            this.expanderNode = undefined;
+            return;
+        }
+
+        this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
+        this.expanderNode.update(descendantsCount, styles);
+    }
+}
+
+class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
+    override name = 'organization-node-expander';
+
+    private shapeNode?: _ModuleSupport.Rect;
+    private countNode?: _ModuleSupport.Text;
+
+    update(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+        this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
+
+        this.countNode ??= this.appendChild(new _ModuleSupport.Text());
+        this.countNode.text = `${descendantsCount}`;
+        this.countNode.textAlign = 'left';
+        applyTextStyles(this.countNode, styles.subtitle);
+        this.countNode.x = 12;
+        this.countNode.y = 4;
+
+        const bbox = this.countNode.getBBox().clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+
+        this.shapeNode.x = 0;
+        this.shapeNode.y = 0;
+        this.shapeNode.width = Math.max(48, bbox.width);
+        this.shapeNode.height = Math.max(24, bbox.height);
+
+        applyFillStyles(this.shapeNode, styles);
+        applyStrokeStyles(this.shapeNode, styles);
+        this.shapeNode.cornerRadius = styles.cornerRadius;
+    }
+
+    // override containsPoint(x: number, y: number) {
+    //     return this.shapeNode?.containsPoint(x, y) ?? false;
+    // }
 }
