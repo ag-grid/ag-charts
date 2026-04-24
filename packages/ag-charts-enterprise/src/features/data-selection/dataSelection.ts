@@ -91,7 +91,7 @@ export class DataSelection extends AbstractModuleInstance {
             this.dispatchInternalSelectionChange([series]);
         }
         this.dispatchExternalSelectionChange(bufferMap);
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -122,7 +122,7 @@ export class DataSelection extends AbstractModuleInstance {
         this.dragRect.y = canvasBounds.y;
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PRE_SERIES_UPDATE });
+        this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
@@ -179,7 +179,11 @@ export class DataSelection extends AbstractModuleInstance {
     private endDrag(): void {
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
+        this.redraw(ChartUpdateType.FULL);
+    }
+
+    private redraw(type: ChartUpdateType): void {
+        this.ctx.eventsHub.emit('chart:request-update', { type, opts: { skipAnimations: true } });
     }
 
     private dispatchInternalSelectionChange(changedSeries: Series[]): void {
