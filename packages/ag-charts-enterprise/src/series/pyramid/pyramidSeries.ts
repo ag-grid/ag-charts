@@ -3,7 +3,6 @@ import {
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesOptions,
     type AgPyramidSeriesStyle,
-    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -128,7 +127,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         () => this.checkProcessedDataAnimatable()
     );
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

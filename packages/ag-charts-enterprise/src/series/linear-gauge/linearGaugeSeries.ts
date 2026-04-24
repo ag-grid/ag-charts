@@ -4,7 +4,6 @@ import {
     type AgLinearGaugeOptions,
     type AgLinearGaugeTargetPlacement,
     type AgSeriesMarkerStyle,
-    type ChartRegistry,
     type FontStyle,
     type FontWeight,
     type TextOrSegments,
@@ -189,7 +188,7 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
 
     public contextNodeData?: LinearGaugeNodeDataContext;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],

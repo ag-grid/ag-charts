@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     type BoxBounds,
@@ -68,7 +68,7 @@ export class Navigator extends AbstractModuleInstance {
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
-    public constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(

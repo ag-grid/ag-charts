@@ -2,7 +2,6 @@ import {
     type AgConeFunnelSeriesLabelFormatterParams,
     type AgConeFunnelSeriesOptions,
     type AgConeFunnelSeriesStyle,
-    type ChartRegistry,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { DynamicContext, RequireOptional } from 'ag-charts-core';
@@ -35,7 +34,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
 
     override properties = new ConeFunnelProperties();
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             animationResetFns: {

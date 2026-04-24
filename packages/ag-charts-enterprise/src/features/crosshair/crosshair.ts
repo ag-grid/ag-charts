@@ -1,10 +1,4 @@
-import {
-    type AgCrosshairLabelRendererResult,
-    type AxisContext,
-    type ChartAxisRegistry,
-    _ModuleSupport,
-    _Widget,
-} from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -54,7 +48,7 @@ export class Crosshair extends AbstractModuleInstance {
 
     private readonly labels: { [key: string]: CrosshairLabel };
 
-    private readonly axisCtx: AxisContext;
+    private readonly axisCtx: _ModuleSupport.AxisContext;
     private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
@@ -74,7 +68,7 @@ export class Crosshair extends AbstractModuleInstance {
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     private activeHighlightInViewport: boolean = false;
 
-    constructor(private readonly ctx: ChartAxisRegistry<AxisContext>) {
+    constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;

@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type BoxBounds,
     ChartAxisDirection,
@@ -36,7 +36,7 @@ const decelerationValues = {
 };
 
 export class ZoomPanner {
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {}
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {}
 
     deceleration: number | keyof typeof decelerationValues = 1;
     private get decelerationValue(): number {

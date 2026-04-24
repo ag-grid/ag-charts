@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, type ChartRegistry } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 import { type DynamicContext, EventEmitter, focusCursorAtEnd } from 'ag-charts-core';
 
 import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
@@ -66,7 +66,7 @@ interface EventMap {
 export class AnnotationSettingsDialog extends Dialog {
     readonly events = new EventEmitter<EventMap>();
 
-    constructor(ctx: DynamicContext<ChartRegistry>) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx, 'settings');
         this.hideFns.push(() => this.events.emit('hidden', null));
     }

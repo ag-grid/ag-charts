@@ -1,6 +1,5 @@
 import type {
     AgAnnotationLineStyleType,
-    ChartRegistry,
     FontStyle,
     FontWeight,
     Formatter,
@@ -197,9 +196,9 @@ function Writeable<T extends Constructor>(Parent: T) {
 
 export function Localisable<T extends Constructor>(Parent: T) {
     class LocalisableInternal extends Parent {
-        localeManager?: DynamicContext<ChartRegistry>['localeManager'];
+        localeManager?: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager'];
 
-        setLocaleManager(localeManager: DynamicContext<ChartRegistry>['localeManager']) {
+        setLocaleManager(localeManager: DynamicContext<_ModuleSupport.ChartRegistry>['localeManager']) {
             this.localeManager ??= localeManager;
         }
     }

@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport, _Widget } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import type {
     AxisID,
     BaseStyleTypeMap,
@@ -64,10 +64,10 @@ type ZoomOpts = NormalisedZoomOptions & { enableIndependentAxes?: boolean };
 
 const DISABLED_OPTS: ZoomOpts = { enabled: false } as ZoomOpts;
 
-// `zoomManager` is optional on ChartRegistry, but the zoom module registers it in
+// `zoomManager` is optional on _ModuleSupport.ChartRegistry, but the zoom module registers it in
 // its own `register()` hook, so it is guaranteed present whenever Zoom is
 // instantiated. Narrow once here rather than asserting `!` at every call site.
-export type ZoomCtx = Omit<DynamicContext<ChartRegistry>, 'zoomManager'> & {
+export type ZoomCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'zoomManager'> & {
     readonly zoomManager: _ModuleSupport.ZoomManager;
 };
 

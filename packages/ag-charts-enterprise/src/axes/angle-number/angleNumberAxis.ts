@@ -1,4 +1,4 @@
-import { type ChartRegistry, type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
     Property,
@@ -35,7 +35,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     @Property
     override interval = new AngleAxisInterval();
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new LinearAngleScale());
     }
 

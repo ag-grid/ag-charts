@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     CleanupRegistry,
     type DynamicContext,
@@ -35,7 +35,7 @@ export class TextInput {
     };
     private visible = false;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         this.element = ctx.domManager.addChild(canvasOverlay, moduleId);
         this.element.classList.add('ag-charts-text-input');
 

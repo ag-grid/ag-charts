@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import { AbstractModuleInstance, type DynamicContext } from 'ag-charts-core';
 
 import type { SharedToolbarSection } from './sharedToolbarTypes';
@@ -33,7 +33,7 @@ export class SharedToolbar extends AbstractModuleInstance {
     };
     private firstLayoutSection?: SharedToolbarSection;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
         this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
         this.container.role = 'presentation';

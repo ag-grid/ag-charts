@@ -1,7 +1,6 @@
 import {
     type AgFunnelSeriesLabelFormatterParams,
     type AgFunnelSeriesStyle,
-    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -140,7 +139,7 @@ export abstract class BaseFunnelSeries<
         moduleCtx,
         animationResetFns,
     }: {
-        moduleCtx: DynamicContext<ChartRegistry>;
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>;
         animationResetFns: {
             datum: (
                 node: _ModuleSupport.NodeOf<TTypes>,

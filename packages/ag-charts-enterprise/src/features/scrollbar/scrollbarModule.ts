@@ -1,4 +1,4 @@
-import { type AgScrollbarOptions, type ChartRegistry, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgScrollbarOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
 import type { PluginModuleDefinition } from 'ag-charts-core';
 
 import { ZoomInteractionModule } from '../zoom-interaction/zoomInteractionModule';
@@ -6,7 +6,7 @@ import { Scrollbar } from './scrollbar';
 import { scrollbarOptionsDef } from './scrollbarOptionsDefs';
 import { SCROLLBAR_THEME } from './scrollbarTheme';
 
-export const ScrollbarModule: PluginModuleDefinition<AgScrollbarOptions, ChartRegistry> = {
+export const ScrollbarModule: PluginModuleDefinition<AgScrollbarOptions, _ModuleSupport.ChartRegistry> = {
     type: 'plugin',
     name: 'scrollbar',
     chartType: 'cartesian',

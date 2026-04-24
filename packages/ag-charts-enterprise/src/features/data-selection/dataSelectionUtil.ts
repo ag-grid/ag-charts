@@ -1,11 +1,11 @@
-import type { AgSelectionChangeEvent, AgSelectionItem, ChartRegistry } from 'ag-charts-community';
+import type { AgSelectionChangeEvent, AgSelectionItem } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = NonNullable<Series['data']>;
-type ChartService = ChartRegistry['chartService'];
+type ChartService = _ModuleSupport.ChartRegistry['chartService'];
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
 export type BufferMap = Map<string, Uint8Array>;

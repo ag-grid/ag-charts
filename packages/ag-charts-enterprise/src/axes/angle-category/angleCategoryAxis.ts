@@ -1,4 +1,4 @@
-import { type ChartRegistry, type FormatterParams, _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import { type DynamicContext, Property, type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
 
 import { walkPairsOutward } from '../../utils/polar';
@@ -20,7 +20,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     @Property
     override interval = new AngleAxisInterval();
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new CategoryScale());
     }
 

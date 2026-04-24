@@ -1,4 +1,4 @@
-import type { ChartRegistry, _Widget } from 'ag-charts-community';
+import type { _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -35,7 +35,7 @@ export class DataSelection extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'selection');
     }
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.dragRect = new _ModuleSupport.Rect();

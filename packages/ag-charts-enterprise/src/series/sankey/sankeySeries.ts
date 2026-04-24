@@ -3,7 +3,6 @@ import {
     type AgSankeySeriesNodeItemStylerParams,
     type AgSankeySeriesNodeStyle,
     type AgSankeySeriesOptions,
-    type ChartRegistry,
     type FillOptions,
     type LineDashOptions,
     type StrokeOptions,
@@ -89,7 +88,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     override properties = new SankeySeriesProperties();
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],

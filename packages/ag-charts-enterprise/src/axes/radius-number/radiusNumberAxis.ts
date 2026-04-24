@@ -1,4 +1,4 @@
-import { type ChartRegistry, type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
+import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 
@@ -30,7 +30,7 @@ export class RadiusNumberAxis extends RadiusAxis {
     @Property
     preferredMax?: number;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(moduleCtx, new LinearScale());
     }
 

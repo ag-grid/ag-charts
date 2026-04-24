@@ -4,7 +4,6 @@ import {
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
-    type ChartRegistry,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -221,7 +220,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],

@@ -1,4 +1,4 @@
-import { type AgZoomAnchorPoint, type ChartRegistry } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 import type { BoxBounds, DefinedZoomState, ZoomMinMax } from 'ag-charts-core';
 import { UNIT_MAX, UNIT_MIN, clamp, definedZoomState, isNumberEqual, jsonDiff } from 'ag-charts-core';
 
@@ -155,7 +155,7 @@ const FULL_ZOOM: DefinedZoomState = {
     y: { min: UNIT_MIN, max: UNIT_MAX },
 };
 
-export function canResetZoom(ctx: Pick<ChartRegistry, 'chartState'>) {
+export function canResetZoom(ctx: Pick<_ModuleSupport.ChartRegistry, 'chartState'>) {
     const current = definedZoomState(ctx.chartState.getValue('zoom'));
     const restore = definedZoomState(ctx.chartState.getValue('initialZoom') ?? FULL_ZOOM);
     return jsonDiff(current, restore) != null;

@@ -1,4 +1,4 @@
-import { type AgMapMarkerSeriesStyle, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import {
     type CallbackParamRules,
     type ChartAnimationPhase,
@@ -144,7 +144,7 @@ export class MapMarkerSeries
 
     private readonly animationState: StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

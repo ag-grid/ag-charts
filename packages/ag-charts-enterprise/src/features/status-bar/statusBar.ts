@@ -1,9 +1,4 @@
-import {
-    type AgFinancialChartOptions,
-    type AgPriceVolumeChartType,
-    type ChartRegistry,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     BaseProperties,
@@ -245,7 +240,7 @@ export class StatusBar extends AbstractModuleInstance implements _ModuleSupport.
         },
     ];
 
-    public constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.labelGroup.visible = false;

@@ -4,7 +4,6 @@ import type {
     AgContextMenuGetItemsParamsSeriesNode,
     AgContextMenuItem,
     AgContextMenuItemShowOn,
-    ChartRegistry,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 import {
@@ -36,10 +35,10 @@ type Caller = { context?: unknown } | undefined;
 
 const moduleId = 'context-menu';
 
-// `contextMenuRegistry` is optional on ChartRegistry, but the context-menu module
+// `contextMenuRegistry` is optional on _ModuleSupport.ChartRegistry, but the context-menu module
 // registers it in its own `register()` hook, so it is guaranteed present whenever
 // ContextMenu is instantiated. Narrow once here rather than asserting `!`.
-export type ContextMenuCtx = Omit<DynamicContext<ChartRegistry>, 'contextMenuRegistry'> & {
+export type ContextMenuCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'contextMenuRegistry'> & {
     readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry;
 };
 

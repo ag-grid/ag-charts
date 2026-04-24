@@ -4,7 +4,6 @@ import {
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
-    type ChartRegistry,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable } from 'ag-charts-core';
@@ -118,7 +117,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     protected override readonly NodeEvent = BoxPlotSeriesNodeEvent;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],

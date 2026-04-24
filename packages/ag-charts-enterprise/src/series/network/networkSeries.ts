@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     type ChartAnimationPhase,
     type ChartAxisDirection,
@@ -96,7 +96,7 @@ export abstract class AbstractNetworkSeries<
     private startDragOffset: Point = { x: 0, y: 0 };
     private dragOffset: Point = { x: 0, y: 0 };
 
-    constructor(ctx: DynamicContext<ChartRegistry>) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],

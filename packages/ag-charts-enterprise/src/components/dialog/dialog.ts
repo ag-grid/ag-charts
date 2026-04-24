@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     CheckboxOptions as CoreCheckboxOptions,
     SelectOptions as CoreSelectOptions,
@@ -78,7 +78,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private seriesRect?: _ModuleSupport.BBox;
 
-    constructor(ctx: DynamicContext<ChartRegistry>, id: string) {
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id: string) {
         super(ctx, id);
         this.cleanup.register(ctx.eventsHub.on('layout:complete', this.onLayoutComplete.bind(this)));
     }

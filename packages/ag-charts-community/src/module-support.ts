@@ -143,6 +143,7 @@ export type { PreSceneRenderEvent, ProcessDataEvent } from './core/eventsHub';
 export { adjustLabelPlacement, getLabelStyles, updateLabelNode } from './chart/labelUtil';
 export { LayoutElement } from './chart/layout/layoutManager';
 export type { LayoutContext } from './chart/layout/layoutManager';
+export { AnnotationManager } from './chart/annotation/annotationManager';
 export { ContextMenuRegistry } from './chart/interaction/contextMenuRegistry';
 export type {
     ContextMenuBuiltins,

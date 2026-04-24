@@ -1,7 +1,6 @@
 import {
     type AgTimeInterval,
     type AgTimeIntervalUnit,
-    type ChartRegistry,
     type DateFormatterStyle,
     type FormatterParams,
     _ModuleSupport,
@@ -44,7 +43,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         const accurateScale = new OrdinalTimeScale();
         super(moduleCtx, accurateScale);
         this.accurateScale = accurateScale;

@@ -3,7 +3,6 @@ import type {
     AgRadialSeriesItemStylerParams,
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
-    ChartRegistry,
     HighlightState as HighlightStateString,
     Styler,
 } from 'ag-charts-community';
@@ -22,7 +21,7 @@ export interface RadialSeriesStyleResult extends Required<Omit<AgRadialSeriesSty
 
 interface RadialSectorSeries<D extends BaseNodeDatum> {
     readonly id: string;
-    readonly ctx: DynamicContext<ChartRegistry>;
+    readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>;
     readonly declarationOrder: number;
     readonly context?: { nodeData: D[] };
     readonly properties: {

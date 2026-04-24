@@ -1,4 +1,4 @@
-import { type AgMapLineSeriesStyle, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 import type {
     CallbackParamRules,
     DynamicContext,
@@ -113,7 +113,7 @@ export class MapLineSeries
 
     public contextNodeData?: MapLineNodeDataContext;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

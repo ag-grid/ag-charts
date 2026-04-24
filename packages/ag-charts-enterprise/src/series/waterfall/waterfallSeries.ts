@@ -4,7 +4,6 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
-    ChartRegistry,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -142,7 +141,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
     override properties = new WaterfallSeriesProperties();
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             propertyKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,

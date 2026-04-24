@@ -1,4 +1,4 @@
-import { type AxisContext, type ChartAxisRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -57,7 +57,7 @@ export class BandHighlight extends AbstractModuleInstance {
     @Property
     readonly fillImageDefaults = new FillImageDefaults();
 
-    private readonly axisCtx: AxisContext;
+    private readonly axisCtx: _ModuleSupport.AxisContext;
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
 
@@ -68,7 +68,7 @@ export class BandHighlight extends AbstractModuleInstance {
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
-    constructor(private readonly ctx: ChartAxisRegistry<AxisContext>) {
+    constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
 
         this.axisCtx = ctx.parent;

@@ -1,4 +1,4 @@
-import { type AgMapShapeBackgroundOptions, type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { type AgMapShapeBackgroundOptions, _ModuleSupport } from 'ag-charts-community';
 import type { DynamicContext, FeatureCollection } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 
@@ -71,7 +71,7 @@ export class MapShapeBackgroundSeries
 
     private contextNodeData?: MapShapeBackgroundNodeDataContext;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx,
             categoryKey: undefined,

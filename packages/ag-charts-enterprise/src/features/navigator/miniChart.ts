@@ -1,4 +1,4 @@
-import { type ChartRegistry, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ActionOnSet,
@@ -97,7 +97,7 @@ export class MiniChart extends AbstractModuleInstance {
     })
     series: _ModuleSupport.UnknownSeries[] = [];
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(this.ctx.eventsHub.on('data:update', (data) => this.updateData(data)));

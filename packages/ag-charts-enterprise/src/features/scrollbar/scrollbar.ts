@@ -1,9 +1,4 @@
-import {
-    type AgCartesianAxisPosition,
-    type AxisContext,
-    type ChartRegistry,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgCartesianAxisPosition, _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
@@ -89,7 +84,7 @@ export class Scrollbar extends AbstractModuleInstance {
 
     private readonly scrollPanner = new ZoomScrollPanner();
 
-    public constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    public constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.state = {
@@ -151,7 +146,7 @@ export class Scrollbar extends AbstractModuleInstance {
         orientation: ScrollbarOrientation,
         configuredPosition?: AgCartesianAxisPosition
     ): {
-        axis?: AxisContext;
+        axis?: _ModuleSupport.AxisContext;
         position: AgCartesianAxisPosition;
         positionHasAxis: boolean;
     } {

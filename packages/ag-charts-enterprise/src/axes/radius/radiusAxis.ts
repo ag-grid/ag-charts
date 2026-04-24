@@ -1,4 +1,4 @@
-import type { AgAxisCaptionFormatterParams, ChartRegistry } from 'ag-charts-community';
+import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
@@ -71,7 +71,7 @@ export abstract class RadiusAxis<
         return ChartAxisDirection.Radius;
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale: S) {
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, scale: S) {
         super(moduleCtx, scale);
 
         this.headingLabelGroup.appendChild(this.title.caption.node);

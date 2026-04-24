@@ -1,4 +1,4 @@
-import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange, ChartSeriesRegistry } from 'ag-charts-community';
+import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -48,7 +48,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: ChartSeriesRegistry) {
+    constructor(ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
 
         const series = ctx.series as ErrorBoundCartesianSeries;

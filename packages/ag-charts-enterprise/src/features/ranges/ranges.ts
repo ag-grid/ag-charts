@@ -1,7 +1,6 @@
 import {
     type AgRangesButtonValue,
     type AgRangesPosition,
-    type ChartRegistry,
     type CssColor,
     type FontFamily,
     type FontWeight,
@@ -129,7 +128,7 @@ export class Ranges extends BaseProperties implements ModuleInstance {
     private dropdownLabel = DEFAULT_DROPDOWN_LABEL;
     private dropdownMinWidth?: number;
 
-    constructor(private readonly ctx: DynamicContext<ChartRegistry>) {
+    constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
         this.cleanup.register(
