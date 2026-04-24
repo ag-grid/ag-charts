@@ -1,5 +1,5 @@
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -13,16 +13,12 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
-    @Property
     min?: number;
 
-    @Property
     max?: number;
 
-    @Property
     preferredMin?: number;
 
-    @Property
     preferredMax?: number;
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, scale = new LinearScale() as LinearScale | LogScale) {

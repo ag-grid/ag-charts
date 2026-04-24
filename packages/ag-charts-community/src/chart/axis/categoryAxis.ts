@@ -1,5 +1,5 @@
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import { ActionOnSet, ChartUpdateType, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -21,19 +21,15 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
-    @Property
     groupPaddingInner: number = 0.1;
 
-    @Property
     paddingInner?: number;
 
-    @Property
     paddingOuter?: number;
 
     @ProxyPropertyOnWrite('layoutConstraints', 'align')
     bandAlignment?: 'justify' | 'start' | 'center' | 'end';
 
-    @Property
     skipNullBars?: boolean;
 
     @ActionOnSet<CategoryAxis>({

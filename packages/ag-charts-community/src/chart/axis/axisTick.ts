@@ -1,5 +1,4 @@
-import { BaseProperties, Property } from 'ag-charts-core';
-import type { AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
+import type { AgAxisBaseTickOptions, AgTimeInterval, AgTimeIntervalUnit } from 'ag-charts-types';
 
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { TimeScale } from '../../scale/timeScale';
@@ -9,19 +8,19 @@ export type TickInterval<S> = S extends TimeScale | OrdinalTimeScale | UnitTimeS
     ? number | AgTimeInterval | AgTimeIntervalUnit
     : number;
 
-export class AxisTick extends BaseProperties {
-    @Property
+export class AxisTick {
     enabled = true;
 
     /** The line width to be used by axis ticks. */
-    @Property
     width: number = 1;
 
     /** The line length to be used by axis ticks. */
-    @Property
     size: number = 6;
 
     /** The colour of the axis ticks. */
-    @Property
     stroke?: string;
+
+    applyOptions(options: AgAxisBaseTickOptions | undefined): void {
+        if (options != null) Object.assign(this, options);
+    }
 }

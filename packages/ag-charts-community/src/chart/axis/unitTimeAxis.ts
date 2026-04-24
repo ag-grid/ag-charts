@@ -1,6 +1,5 @@
 import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
-    Property,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -28,22 +27,16 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
 
     override defaultTickMinSpacing = 20;
 
-    @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
-    @Property
     min?: Date | number = undefined;
 
-    @Property
     max?: Date | number = undefined;
 
-    @Property
     preferredMin?: Date | number = undefined;
 
-    @Property
     preferredMax?: Date | number = undefined;
 
-    @Property
     // eslint-disable-next-line sonarjs/use-type-alias
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 

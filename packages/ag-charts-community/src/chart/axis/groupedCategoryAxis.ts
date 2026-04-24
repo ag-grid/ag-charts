@@ -150,7 +150,6 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private ftdByDepth: { positions: number[]; ticks: GroupedCategoryKey[] }[] = [];
     private readonly ftdStack: TreeNode[] = [];
 
-    @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {

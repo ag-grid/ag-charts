@@ -1,8 +1,6 @@
 import type { ChartAxisDirection, DomainWithMetadata, DynamicContext } from 'ag-charts-core';
 import {
-    BaseProperties,
     Logger,
-    Property,
     ProxyPropertyOnWrite,
     dateTruncationForDomain,
     intervalEpoch,
@@ -26,34 +24,33 @@ import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
-export class TimeAxisParentLevel extends BaseProperties {
-    @Property
+export class TimeAxisParentLevel {
     enabled = false;
 
-    @Property
     readonly label = new AxisLabel();
 
-    @Property
     readonly tick = new AxisTick();
+
+    applyOptions(options: { enabled?: boolean; label?: object; tick?: object } | undefined): void {
+        if (options == null) return;
+        if ('enabled' in options) this.enabled = options.enabled!;
+        if (options.label !== undefined) this.label.applyOptions(options.label as any);
+        if (options.tick !== undefined) this.tick.applyOptions(options.tick as any);
+    }
 }
 
 export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
-    @Property
     readonly parentLevel = new TimeAxisParentLevel();
 
-    @Property
     min?: Date | number = undefined;
 
-    @Property
     max?: Date | number = undefined;
 
-    @Property
     preferredMin?: Date | number = undefined;
 
-    @Property
     preferredMax?: Date | number = undefined;
 
     // eslint-disable-next-line sonarjs/use-type-alias
@@ -64,7 +61,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
     }
 
-    @Property
     @ProxyPropertyOnWrite('_unit')
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 

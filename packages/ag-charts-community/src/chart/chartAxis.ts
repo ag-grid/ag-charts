@@ -130,6 +130,7 @@ export interface ChartAxis {
     setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
+    applyOptions(options: object | undefined, skip?: ReadonlySet<string>): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
@@ -165,7 +166,7 @@ export interface ChartAxis {
 export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
     getSideFlag(): ChartAxisLabelFlipFlag;
-    set(props: object): void;
+    applyOptions(options: object | undefined): void;
     autoRotate?: boolean;
     autoRotateAngle?: number;
     avoidCollisions: boolean;

@@ -2,6 +2,7 @@ import { BaseProperties, Property, isArray, objectsEqual } from 'ag-charts-core'
 import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
+    AgBaseAxisLabelOptions,
     AgBaseAxisLabelStyleOptions,
     AgTimeIntervalUnit,
     DateFormatterStyle,
@@ -28,6 +29,10 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
+// NOTE: This class remains on BaseProperties/@Property because enterprise series (cone-funnel,
+// funnel, radial-gauge, linear-gauge) extend it and still rely on BaseProperties.set(). The axis
+// subtree itself no longer uses jsonApply; the bridge `applyOptions()` method delegates to the
+// legacy .set() so consumers calling applyOptions get identical behaviour to the old path.
 export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     @Property
     enabled = true;
@@ -147,6 +152,15 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
 
     @Property
     format?: string | Record<string, string>;
+
+    /**
+     * Public option-application entry point. Axis consumers should call this rather than
+     * .set() / jsonApply. Internally delegates to BaseProperties.set() until enterprise series
+     * stop inheriting from this class.
+     */
+    applyOptions(options: AgBaseAxisLabelOptions | undefined): void {
+        this.set(options as Parameters<this['set']>[0]);
+    }
 
     private _formatters: Record<FormatterCacheKey, FormatterCache | undefined> = {
         'component:year': undefined,

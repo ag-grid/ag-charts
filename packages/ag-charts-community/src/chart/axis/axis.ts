@@ -14,7 +14,6 @@ import {
     ChartUpdateType,
     CleanupRegistry,
     ObserveChanges,
-    Property,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -146,6 +145,44 @@ function tickLayoutCacheValid<D, TickLayoutMeta>(
     );
 }
 
+const EMPTY_SKIP: ReadonlySet<string> = new Set();
+
+/**
+ * Apply a single top-level options field onto the axis. Primitives and the `context` pass-through
+ * are assigned directly (so decorator-backed setters — `@ActionOnSet`, `@ProxyPropertyOnWrite` —
+ * still fire). Object-valued fields whose current value is an existing class instance recurse via
+ * the instance's own `applyOptions()` or `.set()` entry point so nested structure (e.g.
+ * `parentLevel.label`) is preserved rather than replaced with the raw options object.
+ */
+function applyFieldOption(target: any, key: string, value: unknown): void {
+    // `context` is a user pass-through reference; assign as-is without recursion.
+    if (key === 'context') {
+        target[key] = value;
+        return;
+    }
+    const currentValue = target[key];
+    const valueIsObject = value != null && typeof value === 'object';
+    const currentIsObject = currentValue != null && typeof currentValue === 'object';
+
+    if (valueIsObject && currentIsObject) {
+        // Prefer dedicated option-application entry points so nested structure (class instances,
+        // PropertiesArray item reconciliation, etc.) is preserved rather than replaced.
+        if (typeof currentValue.applyOptions === 'function') {
+            currentValue.applyOptions(value);
+            return;
+        }
+        if (typeof currentValue.set === 'function') {
+            currentValue.set(value);
+            return;
+        }
+        if (!Array.isArray(value) && !Array.isArray(currentValue)) {
+            Object.assign(currentValue, value);
+            return;
+        }
+    }
+    target[key] = value;
+}
+
 function computeBand<D, I>(
     scale: BandScale<D, I>,
     range: readonly [number, number],
@@ -185,14 +222,23 @@ export abstract class Axis<
     id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
-    set crossLines(value: CrossLine[]) {
+    get crossLines() {
+        return this._crossLines;
+    }
+
+    /**
+     * Reconcile the cross-line set from raw options. Replaces the old `set crossLines` setter —
+     * constructs fresh CrossLine instances for each options entry, detaches any previous set,
+     * and re-attaches. Behaviour mirrors the pre-refactor setter exactly.
+     */
+    protected applyCrossLines(options: object[] | undefined): void {
         const { CrossLineConstructor } = this.constructor as typeof Axis;
         for (const crossLine of this._crossLines) {
             this.detachCrossLine(crossLine);
         }
-        this._crossLines = value.map((crossLine) => {
+        this._crossLines = (options ?? []).map((crossLine) => {
             const instance = new CrossLineConstructor();
-            instance.set(crossLine);
+            instance.set(crossLine as any);
             return instance;
         });
         for (const crossLine of this._crossLines) {
@@ -200,27 +246,62 @@ export abstract class Axis<
             this.initCrossLine(crossLine);
         }
     }
-    get crossLines() {
-        return this._crossLines;
+
+    /**
+     * Apply options from the user-provided axis options object. Called by Chart on axis creation
+     * and on option updates (replacing the old jsonApply path). Sub-objects receive their slice
+     * via their own `applyOptions`/`.set()` methods; cross-lines are reconciled via
+     * {@link applyCrossLines}; other keys are assigned directly so subclass field decorators
+     * (`@ActionOnSet`, `@ProxyPropertyOnWrite`) still fire.
+     */
+    applyOptions(options: object | undefined, skip: ReadonlySet<string> = EMPTY_SKIP): void {
+        if (options == null) return;
+        const opts = options as Record<string, any>;
+        for (const key of Object.keys(opts)) {
+            if (key === 'type' || skip.has(key)) continue;
+            const value = opts[key];
+            switch (key) {
+                case 'line':
+                    this.line.applyOptions(value);
+                    break;
+                case 'tick':
+                    this.tick.applyOptions(value);
+                    break;
+                case 'gridLine':
+                    this.gridLine.applyOptions(value);
+                    break;
+                case 'label':
+                    this.label.applyOptions(value);
+                    break;
+                case 'title':
+                    this.title.applyOptions(value);
+                    break;
+                case 'interval':
+                    this.interval.applyOptions(value);
+                    break;
+                case 'crossLines':
+                    this.applyCrossLines(value);
+                    break;
+                default:
+                    applyFieldOption(this, key, value);
+                    break;
+            }
+        }
     }
 
     // user pass-through option: no validation required.
     context?: unknown;
 
-    @Property
     nice: boolean = true;
 
     /** Reverse the axis scale domain. */
-    @Property
     reverse: boolean = false;
 
-    @Property
     readonly interval = new AxisInterval();
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    @Property
     readonly title = new AxisTitle();
 
     /**

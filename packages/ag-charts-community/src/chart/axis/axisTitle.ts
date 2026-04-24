@@ -1,4 +1,4 @@
-import { BaseProperties, FONT_SIZE, Property } from 'ag-charts-core';
+import { FONT_SIZE } from 'ag-charts-core';
 import type {
     AgAxisCaptionFormatterParams,
     AgAxisCaptionOptions,
@@ -10,45 +10,36 @@ import type {
 
 import { Caption } from '../caption';
 
-export class AxisTitle extends BaseProperties implements AgAxisCaptionOptions {
+export class AxisTitle implements AgAxisCaptionOptions {
     readonly caption = new Caption();
 
-    @Property
     enabled: boolean = false;
 
-    @Property
     text?: string;
 
-    @Property
     spacing!: number;
 
-    @Property
     fontStyle?: FontStyle;
 
-    @Property
     fontWeight?: FontWeight;
 
-    @Property
     fontSize: number = FONT_SIZE.SMALLER;
 
-    @Property
     fontFamily: string = 'sans-serif';
 
-    @Property
     color?: string;
 
-    @Property
     maxWidth?: number;
 
-    @Property
     maxHeight?: number;
 
-    @Property
     wrapping: TextWrap = 'always';
 
-    @Property
     truncate: boolean = true;
 
-    @Property
     formatter?: RichFormatter<AgAxisCaptionFormatterParams>;
+
+    applyOptions(options: AgAxisCaptionOptions | undefined): void {
+        if (options != null) Object.assign(this, options);
+    }
 }

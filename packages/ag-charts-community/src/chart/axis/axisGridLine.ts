@@ -1,14 +1,8 @@
-import { Property } from 'ag-charts-core';
-import type { AgAxisGridStyle } from 'ag-charts-types';
+import type { AgAxisGridLineOptions, AgAxisGridStyle } from 'ag-charts-types';
 
 export class AxisGridLine {
-    @Property
     enabled = true;
-
-    @Property
     width: number = 1;
-
-    @Property
     style: AgAxisGridStyle[] = [
         {
             fill: undefined,
@@ -18,4 +12,8 @@ export class AxisGridLine {
             lineDash: [],
         },
     ];
+
+    applyOptions(options: AgAxisGridLineOptions | undefined): void {
+        if (options != null) Object.assign(this, options);
+    }
 }

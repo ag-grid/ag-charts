@@ -1,7 +1,6 @@
 import type { ChartAnimationPhase, DynamicContext, Scale, ZoomMinMax } from 'ag-charts-core';
 import {
     ChartAxisDirection,
-    Property,
     StateMachine,
     arraysEqual,
     calcLineHeight,
@@ -75,16 +74,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return value instanceof CartesianAxis;
     }
 
-    @Property
     thickness?: number;
 
-    @Property
     maxThicknessRatio: number = 0.3;
 
-    @Property
     position!: AgCartesianAxisPosition;
 
-    @Property
     crossAt?: { value: D; sticky?: boolean };
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };

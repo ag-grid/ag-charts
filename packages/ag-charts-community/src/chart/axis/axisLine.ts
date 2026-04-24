@@ -1,12 +1,11 @@
-import { Property } from 'ag-charts-core';
+import type { AgAxisLineOptions } from 'ag-charts-types';
 
 export class AxisLine {
-    @Property
     enabled = true;
-
-    @Property
     width: number = 1;
-
-    @Property
     stroke?: string = undefined;
+
+    applyOptions(options: AgAxisLineOptions | undefined): void {
+        if (options != null) Object.assign(this, options);
+    }
 }

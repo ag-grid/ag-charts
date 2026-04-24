@@ -109,6 +109,31 @@ export class Crosshair extends AbstractModuleInstance {
         }
     }
 
+    /**
+     * Options-application entry point called by Axis.applyAxisModules. Iterates provided keys and
+     * delegates object-valued fields (`label`) to their existing instance's `.set()` so the
+     * CrosshairLabelProperties instance is mutated in place rather than replaced with the raw
+     * options object.
+     */
+    applyOptions(options: object | undefined): void {
+        if (options == null) return;
+        for (const key of Object.keys(options)) {
+            const value = (options as any)[key];
+            const current = (this as any)[key];
+            if (
+                value != null &&
+                typeof value === 'object' &&
+                !Array.isArray(value) &&
+                current != null &&
+                typeof current.set === 'function'
+            ) {
+                current.set(value);
+            } else {
+                (this as any)[key] = value;
+            }
+        }
+    }
+
     private checkInteractionState(): boolean {
         return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }

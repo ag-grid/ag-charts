@@ -1,5 +1,5 @@
 import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, Property } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -25,10 +25,8 @@ export abstract class PolarAxis<
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
-    @Property
     shape: 'polygon' | 'circle' = 'polygon';
 
-    @Property
     innerRadiusRatio: number = 0;
 
     override defaultTickMinSpacing = 20;
