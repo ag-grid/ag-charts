@@ -16,7 +16,7 @@ import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDe
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
-import { NetworkTreeLayout } from '../network/networkTreeLayout';
+import { NetworkTreeLayout, type NetworkTreeLayoutUpdateOptions } from '../network/networkTreeLayout';
 import type { NetworkLinkInterpolation } from '../network/networkTypes';
 import { OrganizationGraph } from './organizationGraph';
 import { OrganizationNode } from './organizationNode';
@@ -215,6 +215,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         if (regularBBox) {
             node.updateBBox(regularBBox);
+            node.realign(this.properties.node, regularBBox);
         }
     }
 
@@ -296,6 +297,21 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 datum: datum,
             }
         );
+    }
+
+    protected override makeLayoutUpdateOptions(): NetworkTreeLayoutUpdateOptions<OrganizationVertex, OrganizationEdge> {
+        return {
+            ...super.makeLayoutUpdateOptions(),
+            nodeHeight: this.properties.node.height,
+            nodeWidth: this.properties.node.width,
+            nodeMaxHeight: this.properties.node.maxHeight,
+            nodeMaxWidth: this.properties.node.maxWidth,
+            regularDimensions: true,
+            hiddenOnCollapse: true,
+            innerSpacing: this.properties.innerSpacing ?? 0,
+            outerSpacing: this.properties.outerSpacing ?? 0,
+            verticalSpacing: this.properties.verticalSpacing ?? 0,
+        };
     }
 
     private createGraphData() {
@@ -511,20 +527,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius,
             fill,
             fillOpacity,
+            height,
             image,
             lineDash,
             lineDashOffset,
             maxHeight,
             maxWidth,
+            padding,
             stroke,
             strokeOpacity,
             strokeWidth,
+            width,
         } = this.properties.node;
         return {
             cornerRadius,
             fill,
             fillOpacity,
+            height: height ?? Number.NaN,
             image: {
+                enabled: image.enabled,
                 key: image.key,
                 height: image.height,
                 width: image.width,
@@ -536,9 +557,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             lineDashOffset: lineDashOffset ?? 0,
             maxHeight: maxHeight ?? Infinity,
             maxWidth: maxWidth ?? Infinity,
+            padding,
             stroke,
             strokeOpacity,
             strokeWidth,
+            width: width ?? Number.NaN,
         };
     }
 
@@ -557,16 +580,29 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private getNodeTextDefaultStyle(
         props: OrganizationSeriesNodeTextProperties
     ): DeepRequired<AgOrganizationSeriesNodeTextStyle> {
-        const { color, overflowStrategy, spacing, wrapping, fontFamily, fontSize, fontStyle, fontWeight } = props;
-        return {
+        const {
             color,
-            overflowStrategy,
-            spacing,
-            wrapping,
+            enabled,
             fontFamily,
             fontSize,
             fontStyle,
             fontWeight,
+            overflowStrategy,
+            spacing,
+            textAlign,
+            wrapping,
+        } = props;
+        return {
+            color,
+            enabled,
+            fontFamily,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            overflowStrategy,
+            spacing,
+            textAlign,
+            wrapping,
         };
     }
 

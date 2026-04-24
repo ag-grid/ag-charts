@@ -7,8 +7,6 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     height: number;
     width: number;
-    regularDimensions: boolean;
-    hiddenOnCollapse: boolean;
     offset: Point;
     graph: NetworkGraph<TVertex, TEdge>;
     vertices: Vertex<TVertex, TEdge>[];

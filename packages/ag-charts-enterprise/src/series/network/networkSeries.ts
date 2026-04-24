@@ -9,7 +9,7 @@ import {
 } from 'ag-charts-core';
 
 import { NetworkGraph } from './networkGraph';
-import type { NetworkLayout } from './networkLayout';
+import type { NetworkLayout, NetworkLayoutUpdateOptions } from './networkLayout';
 import { NetworkLinkNode } from './networkLinkNode';
 import type { NetworkLinkInterpolation } from './networkTypes';
 
@@ -201,6 +201,23 @@ export abstract class AbstractNetworkSeries<
         }
     }
 
+    protected makeLayoutUpdateOptions(): NetworkLayoutUpdateOptions<TVertex, TEdge> {
+        return {
+            height: this.height ?? 0,
+            width: this.width ?? 0,
+            offset: this.dragOffset,
+            graph: this.graph,
+            vertices: this.getRootVertices(),
+            getFocusedVertex: this.getFocusedVertex.bind(this),
+            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
+            getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
+            getLinkInterpolation: this.getLinkInterpolation.bind(this),
+            layoutDatumNode: this.layoutDatumNode.bind(this),
+            layoutLinkNode: this.layoutLinkNode.bind(this),
+            updateOffset: this.updateOffset.bind(this),
+        };
+    }
+
     private linkFactory(): NetworkLinkNode<NetworkLinkDatum<TVertex, TEdge>> {
         return new NetworkLinkNode();
     }
@@ -226,22 +243,7 @@ export abstract class AbstractNetworkSeries<
     private updateNodes() {
         this.updateDatumNodes(this.datumSelection);
         this.updateLinkNodes(this.linkSelection);
-        this.layout.update({
-            height: this.height ?? 0,
-            width: this.width ?? 0,
-            regularDimensions: true,
-            hiddenOnCollapse: true,
-            offset: this.dragOffset,
-            graph: this.graph,
-            vertices: this.getRootVertices(),
-            getFocusedVertex: this.getFocusedVertex.bind(this),
-            getDefaultFocusedVertices: this.getDefaultFocusedVertices.bind(this),
-            getDatumNodeBBox: this.getDatumNodeBBox.bind(this),
-            getLinkInterpolation: this.getLinkInterpolation.bind(this),
-            layoutDatumNode: this.layoutDatumNode.bind(this),
-            layoutLinkNode: this.layoutLinkNode.bind(this),
-            updateOffset: this.updateOffset.bind(this),
-        });
+        this.layout.update(this.makeLayoutUpdateOptions());
     }
 
     private getDatumNodeBBox(vertex: Vertex<TVertex, TEdge>) {

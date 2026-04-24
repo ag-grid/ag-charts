@@ -3,7 +3,9 @@ import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
-        direction: 'vertical',
+        innerSpacing: 20,
+        // outerSpacing: 40,
+        verticalSpacing: 40,
         link: {
             interpolation: {
                 type: 'step',
@@ -14,9 +16,13 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             strokeOpacity: 1,
             strokeWidth: 2,
         },
+        tooltip: {
+            enabled: false,
+        },
         node: {
             cornerRadius: 12,
             fill: { $ref: 'backgroundColor' },
+            padding: 20,
             stroke: { $palette: 'stroke' },
             strokeOpacity: 1,
             strokeWidth: 2,
@@ -37,6 +43,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 key: 'title',
                 overflowStrategy: 'ellipsis',
                 spacing: 10,
+                textAlign: 'left',
                 wrapping: 'on-space',
             },
             subtitle: {
@@ -48,6 +55,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 key: 'subtitle',
                 overflowStrategy: 'ellipsis',
                 spacing: 10,
+                textAlign: 'left',
                 wrapping: 'on-space',
             },
             labels: {
@@ -59,6 +67,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                     fontWeight: 'normal',
                     overflowStrategy: 'ellipsis',
                     spacing: 10,
+                    textAlign: 'left',
                     wrapping: 'on-space',
                 },
             },

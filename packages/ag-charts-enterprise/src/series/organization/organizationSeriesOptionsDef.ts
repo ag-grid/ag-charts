@@ -7,12 +7,14 @@ import {
     type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
     type AgOrganizationSeriesOptionsNodeImage,
-    type AgOrganizationSeriesOptionsNodeText,
+    type AgOrganizationSeriesOptionsNodeSubtitle,
+    type AgOrganizationSeriesOptionsNodeTitle,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
     type OptionsDefs,
     arrayOf,
+    boolean,
     callbackDefs,
     callbackOf,
     commonSeriesOptionsDefs,
@@ -28,6 +30,7 @@ import {
     required,
     string,
     strokeOptionsDef,
+    textAlign,
     textOrSegments,
     textWrap,
     union,
@@ -50,6 +53,7 @@ const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
 };
 
 const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    enabled: boolean,
     key: string,
     height: positiveNumberNonZero,
     width: positiveNumberNonZero,
@@ -58,18 +62,22 @@ const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
     spacing: positiveNumber,
 };
 
-const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeText> = {
+const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
     ...fontOptionsDef,
+    enabled: boolean,
     formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
         ...fontOptionsDef,
+        enabled: boolean,
         overflowStrategy: overflowStrategy,
         spacing: number,
+        textAlign: textAlign,
         wrapping: textWrap,
     }),
     key: string,
     overflowStrategy: overflowStrategy,
     spacing: number,
+    textAlign: textAlign,
     wrapping: textWrap,
 };
 
@@ -78,21 +86,27 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: number,
+    height: number,
     image: nodeImage,
     itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,
         ...strokeOptionsDef,
         cornerRadius: number,
+        height: number,
         image: nodeImage,
         maxHeight: number,
         maxWidth: number,
+        padding: number,
+        width: number,
     }),
     labels: arrayOf(optionsDefs(nodeText)),
     maxHeight: number,
     maxWidth: number,
+    padding: number,
     title: nodeText,
     subtitle: nodeText,
+    width: number,
 };
 
 export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptions> = {

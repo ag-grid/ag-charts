@@ -1,4 +1,4 @@
-import { Vertex } from 'ag-charts-core';
+import { Logger, Vertex } from 'ag-charts-core';
 
 import { NetworkGraph } from '../network/networkGraph';
 import type { OrganizationEdge, OrganizationVertex } from './organizationTypes';
@@ -75,7 +75,7 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
 
             const parentVertex = this.verticesById[parentId];
             if (!parentVertex) {
-                // throw an error?
+                Logger.warnOnce(`Could not find parentId [${parentId}] on node [${childId}], skipping.`);
                 return;
             }
 

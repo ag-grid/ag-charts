@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgChartOptions, AgStandaloneChartOptions } from 'ag-charts-community';
+import type {
+    AgChartOptions,
+    AgOrganizationSeriesOptionsNodeImagePosition,
+    AgStandaloneChartOptions,
+    TextAlign,
+} from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
@@ -22,6 +27,7 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
             job: 'Chief Executive Officer',
             location: 'London',
             tenure: 1,
+            avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
             parentId: null,
         },
         {
@@ -30,6 +36,7 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
             job: 'Chief Technology Officer',
             location: 'London',
             tenure: 2,
+            avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
             parentId: 'ceo',
         },
         {
@@ -38,6 +45,7 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
             job: 'Chief Financial Officer',
             location: 'London',
             tenure: 3,
+            avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
             parentId: 'ceo',
         },
         { id: 'dev', name: 'Dave Jones', job: 'Developer', location: 'New York', tenure: 2, parentId: 'cto' },
@@ -49,7 +57,11 @@ const SIMPLE_ORG_CHART: AgChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
-            node: { title: { key: 'name' }, subtitle: { key: 'job' }, labels: [{ key: 'location' }] },
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
         },
     ],
 };
@@ -194,6 +206,28 @@ interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
 
+function createTextImageExample(
+    textAlign: TextAlign,
+    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition
+): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                node: {
+                    image: { position: imagePosition, key: 'avatar' },
+                    title: { key: 'name', textAlign },
+                    subtitle: { key: 'job', textAlign },
+                    labels: [{ key: 'location', textAlign }],
+                },
+            },
+        ],
+    };
+}
+
 const EXAMPLES: Record<string, StandaloneTestCase> = {
     SIMPLE_ORG_CHART: {
         options: SIMPLE_ORG_CHART,
@@ -213,6 +247,18 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     FORMATTERS: {
         options: FORMATTERS,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_CENTER_IMAGE_TOP: {
+        options: createTextImageExample('center', 'top'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_RIGHT_IMAGE_RIGHT: {
+        options: createTextImageExample('right', 'right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_CENTER_IMAGE_RIGHT: {
+        options: createTextImageExample('center', 'right'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };
