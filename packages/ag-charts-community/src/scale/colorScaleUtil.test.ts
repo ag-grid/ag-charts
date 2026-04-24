@@ -479,4 +479,91 @@ describe('deriveNormalizedStops', () => {
         scale.range = [];
         expect(deriveNormalizedStops(scale)).toEqual([]);
     });
+
+    test('continuous: stops are normalised against displayDomain when set', () => {
+        const scale = new ColorScale();
+        scale.domain = [0, 50, 100];
+        scale.range = ['red', 'yellow', 'green'];
+        scale.displayDomain = [-100, 200];
+        scale.update();
+        // extent 300; stops at (0,50,100) → normalised (1/3, 1/2, 2/3)
+        const stops = deriveNormalizedStops(scale);
+        expect(stops[0]).toEqual({ stop: expect.closeTo(1 / 3, 5), color: 'red' });
+        expect(stops[1]).toEqual({ stop: expect.closeTo(0.5, 5), color: 'yellow' });
+        expect(stops[2]).toEqual({ stop: expect.closeTo(2 / 3, 5), color: 'green' });
+    });
+
+    test('discrete: boundaries outside displayDomain are clamped', () => {
+        const scale = new ColorScale();
+        scale.mode = 'discrete';
+        scale.domain = [-200, 0, 200];
+        scale.range = ['red', 'green'];
+        scale.displayDomain = [0, 100];
+        scale.update();
+        const stops = deriveNormalizedStops(scale);
+        // red bin [-200, 0] collapses to [0, 0]; green bin [0, 200] → [0, 1]
+        expect(stops).toEqual([
+            { stop: 0, color: 'red' },
+            { stop: 0, color: 'green' },
+            { stop: 1, color: 'green' },
+        ]);
+    });
+});
+
+describe('configureColorScale displayDomain', () => {
+    test('defaults displayDomain to dataDomain min/max', () => {
+        const scale = new ColorScale();
+        configureColorScale(
+            scale,
+            {
+                fills: [{ color: 'red' }, { color: 'green' }],
+                domain: undefined,
+                mode: 'continuous',
+            },
+            [-100, 200],
+            []
+        );
+        expect(scale.displayDomain).toEqual([-100, 200]);
+    });
+
+    test('uses explicit domain when supplied', () => {
+        const scale = new ColorScale();
+        configureColorScale(
+            scale,
+            {
+                fills: [{ color: 'red' }, { color: 'green' }],
+                domain: [0, 50],
+                mode: 'continuous',
+            },
+            [-100, 200],
+            []
+        );
+        expect(scale.displayDomain).toEqual([0, 50]);
+    });
+
+    test('fallback path sets displayDomain from dataDomain', () => {
+        const scale = new ColorScale();
+        configureColorScale(scale, { fills: [], domain: undefined, mode: 'continuous' }, [10, 90], ['blue', 'orange']);
+        expect(scale.displayDomain).toEqual([10, 90]);
+    });
+
+    test('fills with stops beyond data range keep displayDomain as data range', () => {
+        const scale = new ColorScale();
+        configureColorScale(
+            scale,
+            {
+                fills: [
+                    { color: 'red', stop: -200 },
+                    { color: 'green', stop: 200 },
+                ],
+                domain: undefined,
+                mode: 'continuous',
+            },
+            [0, 100],
+            []
+        );
+        expect(scale.displayDomain).toEqual([0, 100]);
+        // domain reflects the stop positions for interpolation
+        expect(scale.domain).toEqual([-200, 200]);
+    });
 });

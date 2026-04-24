@@ -173,5 +173,70 @@ describe('legendDatum', () => {
                 { position: 1, label: 'Positive' },
             ]);
         });
+
+        test('continuous: named labels outside displayDomain are dropped', () => {
+            const scale = continuousScale([-200, 0, 200], ['red', 'ivory', 'green']);
+            scale.displayDomain = [0, 100];
+            const fills = [
+                { color: 'red', stop: -200, name: 'Off-scale low' },
+                { color: 'ivory', stop: 0, name: 'Zero' },
+                { color: 'green', stop: 200, name: 'Off-scale high' },
+            ];
+            const datum = buildGradientLegendDatum(scale, fills, 's', true, series);
+            expect(datum.namedLabels).toEqual([{ position: 0, label: 'Zero' }]);
+        });
+    });
+
+    describe('buildGradientLegendDatum axisDomain', () => {
+        const series = [{ seriesId: 's', key: 'color' }];
+
+        test('uses displayDomain when set (stops span wider than data)', () => {
+            const scale = new ColorScale();
+            scale.mode = 'continuous';
+            scale.domain = [-200, 200];
+            scale.range = ['red', 'green'];
+            scale.displayDomain = [0, 100];
+            scale.update();
+            const datum = buildGradientLegendDatum(scale, [{ color: 'red' }, { color: 'green' }], 's', true, series);
+            expect(datum.axisDomain).toEqual([0, 100]);
+        });
+
+        test('uses displayDomain when user-supplied domain widens visible range', () => {
+            const scale = new ColorScale();
+            scale.mode = 'continuous';
+            scale.domain = [30, 75];
+            scale.range = ['red', 'green'];
+            scale.displayDomain = [-200, 200];
+            scale.update();
+            const datum = buildGradientLegendDatum(scale, [{ color: 'red' }, { color: 'green' }], 's', true, series);
+            expect(datum.axisDomain).toEqual([-200, 200]);
+        });
+
+        test('falls back to domain min/max when displayDomain is unset', () => {
+            const scale = new ColorScale();
+            scale.mode = 'continuous';
+            scale.domain = [10, 90];
+            scale.range = ['red', 'green'];
+            scale.update();
+            const datum = buildGradientLegendDatum(scale, [{ color: 'red' }, { color: 'green' }], 's', true, series);
+            expect(datum.axisDomain).toEqual([10, 90]);
+        });
+
+        test('continuous: clips gradient stops to [0, 1] when stops extend outside displayDomain', () => {
+            const scale = new ColorScale();
+            scale.mode = 'continuous';
+            scale.domain = [-200, 200];
+            scale.range = ['red', 'green'];
+            scale.displayDomain = [0, 100];
+            scale.update();
+            const datum = buildGradientLegendDatum(scale, [{ color: 'red' }, { color: 'green' }], 's', true, series);
+            expect(datum.colorStops[0].stop).toBe(0);
+            expect(datum.colorStops.at(-1)!.stop).toBe(1);
+            // every stop should be within [0, 1]
+            for (const stop of datum.colorStops) {
+                expect(stop.stop).toBeGreaterThanOrEqual(0);
+                expect(stop.stop).toBeLessThanOrEqual(1);
+            }
+        });
     });
 });

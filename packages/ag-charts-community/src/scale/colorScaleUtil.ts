@@ -20,10 +20,10 @@ export function configureColorScale(
     if (colorScaleProps.fills.length === 0 && fallbackRange.length === 0) return;
 
     const domainTuple: [number, number] = [dataDomain[0], dataDomain.at(-1)!];
+    const displayDomain: [number, number] = colorScaleProps.domain ?? domainTuple;
 
     if (colorScaleProps.fills.length > 0) {
-        const effectiveDomain: [number, number] = colorScaleProps.domain ?? domainTuple;
-        const { domain, range } = computeColorBins(colorScaleProps.fills, effectiveDomain, colorScaleProps.mode);
+        const { domain, range } = computeColorBins(colorScaleProps.fills, displayDomain, colorScaleProps.mode);
         colorScale.mode = colorScaleProps.mode;
         colorScale.domain = domain;
         colorScale.range = range;
@@ -32,5 +32,6 @@ export function configureColorScale(
         colorScale.domain = domainTuple;
         colorScale.range = fallbackRange;
     }
+    colorScale.displayDomain = displayDomain;
     colorScale.update();
 }

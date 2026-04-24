@@ -298,10 +298,13 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             const gradientRect = this.gradientRectSelection.at(i)!;
             const data = this.enabledData[i];
 
+            const [dMin, dMax] = data.axisDomain;
             if (
                 highlighted?.colorValue == null ||
                 highlighted.series?.isHighlightEnabled() === false ||
-                (highlightSeriesId != null && data?.seriesId !== highlightSeriesId)
+                (highlightSeriesId != null && data.seriesId !== highlightSeriesId) ||
+                highlighted.colorValue < dMin ||
+                highlighted.colorValue > dMax
             ) {
                 arrow.visible = false;
                 continue;
