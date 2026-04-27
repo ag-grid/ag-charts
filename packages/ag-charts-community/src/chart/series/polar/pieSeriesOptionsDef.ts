@@ -34,8 +34,8 @@ import type {
     AgPieSeriesOptions,
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
-    AgSelectionStyleOptions,
     AgSelectionOptions,
+    AgSelectionStyleOptions,
 } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
