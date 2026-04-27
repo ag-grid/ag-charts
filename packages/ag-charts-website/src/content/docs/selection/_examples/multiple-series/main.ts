@@ -23,6 +23,7 @@ import {
     AgLineSeriesOptions,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
+    AgSelectionItemIds,
     AgSeriesMarkerStyle,
     SelectionState,
     StrokeOptions,
@@ -46,6 +47,8 @@ ModuleRegistry.registerModules([
     SelectionModule,
     ZoomModule,
 ]);
+
+let savedSelection: AgSelectionItemIds[] = [];
 
 const fullData = getData();
 
@@ -338,6 +341,22 @@ export function onChartTypeChange(value: unknown) {
     }
 
     chart.update(options);
+}
+
+export function onSave() {
+    savedSelection = Array.from(chart.getSelection());
+}
+
+export function onGet() {
+    console.log(Array.from(chart.getSelection()));
+}
+
+export function onSet() {
+    chart.setSelection(savedSelection);
+}
+
+export function onClear() {
+    chart.clearSelection();
 }
 
 export function onSelectionChange(target: HTMLInputElement) {
