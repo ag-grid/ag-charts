@@ -117,9 +117,6 @@ export function clearAllSelections(allSeries: Series[]): void {
     for (const data of dataSets) {
         data.selections.clear();
     }
-    for (const series of allSeries) {
-        series.events.emit('data-selection-change', null);
-    }
 }
 
 export function isUnknownIterable(value: unknown): value is Iterable<unknown> {
