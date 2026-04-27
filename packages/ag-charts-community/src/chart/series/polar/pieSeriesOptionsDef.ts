@@ -35,11 +35,11 @@ import type {
     AgPieSeriesStyle,
     AgPieSeriesThemeableOptions,
     AgSelectionStyleOptions,
-    AgSeriesSelectionOptions,
+    AgSelectionOptions,
 } from 'ag-charts-types';
 
 const highlight = multiSeriesHighlightOptionsDef(shapeHighlightOptionsDef, shapeHighlightOptionsDef);
-const selection: OptionsDefs<AgSeriesSelectionOptions<AgSelectionStyleOptions>> = {
+const selection: OptionsDefs<AgSelectionOptions<AgSelectionStyleOptions>> = {
     ...selectionOptionsDef(shapeHighlightOptionsDef),
 };
 // @ts-expect-error undocumented option

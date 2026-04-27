@@ -1,6 +1,6 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
-import type { AgSeriesSelectionOptions } from '../../chart/selectionOptions';
+import type { AgSelectionOptions } from '../../chart/selectionOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -27,7 +27,7 @@ export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Configuration for data selection. */
-    selection?: AgSeriesSelectionOptions<AgSelectionStyleOptions>;
+    selection?: AgSelectionOptions<AgSelectionStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
 }
