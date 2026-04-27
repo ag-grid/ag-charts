@@ -685,6 +685,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.node.itemStyler != null ||
             this.properties.link.itemStyler != null ||
             this.properties.label.itemStyler != null

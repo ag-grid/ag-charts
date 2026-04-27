@@ -1351,6 +1351,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.styler != null ||
             this.properties.itemStyler != null ||
             this.properties.label.itemStyler != null
