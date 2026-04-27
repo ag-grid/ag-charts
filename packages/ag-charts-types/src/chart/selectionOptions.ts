@@ -37,7 +37,7 @@ export interface AgChartSelectionOptions {
      *
      * Default: `'any'`
      */
-    containment?: AgSelectionClickMode;
+    containment?: AgSelectionContainment;
 }
 
 export interface AgSelectionOptions<ItemSelectionStyleOptions> {
@@ -48,7 +48,7 @@ export interface AgSelectionOptions<ItemSelectionStyleOptions> {
      *
      * Default: `chart.selection.containment`
      */
-    containment?: AgSelectionClickMode;
+    containment?: AgSelectionContainment;
     /** Styling options for selected items.  */
     selectedItem?: ItemSelectionStyleOptions;
     /** Styling Options for unselected items. */
