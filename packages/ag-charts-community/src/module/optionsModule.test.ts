@@ -535,6 +535,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -606,6 +610,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -677,6 +685,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -748,6 +760,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -822,6 +838,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
@@ -882,6 +902,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -950,6 +974,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1021,6 +1049,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1092,6 +1124,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1163,6 +1199,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 4,
@@ -1237,6 +1277,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
@@ -1297,6 +1341,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,
@@ -1365,6 +1413,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1436,6 +1488,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1507,6 +1563,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1578,6 +1638,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "seriesGrouping": {
       "groupCount": 1,
@@ -1652,6 +1716,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#e1cc00",
     "strokeOpacity": 1,
@@ -1712,6 +1780,10 @@ describe('ChartOptions', () => {
     },
     "selection": {
       "enabled": false,
+      "selectedItem": {
+        "stroke": "black",
+        "strokeWidth": 2,
+      },
     },
     "stroke": "#9669cb",
     "strokeOpacity": 1,

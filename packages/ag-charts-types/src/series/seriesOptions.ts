@@ -28,6 +28,8 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
 }
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
+export interface AgSelectionStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
+
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */
     opacity?: Opacity;
@@ -41,7 +43,7 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault>
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Configuration for data selection. */
-    selection?: AgSeriesSelectionOptions;
+    selection?: AgSeriesSelectionOptions<AgSelectionStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */

@@ -515,6 +515,7 @@ export class MapLineSeries
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
 
         return {
             seriesId,
@@ -524,7 +525,7 @@ export class MapLineSeries
             colorKey,
             datum,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
         } satisfies CallbackParamRules<AgMapLineSeriesItemStylerParams>;
     }

@@ -1363,6 +1363,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -1373,7 +1374,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yValue,
             stackGroup,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;

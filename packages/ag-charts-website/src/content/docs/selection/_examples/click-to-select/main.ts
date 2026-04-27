@@ -61,7 +61,7 @@ const options: AgCartesianChartOptions<DataType> = {
             marker: {
                 itemStyler: (params) => {
                     if (params.selectionState === 'selected') {
-                        return { stroke: 'black', strokeWidth: 2, size: 15 };
+                        return { size: 15 };
                     }
                 },
             },

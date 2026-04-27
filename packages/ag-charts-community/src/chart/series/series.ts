@@ -46,7 +46,7 @@ import type {
     FormatterParams,
     FormatterPropertyType,
     HighlightState as PublicHighlightState,
-    SelectionState,
+    SelectionState as PublicSelectionState,
     SeriesType,
     TextOrSegments,
 } from 'ag-charts-types';
@@ -77,7 +77,8 @@ import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, type SeriesProperties, toHighlightString } from './seriesProperties';
+import { HighlightState, SelectionState, toHighlightString, toSelectionString } from './seriesProperties';
+import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
@@ -783,6 +784,15 @@ export abstract class Series<
         return toHighlightString(this.getHighlightState(datum, isHighlight, datumIndex, legendItemValues));
     }
 
+    public getSelectionStateString(
+        datumIndex: TDatumIndex | undefined,
+        selectionState?: SelectionState
+    ): PublicSelectionState | undefined {
+        selectionState ??= this.getDataSelectionState(datumIndex);
+        if (selectionState === undefined) return undefined;
+        return toSelectionString(selectionState);
+    }
+
     protected onChangeHighlight(event: HighlightChangeEvent) {
         const previousHighlightedDatum = event.previousHighlight;
         const currentHighlightedDatum = event.currentHighlight;
@@ -841,6 +851,11 @@ export abstract class Series<
         const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
         highlightState ??= this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
         return this.properties.highlight.getStyle(highlightState);
+    }
+
+    public getSelectionStyle(selectionState?: SelectionState) {
+        if (selectionState === undefined) return undefined;
+        return this.properties.selection.getStyle(selectionState);
     }
 
     protected resolveMarkerDrawingModeForState(drawingMode: AgDrawingMode, style?: AgSeriesMarkerStyle): AgDrawingMode {
@@ -1258,6 +1273,7 @@ export abstract class Series<
             resolveMarkerSubPath = ['marker'],
             resolveStyler = false,
         } = opts ?? {};
+        const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
         const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
 
         if (resolveStyler) {
@@ -1271,13 +1287,23 @@ export abstract class Series<
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const baseStyle = mergeDefaults(highlightStyle, defaultOverrideStyle, marker.getStyle(), inheritedStyle);
+        const selectionStyle: AgSeriesMarkerStyle | undefined = this.properties.selection.enabled
+            ? this.getSelectionStyle(selectionState)
+            : undefined;
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            defaultOverrideStyle,
+            marker.getStyle(),
+            inheritedStyle
+        );
 
         let markerStyle = baseStyle;
 
         if (itemStyler && params) {
             const highlight = this.ctx.highlightManager?.getActiveHighlight();
             const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
+            const selectionStateString = this.getSelectionStateString(datumIndex, selectionState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1286,7 +1312,7 @@ export abstract class Series<
                 fill,
                 ...params,
                 highlightState: highlightStateString,
-                selectionState: this.getDataSelectionState(datumIndex),
+                selectionState: selectionStateString,
                 datum,
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);

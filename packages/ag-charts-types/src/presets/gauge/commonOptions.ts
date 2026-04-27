@@ -16,6 +16,7 @@ import type {
     AgBaseSeriesThemeableOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
+    AgSelectionStyleOptions,
 } from '../../series/seriesOptions';
 
 export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
@@ -26,7 +27,7 @@ export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Configuration for data selection. */
-    selection?: AgSeriesSelectionOptions;
+    selection?: AgSeriesSelectionOptions<AgSelectionStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
 }

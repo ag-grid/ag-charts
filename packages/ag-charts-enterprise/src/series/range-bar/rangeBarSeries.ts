@@ -1074,6 +1074,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -1083,7 +1084,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey,
             yLowKey,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgRangeBarSeriesItemStylerParams>;

@@ -80,6 +80,7 @@ import {
     padding,
     selectionOptionsDef,
     shapeHighlightOptionsDef,
+    shapeSelectionOptionsDef,
     strokeOptionsDef,
     textWrap,
 } from './optionsDefaults';
@@ -673,7 +674,7 @@ export const commonSeriesThemeableOptionsDefs: OptionsDefs<AgBaseSeriesThemeable
         seriesNodeDoubleClick: callback,
     },
     highlight: highlightOptionsDef(shapeHighlightOptionsDef),
-    selection: selectionOptionsDef(),
+    selection: selectionOptionsDef(shapeSelectionOptionsDef),
 };
 
 // @ts-expect-error undocumented option
