@@ -78,13 +78,16 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
     dataIdKey?: DatumKey<TDatum>;
 }
 
-export interface AgSelectionItem<TDatum> {
+export interface AgSelectionItemIds {
     /** Series ID, as specified in `series.id` (or generated if not specified) */
     seriesId: string;
+    /** Legend item id - usually yKey value for cartesian series. */
+    itemId: string | number;
+}
+
+export interface AgSelectionItem<TDatum> extends AgSelectionItemIds {
     /** Datum from the chart or series data array. */
     datum: TDatum;
-    /** Legend item id - usually yKey value for cartesian series. */
-    itemId?: string | number;
 }
 
 export type AgSelectionChangeEventSource = 'user-interaction' | 'api-call';

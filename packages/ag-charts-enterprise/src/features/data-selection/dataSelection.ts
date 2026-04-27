@@ -1,4 +1,4 @@
-import type { _Widget } from 'ag-charts-community';
+import type { AgSelectionItem, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -30,7 +30,7 @@ import {
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
-export class DataSelection extends AbstractModuleInstance {
+export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
 
@@ -58,6 +58,19 @@ export class DataSelection extends AbstractModuleInstance {
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
             ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
         );
+    }
+
+    getSelection(): Iterable<AgSelectionItem<unknown>> {
+        console.log(`stub:getSelection()`);
+        return [{ seriesId: 'stub', itemId: 'stub', datum: {} }];
+    }
+
+    setSelection(items: unknown): void {
+        console.log(`stub:setSelection`, items);
+    }
+
+    clearSelection(): void {
+        console.log(`stub:clearSelection`);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
