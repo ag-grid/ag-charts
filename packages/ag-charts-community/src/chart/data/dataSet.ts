@@ -178,7 +178,7 @@ export class DataSet<T = unknown> {
 
     getIndexFromItemId(itemId: string | number): number | undefined {
         if (typeof itemId === 'number') {
-            if (Number.isNaN(itemId) || itemId < 0 || itemId >= this.data.length) {
+            if (!Number.isInteger(itemId) || itemId < 0 || itemId >= this.data.length) {
                 return undefined;
             } else {
                 return itemId;

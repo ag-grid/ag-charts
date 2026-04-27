@@ -1,4 +1,4 @@
-import type { AgSelectionItem, _Widget } from 'ag-charts-community';
+import type { AgSelectionChangeEventSource, AgSelectionItem, _Widget } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
     AbstractModuleInstance,
@@ -80,12 +80,16 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        clearAllSelections(this.ctx.chartService.series);
+        const { chartService } = this.ctx;
+
+        clearAllSelections(chartService.series);
 
         if (!isUnknownIterable(items)) {
             Logger.warn('Selection items is not iterable');
             return;
         }
+
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
 
         for (const item of items) {
             if (!isAgSelectionItem(item)) {
@@ -114,6 +118,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const selection = data.enableSelection(item.seriesId);
             selection.select(datumIndex);
         }
+
+        this.dispatchInternalSelectionChange(chartService.series);
+        this.dispatchExternalSelectionChange('api-call', bufferMap);
     }
 
     clearSelection(): void {
@@ -159,7 +166,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
             this.dispatchInternalSelectionChange([series]);
         }
-        this.dispatchExternalSelectionChange(bufferMap);
+        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
         this.redraw(ChartUpdateType.FULL);
     }
 
@@ -235,7 +242,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
 
         this.dispatchInternalSelectionChange(changedSeries);
-        this.dispatchExternalSelectionChange(bufferMap);
+        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
         this.endDrag();
     }
 
@@ -261,7 +268,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
     }
 
-    private dispatchExternalSelectionChange(bufferMap: BufferMap | undefined): void {
+    private dispatchExternalSelectionChange(
+        source: AgSelectionChangeEventSource,
+        bufferMap: BufferMap | undefined
+    ): void {
         if (bufferMap === undefined) return;
 
         const { chartService } = this.ctx;
@@ -279,7 +289,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.ctx.chartService.callListener({
             type: 'selectionChange',
-            source: 'user-interaction',
+            source,
             preventDefault,
             added,
             removed,
