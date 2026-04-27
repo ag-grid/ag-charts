@@ -2014,6 +2014,8 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
             for (const axis of chart.axes) {
+                axis.options = axes[axis.id];
+
                 const previousOpts = oldOpts.axes?.[axis.id] ?? {};
                 const axisDiff = jsonDiff(previousOpts, axes[axis.id]) as any;
 
@@ -2097,6 +2099,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const [id, axisOptions] of entries(options)) {
             const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(moduleContext) as any;
             axis.id = id as AxisID;
+            axis.options = axisOptions;
             this.applyAxisModules(axis, axisOptions);
             jsonApply(axis, axisOptions, { skip });
 

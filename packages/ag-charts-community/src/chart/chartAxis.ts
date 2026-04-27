@@ -12,6 +12,7 @@ import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
+    AgBaseAxisOptions,
     AgCartesianAxisPosition,
     Padding as AgPadding,
     AgTimeIntervalUnit,
@@ -146,6 +147,7 @@ export interface ChartAxis {
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;
     nice: boolean;
+    options?: AgBaseAxisOptions;
     position?: AgCartesianAxisPosition;
     range: [number, number];
     requiredRange?: number;

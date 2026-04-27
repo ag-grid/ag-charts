@@ -28,6 +28,7 @@ import {
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
+    AgBaseAxisOptions,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
@@ -216,6 +217,8 @@ export abstract class Axis<
 
     @Property
     readonly interval = new AxisInterval();
+
+    options: AgBaseAxisOptions | undefined = undefined;
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
