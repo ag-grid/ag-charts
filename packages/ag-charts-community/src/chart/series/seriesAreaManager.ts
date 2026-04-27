@@ -35,7 +35,7 @@ import type {
 } from '../../widget/widgetEvents';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
-import type { ChartType } from '../factory/expectedModules';
+import type { ChartType } from '../chartType';
 import { InteractionState } from '../interaction/interactionManager';
 import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import { TooltipManager } from '../interaction/tooltipManager';
