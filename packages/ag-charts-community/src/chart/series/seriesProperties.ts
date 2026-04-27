@@ -128,28 +128,7 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
 
-export class SeriesItemHighlightStyle extends BaseProperties {
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-
-    @Property
-    lineDash?: number[];
-
-    @Property
-    lineDashOffset?: number;
-}
+export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
 export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property

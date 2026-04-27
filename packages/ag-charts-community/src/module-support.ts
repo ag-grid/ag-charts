@@ -175,13 +175,13 @@ export type {
     UnknownSeries,
 } from './chart/series/series';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
+export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
 export {
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
     HighlightProperties,
     HighlightState,
-    SeriesItemHighlightStyle,
     SeriesProperties,
     toHighlightString,
 } from './chart/series/seriesProperties';
