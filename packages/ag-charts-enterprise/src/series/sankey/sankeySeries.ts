@@ -804,7 +804,12 @@ export class SankeySeries extends FlowProportionSeries<
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(false, fills, strokes, fromNodeDatumIndex));
+        const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            properties.getStyle(false, fills, strokes, fromNodeDatumIndex)
+        );
         const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
             baseStyle,
@@ -930,8 +935,10 @@ export class SankeySeries extends FlowProportionSeries<
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             highlightStyle,
+            selectionStyle,
             properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
         );
         const hasLinkFill = properties.link.fill != null;

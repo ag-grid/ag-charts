@@ -555,7 +555,8 @@ export class MapShapeSeries
         }
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        let style = mergeDefaults(highlightStyle, baseStyle);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        let style = mergeDefaults(highlightStyle, selectionStyle, baseStyle);
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(

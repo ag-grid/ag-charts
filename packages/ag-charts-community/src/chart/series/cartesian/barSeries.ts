@@ -1427,6 +1427,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { itemStyler, simpleItemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
 
         // Fast path: simpleItemStyler bypasses options graph resolution
         if (simpleItemStyler && processedData != null && datumIndex != null) {
@@ -1435,11 +1436,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return mergeDefaults(
                 overrides,
                 highlightStyle,
+                selectionStyle,
                 this.getStyle(false, highlightState)
             ) as Required<AgBarSeriesStyle>;
         }
 
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
+        let style = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            this.getStyle(datumIndex === undefined, highlightState)
+        );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];

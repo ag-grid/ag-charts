@@ -611,6 +611,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         let fill: string;
         if (this.isColorScaleValid() && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
@@ -619,7 +620,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         } else {
             fill = 'transparent';
         }
-        const style = mergeDefaults(highlightStyle, {
+        const style = mergeDefaults(highlightStyle, selectionStyle, {
             fill,
             fillOpacity: 1,
             stroke,

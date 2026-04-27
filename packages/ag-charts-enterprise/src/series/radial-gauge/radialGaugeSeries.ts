@@ -1055,8 +1055,9 @@ export class RadialGaugeSeries
 
     private getTargetStyle(isHighlight: boolean, { datumIndex, style }: RadialGaugeTargetDatum) {
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
 
-        return mergeDefaults(highlightStyle, {
+        return mergeDefaults(highlightStyle, selectionStyle, {
             ...style,
             opacity: 1,
         });
