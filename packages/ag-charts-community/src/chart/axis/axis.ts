@@ -5,6 +5,7 @@ import type {
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedBaseAxisOptions,
     Point,
     RequireOptional,
     Scale,
@@ -28,7 +29,6 @@ import {
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
-    AgBaseAxisOptions,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
@@ -177,7 +177,8 @@ export abstract class Axis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
     TickLayoutMeta = any,
-> implements ChartAxis
+    TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions,
+> implements ChartAxis<TOptions>
 {
     static readonly defaultTickMinSpacing = 50;
 
@@ -218,7 +219,14 @@ export abstract class Axis<
     @Property
     readonly interval = new AxisInterval();
 
-    options: AgBaseAxisOptions | undefined = undefined;
+    options: TOptions | undefined = undefined;
+
+    /**
+     * Internal axis state derived from `position` (cartesian) or layout direction
+     * (gradient-legend). Not user-facing — absent from `ag-charts-types`. See I2.
+     */
+    mirrored: boolean = false;
+    parallel: boolean = false;
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;

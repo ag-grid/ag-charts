@@ -15,7 +15,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { ChartAxisLabel } from '../chartAxis';
 import { FormatManager } from '../formatter/formatManager';
 import { LabelBorder } from '../label';
 
@@ -83,10 +83,6 @@ export class SeriesLabelProperties extends BaseProperties implements ChartAxisLa
 
     /**
      * Custom label rotation in degrees.
-     * Labels are rendered perpendicular to the axis line by default.
-     * Or parallel to the axis line, if the {@link parallel} is set to `true`.
-     * The value of this config is used as the angular offset/deflection
-     * from the default rotation.
      */
     @Property
     rotation?: number;
@@ -97,41 +93,8 @@ export class SeriesLabelProperties extends BaseProperties implements ChartAxisLa
     @Property
     avoidCollisions: boolean = true;
 
-    /**
-     * By default, labels and ticks are positioned to the left of the axis line.
-     * `true` positions the labels to the right of the axis line.
-     * However, if the axis is rotated, it's easier to think in terms
-     * of this side or the opposite side, rather than left and right.
-     * We use the term `mirror` for conciseness, although it's not
-     * true mirroring - for example, when a label is rotated, so that
-     * it is inclined at the 45 degree angle, text flowing from north-west
-     * to south-east, ending at the tick to the left of the axis line,
-     * and then we set this config to `true`, the text will still be flowing
-     * from north-west to south-east, _starting_ at the tick to the right
-     * of the axis line.
-     */
-    @Property
-    mirrored: boolean = false;
-
-    /**
-     * The side of the axis line to position the labels on.
-     * -1 = left (default)
-     * 1 = right
-     */
-    getSideFlag(): ChartAxisLabelFlipFlag {
-        return this.mirrored ? 1 : -1;
-    }
-
     @Property
     padding?: Padding;
-
-    /**
-     * Labels are rendered perpendicular to the axis line by default.
-     * Setting this config to `true` makes labels render parallel to the axis line
-     * and centre aligns labels' text at the ticks.
-     */
-    @Property
-    parallel: boolean = false;
 
     @Property
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;

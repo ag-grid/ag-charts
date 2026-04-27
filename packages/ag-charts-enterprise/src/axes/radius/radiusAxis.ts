@@ -13,19 +13,12 @@ import {
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
+const { Group, TransformableGroup, Path, Line, Selection, generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } =
+    _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];
     labels: _ModuleSupport.LabelNodeDatum[];
-}
-
-class RadiusAxisLabel extends _ModuleSupport.SeriesLabelProperties {
-    @Property
-    autoRotate?: boolean;
-
-    @Property
-    autoRotateAngle: number = 335;
 }
 
 export abstract class RadiusAxis<
@@ -149,7 +142,7 @@ export abstract class RadiusAxis<
         timeInterval: undefined;
     } {
         const visibleRange: [number, number] = [0, 1];
-        const sideFlag = this.label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
@@ -345,10 +338,6 @@ export abstract class RadiusAxis<
         super.updateCrossLines();
     }
 
-    protected override createLabel() {
-        return new RadiusAxisLabel();
-    }
-
     // TODO - abstract out (shared with cartesian axis)
     private getTickLabelProps(
         datum: _ModuleSupport.TickDatum,
@@ -358,7 +347,7 @@ export abstract class RadiusAxis<
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const range = this.scale.range;
         const text = datum.tickLabel ?? '';
-        const sideFlag = label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
 

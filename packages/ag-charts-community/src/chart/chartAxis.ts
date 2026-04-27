@@ -5,6 +5,7 @@ import type {
     ChartUpdateType,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedBaseAxisOptions,
     Padding,
     Scale,
 } from 'ag-charts-core';
@@ -12,7 +13,6 @@ import type {
     AgAxisLabelFormatterParams,
     AgAxisLabelStylerParams,
     AgBaseAxisLabelStyleOptions,
-    AgBaseAxisOptions,
     AgCartesianAxisPosition,
     Padding as AgPadding,
     AgTimeIntervalUnit,
@@ -70,7 +70,7 @@ export interface ChartLayout {
     scrollbars?: ScrollbarLayoutMap;
 }
 
-export interface ChartAxis {
+export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions> {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
         primaryTickCount?: AxisPrimaryTickCount,
@@ -147,7 +147,9 @@ export interface ChartAxis {
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;
     nice: boolean;
-    options?: AgBaseAxisOptions;
+    options?: TOptions;
+    mirrored: boolean;
+    parallel: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
     requiredRange?: number;
@@ -166,7 +168,6 @@ export interface ChartAxis {
 
 export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
-    getSideFlag(): ChartAxisLabelFlipFlag;
     set(props: object): void;
     autoRotate?: boolean;
     autoRotateAngle?: number;
@@ -177,10 +178,8 @@ export interface ChartAxisLabel extends TextOptions {
     formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;
-    mirrored: boolean;
     spacing: number;
     padding?: AgPadding;
-    parallel: boolean;
     rotation?: number;
     truncate?: boolean;
     wrapping?: TextWrap;

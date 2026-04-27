@@ -484,12 +484,12 @@ export class CartesianChart extends Chart {
         const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
         for (const axis of this.axes) {
-            const { position, label } = axis;
+            const { position } = axis;
             if (axis.crossLines) {
                 for (const crossLine of axis.crossLines) {
                     if (crossLine instanceof CartesianCrossLine) {
                         crossLine.position = position ?? 'top';
-                        crossLine.label.parallel ??= label.parallel;
+                        crossLine.label.parallel ??= axis.parallel;
                     }
 
                     crossLine.calculatePadding?.(crossLinePadding);

@@ -1,4 +1,10 @@
-import type { ChartAnimationPhase, DynamicContext, Scale, ZoomMinMax } from 'ag-charts-core';
+import type {
+    ChartAnimationPhase,
+    DynamicContext,
+    NormalisedBaseCartesianAxisOptions,
+    Scale,
+    ZoomMinMax,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
     Property,
@@ -32,6 +38,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type {
     AxisFillDatum,
     AxisGroupDatumTranslation,
@@ -66,11 +73,11 @@ interface GeneratedTicks {
 
 export type GridLineStyleTickDatum = Pick<TickDatum, 'index' | 'tickId' | 'translation'>;
 
-export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
-    S,
-    D,
-    GeneratedTicks
-> {
+export abstract class CartesianAxis<
+    S extends Scale<D, number, any> = Scale<any, number, any>,
+    D = any,
+    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedBaseCartesianAxisOptions,
+> extends Axis<S, D, GeneratedTicks, TOptions> {
     static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
     }
@@ -192,20 +199,20 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     protected updateDirection() {
         switch (this.position) {
             case 'top':
-                this.label.mirrored = true;
-                this.label.parallel = true;
+                this.mirrored = true;
+                this.parallel = true;
                 break;
             case 'right':
-                this.label.mirrored = true;
-                this.label.parallel = false;
+                this.mirrored = true;
+                this.parallel = false;
                 break;
             case 'bottom':
-                this.label.mirrored = false;
-                this.label.parallel = true;
+                this.mirrored = false;
+                this.parallel = true;
                 break;
             case 'left':
-                this.label.mirrored = false;
-                this.label.parallel = false;
+                this.mirrored = false;
+                this.parallel = false;
                 break;
         }
 
@@ -242,7 +249,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         bbox: BBox;
         layout: GeneratedTicks;
     } {
-        const sideFlag = this.label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const labelX =
             sideFlag * (this.getTickSize() + this.getTickSpacing() + this.label.spacing + this.seriesAreaPadding);
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
@@ -282,6 +289,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const tickGenerationResult = generateTicks({
             label,
+            parallel: this.parallel,
             scale,
             interval,
             primaryLabel,
@@ -786,7 +794,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
-        const sideFlag = this.label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
         let labelOffset =
             sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -

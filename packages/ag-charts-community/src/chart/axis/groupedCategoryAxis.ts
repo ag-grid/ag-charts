@@ -34,6 +34,7 @@ import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
 import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
+import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
@@ -225,7 +226,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         }
 
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
-        const sideFlag = horizontal ? -label.getSideFlag() : label.getSideFlag();
+        const labelSideFlag = getAxisLabelSideFlag(this.mirrored);
+        const sideFlag = horizontal ? -labelSideFlag : labelSideFlag;
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
@@ -284,7 +286,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
             tempText.fill = labelStyles.color;
             tempText.text = text;
             tempText.textAlign = 'center';
-            tempText.textBaseline = label.parallel ? 'top' : 'bottom';
+            tempText.textBaseline = this.parallel ? 'top' : 'bottom';
             tempText.setFont(labelStyles);
             tempText.setBoxing(labelStyles);
 
@@ -355,7 +357,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                     depthPadding * sideFlag +
                     angularPadding(
                         (optionsMap[depth].spacing * sideFlag + w) / 2,
-                        label.mirrored ? w : 0,
+                        this.mirrored ? w : 0,
                         labelRotation
                     ) -
                     w / 2;

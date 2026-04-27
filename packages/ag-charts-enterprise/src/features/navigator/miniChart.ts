@@ -294,7 +294,7 @@ export class MiniChart extends AbstractModuleInstance {
                 for (const crossLine of axis.crossLines) {
                     if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
                         crossLine.position = axis.position ?? 'top';
-                        crossLine.label.parallel ??= axis.label?.parallel;
+                        crossLine.label.parallel ??= axis.parallel;
                     }
                 }
             }

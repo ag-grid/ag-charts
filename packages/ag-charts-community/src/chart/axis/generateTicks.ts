@@ -59,10 +59,10 @@ const sunday = new Date(1970, 0, 4);
 export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>(
     options: GenerateTicksOptions<TScale, TDatum>
 ) {
-    const { label, domain, axisRotation, labelOffset, sideFlag } = options;
+    const { label, parallel = false, domain, axisRotation, labelOffset, sideFlag } = options;
     const { defaultRotation, configuredRotation, parallelFlipFlag, regularFlipFlag } = calculateLabelRotation(
         label.rotation,
-        label.parallel,
+        parallel,
         axisRotation
     );
 
@@ -107,8 +107,8 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
     }
 
-    const textAlign = getTextAlign(label.parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-    const textBaseline = getTextBaseline(label.parallel, configuredRotation, sideFlag, parallelFlipFlag);
+    const textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
+    const textBaseline = getTextBaseline(parallel, configuredRotation, sideFlag, parallelFlipFlag);
     const rotation = configuredRotation + autoRotation;
 
     return { tickData, textAlign, textBaseline, rotation };

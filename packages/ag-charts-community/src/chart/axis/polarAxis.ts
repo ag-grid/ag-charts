@@ -1,10 +1,11 @@
-import type { Scale } from 'ag-charts-core';
+import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
 import { ChartAxisDirection, Property } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
 import type { PolarCrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
+import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { resetAxisLabelSelectionFn } from './axisUtil';
 
@@ -21,7 +22,8 @@ export interface PolarAxisPathPoint {
 export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
-> extends Axis<S, D> {
+    TOptions extends NormalisedBasePolarAxisOptions = NormalisedBasePolarAxisOptions,
+> extends Axis<S, D, any, TOptions> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
@@ -43,7 +45,7 @@ export abstract class PolarAxis<
     }
 
     layoutCrossLines() {
-        const sideFlag = this.label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 

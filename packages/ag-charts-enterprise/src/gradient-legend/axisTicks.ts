@@ -47,6 +47,10 @@ export class AxisTicks {
     translationX: number = 0;
     translationY: number = 0;
 
+    /** Internal layout state derived from `placement`. Not user-facing — see I2. */
+    mirrored: boolean = false;
+    parallel: boolean = false;
+
     /** Bound series for formatter context — scoped to a single gradient legend item. */
     boundSeries: Array<{ seriesId: string; key: string; name?: string }> = [];
 
@@ -87,16 +91,16 @@ export class AxisTicks {
             case 'top-left':
                 textBaseline = 'bottom';
                 textAlign = 'center';
-                label.mirrored = false;
-                label.parallel = true;
+                this.mirrored = false;
+                this.parallel = true;
                 break;
             case 'bottom':
             case 'bottom-right':
             case 'bottom-left':
                 textBaseline = 'top';
                 textAlign = 'center';
-                label.mirrored = false;
-                label.parallel = true;
+                this.mirrored = false;
+                this.parallel = true;
                 break;
             case 'right':
             case 'right-top':
@@ -106,8 +110,8 @@ export class AxisTicks {
             case 'left-bottom':
                 textBaseline = 'middle';
                 textAlign = 'left';
-                label.mirrored = true;
-                label.parallel = false;
+                this.mirrored = true;
+                this.parallel = false;
                 break;
             default:
                 unreachable(placement);

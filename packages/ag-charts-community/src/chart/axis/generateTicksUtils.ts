@@ -52,6 +52,8 @@ export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
     label: ChartAxisLabel;
+    /** Whether labels render parallel to the axis line. Internal axis state — see I2. */
+    parallel?: boolean;
     scale: TScale;
     domain: TDatum[];
     range: [number, number];
