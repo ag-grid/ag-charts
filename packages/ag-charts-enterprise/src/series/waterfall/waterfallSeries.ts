@@ -4,6 +4,7 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
+    AgWaterfallSeriesTooltipRendererParams,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -966,8 +967,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
+        let effectiveTooltip = tooltip;
+        const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
+        if (itemTooltipRenderer != null) {
+            effectiveTooltip = _ModuleSupport.makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+            effectiveTooltip.renderer = itemTooltipRenderer;
+        }
+
         return this.formatTooltipWithContext(
-            tooltip,
+            effectiveTooltip,
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(seriesItemType),

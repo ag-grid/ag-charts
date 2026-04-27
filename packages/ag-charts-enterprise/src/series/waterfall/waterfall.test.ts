@@ -13,6 +13,7 @@ import {
     deproxy,
     expectWarningsCalls,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     spyOnAnimationManager,
@@ -874,6 +875,103 @@ describe('WaterfallSeries', () => {
                     expect(content.data?.[0].missing).not.toBe(true);
                 }
             }
+        });
+    });
+
+    describe('AG-17059: item-level tooltip.renderer', () => {
+        const TOTALS_OPTIONS: AgCartesianChartOptions = {
+            data: [
+                { year: '2020', spending: 10 },
+                { year: '2021', spending: -20 },
+                { year: '2022', spending: 30 },
+                { year: '2023', spending: 40 },
+            ],
+            series: [
+                {
+                    type: 'waterfall',
+                    xKey: 'year',
+                    yKey: 'spending',
+                    totals: [{ totalType: 'subtotal', index: 1, axisLabel: 'Subtotal' }],
+                },
+            ],
+        };
+
+        async function hoverDatum(datumIndex: number): Promise<string> {
+            const series = chart.series[0] as WaterfallSeries;
+            const nodeData = series['contextNodeData']?.nodeData;
+            const datum = nodeData?.[datumIndex];
+            expect(datum).toBeDefined();
+            const cx = datum!.x + datum!.width / 2;
+            const cy = datum!.y + datum!.height / 2;
+            await hoverAction(cx, cy)(chart);
+            await waitForChartStability(chart);
+            const el = chart.ctx.agDocument.body.getElementsByClassName('ag-charts-tooltip')[0] as
+                | HTMLElement
+                | undefined;
+            const html = el?.innerHTML ?? '';
+            expect(html).not.toBe('');
+            return html;
+        }
+
+        it('invokes item.positive.tooltip.renderer for positive datums', async () => {
+            const options: AgCartesianChartOptions = {
+                ...TOTALS_OPTIONS,
+                series: [
+                    {
+                        ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                        item: { positive: { tooltip: { renderer: () => 'POSITIVE-ITEM' } } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(await hoverDatum(0)).toContain('POSITIVE-ITEM');
+            expect(await hoverDatum(1)).not.toContain('POSITIVE-ITEM');
+        });
+
+        it('item-level renderer overrides series-level renderer when both are set', async () => {
+            const options: AgCartesianChartOptions = {
+                ...TOTALS_OPTIONS,
+                series: [
+                    {
+                        ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                        tooltip: { renderer: () => 'SERIES-LEVEL' },
+                        item: { positive: { tooltip: { renderer: () => 'ITEM-LEVEL' } } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const positiveHtml = await hoverDatum(0);
+            expect(positiveHtml).toContain('ITEM-LEVEL');
+            expect(positiveHtml).not.toContain('SERIES-LEVEL');
+
+            expect(await hoverDatum(1)).toContain('SERIES-LEVEL');
+        });
+
+        it('subtotal datums use item.total.tooltip.renderer', async () => {
+            const options: AgCartesianChartOptions = {
+                ...TOTALS_OPTIONS,
+                series: [
+                    {
+                        ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                        item: { total: { tooltip: { renderer: () => 'TOTAL-ITEM' } } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expect(await hoverDatum(2)).toContain('TOTAL-ITEM');
+            expect(await hoverDatum(0)).not.toContain('TOTAL-ITEM');
         });
     });
 });
