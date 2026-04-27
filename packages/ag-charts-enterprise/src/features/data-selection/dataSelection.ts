@@ -82,14 +82,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     setSelection(items: unknown): void {
         const { chartService } = this.ctx;
 
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
         clearAllSelections(chartService.series);
 
         if (!isUnknownIterable(items)) {
             Logger.warn('Selection items is not iterable');
             return;
         }
-
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
 
         for (const item of items) {
             if (!isAgSelectionItem(item)) {
@@ -121,10 +120,18 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.dispatchInternalSelectionChange(chartService.series);
         this.dispatchExternalSelectionChange('api-call', bufferMap);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     clearSelection(): void {
-        clearAllSelections(this.ctx.chartService.series);
+        const { chartService } = this.ctx;
+
+        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
+        clearAllSelections(chartService.series);
+
+        this.dispatchInternalSelectionChange(chartService.series);
+        this.dispatchExternalSelectionChange('api-call', bufferMap);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
