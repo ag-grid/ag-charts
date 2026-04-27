@@ -41,6 +41,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         return this.ctx.chartState.getValue('options', 'selection');
     }
 
+    private supportsSelection(): boolean {
+        return this.ctx.chartService.getChartType() !== 'standalone';
+    }
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -64,6 +68,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
+        if (!this.supportsSelection()) return [];
+
         return function* getSelectionIterator(this: DataSelection) {
             for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
                 for (const [seriesId, selection] of dataSet.selections) {
@@ -80,6 +86,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
+        if (!this.supportsSelection()) return;
+
         const { chartService } = this.ctx;
 
         const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
@@ -124,6 +132,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     clearSelection(): void {
+        if (!this.supportsSelection()) return;
+
         const { chartService } = this.ctx;
 
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
@@ -135,6 +145,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
+        if (!this.supportsSelection()) return;
+
         const { enabled, enableClick, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
@@ -178,6 +190,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
+        if (!this.supportsSelection()) return;
+
         const { enabled, enableDrag } = this.opts;
         if (!enabled || !enableDrag) return;
 
@@ -190,6 +204,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
+        if (!this.supportsSelection()) return;
+
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
 
@@ -209,6 +225,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
+        if (!this.supportsSelection()) return;
+
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
 
