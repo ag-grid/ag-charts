@@ -101,3 +101,18 @@ export function setSelected(series: Series, data: DataSet, datumIndex: number): 
     const selections = data.enableSelection(series.id);
     selections.select(datumIndex);
 }
+
+export function clearAllSelections(allSeries: Series[]): void {
+    const dataSets: Set<_ModuleSupport.DataSet<unknown>> = new Set();
+    for (const series of allSeries) {
+        if (series.data) {
+            dataSets.add(series.data);
+        }
+    }
+    for (const data of dataSets) {
+        data.selections.clear();
+    }
+    for (const series of allSeries) {
+        series.events.emit('data-selection-change', null);
+    }
+}
