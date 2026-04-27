@@ -536,7 +536,11 @@ export abstract class Series<
         };
     }
 
-    readonly events = new EventEmitter<{ 'data-update': SeriesDataEvent; 'data-processed': SeriesDataEvent }>();
+    readonly events = new EventEmitter<{
+        'data-update': SeriesDataEvent;
+        'data-processed': SeriesDataEvent;
+        'data-selection-change': null;
+    }>();
 
     override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
     override addEventListener(type: 'seriesNodeClick', listener: (e: SeriesNodeEvent<any>) => void): void;

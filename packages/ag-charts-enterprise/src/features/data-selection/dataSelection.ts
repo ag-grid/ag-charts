@@ -27,6 +27,8 @@ import {
     toggleSelection,
 } from './dataSelectionUtil';
 
+type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
+
 export class DataSelection extends AbstractModuleInstance {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
@@ -67,6 +69,7 @@ export class DataSelection extends AbstractModuleInstance {
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         if (clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean)) {
             this.clearAllSelections();
+            this.dispatchInternalSelectionChange(this.ctx.chartService.series);
         } else {
             const { data } = clickedNode.series;
             if (data === undefined) return;
@@ -84,9 +87,10 @@ export class DataSelection extends AbstractModuleInstance {
                 this.clearAllSelections();
                 setSelected(series, data, datumIndex);
             }
+            this.dispatchInternalSelectionChange([series]);
         }
+        this.dispatchExternalSelectionChange(bufferMap);
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
-        this.dispatchSelectionChange(bufferMap);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -136,6 +140,7 @@ export class DataSelection extends AbstractModuleInstance {
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
+        const changedSeries: Series[] = [];
 
         for (const series of this.ctx.chartService.series) {
             if (!series.properties.selection.enabled) continue;
@@ -143,17 +148,24 @@ export class DataSelection extends AbstractModuleInstance {
             const { data } = series;
             if (data === undefined) continue;
 
+            let changed = false;
             for (const datum of series.pickNodesInBBox(bbox)) {
                 const datumIndex: unknown = datum.datumIndex;
                 if (typeof datumIndex === 'number') {
+                    changed = true;
                     setSelected(series, data, datumIndex);
                 } else {
                     Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
                 }
             }
+
+            if (changed) {
+                changedSeries.push(series);
+            }
         }
 
-        this.dispatchSelectionChange(bufferMap);
+        this.dispatchInternalSelectionChange(changedSeries);
+        this.dispatchExternalSelectionChange(bufferMap);
         this.endDrag();
     }
 
@@ -169,7 +181,13 @@ export class DataSelection extends AbstractModuleInstance {
         this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.FULL });
     }
 
-    private dispatchSelectionChange(bufferMap: BufferMap | undefined): void {
+    private dispatchInternalSelectionChange(changedSeries: Series[]): void {
+        for (const series of changedSeries) {
+            series.events.emit('data-selection-change', null);
+        }
+    }
+
+    private dispatchExternalSelectionChange(bufferMap: BufferMap | undefined): void {
         if (bufferMap === undefined) return;
 
         const { chartService } = this.ctx;
@@ -207,6 +225,9 @@ export class DataSelection extends AbstractModuleInstance {
         }
         for (const data of dataSets) {
             data.selections.clear();
+        }
+        for (const series of this.ctx.chartService.series) {
+            series.events.emit('data-selection-change', null);
         }
     }
 }

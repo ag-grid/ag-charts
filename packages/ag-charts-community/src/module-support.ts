@@ -168,10 +168,10 @@ export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/seri
 export type {
     PickFocusInputs,
     PickFocusOutputs,
-    SeriesDataEvent,
     SeriesNodeDataContext,
     SeriesNodePickMatch,
     SeriesNodeStyleContext,
+    SeriesDataEvent,
     UnknownSeries,
 } from './chart/series/series';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';

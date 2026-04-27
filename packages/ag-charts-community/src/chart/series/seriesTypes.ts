@@ -64,6 +64,7 @@ export interface ISeries<
     axes: { [K in ChartAxisDirection]?: ChartAxisLike };
     contentGroup: Group;
     properties: TProps;
+    events: { emit: (type: 'data-selection-change', event: null) => void };
     hasEventListener(type: string): boolean;
     hasData: boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
