@@ -48,7 +48,7 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: _ModuleSupport.ChartSeriesRegistry) {
+    constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
 
         const series = ctx.series as ErrorBoundCartesianSeries;
@@ -297,9 +297,13 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
-        const dataSelectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
+        const active = this.ctx.highlightManager.getActiveHighlight();
+        const isHighlight = active && active.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
+
+        const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
+        const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
         node.datum = datum;
-        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, 'none', dataSelectionState);
+        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, highlightState, selectionState);
         node.updateBBoxes();
     }
 
