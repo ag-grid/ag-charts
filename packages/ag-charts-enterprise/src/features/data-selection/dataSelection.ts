@@ -23,6 +23,8 @@ import {
     diffSelectionBuffers,
     getAllDataSets,
     hasAddToSelectionModifier,
+    isAgSelectionItem,
+    isUnknownIterable,
     restoreSelectionBuffers,
     setSelected,
     toBBox,
@@ -78,7 +80,40 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        console.log(`stub:setSelection`, items);
+        clearAllSelections(this.ctx.chartService.series);
+
+        if (!isUnknownIterable(items)) {
+            Logger.warn('Selection items is not iterable');
+            return;
+        }
+
+        for (const item of items) {
+            if (!isAgSelectionItem(item)) {
+                Logger.warn('Skipping invalid AgSelectionItemIds object: ', item);
+                continue;
+            }
+
+            const series = this.ctx.chartService.series.find((s) => s.id == item.seriesId);
+            if (series === undefined) {
+                Logger.warn('Skipping seriesId (series not found)', item.seriesId);
+                continue;
+            }
+
+            const data = series.data;
+            if (data === undefined) {
+                Logger.warn('Skipping seriesId (data not found):', item.seriesId);
+                continue;
+            }
+
+            const datumIndex = data.getIndexFromItemId(item.itemId);
+            if (datumIndex === undefined) {
+                Logger.warn('Skipping itemId (datum not found):', item.itemId);
+                continue;
+            }
+
+            const selection = data.enableSelection(item.seriesId);
+            selection.select(datumIndex);
+        }
     }
 
     clearSelection(): void {

@@ -176,6 +176,17 @@ export class DataSet<T = unknown> {
         return itemId ?? datumIndex;
     }
 
+    getIndexFromItemId(itemId: string | number): number | undefined {
+        if (typeof itemId === 'number') {
+            if (isNaN(itemId) || itemId < 0 || itemId >= this.data.length) {
+                return undefined;
+            } else {
+                return itemId;
+            }
+        }
+        return this.getIdToIndexMap().get(itemId);
+    }
+
     /**
      * Transfer persistent state (selections) from a predecessor DataSet.
      * Uses `idArray` + `idToIndexMap` to map selected keys from old to new index space.

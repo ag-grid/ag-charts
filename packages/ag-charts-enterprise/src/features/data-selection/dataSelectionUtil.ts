@@ -1,6 +1,6 @@
-import type { AgSelectionChangeEvent, AgSelectionItem } from 'ag-charts-community';
+import type { AgSelectionChangeEvent, AgSelectionItem, AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { type AreExact, Logger } from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
@@ -120,4 +120,30 @@ export function clearAllSelections(allSeries: Series[]): void {
     for (const series of allSeries) {
         series.events.emit('data-selection-change', null);
     }
+}
+
+export function isUnknownIterable(value: unknown): value is Iterable<unknown> {
+    return (
+        typeof value === 'object' &&
+        value !== null &&
+        Symbol.iterator in value &&
+        typeof value[Symbol.iterator] === 'function'
+    );
+}
+
+export function isAgSelectionItem(item: unknown): item is AgSelectionItemIds {
+    if (
+        typeof item === 'object' &&
+        item !== null &&
+        'seriesId' in item &&
+        'itemId' in item &&
+        typeof item['seriesId'] === 'string' &&
+        (typeof item['itemId'] === 'number' || typeof item['itemId'] === 'string')
+    ) {
+        // Compile-time check that our if-statement condition results in types that assignable
+        // to the expected `AgSelectionItemIds` type.
+        type VerifiedType = { seriesId: typeof item.seriesId; itemId: typeof item.itemId };
+        return true satisfies AreExact<VerifiedType, AgSelectionItemIds>;
+    }
+    return false;
 }
