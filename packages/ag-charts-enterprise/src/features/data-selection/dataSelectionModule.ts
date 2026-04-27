@@ -1,10 +1,10 @@
-import type { AgSelectionClickMode, AgSelectionOptions } from 'ag-charts-community';
+import type { AgChartSelectionOptions, AgSelectionClickMode } from 'ag-charts-community';
 import { VERSION } from 'ag-charts-community';
 import { type PluginModuleDefinition, boolean, selectionContainmentValidator, strictUnion } from 'ag-charts-core';
 
 import { DataSelection } from './dataSelection';
 
-export const SelectionModule: PluginModuleDefinition<AgSelectionOptions> = {
+export const SelectionModule: PluginModuleDefinition<AgChartSelectionOptions> = {
     type: 'plugin',
     name: 'selection',
     enterprise: true,

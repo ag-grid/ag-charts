@@ -2,28 +2,25 @@ export type AgSelectionClickMode = 'single' | 'multiple';
 
 export type AgSelectionContainment = 'any' | 'all';
 
-export interface AgSelectionOptions {
+export interface AgChartSelectionOptions {
     /**
      * Set to `true` to enable the data-selection module.
      *
      * Default: `false`
      */
     enabled?: boolean;
-
     /**
      * Set to `true` to enable click-to-select.
      *
      * Default: `true`
      */
     enableClick?: boolean;
-
     /**
      * Set to `true` to enable drag-to-select.
      *
      * Default: `false`
      */
     enableDrag?: boolean;
-
     /**
      * Click-to-select cardinality. Mode `'multiple'` toggles the selection on the clicked series-node. Mode `'single'`
      * first deselects the current selection completely, and then sets the clicked node to selected. Clicking using the
@@ -32,7 +29,6 @@ export interface AgSelectionOptions {
      * Default: `'single'`
      */
     clickMode?: AgSelectionClickMode;
-
     /**
      * Drag-to-select containment rule. Mode `'any'` selects a datum if any part of it overlaps the
      * drag rectangle, including overlapping items at the same position. Mode `'all'` selects a datum
@@ -41,23 +37,20 @@ export interface AgSelectionOptions {
      *
      * Default: `'any'`
      */
-    containment?: AgSelectionClickMode;
+    containment?: AgSelectionContainment;
 }
 
-export interface AgSeriesSelectionOptions<ItemSelectionStyleOptions> {
+export interface AgSelectionOptions<ItemSelectionStyleOptions> {
     /** Set to `true` to enable the data-selection on this series. */
     enabled?: boolean;
-
     /**
      * Override the drag-to-select containment rule for this series.
      *
      * Default: `chart.selection.containment`
      */
-    containment?: AgSelectionClickMode;
-
+    containment?: AgSelectionContainment;
     /** Styling options for selected items.  */
     selectedItem?: ItemSelectionStyleOptions;
-
     /** Styling Options for unselected items. */
     unselectedItem?: ItemSelectionStyleOptions;
 }

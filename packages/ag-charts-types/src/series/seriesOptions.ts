@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { AgSeriesSelectionOptions } from '../chart/selectionOptions';
+import type { AgSelectionOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
@@ -43,7 +43,7 @@ export interface AgBaseSeriesThemeableOptions<TDatum, TContext = ContextDefault>
     /** Configuration for highlighting when a series or legend item is hovered over. */
     highlight?: AgHighlightOptions<AgHighlightStyleOptions>;
     /** Configuration for data selection. */
-    selection?: AgSeriesSelectionOptions<AgSelectionStyleOptions>;
+    selection?: AgSelectionOptions<AgSelectionStyleOptions>;
     /** Range from a node that a click triggers the listener. */
     nodeClickRange?: InteractionRange;
     /** Whether to include the series in the legend. */
