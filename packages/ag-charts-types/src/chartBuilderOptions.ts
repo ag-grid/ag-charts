@@ -221,6 +221,7 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
 
     /**
      * Retrieve the current selection transient state. Requires the `SelectionModule` to be enabled.
+     * An error may be thrown if the chart state mutates whilst the selection items are being iterated.
      *
      * @returns An iterable list of all the selected items in the chart.
      */

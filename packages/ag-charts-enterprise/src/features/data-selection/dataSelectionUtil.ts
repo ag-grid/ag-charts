@@ -4,7 +4,7 @@ import { Logger } from 'ag-charts-core';
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
-type DataSet = NonNullable<Series['data']>;
+type DataSet = _ModuleSupport.DataSet<unknown>;
 type ChartService = _ModuleSupport.ChartRegistry['chartService'];
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
@@ -92,6 +92,16 @@ export function diffSelectionBuffers(chartService: ChartService, bufferMap: Buff
     return { added, removed };
 }
 
+export function getAllDataSets(allSeries: Series[]): Set<DataSet> {
+    const result = new Set<DataSet>();
+    for (const series of allSeries) {
+        if (series.data) {
+            result.add(series.data);
+        }
+    }
+    return result;
+}
+
 export function toggleSelection(series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
     selections.toggle(datumIndex);
@@ -103,12 +113,7 @@ export function setSelected(series: Series, data: DataSet, datumIndex: number): 
 }
 
 export function clearAllSelections(allSeries: Series[]): void {
-    const dataSets: Set<_ModuleSupport.DataSet<unknown>> = new Set();
-    for (const series of allSeries) {
-        if (series.data) {
-            dataSets.add(series.data);
-        }
-    }
+    const dataSets = getAllDataSets(allSeries);
     for (const data of dataSets) {
         data.selections.clear();
     }

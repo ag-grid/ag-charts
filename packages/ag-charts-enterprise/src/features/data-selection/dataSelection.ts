@@ -21,6 +21,7 @@ import {
     clearAllSelections,
     copySelectionBuffers,
     diffSelectionBuffers,
+    getAllDataSets,
     hasAddToSelectionModifier,
     restoreSelectionBuffers,
     setSelected,
@@ -61,8 +62,19 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        console.log(`stub:getSelection()`);
-        return [{ seriesId: 'stub', itemId: 'stub', datum: {} }];
+        return function* (this: DataSelection) {
+            for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
+                for (const [seriesId, selection] of dataSet.selections) {
+                    for (let datumIndex = 0; datumIndex < selection.getLength(); datumIndex++) {
+                        if (selection.isSelected(datumIndex)) {
+                            const itemId = dataSet.getItemIdFromIndex(datumIndex);
+                            const datum = dataSet.data[datumIndex];
+                            yield { seriesId, itemId, datum };
+                        }
+                    }
+                }
+            }
+        }.bind(this)();
     }
 
     setSelection(items: unknown): void {
