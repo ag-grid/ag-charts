@@ -20,6 +20,7 @@ import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
+    deproxy,
     expectWarningsCalls,
     extractImageData,
     hoverAction,
@@ -958,6 +959,67 @@ describe('BubbleSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('AG-16915 maxRenderedItems gate with invalid sizeKey values', () => {
+        const buildData = (validCount: number, invalidCount: number) => [
+            ...Array.from({ length: validCount }, (_, i) => ({ x: i, y: i, s: 1 + (i % 5) })),
+            ...Array.from({ length: invalidCount }, (_, i) => ({ x: validCount + i, y: i, s: Number.NaN })),
+        ];
+
+        it('should not aggregate when renderable (non-NaN sizeKey) count is within maxRenderedItems', async () => {
+            const options: AgCartesianChartOptions = {
+                data: buildData(10, 10),
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [number] for [BubbleSeries-1 / sizeValue] ignored:",
+    "[NaN]",
+  ],
+]
+`);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeUndefined();
+        });
+
+        it('should still aggregate when renderable count exceeds maxRenderedItems', async () => {
+            const options: AgCartesianChartOptions = {
+                data: buildData(20, 0),
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeDefined();
+        });
+
+        it('should not aggregate when renderable (non-missing sizeKey) count is within maxRenderedItems', async () => {
+            const options: AgCartesianChartOptions = {
+                data: [
+                    ...Array.from({ length: 10 }, (_, i) => ({ x: i, y: i, s: 1 + (i % 5) })),
+                    ...Array.from({ length: 10 }, (_, i) => ({ x: 10 + i, y: i })),
+                ],
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 15 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeUndefined();
         });
     });
 
