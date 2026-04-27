@@ -967,6 +967,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
+        // Override only the renderer; other tooltip fields (enabled, position, range, class,
+        // interaction) are read directly off `series.properties.tooltip` upstream of this method,
+        // so the wrapper's defaults for those fields are never consulted by the tooltip pipeline.
         let effectiveTooltip = tooltip;
         const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
         if (itemTooltipRenderer != null) {
