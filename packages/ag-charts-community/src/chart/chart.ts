@@ -31,7 +31,6 @@ import {
     pause,
     roundTo,
     toPlainText,
-    without,
 } from 'ag-charts-core';
 import type {
     AgBaseAxisOptions,
@@ -113,6 +112,45 @@ type SeriesChangeType =
     | 'series-grouping-change'
     | 'series-count-changed'
     | 'updated';
+
+const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
+    'interval',
+    'autoRotate',
+    'autoRotateAngle',
+    'itemStyler',
+    'minSpacing',
+    'rotation',
+]);
+
+const HORIZONTAL_AXIS_POSITIONS = new Set(['top', 'bottom']);
+
+function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions {
+    const sourceAxes = (completeOptions as { axes?: Record<string, AgBaseAxisOptions> }).axes;
+    if (sourceAxes == null) return completeOptions;
+
+    const miniChartLabel = completeOptions.navigator?.miniChart?.label as Record<string, unknown> | undefined;
+    const horizontalLabelOverride: Record<string, unknown> = {};
+    for (const key of Object.keys(miniChartLabel ?? {})) {
+        if (MINI_CHART_LABEL_EXCLUDED.has(key)) continue;
+        horizontalLabelOverride[key] = miniChartLabel![key];
+    }
+
+    const derivedAxes: Record<string, AgBaseAxisOptions> = {};
+    for (const [id, axisOptions] of entries(sourceAxes)) {
+        const isHorizontal = HORIZONTAL_AXIS_POSITIONS.has((axisOptions as { position?: string }).position ?? '');
+        const isGroupedCategoryHorizontal = isHorizontal && axisOptions.type === 'grouped-category';
+        const baseLabel = isHorizontal ? horizontalLabelOverride : {};
+        const visibilityOverride = isHorizontal
+            ? { enabled: !isGroupedCategoryHorizontal, ...(isGroupedCategoryHorizontal ? { rotation: 0 } : {}) }
+            : { enabled: false };
+        derivedAxes[id] = {
+            ...axisOptions,
+            label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
+        };
+    }
+
+    return { ...completeOptions, axes: derivedAxes } as AgChartOptions;
+}
 
 export abstract class Chart extends Observable implements ModuleInstance, ChartService {
     static readonly className: string = 'Chart';
@@ -1810,13 +1848,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.filterMiniChartSeries(miniChartSeries),
             this.filterMiniChartSeries(oldSeries)
         );
-        this.applyAxes(miniChart, completeOptions, oldOpts, miniChartSeriesStatus, [
+        const derivedOptions = deriveMiniChartOptions(completeOptions);
+        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus, [
             'tick',
             'thickness',
             'title',
             'crosshair',
             'gridLine',
-            'label',
         ]);
 
         const series: UnknownSeries[] = miniChart.series;
@@ -1831,32 +1869,17 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         for (const axis of axes) {
             axis.nice = false;
             axis.gridLine.enabled = false;
-            axis.label.enabled = axis === horizontalAxis;
             axis.tick.enabled = false;
             axis.interactionEnabled = false;
         }
 
         if (horizontalAxis != null) {
             const miniChartOpts = completeOptions.navigator?.miniChart;
-            const labelOptions = miniChartOpts?.label;
             const intervalOptions = miniChartOpts?.label?.interval;
 
             horizontalAxis.line.enabled = false;
 
-            horizontalAxis.label.set(
-                without(labelOptions, [
-                    'interval',
-                    'autoRotate',
-                    'autoRotateAngle',
-                    'itemStyler',
-                    'minSpacing',
-                    'rotation',
-                ])
-            );
-
             if (horizontalAxis.type === 'grouped-category') {
-                horizontalAxis.label.enabled = false;
-                horizontalAxis.label.rotation = 0;
                 const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
                 if (depthOptions.length === 0) {
                     depthOptions.set([{ label: { enabled: true } }]);

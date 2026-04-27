@@ -16,8 +16,8 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ChartRegistry } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { FormatDatumParams } from '../chartAxis';
+import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { AxisTickFormatParams } from './axis';
-import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { TimeAxisParentLevel, calculateDefaultUnit } from './timeAxis';
@@ -47,7 +47,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     // eslint-disable-next-line sonarjs/use-type-alias
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
-    override get primaryLabel(): AxisLabel | undefined {
+    override get primaryLabel(): SeriesLabelProperties | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
 

@@ -20,9 +20,9 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
+import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
-import { AxisLabel } from './axisLabel';
 import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
@@ -31,7 +31,7 @@ export class TimeAxisParentLevel extends BaseProperties {
     enabled = false;
 
     @Property
-    readonly label = new AxisLabel();
+    readonly label = new SeriesLabelProperties();
 
     @Property
     readonly tick = new AxisTick();
@@ -81,7 +81,7 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return false;
     }
 
-    override get primaryLabel(): AxisLabel | undefined {
+    override get primaryLabel(): SeriesLabelProperties | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
 

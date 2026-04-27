@@ -28,7 +28,7 @@ interface FormatterCache {
     formatter: ((value: any, fractionDigits?: number) => string) | undefined;
 }
 
-export class AxisLabel extends BaseProperties implements ChartAxisLabel {
+export class SeriesLabelProperties extends BaseProperties implements ChartAxisLabel {
     @Property
     enabled = true;
 

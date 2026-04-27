@@ -20,7 +20,7 @@ interface GeneratedTicks {
     labels: _ModuleSupport.LabelNodeDatum[];
 }
 
-class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
+class RadiusAxisLabel extends _ModuleSupport.SeriesLabelProperties {
     @Property
     autoRotate?: boolean;
 

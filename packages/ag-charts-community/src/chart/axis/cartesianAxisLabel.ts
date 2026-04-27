@@ -1,8 +1,8 @@
 import { Property } from 'ag-charts-core';
 
-import { AxisLabel } from './axisLabel';
+import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 
-export class CartesianAxisLabel extends AxisLabel {
+export class CartesianAxisLabel extends SeriesLabelProperties {
     /**
      * If specified and axis labels may collide, they are rotated to reduce collisions. If the
      * `rotation` property is specified, it takes precedence.

@@ -20,7 +20,7 @@ import {
 
 import { AxisTicks } from './axisTicks';
 
-const { AxisInterval, AxisLabel, LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } =
+const { AxisInterval, SeriesLabelProperties, LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } =
     _ModuleSupport;
 
 const ITEM_SPACING = 16;
@@ -39,7 +39,7 @@ class GradientLegendScale
 {
     constructor(
         protected config: {
-            label: _ModuleSupport.AxisLabel;
+            label: _ModuleSupport.SeriesLabelProperties;
             interval: _ModuleSupport.AxisInterval<number>;
             padding: number;
         }
@@ -48,7 +48,7 @@ class GradientLegendScale
     }
 
     @ProxyProperty('config.label')
-    label!: _ModuleSupport.AxisLabel;
+    label!: _ModuleSupport.SeriesLabelProperties;
 
     @ProxyProperty('config.interval')
     interval!: _ModuleSupport.AxisInterval<number>;
@@ -72,7 +72,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     );
 
     private readonly scaleConfig = {
-        label: new AxisLabel(),
+        label: new SeriesLabelProperties(),
         interval: new AxisInterval(),
         padding: 0,
     };

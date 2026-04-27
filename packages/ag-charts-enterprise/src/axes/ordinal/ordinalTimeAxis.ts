@@ -35,7 +35,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
     private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
     private readonly approximateScale: _ModuleSupport.ApproximateOrdinalTimeScale;
 
-    override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
+    override get primaryLabel(): _ModuleSupport.SeriesLabelProperties | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
     }
 

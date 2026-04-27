@@ -34,7 +34,7 @@ interface AngleAxisTickDatum<TDatum> {
     visible: boolean;
 }
 
-class AngleAxisLabel extends _ModuleSupport.AxisLabel {
+class AngleAxisLabel extends _ModuleSupport.SeriesLabelProperties {
     @Property
     orientation: AgAngleAxisLabelOrientation = 'fixed';
 }

@@ -296,7 +296,7 @@ export { AggregationManager } from './chart/series/aggregationManager';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { AxisInterval } from './chart/axis/axisInterval';
-export { AxisLabel } from './chart/axis/axisLabel';
+export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';
 export { AxisTick } from './chart/axis/axisTick';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';

@@ -19,7 +19,7 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const { AxisInterval, AxisLabel, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
+const { AxisInterval, SeriesLabelProperties, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
 
 interface TickDatum {
     tick: any;
@@ -39,7 +39,7 @@ export class AxisTicks {
     protected readonly labelSelection = Selection.select<_ModuleSupport.Text<TickDatum>>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
-    readonly label = new AxisLabel();
+    readonly label = new SeriesLabelProperties();
     readonly scale = new LinearScale();
 
     namedLabels?: _ModuleSupport.GradientLegendNamedLabel[];

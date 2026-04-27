@@ -58,10 +58,10 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
+import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
-import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
@@ -310,7 +310,7 @@ export abstract class Axis<
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
-    protected get primaryLabel(): AxisLabel | undefined {
+    protected get primaryLabel(): SeriesLabelProperties | undefined {
         return undefined;
     }
 
@@ -494,7 +494,7 @@ export abstract class Axis<
     protected onGridVisibilityChange() {}
 
     protected createLabel() {
-        return new AxisLabel();
+        return new SeriesLabelProperties();
     }
 
     /**
@@ -515,7 +515,7 @@ export abstract class Axis<
     protected getLabelStyles(
         params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
-        label: AxisLabel = this.label
+        label: SeriesLabelProperties = this.label
     ) {
         const defaultStyle = {
             border: label.border,
