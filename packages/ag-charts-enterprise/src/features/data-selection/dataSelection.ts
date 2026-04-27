@@ -117,7 +117,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     clearSelection(): void {
-        console.log(`stub:clearSelection`);
+        clearAllSelections(this.ctx.chartService.series);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
