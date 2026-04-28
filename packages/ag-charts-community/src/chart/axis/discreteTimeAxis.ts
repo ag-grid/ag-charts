@@ -1,3 +1,5 @@
+import type { NormalisedBaseCartesianAxisOptions, NormalisedCategoryAxisOptions } from 'ag-charts-core';
+
 import type { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
@@ -7,7 +9,8 @@ import { CategoryAxis } from './categoryAxis';
 
 export class DiscreteTimeAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-> extends CategoryAxis<S> {
+    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedCategoryAxisOptions,
+> extends CategoryAxis<S, TOptions> {
     protected override calculateGridLine(
         { index: tickIndex, tickId, translation }: GridLineStyleTickDatum,
         index: number,

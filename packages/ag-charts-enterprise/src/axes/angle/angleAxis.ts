@@ -36,11 +36,12 @@ interface AngleAxisTickDatum<TDatum> {
     visible: boolean;
 }
 
-export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<
-    TScale,
-    any,
-    NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions>
-> {
+export abstract class AngleAxis<
+    TDomain,
+    TScale extends Scale<TDomain, any>,
+    TOptions extends
+        NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions>,
+> extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @Property

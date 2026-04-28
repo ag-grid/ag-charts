@@ -329,6 +329,25 @@ export abstract class Axis<
         return undefined;
     }
 
+    /**
+     * Returns the user-supplied label `format` specifier, or `undefined` if the axis's
+     * label type does not carry one. Only formattable label subtypes (numeric, time,
+     * formattable angle) declare `format` in `ag-charts-types`; per invariant I2 it is
+     * not part of the base label type. Subclasses with format-bearing labels override
+     * this hook; the base default is `undefined`.
+     */
+    protected getLabelFormat(): string | Record<string, string> | undefined {
+        return undefined;
+    }
+
+    /**
+     * Sibling of {@link getLabelFormat} for {@link primaryLabel}, used by axes with a
+     * parent-level label tier (time-like axes). Default is `undefined`.
+     */
+    protected getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        return undefined;
+    }
+
     isCategoryLike(): boolean {
         return false;
     }
@@ -741,7 +760,7 @@ export abstract class Axis<
         this.layout.label = {
             fractionDigits: fractionDigits,
             spacing: this.options?.label?.spacing ?? 5,
-            format: this.options?.label?.format,
+            format: this.getLabelFormat(),
         };
 
         this.layoutCrossLines();
@@ -861,13 +880,14 @@ export abstract class Axis<
         };
 
         const currentLabel = primaryLabel ?? label;
-        const specifier = primary ? label?.format : undefined;
+        const labelFormat = this.getLabelFormat();
+        const specifier = primary ? labelFormat : undefined;
 
         // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
         const { allowNull } = this;
 
         const options = {
-            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label?.format),
+            specifier: FormatManager.mergeSpecifiers(this.getPrimaryLabelFormat(), labelFormat),
             truncateDate,
             allowNull,
         };

@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, NormalisedUnitTimeAxisOptions } from 'ag-charts-core';
 import {
     Property,
     dateTruncationForDomain,
@@ -22,7 +22,7 @@ import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { TimeAxisParentLevel, calculateDefaultUnit } from './timeAxis';
 
-export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
+export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnitTimeAxisOptions> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 
@@ -53,6 +53,15 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
 
     override get primaryTick(): AxisTick | undefined {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    }
+
+    protected override getLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.options?.label?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    protected override getPrimaryLabelFormat() {
+        return this.primaryLabel?.format;
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>) {

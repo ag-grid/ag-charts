@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
 import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
@@ -9,7 +9,9 @@ import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
-export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
+export class NumberAxis<
+    TOptions extends NormalisedNumberAxisOptions = NormalisedNumberAxisOptions,
+> extends CartesianAxis<LinearScale | LogScale, number, TOptions> {
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
@@ -32,6 +34,10 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     override hasDefinedDomain(): boolean {
         const { min, max } = this;
         return min != null && max != null && min < max;
+    }
+
+    protected override getLabelFormat() {
+        return this.options?.label?.format;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {

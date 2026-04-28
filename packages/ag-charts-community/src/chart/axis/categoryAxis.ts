@@ -1,4 +1,9 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type {
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedBaseCartesianAxisOptions,
+    NormalisedCategoryAxisOptions,
+} from 'ag-charts-core';
 import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
@@ -13,7 +18,8 @@ import { CartesianAxis, type GridLineStyleTickDatum } from './cartesianAxis';
 
 export class CategoryAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-> extends CartesianAxis<S> {
+    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedCategoryAxisOptions,
+> extends CartesianAxis<S, any, TOptions> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
     }

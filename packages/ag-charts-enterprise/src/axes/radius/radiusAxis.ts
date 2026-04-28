@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DynamicContext,
+    type NormalisedBasePolarAxisOptions,
     Property,
     type Scale,
     ZIndexMap,
@@ -24,7 +25,8 @@ interface GeneratedTicks {
 export abstract class RadiusAxis<
     S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
     D = unknown,
-> extends _ModuleSupport.PolarAxis<S, D> {
+    TOptions extends NormalisedBasePolarAxisOptions = NormalisedBasePolarAxisOptions,
+> extends _ModuleSupport.PolarAxis<S, D, TOptions> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
     @Property

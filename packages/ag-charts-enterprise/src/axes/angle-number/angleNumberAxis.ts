@@ -1,5 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, NormalisedAngleNumberAxisOptions } from 'ag-charts-core';
 import {
     Property,
     type ScaleTickParams,
@@ -14,7 +14,7 @@ import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
+export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
 
@@ -42,6 +42,10 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     override hasDefinedDomain(): boolean {
         const { min, max } = this;
         return min != null && max != null && min < max;
+    }
+
+    protected override getLabelFormat() {
+        return this.options?.label?.format;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {

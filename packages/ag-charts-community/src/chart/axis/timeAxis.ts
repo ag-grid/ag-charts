@@ -1,4 +1,4 @@
-import type { ChartAxisDirection, DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { ChartAxisDirection, DomainWithMetadata, DynamicContext, NormalisedTimeAxisOptions } from 'ag-charts-core';
 import {
     BaseProperties,
     Logger,
@@ -37,7 +37,11 @@ export class TimeAxisParentLevel extends BaseProperties {
     readonly tick = new AxisTick();
 }
 
-export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
+export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTimeAxisOptions> extends CartesianAxis<
+    TimeScale,
+    number | Date,
+    TOptions
+> {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
@@ -83,6 +87,18 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 
     override get primaryLabel(): SeriesLabelProperties | undefined {
         return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    }
+
+    protected override getLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.options?.label?.format;
+        // `AgTimeAxisFormattableLabelUnitFormat` is structurally a partial record of
+        // unit → format-string. Coerce here for compatibility with `AxisLayout` and
+        // `FormatManager` which both type the value as `Record<string, string>`.
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    protected override getPrimaryLabelFormat() {
+        return this.primaryLabel?.format;
     }
 
     override get primaryTick(): AxisTick | undefined {

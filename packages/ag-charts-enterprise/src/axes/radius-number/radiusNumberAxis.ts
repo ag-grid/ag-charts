@@ -1,5 +1,5 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { DomainWithMetadata, DynamicContext, NormalisedRadiusNumberAxisOptions } from 'ag-charts-core';
 import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
@@ -12,7 +12,11 @@ interface TickDatum {
     translation: number;
 }
 
-export class RadiusNumberAxis extends RadiusAxis {
+export class RadiusNumberAxis extends RadiusAxis<
+    _ModuleSupport.LinearScale,
+    number,
+    NormalisedRadiusNumberAxisOptions
+> {
     static readonly className = 'RadiusNumberAxis';
     static readonly type = 'radius-number' as const;
 
@@ -37,6 +41,10 @@ export class RadiusNumberAxis extends RadiusAxis {
     override hasDefinedDomain(): boolean {
         const { min, max } = this;
         return min != null && max != null && min < max;
+    }
+
+    protected override getLabelFormat() {
+        return this.options?.label?.format;
     }
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {

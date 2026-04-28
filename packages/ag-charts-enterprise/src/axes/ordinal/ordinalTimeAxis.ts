@@ -7,6 +7,7 @@ import {
 } from 'ag-charts-community';
 import {
     type DynamicContext,
+    type NormalisedOrdinalTimeAxisOptions,
     Property,
     dateTruncationForDomain,
     intervalEpoch,
@@ -25,7 +26,10 @@ const {
     minimumTimeAxisDatumGranularity,
 } = _ModuleSupport;
 
-export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupport.OrdinalTimeScale> {
+export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
+    _ModuleSupport.OrdinalTimeScale,
+    NormalisedOrdinalTimeAxisOptions
+> {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
 
@@ -41,6 +45,15 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupp
 
     override get primaryTick(): _ModuleSupport.AxisTick | undefined {
         return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    }
+
+    protected override getLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.options?.label?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    protected override getPrimaryLabelFormat() {
+        return this.primaryLabel?.format;
     }
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
