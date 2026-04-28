@@ -78,7 +78,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const { minSpacing } = this.label;
+        const minSpacing = this.options?.label?.minSpacing;
 
         if (labelData.length < 3) return;
 

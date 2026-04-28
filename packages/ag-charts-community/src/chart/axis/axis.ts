@@ -5,9 +5,10 @@ import type {
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    Normalised,
+    NormalisedBaseAxisLabelOptions,
     NormalisedBaseAxisOptions,
     Point,
-    RequireOptional,
     Scale,
 } from 'ag-charts-core';
 import {
@@ -58,10 +59,11 @@ import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../c
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import { SeriesLabelProperties } from '../series/seriesLabelProperties';
+import type { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
+import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
@@ -316,7 +318,8 @@ export abstract class Axis<
     readonly line = new AxisLine();
     readonly tick = new AxisTick();
     readonly gridLine = new AxisGridLine();
-    readonly label = this.createLabel();
+
+    protected readonly formatterCache: AxisLabelFormatterCache = createAxisLabelFormatterCache();
 
     protected get primaryLabel(): SeriesLabelProperties | undefined {
         return undefined;
@@ -337,8 +340,8 @@ export abstract class Axis<
     protected readonly layout: Pick<AxisLayout, 'label'> & Partial<Pick<AxisLayout, 'labelThickness' | 'scrollbar'>> = {
         label: {
             fractionDigits: 0,
-            spacing: this.label.spacing,
-            format: this.label.format,
+            spacing: 5,
+            format: undefined,
         },
         labelThickness: 0,
     };
@@ -501,10 +504,6 @@ export abstract class Axis<
 
     protected onGridVisibilityChange() {}
 
-    protected createLabel() {
-        return new SeriesLabelProperties();
-    }
-
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
@@ -523,7 +522,7 @@ export abstract class Axis<
     protected getLabelStyles(
         params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
-        label: SeriesLabelProperties = this.label
+        label: NormalisedBaseAxisLabelOptions = this.options!.label
     ) {
         const defaultStyle = {
             border: label.border,
@@ -537,7 +536,7 @@ export abstract class Axis<
             fontWeight: label.fontWeight,
             padding: label.padding,
             spacing: label.spacing,
-        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
+        } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
@@ -558,7 +557,7 @@ export abstract class Axis<
             fontWeight: merged.fontWeight,
             padding: merged.padding,
             spacing: merged.spacing,
-        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
+        } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
     }
 
     protected getTickSize(tick: AxisTick = this.tick) {
@@ -741,8 +740,8 @@ export abstract class Axis<
         this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
-            spacing: this.label.spacing,
-            format: this.label.format,
+            spacing: this.options?.label?.spacing ?? 5,
+            format: this.options?.label?.format,
         };
 
         this.layoutCrossLines();
@@ -828,7 +827,8 @@ export abstract class Axis<
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
     ): (value: any, index: number) => TextOrSegments {
-        const { moduleCtx, label } = this;
+        const { moduleCtx } = this;
+        const label = this.options?.label;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
@@ -861,24 +861,29 @@ export abstract class Axis<
         };
 
         const currentLabel = primaryLabel ?? label;
-        const specifier = primary ? label.format : undefined;
+        const specifier = primary ? label?.format : undefined;
 
         // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
         const { allowNull } = this;
 
         const options = {
-            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label?.format),
             truncateDate,
             allowNull,
         };
 
+        const formatterCache = this.formatterCache;
         return (value: any, index: number): TextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
 
             return (
-                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
+                formatAxisLabelValue(currentLabel, formatterCache, f, formatParams, index, {
+                    specifier,
+                    dateStyle,
+                    truncateDate,
+                }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
             );
@@ -980,7 +985,7 @@ export abstract class Axis<
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            this.label.formatValue(f, formatParams, Number.NaN) ??
+            formatAxisLabelValue(this.options?.label, this.formatterCache, f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);

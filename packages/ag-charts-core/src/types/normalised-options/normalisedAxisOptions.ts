@@ -34,45 +34,66 @@ import type { Normalised } from './normalise';
 
 type AxisLabelRequiredKeys = 'enabled' | 'avoidCollisions' | 'spacing' | 'fontSize' | 'fontFamily';
 
+/**
+ * Base axis-label morphs that apply post-theme-merge:
+ *
+ * - `format` is read at the base-Axis level (tickFormatter, formatDatum) even though
+ *   `AgBaseAxisLabelOptions` does not declare it — only the formattable subtypes
+ *   carry it. Modeling it at the base avoids ad-hoc casts in axis read sites while
+ *   keeping the user-facing type tree unchanged.
+ * - `fontFamily` is narrowed from `FontFamilyFull` (which can be a `GoogleFontFamily`
+ *   object or array) to `string`, because `optionsModule.ts` flattens Google fonts
+ *   to their CSS family string before normalised options are emitted.
+ */
+type AxisLabelBaseMorph = { format?: string | Record<string, string>; fontFamily: string };
+
 export type NormalisedBaseAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedNumericAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgNumericAxisFormattableLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedBaseCartesianAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgBaseCartesianAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedCartesianAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgCartesianAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedCartesianTimeAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgCartesianTimeAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedGroupedCategoryAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgGroupedCategoryAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedAngleAxisLabelOptions<TContext = ContextDefault> = Normalised<
     AgAngleAxisLabelOptions<TContext>,
     AxisLabelRequiredKeys | 'orientation'
->;
+> &
+    AxisLabelBaseMorph;
 
 export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault> = Normalised<
     AgAngleAxisFormattableLabelOptions<TContext>,
     AxisLabelRequiredKeys | 'orientation'
->;
+> &
+    AxisLabelBaseMorph;
 
 // --- Axis-level normalised shapes ---
 //

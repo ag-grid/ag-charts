@@ -143,12 +143,13 @@ export abstract class RadiusAxis<
     } {
         const visibleRange: [number, number] = [0, 1];
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+        const labelSpacing = this.options?.label?.spacing ?? 5;
+        const labelX = sideFlag * (this.getTickSize() + labelSpacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
         const tickGenerationResult = generateTicks({
             scale: this.scale,
-            label: this.label,
+            label: this.options!.label,
             interval: this.interval,
             tickFormatter: (...args) => this.tickFormatter(...args),
             domain,
@@ -194,7 +195,7 @@ export abstract class RadiusAxis<
 
     // TODO - abstract out
     protected override updateLabels() {
-        if (!this.label.enabled) return;
+        if (!(this.options?.label?.enabled ?? true)) return;
 
         const axisLabelPositionFn = _ModuleSupport.resetAxisLabelSelectionFn();
 
@@ -343,12 +344,12 @@ export abstract class RadiusAxis<
         datum: _ModuleSupport.TickDatum,
         tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): _ModuleSupport.LabelNodeDatum {
-        const { label } = this;
+        const label = this.options?.label;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const range = this.scale.range;
         const text = datum.tickLabel ?? '';
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + (label?.spacing ?? 5) + this.seriesAreaPadding);
         const visible = text !== '';
 
         return {

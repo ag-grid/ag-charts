@@ -108,7 +108,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const { minSpacing } = this.label;
+        const minSpacing = this.options?.label?.minSpacing;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {

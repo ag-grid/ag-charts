@@ -143,7 +143,6 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     id: AxisID;
     interactionEnabled: boolean;
     interval: AxisInterval;
-    label: ChartAxisLabel;
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;
     nice: boolean;
@@ -168,11 +167,10 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
 
 export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
-    set(props: object): void;
     autoRotate?: boolean;
     autoRotateAngle?: number;
     avoidCollisions: boolean;
-    border: { enabled: boolean; stroke?: string };
+    border?: { enabled?: boolean; stroke?: string };
     enabled: boolean;
     format?: string | Record<string, string>;
     formatter?: RichFormatter<AgAxisLabelFormatterParams>;

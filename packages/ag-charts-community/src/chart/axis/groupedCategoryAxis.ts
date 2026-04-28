@@ -164,18 +164,19 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
-        const { depthOptions, label } = this;
+        const { depthOptions } = this;
+        const label = this.options?.label;
         const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
-                depthOptions[i]?.label.enabled ?? label.enabled
+                depthOptions[i]?.label.enabled ?? label?.enabled ?? true
                     ? {
                           enabled: true,
-                          spacing: depthOptions[i]?.label.spacing ?? label.spacing,
-                          wrapping: depthOptions[i]?.label.wrapping ?? label.wrapping,
-                          truncate: depthOptions[i]?.label.truncate ?? label.truncate,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label rotation only applies to label leaves
-                          avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
+                          spacing: depthOptions[i]?.label.spacing ?? label?.spacing ?? 5,
+                          wrapping: depthOptions[i]?.label.wrapping ?? label?.wrapping,
+                          truncate: depthOptions[i]?.label.truncate ?? label?.truncate,
+                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label?.rotation), // Default top-level label rotation only applies to label leaves
+                          avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label?.avoidCollisions ?? true,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );
@@ -209,7 +210,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateScale();
 
         const { step } = this.scale;
-        const { title, label, range, depthOptions, horizontal, line } = this;
+        const { title, range, depthOptions, horizontal, line } = this;
+        const label = this.options?.label;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
         const tickSpacing = this.getTickSpacing();
@@ -260,7 +262,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                 depthOptions[depth]?.label
             );
 
-            if (label.avoidCollisions) {
+            if (label?.avoidCollisions ?? true) {
                 const rotation = optionsMap[depth].rotation;
                 let maxHeight = this.thickness;
                 if (rotation != null) {

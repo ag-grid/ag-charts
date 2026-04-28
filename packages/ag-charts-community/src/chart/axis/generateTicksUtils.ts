@@ -223,7 +223,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             maxWidth,
             maxHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
-            textWrap: label.wrapping,
+            textWrap: label.wrapping ?? 'never',
         };
 
         for (let i = 0; i < rawTicks.length; i++) {

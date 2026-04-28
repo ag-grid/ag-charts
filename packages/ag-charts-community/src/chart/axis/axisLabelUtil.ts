@@ -35,10 +35,8 @@ export function createAxisLabelFormatterCache(): AxisLabelFormatterCache {
     };
 }
 
-export function getAxisLabelSideFlag(
-    label: (Pick<AgBaseAxisLabelStyleOptions, never> & { mirrored?: boolean }) | undefined
-): ChartAxisLabelFlipFlag {
-    return label?.mirrored ? 1 : -1;
+export function getAxisLabelSideFlag(mirrored: boolean): ChartAxisLabelFlipFlag {
+    return mirrored ? 1 : -1;
 }
 
 export function formatAxisLabelValue(

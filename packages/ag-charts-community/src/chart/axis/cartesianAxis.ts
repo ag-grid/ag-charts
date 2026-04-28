@@ -56,7 +56,6 @@ import {
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
 } from './axisUtil';
-import { CartesianAxisLabel } from './cartesianAxisLabel';
 import { generateTicks } from './generateTicks';
 
 type AxisAnimationState = 'empty' | 'ready';
@@ -192,10 +191,6 @@ export abstract class CartesianAxis<
         return { ...super.createAxisContext(), position: this.position };
     }
 
-    protected override createLabel() {
-        return new CartesianAxisLabel();
-    }
-
     protected updateDirection() {
         switch (this.position) {
             case 'top':
@@ -250,15 +245,16 @@ export abstract class CartesianAxis<
         layout: GeneratedTicks;
     } {
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
+        const label = this.options?.label;
         const labelX =
-            sideFlag * (this.getTickSize() + this.getTickSpacing() + this.label.spacing + this.seriesAreaPadding);
+            sideFlag * (this.getTickSize() + this.getTickSpacing() + (label?.spacing ?? 5) + this.seriesAreaPadding);
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         if (
             niceMode[0] === NiceMode.Off &&
             niceMode[1] === NiceMode.Off &&
-            this.label.enabled === false &&
+            label?.enabled === false &&
             this.tick.enabled === false &&
             this.gridLine.enabled === false
         ) {
@@ -284,11 +280,10 @@ export abstract class CartesianAxis<
             };
         }
 
-        const { label, primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } =
-            this;
+        const { primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } = this;
 
         const tickGenerationResult = generateTicks({
-            label,
+            label: label!,
             parallel: this.parallel,
             scale,
             interval,
@@ -312,7 +307,7 @@ export abstract class CartesianAxis<
 
         const { tickData } = tickGenerationResult;
         const removeOverflowLabels =
-            this.label.avoidCollisions &&
+            (label?.avoidCollisions ?? true) &&
             this.horizontal &&
             tickData.ticks.length > 2 &&
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
@@ -514,7 +509,8 @@ export abstract class CartesianAxis<
 
     setAxisVisible(visible: boolean) {
         this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
-        this.tickLabelGroup.visible = visible && (this.label.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLabelGroup.visible =
+            visible && ((this.options?.label?.enabled ?? true) || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
         this.headingLabelGroup.visible = visible;
     }
@@ -633,7 +629,8 @@ export abstract class CartesianAxis<
         scrollbar: ScrollbarLayout | undefined,
         scrollbarThickness: number
     ) {
-        const { tick, primaryTick, label, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const { tick, primaryTick, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const label = this.options?.label;
         const boxes: BBox[] = [];
 
         boxes.push(this.lineNodeBBox());
@@ -645,7 +642,7 @@ export abstract class CartesianAxis<
         }
 
         const { tempText } = this;
-        if (label.enabled) {
+        if (label?.enabled) {
             for (const datum of labels) {
                 if (!datum.visible) continue;
 
@@ -665,9 +662,9 @@ export abstract class CartesianAxis<
             boxes.push(
                 new BBox(
                     0,
-                    calcLineHeight(label.fontSize) + inexactMeasurementPadding,
+                    calcLineHeight(label?.fontSize ?? 0) + inexactMeasurementPadding,
                     1,
-                    this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
+                    this.getTickSize(tick) + this.getTickSpacing(tick) + (label?.spacing ?? 5) + seriesAreaPadding
                 )
             );
 
@@ -790,14 +787,15 @@ export abstract class CartesianAxis<
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
-        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;
+        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options?.label;
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
         let labelOffset =
-            sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -
+            sideFlag *
+                (this.getTickSize(tick) + this.getTickSpacing(tick) + (label?.spacing ?? 5) + seriesAreaPadding) -
             borderOffset;
 
         if (scrollbarThickness) {
@@ -878,7 +876,7 @@ export abstract class CartesianAxis<
     }
 
     protected updateLabels() {
-        if (!this.label.enabled) return;
+        if (!(this.options?.label?.enabled ?? true)) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {

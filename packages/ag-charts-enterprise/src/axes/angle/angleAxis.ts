@@ -3,6 +3,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import {
     ChartAxisDirection,
     type DynamicContext,
+    type NormalisedAngleAxisLabelOptions,
+    type NormalisedBasePolarAxisOptions,
     Property,
     type Scale,
     type ScaleTickParams,
@@ -34,12 +36,11 @@ interface AngleAxisTickDatum<TDatum> {
     visible: boolean;
 }
 
-class AngleAxisLabel extends _ModuleSupport.SeriesLabelProperties {
-    @Property
-    orientation: AgAngleAxisLabelOrientation = 'fixed';
-}
-
-export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
+export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<
+    TScale,
+    any,
+    NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions>
+> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @Property
@@ -72,10 +73,6 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
     get direction() {
         return ChartAxisDirection.Angle;
-    }
-
-    protected override createLabel() {
-        return new AngleAxisLabel();
     }
 
     calculateRotations() {
@@ -164,7 +161,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
         this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
         this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
-        this.tickLabelGroupSelection.update(this.label.enabled ? (data as any) : []);
+        this.tickLabelGroupSelection.update(this.options?.label?.enabled ?? true ? (data as any) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLineGroupSelection.cleanup();
@@ -301,7 +298,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     protected override updateLabels() {
-        const { label, tickLabelGroupSelection } = this;
+        const label = this.options!.label;
+        const { tickLabelGroupSelection } = this;
 
         tickLabelGroupSelection.each((node, _, index) => {
             const labelDatum = this.labelData[index];
@@ -350,7 +348,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         options: { hideWhenNecessary: boolean },
         seriesRect: _ModuleSupport.BBox
     ): AngleAxisLabelDatum[] {
-        const { label, gridLength: radius, scale, tick } = this;
+        const label = this.options!.label;
+        const { gridLength: radius, scale, tick } = this;
         if (!label.enabled) {
             return [];
         }
@@ -435,7 +434,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
 
-        if (!this.label.enabled || textBoxes.length === 0) {
+        if (!(this.options?.label?.enabled ?? true) || textBoxes.length === 0) {
             return null;
         }
 
@@ -443,12 +442,11 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     protected getLabelOrientation(): AgAngleAxisLabelOrientation {
-        const { label } = this;
-        return label instanceof AngleAxisLabel ? label.orientation : 'fixed';
+        return this.options?.label?.orientation ?? 'fixed';
     }
 
     protected getLabelRotation(tickAngle: number) {
-        let rotation = toRadians(this.label.rotation ?? 0);
+        let rotation = toRadians(this.options?.label?.rotation ?? 0);
         tickAngle = normalizeAngle360(tickAngle);
 
         const orientation = this.getLabelOrientation();

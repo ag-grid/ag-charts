@@ -2028,7 +2028,9 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return false;
         }
 
-        skip = ['type', ...skip];
+        // 'label' is read directly from `axis.options.label` per Phase 1b.2 (the
+        // class-based holder was removed); jsonApply has no field to walk into.
+        skip = ['type', 'label', ...skip];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';

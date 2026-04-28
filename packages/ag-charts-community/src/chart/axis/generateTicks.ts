@@ -102,7 +102,9 @@ export function generateTicks<TScale extends Scale<TDatum, number, TickInterval<
         ({ tickData, index } = buildTickData(options, tickGenerationType, tickData, index));
 
         autoRotation =
-            tryAutoRotate && checkLabelOverlap(tickData, 0) ? normalizeAngle360FromDegrees(label.autoRotateAngle) : 0;
+            tryAutoRotate && checkLabelOverlap(tickData, 0)
+                ? normalizeAngle360FromDegrees(label.autoRotateAngle ?? 335)
+                : 0;
 
         labelOverlap = avoidCollisions && checkLabelOverlap(tickData, autoRotation);
     }
