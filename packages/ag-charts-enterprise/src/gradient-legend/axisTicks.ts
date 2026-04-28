@@ -1,6 +1,7 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
+    type NormalisedGradientLegendLabelOptions,
     type ScaleTickParams,
     ZIndexMap,
     cachedTextMeasurer,
@@ -19,7 +20,16 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const { AxisInterval, SeriesLabelProperties, LinearScale, BBox, TranslatableGroup, Selection, Text } = _ModuleSupport;
+const {
+    AxisInterval,
+    LinearScale,
+    BBox,
+    TranslatableGroup,
+    Selection,
+    Text,
+    createAxisLabelFormatterCache,
+    formatAxisLabelValue,
+} = _ModuleSupport;
 
 interface TickDatum {
     tick: any;
@@ -39,8 +49,11 @@ export class AxisTicks {
     protected readonly labelSelection = Selection.select<_ModuleSupport.Text<TickDatum>>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
-    readonly label = new SeriesLabelProperties();
     readonly scale = new LinearScale();
+    readonly formatterCache = createAxisLabelFormatterCache();
+
+    /** Owned by the gradient legend; assigned via `applyOptions` before any layout call. */
+    labelOptions: NormalisedGradientLegendLabelOptions | undefined;
 
     namedLabels?: _ModuleSupport.GradientLegendNamedLabel[];
     placement: AgChartLegendPlacement = 'bottom';
@@ -78,7 +91,7 @@ export class AxisTicks {
     }
 
     calculateLayout(): _ModuleSupport.BBox | undefined {
-        const { placement, translationX, translationY, horizontal, label } = this;
+        const { placement, translationX, translationY, horizontal, labelOptions } = this;
 
         function unreachable(_a: never): never {
             return undefined as never;
@@ -127,11 +140,13 @@ export class AxisTicks {
         this.axisGroup.setProperties({ translationX, translationY });
 
         this.labelSelection.each((node, datum) => {
-            node.fontFamily = label.fontFamily;
-            node.fontSize = label.fontSize;
-            node.fontStyle = label.fontStyle;
-            node.fontWeight = label.fontWeight;
-            node.fill = label.color;
+            if (labelOptions != null) {
+                node.fontFamily = labelOptions.fontFamily;
+                node.fontSize = labelOptions.fontSize;
+                node.fontStyle = labelOptions.fontStyle;
+                node.fontWeight = labelOptions.fontWeight;
+                node.fill = labelOptions.color;
+            }
 
             node.textBaseline = textBaseline;
             node.textAlign = textAlign;
@@ -173,7 +188,13 @@ export class AxisTicks {
             };
 
             return (
-                this.label.formatValue((fn, params) => formatWithContext(ctx, fn, params), formatParams, index) ??
+                formatAxisLabelValue(
+                    this.labelOptions,
+                    this.formatterCache,
+                    (fn, params) => formatWithContext(ctx, fn, params),
+                    formatParams,
+                    index
+                ) ??
                 formatManager.format((fn, params) => formatWithContext(ctx, fn, params), formatParams) ??
                 formatManager.defaultFormat(formatParams)
             );
@@ -234,8 +255,10 @@ export class AxisTicks {
 
     private applyCollisionAvoidance(ticks: TickDatum[]) {
         if (this.placement !== 'bottom' && this.placement !== 'top') return;
+        const { labelOptions } = this;
+        if (labelOptions == null) return;
 
-        const measurer = cachedTextMeasurer(this.label);
+        const measurer = cachedTextMeasurer(labelOptions);
         const { domain } = this.scale;
         const reversed = domain[0] > domain[1];
         const direction = reversed ? -1 : 1;
@@ -244,7 +267,7 @@ export class AxisTicks {
         const keep: boolean[] = ticks.map((data) => {
             if (Math.sign(data.translation - lastTickPosition) !== direction) return false;
             const { width: labelWidth } = isArray(data.tickLabel)
-                ? measureTextSegments(data.tickLabel, this.label)
+                ? measureTextSegments(data.tickLabel, labelOptions)
                 : measurer.measureLines(toTextString(data.tickLabel));
             lastTickPosition = data.translation + labelWidth * direction;
             return true;

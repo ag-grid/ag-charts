@@ -1,5 +1,6 @@
 import {
     type AgChartLegendPosition,
+    type AgGradientLegendLabelOptions,
     type AgGradientLegendOptions,
     type AgGradientLegendScaleOptions,
     type Padding,
@@ -11,6 +12,7 @@ import {
     CleanupRegistry,
     type DynamicContext,
     type GradientColorStop,
+    type NormalisedGradientLegendLabelOptions,
     Property,
     ProxyProperty,
     ZIndexMap,
@@ -20,8 +22,7 @@ import {
 
 import { AxisTicks } from './axisTicks';
 
-const { AxisInterval, SeriesLabelProperties, LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } =
-    _ModuleSupport;
+const { AxisInterval, LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } = _ModuleSupport;
 
 const ITEM_SPACING = 16;
 
@@ -39,7 +40,7 @@ class GradientLegendScale
 {
     constructor(
         protected config: {
-            label: _ModuleSupport.SeriesLabelProperties;
+            label: NormalisedGradientLegendLabelOptions | undefined;
             interval: _ModuleSupport.AxisInterval<number>;
             padding: number;
         }
@@ -48,7 +49,7 @@ class GradientLegendScale
     }
 
     @ProxyProperty('config.label')
-    label!: _ModuleSupport.SeriesLabelProperties;
+    label?: AgGradientLegendLabelOptions;
 
     @ProxyProperty('config.interval')
     interval!: _ModuleSupport.AxisInterval<number>;
@@ -71,8 +72,12 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         () => new Group({ name: 'legend-axis-group' })
     );
 
-    private readonly scaleConfig = {
-        label: new SeriesLabelProperties(),
+    private readonly scaleConfig: {
+        label: NormalisedGradientLegendLabelOptions | undefined;
+        interval: _ModuleSupport.AxisInterval<number>;
+        padding: number;
+    } = {
+        label: undefined,
         interval: new AxisInterval(),
         padding: 0,
     };
@@ -248,13 +253,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
     ) {
         const { scaleConfig, gradient, scale } = this;
 
-        const mainLabel = scaleConfig.label;
-        axisTicks.label.fontFamily = mainLabel.fontFamily;
-        axisTicks.label.fontSize = mainLabel.fontSize;
-        axisTicks.label.fontStyle = mainLabel.fontStyle;
-        axisTicks.label.fontWeight = mainLabel.fontWeight;
-        axisTicks.label.color = mainLabel.color;
-        axisTicks.label.formatter = mainLabel.formatter;
+        axisTicks.labelOptions = scaleConfig.label;
         axisTicks.interval.step = scaleConfig.interval.step;
         axisTicks.interval.minSpacing = scaleConfig.interval.minSpacing;
         axisTicks.interval.maxSpacing = scaleConfig.interval.maxSpacing;
@@ -311,8 +310,8 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
                 continue;
             }
 
-            const { scale, label } = axisTicks;
-            const size = label.fontSize ?? 0;
+            const { scale, labelOptions } = axisTicks;
+            const size = labelOptions?.fontSize ?? 0;
             const t = scale.convert(highlighted.colorValue);
             let { x, y } = gradientRect;
             let rotation = Math.PI;
@@ -327,7 +326,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
             }
 
             arrow.visible = true;
-            arrow.fill = label.color;
+            arrow.fill = labelOptions?.color;
             arrow.rotation = rotation;
             arrow.size = size;
             arrow.translationX = x;
