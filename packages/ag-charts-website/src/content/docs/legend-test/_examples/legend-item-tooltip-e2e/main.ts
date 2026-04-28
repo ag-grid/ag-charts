@@ -42,8 +42,8 @@ function setMode(mode: string) {
                 item: {
                     label: { maxLength: 5 },
                     tooltip: {
-                        renderer: ({ text, enabled }: AgChartLegendItemTooltipRendererParams) => {
-                            const status = enabled ? 'Visible' : 'Hidden';
+                        renderer: ({ text, visible }: AgChartLegendItemTooltipRendererParams) => {
+                            const status = visible ? 'Visible' : 'Hidden';
                             return `<b>${text}</b> — <em>${status}</em>`;
                         },
                     },

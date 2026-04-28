@@ -1072,8 +1072,40 @@ describe('Legend', () => {
                 seriesId: expect.any(String),
                 itemId: 'y',
                 text: 'Series Y',
-                enabled: true,
+                visible: true,
             });
+        });
+
+        test('renderer returns undefined — falls back to text', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        text: 'Fallback text',
+                        renderer: () => undefined,
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Fallback text');
+        });
+
+        test('renderer returns undefined — falls back to default label when no text', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        visible: 'always',
+                        renderer: () => undefined,
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('Series Y');
         });
 
         test('toggleSeries: false — tooltip still works', async () => {
