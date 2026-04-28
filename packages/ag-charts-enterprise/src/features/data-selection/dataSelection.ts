@@ -64,7 +64,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        return function* (this: DataSelection) {
+        return function* getSelectionIterator(this: DataSelection) {
             for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
                 for (const [seriesId, selection] of dataSet.selections) {
                     for (let datumIndex = 0; datumIndex < selection.getLength(); datumIndex++) {
