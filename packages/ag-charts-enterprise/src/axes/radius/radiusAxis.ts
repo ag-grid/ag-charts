@@ -146,7 +146,7 @@ export abstract class RadiusAxis<
     } {
         const visibleRange: [number, number] = [0, 1];
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const labelSpacing = this.options.label?.spacing ?? 5;
+        const labelSpacing = this.options.label.spacing;
         const labelX = sideFlag * (this.getTickSize() + labelSpacing + this.seriesAreaPadding);
 
         const { range, reverse, defaultTickMinSpacing } = this;
@@ -198,7 +198,7 @@ export abstract class RadiusAxis<
 
     // TODO - abstract out
     protected override updateLabels() {
-        if (!(this.options.label?.enabled ?? true)) return;
+        if (!this.options.label.enabled) return;
 
         const axisLabelPositionFn = _ModuleSupport.resetAxisLabelSelectionFn();
 

@@ -1,9 +1,10 @@
-import { type AxisModuleDefinition, type DynamicContext } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
 import type { AgTimeAxisOptions } from 'ag-charts-types';
 
 import { timeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { TimeAxis } from '../../chart/axis/timeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
+import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -15,9 +16,12 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: timeAxisOptionsDefs,
-    themeTemplate: {
-        gridLine: { enabled: false },
-    },
+    themeTemplate: mergeDefaults(
+        {
+            gridLine: { enabled: false },
+        },
+        commonAxisThemeTemplate
+    ),
 
     create: (ctx: DynamicContext<ChartRegistry>, id, options) => new TimeAxis(ctx, id, options as any),
 };

@@ -44,7 +44,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
     }
 
     protected override getLabelFormat() {
-        return this.options.label?.format;
+        return this.options.label.format;
     }
 
     override hasDefinedDomain(): boolean {
@@ -116,7 +116,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options.label?.minSpacing;
+        const minSpacing = this.options.label.minSpacing;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {

@@ -763,7 +763,7 @@ export abstract class Axis<
         this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
-            spacing: this.options.label?.spacing ?? 5,
+            spacing: this.options.label.spacing,
             format: this.getLabelFormat(),
         };
 

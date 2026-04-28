@@ -510,8 +510,7 @@ export abstract class CartesianAxis<
 
     setAxisVisible(visible: boolean) {
         this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
-        this.tickLabelGroup.visible =
-            visible && ((this.options.label?.enabled ?? true) || (this.primaryTick?.enabled ?? false));
+        this.tickLabelGroup.visible = visible && (this.options.label.enabled || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
         this.headingLabelGroup.visible = visible;
     }
@@ -795,8 +794,7 @@ export abstract class CartesianAxis<
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
         let labelOffset =
-            sideFlag *
-                (this.getTickSize(tick) + this.getTickSpacing(tick) + (label?.spacing ?? 5) + seriesAreaPadding) -
+            sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -
             borderOffset;
 
         if (scrollbarThickness) {
@@ -877,7 +875,7 @@ export abstract class CartesianAxis<
     }
 
     protected updateLabels() {
-        if (!(this.options.label?.enabled ?? true)) return;
+        if (!this.options.label.enabled) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {

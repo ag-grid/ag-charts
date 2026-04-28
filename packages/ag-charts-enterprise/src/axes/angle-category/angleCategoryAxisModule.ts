@@ -1,5 +1,5 @@
 import { type AgAngleCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition, DynamicContext } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
 
 import { AngleCategoryAxis } from './angleCategoryAxis';
 
@@ -11,11 +11,14 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     version: VERSION,
 
     options: _ModuleSupport.angleCategoryAxisOptionsDefs,
-    themeTemplate: {
-        label: { spacing: 5 },
-        gridLine: { enabled: false },
-        shape: { $findFirstSiblingNotOperation: undefined },
-    },
+    themeTemplate: mergeDefaults(
+        {
+            label: { spacing: 5 },
+            gridLine: { enabled: false },
+            shape: { $findFirstSiblingNotOperation: undefined },
+        },
+        _ModuleSupport.commonAxisThemeTemplate
+    ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
         new AngleCategoryAxis(ctx, id, options as any),

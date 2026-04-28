@@ -48,7 +48,7 @@ export class RadiusNumberAxis extends RadiusAxis<
     }
 
     protected override getLabelFormat() {
-        return this.options.label?.format;
+        return this.options.label.format;
     }
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {

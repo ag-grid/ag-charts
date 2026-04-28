@@ -41,7 +41,7 @@ export abstract class PolarAxis<
         super.update();
 
         this.tickLineGroup.visible = this.tick.enabled;
-        this.tickLabelGroup.visible = this.options.label?.enabled ?? true;
+        this.tickLabelGroup.visible = this.options.label.enabled;
     }
 
     layoutCrossLines() {

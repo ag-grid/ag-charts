@@ -163,7 +163,7 @@ export abstract class AngleAxis<
 
         this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
         this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
-        this.tickLabelGroupSelection.update(this.options.label?.enabled ?? true ? (data as any) : []);
+        this.tickLabelGroupSelection.update(this.options.label.enabled ? (data as any) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLineGroupSelection.cleanup();
@@ -436,7 +436,7 @@ export abstract class AngleAxis<
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
 
-        if (!(this.options.label?.enabled ?? true) || textBoxes.length === 0) {
+        if (!this.options.label.enabled || textBoxes.length === 0) {
             return null;
         }
 
@@ -444,11 +444,11 @@ export abstract class AngleAxis<
     }
 
     protected getLabelOrientation(): AgAngleAxisLabelOrientation {
-        return this.options.label?.orientation ?? 'fixed';
+        return this.options.label.orientation;
     }
 
     protected getLabelRotation(tickAngle: number) {
-        let rotation = toRadians(this.options.label?.rotation ?? 0);
+        let rotation = toRadians(this.options.label.rotation ?? 0);
         tickAngle = normalizeAngle360(tickAngle);
 
         const orientation = this.getLabelOrientation();

@@ -42,7 +42,7 @@ export class NumberAxis<
     }
 
     protected override getLabelFormat() {
-        return this.options.label?.format;
+        return this.options.label.format;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {

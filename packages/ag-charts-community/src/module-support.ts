@@ -34,6 +34,7 @@ export {
     annotationShapeStylesDefs,
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
+export { commonAxisThemeTemplate } from './chart/themes/axisThemeTemplate';
 export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,

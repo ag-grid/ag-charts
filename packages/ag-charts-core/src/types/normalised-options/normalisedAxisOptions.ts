@@ -32,7 +32,12 @@ import type { Normalised } from './normalise';
 // gradient-legend's `AxisTicks`. They are deliberately excluded from these aliases
 // per invariant I2.
 
-type AxisLabelRequiredKeys = 'enabled' | 'avoidCollisions' | 'spacing' | 'fontSize' | 'fontFamily';
+// `fontWeight | color | cornerRadius | padding` are populated by the common axis
+// theme template but cannot be required here yet: `SeriesLabelProperties` (still
+// used by `primaryLabel` until Phase 4 dismantles `TimeAxisParentLevel`) declares
+// them as optional. Phase 4 promotes them to required once primaryLabel returns
+// an options shape.
+type AxisLabelRequiredKeys = 'enabled' | 'avoidCollisions' | 'spacing' | 'fontSize' | 'fontFamily' | 'border';
 
 /**
  * `fontFamily` is narrowed from `FontFamilyFull` (which can be a `GoogleFontFamily`

@@ -56,7 +56,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
-        const format = this.options.label?.format;
+        const format = this.options.label.format;
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 

@@ -93,7 +93,7 @@ export class AngleCategoryAxis extends AngleAxis<
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options.label?.minSpacing;
+        const minSpacing = this.options.label.minSpacing;
 
         if (labelData.length < 3) return;
 
