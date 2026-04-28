@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
 import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
@@ -27,8 +27,13 @@ export class NumberAxis<
     @Property
     preferredMax?: number;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale = new LinearScale() as LinearScale | LogScale) {
-        super(moduleCtx, scale);
+    constructor(
+        moduleCtx: DynamicContext<ChartRegistry>,
+        id: AxisID,
+        options: TOptions,
+        scale: LinearScale | LogScale = new LinearScale()
+    ) {
+        super(moduleCtx, id, scale, options);
     }
 
     override hasDefinedDomain(): boolean {
@@ -37,7 +42,7 @@ export class NumberAxis<
     }
 
     protected override getLabelFormat() {
-        return this.options?.label?.format;
+        return this.options.label?.format;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {

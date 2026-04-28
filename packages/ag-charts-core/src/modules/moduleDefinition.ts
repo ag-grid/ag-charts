@@ -2,6 +2,8 @@ import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxi
 
 import type { DynamicContext } from '../module/dynamicContext';
 import type { OptionsDefs, ValidationResult } from '../state/validation';
+import type { AxisID } from '../types/idBranding';
+import type { Normalised } from '../types/normalised-options/normalise';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
 
@@ -104,7 +106,12 @@ export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleT
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
+
+    create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): ModuleInstance;
 }
+
+/** The post-theme-merge options shape passed to {@link AxisModuleDefinition.create}. */
+export type AxisCreateOptions<TOptions> = Normalised<TOptions>;
 
 export interface SeriesModuleDefinition<TOptions>
     extends ModuleDefinition<ModuleType.Series, TOptions, SeriesModuleInstance> {

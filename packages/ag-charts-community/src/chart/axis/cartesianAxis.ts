@@ -1,4 +1,5 @@
 import type {
+    AxisID,
     ChartAnimationPhase,
     DynamicContext,
     NormalisedBaseCartesianAxisOptions,
@@ -137,8 +138,8 @@ export abstract class CartesianAxis<
         return this.position === 'top' || this.position === 'bottom';
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale: S) {
-        super(moduleCtx, scale);
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, scale: S, options: TOptions) {
+        super(moduleCtx, id, scale, options);
 
         this.animationManager = moduleCtx.animationManager;
 
@@ -245,7 +246,7 @@ export abstract class CartesianAxis<
         layout: GeneratedTicks;
     } {
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const label = this.options?.label;
+        const label = this.options.label;
         const labelX =
             sideFlag * (this.getTickSize() + this.getTickSpacing() + (label?.spacing ?? 5) + this.seriesAreaPadding);
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
@@ -283,7 +284,7 @@ export abstract class CartesianAxis<
         const { primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } = this;
 
         const tickGenerationResult = generateTicks({
-            label: label!,
+            label,
             parallel: this.parallel,
             scale,
             interval,
@@ -510,7 +511,7 @@ export abstract class CartesianAxis<
     setAxisVisible(visible: boolean) {
         this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
         this.tickLabelGroup.visible =
-            visible && ((this.options?.label?.enabled ?? true) || (this.primaryTick?.enabled ?? false));
+            visible && ((this.options.label?.enabled ?? true) || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
         this.headingLabelGroup.visible = visible;
     }
@@ -630,7 +631,7 @@ export abstract class CartesianAxis<
         scrollbarThickness: number
     ) {
         const { tick, primaryTick, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
-        const label = this.options?.label;
+        const label = this.options.label;
         const boxes: BBox[] = [];
 
         boxes.push(this.lineNodeBBox());
@@ -787,7 +788,7 @@ export abstract class CartesianAxis<
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
-        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options?.label;
+        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
         const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
@@ -876,7 +877,7 @@ export abstract class CartesianAxis<
     }
 
     protected updateLabels() {
-        if (!(this.options?.label?.enabled ?? true)) return;
+        if (!(this.options.label?.enabled ?? true)) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {

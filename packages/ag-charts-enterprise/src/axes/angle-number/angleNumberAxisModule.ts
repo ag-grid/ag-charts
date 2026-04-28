@@ -1,5 +1,5 @@
 import { type AgAngleNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition } from 'ag-charts-core';
+import type { AxisModuleDefinition, DynamicContext } from 'ag-charts-core';
 
 import { AngleNumberAxis } from './angleNumberAxis';
 
@@ -16,5 +16,6 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
         gridLine: { enabled: false },
     },
 
-    create: (ctx) => new AngleNumberAxis(ctx),
+    create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
+        new AngleNumberAxis(ctx, id, options as any),
 };

@@ -1,4 +1,5 @@
 import type {
+    AxisID,
     DomainWithMetadata,
     DynamicContext,
     NormalisedBaseCartesianAxisOptions,
@@ -58,10 +59,12 @@ export class CategoryAxis<
 
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
-        scale = new CategoryScale<string | object>() as S,
+        id: AxisID,
+        options: TOptions,
+        scale: S = new CategoryScale<string | object>() as S,
         includeInvisibleDomains: boolean = true
     ) {
-        super(moduleCtx, scale);
+        super(moduleCtx, id, scale, options);
 
         this.includeInvisibleDomains = includeInvisibleDomains;
         // Has no effect and can speed up tick generation

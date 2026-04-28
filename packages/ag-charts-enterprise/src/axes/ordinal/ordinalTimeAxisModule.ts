@@ -1,5 +1,5 @@
 import { type AgOrdinalTimeAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition } from 'ag-charts-core';
+import type { AxisModuleDefinition, DynamicContext } from 'ag-charts-core';
 
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 
@@ -18,5 +18,6 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
         interval: { placement: 'between' },
     },
 
-    create: (ctx) => new OrdinalTimeAxis(ctx),
+    create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
+        new OrdinalTimeAxis(ctx, id, options as any),
 };

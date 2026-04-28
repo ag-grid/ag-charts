@@ -1,4 +1,10 @@
-import type { ChartAxisDirection, DomainWithMetadata, DynamicContext, NormalisedTimeAxisOptions } from 'ag-charts-core';
+import type {
+    AxisID,
+    ChartAxisDirection,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedTimeAxisOptions,
+} from 'ag-charts-core';
 import {
     BaseProperties,
     Logger,
@@ -72,8 +78,8 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     @ProxyPropertyOnWrite('_unit')
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new TimeScale());
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: TOptions) {
+        super(moduleCtx, id, new TimeScale(), options);
     }
 
     override hasDefinedDomain(): boolean {
@@ -90,7 +96,7 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
-        const format = this.options?.label?.format;
+        const format = this.options.label?.format;
         // `AgTimeAxisFormattableLabelUnitFormat` is structurally a partial record of
         // unit → format-string. Coerce here for compatibility with `AxisLayout` and
         // `FormatManager` which both type the value as `Record<string, string>`.

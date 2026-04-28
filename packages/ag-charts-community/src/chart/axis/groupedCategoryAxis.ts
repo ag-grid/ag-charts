@@ -1,4 +1,4 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { AxisID, DynamicContext, NormalisedGroupedCategoryAxisOptions } from 'ag-charts-core';
 import {
     BaseProperties,
     PropertiesArray,
@@ -154,8 +154,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     @Property
     depthOptions = new PropertiesArray(DepthProperties);
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new GroupedCategoryScale<GroupedCategoryKey>());
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedGroupedCategoryAxisOptions) {
+        super(moduleCtx, id, options as any, new GroupedCategoryScale<GroupedCategoryKey>());
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -165,7 +165,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
         const { depthOptions } = this;
-        const label = this.options?.label;
+        const label = this.options.label;
         const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
@@ -211,7 +211,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
         const { step } = this.scale;
         const { title, range, depthOptions, horizontal, line } = this;
-        const label = this.options?.label;
+        const label = this.options.label;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
         const tickSpacing = this.getTickSpacing();

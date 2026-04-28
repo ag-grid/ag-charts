@@ -1,5 +1,12 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import { type DynamicContext, Property, type ScaleTickParams, isNumberEqual } from 'ag-charts-core';
+import {
+    type AxisID,
+    type DynamicContext,
+    type NormalisedAngleCategoryAxisOptions,
+    Property,
+    type ScaleTickParams,
+    isNumberEqual,
+} from 'ag-charts-core';
 
 import { walkPairsOutward } from '../../utils/polar';
 import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
@@ -7,7 +14,11 @@ import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
 const { CategoryScale } = _ModuleSupport;
-export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
+export class AngleCategoryAxis extends AngleAxis<
+    string,
+    _ModuleSupport.BandScale<string>,
+    NormalisedAngleCategoryAxisOptions
+> {
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 
@@ -20,8 +31,12 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     @Property
     override interval = new AngleAxisInterval();
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super(moduleCtx, new CategoryScale());
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedAngleCategoryAxisOptions
+    ) {
+        super(moduleCtx, id, new CategoryScale(), options);
     }
 
     override hasDefinedDomain(): boolean {
@@ -78,7 +93,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options?.label?.minSpacing;
+        const minSpacing = this.options.label?.minSpacing;
 
         if (labelData.length < 3) return;
 

@@ -186,7 +186,7 @@ export abstract class Axis<
 
     protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
 
-    id: AxisID = 'unknown' as AxisID;
+    readonly id: AxisID = 'unknown' as AxisID;
 
     private _crossLines: CrossLine[] = [];
     set crossLines(value: CrossLine[]) {
@@ -221,7 +221,7 @@ export abstract class Axis<
     @Property
     readonly interval = new AxisInterval();
 
-    options: TOptions | undefined = undefined;
+    options: TOptions;
 
     /**
      * Internal axis state derived from `position` (cartesian) or layout direction
@@ -372,8 +372,12 @@ export abstract class Axis<
 
     constructor(
         protected readonly moduleCtx: DynamicContext<ChartRegistry>,
-        readonly scale: S
+        id: AxisID,
+        readonly scale: S,
+        options: TOptions
     ) {
+        this.id = id;
+        this.options = options;
         this.range = this.scale.range.slice() as [number, number];
         for (const crossLine of this.crossLines) {
             this.initCrossLine(crossLine);
@@ -541,7 +545,7 @@ export abstract class Axis<
     protected getLabelStyles(
         params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
-        label: NormalisedBaseAxisLabelOptions = this.options!.label
+        label: NormalisedBaseAxisLabelOptions = this.options.label
     ) {
         const defaultStyle = {
             border: label.border,
@@ -759,7 +763,7 @@ export abstract class Axis<
         this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
-            spacing: this.options?.label?.spacing ?? 5,
+            spacing: this.options.label?.spacing ?? 5,
             format: this.getLabelFormat(),
         };
 
@@ -847,7 +851,7 @@ export abstract class Axis<
         dateStyle: DateFormatterStyle = 'long'
     ): (value: any, index: number) => TextOrSegments {
         const { moduleCtx } = this;
-        const label = this.options?.label;
+        const label = this.options.label;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
@@ -1005,7 +1009,7 @@ export abstract class Axis<
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            formatAxisLabelValue(this.options?.label, this.formatterCache, f, formatParams, Number.NaN) ??
+            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);

@@ -2122,9 +2122,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const moduleContext = this.getModuleContext();
 
         for (const [id, axisOptions] of entries(options)) {
-            const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(moduleContext) as any;
-            axis.id = id as AxisID;
-            axis.options = axisOptions;
+            const axis = ModuleRegistry.getAxisModule(axisOptions.type!)!.create(
+                moduleContext,
+                id as AxisID,
+                axisOptions
+            ) as any;
             this.applyAxisModules(axis, axisOptions);
             jsonApply(axis, axisOptions, { skip });
 

@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext, NormalisedUnitTimeAxisOptions } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedUnitTimeAxisOptions } from 'ag-charts-core';
 import {
     Property,
     dateTruncationForDomain,
@@ -56,7 +56,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
-        const format = this.options?.label?.format;
+        const format = this.options.label?.format;
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
@@ -64,8 +64,8 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         return this.primaryLabel?.format;
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new UnitTimeScale(), false);
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedUnitTimeAxisOptions) {
+        super(moduleCtx, id, options, new UnitTimeScale(), false);
     }
 
     override hasDefinedDomain(): boolean {

@@ -107,7 +107,7 @@ export type {
 export { ChartOptions } from './module/optionsModule';
 export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
-export { type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
+export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export { Background } from './chart/background/background';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';

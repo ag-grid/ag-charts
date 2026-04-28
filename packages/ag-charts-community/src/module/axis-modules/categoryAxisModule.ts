@@ -1,10 +1,11 @@
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext } from 'ag-charts-core';
 import type { AgCategoryAxisOptions } from 'ag-charts-types';
 
 import { categoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
+import type { ChartRegistry } from '../moduleContext';
 
 export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
     type: 'axis',
@@ -21,5 +22,5 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
         interval: { placement: 'between' },
     },
 
-    create: (ctx) => new CategoryAxis(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new CategoryAxis(ctx, id, options as any),
 };

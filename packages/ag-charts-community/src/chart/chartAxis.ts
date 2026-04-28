@@ -146,7 +146,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     layoutConstraints: AxisLayoutConstraints;
     line: AxisLine;
     nice: boolean;
-    options?: TOptions;
+    options: TOptions;
     mirrored: boolean;
     parallel: boolean;
     position?: AgCartesianAxisPosition;

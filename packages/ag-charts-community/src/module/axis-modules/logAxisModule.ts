@@ -1,10 +1,11 @@
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext } from 'ag-charts-core';
 import type { AgLogAxisOptions } from 'ag-charts-types';
 
 import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
+import type { ChartRegistry } from '../moduleContext';
 
 export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     type: 'axis',
@@ -19,5 +20,5 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
         line: { enabled: false },
     },
 
-    create: (ctx) => new LogAxis(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new LogAxis(ctx, id, options as any),
 };

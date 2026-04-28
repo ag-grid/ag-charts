@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
 import { Logger, normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -69,7 +69,7 @@ export class LogAxis extends NumberAxis {
         return (this.scale as LogScale).base;
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new LogScale());
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedNumberAxisOptions) {
+        super(moduleCtx, id, options, new LogScale());
     }
 }

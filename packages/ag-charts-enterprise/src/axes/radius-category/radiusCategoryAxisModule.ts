@@ -1,5 +1,5 @@
 import { type AgRadiusCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition } from 'ag-charts-core';
+import type { AxisModuleDefinition, DynamicContext } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
 
@@ -17,5 +17,6 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
         label: { minSpacing: 5 },
     },
 
-    create: (ctx) => new RadiusCategoryAxis(ctx),
+    create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
+        new RadiusCategoryAxis(ctx, id, options as any),
 };

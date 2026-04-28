@@ -1,5 +1,5 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext, NormalisedAngleNumberAxisOptions } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedAngleNumberAxisOptions } from 'ag-charts-core';
 import {
     Property,
     type ScaleTickParams,
@@ -35,17 +35,21 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
     @Property
     override interval = new AngleAxisInterval();
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super(moduleCtx, new LinearAngleScale());
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedAngleNumberAxisOptions
+    ) {
+        super(moduleCtx, id, new LinearAngleScale(), options);
+    }
+
+    protected override getLabelFormat() {
+        return this.options.label?.format;
     }
 
     override hasDefinedDomain(): boolean {
         const { min, max } = this;
         return min != null && max != null && min < max;
-    }
-
-    protected override getLabelFormat() {
-        return this.options?.label?.format;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
@@ -112,7 +116,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const minSpacing = this.options?.label?.minSpacing;
+        const minSpacing = this.options.label?.minSpacing;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {

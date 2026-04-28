@@ -1,10 +1,11 @@
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext } from 'ag-charts-core';
 import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
 
 import { groupedCategoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { GroupedCategoryAxis } from '../../chart/axis/groupedCategoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
+import type { ChartRegistry } from '../moduleContext';
 
 export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAxisOptions> = {
     type: 'axis',
@@ -22,5 +23,5 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
         groupPaddingInner: 0.2,
     },
 
-    create: (ctx) => new GroupedCategoryAxis(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new GroupedCategoryAxis(ctx, id, options as any),
 };

@@ -1,10 +1,11 @@
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import { type AxisModuleDefinition, type DynamicContext } from 'ag-charts-core';
 import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 
 import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
 import { VERSION } from '../../version';
+import type { ChartRegistry } from '../moduleContext';
 
 export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
     type: 'axis',
@@ -22,5 +23,5 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
         interval: { placement: 'between' },
     },
 
-    create: (ctx) => new UnitTimeAxis(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new UnitTimeAxis(ctx, id, options as any),
 };

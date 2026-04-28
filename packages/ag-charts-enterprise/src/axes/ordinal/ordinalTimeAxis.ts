@@ -6,6 +6,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type AxisID,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
     Property,
@@ -48,7 +49,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
-        const format = this.options?.label?.format;
+        const format = this.options.label?.format;
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
@@ -56,9 +57,13 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
         return this.primaryLabel?.format;
     }
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedOrdinalTimeAxisOptions
+    ) {
         const accurateScale = new OrdinalTimeScale();
-        super(moduleCtx, accurateScale);
+        super(moduleCtx, id, options, accurateScale);
         this.accurateScale = accurateScale;
         this.approximateScale = new ApproximateOrdinalTimeScale();
 
