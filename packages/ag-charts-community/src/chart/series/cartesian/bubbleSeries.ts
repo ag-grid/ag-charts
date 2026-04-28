@@ -63,6 +63,7 @@ import {
     type GradientLegendDatum,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
 } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
@@ -1387,13 +1388,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                     colorScaleProps.fills,
                     this.id,
                     this.visible,
-                    {
-                        formatManager: this.ctx.formatManager,
-                        formatInContext: this.callWithContext.bind(this),
-                        key: this.properties.colorKey,
-                        legendItemName: this.properties.legendItemName,
-                        boundSeries: this.getFormatterContext('color'),
-                    },
+                    colorScaleLegendFormatterContext(this),
                     this.properties.shape
                 );
             }

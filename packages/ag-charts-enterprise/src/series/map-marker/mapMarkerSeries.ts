@@ -43,6 +43,7 @@ const {
     getMissCount,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -984,13 +985,13 @@ export class MapMarkerSeries
             ];
         } else if (legendType === 'category') {
             if (colorScaleProps.mode === 'discrete' && hasColorScale) {
-                return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, visible, {
-                    formatManager: this.ctx.formatManager,
-                    formatInContext: this.callWithContext.bind(this),
-                    key: colorKey,
-                    legendItemName,
-                    boundSeries: this.getFormatterContext('color'),
-                });
+                return buildColorCategoryLegendData(
+                    this.colorScale,
+                    colorScaleProps.fills,
+                    seriesId,
+                    visible,
+                    colorScaleLegendFormatterContext(this)
+                );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',

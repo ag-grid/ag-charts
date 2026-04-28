@@ -200,6 +200,36 @@ export interface ColorScaleLegendFormatterContext {
 }
 
 /**
+ * Minimal shape any colour-scale series exposes that lets us pull together a
+ * `ColorScaleLegendFormatterContext` without the caller hand-packing the same
+ * five fields at every site. Defined structurally so it composes with both
+ * community and enterprise `Series` subclasses without an import cycle.
+ */
+interface ColorScaleSeries {
+    readonly properties: { colorKey?: string; legendItemName?: string };
+    readonly ctx: { formatManager: FormatManager };
+    callWithContext: GlobalContextFormatter;
+    getFormatterContext(property: 'color'): FormatterBoundSeries[];
+}
+
+/**
+ * Pulls together the formatter context for a colour-scale legend from a
+ * series instance. Used by every series that supports
+ * `colorScale.mode === 'discrete'`. Replaces the previous per-call-site
+ * boilerplate that packed the same five fields by hand.
+ */
+export function colorScaleLegendFormatterContext(series: ColorScaleSeries): ColorScaleLegendFormatterContext {
+    return {
+        formatManager: series.ctx.formatManager,
+        formatInContext: series.callWithContext.bind(series),
+        // Read via bracket access so the result is `string | undefined` without an `as` cast.
+        key: 'colorKey' in series.properties ? series.properties.colorKey : undefined,
+        legendItemName: 'legendItemName' in series.properties ? series.properties.legendItemName : undefined,
+        boundSeries: series.getFormatterContext('color'),
+    };
+}
+
+/**
  * Builds a number formatter for discrete-bin colour-scale legend labels.
  *
  * Routes values through the chart-level `formatter.color` callback (or the
@@ -208,12 +238,14 @@ export interface ColorScaleLegendFormatterContext {
  * `'gradient-legend'` rather than `'legend-label'` so that the same user
  * formatter applies in both legend modes — toggling `colorScale.mode` between
  * `'continuous'` and `'discrete'` should not silently switch the user's
- * formatter on or off. Users who want to differentiate the discrete-bin
- * labels can branch on `params.fractionDigits` (set to `0` for the integer
- * bin path) or `params.value`.
+ * formatter on or off. Any future colour-scale legend variant should keep this
+ * source for the same reason. Users who want to differentiate the discrete-bin
+ * labels can branch on `params.fractionDigits` (set to `0` for the integer bin
+ * path) or `params.value`.
  */
 function createBinFormatter(
     colorScale: ColorScaleState,
+    seriesId: string,
     { formatManager, formatInContext, key, legendItemName, boundSeries }: ColorScaleLegendFormatterContext
 ): (value: number, fractionDigits?: number) => string {
     const { domain } = colorScale;
@@ -222,7 +254,7 @@ function createBinFormatter(
             type: 'number',
             value,
             datum: undefined,
-            seriesId: boundSeries[0]?.seriesId,
+            seriesId,
             legendItemName,
             key,
             source: 'gradient-legend',
@@ -253,7 +285,7 @@ export function buildColorCategoryLegendData(
     const { domain, range } = colorScale;
     if (range.length === 0) return [];
 
-    const formatBinValue = createBinFormatter(colorScale, formatterContext);
+    const formatBinValue = createBinFormatter(colorScale, seriesId, formatterContext);
 
     return range.map((color, i): CategoryLegendDatum => {
         const start = domain[i];

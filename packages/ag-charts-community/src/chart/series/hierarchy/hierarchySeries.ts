@@ -17,6 +17,7 @@ import {
     type GradientLegendDatum,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
 } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
@@ -350,14 +351,13 @@ export abstract class HierarchySeries<
         const enabled = visible && (legendManager?.getItemEnabled({ seriesId }) ?? true);
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
-            return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, {
-                formatManager: this.ctx.formatManager,
-                formatInContext: this.callWithContext.bind(this),
-                key: colorKey,
-                legendItemName:
-                    'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined,
-                boundSeries: this.getFormatterContext('color'),
-            });
+            return buildColorCategoryLegendData(
+                this.colorScale,
+                colorScaleProps.fills,
+                seriesId,
+                enabled,
+                colorScaleLegendFormatterContext(this)
+            );
         }
 
         if (legendType === 'gradient') {
