@@ -71,17 +71,5 @@ export interface DatumItemCallbackParams<
 export type Formatter<P> = (params: P) => TextValue | undefined;
 export type RichFormatter<P> = (params: P) => TextOrSegments | undefined;
 export type Styler<P, S> = (params: P) => S | undefined;
-/**
- * Standard renderer callback for content-producing options (tooltips, crosshair labels, overlays, etc.).
- *
- * Return semantics (consumers must follow this convention):
- * - Return a `TextValue` (string/number/Date) or `R` to provide content.
- * - Return `undefined` (or omit a return value) to fall through to the default content
- *   (e.g. `tooltip.text`, the formatted axis value, or the built-in overlay text).
- * - Return an empty string to render empty content. Whether that suppresses the tooltip/label
- *   entirely is a per-consumer choice — tooltip-style consumers treat empty string as "suppress".
- *
- * All `renderer?:` declarations in `ag-charts-types` MUST use this type so the contract is uniform.
- */
 export type Renderer<P, R> = (params: P) => TextValue | R | undefined;
 export type Listener<E> = (event: E) => void;
