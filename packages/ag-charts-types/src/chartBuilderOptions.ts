@@ -3,6 +3,7 @@ import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseCartesianChartOptions } from './chart/cartesianOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type { AgDataTransaction } from './chart/dataTransaction';
+import type { AgSelectionItem, AgSelectionItemIds } from './chart/eventOptions';
 import type { AgBasePolarChartOptions } from './chart/polarOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -217,6 +218,23 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
     getState(): AgChartState;
     /** Sets the state of the given `AgChartInstance` to the state provided.*/
     setState(state: AgChartState): Promise<void>;
+
+    /**
+     * Retrieve the current selection transient state. Requires the `SelectionModule` to be enabled.
+     * An error may be thrown if the chart state mutates whilst the selection items are being iterated.
+     *
+     * @returns An iterable list of all the selected items in the chart.
+     */
+    getSelection(): Iterable<AgSelectionItem<TDatum>>;
+    /**
+     * Set the current selection transient state. The current selection is cleared before setting the new selection
+     * state. Requires the `SelectionModule` to be enabled.
+     */
+    setSelection(items: Iterable<AgSelectionItemIds>): void;
+    /**
+     * Clear the entire selection state of all items on all series.
+     */
+    clearSelection(): void;
 
     /** Destroy the chart instance and any allocated resources supporting its rendering. */
     destroy(): void;

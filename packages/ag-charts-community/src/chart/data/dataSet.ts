@@ -170,6 +170,23 @@ export class DataSet<T = unknown> {
         return this.idArrayCache;
     }
 
+    getItemIdFromIndex(datumIndex: number): string | number {
+        const datum: T | undefined = this.data.at(datumIndex);
+        const itemId = datum ? this.getIdValue(datum) : undefined;
+        return itemId ?? datumIndex;
+    }
+
+    getIndexFromItemId(itemId: string | number): number | undefined {
+        if (typeof itemId === 'number') {
+            if (!Number.isInteger(itemId) || itemId < 0 || itemId >= this.data.length) {
+                return undefined;
+            } else {
+                return itemId;
+            }
+        }
+        return this.getIdToIndexMap().get(itemId);
+    }
+
     /**
      * Transfer persistent state (selections) from a predecessor DataSet.
      * Uses `idArray` + `idToIndexMap` to map selected keys from old to new index space.
