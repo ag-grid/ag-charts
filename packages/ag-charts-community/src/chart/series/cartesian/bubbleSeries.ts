@@ -1387,7 +1387,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                     colorScaleProps.fills,
                     this.id,
                     this.visible,
-                    formatValue,
+                    {
+                        formatManager: this.ctx.formatManager,
+                        formatInContext: this.callWithContext.bind(this),
+                        key: this.properties.colorKey,
+                        legendItemName: this.properties.legendItemName,
+                        boundSeries: this.getFormatterContext('color'),
+                    },
                     this.properties.shape
                 );
             }

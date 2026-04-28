@@ -786,13 +786,13 @@ export class MapShapeSeries
             ];
         } else if (legendType === 'category') {
             if (colorScaleProps.mode === 'discrete' && hasColorScale) {
-                return buildColorCategoryLegendData(
-                    this.colorScale,
-                    colorScaleProps.fills,
-                    seriesId,
-                    visible,
-                    formatValue
-                );
+                return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, visible, {
+                    formatManager: this.ctx.formatManager,
+                    formatInContext: this.callWithContext.bind(this),
+                    key: colorKey,
+                    legendItemName,
+                    boundSeries: this.getFormatterContext('color'),
+                });
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',

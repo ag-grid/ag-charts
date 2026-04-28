@@ -856,13 +856,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { colorScale: colorScaleProps } = this.properties;
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && colorScaleProps.fills.length > 0) {
-            return buildColorCategoryLegendData(
-                this.colorScale,
-                colorScaleProps.fills,
-                this.id,
-                this.visible,
-                formatValue
-            );
+            return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, this.id, this.visible, {
+                formatManager: this.ctx.formatManager,
+                formatInContext: this.callWithContext.bind(this),
+                key: this.properties.colorKey,
+                legendItemName: this.properties.legendItemName,
+                boundSeries: this.getFormatterContext('color'),
+            });
         }
 
         if (legendType === 'gradient') {

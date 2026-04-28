@@ -314,6 +314,7 @@ export {
     type CategoryLegendDatum,
     type ChartLegendDatum,
     type ChartLegendType,
+    type ColorScaleLegendFormatterContext,
     type GradientLegendDatum,
     type GradientLegendNamedLabel,
 } from './chart/legend/legendDatum';

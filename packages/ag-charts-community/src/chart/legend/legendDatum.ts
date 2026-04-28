@@ -5,10 +5,17 @@ import {
     deriveNormalizedStops,
     formatColorBinLabel,
 } from 'ag-charts-core';
-import type { AgChartLegendListeners, AgColorScaleColorStop, AgMarkerShape, TextOrSegments } from 'ag-charts-types';
+import type {
+    AgChartLegendListeners,
+    AgColorScaleColorStop,
+    AgMarkerShape,
+    NumberFormatterParams,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { ColorScale } from '../../scale/colorScale';
 import type { Scene } from '../../scene/scene';
+import type { FormatManager, GlobalContextFormatter } from '../formatter/formatManager';
 import type { LegendSymbolOptions } from './legendSymbol';
 
 export interface ChartLegend extends PluginModuleInstance {
@@ -177,19 +184,76 @@ export function buildGradientLegendDatum(
 }
 
 /**
+ * Context required to format discrete-bin colour-scale legend labels through
+ * the chart-level `formatter.color` pipeline. Built once per legend update by
+ * the caller (the series), then handed to `buildColorCategoryLegendData`.
+ */
+export interface ColorScaleLegendFormatterContext {
+    formatManager: FormatManager;
+    formatInContext: GlobalContextFormatter;
+    /** The colour-key of the series, surfaced to user formatters as `params.key`. */
+    key: string | undefined;
+    /** The legendItemName of the series, surfaced to user formatters as `params.legendItemName`. */
+    legendItemName: string | undefined;
+    /** The series formatter-context (`series.getFormatterContext('color')`), surfaced as `params.boundSeries`. */
+    boundSeries: FormatterBoundSeries[];
+}
+
+/**
+ * Builds a number formatter for discrete-bin colour-scale legend labels.
+ *
+ * Routes values through the chart-level `formatter.color` callback (or the
+ * matching specifier-string formatter) before falling back to the manager's
+ * default numeric formatting. The FormatterParams `source` is reported as
+ * `'gradient-legend'` rather than `'legend-label'` so that the same user
+ * formatter applies in both legend modes — toggling `colorScale.mode` between
+ * `'continuous'` and `'discrete'` should not silently switch the user's
+ * formatter on or off. Users who want to differentiate the discrete-bin
+ * labels can branch on `params.fractionDigits` (set to `0` for the integer
+ * bin path) or `params.value`.
+ */
+function createBinFormatter(
+    colorScale: ColorScaleState,
+    { formatManager, formatInContext, key, legendItemName, boundSeries }: ColorScaleLegendFormatterContext
+): (value: number, fractionDigits?: number) => string {
+    const { domain } = colorScale;
+    return (value, fractionDigits) => {
+        const params: NumberFormatterParams<any, any> = {
+            type: 'number',
+            value,
+            datum: undefined,
+            seriesId: boundSeries[0]?.seriesId,
+            legendItemName,
+            key,
+            source: 'gradient-legend',
+            property: 'color',
+            domain,
+            boundSeries,
+            fractionDigits,
+            visibleDomain: undefined,
+        };
+        return formatManager.format(formatInContext, params) ?? formatManager.defaultFormat(params);
+    };
+}
+
+/**
  * Builds category legend data for a discrete colour scale, deriving bin
- * boundaries on the fly from the ColorScale's domain/range state.
+ * boundaries on the fly from the ColorScale's domain/range state. Bin labels
+ * are formatted through the chart-level formatter pipeline supplied by
+ * `formatterContext` (see `ColorScaleLegendFormatterContext`).
  */
 export function buildColorCategoryLegendData(
     colorScale: ColorScaleState,
     fills: AgColorScaleColorStop[],
     seriesId: string,
     enabled: boolean,
-    formatValue: (value: number, maximumFractionDigits?: number) => string,
+    formatterContext: ColorScaleLegendFormatterContext,
     shape: AgMarkerShape = 'square'
 ): CategoryLegendDatum[] {
     const { domain, range } = colorScale;
     if (range.length === 0) return [];
+
+    const formatBinValue = createBinFormatter(colorScale, formatterContext);
 
     return range.map((color, i): CategoryLegendDatum => {
         const start = domain[i];
@@ -212,7 +276,7 @@ export function buildColorCategoryLegendData(
                     strokeOpacity: 1,
                 },
             },
-            label: { text: name ?? formatColorBinLabel(start, end, i, range.length, formatValue) },
+            label: { text: name ?? formatColorBinLabel(start, end, i, range.length, formatBinValue) },
             isFixed: true,
             hideToggleOtherSeries: true,
             suppressHighlight: true,

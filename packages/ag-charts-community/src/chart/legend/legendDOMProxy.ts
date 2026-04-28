@@ -166,7 +166,7 @@ export class LegendDOMProxy {
         this.itemList.setBounds(groupBBox);
 
         const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getTextMeasureBBox().height));
-        itemSelection.each((l, _datum) => {
+        itemSelection.each((l, datum) => {
             if (l.proxyButton) {
                 const visible = l.pageIndex === pagination.currentPage;
 
@@ -175,7 +175,9 @@ export class LegendDOMProxy {
                 const bbox: BoxBounds = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 
                 const enabled = interactive && visible;
-                l.proxyButton.setCursor('pointer');
+                // Discrete colour-scale bin items don't toggle and don't drive series highlight, so the
+                // pointer cursor is misleading — see `suppressHighlight` on CategoryLegendDatum.
+                l.proxyButton.setCursor(datum.suppressHighlight ? 'default' : 'pointer');
                 l.proxyButton.setEnabled(enabled);
                 l.proxyButton.setPointerEvents(enabled ? undefined : 'none');
                 l.proxyButton.setBounds(bbox);
