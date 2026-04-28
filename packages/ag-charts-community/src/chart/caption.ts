@@ -51,7 +51,7 @@ class CaptionTooltipProperties extends BaseProperties {
     text?: string;
 
     @Property
-    renderer?: (params: AgCaptionTooltipRendererParams) => string;
+    renderer?: (params: AgCaptionTooltipRendererParams) => string | undefined;
 }
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -209,7 +209,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             const params: AgCaptionTooltipRendererParams = { text: captionText };
             const result = callWithContext(moduleCtx.chartService, renderer, params);
             if (result === '') return undefined;
-            return { type: 'raw', rawHtmlString: result };
+            if (result != null) return { type: 'raw', rawHtmlString: result };
         }
 
         const displayText = text ?? captionText;
