@@ -150,7 +150,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
         if (!this.supportsSelection()) return;
 
-        const { enabled, enableClick, clickMode } = this.opts;
+        const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
         const { type, clickedNode } = event;
@@ -160,8 +160,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const clickMiss =
             clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
-        if (clickMiss && modifierPressed) {
+        if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
+            // Click-missing with enableClickAwayToClear:false should also do nothing.
             return;
         }
 
