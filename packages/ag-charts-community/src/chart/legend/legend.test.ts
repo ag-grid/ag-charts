@@ -1108,6 +1108,38 @@ describe('Legend', () => {
             expect(getTooltipText()).toContain('Series Y');
         });
 
+        test('renderer returns a number — coerced to string content', async () => {
+            await setupChart({
+                item: {
+                    tooltip: {
+                        renderer: () => 42,
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('42');
+        });
+
+        test('renderer returns a Date — coerced to string content', async () => {
+            // Mid-year noon UTC so the Date stringifies to the same calendar day in every timezone.
+            await setupChart({
+                item: {
+                    tooltip: {
+                        renderer: () => new Date('2026-06-15T12:00:00Z'),
+                    },
+                },
+            });
+
+            await hoverLegendItem();
+
+            expect(isTooltipVisible()).toBe(true);
+            expect(getTooltipText()).toContain('2026');
+            expect(getTooltipText()).toContain('Jun');
+        });
+
         test('toggleSeries: false — tooltip still works', async () => {
             await setupChart({
                 toggleSeries: false,

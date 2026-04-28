@@ -1,5 +1,5 @@
 import type { AgColorType, BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
-import type { Formatter } from './callbackOptions';
+import type { Formatter, Renderer } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
     AgMarkerShape,
@@ -134,7 +134,7 @@ export interface AgChartLegendItemTooltipOptions<TContext = ContextDefault> {
      * `text` or the default legend item label. Return an empty string to suppress the tooltip.
      *
      * **Note:** Output is rendered as HTML. Ensure content is trusted to avoid XSS. */
-    renderer?: (params: AgChartLegendItemTooltipRendererParams<TContext>) => string | undefined;
+    renderer?: Renderer<AgChartLegendItemTooltipRendererParams<TContext>, string>;
 }
 
 export interface AgChartLegendItemOptions<TContext = ContextDefault> {

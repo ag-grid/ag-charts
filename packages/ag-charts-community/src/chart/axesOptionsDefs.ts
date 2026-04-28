@@ -275,6 +275,8 @@ export function cartesianAxisCrosshairOptions(
         renderer: callbackOf(
             or(
                 string,
+                number,
+                date,
                 optionsDefs<AgCrosshairLabelRendererResult>(
                     {
                         text: string,

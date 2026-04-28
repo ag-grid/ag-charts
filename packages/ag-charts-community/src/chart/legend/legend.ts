@@ -24,6 +24,7 @@ import {
     isTextTruncated,
     objectsEqual,
     toPlainText,
+    toTextString,
     truncateLine,
 } from 'ag-charts-core';
 import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
@@ -1069,7 +1070,7 @@ export class Legend {
             };
             const result = this.cachedCallWithContext(tooltipOpts.renderer, params);
             if (result === '') return undefined;
-            if (result != null) return [{ type: 'raw', rawHtmlString: result }];
+            if (result != null) return [{ type: 'raw', rawHtmlString: toTextString(result) }];
         }
 
         if (tooltipOpts?.text != null) {

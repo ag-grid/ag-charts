@@ -4,11 +4,13 @@ import {
     callWithContext,
     createElement,
     isArray,
+    isDate,
     isHTMLElement,
+    isNumber,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
-import type { AgChartOverlayRendererParams, DatumDefault, TextOrSegments } from 'ag-charts-types';
+import type { AgChartOverlayRendererParams, DatumDefault, Renderer, TextOrSegments } from 'ag-charts-types';
 
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
@@ -25,7 +27,7 @@ export class Overlay extends BaseProperties {
     text?: TextOrSegments;
 
     @Property
-    renderer?: (params: AgChartOverlayRendererParams<DatumDefault>) => string | HTMLElement;
+    renderer?: Renderer<AgChartOverlayRendererParams<DatumDefault>, HTMLElement>;
 
     private content?: HTMLElement;
     private rendererAsText?: string;
@@ -58,10 +60,15 @@ export class Overlay extends BaseProperties {
         this.rendererAsText = undefined;
         this.focusBox = rect;
 
-        if (this.renderer) {
-            const params: AgChartOverlayRendererParams<DatumDefault> = {};
-            const htmlContent = callWithContext(callers, this.renderer, params);
+        // The renderer is optional, and per the documented Renderer<P, R> contract may
+        // return `undefined` to fall through to the default overlay text. An empty string
+        // still renders (as an empty overlay). Number/Date returns (TextValue) are coerced
+        // via toTextString to keep behaviour consistent with other Renderer<P, R> consumers.
+        const params: AgChartOverlayRendererParams<DatumDefault> = {};
+        const rendered = this.renderer ? callWithContext(callers, this.renderer, params) : undefined;
+        const htmlContent = isNumber(rendered) || isDate(rendered) ? toTextString(rendered) : rendered;
 
+        if (typeof htmlContent === 'string' || isHTMLElement(htmlContent)) {
             if (isHTMLElement(htmlContent)) {
                 this.content = htmlContent;
             } else {

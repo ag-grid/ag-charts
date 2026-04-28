@@ -15,12 +15,13 @@ import type {
     ContextDefault,
     DatumDefault,
     InteractionRange,
+    Renderer,
 } from 'ag-charts-types';
 
 import type { LegendLine, LegendMarker, LegendSymbolOptions } from '../legend/legendSymbol';
 import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
-export type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
+export type TooltipRenderer<P> = Renderer<P, AgTooltipRendererResult>;
 
 function buildLineWithMarkerDefaults(
     line:

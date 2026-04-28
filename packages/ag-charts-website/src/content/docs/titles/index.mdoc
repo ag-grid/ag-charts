@@ -47,6 +47,8 @@ When `tooltip.text` or `tooltip.renderer` is provided without an explicit `visib
 
 Use `tooltip.text` to display a static tooltip message, or `tooltip.renderer` for dynamic content. The renderer receives the caption's plain text and can return a string or an HTML string.
 
+Return `undefined` from the renderer to fall back to `tooltip.text` (or the caption's own text). Return an empty string to suppress the tooltip.
+
 ```js format="snippet"
 {
     title: {
