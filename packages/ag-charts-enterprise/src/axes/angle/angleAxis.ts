@@ -161,8 +161,8 @@ export abstract class AngleAxis<
     protected updateSelections() {
         const data = this.tickData;
 
-        this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
-        this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
+        this.gridLineGroupSelection.update(this.gridLength && this.options.gridLine.enabled ? data : []);
+        this.tickLineGroupSelection.update(this.options.tick.enabled ? data : []);
         this.tickLabelGroupSelection.update(this.options.label.enabled ? (data as any) : []);
 
         this.gridLineGroupSelection.cleanup();
@@ -202,9 +202,10 @@ export abstract class AngleAxis<
             path.closePath();
         }
 
-        node.visible = this.line.enabled;
-        node.stroke = this.line.stroke;
-        node.strokeWidth = this.line.width;
+        const { line } = this.options;
+        node.visible = line.enabled;
+        node.stroke = line.stroke;
+        node.strokeWidth = line.width;
         node.fill = undefined;
     }
 
@@ -271,12 +272,8 @@ export abstract class AngleAxis<
     }
 
     private updateGridLines() {
-        const {
-            scale,
-            gridLength: radius,
-            gridLine: { style, width },
-            innerRadiusRatio,
-        } = this;
+        const { scale, gridLength: radius, innerRadiusRatio } = this;
+        const { style, width } = this.options.gridLine;
         if (!(style && radius > 0)) {
             return;
         }
@@ -329,7 +326,8 @@ export abstract class AngleAxis<
     }
 
     private updateTickLines() {
-        const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
+        const { scale, gridLength: radius, tickLineGroupSelection } = this;
+        const tick = this.options.tick;
 
         tickLineGroupSelection.each((line, datum) => {
             const { value } = datum;
@@ -351,7 +349,8 @@ export abstract class AngleAxis<
         seriesRect: _ModuleSupport.BBox
     ): AngleAxisLabelDatum[] {
         const label = this.options.label;
-        const { gridLength: radius, scale, tick } = this;
+        const { gridLength: radius, scale } = this;
+        const tick = this.options.tick;
         if (!label.enabled) {
             return [];
         }

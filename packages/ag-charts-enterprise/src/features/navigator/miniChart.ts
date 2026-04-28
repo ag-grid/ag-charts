@@ -231,17 +231,17 @@ export class MiniChart extends AbstractModuleInstance {
         }
 
         for (const axis of this.axes) {
-            const { position, thickness, line, options } = axis;
+            const { position, thickness, options } = axis;
             if (position == null) continue;
 
-            const label = options?.label;
+            const { label, line } = options;
             let size: number;
             if (thickness) {
                 size = thickness;
             } else {
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label?.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
+                    (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);

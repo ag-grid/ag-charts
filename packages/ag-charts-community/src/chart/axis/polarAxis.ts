@@ -40,7 +40,7 @@ export abstract class PolarAxis<
     override update() {
         super.update();
 
-        this.tickLineGroup.visible = this.tick.enabled;
+        this.tickLineGroup.visible = this.options.tick.enabled;
         this.tickLabelGroup.visible = this.options.label.enabled;
     }
 

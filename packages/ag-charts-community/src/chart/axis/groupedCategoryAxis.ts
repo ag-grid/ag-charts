@@ -200,9 +200,10 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private updateAxisLine() {
         if (!this.computedLayout) return;
 
-        this.lineNode.visible = this.line.enabled;
-        this.lineNode.stroke = this.line.stroke;
-        this.lineNode.strokeWidth = this.line.width;
+        const { line } = this.options;
+        this.lineNode.visible = line.enabled;
+        this.lineNode.stroke = line.stroke;
+        this.lineNode.strokeWidth = line.width;
     }
 
     private computeLayout() {
@@ -210,7 +211,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateScale();
 
         const { step } = this.scale;
-        const { title, range, depthOptions, horizontal, line } = this;
+        const { title, range, depthOptions, horizontal } = this;
+        const line = this.options.line;
         const label = this.options.label;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
@@ -696,7 +698,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
             this.moduleCtx.animationManager.skipCurrentBatch();
         }
 
-        const { tickScale, tick, gridLine, gridLength, visibleRange, tickTreeLayout } = this;
+        const { tickScale, gridLength, visibleRange, tickTreeLayout } = this;
+        const { tick, gridLine } = this.options;
         if (!tickTreeLayout) return;
 
         const { tickSizeAtDepth, spacing } = this.computedLayout;

@@ -61,10 +61,8 @@ import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
-import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
-import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
@@ -87,7 +85,6 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
 
 export enum AxisGroupZIndexMap {
     TickLines,
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     AxisLine,
     TickLabels,
 }
@@ -315,10 +312,6 @@ export abstract class Axis<
         false
     );
 
-    readonly line = new AxisLine();
-    readonly tick = new AxisTick();
-    readonly gridLine = new AxisGridLine();
-
     protected readonly formatterCache: AxisLabelFormatterCache = createAxisLabelFormatterCache();
 
     protected get primaryLabel(): SeriesLabelProperties | undefined {
@@ -536,7 +529,7 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.gridLineGroup.visible = this.gridLine.enabled;
+        this.gridLineGroup.visible = this.options.gridLine.enabled;
 
         this.updateLabels();
         this.updateCrossLines();
@@ -583,11 +576,11 @@ export abstract class Axis<
         } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
     }
 
-    protected getTickSize(tick: AxisTick = this.tick) {
+    protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
         return tick.enabled ? tick.size : 0;
     }
 
-    protected getTickSpacing(tick: AxisTick = this.tick) {
+    protected getTickSpacing(tick: { enabled: boolean } = this.options.tick) {
         if (!tick.enabled) return 0;
 
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];

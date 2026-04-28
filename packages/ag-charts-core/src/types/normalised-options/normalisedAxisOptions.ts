@@ -3,6 +3,9 @@ import type {
     AgAngleAxisLabelOptions,
     AgAngleCategoryAxisOptions,
     AgAngleNumberAxisOptions,
+    AgAxisBaseTickOptions,
+    AgAxisGridLineOptions,
+    AgAxisLineOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgBaseCartesianAxisLabelOptions,
@@ -97,72 +100,93 @@ export type NormalisedAngleAxisFormattableLabelOptions<TContext = ContextDefault
     FontFamilyMorph
 >;
 
+// --- Line / tick / gridLine normalised shapes ---
+//
+// Phase 2 dismantles the `AxisLine`, `AxisGridLine`, `AxisTick` holders. Their
+// `enabled`/`width`/`size`/`stroke`/`style` defaults move to
+// `commonAxisThemeTemplate` (per axis module overrides for type-specific
+// flips like `time` → `gridLine.enabled = false`). The R-lists below match
+// what's now guaranteed populated post-theme-merge across every axis module.
+
+export type NormalisedAxisLineOptions = Normalised<AgAxisLineOptions, 'enabled' | 'width'>;
+
+export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'enabled' | 'width' | 'style'>;
+
+export type NormalisedAxisTickOptions = Normalised<AgAxisBaseTickOptions, 'enabled' | 'width' | 'size'>;
+
 // --- Axis-level normalised shapes ---
 //
-// Phase 1b morphs `label` only. The remaining holders (`line`, `tick`, `gridLine`,
-// `interval`, `title`, `parentLevel`) keep their user-facing shapes here and gain
-// dedicated normalised aliases when their respective phases (2/3/4) eliminate
-// the corresponding holder classes.
+// Phase 1b morphs `label`; Phase 2 morphs `line`/`tick`/`gridLine`. The remaining
+// holders (`interval`, `title`, `parentLevel`) keep their user-facing shapes
+// here and gain dedicated normalised aliases when their respective phases
+// (3/4) eliminate the corresponding holder classes.
 
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'interval';
 
+type AxisLineTickGridLineMorph = {
+    line: NormalisedAxisLineOptions;
+    tick: NormalisedAxisTickOptions;
+    gridLine: NormalisedAxisGridLineOptions;
+};
+
 export type NormalisedBaseAxisOptions<TLabel = NormalisedBaseAxisLabelOptions, TContext = ContextDefault> = Normalised<
     AgBaseAxisOptions<TLabel, TContext>,
-    AxisRequiredKeys
+    AxisRequiredKeys,
+    AxisLineTickGridLineMorph
 >;
 
 export type NormalisedBaseCartesianAxisOptions<
     TLabel = NormalisedBaseCartesianAxisLabelOptions,
     TContext = ContextDefault,
-> = Normalised<AgBaseCartesianAxisOptions<TLabel, unknown, TContext>, AxisRequiredKeys>;
+> = Normalised<AgBaseCartesianAxisOptions<TLabel, unknown, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
 
 export type NormalisedBasePolarAxisOptions<
     TLabel = NormalisedBaseAxisLabelOptions,
     TContext = ContextDefault,
-> = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys>;
+> = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
 
 // --- Concrete cartesian axes ---
 
 export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgNumberAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedCartesianAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedLogAxisOptions<TContext = ContextDefault> = Normalised<
     AgLogAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedCartesianAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgCategoryAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedBaseCartesianAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedBaseCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgTimeAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedUnitTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgUnitTimeAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedOrdinalTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgOrdinalTimeAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedGroupedCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgGroupedCategoryAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedGroupedCategoryAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedGroupedCategoryAxisLabelOptions<TContext> }
 >;
 
 // --- Concrete polar axes ---
@@ -177,23 +201,23 @@ export type NormalisedGroupedCategoryAxisOptions<TContext = ContextDefault> = No
 export type NormalisedAngleNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgAngleNumberAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedAngleAxisFormattableLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedAngleAxisFormattableLabelOptions<TContext> }
 >;
 
 export type NormalisedAngleCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgAngleCategoryAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedAngleAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedAngleAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedRadiusNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgRadiusNumberAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedNumericAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedNumericAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedRadiusCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgRadiusCategoryAxisOptions<TContext>,
     AxisRequiredKeys,
-    { label: NormalisedBaseAxisLabelOptions<TContext> }
+    AxisLineTickGridLineMorph & { label: NormalisedBaseAxisLabelOptions<TContext> }
 >;

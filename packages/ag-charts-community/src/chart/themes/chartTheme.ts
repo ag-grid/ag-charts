@@ -258,39 +258,6 @@ export class ChartTheme {
                 },
             },
             {
-                line: {
-                    enabled: true,
-                    width: 1,
-                    stroke: { $ref: 'axisColor' },
-                },
-                tick: {
-                    enabled: false,
-                    size: 6,
-                    width: 1,
-                    stroke: { $ref: 'axisColor' },
-                },
-                gridLine: {
-                    enabled: true,
-                    width: 1,
-                    style: {
-                        $apply: [
-                            {
-                                fillOpacity: 1,
-                                stroke: { $ref: 'gridLineColor' },
-                                strokeWidth: { $path: '../../width' },
-                                lineDash: [],
-                            },
-                            [
-                                {
-                                    fillOpacity: 1,
-                                    stroke: { $ref: 'gridLineColor' },
-                                    strokeWidth: { $path: '../../width' },
-                                    lineDash: [],
-                                },
-                            ],
-                        ],
-                    },
-                },
                 crossLines: {
                     $apply: [
                         {

@@ -256,8 +256,8 @@ export abstract class CartesianAxis<
             niceMode[0] === NiceMode.Off &&
             niceMode[1] === NiceMode.Off &&
             label?.enabled === false &&
-            this.tick.enabled === false &&
-            this.gridLine.enabled === false
+            this.options.tick.enabled === false &&
+            this.options.gridLine.enabled === false
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
@@ -356,7 +356,8 @@ export abstract class CartesianAxis<
         p2: number,
         _ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal } = this;
+        const { horizontal } = this;
+        const gridLine = this.options.gridLine;
 
         const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
         const { style } = gridLine;
@@ -400,7 +401,8 @@ export abstract class CartesianAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, range } = this;
+        const { horizontal, range } = this;
+        const gridLine = this.options.gridLine;
 
         const nextTick = ticks[index + 1];
         const startOffset = translation;
@@ -429,7 +431,8 @@ export abstract class CartesianAxis<
         _ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, tick, primaryTick } = this;
+        const { horizontal, primaryTick } = this;
+        const tick = this.options.tick;
 
         const datumTick = isPrimary && primaryTick ? primaryTick : tick;
         const tickSize = this.getTickSize(datumTick);
@@ -472,7 +475,7 @@ export abstract class CartesianAxis<
             }
         }
 
-        const { enabled, stroke, width } = this.line;
+        const { enabled, stroke, width } = this.options.line;
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
@@ -509,7 +512,7 @@ export abstract class CartesianAxis<
     }
 
     setAxisVisible(visible: boolean) {
-        this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLineGroup.visible = visible && (this.options.tick.enabled || (this.primaryTick?.enabled ?? false));
         this.tickLabelGroup.visible = visible && (this.options.label.enabled || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
         this.headingLabelGroup.visible = visible;
@@ -530,7 +533,7 @@ export abstract class CartesianAxis<
             tickSize = Math.max(tickSize, this.getTickSize(primaryTick));
         }
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
-        const tickSpacing = this.getTickSpacing(this.tick);
+        const tickSpacing = this.getTickSpacing(this.options.tick);
         const tickOffset = -direction * (scrollbarThickness + tickSpacing);
         const start = tickOffset;
         const end = tickOffset - direction * (tickSize + tickSpacing);
@@ -629,7 +632,8 @@ export abstract class CartesianAxis<
         scrollbar: ScrollbarLayout | undefined,
         scrollbarThickness: number
     ) {
-        const { tick, primaryTick, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const { primaryTick, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const tick = this.options.tick;
         const label = this.options.label;
         const boxes: BBox[] = [];
 
@@ -788,7 +792,7 @@ export abstract class CartesianAxis<
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
         const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
-        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
+        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.options.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
@@ -831,8 +835,8 @@ export abstract class CartesianAxis<
         const getDatumId = (datum: AxisLabelDatum | AxisLineDatum | AxisFillDatum) => datum.tickId;
 
         this.lineNode.datum = lineData;
-        this.gridLineGroupSelection.update(this.gridLine.enabled ? gridLines : [], undefined, getDatumId);
-        this.gridFillGroupSelection.update(this.gridLine.enabled ? gridFills : [], undefined, getDatumId);
+        this.gridLineGroupSelection.update(this.options.gridLine.enabled ? gridLines : [], undefined, getDatumId);
+        this.gridFillGroupSelection.update(this.options.gridLine.enabled ? gridFills : [], undefined, getDatumId);
         this.tickLineGroupSelection.update(tickLines, undefined, getDatumId);
         this.tickLabelGroupSelection.update(labels, undefined, getDatumId);
     }

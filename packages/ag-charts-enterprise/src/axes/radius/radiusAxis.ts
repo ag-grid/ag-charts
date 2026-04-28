@@ -95,7 +95,7 @@ export abstract class RadiusAxis<
         this.updateTitle();
         this.updateGridLines();
 
-        const { enabled, stroke, width } = this.line;
+        const { enabled, stroke, width } = this.options.line;
         this.lineNode.setProperties({
             stroke,
             strokeWidth: enabled ? width : 0,
@@ -189,7 +189,7 @@ export abstract class RadiusAxis<
 
         this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
         this.tickLabelGroupSelection.update(labels);
-        this.gridPathSelection.update(this.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
+        this.gridPathSelection.update(this.options.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLabelGroupSelection.cleanup();
@@ -215,11 +215,8 @@ export abstract class RadiusAxis<
     }
 
     private updateGridLines(): void {
-        const {
-            gridLine: { style, width },
-            shape,
-            generatedTicks,
-        } = this;
+        const { shape, generatedTicks } = this;
+        const { style, width } = this.options.gridLine;
         if (!style || !generatedTicks) {
             return;
         }

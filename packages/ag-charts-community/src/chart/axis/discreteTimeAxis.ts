@@ -18,7 +18,8 @@ export class DiscreteTimeAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal, interval, range } = this;
+        const { horizontal, interval, range } = this;
+        const gridLine = this.options.gridLine;
 
         if (interval.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
@@ -50,7 +51,8 @@ export class DiscreteTimeAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, interval, range } = this;
+        const { horizontal, interval, range } = this;
+        const gridLine = this.options.gridLine;
 
         if (interval.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
@@ -76,7 +78,8 @@ export class DiscreteTimeAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, range, tick } = this;
+        const { horizontal, interval, primaryTick, range } = this;
+        const tick = this.options.tick;
 
         if (interval.placement !== 'between') {
             return super.calculateTickLine(

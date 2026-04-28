@@ -143,9 +143,15 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         const visibilityOverride = isHorizontal
             ? { enabled: !isGroupedCategoryHorizontal, ...(isGroupedCategoryHorizontal ? { rotation: 0 } : {}) }
             : { enabled: false };
+        // Mini-chart strips axis chrome: gridLines and ticks always off; line off
+        // on the horizontal axis only (vertical axes keep their line as a frame).
+        const lineOverride = isHorizontal ? { enabled: false } : undefined;
         derivedAxes[id] = {
             ...axisOptions,
             label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
+            gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
+            tick: mergeDefaults({ enabled: false }, axisOptions.tick),
+            line: mergeDefaults(lineOverride, axisOptions.line),
         };
     }
 
@@ -1849,13 +1855,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.filterMiniChartSeries(oldSeries)
         );
         const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus, [
-            'tick',
-            'thickness',
-            'title',
-            'crosshair',
-            'gridLine',
-        ]);
+        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus, ['thickness', 'title', 'crosshair']);
 
         const series: UnknownSeries[] = miniChart.series;
         for (const s of series) {
@@ -1868,16 +1868,12 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
 
         for (const axis of axes) {
             axis.nice = false;
-            axis.gridLine.enabled = false;
-            axis.tick.enabled = false;
             axis.interactionEnabled = false;
         }
 
         if (horizontalAxis != null) {
             const miniChartOpts = completeOptions.navigator?.miniChart;
             const intervalOptions = miniChartOpts?.label?.interval;
-
-            horizontalAxis.line.enabled = false;
 
             if (horizontalAxis.type === 'grouped-category') {
                 const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
@@ -2028,9 +2024,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return false;
         }
 
-        // 'label' is read directly from `axis.options.label` per Phase 1b.2 (the
-        // class-based holder was removed); jsonApply has no field to walk into.
-        skip = ['type', 'label', ...skip];
+        // 'label' (Phase 1b.2) and 'line'/'tick'/'gridLine' (Phase 2) are read
+        // directly from `axis.options.X` after their class-based holders were
+        // removed; jsonApply has no field to walk into for these keys.
+        skip = ['type', 'label', 'line', 'tick', 'gridLine', ...skip];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';

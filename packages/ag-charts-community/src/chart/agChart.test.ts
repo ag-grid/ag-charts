@@ -423,7 +423,9 @@ describe('AgChart', () => {
         expect(leftAxis).toBeDefined();
         expect(leftAxis?.title?.text).toBe('Hello');
 
-        expect(leftAxis?.gridLine.style).toEqual([{ fillOpacity: 1, stroke: '#e8e8e9', strokeWidth: 1, lineDash: [] }]);
+        expect(leftAxis?.options.gridLine.style).toEqual([
+            { fillOpacity: 1, stroke: '#e8e8e9', strokeWidth: 1, lineDash: [] },
+        ]);
         await chartProxy.update({
             data: revenueProfitData,
             series: [{ type: 'line', xKey: 'profit', yKey: 'revenue' }],
@@ -460,7 +462,7 @@ describe('AgChart', () => {
         await waitForChartStability(chartProxy);
 
         leftAxis = chart.axes.find((axis) => axis.position === 'left');
-        expect(leftAxis?.gridLine?.style).toEqual([
+        expect((leftAxis as any)?.options.gridLine.style).toEqual([
             {
                 fillOpacity: 1,
                 stroke: 'red',

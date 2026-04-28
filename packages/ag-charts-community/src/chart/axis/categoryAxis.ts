@@ -132,7 +132,8 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal, interval, scale } = this;
+        const { horizontal, interval, scale } = this;
+        const gridLine = this.options.gridLine;
 
         if (interval.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
@@ -188,7 +189,8 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, interval, scale } = this;
+        const { horizontal, interval, scale } = this;
+        const gridLine = this.options.gridLine;
 
         if (interval.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
@@ -234,7 +236,8 @@ export class CategoryAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, scale, tick } = this;
+        const { horizontal, interval, primaryTick, scale } = this;
+        const tick = this.options.tick;
 
         if (interval.placement !== 'between') {
             return super.calculateTickLine(

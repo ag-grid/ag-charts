@@ -567,13 +567,13 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options.line.stroke).toBe('#b4b6b6');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
+            expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
@@ -617,13 +617,13 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options.line.stroke).toBe('#b4b6b6');
             expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
+            expect(axisX.options.line.stroke).toBe('blue');
             expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
@@ -677,13 +677,13 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
-            expect(axisY.line.stroke).toBe('blue');
+            expect(axisY.options.line.stroke).toBe('blue');
             expect(axisY.options?.label?.fontSize).toBe(18);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('top');
-            expect(axisX.line.stroke).toBe('red');
+            expect(axisX.options.line.stroke).toBe('red');
             expect(axisX.options?.label?.fontSize).toBe(12);
         });
 
@@ -754,7 +754,7 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
-            expect(axisY.line.stroke).toBe('red');
+            expect(axisY.options.line.stroke).toBe('red');
             expect(axisY.options?.label?.fontSize).toBe(18);
             expect(axisY.options?.label?.fontStyle).toBe('italic');
             expect(axisY.options?.label?.fontFamily).toBe('Tahoma');
@@ -765,8 +765,8 @@ describe('ChartTheme', () => {
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
-            expect(axisX.line.width).toBe(5);
+            expect(axisX.options.line.stroke).toBe('blue');
+            expect(axisX.options.line.width).toBe(5);
             expect(axisX.options?.label?.fontSize).toBe(18);
             expect(axisX.options?.label?.fontStyle).toBe(undefined);
             expect(axisX.options?.label?.fontFamily).toBe('Verdana, sans-serif');
