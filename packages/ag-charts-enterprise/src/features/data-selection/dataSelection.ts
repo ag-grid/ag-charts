@@ -42,7 +42,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelection(): boolean {
-        return this.ctx.chartService.getChartType() !== 'standalone';
+        return (
+            this.ctx.chartService.getChartType() !== 'standalone' &&
+            this.ctx.chartService.series.at(0)?.type !== 'histogram'
+        );
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
