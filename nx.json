@@ -240,7 +240,7 @@
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
         "commands": [
-          "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts"
+          "node --expose-gc --max-old-space-size=6144 node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts"
         ],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
@@ -250,12 +250,12 @@
       "configurations": {
         "update": {
           "commands": [
-            "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
+            "node --expose-gc --max-old-space-size=6144 node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
           ]
         },
         "ci": {
           "commands": [
-            "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
+            "node --expose-gc --max-old-space-size=6144 node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
           ],
           "env": {
             "AG_BENCHMARK_REPEAT_LIMIT": "3"
