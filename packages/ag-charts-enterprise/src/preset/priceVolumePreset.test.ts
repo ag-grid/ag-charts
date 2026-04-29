@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AgCharts } from 'ag-charts-community';
 import {
@@ -38,7 +38,7 @@ describe('priceVolumePreset', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();

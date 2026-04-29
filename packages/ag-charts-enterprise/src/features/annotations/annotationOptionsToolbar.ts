@@ -81,7 +81,7 @@ interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOpt
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     public override update(options: AnnotationOptionsButtonOptions, interactionOptions: ButtonInteractionOptions) {
-        super.update(options as any, interactionOptions);
+        super.update(options, interactionOptions);
 
         if (options.value === AnnotationOptions.LineStrokeWidth) {
             this.updateLineStrokeWidth(options);

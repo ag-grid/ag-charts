@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`ScatterSeries AG-11673 styler init callbacks params 1`] = `
+exports[`ScatterSeries > AG-11673 styler > init > callbacks > params 1`] = `
 [
   [
     {

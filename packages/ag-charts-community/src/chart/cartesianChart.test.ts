@@ -1,6 +1,6 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
 import { fail } from 'assert';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-types';
 

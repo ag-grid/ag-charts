@@ -232,7 +232,6 @@ function buildPages(
 
 function transpose(data: number[][]) {
     const result: number[][] = [];
-    // eslint-disable-next-line sonarjs/no-unused-vars
     for (const _ of data[0]) {
         result.push([]);
     }

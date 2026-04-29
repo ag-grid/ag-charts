@@ -384,7 +384,7 @@ export class Group<TDatum = unknown> extends Node<TDatum> {
             ctx.save();
             try {
                 ctx.resetTransform();
-                layer.drawImage(ctx as any);
+                layer.drawImage(ctx);
             } finally {
                 ctx.restore();
             }

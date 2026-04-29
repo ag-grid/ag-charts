@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as Logger from '../logging/logger';
 import { Deprecated, DeprecatedAndRenamedTo } from './deprecation';
@@ -35,7 +35,7 @@ describe('deprecation module', () => {
             @DeprecatedAndRenamedTo('nestedAfterRename')
             nestedBeforeRename = this.nestedAfterRename;
         }
-        console.warn = jest.fn();
+        console.warn = vi.fn();
         test = new TestDeprecation();
     });
 

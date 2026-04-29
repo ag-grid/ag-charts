@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { fail } from 'assert';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartTheme, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -27,8 +27,9 @@ describe('ChartTheme', () => {
 
     let chart: ChartOrProxy;
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as any) = null;
         }

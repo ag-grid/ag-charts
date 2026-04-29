@@ -71,7 +71,6 @@ export abstract class Node<TDatum = unknown> {
     static readonly className: string = 'AbstractNode';
 
     private static _nextSerialNumber = 0;
-    // eslint-disable-next-line sonarjs/public-static-readonly
     public static _debugEnabled = false;
 
     static toSVG(node: Node, width: number, height: number) {

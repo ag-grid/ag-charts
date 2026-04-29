@@ -5,7 +5,7 @@ export default [
     ...base,
     {
         ...testDefaults,
-        files: ['**/src/**/*.test.ts', '**/jest.config.ts'],
+        files: ['**/src/**/*.test.ts', '**/vitest.config.ts'],
     },
     {
         ignores: ['src/**/*.data.ts', '**/*.mjs'],

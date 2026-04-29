@@ -1,8 +1,8 @@
-import { expect } from '@jest/globals';
-import { type MatchImageSnapshotOptions, toMatchImageSnapshot } from 'jest-image-snapshot';
+import { toMatchImageSnapshot } from 'jest-image-snapshot';
 import { URL } from 'node:url';
 import { TextDecoder, TextEncoder } from 'node:util';
 import { DOMMatrix, Image, Path2D } from 'skia-canvas';
+import { expect } from 'vitest';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
@@ -10,10 +10,8 @@ import { isAtOrAfterVersion } from './benchmarks/compatibility';
 
 // ModuleRegistry was introduced in pre-13.0.0
 if (isAtOrAfterVersion(12, 4, 0)) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { ModuleRegistry } = require('ag-charts-core');
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { AllCommunityModule } = require('./src/module-bundles/all');
+    const { ModuleRegistry } = await import('ag-charts-core');
+    const { AllCommunityModule } = await import('./src/module-bundles/all');
     ModuleRegistry.registerModules(AllCommunityModule);
 }
 
@@ -63,11 +61,27 @@ globalThis.HTMLElement.prototype.matches = function (selector: string): boolean 
     }
 };
 
-declare module 'expect' {
-    interface Matchers<R> {
-        toMatchImage(expected: ImageData, options?: { writeDiff: boolean }): R;
-        toMatchImageSnapshot(options?: MatchImageSnapshotOptions): R;
+// Vitest's jsdom window doesn't pass jsdom's own `instanceof Window` check,
+// so `new MouseEvent(type, { view: document.defaultView })` throws. Patch the
+// constructor to retry without `view`, then re-attach it via defineProperty.
+const OrigMouseEvent = globalThis.MouseEvent;
+// @ts-expect-error patching global constructor
+globalThis.MouseEvent = function MouseEvent(type: string, eventInitDict?: MouseEventInit) {
+    try {
+        return new OrigMouseEvent(type, eventInitDict);
+    } catch (e) {
+        if (e instanceof TypeError && String(e).includes('view is not of type Window')) {
+            const { view, ...rest } = eventInitDict ?? {};
+            const event = new OrigMouseEvent(type, rest);
+            if (view != null) {
+                Object.defineProperty(event, 'view', { value: view, configurable: true });
+            }
+            return event;
+        }
+        throw e;
     }
-}
+};
+globalThis.MouseEvent.prototype = OrigMouseEvent.prototype;
+Object.setPrototypeOf(globalThis.MouseEvent, OrigMouseEvent);
 
 expect.extend({ toMatchImageSnapshot, toMatchImage });

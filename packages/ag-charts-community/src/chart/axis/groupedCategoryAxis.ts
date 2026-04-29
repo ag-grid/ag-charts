@@ -466,8 +466,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         const vr1 = visibleRange?.[1] ?? 1;
         const cache = this.filterTickCache;
         if (
-            cache &&
-            cache.range0 === range[0] &&
+            cache?.range0 === range[0] &&
             cache.range1 === range[1] &&
             cache.step === step &&
             cache.inset === inset &&

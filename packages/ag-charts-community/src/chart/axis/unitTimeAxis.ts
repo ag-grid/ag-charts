@@ -44,7 +44,6 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale> {
     preferredMax?: Date | number = undefined;
 
     @Property
-    // eslint-disable-next-line sonarjs/use-type-alias
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
     override get primaryLabel(): AxisLabel | undefined {

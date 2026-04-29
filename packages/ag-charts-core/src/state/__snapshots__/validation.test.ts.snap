@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Validation utils Conditional Validators validates axis schema with optional min/max 1`] = `
+exports[`Validation utils > Conditional Validators > validates axis schema with optional min/max 1`] = `
 [
   ValidationError {
     "description": "a number and the value to be greater than \`min\`",
@@ -12,13 +12,13 @@ exports[`Validation utils Conditional Validators validates axis schema with opti
 ]
 `;
 
-exports[`Validation utils TypeUnion Validator nested warning messages should attach type to option path 1`] = `
+exports[`Validation utils > TypeUnion Validator > nested warning messages should attach type to option path 1`] = `
 [
   "Option \`test[type=b].sub.value\` cannot be set to \`true\`; expecting a number, ignoring.",
 ]
 `;
 
-exports[`Validation utils Utility Functions attachDescription adds a description to a validator 1`] = `
+exports[`Validation utils > Utility Functions > attachDescription adds a description to a validator 1`] = `
 [
   ValidationError {
     "description": "a non-empty string",
@@ -30,7 +30,7 @@ exports[`Validation utils Utility Functions attachDescription adds a description
 ]
 `;
 
-exports[`Validation utils Validate Method nested validations returns all levels of validation errors 1`] = `
+exports[`Validation utils > Validate Method > nested validations returns all levels of validation errors 1`] = `
 {
   "cleared": {
     "employees": [
@@ -69,7 +69,7 @@ exports[`Validation utils Validate Method nested validations returns all levels 
 }
 `;
 
-exports[`Validation utils Validate Method nested validations returns all levels of validation errors 2`] = `
+exports[`Validation utils > Validate Method > nested validations returns all levels of validation errors 2`] = `
 {
   "cleared": {},
   "invalid": [
@@ -105,7 +105,7 @@ exports[`Validation utils Validate Method nested validations returns all levels 
 }
 `;
 
-exports[`Validation utils Validate Method nested validations returns all levels of validation errors 3`] = `
+exports[`Validation utils > Validate Method > nested validations returns all levels of validation errors 3`] = `
 {
   "cleared": {},
   "invalid": [
@@ -120,7 +120,7 @@ exports[`Validation utils Validate Method nested validations returns all levels 
 }
 `;
 
-exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
+exports[`Validation utils > Validate Method > validate returns expected validated object and errors 1`] = `
 [
   ValidationError {
     "description": "a string",

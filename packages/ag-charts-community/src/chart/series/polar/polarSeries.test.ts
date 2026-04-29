@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartUpdateType, type Point } from 'ag-charts-core';
 import type { AgPolarChartOptions, InteractionRange } from 'ag-charts-types';
@@ -99,7 +99,7 @@ describe('PolarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const ctx = setupMockCanvas();
@@ -422,7 +422,7 @@ describe('PolarSeries', () => {
         });
 
         it(`should handle nodeClick event`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
@@ -433,19 +433,19 @@ describe('PolarSeries', () => {
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: false, onNodeClick });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
         });

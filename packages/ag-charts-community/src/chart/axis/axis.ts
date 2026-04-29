@@ -361,7 +361,6 @@ export abstract class Axis<
 
     private onMouseMove(event: MouseWidgetEvent<'mousemove'>) {
         const node = this.tickLabelGroup.pickNode(event.currentX, event.currentY);
-        // eslint-disable-next-line sonarjs/deprecation
         const datum: LabelNodeDatum | undefined = node?.unsafeDatum;
         const { textUntruncated: title = undefined } = datum ?? {};
 

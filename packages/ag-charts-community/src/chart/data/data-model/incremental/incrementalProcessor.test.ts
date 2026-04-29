@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { expectWarningsCalls, setupMockConsole } from '../../../test/utils';
 import type { GroupedData } from '../../dataModel';

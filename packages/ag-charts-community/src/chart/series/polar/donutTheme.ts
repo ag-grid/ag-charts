@@ -19,7 +19,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
                 color: { $ref: 'textColor' },
                 spacing: 2,
             },
-        } as any,
+        },
         highlight: PART_WHOLE_HIGHLIGHT_STYLE,
         selection: SERIES_SELECTION_THEME,
     },

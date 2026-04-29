@@ -1140,7 +1140,6 @@ export class DonutSeries extends PolarSeries<
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const line of this.calloutLabelSelection.selectByTag<Line>(DonutNodeTag.CalloutLine)) {
-            // eslint-disable-next-line sonarjs/deprecation
             const datum = line.unsafeClosestDatum() as PieDonutNodeDatum;
             const isDatumHighlighted =
                 seriesHighlighted && this.isItemHighlighted(highlightedDatum, datum.datumIndex) === true;
@@ -1389,7 +1388,6 @@ export class DonutSeries extends PolarSeries<
         const seriesHighlighted = this.isSeriesHighlighted(highlightedDatum);
 
         for (const text of this.calloutLabelSelection.selectByTag<Text>(DonutNodeTag.CalloutLabel)) {
-            // eslint-disable-next-line sonarjs/deprecation
             const datum: PieDonutNodeDatum = text.unsafeClosestDatum();
             const label = datum.calloutLabel;
             const radius = radiusScale.convert(datum.radius);
@@ -1868,7 +1866,6 @@ export class DonutSeries extends PolarSeries<
             animationManager,
             [this.itemSelection, this.highlightSelection, this.phantomSelection, this.phantomHighlightSelection],
             fns.nodes,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);
@@ -1915,7 +1912,6 @@ export class DonutSeries extends PolarSeries<
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum.datumIndex),
             dataDiff
         );
@@ -1961,7 +1957,6 @@ export class DonutSeries extends PolarSeries<
             animationManager,
             [itemSelection, highlightSelection, phantomSelection, phantomHighlightSelection],
             fns.nodes,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum.datumIndex)
         );
         fromToMotion(this.id, `innerCircle`, animationManager, [this.innerCircleSelection], fns.innerCircle);

@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`transformPlainEntryFile Adjust padding 1`] = `
+exports[`transformPlainEntryFile > Adjust padding 1`] = `
 {
   "padding": {
     "bottom": 30,
@@ -16,7 +16,7 @@ exports[`transformPlainEntryFile Adjust padding 1`] = `
 }
 `;
 
-exports[`transformPlainEntryFile Remove axes titles 1`] = `
+exports[`transformPlainEntryFile > Remove axes titles 1`] = `
 {
   "axes": {
     "x": {
@@ -37,9 +37,9 @@ exports[`transformPlainEntryFile Remove axes titles 1`] = `
 }
 `;
 
-exports[`transformPlainEntryFile default entry file 1`] = `{}`;
+exports[`transformPlainEntryFile > default entry file 1`] = `{}`;
 
-exports[`transformPlainEntryFile disable legend 1`] = `
+exports[`transformPlainEntryFile > disable legend 1`] = `
 {
   "legend": {
     "enabled": true,
@@ -48,7 +48,7 @@ exports[`transformPlainEntryFile disable legend 1`] = `
 }
 `;
 
-exports[`transformPlainEntryFile remove footnote 1`] = `
+exports[`transformPlainEntryFile > remove footnote 1`] = `
 {
   "footnote": {
     "enabled": true,
@@ -57,7 +57,7 @@ exports[`transformPlainEntryFile remove footnote 1`] = `
 }
 `;
 
-exports[`transformPlainEntryFile remove subtitle 1`] = `
+exports[`transformPlainEntryFile > remove subtitle 1`] = `
 {
   "subtitle": {
     "enabled": true,

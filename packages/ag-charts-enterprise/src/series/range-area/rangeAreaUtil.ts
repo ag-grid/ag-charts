@@ -41,8 +41,10 @@ interface RangeAreaStrokePathDatum {
 
 export type RangeAreaItemId = `${string}-${string}`;
 
-export interface RangeAreaContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
+export interface RangeAreaContext extends _ModuleSupport.CartesianSeriesNodeDataContext<
+    RangeAreaMarkerDatum,
+    RangeAreaLabelDatum
+> {
     readonly itemId: RangeAreaItemId;
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;
@@ -88,6 +90,7 @@ export function prepareRangeAreaPathAnimation(
         // Not comparable.
         return;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     let status: _ModuleSupport.NodeUpdateState = 'updated' as _ModuleSupport.NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';

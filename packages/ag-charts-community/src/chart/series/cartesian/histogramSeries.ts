@@ -884,7 +884,6 @@ export class HistogramSeries extends CartesianSeries<HistogramSeriesTypes> {
             this.ctx.animationManager,
             [data.datumSelection],
             fns,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => createDatumId(...node.unsafeDatum.domain),
             dataDiff
         );

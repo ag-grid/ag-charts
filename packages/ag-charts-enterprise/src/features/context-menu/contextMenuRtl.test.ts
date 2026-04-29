@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, test } from '@jest/globals';
+import { afterEach, describe, expect, it, test } from 'vitest';
 
 import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';

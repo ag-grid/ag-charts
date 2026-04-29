@@ -155,7 +155,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
 
             if (status === 'removed' || outOfBounds(datum.y)) {
                 rotation = newDatum.rotation;
-                // eslint-disable-next-line sonarjs/deprecation
             } else if (status === 'added' || outOfBounds(node.unsafeDatum.y)) {
                 ({ x, y, rotationCenterX, rotationCenterY, rotation } = newDatum);
                 opacity = 0;
@@ -199,7 +198,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
     const line: FromToFns<AxisLineDatumCoords, Line<AxisLineDatumCoords>, AxisLineDatumCoords> = {
         fromFn(node, datum) {
             // Default to starting at the same position that the node is currently in.
-            // eslint-disable-next-line sonarjs/deprecation
             const { x1, x2, y1, y2 } = node.unsafePreviousDatum ?? datum;
             return {
                 x1,

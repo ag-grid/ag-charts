@@ -45,8 +45,10 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<nu
     readonly labelText: TextOrSegments;
 }
 
-export interface AreaSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
+    MarkerSelectionDatum,
+    LabelSelectionDatum
+> {
     fillData: AreaFillPathDatum;
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;
@@ -127,6 +129,7 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         // Not comparable.
         return;
     }
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     let status: NodeUpdateState = 'updated' as NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';

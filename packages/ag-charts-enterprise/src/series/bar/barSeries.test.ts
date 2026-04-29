@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { type AgCartesianChartOptions, type AgChartInstance, AgCharts } from 'ag-charts-community';
 import {
@@ -23,7 +23,7 @@ describe('BarSeries', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
