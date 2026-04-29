@@ -26,13 +26,9 @@ export default defineConfig({
         root: new URL('.', import.meta.url).pathname,
         globals: true,
         environment: 'jsdom',
-        include: ['src/**/*.test.ts'],
-        exclude: ['**/node_modules/**', '**/dist/**', '**/benchmarks/**'],
+        include: ['benchmarks/**/*.test.ts'],
+        exclude: ['**/node_modules/**', '**/dist/**'],
         setupFiles: ['./vitest.setup.ts'],
-        reporters: process.env.CI
-            ? ['default', ['junit', { outputFile: '../../reports/ag-charts-enterprise.xml' }]]
-            : ['default'],
-        retry: 0,
         testTimeout: 30_000,
         env: {
             TZ: 'Europe/London',

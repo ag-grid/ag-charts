@@ -19,6 +19,7 @@ export default defineConfig({
         tsconfigRaw: {
             compilerOptions: {
                 experimentalDecorators: true,
+                useDefineForClassFields: false,
             },
         },
     },
@@ -26,22 +27,16 @@ export default defineConfig({
         root: new URL('.', import.meta.url).pathname,
         globals: true,
         environment: 'jsdom',
-        include: ['src/**/*.test.ts'],
-        exclude: ['**/node_modules/**', '**/dist/**', '**/benchmarks/**'],
+        include: ['benchmarks/**/*.test.ts'],
+        exclude: ['**/node_modules/**', '**/dist/**'],
         setupFiles: ['./vitest.setup.ts'],
-        reporters: process.env.CI
-            ? ['default', ['junit', { outputFile: '../../reports/ag-charts-enterprise.xml' }]]
-            : ['default'],
-        retry: 0,
         testTimeout: 30_000,
         env: {
             TZ: 'Europe/London',
         },
         alias: {
-            'ag-charts-community': new URL('../ag-charts-community/src/main.ts', import.meta.url).pathname,
             'ag-charts-types': new URL('../ag-charts-types/src/main.ts', import.meta.url).pathname,
             'ag-charts-locale': new URL('../ag-charts-locale/src/main.ts', import.meta.url).pathname,
-            'ag-charts-community-test': new URL('../ag-charts-community/src/main-test.ts', import.meta.url).pathname,
         },
         pool: 'forks',
         poolOptions: {

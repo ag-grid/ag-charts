@@ -35,6 +35,9 @@ export default defineConfig({
             : ['default'],
         retry: 0,
         testTimeout: 30_000,
+        env: {
+            TZ: 'Europe/London',
+        },
         alias: {
             'ag-charts-types': new URL('../ag-charts-types/src/main.ts', import.meta.url).pathname,
             'ag-charts-locale': new URL('../ag-charts-locale/src/main.ts', import.meta.url).pathname,

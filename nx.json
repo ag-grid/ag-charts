@@ -10,7 +10,7 @@
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/**/__image_snapshots__/**",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/vitest.config.[jt]s"
+      "!{projectRoot}/vitest.config*.[jt]s"
     ],
     "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
@@ -239,7 +239,7 @@
       "inputs": ["jsOutputs"],
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "commands": ["npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts'"],
+        "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts"],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
         }
@@ -247,14 +247,10 @@
       "parallelism": false,
       "configurations": {
         "update": {
-          "commands": [
-            "npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts' --update"
-          ]
+          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"]
         },
         "ci": {
-          "commands": [
-            "npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts' --update"
-          ],
+          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"],
           "env": {
             "AG_BENCHMARK_REPEAT_LIMIT": "3"
           }
