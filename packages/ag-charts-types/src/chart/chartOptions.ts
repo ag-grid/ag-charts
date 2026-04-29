@@ -107,7 +107,7 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
      *
      * Returning `undefined` falls back to `text` (or the caption's own text). Returning an empty string suppresses the tooltip.
      */
-    renderer?: Renderer<AgCaptionTooltipRendererParams<TContext>, string>;
+    renderer?: Renderer<AgCaptionTooltipRendererParams<TContext>, never>;
 }
 
 export interface AgChartCaptionOptions<TContext = ContextDefault> {

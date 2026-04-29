@@ -52,7 +52,7 @@ class CaptionTooltipProperties extends BaseProperties {
     text?: string;
 
     @Property
-    renderer?: Renderer<AgCaptionTooltipRendererParams, string>;
+    renderer?: Renderer<AgCaptionTooltipRendererParams, never>;
 }
 
 export class Caption extends BaseProperties implements CaptionLike {

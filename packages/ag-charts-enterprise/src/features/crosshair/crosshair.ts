@@ -397,10 +397,11 @@ export class Crosshair extends AbstractModuleInstance {
     private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
-        // Returning `undefined` from the renderer falls through to the default formatted value,
-        // matching the documented Renderer<P, R> contract. Empty strings still render an empty label.
+        // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
+        // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
+        // still render an empty label.
         const rendered = this.label.renderer?.({ value, fractionDigits });
-        if (rendered === undefined) {
+        if (rendered == null) {
             return label.toLabelHtml(defaults);
         }
         return label.toLabelHtml(coerceTextValue(rendered), defaults);

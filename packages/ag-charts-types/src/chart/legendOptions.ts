@@ -134,7 +134,7 @@ export interface AgChartLegendItemTooltipOptions<TContext = ContextDefault> {
      * `text` or the default legend item label. Return an empty string to suppress the tooltip.
      *
      * **Note:** Output is rendered as HTML. Ensure content is trusted to avoid XSS. */
-    renderer?: Renderer<AgChartLegendItemTooltipRendererParams<TContext>, string>;
+    renderer?: Renderer<AgChartLegendItemTooltipRendererParams<TContext>, never>;
 }
 
 export interface AgChartLegendItemOptions<TContext = ContextDefault> {
