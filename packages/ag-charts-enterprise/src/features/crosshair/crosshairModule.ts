@@ -34,6 +34,8 @@ export const CrosshairModule: AxisPluginModuleDefinition<AgCrosshairOptions> = {
         lineDashOffset: 0,
         label: {
             enabled: true,
+            xOffset: 0,
+            yOffset: 0,
         },
     },
 

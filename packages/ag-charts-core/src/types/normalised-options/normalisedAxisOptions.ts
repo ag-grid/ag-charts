@@ -10,13 +10,17 @@ import type {
     AgAxisContinuousIntervalOptions,
     AgAxisGridLineOptions,
     AgAxisLineOptions,
+    AgBandHighlightOptions,
     AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgBaseCartesianAxisLabelOptions,
     AgBaseCartesianAxisOptions,
+    AgBaseCrosshairLabel,
     AgCartesianAxisLabelOptions,
     AgCartesianTimeAxisLabelOptions,
     AgCategoryAxisOptions,
+    AgCrosshairLabel,
+    AgCrosshairOptions,
     AgGroupedCategoryAxisLabelOptions,
     AgGroupedCategoryAxisOptions,
     AgLogAxisOptions,
@@ -311,4 +315,35 @@ export type NormalisedRadiusCategoryAxisOptions<TContext = ContextDefault> = Nor
     AgRadiusCategoryAxisOptions<TContext>,
     TitledAxisRequiredKeys,
     AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedBaseAxisLabelOptions<TContext> }
+>;
+
+// --- Axis-attached plugins ---
+//
+// Phase 5 dismantles the `@Property`-decorated holders on `Crosshair`,
+// `BandHighlight`, and `CrosshairLabelProperties`. Each plugin holds a
+// `Normalised<...>` reference to its slice of `axis.options[plugin.name]`
+// and mutates nothing (per invariant I1). R-lists below match what the
+// crosshair / bandHighlight `themeTemplate`s populate post-merge.
+
+export type NormalisedCrosshairLabelOptions<TFormat = string, TContext = ContextDefault> = Normalised<
+    AgCrosshairLabel<TFormat, TContext>,
+    'enabled' | 'xOffset' | 'yOffset'
+>;
+
+export type NormalisedSparklineCrosshairLabelOptions<TContext = ContextDefault> = Normalised<
+    AgBaseCrosshairLabel<TContext>,
+    'enabled' | 'xOffset' | 'yOffset'
+>;
+
+type CrosshairLabelMorph<TFormat, TContext> = { label: NormalisedCrosshairLabelOptions<TFormat, TContext> };
+
+export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefault> = Normalised<
+    AgCrosshairOptions<NormalisedCrosshairLabelOptions<TFormat, TContext>>,
+    'enabled' | 'snap' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'label',
+    CrosshairLabelMorph<TFormat, TContext>
+>;
+
+export type NormalisedBandHighlightOptions = Normalised<
+    AgBandHighlightOptions,
+    'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'fill' | 'fillOpacity'
 >;

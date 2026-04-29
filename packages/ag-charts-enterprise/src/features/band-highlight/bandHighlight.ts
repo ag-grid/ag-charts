@@ -3,8 +3,7 @@ import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
-    type InternalAgColorType,
-    Property,
+    type NormalisedBandHighlightOptions,
     ZIndexMap,
     createId,
 } from 'ag-charts-core';
@@ -24,38 +23,14 @@ export class BandHighlight extends AbstractModuleInstance {
     static readonly className = 'BandHighlight';
     readonly id = createId(this);
 
-    @Property
-    enabled = false;
+    private options: NormalisedBandHighlightOptions | undefined;
 
-    @Property
-    stroke?: string = 'rgb(195, 195, 195)';
-
-    @Property
-    lineDash?: number[] = [6, 3];
-
-    @Property
-    lineDashOffset: number = 0;
-
-    @Property
-    strokeWidth: number = 1;
-
-    @Property
-    strokeOpacity: number = 1;
-
-    @Property
-    fill: InternalAgColorType = '#c16068';
-
-    @Property
-    fillOpacity: number = 1;
-
-    @Property
-    readonly fillGradientDefaults = new FillGradientDefaults();
-
-    @Property
-    readonly fillPatternDefaults = new FillPatternDefaults();
-
-    @Property
-    readonly fillImageDefaults = new FillImageDefaults();
+    // Internal-only fill defaults — supply built-in shape definitions to `getShapeFill`
+    // when the user provides a non-flat fill. Not exposed as user-facing options
+    // (per invariant I2 they remain plain instance fields).
+    private readonly fillGradientDefaults = new FillGradientDefaults();
+    private readonly fillPatternDefaults = new FillPatternDefaults();
+    private readonly fillImageDefaults = new FillImageDefaults();
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
@@ -68,6 +43,7 @@ export class BandHighlight extends AbstractModuleInstance {
     private readonly rangeNode: _ModuleSupport.Range<any> = this.bandHighlightGroup.appendChild(new Range());
 
     private activeAxisHighlight?: _ModuleSupport.AxisBandDatum = undefined;
+
     constructor(private readonly ctx: _ModuleSupport.ChartAxisRegistry<_ModuleSupport.AxisContext>) {
         super();
 
@@ -108,6 +84,10 @@ export class BandHighlight extends AbstractModuleInstance {
                 seriesDragInterpreter.events.on('click', (event) => this.onClick(event))
             );
         }
+    }
+
+    applyOptions(options: NormalisedBandHighlightOptions) {
+        this.options = options;
     }
 
     private axisChange() {
@@ -155,7 +135,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        if (!visible || !axes || !this.enabled) return;
+        if (!visible || !axes || !this.options?.enabled) return;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
@@ -173,29 +153,18 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private updateBand() {
-        const {
-            rangeNode: node,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            fill,
-            fillOpacity,
-            fillGradientDefaults,
-            fillPatternDefaults,
-            fillImageDefaults,
-            lineDashOffset,
-            axisLayout,
-        } = this;
+        const { rangeNode: node, axisLayout, options } = this;
 
-        if (!axisLayout) return;
+        if (!axisLayout || !options) return;
+
+        const { stroke, strokeWidth, strokeOpacity, lineDash, fill, fillOpacity, lineDashOffset } = options;
 
         node.stroke = stroke;
         node.strokeWidth = strokeWidth;
         node.strokeOpacity = strokeOpacity;
         node.lineDash = lineDash;
         node.lineDashOffset = lineDashOffset;
-        node.fill = getShapeFill(fill, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
+        node.fill = getShapeFill(fill, this.fillGradientDefaults, this.fillPatternDefaults, this.fillImageDefaults);
         node.fillOpacity = fillOpacity;
         node.startLine = true;
         node.endLine = true;
@@ -206,7 +175,7 @@ export class BandHighlight extends AbstractModuleInstance {
     }
 
     private onHighlightChange(axisBandDatum?: _ModuleSupport.AxisBandDatum) {
-        if (!this.enabled) return;
+        if (!this.options?.enabled) return;
 
         this.activeAxisHighlight = axisBandDatum;
 

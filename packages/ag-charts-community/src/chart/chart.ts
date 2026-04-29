@@ -4,6 +4,7 @@ import {
     AgDocument,
     AsyncAwaitQueue,
     type AxisID,
+    type AxisPluginModuleInstance,
     type ChartAnimationPhase,
     ChartAxisDirection,
     ChartUpdateType,
@@ -2021,10 +2022,24 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2), 'interval'
-        // (Phase 3) and 'title'/'parentLevel' (Phase 4) are read directly from
-        // `axis.options.X` after their class-based holders were removed; jsonApply
-        // has no field to walk into for these keys.
-        skip = ['type', 'label', 'line', 'tick', 'gridLine', 'interval', 'title', 'parentLevel', ...skip];
+        // (Phase 3), 'title'/'parentLevel' (Phase 4) and 'crosshair'/'bandHighlight'
+        // (Phase 5) are read directly from their respective holders' replacements
+        // (`axis.options.X` for axis-built-ins; the plugin's own
+        // `applyOptions(opts)` setter for axis-attached plugins). jsonApply has no
+        // field to walk into for these keys.
+        skip = [
+            'type',
+            'label',
+            'line',
+            'tick',
+            'gridLine',
+            'interval',
+            'title',
+            'parentLevel',
+            'crosshair',
+            'bandHighlight',
+            ...skip,
+        ];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
@@ -2033,13 +2048,15 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         // Try to optimise series updates if series count and types didn't change.
         if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
             for (const axis of chart.axes) {
-                axis.options = axes[axis.id] as typeof axis.options;
+                const newOpts = axes[axis.id];
+                axis.options = newOpts as typeof axis.options;
 
                 const previousOpts = oldOpts.axes?.[axis.id] ?? {};
-                const axisDiff = jsonDiff(previousOpts, axes[axis.id]) as any;
+                const axisDiff = jsonDiff(previousOpts, newOpts) as any;
 
                 debug(`Chart.applyAxes() - applying axis diff idx ${axis.id}`, axisDiff);
 
+                this.applyAxisModules(axis, newOpts);
                 jsonApply(axis, axisDiff, { skip });
             }
             return true;
@@ -2137,16 +2154,22 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         const moduleMap = axis.getModuleMap();
 
         for (const module of ModuleRegistry.listModulesByType(ModuleType.AxisPlugin)) {
-            const shouldBeEnabled = (options as any)[module.name] != null;
+            const pluginOpts = (options as any)[module.name];
+            const shouldBeEnabled = pluginOpts != null;
+            const isEnabled = moduleMap.isEnabled(module.name);
 
-            if (shouldBeEnabled === moduleMap.isEnabled(module.name)) continue;
+            if (shouldBeEnabled !== isEnabled) {
+                if (shouldBeEnabled) {
+                    moduleMap.addModule(module.name, module.create(moduleContext));
+                } else {
+                    moduleMap.removeModule(module.name);
+                    continue;
+                }
+            }
 
             if (shouldBeEnabled) {
-                moduleMap.addModule(module.name, module.create(moduleContext));
-                (axis as any)[module.name] = moduleMap.getModule(module.name); // TODO remove
-            } else {
-                moduleMap.removeModule(module.name);
-                delete (axis as any)[module.name]; // TODO remove
+                const plugin = moduleMap.getModule(module.name) as AxisPluginModuleInstance;
+                plugin.applyOptions(pluginOpts);
             }
         }
     }

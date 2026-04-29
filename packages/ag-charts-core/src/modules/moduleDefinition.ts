@@ -54,6 +54,10 @@ export interface PropertyDefinitionOpts {
     yScaleType?: ScaleType;
 }
 
+export interface AxisPluginModuleInstance extends ModuleInstance {
+    applyOptions(this: void, options: any): void;
+}
+
 export interface SeriesPluginModuleInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
@@ -142,7 +146,8 @@ export interface PluginModuleDefinition<TOptions, TRegistry = unknown>
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
 
-export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.AxisPlugin, TOptions> {
+export interface AxisPluginModuleDefinition<TOptions>
+    extends ModuleDefinition<ModuleType.AxisPlugin, TOptions, AxisPluginModuleInstance> {
     readonly chartType?: string;
     readonly axisTypes?: string[];
 }
