@@ -10,7 +10,7 @@
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/**/__image_snapshots__/**",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/jest.config.[jt]s"
+      "!{projectRoot}/vitest.config*.[jt]s"
     ],
     "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
@@ -239,9 +239,7 @@
       "inputs": ["jsOutputs"],
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "commands": [
-          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
-        ],
+        "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts"],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
         }
@@ -249,14 +247,10 @@
       "parallelism": false,
       "configurations": {
         "update": {
-          "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
-          ]
+          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"]
         },
         "ci": {
-          "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
-          ],
+          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"],
           "env": {
             "AG_BENCHMARK_REPEAT_LIMIT": "3"
           }
