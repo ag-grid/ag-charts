@@ -2,6 +2,7 @@
 export * from './types/global';
 export * from './types/normalised-options/normalise';
 export * from './types/normalised-options/normalisedLegendOptions';
+export * from './types/normalised-options/normalisedSelectionOptions';
 export * from './types/normalised-options/normalisedZoomOptions';
 export * from './modules/moduleDefinition';
 export * from './types/scene';

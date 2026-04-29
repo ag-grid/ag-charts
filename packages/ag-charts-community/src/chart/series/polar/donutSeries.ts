@@ -722,7 +722,7 @@ export class DonutSeries extends PolarSeries<
             lineDashOffset,
             cornerRadius,
             opacity,
-        } = mergeDefaults(highlightStyle, selectionStyle, defaultStyle, this.properties);
+        } = mergeDefaults(selectionStyle, highlightStyle, defaultStyle, this.properties);
 
         let overrides: PieDonutSeriesStyle | undefined;
         if (itemStyler) {

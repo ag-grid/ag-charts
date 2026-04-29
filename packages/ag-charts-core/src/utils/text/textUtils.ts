@@ -1,7 +1,7 @@
 import type { TextOrSegments, TextSegment, TextValue } from 'ag-charts-types';
 
 import { EllipsisChar, type FontOptions, TrimCharsRegex, TrimEdgeGuard } from '../../types/text';
-import { isArray } from '../types/typeGuards';
+import { isArray, isDate, isNumber } from '../types/typeGuards';
 
 export function toFontString({ fontSize, fontStyle, fontWeight, fontFamily }: FontOptions) {
     let fontString = '';
@@ -22,6 +22,18 @@ export function calcLineHeight(fontSize: number, lineHeightRatio = 1.15) {
 
 export function toTextString(value: TextValue | undefined): string {
     return String(value ?? '');
+}
+
+type CoercedTextValue<R> = string | R | undefined;
+
+// Coerce the TextValue (number/Date) portion of a Renderer<P, R> return to a string,
+// leaving R values, plain strings, and `undefined` unchanged. Centralises the contract
+// shared by overlay/crosshair-style consumers that mix text and DOM/object outputs.
+export function coerceTextValue<R>(value: TextValue | R): string | R;
+export function coerceTextValue<R>(value: TextValue | R | undefined): CoercedTextValue<R>;
+export function coerceTextValue<R>(value: TextValue | R | undefined): CoercedTextValue<R> {
+    if (isNumber(value) || isDate(value)) return toTextString(value);
+    return value;
 }
 
 export function appendEllipsis(text: string) {

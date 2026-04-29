@@ -43,6 +43,7 @@ const {
     getMissCount,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -775,7 +776,7 @@ export class MapMarkerSeries
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle());
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle());
 
         if (!isHighlight && colorValue != null) {
             baseStyle.fill = this.isColorScaleValid()
@@ -991,7 +992,7 @@ export class MapMarkerSeries
                     colorScaleProps.fills,
                     seriesId,
                     visible,
-                    formatValue
+                    colorScaleLegendFormatterContext(this)
                 );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {

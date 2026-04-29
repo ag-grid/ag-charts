@@ -1,5 +1,5 @@
 import type { AgColorType, BorderOptions, FillOptions, Padding } from '../series/cartesian/commonOptions';
-import type { Formatter } from './callbackOptions';
+import type { Formatter, Renderer } from './callbackOptions';
 import type { AgPreventableEvent } from './eventOptions';
 import type {
     AgMarkerShape,
@@ -112,8 +112,8 @@ export interface AgChartLegendItemTooltipRendererParams<TContext = ContextDefaul
     itemId: string | number;
     /** The full, untruncated legend item label text. */
     text: string;
-    /** Whether the legend item is currently enabled (series visible). */
-    enabled: boolean;
+    /** Whether the series for this legend item is currently visible. */
+    visible: boolean;
     /** Callback context for this renderer. */
     context?: TContext;
 }
@@ -130,10 +130,11 @@ export interface AgChartLegendItemTooltipOptions<TContext = ContextDefault> {
     /** Static tooltip text shown for all legend items. */
     text?: string;
     /** Function to generate tooltip content per legend item. Returns plain text or an HTML string.
-     * Takes precedence over `text`.
+     * Takes precedence over `text`. Return `undefined` (or omit a return value) to fall back to
+     * `text` or the default legend item label. Return an empty string to suppress the tooltip.
      *
      * **Note:** Output is rendered as HTML. Ensure content is trusted to avoid XSS. */
-    renderer?: (params: AgChartLegendItemTooltipRendererParams<TContext>) => string;
+    renderer?: Renderer<AgChartLegendItemTooltipRendererParams<TContext>, never>;
 }
 
 export interface AgChartLegendItemOptions<TContext = ContextDefault> {

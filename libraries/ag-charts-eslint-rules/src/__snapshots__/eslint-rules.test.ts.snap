@@ -222,6 +222,21 @@ exports[`aglint/require-explicit-generic 1`] = `
 }
 `;
 
+exports[`aglint/require-shared-renderer 1`] = `
+{
+  "stderr": "",
+  "stdout": "
+<dirname>/lint-require-shared-renderer.data.ts
+  24:16  error  \`renderer\` must use the shared \`Renderer<P, R>\` type from \`chart/callbackOptions\` (directly, or as part of a union/intersection) so the return-value contract stays uniform across the public API. Replace this bespoke signature with \`Renderer<…, R>\`. If you have a genuinely exceptional case, you can disable this rule with \`// eslint-disable-next-line aglint/require-shared-renderer\` and document why  aglint/require-shared-renderer
+  28:16  error  \`renderer\` must use the shared \`Renderer<P, R>\` type from \`chart/callbackOptions\` (directly, or as part of a union/intersection) so the return-value contract stays uniform across the public API. Replace this bespoke signature with \`Renderer<…, R>\`. If you have a genuinely exceptional case, you can disable this rule with \`// eslint-disable-next-line aglint/require-shared-renderer\` and document why  aglint/require-shared-renderer
+  32:16  error  \`renderer\` must use the shared \`Renderer<P, R>\` type from \`chart/callbackOptions\` (directly, or as part of a union/intersection) so the return-value contract stays uniform across the public API. Replace this bespoke signature with \`Renderer<…, R>\`. If you have a genuinely exceptional case, you can disable this rule with \`// eslint-disable-next-line aglint/require-shared-renderer\` and document why  aglint/require-shared-renderer
+
+✖ 3 problems (3 errors, 0 warnings)
+
+",
+}
+`;
+
 exports[`aglint/validate-module-registration 1`] = `
 {
   "stderr": "",

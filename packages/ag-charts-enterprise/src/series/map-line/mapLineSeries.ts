@@ -38,6 +38,7 @@ const {
     getLabelStyles,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -488,7 +489,7 @@ export class MapLineSeries
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const style = mergeDefaults(highlightStyle, selectionStyle, baseStyle);
+        const style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
@@ -740,7 +741,7 @@ export class MapLineSeries
                     colorScaleProps.fills,
                     seriesId,
                     visible,
-                    formatValue
+                    colorScaleLegendFormatterContext(this)
                 );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {

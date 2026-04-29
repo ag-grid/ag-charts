@@ -7,6 +7,7 @@ import tseslint from 'typescript-eslint';
 
 import lintChangeDetection from './libraries/ag-charts-eslint-rules/rules/change-detection.mjs';
 import requireExplicitGeneric from './libraries/ag-charts-eslint-rules/rules/require-explicit-generic.mjs';
+import requireSharedRenderer from './libraries/ag-charts-eslint-rules/rules/require-shared-renderer.mjs';
 
 let env = 'unknown';
 if (process.env.CI != null) {
@@ -139,6 +140,7 @@ export default [
             aglint: {
                 rules: {
                     'require-explicit-generic': requireExplicitGeneric,
+                    'require-shared-renderer': requireSharedRenderer,
                     'change-detection': lintChangeDetection,
                 },
             },

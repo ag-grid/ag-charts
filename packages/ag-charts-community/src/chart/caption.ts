@@ -18,6 +18,7 @@ import type {
     AgCaptionTooltipRendererParams,
     FontStyle,
     FontWeight,
+    Renderer,
     TextAlign,
     TextOrSegments,
     TextWrap,
@@ -51,7 +52,7 @@ class CaptionTooltipProperties extends BaseProperties {
     text?: string;
 
     @Property
-    renderer?: (params: AgCaptionTooltipRendererParams) => string;
+    renderer?: Renderer<AgCaptionTooltipRendererParams, never>;
 }
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -208,7 +209,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             const params: AgCaptionTooltipRendererParams = { text: captionText };
             const result = callWithContext(moduleCtx.chartService, renderer, params);
             if (result === '') return undefined;
-            return { type: 'raw', rawHtmlString: result };
+            if (result != null) return { type: 'raw', rawHtmlString: toTextString(result) };
         }
 
         const displayText = text ?? captionText;

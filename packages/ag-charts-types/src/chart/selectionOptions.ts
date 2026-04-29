@@ -22,6 +22,12 @@ export interface AgChartSelectionOptions {
      */
     enableDrag?: boolean;
     /**
+     * Set to `true` to clear the selection by clicking an empty space on the chart.
+     *
+     * Default: `true`
+     */
+    enableClickAwayToClear?: boolean;
+    /**
      * Click-to-select cardinality. Mode `'multiple'` toggles the selection on the clicked series-node. Mode `'single'`
      * first deselects the current selection completely, and then sets the clicked node to selected. Clicking using the
      * Control (or Command) modifier temporarily uses the `'multiple'` mode for that one click.
