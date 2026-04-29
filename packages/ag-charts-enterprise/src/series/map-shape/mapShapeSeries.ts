@@ -48,6 +48,7 @@ const {
     getMissCount,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -556,7 +557,7 @@ export class MapShapeSeries
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        let style = mergeDefaults(highlightStyle, selectionStyle, baseStyle);
+        let style = mergeDefaults(selectionStyle, highlightStyle, baseStyle);
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -793,7 +794,7 @@ export class MapShapeSeries
                     colorScaleProps.fills,
                     seriesId,
                     visible,
-                    formatValue
+                    colorScaleLegendFormatterContext(this)
                 );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {

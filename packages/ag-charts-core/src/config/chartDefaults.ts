@@ -176,7 +176,7 @@ const chartCaptionOptionsDefs: OptionsDefs<AgChartCaptionOptions> = {
     tooltip: {
         visible: union('auto', 'always', 'never'),
         text: string,
-        renderer: callbackOf(string),
+        renderer: callbackOf(or(string, number, date)),
     },
 };
 // @ts-expect-error undocumented option
@@ -187,7 +187,7 @@ chartCaptionOptionsDefs.truncate = undocumented(boolean);
 const chartOverlayOptionsDefs: OptionsDefs<AgChartOverlayOptions> = {
     enabled: boolean,
     text: textOrSegments,
-    renderer: callbackOf(or(string, htmlElement)),
+    renderer: callbackOf(or(string, number, date, htmlElement)),
 };
 
 const contextMenuItemLiterals: AgContextMenuItemLiteral[] = [

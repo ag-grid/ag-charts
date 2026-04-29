@@ -298,6 +298,10 @@ const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineToo
             return toTextString(userContent);
         }
 
+        // `userContent === undefined` (renderer absent or returning `undefined`) falls through
+        // naturally: optional chaining on `userContent?.content` / `userContent?.title` yields
+        // undefined and the default `yValue.toFixed(2)` content is used. Per the Renderer<P, R>
+        // contract this is the documented "fall through to default" behaviour.
         const content = userContent?.content ?? yValue.toFixed(2);
 
         return userContent?.title

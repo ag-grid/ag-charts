@@ -806,8 +806,8 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             properties.getStyle(false, fills, strokes, fromNodeDatumIndex)
         );
         const hasNodeFill = properties.node.fill != null;
@@ -937,8 +937,8 @@ export class SankeySeries extends FlowProportionSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
         );
         const hasLinkFill = properties.link.fill != null;

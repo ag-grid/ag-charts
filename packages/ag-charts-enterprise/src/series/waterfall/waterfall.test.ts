@@ -973,5 +973,28 @@ describe('WaterfallSeries', () => {
             expect(await hoverDatum(2)).toContain('TOTAL-ITEM');
             expect(await hoverDatum(0)).not.toContain('TOTAL-ITEM');
         });
+
+        it('AG-10316 item-level renderer returning undefined falls through to default tooltip content', async () => {
+            const options: AgCartesianChartOptions = {
+                ...TOTALS_OPTIONS,
+                series: [
+                    {
+                        ...(TOTALS_OPTIONS.series![0] as AgWaterfallSeriesOptions),
+                        yName: 'Spending',
+                        item: { positive: { tooltip: { renderer: () => undefined } } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options as any);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Returning undefined must fall through to the default structured tooltip
+            // rather than rendering literal "undefined".
+            const html = await hoverDatum(0);
+            expect(html).not.toContain('undefined');
+            expect(html).toContain('Spending');
+        });
     });
 });

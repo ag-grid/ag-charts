@@ -63,6 +63,19 @@ document.getElementById('empty-renderer')!.addEventListener('click', () => {
     chart.update(options);
 });
 
+document.getElementById('undefined-renderer')!.addEventListener('click', () => {
+    options.title!.tooltip = {
+        visible: 'always',
+        renderer: () => undefined,
+    };
+    options.subtitle!.tooltip = {
+        visible: 'always',
+        text: 'Subtitle fallback text',
+        renderer: () => undefined,
+    };
+    chart.update(options);
+});
+
 document.getElementById('truncate')!.addEventListener('click', () => {
     options.title!.maxWidth = 200;
     options.title!.tooltip = undefined;

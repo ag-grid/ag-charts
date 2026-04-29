@@ -1435,8 +1435,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             const overrides = simpleItemStyler(datum);
             return mergeDefaults(
                 overrides,
-                highlightStyle,
                 selectionStyle,
+                highlightStyle,
                 this.getStyle(false, highlightState)
             ) as Required<AgBarSeriesStyle>;
         }

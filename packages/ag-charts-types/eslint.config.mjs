@@ -7,6 +7,7 @@ export default [
         files: ['**/*.ts'],
         rules: {
             'aglint/require-explicit-generic': 2,
+            'aglint/require-shared-renderer': 2,
         },
     },
 ];

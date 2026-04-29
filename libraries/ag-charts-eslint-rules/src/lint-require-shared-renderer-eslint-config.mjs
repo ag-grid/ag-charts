@@ -13,6 +13,7 @@ export default [
             globals: globals.browser,
             parserOptions: {
                 projectService: true,
+                project: './src/lint-require-shared-renderer-tsconfig.json',
             },
         },
         plugins: {

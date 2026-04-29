@@ -5,6 +5,7 @@ import {
     ChartUpdateType,
     Property,
     ZIndexMap,
+    coerceTextValue,
     createId,
     toPlainText,
 } from 'ag-charts-core';
@@ -396,10 +397,14 @@ export class Crosshair extends AbstractModuleInstance {
     private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
-        if (this.label.renderer) {
-            return label.toLabelHtml(this.label.renderer({ value, fractionDigits }), defaults);
+        // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
+        // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
+        // still render an empty label.
+        const rendered = this.label.renderer?.({ value, fractionDigits });
+        if (rendered == null) {
+            return label.toLabelHtml(defaults);
         }
-        return label.toLabelHtml(defaults);
+        return label.toLabelHtml(coerceTextValue(rendered), defaults);
     }
 
     private showLabel(x: number, y: number, value: any, key: string) {
