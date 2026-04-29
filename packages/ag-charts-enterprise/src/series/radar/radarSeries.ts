@@ -846,6 +846,7 @@ export abstract class RadarSeries<
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.styler != null ||
             this.properties.marker.itemStyler != null ||
             this.properties.label.itemStyler != null

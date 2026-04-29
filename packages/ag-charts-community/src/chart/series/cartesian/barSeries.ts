@@ -1363,6 +1363,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -1373,7 +1374,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yValue,
             stackGroup,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBarSeriesItemStylerParams<unknown, unknown>>;
@@ -1426,6 +1427,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const { itemStyler, simpleItemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
 
         // Fast path: simpleItemStyler bypasses options graph resolution
         if (simpleItemStyler && processedData != null && datumIndex != null) {
@@ -1434,11 +1436,16 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             return mergeDefaults(
                 overrides,
                 highlightStyle,
+                selectionStyle,
                 this.getStyle(false, highlightState)
             ) as Required<AgBarSeriesStyle>;
         }
 
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
+        let style = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            this.getStyle(datumIndex === undefined, highlightState)
+        );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
             const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
@@ -1741,6 +1748,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.styler != null ||
             this.properties.itemStyler != null ||
             this.properties.simpleItemStyler != null ||

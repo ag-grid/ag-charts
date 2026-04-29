@@ -47,13 +47,13 @@ ModuleRegistry.registerModules([
 
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
     if (params.selectionState === 'selected') {
-        return { stroke: 'black', strokeWidth: 2 };
+        return { stroke: 'red' };
     }
 };
 
 const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle | undefined => {
     if (params.selectionState === 'selected') {
-        return { stroke: 'black', strokeWidth: 2, size: 15 };
+        return { size: 15 };
     }
 };
 const options: AgCartesianChartOptions<DataType> = {

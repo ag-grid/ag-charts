@@ -15,6 +15,8 @@ import type {
     AgChartState,
     AgDataTransaction,
     AgInitialStateLegendOptions,
+    AgSelectionItem,
+    AgSelectionItemIds,
     DownloadOptions,
     ImageDataUrlOptions,
 } from 'ag-charts-types';
@@ -226,6 +228,18 @@ export class AgChartInstanceProxy implements AgChartProxy {
         } else {
             await this.setStateOriginators(state, originators);
         }
+    }
+
+    getSelection(): Iterable<AgSelectionItem<unknown>> {
+        return this.chart?.getSelection() ?? [];
+    }
+
+    setSelection(items: Iterable<AgSelectionItemIds>): void {
+        return this.chart?.setSelection(items);
+    }
+
+    clearSelection(): void {
+        return this.chart?.clearSelection();
     }
 
     resetAnimations(): void {

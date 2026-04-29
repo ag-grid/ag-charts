@@ -708,8 +708,10 @@ export class DonutSeries extends PolarSeries<
     ) {
         const { fills, strokes, itemStyler } = this.properties;
 
-        const defaultStroke = strokes[datumIndex];
-        const defaultFill = fills[datumIndex];
+        const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const defaultStyle = { fill: fills[datumIndex], stroke: strokes[datumIndex] };
+
         const {
             fill,
             fillOpacity,
@@ -720,11 +722,7 @@ export class DonutSeries extends PolarSeries<
             lineDashOffset,
             cornerRadius,
             opacity,
-        } = mergeDefaults(
-            this.getHighlightStyle(isHighlight, datumIndex, highlightState, legendItemValues),
-            { fill: defaultFill, stroke: defaultStroke },
-            this.properties
-        );
+        } = mergeDefaults(highlightStyle, selectionStyle, defaultStyle, this.properties);
 
         let overrides: PieDonutSeriesStyle | undefined;
         if (itemStyler) {
@@ -787,7 +785,7 @@ export class DonutSeries extends PolarSeries<
                 isHighlight,
                 datumIndex
             ),
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: this.getSelectionStateString(datumIndex),
             seriesId: this.id,
         } satisfies CallbackParamRules<
             AgDonutSeriesItemStylerParams<unknown, unknown> | AgPieSeriesItemStylerParams<unknown, unknown>
@@ -805,6 +803,7 @@ export class DonutSeries extends PolarSeries<
                 highlighted,
                 nodeDatum.datumIndex
             );
+            const selectionState = this.getSelectionStateString(nodeDatum.datumIndex);
             const params: RequireOptional<Omit<AgDonutCalloutLineItemStylerParams<unknown, unknown>, 'context'>> = {
                 angleKey: properties.angleKey,
                 angleName: properties.angleName ?? properties.angleKey,
@@ -812,7 +811,7 @@ export class DonutSeries extends PolarSeries<
                 calloutLabelName: properties.calloutLabelName ?? properties.calloutLabelKey,
                 datum: nodeDatum.datum,
                 highlightState,
-                selectionState: this.getDataSelectionState(nodeDatum.datumIndex),
+                selectionState,
                 legendItemKey: properties.legendItemKey,
                 radiusKey: properties.radiusKey,
                 radiusName: properties.radiusName ?? properties.radiusKey,
@@ -1098,6 +1097,17 @@ export class DonutSeries extends PolarSeries<
             );
             sector.inset = inset;
             sector.lineJoin = this.properties.sectorSpacing >= 0 || inset > 0 ? 'miter' : 'round';
+
+            const isSelected: boolean = this.data?.selections?.get(this.id)?.isSelected(datum.datumIndex) ?? false;
+            const selectedOffset: number = this.properties.selection.selectedOffset;
+            if (isSelected && selectedOffset > 0) {
+                const midAngle = (sector.endAngle + sector.startAngle) / 2;
+                sector.centerX = selectedOffset * Math.cos(midAngle);
+                sector.centerY = selectedOffset * Math.sin(midAngle);
+            } else {
+                sector.centerX = 0;
+                sector.centerY = 0;
+            }
         };
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false, 'overlay'));
@@ -1997,6 +2007,7 @@ export class DonutSeries extends PolarSeries<
 
     protected override hasItemStylers(): boolean {
         return !(
+            !this.properties.selection.enabled &&
             this.properties.itemStyler == null &&
             this.properties.calloutLabel.itemStyler == null &&
             this.properties.sectorLabel.itemStyler == null &&

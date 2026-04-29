@@ -640,6 +640,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.itemStyler != null ||
             this.properties.styler != null ||
             this.properties.label.itemStyler != null

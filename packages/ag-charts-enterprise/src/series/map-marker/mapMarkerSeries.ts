@@ -774,7 +774,8 @@ export class MapMarkerSeries
         const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle());
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle());
 
         if (!isHighlight && colorValue != null) {
             baseStyle.fill = this.isColorScaleValid()
@@ -817,6 +818,7 @@ export class MapMarkerSeries
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -829,7 +831,7 @@ export class MapMarkerSeries
             latitudeKey,
             longitudeKey,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgMapMarkerSeriesItemStylerParams>;
@@ -1158,6 +1160,10 @@ export class MapMarkerSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

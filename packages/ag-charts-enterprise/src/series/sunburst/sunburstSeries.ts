@@ -182,7 +182,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightedNode = this.getActiveHighlightNode();
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.properties.highlight);
-        const baseStyle = mergeDefaults(highlightStyles, properties.getStyle(rootIndex));
+        const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
+        const baseStyle = mergeDefaults(highlightStyles, selectionState, properties.getStyle(rootIndex));
 
         if (nodeDatum.colorValue != null && highlightStyles?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);
@@ -228,7 +229,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             labelKey,
             secondaryLabelKey,
             highlightState,
-            selectionState: this.getDataSelectionState(nodeDatum.datumIndex),
+            selectionState: this.getSelectionStateString(nodeDatum.datumIndex),
             ...style,
             fill,
         } satisfies CallbackParamRules<AgSunburstSeriesItemStylerParams<unknown, unknown>>;
@@ -739,6 +740,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

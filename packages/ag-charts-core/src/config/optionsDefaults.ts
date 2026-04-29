@@ -13,6 +13,7 @@ import type {
     AgLineHighlightStyleOptions,
     AgPatternColor,
     AgSelectionContainment,
+    AgSelectionStyleOptions,
     AgSeriesLineSegmentOptions,
     AgSeriesSegmentation,
     AgSeriesShapeSegmentOptions,
@@ -303,6 +304,10 @@ export const shapeHighlightOptionsDef: OptionsDefs<AgHighlightStyleOptions> = {
     opacity: ratio,
 };
 
+export const shapeSelectionOptionsDef: OptionsDefs<AgSelectionStyleOptions> = shapeHighlightOptionsDef;
+
+export const selectionContainmentValidator = strictUnion<AgSelectionContainment>()('any', 'all');
+
 export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
     return {
         enabled: boolean,
@@ -312,10 +317,12 @@ export function highlightOptionsDef<T>(itemHighlightOptionsDef: T) {
     };
 }
 
-export function selectionOptionsDef() {
+export function selectionOptionsDef<T>(itemSelectionOptionsDef: T) {
     return {
         enabled: boolean,
-        containment: strictUnion<AgSelectionContainment>()('any', 'all'),
+        containment: selectionContainmentValidator,
+        selectedItem: itemSelectionOptionsDef,
+        unselectedItem: itemSelectionOptionsDef,
     };
 }
 

@@ -22,6 +22,7 @@ import type {
     Opacity,
     PixelSize,
     HighlightState as PublicHighlightState,
+    SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
 import type { SeriesTooltip } from './seriesTooltip';
@@ -32,6 +33,11 @@ export enum HighlightState {
     Series,
     OtherSeries,
     OtherItem,
+}
+
+export enum SelectionState {
+    Selected,
+    Unselected,
 }
 
 export const highlightStates = [
@@ -48,6 +54,8 @@ export type HighlightStyleOptionKey =
     | 'highlightedSeries'
     | 'unhighlightedSeries';
 
+export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem';
+
 export function getHighlightStyleOptionKeys(highlightState: HighlightState): HighlightStyleOptionKey[] {
     switch (highlightState) {
         case HighlightState.Item:
@@ -63,7 +71,20 @@ export function getHighlightStyleOptionKeys(highlightState: HighlightState): Hig
     }
 }
 
-type HighlightMixins = {
+export function getSelectionStyleOptionKeys(selectionState: SelectionState): SelectionStyleOptionKey[] {
+    switch (selectionState) {
+        case SelectionState.Selected:
+            return ['selectedItem'];
+        case SelectionState.Unselected:
+            return ['unselectedItem'];
+        default: {
+            const unreachable = (a: never): never => a;
+            return unreachable(selectionState);
+        }
+    }
+}
+
+type StyleMixins = {
     fill: AgColorType;
     fillOpacity: number;
     stroke: string;
@@ -92,30 +113,22 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
     }
 }
 
-type HighlightOptions<TOpts extends object> = Partial<TOpts & HighlightMixins>;
-
-export class SeriesItemHighlightStyle extends BaseProperties {
-    @Property
-    fill?: string;
-
-    @Property
-    fillOpacity?: number;
-
-    @Property
-    stroke?: string;
-
-    @Property
-    strokeWidth?: number;
-
-    @Property
-    strokeOpacity?: number;
-
-    @Property
-    lineDash?: number[];
-
-    @Property
-    lineDashOffset?: number;
+export function toSelectionString(state: SelectionState): PublicSelectionState {
+    const unreachable = (a: never): never => a;
+    switch (state) {
+        case SelectionState.Selected:
+            return 'selected';
+        case SelectionState.Unselected:
+            return 'unselected';
+        default:
+            return unreachable(state);
+    }
 }
+
+type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
+type SelectionOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
+
+export type SeriesItemHighlightStyle = HighlightOptions<object>;
 
 export class HighlightProperties<TOpts extends object> extends BaseProperties {
     @Property
@@ -146,12 +159,27 @@ export class HighlightProperties<TOpts extends object> extends BaseProperties {
     }
 }
 
-export class SeriesSelectionProperties extends BaseProperties {
+export class SeriesSelectionProperties<TOpts extends object> extends BaseProperties {
     @Property
     enabled = false;
 
     @Property
     containment: AgSelectionContainment = 'any';
+
+    @Property
+    readonly selectedItem: SelectionOptions<TOpts> = {};
+
+    @Property
+    readonly unselectedItem: SelectionOptions<TOpts> = {};
+
+    @Property
+    selectedOffset = 0; // pie-only
+
+    getStyle(selectionState: SelectionState): SelectionOptions<TOpts> {
+        const keys = getSelectionStyleOptionKeys(selectionState);
+        if (keys.length === 0) return {};
+        return mergeDefaults<SelectionOptions<TOpts>>(...keys.map((key) => this[key]));
+    }
 }
 
 export class SegmentOptions extends BaseProperties implements AgSeriesShapeSegmentOptions {
@@ -335,7 +363,7 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     readonly highlight: HighlightProperties<T> = new HighlightProperties();
 
     @Property
-    readonly selection: SeriesSelectionProperties = new SeriesSelectionProperties();
+    readonly selection: SeriesSelectionProperties<T> = new SeriesSelectionProperties();
 
     abstract tooltip: SeriesTooltip<never>;
 

@@ -823,7 +823,9 @@ export abstract class OhlcSeriesBase<
 
         const highlightStyle: FillOptions & StrokeOptions & LineDashOptions & { opacity?: number } =
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
+        const selectionStyle: (FillOptions & StrokeOptions & LineDashOptions & { opacity?: number }) | undefined =
+            this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(itemType));
 
         let style = baseStyle;
 
@@ -862,6 +864,7 @@ export abstract class OhlcSeriesBase<
         const datum = processedData!.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
 
         const params: CallbackParamRules<AgOhlcSeriesItemStylerParams> = {
             seriesId,
@@ -873,7 +876,7 @@ export abstract class OhlcSeriesBase<
             highKey,
             lowKey,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
         };
 

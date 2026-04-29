@@ -1,6 +1,6 @@
 import type { Scale } from 'ag-charts-core';
 import { ChartAxisDirection, type Point, clamp, objectsEqual } from 'ag-charts-core';
-import type { AgActiveItemState, SelectionState } from 'ag-charts-types';
+import type { AgActiveItemState } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import type { BBox } from '../../scene/bbox';
@@ -11,6 +11,7 @@ import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
+import { SelectionState } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
@@ -258,17 +259,9 @@ export abstract class DataModelSeries<
     }
 
     protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
-        const isSelected: boolean | undefined =
-            datumIndex === undefined ? undefined : this.data?.selections.get(this.id)?.isSelected(datumIndex);
-        switch (isSelected) {
-            case undefined:
-                return undefined;
-            case true:
-                return 'selected';
-            case false:
-                return 'unselected';
-            default:
-                return isSelected satisfies never; // unreachable
-        }
+        if (datumIndex === undefined || !this.properties.selection.enabled) return undefined;
+
+        const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
+        return isSelected ? SelectionState.Selected : SelectionState.Unselected;
     }
 }

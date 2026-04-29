@@ -4,6 +4,7 @@ import type {
     AgWaterfallSeriesLabelFormatterParams,
     AgWaterfallSeriesOptions,
     AgWaterfallSeriesStyle,
+    AgWaterfallSeriesTooltipRendererParams,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -784,7 +785,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const propertyItemId = itemType === 'subtotal' ? 'total' : itemType;
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(itemType));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
 
@@ -821,6 +823,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -830,7 +833,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
             xKey,
             yKey,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgWaterfallSeriesItemStylerParams>;
@@ -966,8 +969,18 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const nodeDatum = this.contextNodeData?.nodeData?.[datumIndex];
         const format = this.getItemStyle(nodeDatum, false, undefined, nodeDatum?.itemType);
 
+        // Override only the renderer; other tooltip fields (enabled, position, range, class,
+        // interaction) are read directly off `series.properties.tooltip` upstream of this method,
+        // so the wrapper's defaults for those fields are never consulted by the tooltip pipeline.
+        let effectiveTooltip = tooltip;
+        const itemTooltipRenderer = this.getItemConfig(seriesItemType).tooltip?.renderer;
+        if (itemTooltipRenderer != null) {
+            effectiveTooltip = _ModuleSupport.makeSeriesTooltip<AgWaterfallSeriesTooltipRendererParams>();
+            effectiveTooltip.renderer = itemTooltipRenderer;
+        }
+
         return this.formatTooltipWithContext(
-            tooltip,
+            effectiveTooltip,
             {
                 heading: this.getAxisValueText(xAxis, 'tooltip', xValue, datum, xKey, legendItemName),
                 symbol: this.legendItemSymbol(seriesItemType),
@@ -1229,6 +1242,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
     protected override hasItemStylers(): boolean {
         const { positive, negative, total } = this.properties.item;
         return (
+            this.properties.selection.enabled ||
             positive.itemStyler != null ||
             positive.label.itemStyler != null ||
             negative.itemStyler != null ||

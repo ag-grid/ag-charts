@@ -487,7 +487,8 @@ export class MapLineSeries
         }
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const style = mergeDefaults(highlightStyle, baseStyle);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const style = mergeDefaults(highlightStyle, selectionStyle, baseStyle);
 
         if (sizeValue != null) {
             style.strokeWidth = sizeScale.convert(sizeValue, { clamp: true });
@@ -515,6 +516,7 @@ export class MapLineSeries
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
 
         return {
             seriesId,
@@ -524,7 +526,7 @@ export class MapLineSeries
             colorKey,
             datum,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
         } satisfies CallbackParamRules<AgMapLineSeriesItemStylerParams>;
     }
@@ -890,6 +892,10 @@ export class MapLineSeries
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

@@ -54,6 +54,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         isHighlight?: boolean,
         datumIndex?: number
     ): HighlightStateString;
+    getSelectionStyle(datumIndex?: number): AgRadialSeriesStyle | undefined;
 }
 
 export function makeStylerParams(
@@ -159,7 +160,12 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const { itemStyler } = properties;
 
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
-    const baseStyle = mergeDefaults(highlightStyle, getStyle(series, nodeDatum === undefined, highlightState));
+    const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex);
+    const baseStyle = mergeDefaults(
+        highlightStyle,
+        selectionStyle,
+        getStyle(series, nodeDatum === undefined, highlightState)
+    );
     let style = baseStyle;
 
     if (itemStyler != null && nodeDatum != null) {

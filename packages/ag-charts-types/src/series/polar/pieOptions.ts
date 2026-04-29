@@ -143,7 +143,7 @@ export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDef
     extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
-        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'> {
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'> {
     /** Configuration for Pie Series. */
     type: 'pie';
 }

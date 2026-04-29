@@ -611,6 +611,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const { missingDataFill } = properties.colorScale;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         let fill: string;
         if (this.isColorScaleValid() && colorValue != null) {
             fill = this.colorScale.convert(colorValue);
@@ -619,7 +620,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         } else {
             fill = 'transparent';
         }
-        const style = mergeDefaults(highlightStyle, {
+        const style = mergeDefaults(highlightStyle, selectionStyle, {
             fill,
             fillOpacity: 1,
             stroke,
@@ -650,6 +651,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -659,7 +661,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             yKey,
             colorKey,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgHeatmapSeriesItemStylerParams>;
@@ -913,7 +915,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
 
     protected override hasItemStylers(): boolean {
         return (
-            this.properties.itemStyler != null || this.properties.label.itemStyler != null || this.isColorScaleValid()
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null ||
+            this.isColorScaleValid()
         );
     }
 }

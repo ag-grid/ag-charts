@@ -778,7 +778,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        let style = mergeDefaults(highlightStyle, this.getStyle(datumIndex === undefined, highlightState));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        let style = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            this.getStyle(datumIndex === undefined, highlightState)
+        );
 
         if (itemStyler != null && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -817,6 +822,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const datum = this.processedData?.dataSources.get(seriesId)?.data[datumIndex];
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightStateString = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionStateString = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -829,7 +835,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             q3Key,
             maxKey,
             highlightState: highlightStateString,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState: selectionStateString,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgBoxPlotSeriesItemStylerParams>;
@@ -932,6 +938,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.styler != null;
+        return (
+            this.properties.selection.enabled || this.properties.itemStyler != null || this.properties.styler != null
+        );
     }
 }

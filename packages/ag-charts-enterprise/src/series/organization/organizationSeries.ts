@@ -159,8 +159,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     hasItemStylers() {
-        const { node, link } = this.properties;
+        const { node, link, selection } = this.properties;
         return (
+            selection.enabled ||
             node.itemStyler != null ||
             link.itemStyler != null ||
             node.title.itemStyler != null ||
@@ -465,8 +466,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // TODO: AG-17010 MVP does not include default highlight styles
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
 
-        let style = mergeDefaults(highlightStyle, this.getNodeDefaultStyle(), {
+        let style = mergeDefaults(highlightStyle, selectionStyle, this.getNodeDefaultStyle(), {
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),

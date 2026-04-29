@@ -804,7 +804,12 @@ export class SankeySeries extends FlowProportionSeries<
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(false, fills, strokes, fromNodeDatumIndex));
+        const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            properties.getStyle(false, fills, strokes, fromNodeDatumIndex)
+        );
         const hasNodeFill = properties.node.fill != null;
         let style = getShapeStyle(
             baseStyle,
@@ -850,6 +855,7 @@ export class SankeySeries extends FlowProportionSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -859,7 +865,7 @@ export class SankeySeries extends FlowProportionSeries<
             toKey,
             sizeKey,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             size,
             label,
@@ -929,8 +935,10 @@ export class SankeySeries extends FlowProportionSeries<
         const defaultPatternFill = defaultPatternFills[fromNodeDatumIndex.index % defaultPatternFills.length];
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             highlightStyle,
+            selectionStyle,
             properties.getStyle(true, fills, strokes, fromNodeDatumIndex.index)
         );
         const hasLinkFill = properties.link.fill != null;
@@ -1088,6 +1096,7 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.node.itemStyler != null ||
             this.properties.link.itemStyler != null ||
             this.properties.label.itemStyler != null

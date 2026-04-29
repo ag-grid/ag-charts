@@ -5,10 +5,10 @@ import type {
     AgChartLegendMarkerOptions,
     AgChartLegendOptions,
     AgChartLegendPaginationOptions,
+    AgChartSelectionOptions,
     AgPaginationLabelOptions,
     AgPaginationMarkerOptions,
     AgPaginationMarkerStyle,
-    AgSelectionOptions,
     BorderOptions,
 } from 'ag-charts-types';
 
@@ -92,6 +92,6 @@ export type NormalisedLegendOptions = Normalised<
 >;
 
 export type NormalisedSelectionOptions = Normalised<
-    AgSelectionOptions,
+    AgChartSelectionOptions,
     'enabled' | 'enableClick' | 'enableDrag' | 'clickMode'
 >;

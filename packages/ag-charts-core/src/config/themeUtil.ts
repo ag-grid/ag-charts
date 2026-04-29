@@ -3,8 +3,9 @@ import type {
     AgHighlightOptions,
     AgHighlightStyleOptions,
     AgMultiSeriesHighlightOptions,
+    AgSelectionOptions,
+    AgSelectionStyleOptions,
     AgSeriesSegmentation,
-    AgSeriesSelectionOptions,
     LabelBoxOptions,
     WithThemeParams,
 } from 'ag-charts-types';
@@ -410,9 +411,13 @@ export const SINGLE_SERIES_HIGHLIGHT_STYLE: WithThemeParams<AgHighlightOptions<A
     },
 };
 
-export const SERIES_SELECTION_THEME: WithThemeParams<AgSeriesSelectionOptions> = {
+export const SERIES_SELECTION_THEME: WithThemeParams<AgSelectionOptions<AgSelectionStyleOptions>> = {
     enabled: { $path: ['/selection/enabled', false] },
     containment: { $path: '/selection/containment' },
+    selectedItem: {
+        stroke: 'black',
+        strokeWidth: 2,
+    },
 };
 
 export const LEGEND_CONTAINER_THEME: any = {

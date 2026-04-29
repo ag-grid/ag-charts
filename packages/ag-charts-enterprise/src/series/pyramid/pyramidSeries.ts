@@ -508,7 +508,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { itemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.getStyle(datumIndex));
+        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(datumIndex));
         let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {
@@ -539,6 +540,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
@@ -547,7 +549,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageKey,
             valueKey,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             fill,
         } satisfies CallbackParamRules<AgPyramidSeriesItemStylerParams<unknown, unknown>>;
@@ -803,6 +805,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     protected override hasItemStylers(): boolean {
-        return this.properties.itemStyler != null || this.properties.label.itemStyler != null;
+        return (
+            this.properties.selection.enabled ||
+            this.properties.itemStyler != null ||
+            this.properties.label.itemStyler != null
+        );
     }
 }

@@ -403,7 +403,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {
         if (processedData.type === 'grouped') return;
-        if (processedData.input.count <= this.properties.maxRenderedItems) return;
+        const renderableCount = processedData.input.count - this.invalidDataCount() - this.missingDataCount();
+        if (renderableCount <= this.properties.maxRenderedItems) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -1504,8 +1505,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     protected override hasItemStylers(): boolean {
-        const { styler, itemStyler, marker, label } = this.properties;
-        return !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler) || this.isColorScaleValid();
+        const { selection, styler, itemStyler, marker, label } = this.properties;
+        return (
+            selection.enabled ||
+            !!(styler ?? itemStyler ?? marker.itemStyler ?? label.itemStyler) ||
+            this.isColorScaleValid()
+        );
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<BubbleScatterNodeDatum>) {

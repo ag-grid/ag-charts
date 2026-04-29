@@ -419,7 +419,12 @@ export class ChordSeries extends FlowProportionSeries<
         const { itemStyler } = properties.node;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, properties.node.getStyle(fills, strokes, fromNodeDatumIndex));
+        const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
+        const baseStyle = mergeDefaults(
+            highlightStyle,
+            selectionStyle,
+            properties.node.getStyle(fills, strokes, fromNodeDatumIndex)
+        );
 
         let style = getShapeStyle(baseStyle, fillGradientDefaults, fillPatternDefaults, fillImageDefaults);
 
@@ -456,13 +461,14 @@ export class ChordSeries extends FlowProportionSeries<
 
         const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightStateString(activeHighlight, isHighlight, datumIndex);
+        const selectionState = this.getSelectionStateString(datumIndex);
         const fill = this.filterItemStylerFillParams(style.fill) ?? style.fill;
 
         return {
             seriesId,
             datum,
             highlightState,
-            selectionState: this.getDataSelectionState(datumIndex),
+            selectionState,
             ...style,
             size,
             label,
@@ -516,8 +522,10 @@ export class ChordSeries extends FlowProportionSeries<
         const { itemStyler } = properties.link;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
             highlightStyle,
+            selectionStyle,
             properties.link.getStyle(fills, strokes, fromNodeDatumIndex.index)
         );
 
@@ -677,6 +685,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected override hasItemStylers(): boolean {
         return (
+            this.properties.selection.enabled ||
             this.properties.node.itemStyler != null ||
             this.properties.link.itemStyler != null ||
             this.properties.label.itemStyler != null

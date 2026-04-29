@@ -113,6 +113,7 @@ export { ChartOptions } from './module/optionsModule';
 export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
+export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';
@@ -173,20 +174,20 @@ export { Series, SeriesNodeEvent, SeriesNodePickMode } from './chart/series/seri
 export type {
     PickFocusInputs,
     PickFocusOutputs,
-    SeriesDataEvent,
     SeriesNodeDataContext,
     SeriesNodePickMatch,
     SeriesNodeStyleContext,
+    SeriesDataEvent,
     UnknownSeries,
 } from './chart/series/series';
 export { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from './chart/series/seriesLabelUtil';
+export type { SeriesItemHighlightStyle } from './chart/series/seriesProperties';
 export {
     FillGradientDefaults,
     FillImageDefaults,
     FillPatternDefaults,
     HighlightProperties,
     HighlightState,
-    SeriesItemHighlightStyle,
     SeriesProperties,
     toHighlightString,
 } from './chart/series/seriesProperties';

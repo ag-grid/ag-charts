@@ -64,6 +64,10 @@ export class DataSetSelection {
 
     // --- Query ---
 
+    getLength(): number {
+        return this.selection.length;
+    }
+
     /** Direct access for the render loop. */
     getSelection(): Uint8Array {
         return this.selection;

@@ -41,14 +41,14 @@ type SeriesDataEvent = _ModuleSupport.SeriesDataEvent;
 export class ErrorBars extends AbstractModuleInstance implements SeriesPluginModuleInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
-    private readonly selection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
+    private readonly sceneSelection: _ModuleSupport.Selection<ErrorBarNodeDatum, ErrorBarNode>;
 
     readonly properties = new ErrorBarProperties();
 
     private dataModel?: AnyDataModel;
     private processedData?: AnyProcessedData;
 
-    constructor(ctx: _ModuleSupport.ChartSeriesRegistry) {
+    constructor(private readonly ctx: _ModuleSupport.ChartSeriesRegistry) {
         super();
 
         const series = ctx.series as ErrorBoundCartesianSeries;
@@ -60,16 +60,17 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         });
 
         annotationGroup.appendChild(this.groupNode);
-        this.selection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
-        annotationSelections.add(this.selection);
+        this.sceneSelection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
+        annotationSelections.add(this.sceneSelection);
 
         series.addEventListener('seriesVisibilityChange', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e));
         this.cleanup.register(
             series.events.on('data-processed', (e) => this.onDataProcessed(e)),
             series.events.on('data-update', (e) => this.onDataUpdate(e)),
+            series.events.on('data-selection-change', (e) => this.onDataSelectionChange(e)),
             ctx.eventsHub.on('highlight:change', (event) => this.onHighlightChange(event)),
             () => this.groupNode.remove(),
-            () => annotationSelections.delete(this.selection)
+            () => annotationSelections.delete(this.sceneSelection)
         );
     }
 
@@ -189,6 +190,10 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         }
     }
 
+    private onDataSelectionChange(_event: null) {
+        this.update();
+    }
+
     private getNodeData(): ErrorBarNodeDatum[] | undefined {
         return this.hasErrorBars() ? this.cartesianSeries.contextNodeData?.nodeData : undefined;
     }
@@ -285,15 +290,20 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
     private update() {
         this.groupNode.visible = this.cartesianSeries.visible;
         const nodeData = this.getNodeData();
-        this.selection.update(nodeData ?? []);
+        this.sceneSelection.update(nodeData ?? []);
         if (nodeData != null) {
-            this.selection.each((node, datum, i) => this.updateNode(node, datum, i));
+            this.sceneSelection.each((node, datum, i) => this.updateNode(node, datum, i));
         }
     }
 
     private updateNode(node: ErrorBarNode, datum: ErrorBarNodeDatum, _index: number) {
+        const active = this.ctx.highlightManager.getActiveHighlight();
+        const isHighlight = active && active.series.id === datum.series.id && active.datumIndex === datum.datumIndex;
+
+        const highlightState = this.cartesianSeries.getHighlightStateString(active, isHighlight, datum.datumIndex);
+        const selectionState = this.cartesianSeries.getSelectionStateString(datum.datumIndex);
         node.datum = datum;
-        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, false, 'none');
+        node.update(this.getDefaultStyle(), this.properties, this.cartesianSeries, highlightState, selectionState);
         node.updateBBoxes();
     }
 
@@ -399,14 +409,15 @@ export class ErrorBars extends AbstractModuleInstance implements SeriesPluginMod
         // data points with error bars).
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection
+                const dataSelectionState = this.cartesianSeries.getSelectionStateString(nodeData[i].datumIndex);
+                this.sceneSelection
                     .at(i)
                     ?.update(
                         style,
                         this.properties,
                         this.cartesianSeries,
-                        highlighted,
-                        highlighted ? 'highlighted-item' : 'unhighlighted-item'
+                        highlighted ? 'highlighted-item' : 'unhighlighted-item',
+                        dataSelectionState
                     );
                 break;
             }
