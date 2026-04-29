@@ -153,7 +153,7 @@ export abstract class RadiusAxis<
         const tickGenerationResult = generateTicks({
             scale: this.scale,
             label: this.options.label,
-            interval: this.interval,
+            interval: this.options.interval,
             tickFormatter: (...args) => this.tickFormatter(...args),
             domain,
             range,

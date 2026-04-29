@@ -281,7 +281,8 @@ export abstract class CartesianAxis<
             };
         }
 
-        const { primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } = this;
+        const { primaryLabel, scale, range, reverse, defaultTickMinSpacing, minimumTimeGranularity } = this;
+        const interval = this.options.interval;
 
         const tickGenerationResult = generateTicks({
             label,

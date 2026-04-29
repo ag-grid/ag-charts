@@ -1,4 +1,4 @@
-import type { AgGradientLegendLabelOptions, ContextDefault } from 'ag-charts-types';
+import type { AgAxisContinuousIntervalOptions, AgGradientLegendLabelOptions, ContextDefault } from 'ag-charts-types';
 
 import type { Normalised } from './normalise';
 
@@ -15,3 +15,9 @@ export type NormalisedGradientLegendLabelOptions<TContext = ContextDefault> = No
     'color' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'minSpacing',
     { fontFamily: string }
 >;
+
+/**
+ * Post-theme-merge shape for `gradientLegend.scale.interval`. No required keys —
+ * `gradientLegendModule.themeTemplate` does not populate any interval fields.
+ */
+export type NormalisedGradientLegendIntervalOptions = Normalised<AgAxisContinuousIntervalOptions<number>>;

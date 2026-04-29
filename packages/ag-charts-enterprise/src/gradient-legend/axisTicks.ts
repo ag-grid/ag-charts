@@ -1,6 +1,7 @@
 import { type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import {
     type DynamicContext,
+    type NormalisedGradientLegendIntervalOptions,
     type NormalisedGradientLegendLabelOptions,
     type ScaleTickParams,
     ZIndexMap,
@@ -20,16 +21,8 @@ import type { AgChartLegendPlacement, FormatterParams } from 'ag-charts-types';
 
 import { formatWithContext } from '../utils/formatter';
 
-const {
-    AxisInterval,
-    LinearScale,
-    BBox,
-    TranslatableGroup,
-    Selection,
-    Text,
-    createAxisLabelFormatterCache,
-    formatAxisLabelValue,
-} = _ModuleSupport;
+const { LinearScale, BBox, TranslatableGroup, Selection, Text, createAxisLabelFormatterCache, formatAxisLabelValue } =
+    _ModuleSupport;
 
 interface TickDatum {
     tick: any;
@@ -48,12 +41,12 @@ export class AxisTicks {
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
     protected readonly labelSelection = Selection.select<_ModuleSupport.Text<TickDatum>>(this.axisGroup, Text);
 
-    readonly interval = new AxisInterval();
     readonly scale = new LinearScale();
     readonly formatterCache = createAxisLabelFormatterCache();
 
     /** Owned by the gradient legend; assigned via `applyOptions` before any layout call. */
     labelOptions: NormalisedGradientLegendLabelOptions | undefined;
+    intervalOptions: NormalisedGradientLegendIntervalOptions | undefined;
 
     namedLabels?: _ModuleSupport.GradientLegendNamedLabel[];
     placement: AgChartLegendPlacement = 'bottom';
@@ -213,7 +206,7 @@ export class AxisTicks {
             return this.generateNamedTicks(this.namedLabels);
         }
 
-        const { minSpacing, maxSpacing } = this.interval;
+        const { minSpacing, maxSpacing, step } = this.intervalOptions ?? {};
         const { maxTickCount, minTickCount, tickCount } = estimateTickCount(
             findRangeExtent(this.scale.range),
             1,
@@ -225,7 +218,7 @@ export class AxisTicks {
 
         const tickData = this.getTicksData({
             nice: [true, true],
-            interval: this.interval.step,
+            interval: step,
             tickCount,
             minTickCount,
             maxTickCount,

@@ -1,4 +1,4 @@
-import type { NormalisedBaseCartesianAxisOptions, NormalisedCategoryAxisOptions } from 'ag-charts-core';
+import type { NormalisedBaseCategoryStyleAxisOptions, NormalisedCategoryAxisOptions } from 'ag-charts-core';
 
 import type { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
@@ -9,7 +9,7 @@ import { CategoryAxis } from './categoryAxis';
 
 export class DiscreteTimeAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedCategoryAxisOptions,
+    TOptions extends NormalisedBaseCategoryStyleAxisOptions = NormalisedCategoryAxisOptions,
 > extends CategoryAxis<S, TOptions> {
     protected override calculateGridLine(
         { index: tickIndex, tickId, translation }: GridLineStyleTickDatum,
@@ -18,10 +18,10 @@ export class DiscreteTimeAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { horizontal, interval, range } = this;
+        const { horizontal, range } = this;
         const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
@@ -37,7 +37,7 @@ export class DiscreteTimeAxis<
     }
 
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
-        if (this.interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
         return ticks.map((tick, index) => this.calculateGridFill(tick, index, tick.index, p1, p2, ticks));
@@ -51,10 +51,10 @@ export class DiscreteTimeAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { horizontal, interval, range } = this;
+        const { horizontal, range } = this;
         const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
         }
 
@@ -78,10 +78,10 @@ export class DiscreteTimeAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, range } = this;
+        const { horizontal, primaryTick, range } = this;
         const tick = this.options.tick;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateTickLine(
                 { isPrimary, tickId, translation },
                 index,

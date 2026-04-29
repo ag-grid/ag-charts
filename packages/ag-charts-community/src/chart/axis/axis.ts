@@ -61,7 +61,6 @@ import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
-import { AxisInterval } from './axisInterval';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
@@ -214,9 +213,6 @@ export abstract class Axis<
     /** Reverse the axis scale domain. */
     @Property
     reverse: boolean = false;
-
-    @Property
-    readonly interval = new AxisInterval();
 
     options: TOptions;
 

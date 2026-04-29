@@ -11,7 +11,6 @@ import {
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
-import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
@@ -31,9 +30,6 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
 
     @Property
     preferredMax?: number;
-
-    @Property
-    override interval = new AngleAxisInterval();
 
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
@@ -89,7 +85,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
 
     protected generateAngleTicks(domain: number[]) {
         const { scale, range: requestedRange, nice } = this;
-        const { values, step, minSpacing, maxSpacing } = this.interval;
+        const { values, step, minSpacing, maxSpacing } = this.options.interval ?? {};
 
         let rawTicks: number[];
         if (values == null) {

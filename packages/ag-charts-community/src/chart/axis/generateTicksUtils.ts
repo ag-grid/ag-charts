@@ -44,11 +44,17 @@ import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
-import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
+
+export interface AxisIntervalOptions<S> {
+    step?: TickInterval<S>;
+    values?: any[];
+    minSpacing?: number;
+    maxSpacing?: number;
+}
 
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
     label: ChartAxisLabel;
@@ -66,7 +72,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     labelOffset: number;
     sideFlag: ChartAxisLabelFlipFlag;
     primaryLabel?: ChartAxisLabel;
-    interval: AxisInterval<TScale>;
+    interval: AxisIntervalOptions<TScale> | undefined;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     sizeLimit?: number;
     isVertical?: boolean;

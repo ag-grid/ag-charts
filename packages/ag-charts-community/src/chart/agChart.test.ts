@@ -462,7 +462,7 @@ describe('AgChart', () => {
         await waitForChartStability(chartProxy);
 
         leftAxis = chart.axes.find((axis) => axis.position === 'left');
-        expect((leftAxis as any)?.options.gridLine.style).toEqual([
+        expect(leftAxis?.options.gridLine.style).toEqual([
             {
                 fillOpacity: 1,
                 stroke: 'red',

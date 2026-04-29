@@ -30,19 +30,11 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
-import type { TickInterval } from './axis/axisTick';
 import type { CrossLine } from './crossline/crossLine';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
-
-interface AxisInterval {
-    step?: number | TickInterval<any>;
-    values?: any[];
-    minSpacing?: number;
-    maxSpacing?: number;
-}
 
 interface AxisLayoutConstraints {
     stacked: boolean;
@@ -139,7 +131,6 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     gridPadding: number;
     id: AxisID;
     interactionEnabled: boolean;
-    interval: AxisInterval;
     layoutConstraints: AxisLayoutConstraints;
     nice: boolean;
     options: TOptions;

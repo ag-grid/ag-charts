@@ -296,7 +296,6 @@ export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
-export { AxisInterval } from './chart/axis/axisInterval';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
 export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
 export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';

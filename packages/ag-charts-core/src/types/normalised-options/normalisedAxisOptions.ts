@@ -3,7 +3,10 @@ import type {
     AgAngleAxisLabelOptions,
     AgAngleCategoryAxisOptions,
     AgAngleNumberAxisOptions,
+    AgAxisBaseIntervalOptions,
     AgAxisBaseTickOptions,
+    AgAxisCategoryIntervalOptions,
+    AgAxisContinuousIntervalOptions,
     AgAxisGridLineOptions,
     AgAxisLineOptions,
     AgBaseAxisLabelOptions,
@@ -22,6 +25,8 @@ import type {
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
     AgTimeAxisOptions,
+    AgTimeInterval,
+    AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
     ContextDefault,
 } from 'ag-charts-types';
@@ -114,14 +119,30 @@ export type NormalisedAxisGridLineOptions = Normalised<AgAxisGridLineOptions, 'e
 
 export type NormalisedAxisTickOptions = Normalised<AgAxisBaseTickOptions, 'enabled' | 'width' | 'size'>;
 
+// --- Interval normalised shapes ---
+//
+// Phase 3 dismantles the `AxisInterval` and `AngleAxisInterval` holders.
+// `interval` is genuinely optional on the axis options: only category /
+// unit-time / ordinal-time module templates populate `placement: 'between'`,
+// and no module populates the continuous axis interval fields. Reads use
+// `axis.options.interval?.X`; the `interval` key is therefore deliberately
+// excluded from `AxisRequiredKeys`.
+
+export type NormalisedAxisIntervalOptions = Normalised<AgAxisBaseIntervalOptions>;
+
+export type NormalisedAxisCategoryIntervalOptions = Normalised<AgAxisCategoryIntervalOptions>;
+
+export type NormalisedAxisContinuousIntervalOptions<
+    TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
+> = Normalised<AgAxisContinuousIntervalOptions<TInterval>>;
+
 // --- Axis-level normalised shapes ---
 //
 // Phase 1b morphs `label`; Phase 2 morphs `line`/`tick`/`gridLine`. The remaining
-// holders (`interval`, `title`, `parentLevel`) keep their user-facing shapes
-// here and gain dedicated normalised aliases when their respective phases
-// (3/4) eliminate the corresponding holder classes.
+// holders (`title`, `parentLevel`) keep their user-facing shapes here and gain
+// dedicated normalised aliases when Phase 4 eliminates them.
 
-type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine' | 'interval';
+type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine';
 
 type AxisLineTickGridLineMorph = {
     line: NormalisedAxisLineOptions;
@@ -139,6 +160,19 @@ export type NormalisedBaseCartesianAxisOptions<
     TLabel = NormalisedBaseCartesianAxisLabelOptions,
     TContext = ContextDefault,
 > = Normalised<AgBaseCartesianAxisOptions<TLabel, unknown, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
+
+/**
+ * Category-style cartesian axes (`category`, `time`, `unit-time`, `ordinal-time`) all
+ * accept `interval.placement`. `NormalisedBaseCartesianAxisOptions` carries the base
+ * `AgAxisBaseIntervalOptions` shape, which omits `placement` — class generics
+ * constrained on the base would lose access to it. This narrower constraint exposes
+ * `placement` while keeping subtypes (continuous/discrete-time interval shapes) free
+ * to bring their own additional fields.
+ */
+export type NormalisedBaseCategoryStyleAxisOptions<
+    TLabel = NormalisedBaseCartesianAxisLabelOptions,
+    TContext = ContextDefault,
+> = NormalisedBaseCartesianAxisOptions<TLabel, TContext> & { interval?: AgAxisCategoryIntervalOptions };
 
 export type NormalisedBasePolarAxisOptions<
     TLabel = NormalisedBaseAxisLabelOptions,

@@ -1,4 +1,5 @@
 import {
+    type AgAxisContinuousIntervalOptions,
     type AgChartLegendPosition,
     type AgGradientLegendLabelOptions,
     type AgGradientLegendOptions,
@@ -12,6 +13,7 @@ import {
     CleanupRegistry,
     type DynamicContext,
     type GradientColorStop,
+    type NormalisedGradientLegendIntervalOptions,
     type NormalisedGradientLegendLabelOptions,
     Property,
     ProxyProperty,
@@ -22,7 +24,7 @@ import {
 
 import { AxisTicks } from './axisTicks';
 
-const { AxisInterval, LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } = _ModuleSupport;
+const { LayoutElement, Group, Rect, Marker, TranslatableGroup, Selection, BBox } = _ModuleSupport;
 
 const ITEM_SPACING = 16;
 
@@ -41,7 +43,7 @@ class GradientLegendScale
     constructor(
         protected config: {
             label: NormalisedGradientLegendLabelOptions | undefined;
-            interval: _ModuleSupport.AxisInterval<number>;
+            interval: NormalisedGradientLegendIntervalOptions | undefined;
             padding: number;
         }
     ) {
@@ -52,7 +54,7 @@ class GradientLegendScale
     label?: AgGradientLegendLabelOptions;
 
     @ProxyProperty('config.interval')
-    interval!: _ModuleSupport.AxisInterval<number>;
+    interval?: AgAxisContinuousIntervalOptions<number>;
 
     @ProxyProperty('config.padding')
     padding?: number;
@@ -74,11 +76,11 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
 
     private readonly scaleConfig: {
         label: NormalisedGradientLegendLabelOptions | undefined;
-        interval: _ModuleSupport.AxisInterval<number>;
+        interval: NormalisedGradientLegendIntervalOptions | undefined;
         padding: number;
     } = {
         label: undefined,
-        interval: new AxisInterval(),
+        interval: undefined,
         padding: 0,
     };
     private readonly axisTicks: AxisTicks[] = [];
@@ -254,9 +256,7 @@ export class GradientLegend extends BaseProperties<AgGradientLegendOptions> {
         const { scaleConfig, gradient, scale } = this;
 
         axisTicks.labelOptions = scaleConfig.label;
-        axisTicks.interval.step = scaleConfig.interval.step;
-        axisTicks.interval.minSpacing = scaleConfig.interval.minSpacing;
-        axisTicks.interval.maxSpacing = scaleConfig.interval.maxSpacing;
+        axisTicks.intervalOptions = scaleConfig.interval;
         axisTicks.padding = scaleConfig.padding;
         const { placement } = expandLegendPosition(this.position);
         const vertical = this.isVertical();

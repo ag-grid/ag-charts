@@ -134,6 +134,7 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         if (MINI_CHART_LABEL_EXCLUDED.has(key)) continue;
         horizontalLabelOverride[key] = miniChartLabel![key];
     }
+    const horizontalIntervalOverride = miniChartLabel?.interval as object | undefined;
 
     const derivedAxes: Record<string, AgBaseAxisOptions> = {};
     for (const [id, axisOptions] of entries(sourceAxes)) {
@@ -146,12 +147,14 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         // Mini-chart strips axis chrome: gridLines and ticks always off; line off
         // on the horizontal axis only (vertical axes keep their line as a frame).
         const lineOverride = isHorizontal ? { enabled: false } : undefined;
+        const intervalOverride = isHorizontal ? horizontalIntervalOverride : undefined;
         derivedAxes[id] = {
             ...axisOptions,
             label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
             gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
             tick: mergeDefaults({ enabled: false }, axisOptions.tick),
             line: mergeDefaults(lineOverride, axisOptions.line),
+            interval: mergeDefaults(intervalOverride, axisOptions.interval),
         };
     }
 
@@ -1872,9 +1875,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         if (horizontalAxis != null) {
-            const miniChartOpts = completeOptions.navigator?.miniChart;
-            const intervalOptions = miniChartOpts?.label?.interval;
-
             if (horizontalAxis.type === 'grouped-category') {
                 const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
                 if (depthOptions.length === 0) {
@@ -1891,11 +1891,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             ) {
                 (horizontalAxis as TimeAxis).parentLevel.enabled = false;
             }
-
-            horizontalAxis.interval.step = intervalOptions?.step;
-            horizontalAxis.interval.values = intervalOptions?.values;
-            horizontalAxis.interval.minSpacing = intervalOptions?.minSpacing;
-            horizontalAxis.interval.maxSpacing = intervalOptions?.maxSpacing;
         }
     }
 
@@ -2024,10 +2019,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return false;
         }
 
-        // 'label' (Phase 1b.2) and 'line'/'tick'/'gridLine' (Phase 2) are read
-        // directly from `axis.options.X` after their class-based holders were
-        // removed; jsonApply has no field to walk into for these keys.
-        skip = ['type', 'label', 'line', 'tick', 'gridLine', ...skip];
+        // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2) and 'interval'
+        // (Phase 3) are read directly from `axis.options.X` after their class-based
+        // holders were removed; jsonApply has no field to walk into for these keys.
+        skip = ['type', 'label', 'line', 'tick', 'gridLine', 'interval', ...skip];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';

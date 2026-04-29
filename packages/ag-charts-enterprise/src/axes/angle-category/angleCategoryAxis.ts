@@ -9,7 +9,6 @@ import {
 } from 'ag-charts-core';
 
 import { walkPairsOutward } from '../../utils/polar';
-import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
@@ -28,9 +27,6 @@ export class AngleCategoryAxis extends AngleAxis<
     @Property
     paddingInner: number = 0;
 
-    @Property
-    override interval = new AngleAxisInterval();
-
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
         id: AxisID,
@@ -45,7 +41,7 @@ export class AngleCategoryAxis extends AngleAxis<
 
     protected generateAngleTicks(domain: string[]) {
         const { scale, gridLength: radius } = this;
-        const { values, minSpacing } = this.interval;
+        const { values, minSpacing } = this.options.interval ?? {};
         const tickParams: ScaleTickParams<number> = {
             nice: [this.nice, this.nice],
             interval: undefined,

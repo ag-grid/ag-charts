@@ -2,7 +2,7 @@ import type {
     AxisID,
     DomainWithMetadata,
     DynamicContext,
-    NormalisedBaseCartesianAxisOptions,
+    NormalisedBaseCategoryStyleAxisOptions,
     NormalisedCategoryAxisOptions,
 } from 'ag-charts-core';
 import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
@@ -19,7 +19,7 @@ import { CartesianAxis, type GridLineStyleTickDatum } from './cartesianAxis';
 
 export class CategoryAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedCategoryAxisOptions,
+    TOptions extends NormalisedBaseCategoryStyleAxisOptions = NormalisedCategoryAxisOptions,
 > extends CartesianAxis<S, any, TOptions> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
@@ -106,7 +106,7 @@ export class CategoryAxis<
     protected override calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisLineDatum[] {
         const gridLines = super.calculateGridLines(ticks, p1, p2);
 
-        if (this.interval.placement === 'between' && ticks.length > 0) {
+        if (this.options.interval?.placement === 'between' && ticks.length > 0) {
             gridLines.push(
                 super.calculateGridLine(
                     {
@@ -132,10 +132,10 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { horizontal, interval, scale } = this;
+        const { horizontal, scale } = this;
         const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
@@ -153,7 +153,7 @@ export class CategoryAxis<
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
         const { horizontal, range, scale } = this;
 
-        if (this.interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
 
@@ -189,10 +189,10 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { horizontal, interval, scale } = this;
+        const { horizontal, scale } = this;
         const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
         }
 
@@ -214,7 +214,7 @@ export class CategoryAxis<
     ): AxisLineDatum[] {
         const tickLines = super.calculateTickLines(ticks, direction, scrollbarThickness);
 
-        if (this.interval.placement === 'between' && ticks.length > 0) {
+        if (this.options.interval?.placement === 'between' && ticks.length > 0) {
             tickLines.push(
                 super.calculateTickLine(
                     { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
@@ -236,10 +236,10 @@ export class CategoryAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, scale } = this;
+        const { horizontal, primaryTick, scale } = this;
         const tick = this.options.tick;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateTickLine(
                 { isPrimary, tickId, translation },
                 index,
