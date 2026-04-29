@@ -43,6 +43,7 @@ const {
     getMissCount,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -991,7 +992,7 @@ export class MapMarkerSeries
                     colorScaleProps.fills,
                     seriesId,
                     visible,
-                    formatValue
+                    colorScaleLegendFormatterContext(this)
                 );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {

@@ -38,6 +38,7 @@ const {
     getLabelStyles,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     createDatumId,
     SeriesNodePickMode,
@@ -740,7 +741,7 @@ export class MapLineSeries
                     colorScaleProps.fills,
                     seriesId,
                     visible,
-                    formatValue
+                    colorScaleLegendFormatterContext(this)
                 );
             }
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {

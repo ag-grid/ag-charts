@@ -36,6 +36,7 @@ const {
     computeBarFocusBounds,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     configureColorScale,
     getMissCount,
     valueProperty,
@@ -863,7 +864,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
                 colorScaleProps.fills,
                 this.id,
                 this.visible,
-                formatValue
+                colorScaleLegendFormatterContext(this)
             );
         }
 
