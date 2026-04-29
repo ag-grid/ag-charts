@@ -50,12 +50,13 @@ globalThis.HTMLElement.prototype.togglePopover = function (visible) {
     return visible;
 };
 
+const origMatches = globalThis.HTMLElement.prototype.matches;
 globalThis.HTMLElement.prototype.matches = function (selector: string): boolean {
     if (selector === ':focus-visible') {
         return false;
     }
     try {
-        return HTMLElement.prototype.matches.call(this, selector);
+        return origMatches.call(this, selector);
     } catch {
         return false;
     }
