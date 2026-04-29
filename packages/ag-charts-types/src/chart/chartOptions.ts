@@ -102,8 +102,12 @@ export interface AgCaptionTooltipOptions<TContext = ContextDefault> {
     visible?: 'auto' | 'always' | 'never';
     /** Static text to display in the tooltip. Overrides the default caption text. */
     text?: string;
-    /** Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`. */
-    renderer?: (params: AgCaptionTooltipRendererParams<TContext>) => string;
+    /**
+     * Function to produce tooltip content. Return a plain string or an HTML string. Takes precedence over `text`.
+     *
+     * Returning `undefined` falls back to `text` (or the caption's own text). Returning an empty string suppresses the tooltip.
+     */
+    renderer?: Renderer<AgCaptionTooltipRendererParams<TContext>, never>;
 }
 
 export interface AgChartCaptionOptions<TContext = ContextDefault> {

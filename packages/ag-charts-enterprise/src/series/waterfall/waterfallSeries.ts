@@ -786,7 +786,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const item = properties.item[propertyItemId];
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(itemType));
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(itemType));
 
         const { itemStyler } = item;
 

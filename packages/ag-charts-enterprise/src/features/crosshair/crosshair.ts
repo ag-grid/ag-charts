@@ -13,6 +13,7 @@ import {
     ChartUpdateType,
     type NormalisedCrosshairOptions,
     ZIndexMap,
+    coerceTextValue,
     createId,
     toPlainText,
 } from 'ag-charts-core';
@@ -443,14 +444,14 @@ export class Crosshair
     private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatScaleText(value) };
-        const renderer = this.options?.label.renderer;
-        if (renderer) {
-            const rendered = renderer({ value, fractionDigits });
-            const input: string | AgCrosshairLabelRendererResult =
-                typeof rendered === 'string' ? rendered : (rendered as AgCrosshairLabelRendererResult);
-            return label.toLabelHtml(input, defaults);
+        // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
+        // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
+        // still render an empty label.
+        const rendered = this.options?.label.renderer?.({ value, fractionDigits });
+        if (rendered == null) {
+            return label.toLabelHtml(defaults);
         }
-        return label.toLabelHtml(defaults);
+        return label.toLabelHtml(coerceTextValue(rendered), defaults);
     }
 
     private showLabel(x: number, y: number, value: any, key: string) {

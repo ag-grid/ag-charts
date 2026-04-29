@@ -481,4 +481,123 @@ describe('Crosshair', () => {
         expect(visibleLabels('y').length).toBeGreaterThan(0);
         expect(labelTexts('x')).toEqual(expect.arrayContaining([expect.stringContaining('2000')]));
     });
+
+    it('AG-10316 label.renderer returning undefined falls through to default formatted value', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 100 },
+                { x: 'B', y: 200 },
+                { x: 'C', y: 150 },
+                { x: 'D', y: 300 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            axes: {
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crosshair: {
+                        ...CROSSHAIR_OPTIONS,
+                        snap: true,
+                        label: { renderer: () => undefined },
+                    },
+                },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crosshair: {
+                        ...CROSSHAIR_OPTIONS,
+                        snap: true,
+                        label: { renderer: () => undefined },
+                    },
+                },
+            },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 300)(chart);
+        await waitForChartStability(chart);
+
+        const yLabels = Array.from(
+            document.querySelectorAll<HTMLElement>(
+                `.ag-charts-crosshair-label[data-axis-id="y"]:not(.ag-charts-crosshair-label--hidden)`
+            )
+        );
+        const xLabels = Array.from(
+            document.querySelectorAll<HTMLElement>(
+                `.ag-charts-crosshair-label[data-axis-id="x"]:not(.ag-charts-crosshair-label--hidden)`
+            )
+        );
+        const visibleText = (els: HTMLElement[]) =>
+            els.map((el) => el.textContent?.trim() ?? '').filter((t) => t.length > 0);
+
+        // The renderer returns undefined; the crosshair label must fall through to the
+        // default formatted value rather than rendering literal "undefined".
+        expect(yLabels.length).toBeGreaterThan(0);
+        expect(xLabels.length).toBeGreaterThan(0);
+        expect(visibleText(xLabels).some((t) => t.includes('undefined'))).toBe(false);
+        expect(visibleText(yLabels).some((t) => t.includes('undefined'))).toBe(false);
+        // Expect the y axis label to contain a numeric default formatted value.
+        expect(visibleText(yLabels).some((t) => /\d/.test(t))).toBe(true);
+    });
+
+    it('AG-10316 label.renderer returning null falls through (treated as undefined)', async () => {
+        const options: AgCartesianChartOptions = {
+            data: [
+                { x: 'A', y: 100 },
+                { x: 'B', y: 200 },
+                { x: 'C', y: 150 },
+                { x: 'D', y: 300 },
+            ],
+            series: [{ type: 'bar', xKey: 'x', yKey: 'y' }],
+            axes: {
+                y: {
+                    type: 'number',
+                    position: 'left',
+                    crosshair: {
+                        ...CROSSHAIR_OPTIONS,
+                        snap: true,
+                        // JS callers can return null even though the type forbids it; this should
+                        // fall through to the default formatted value rather than throwing.
+                        label: { renderer: (() => null) as any },
+                    },
+                },
+                x: {
+                    type: 'category',
+                    position: 'bottom',
+                    crosshair: {
+                        ...CROSSHAIR_OPTIONS,
+                        snap: true,
+                        label: { renderer: (() => null) as any },
+                    },
+                },
+            },
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await waitForChartStability(chart);
+        await hoverAction(300, 300)(chart);
+        await waitForChartStability(chart);
+
+        const yLabels = Array.from(
+            document.querySelectorAll<HTMLElement>(
+                `.ag-charts-crosshair-label[data-axis-id="y"]:not(.ag-charts-crosshair-label--hidden)`
+            )
+        );
+        const xLabels = Array.from(
+            document.querySelectorAll<HTMLElement>(
+                `.ag-charts-crosshair-label[data-axis-id="x"]:not(.ag-charts-crosshair-label--hidden)`
+            )
+        );
+        const visibleText = (els: HTMLElement[]) =>
+            els.map((el) => el.textContent?.trim() ?? '').filter((t) => t.length > 0);
+
+        expect(yLabels.length).toBeGreaterThan(0);
+        expect(xLabels.length).toBeGreaterThan(0);
+        expect(visibleText(xLabels).some((t) => t.includes('null'))).toBe(false);
+        expect(visibleText(yLabels).some((t) => t.includes('null'))).toBe(false);
+        expect(visibleText(yLabels).some((t) => /\d/.test(t))).toBe(true);
+    });
 });
