@@ -13,7 +13,6 @@ export default [
             globals: globals.browser,
             parserOptions: {
                 projectService: true,
-                project: './src/lint-change-detection-tsconfig.json',
             },
         },
         plugins: {
