@@ -1585,7 +1585,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const yValue = dataModel.resolveColumnById(this, 'yValue-raw', processedData)[datumIndex];
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
-        if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
+        if (xValue === undefined && !allowNullKeys) return;
         const format = this.getItemStyle(datumIndex, false);
 
         return this.formatTooltipWithContext(
@@ -1718,7 +1718,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             this.ctx.animationManager,
             [datumSelection, phantomSelection],
             fns,
-            // eslint-disable-next-line sonarjs/deprecation
             (node) => this.getDatumId(node.unsafeDatum),
             dataDiff
         );

@@ -1,30 +1,32 @@
+import { vi } from 'vitest';
+
 import { pause, withTimeout } from './async';
 
 describe('Async Utilities', () => {
     describe('pause', () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
 
         afterEach(() => {
-            jest.clearAllTimers();
+            vi.clearAllTimers();
         });
 
         it('resolves after the specified delay', async () => {
-            const mockFn = jest.fn();
+            const mockFn = vi.fn();
             const promise = pause(100).then(mockFn);
 
             expect(mockFn).not.toHaveBeenCalled();
 
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
             await promise;
 
             expect(mockFn).toHaveBeenCalledTimes(1);
         });
 
         it('resolves immediately when delay is 0', async () => {
-            const mockFn = jest.fn();
+            const mockFn = vi.fn();
             const promise = pause(0).then(mockFn);
 
-            jest.advanceTimersByTime(0);
+            vi.advanceTimersByTime(0);
             await promise;
 
             expect(mockFn).toHaveBeenCalledTimes(1);
@@ -32,10 +34,10 @@ describe('Async Utilities', () => {
     });
 
     describe('withTimeout', () => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
 
         afterEach(() => {
-            jest.clearAllTimers();
+            vi.clearAllTimers();
         });
 
         it('resolves when promise completes before timeout', async () => {
@@ -45,7 +47,7 @@ describe('Async Utilities', () => {
 
             const resultPromise = withTimeout(promise, 100);
 
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             const result = await resultPromise;
 
             expect(result).toBe('success');
@@ -58,7 +60,7 @@ describe('Async Utilities', () => {
 
             const resultPromise = withTimeout(promise, 100);
 
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             await expect(resultPromise).rejects.toThrow('Timeout after 100ms');
         });
@@ -70,13 +72,13 @@ describe('Async Utilities', () => {
 
             const resultPromise = withTimeout(promise, 100, 'Custom timeout error');
 
-            jest.advanceTimersByTime(100);
+            vi.advanceTimersByTime(100);
 
             await expect(resultPromise).rejects.toThrow('Custom timeout error');
         });
 
         it('clears timeout timer on successful resolution', async () => {
-            const clearTimeoutSpy = jest.spyOn(globalThis, 'clearTimeout');
+            const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
 
             const promise = new Promise<string>((resolve) => {
                 setTimeout(() => resolve('success'), 50);
@@ -84,7 +86,7 @@ describe('Async Utilities', () => {
 
             const resultPromise = withTimeout(promise, 100);
 
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             await resultPromise;
 
             expect(clearTimeoutSpy).toHaveBeenCalled();
@@ -98,7 +100,7 @@ describe('Async Utilities', () => {
 
             const resultPromise = withTimeout(promise, 100);
 
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             const result = await resultPromise;
 
             expect(result).toEqual({ value: 42 });

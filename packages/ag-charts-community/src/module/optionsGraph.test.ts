@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import type { PlainObject } from 'ag-charts-core';
 
@@ -236,7 +236,7 @@ describe('OptionsGraph', () => {
         });
     });
 
-    it.failing('fails to handle merging objects with operations that resolve to objects', () => {
+    it.fails('fails to handle merging objects with operations that resolve to objects', () => {
         const themeConfig = {
             line: {
                 item: {
@@ -571,7 +571,7 @@ describe('OptionsGraph', () => {
             });
         });
 
-        it.failing('should resolve `$and` operations with `$map`', () => {
+        it.fails('should resolve `$and` operations with `$map`', () => {
             const themeConfig = {
                 line: {
                     one: { $and: { $map: [{ $value: '$1' }, { $path: './two' }] } },
@@ -670,7 +670,7 @@ describe('OptionsGraph', () => {
 
         // TODO: This test is failing since the $or operation does not operate on the resolved value of the $map
         // operation. The precise reason for this is elusive.
-        it.failing('should resolve `$or` operations with `$map`', () => {
+        it.fails('should resolve `$or` operations with `$map`', () => {
             const themeConfig = {
                 line: {
                     one: { $or: { $map: [{ $value: '$1' }, { $path: './two' }] } },

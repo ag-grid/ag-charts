@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Context Menu should initially be hidden 1`] = `
+exports[`Context Menu > should initially be hidden 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -9,7 +9,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Context Menu should show the default actions mouse 1`] = `
+exports[`Context Menu > should show the default actions > mouse 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -44,7 +44,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Context Menu should show the default actions touch 1`] = `
+exports[`Context Menu > should show the default actions > touch 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -79,7 +79,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Context Menu should show the legend actions mouse 1`] = `
+exports[`Context Menu > should show the legend actions > mouse 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
@@ -132,11 +132,11 @@ HTMLCollection [
 ]
 `;
 
-exports[`Context Menu should show the legend actions touch 1`] = `
+exports[`Context Menu > should show the legend actions > touch 1`] = `
 HTMLCollection [
   <div
     class="ag-charts-context-menu"
-    style="display: block; top: calc(NaNpx - 0.5em);"
+    style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
       aria-orientation="vertical"
@@ -185,7 +185,7 @@ HTMLCollection [
 ]
 `;
 
-exports[`Context Menu submenu cycle detection 1`] = `
+exports[`Context Menu > submenu cycle detection 1`] = `
 [
   [
     "AG Charts - cycle detected in array",

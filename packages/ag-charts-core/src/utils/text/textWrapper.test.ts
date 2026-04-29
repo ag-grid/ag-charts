@@ -1,12 +1,14 @@
+import { vi } from 'vitest';
+
 import type { ITextMeasurer } from '../../types/text';
 import { EllipsisChar } from './textUtils';
 import { clipLines, truncateLine, wrapLines } from './textWrapper';
 
 // Mock cachedTextMeasurer so wrapLines uses our fixed-width measurer.
 const mockMeasurer = createMockMeasurer(10);
-jest.mock('../../rendering/textMeasurer', () => ({
+vi.mock('../../rendering/textMeasurer', () => ({
     cachedTextMeasurer: () => mockMeasurer,
-    measureTextSegments: jest.fn(),
+    measureTextSegments: vi.fn(),
 }));
 
 // Fixed-width mock: each grapheme cluster costs `charWidth` pixels.

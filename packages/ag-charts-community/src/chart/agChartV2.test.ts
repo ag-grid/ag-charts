@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { mapValues } from 'ag-charts-core';
 import type { AgCartesianAxisOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';

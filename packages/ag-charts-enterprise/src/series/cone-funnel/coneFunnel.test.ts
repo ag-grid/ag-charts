@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -226,7 +226,7 @@ describe('ConeFunnelSeries', () => {
         });
 
         it(`should handle nodeClick event`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick);
         });
@@ -237,13 +237,13 @@ describe('ConeFunnelSeries', () => {
         });
 
         it(`should handle nodeClick event when tooltip is disabled`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: false, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick);
         });
 
         it(`should handle legendClick event`, async () => {
-            const onNodeClick = jest.fn();
+            const onNodeClick = vi.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkLegendClick(chart);
         });

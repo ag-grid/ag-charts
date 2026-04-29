@@ -56,7 +56,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
     @Property
     preferredMax?: Date | number = undefined;
 
-    // eslint-disable-next-line sonarjs/use-type-alias
     get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
         return undefined;
     }
@@ -171,7 +170,6 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 export function minimumTimeAxisDatumGranularity(
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
-    // eslint-disable-next-line sonarjs/use-type-alias
     min: Date | number | undefined,
     max: Date | number | undefined
 ) {

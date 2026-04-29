@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with area bucket calculation 1`] = `
+exports[`DataModel > grouped processing - calculated grouping > should generated the expected results for simple histogram example with area bucket calculation 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -315,7 +315,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 }
 `;
 
-exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with average bucket calculation 1`] = `
+exports[`DataModel > grouped processing - calculated grouping > should generated the expected results for simple histogram example with average bucket calculation 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -649,7 +649,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 }
 `;
 
-exports[`DataModel grouped processing - calculated grouping should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
+exports[`DataModel > grouped processing - calculated grouping > should generated the expected results for simple histogram example with hard-coded buckets 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -985,7 +985,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
 }
 `;
 
-exports[`DataModel grouped processing - grouped example should generated the expected results 1`] = `
+exports[`DataModel > grouped processing - grouped example > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -1354,7 +1354,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
 }
 `;
 
-exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked area example 1`] = `
+exports[`DataModel > grouped processing - stacked and normalised example > should generated the expected results for 100% stacked area example 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -2237,7 +2237,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 }
 `;
 
-exports[`DataModel grouped processing - stacked and normalised example should generated the expected results for 100% stacked columns example 1`] = `
+exports[`DataModel > grouped processing - stacked and normalised example > should generated the expected results for 100% stacked columns example 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -2730,7 +2730,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
 }
 `;
 
-exports[`DataModel grouped processing - stacked example should generated the expected results 1`] = `
+exports[`DataModel > grouped processing - stacked example > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -3259,7 +3259,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
 }
 `;
 
-exports[`DataModel grouped processing - stacked with accumulation and normalised example should generated the expected results 1`] = `
+exports[`DataModel > grouped processing - stacked with accumulation and normalised example > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -3788,7 +3788,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
 }
 `;
 
-exports[`DataModel grouped processing - stacked with accumulation example should generated the expected results 1`] = `
+exports[`DataModel > grouped processing - stacked with accumulation example > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -4275,7 +4275,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
 }
 `;
 
-exports[`DataModel repeated property processing should generated the expected results 1`] = `
+exports[`DataModel > repeated property processing > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -4406,185 +4406,7 @@ exports[`DataModel repeated property processing should generated the expected re
 }
 `;
 
-exports[`DataModel ungrouped processing - accumulated and normalised properties should generated the expected results 1`] = `
-{
-  "aggregation": undefined,
-  "columnNeedValueOf": [
-    false,
-    false,
-    false,
-  ],
-  "columnScopes": [
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-    Set {
-      "test",
-    },
-  ],
-  "columns": [
-    [
-      0,
-      0.1352271965379232,
-      0.7709344297471291,
-      1.0051423577715735,
-      2.698967551519787,
-      2.8704412131091117,
-      3.1130137099915722,
-      6.283185307179586,
-    ],
-    [
-      "Christian",
-      "Buddhist",
-      "Hindu",
-      "Jewish",
-      "Muslim",
-      "Sikh",
-      "Other",
-      "None",
-    ],
-    [
-      6.283185307179586,
-      0,
-      0.5553085980495991,
-      0.10982426312401541,
-      1.7293454390513978,
-      0.040217335791892975,
-      0.11910518676829843,
-      3.367428462267346,
-    ],
-  ],
-  "dataSources": Map {
-    "test" => [
-      {
-        "population": 4159000,
-        "religion": "Christian",
-      },
-      {
-        "population": 97000,
-        "religion": "Buddhist",
-      },
-      {
-        "population": 456000,
-        "religion": "Hindu",
-      },
-      {
-        "population": 168000,
-        "religion": "Jewish",
-      },
-      {
-        "population": 1215000,
-        "religion": "Muslim",
-      },
-      {
-        "population": 123000,
-        "religion": "Sikh",
-      },
-      {
-        "population": 174000,
-        "religion": "Other",
-      },
-      {
-        "population": 2274000,
-        "religion": "None",
-      },
-    ],
-  },
-  "defs": {
-    "allScopesHaveSameDefs": true,
-    "keys": [],
-    "values": [
-      {
-        "groupId": "population",
-        "id": undefined,
-        "index": 0,
-        "missing": Map {},
-        "processor": [Function],
-        "property": "population",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-      {
-        "index": 1,
-        "missing": Map {},
-        "property": "religion",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "valueType": "category",
-      },
-      {
-        "groupId": undefined,
-        "id": undefined,
-        "index": 2,
-        "missing": Map {},
-        "property": "population",
-        "scopes": [
-          "test",
-        ],
-        "type": "value",
-        "useScopedValues": false,
-        "valueType": "range",
-      },
-    ],
-  },
-  "domain": {
-    "keys": [],
-    "values": [
-      [
-        0,
-        6.283185307179586,
-      ],
-      [
-        "Christian",
-        "Buddhist",
-        "Hindu",
-        "Jewish",
-        "Muslim",
-        "Sikh",
-        "Other",
-        "None",
-      ],
-      [
-        0,
-        6.283185307179586,
-      ],
-    ],
-  },
-  "input": {
-    "count": 8,
-  },
-  "invalidData": Map {},
-  "invalidDataCount": Map {},
-  "invalidKeyCount": Map {},
-  "invalidKeys": Map {},
-  "keys": [],
-  "missingData": Map {},
-  "optimizations": Any<Object>,
-  "partialValidDataCount": 0,
-  "scopes": Set {
-    "test",
-  },
-  "time": Any<Number>,
-  "type": "ungrouped",
-  "version": Any<Number>,
-  Symbol(domain-ranges): Map {},
-  Symbol(key-sort-orders): Map {},
-  Symbol(column-sort-orders): Map {},
-  Symbol(domain-bands): Map {},
-  Symbol(reducer-bands): Map {},
-}
-`;
-
-exports[`DataModel ungrouped processing should generated the expected results 1`] = `
+exports[`DataModel > ungrouped processing > should generated the expected results 1`] = `
 {
   "aggregation": undefined,
   "columnNeedValueOf": [
@@ -5116,6 +4938,184 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
       "sortOrder": 1,
     },
   },
+  Symbol(column-sort-orders): Map {},
+  Symbol(domain-bands): Map {},
+  Symbol(reducer-bands): Map {},
+}
+`;
+
+exports[`DataModel > ungrouped processing - accumulated and normalised properties > should generated the expected results 1`] = `
+{
+  "aggregation": undefined,
+  "columnNeedValueOf": [
+    false,
+    false,
+    false,
+  ],
+  "columnScopes": [
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+    Set {
+      "test",
+    },
+  ],
+  "columns": [
+    [
+      0,
+      0.1352271965379232,
+      0.7709344297471291,
+      1.0051423577715735,
+      2.698967551519787,
+      2.8704412131091117,
+      3.1130137099915722,
+      6.283185307179586,
+    ],
+    [
+      "Christian",
+      "Buddhist",
+      "Hindu",
+      "Jewish",
+      "Muslim",
+      "Sikh",
+      "Other",
+      "None",
+    ],
+    [
+      6.283185307179586,
+      0,
+      0.5553085980495991,
+      0.10982426312401541,
+      1.7293454390513978,
+      0.040217335791892975,
+      0.11910518676829843,
+      3.367428462267346,
+    ],
+  ],
+  "dataSources": Map {
+    "test" => [
+      {
+        "population": 4159000,
+        "religion": "Christian",
+      },
+      {
+        "population": 97000,
+        "religion": "Buddhist",
+      },
+      {
+        "population": 456000,
+        "religion": "Hindu",
+      },
+      {
+        "population": 168000,
+        "religion": "Jewish",
+      },
+      {
+        "population": 1215000,
+        "religion": "Muslim",
+      },
+      {
+        "population": 123000,
+        "religion": "Sikh",
+      },
+      {
+        "population": 174000,
+        "religion": "Other",
+      },
+      {
+        "population": 2274000,
+        "religion": "None",
+      },
+    ],
+  },
+  "defs": {
+    "allScopesHaveSameDefs": true,
+    "keys": [],
+    "values": [
+      {
+        "groupId": "population",
+        "id": undefined,
+        "index": 0,
+        "missing": Map {},
+        "processor": [Function],
+        "property": "population",
+        "scopes": [
+          "test",
+        ],
+        "type": "value",
+        "useScopedValues": false,
+        "valueType": "range",
+      },
+      {
+        "index": 1,
+        "missing": Map {},
+        "property": "religion",
+        "scopes": [
+          "test",
+        ],
+        "type": "value",
+        "valueType": "category",
+      },
+      {
+        "groupId": undefined,
+        "id": undefined,
+        "index": 2,
+        "missing": Map {},
+        "property": "population",
+        "scopes": [
+          "test",
+        ],
+        "type": "value",
+        "useScopedValues": false,
+        "valueType": "range",
+      },
+    ],
+  },
+  "domain": {
+    "keys": [],
+    "values": [
+      [
+        0,
+        6.283185307179586,
+      ],
+      [
+        "Christian",
+        "Buddhist",
+        "Hindu",
+        "Jewish",
+        "Muslim",
+        "Sikh",
+        "Other",
+        "None",
+      ],
+      [
+        0,
+        6.283185307179586,
+      ],
+    ],
+  },
+  "input": {
+    "count": 8,
+  },
+  "invalidData": Map {},
+  "invalidDataCount": Map {},
+  "invalidKeyCount": Map {},
+  "invalidKeys": Map {},
+  "keys": [],
+  "missingData": Map {},
+  "optimizations": Any<Object>,
+  "partialValidDataCount": 0,
+  "scopes": Set {
+    "test",
+  },
+  "time": Any<Number>,
+  "type": "ungrouped",
+  "version": Any<Number>,
+  Symbol(domain-ranges): Map {},
+  Symbol(key-sort-orders): Map {},
   Symbol(column-sort-orders): Map {},
   Symbol(domain-bands): Map {},
   Symbol(reducer-bands): Map {},

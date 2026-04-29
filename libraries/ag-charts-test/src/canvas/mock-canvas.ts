@@ -70,7 +70,7 @@ export class MockContext {
 
     getRenderContext2D(): globalThis.CanvasRenderingContext2D {
         const ctx = this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D;
-        return ctx as unknown as globalThis.CanvasRenderingContext2D;
+        return ctx;
     }
 
     registerCanvasInstance(canvas: Canvas) {
@@ -157,7 +157,7 @@ export function setup(opts: { width?: number; height?: number; document?: Docume
             constructor(w: number, h: number) {
                 super(w, h);
                 mockCtx.registerOffscreenCanvasInstance(this as any);
-                proxyGetContext2D(mockCtx, this as unknown as Canvas, this);
+                proxyGetContext2D(mockCtx, this, this);
             }
         };
     }

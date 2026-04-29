@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { type DynamicContext, createDynamicContext } from './dynamicContext';
 
@@ -20,7 +20,7 @@ describe('DynamicContext', () => {
 
         it('should return the same reference for object constants', () => {
             const container = createDynamicContext<TestRegistry>();
-            const obj = { log: jest.fn(), destroy: jest.fn() };
+            const obj = { log: vi.fn(), destroy: vi.fn() };
             container.constant('logger', obj);
             expect(container.logger).toBe(obj);
         });
@@ -38,7 +38,7 @@ describe('DynamicContext', () => {
 
     describe('service', () => {
         it('should lazily initialise on first access', () => {
-            const factory = jest.fn(() => 42);
+            const factory = vi.fn(() => 42);
             const container = createDynamicContext<TestRegistry>();
             container.service('count', factory);
 
@@ -48,7 +48,7 @@ describe('DynamicContext', () => {
         });
 
         it('should return the cached instance on subsequent accesses', () => {
-            const factory = jest.fn(() => 42);
+            const factory = vi.fn(() => 42);
             const container = createDynamicContext<TestRegistry>();
             container.service('count', factory);
 
@@ -210,9 +210,9 @@ describe('DynamicContext', () => {
 
     describe('destroy', () => {
         it('should call destroy() on initialised services', () => {
-            const destroy = jest.fn();
+            const destroy = vi.fn();
             const container = createDynamicContext<TestRegistry>();
-            container.service('logger', () => ({ log: jest.fn(), destroy }));
+            container.service('logger', () => ({ log: vi.fn(), destroy }));
 
             expect(container.logger).toBeDefined();
             container.destroy();
@@ -221,9 +221,9 @@ describe('DynamicContext', () => {
         });
 
         it('should not call destroy() on uninitialised services', () => {
-            const destroy = jest.fn();
+            const destroy = vi.fn();
             const container = createDynamicContext<TestRegistry>();
-            container.service('logger', () => ({ log: jest.fn(), destroy }));
+            container.service('logger', () => ({ log: vi.fn(), destroy }));
 
             container.destroy();
 
@@ -240,11 +240,11 @@ describe('DynamicContext', () => {
         });
 
         it('should cascade destroy to children', () => {
-            const parentDestroy = jest.fn();
-            const childDestroy = jest.fn();
+            const parentDestroy = vi.fn();
+            const childDestroy = vi.fn();
 
             const parent = createDynamicContext<TestRegistry>();
-            parent.service('logger', () => ({ log: jest.fn(), destroy: parentDestroy }));
+            parent.service('logger', () => ({ log: vi.fn(), destroy: parentDestroy }));
             expect(parent.logger).toBeDefined();
 
             const child = parent.child<{ childLogger: { destroy: () => void } }>();
@@ -258,9 +258,9 @@ describe('DynamicContext', () => {
         });
 
         it('should skip destroy() on ref-registered entries', () => {
-            const destroy = jest.fn();
+            const destroy = vi.fn();
             const container = createDynamicContext<TestRegistry>();
-            container.ref('logger', { log: jest.fn(), destroy });
+            container.ref('logger', { log: vi.fn(), destroy });
 
             container.destroy();
 
@@ -268,7 +268,7 @@ describe('DynamicContext', () => {
         });
 
         it('should flush cleanup registry on destroy', () => {
-            const cleanupFn = jest.fn();
+            const cleanupFn = vi.fn();
             const container = createDynamicContext<TestRegistry>();
             container.cleanup.register(cleanupFn);
 
@@ -278,9 +278,9 @@ describe('DynamicContext', () => {
         });
 
         it('should be idempotent', () => {
-            const destroy = jest.fn();
+            const destroy = vi.fn();
             const container = createDynamicContext<TestRegistry>();
-            container.service('logger', () => ({ log: jest.fn(), destroy }));
+            container.service('logger', () => ({ log: vi.fn(), destroy }));
             expect(container.logger).toBeDefined();
 
             container.destroy();
@@ -322,7 +322,7 @@ describe('DynamicContext', () => {
         });
 
         it('should throw on lazy service resolution after destroy', () => {
-            const factory = jest.fn(() => 42);
+            const factory = vi.fn(() => 42);
             const container = createDynamicContext<TestRegistry>();
             container.service('count', factory);
 
@@ -335,7 +335,7 @@ describe('DynamicContext', () => {
         });
 
         it('should throw on factory resolution after destroy', () => {
-            const factory = jest.fn(() => 1);
+            const factory = vi.fn(() => 1);
             const container = createDynamicContext<TestRegistry>();
             container.factory('count', factory);
 
@@ -389,12 +389,12 @@ describe('DynamicContext', () => {
                 {
                     name: 'analytics',
                     enabled: true,
-                    register: (c) => c.service('analytics', () => ({ track: jest.fn() })),
+                    register: (c) => c.service('analytics', () => ({ track: vi.fn() })),
                 },
                 {
                     name: 'toolbar',
                     enabled: false,
-                    register: (c) => c.service('toolbar', () => ({ render: jest.fn() })),
+                    register: (c) => c.service('toolbar', () => ({ render: vi.fn() })),
                 },
             ];
 
@@ -413,7 +413,7 @@ describe('DynamicContext', () => {
         });
 
         it('should allow multiple modules to guard shared service registration', () => {
-            const factory = jest.fn(() => ({ render: jest.fn() }));
+            const factory = vi.fn(() => ({ render: vi.fn() }));
 
             const moduleA: ModuleDef = {
                 name: 'moduleA',

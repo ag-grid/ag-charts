@@ -97,7 +97,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         if (!this.dirtyZoom) return false;
 
         const lastZoom = this.lastAxisZooms.get(axis.id);
-        if (lastZoom && zoom.min === lastZoom.min && zoom.max === lastZoom.max) {
+        if (zoom.min === lastZoom?.min && zoom.max === lastZoom.max) {
             return false;
         }
 

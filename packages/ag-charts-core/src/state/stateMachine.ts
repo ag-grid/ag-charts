@@ -208,7 +208,7 @@ export class StateMachine<
         let state: State | HierarchyState = this.state;
 
         if (typeof destination === 'string') {
-            state = destination as State;
+            state = destination;
         } else if (destination instanceof StateMachine) {
             this.childState = destination;
             this.childState.parent = this;

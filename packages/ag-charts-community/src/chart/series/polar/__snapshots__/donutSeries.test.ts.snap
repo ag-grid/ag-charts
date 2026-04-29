@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`DonutSeries AG-11672 calloutLine.itemStyler calls 1`] = `
+exports[`DonutSeries > AG-11672 calloutLine.itemStyler > calls 1`] = `
 [
   [
     {
@@ -345,7 +345,7 @@ exports[`DonutSeries AG-11672 calloutLine.itemStyler calls 1`] = `
 ]
 `;
 
-exports[`DonutSeries AG-16492 calloutLabel.itemStyler calls 1`] = `
+exports[`DonutSeries > AG-16492 calloutLabel.itemStyler > calls 1`] = `
 [
   [
     {
@@ -826,7 +826,7 @@ exports[`DonutSeries AG-16492 calloutLabel.itemStyler calls 1`] = `
 ]
 `;
 
-exports[`DonutSeries AG-16492 sectorLabel.itemStyler calls 1`] = `
+exports[`DonutSeries > AG-16492 sectorLabel.itemStyler > calls 1`] = `
 [
   [
     {

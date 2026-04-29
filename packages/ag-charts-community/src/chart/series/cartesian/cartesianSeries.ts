@@ -967,7 +967,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const matches = dataNodeGroup
             .pickNodes(x, y)
             .filter((match): match is Node & { datum: SeriesNodeDatum<DatumIndexType> } => {
-                // eslint-disable-next-line sonarjs/deprecation
                 const { unsafeDatum } = match;
                 return unsafeDatum !== undefined && unsafeDatum?.missing !== true;
             });
@@ -1450,7 +1449,6 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
     // We need data model updates to know if a data set is sorted & unique - and at the same time
     // it should generate the equivalent of `SMALLEST_KEY_INTERVAL`. We'll use that value here
     override minTimeInterval() {
-        // eslint-disable-next-line sonarjs/use-type-alias
         let xValues: Array<Date | number | undefined> | undefined;
         try {
             xValues = this.keysOrValues<Date | number | undefined>('xValue');

@@ -428,7 +428,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
             height,
             midPoint: { x: 0, y: 0 },
             missing: colorValues != null && colorValue == null,
-            style: {} as AgHeatmapSeriesStyle,
+            style: {},
         };
     }
 
@@ -466,7 +466,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         mutableNode.missing = colorValues != null && colorValue == null;
 
         // Update point in place
-        const mutablePoint = mutableNode.point as Mutable<SizedPoint>;
+        const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = 0;

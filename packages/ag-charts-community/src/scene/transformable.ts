@@ -46,7 +46,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
 
     // Make sure we don't mixin `MatrixTransformInternal` multiple times.
     if (isMatrixTransformType(Parent)) {
-        return Parent as unknown as Constructor<MatrixTransformType<N>>;
+        return Parent;
     }
 
     const TRANSFORM_MATRIX = Symbol('matrix_combined_transform');
