@@ -236,16 +236,16 @@ Use the `text` property to set static tooltip text for all items. When `text` is
 }
 ```
 
-For dynamic per-item content, use the `renderer` callback. This receives parameters including the item's `text`, `seriesId`, `itemId`, and `enabled` state.
-The renderer can return plain text or an HTML string.
+For dynamic per-item content, use the `renderer` callback. This receives parameters including the item's `text`, `seriesId`, `itemId`, and `visible` state.
+The renderer can return plain text or an HTML string. Return `undefined` (or omit a return value) to fall back to `text` or the default legend item label; return an empty string to suppress the tooltip.
 
 ```js format="snippet"
 {
     legend: {
         item: {
             tooltip: {
-                renderer: ({ text, enabled }) => {
-                    const status = enabled ? 'Visible' : 'Hidden';
+                renderer: ({ text, visible }) => {
+                    const status = visible ? 'Visible' : 'Hidden';
                     return `<b>${text}</b><br/><em>${status}</em>`;
                 },
             },
