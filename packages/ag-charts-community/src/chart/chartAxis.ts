@@ -125,7 +125,8 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
-    crossLines?: CrossLine[];
+    crossLines: readonly CrossLine[];
+    getCrossLines(): readonly CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
     gridLength: number;

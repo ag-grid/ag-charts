@@ -1,5 +1,6 @@
 import type { ModuleDefinition } from 'ag-charts-core';
 
+import { CrossLinesModule } from '../chart/crossline/crossLinesModule';
 import { LegendModule } from '../chart/legend/legendModule';
 import { PolarChartModule } from '../chart/polarChartModule';
 import { DonutSeriesModule } from '../chart/series/polar/donutSeriesModule';
@@ -10,6 +11,7 @@ export const AllPolarModule: ModuleDefinition[] = [
     PolarChartModule,
     DonutSeriesModule,
     PieSeriesModule,
+    CrossLinesModule,
     LegendModule,
     LocaleModule,
 ];

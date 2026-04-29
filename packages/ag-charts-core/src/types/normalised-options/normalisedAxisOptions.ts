@@ -15,6 +15,8 @@ import type {
     AgBaseAxisOptions,
     AgBaseCartesianAxisLabelOptions,
     AgBaseCartesianAxisOptions,
+    AgBaseCrossLineLabelOptions,
+    AgBaseCrossLineOptions,
     AgBaseCrosshairLabel,
     AgCartesianAxisLabelOptions,
     AgCartesianTimeAxisLabelOptions,
@@ -346,4 +348,28 @@ export type NormalisedCrosshairOptions<TFormat = string, TContext = ContextDefau
 export type NormalisedBandHighlightOptions = Normalised<
     AgBandHighlightOptions,
     'enabled' | 'stroke' | 'strokeWidth' | 'strokeOpacity' | 'lineDash' | 'lineDashOffset' | 'fill' | 'fillOpacity'
+>;
+
+// --- Cross-lines normalised shapes ---
+//
+// Phase 6 converts cross-lines into an axis plugin (`type: 'axis:plugin'`,
+// `name: 'crossLines'`) so they go through the same `applyAxisModules` path
+// as `crosshair` / `bandHighlight`. The cross-lines `themeTemplate` (relocated
+// here from `chartTheme.getAxisDefaults`) populates `enabled`, `fill`,
+// `stroke`, `strokeWidth`, `fillOpacity`, and the entire `label` block.
+// `type`, `value`, `range` stay user-facing without theme defaults — they
+// describe an individual cross-line, not its styling.
+
+export type NormalisedAxisCrossLineLabelOptions = Normalised<
+    AgBaseCrossLineLabelOptions,
+    'fontSize' | 'fontFamily' | 'fontWeight' | 'padding' | 'color' | 'cornerRadius',
+    { fontFamily: string }
+>;
+
+type CrossLineLabelMorph = { label?: NormalisedAxisCrossLineLabelOptions };
+
+export type NormalisedAxisCrossLineOptions = Normalised<
+    AgBaseCrossLineOptions,
+    'enabled' | 'fill' | 'stroke' | 'strokeWidth' | 'fillOpacity',
+    CrossLineLabelMorph
 >;

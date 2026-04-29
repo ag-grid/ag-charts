@@ -1,6 +1,7 @@
 import type { AxisID, BoxBounds, ChartAxisDirection, Point, Scale } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
 
+import type { CrossLine } from '../chart/crossline/crossLine';
 import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (
@@ -27,6 +28,19 @@ export interface AxisBandDatum extends AxisBandMeasurement {
     readonly position: number;
 }
 
+/**
+ * Axis-specific hooks consumed by the {@link CrossLinesPlugin}. The hooks bundle
+ * the axis-side surface that cross-lines need (factory + scene-graph wiring +
+ * lifecycle helpers) so that the plugin never receives the axis instance
+ * directly. Present iff the axis supports cross-lines.
+ */
+export interface AxisCrossLineHooks {
+    createCrossLine(): CrossLine;
+    attachCrossLine(crossLine: CrossLine): void;
+    detachCrossLine(crossLine: CrossLine): void;
+    initCrossLine(crossLine: CrossLine): void;
+}
+
 export interface AxisContext {
     context?: unknown;
     axisId: AxisID;
@@ -34,6 +48,7 @@ export interface AxisContext {
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
+    crossLineHooks?: AxisCrossLineHooks;
     getCanvasBounds(): BoxBounds | undefined;
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];

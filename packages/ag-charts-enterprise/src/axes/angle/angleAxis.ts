@@ -43,7 +43,9 @@ export abstract class AngleAxis<
     TOptions extends
         NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions>,
 > extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
-    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
+    override createCrossLine(): _ModuleSupport.CrossLine {
+        return new AngleCrossLine();
+    }
 
     @Property
     startAngle: number = 0;

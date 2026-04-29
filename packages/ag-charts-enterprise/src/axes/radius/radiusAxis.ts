@@ -28,7 +28,9 @@ export abstract class RadiusAxis<
     D = unknown,
     TOptions extends NormalisedBaseRadiusAxisOptions = NormalisedBaseRadiusAxisOptions,
 > extends _ModuleSupport.PolarAxis<S, D, TOptions> {
-    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
+    override createCrossLine(): _ModuleSupport.CrossLine {
+        return new RadiusCrossLine();
+    }
 
     @Property
     positionAngle: number = 0;

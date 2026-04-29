@@ -1,6 +1,5 @@
 import {
     BASE_FONT_SIZE,
-    CARTESIAN_AXIS_TYPE,
     Color,
     DEFAULT_ANNOTATION_HANDLE_FILL,
     DEFAULT_ANNOTATION_STATISTICS_COLOR,
@@ -38,7 +37,6 @@ import {
     PALETTE_NEUTRAL_STROKE,
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
-    POLAR_AXIS_TYPE,
     deepClone,
     deepFreeze,
     getSequentialColors,
@@ -209,52 +207,6 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults(customTheme?: object) {
-        return mergeDefaults(customTheme, {
-            crossLines: {
-                $apply: [
-                    {
-                        enabled: true,
-                        fill: { $ref: 'foregroundColor' },
-                        stroke: { $ref: 'foregroundColor' },
-                        fillOpacity: 0.08,
-                        strokeWidth: 1,
-                        label: {
-                            fontSize: { $ref: 'fontSize' },
-                            fontFamily: { $ref: 'fontFamily' },
-                            fontWeight: { $ref: 'fontWeight' },
-                            padding: {
-                                $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
-                            },
-                            color: { $ref: 'textColor' },
-                            cornerRadius: 4,
-                            border: {
-                                enabled: false,
-                                stroke: { $foregroundOpacity: 0.08 },
-                                strokeOpacity: 1,
-                                strokeWidth: 1,
-                            },
-                        },
-                    },
-                    undefined,
-                    // TODO: can we just infer this common path?
-                    // `axisType` path is relative to the axis that is currently being resolved
-                    // e.g. `/axes/x/crossLines/[variables]` + `../type` = `/axes/x/type`
-                    { $pathString: ['/common/axes/$axisType/crossLines', { axisType: { $path: ['../type'] } }] },
-                    {
-                        $pathString: [
-                            '/$seriesType/axes/$axisType/crossLines',
-                            {
-                                seriesType: { $path: ['/series/0/type', 'line'] },
-                                axisType: { $path: ['../type'] },
-                            },
-                        ],
-                    },
-                ],
-            },
-        });
-    }
-
     protected getChartDefaults() {
         return {
             minHeight: 300,
@@ -395,20 +347,6 @@ export class ChartTheme {
         };
     }
 
-    private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(),
-    };
-
     constructor(options: AgChartTheme = {}) {
         const { overrides, palette, params } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
@@ -483,8 +421,7 @@ export class ChartTheme {
                         axes[axisModule.name],
                         !axisModule.chartType || axisModule.chartType === chartType
                             ? getAxisThemeTemplate(axisModule.name)
-                            : null,
-                        (ChartTheme.axisDefault as any)[axisModule.name]
+                            : null
                     );
                 }
 

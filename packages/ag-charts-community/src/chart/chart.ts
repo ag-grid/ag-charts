@@ -2022,11 +2022,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2), 'interval'
-        // (Phase 3), 'title'/'parentLevel' (Phase 4) and 'crosshair'/'bandHighlight'
-        // (Phase 5) are read directly from their respective holders' replacements
-        // (`axis.options.X` for axis-built-ins; the plugin's own
-        // `applyOptions(opts)` setter for axis-attached plugins). jsonApply has no
-        // field to walk into for these keys.
+        // (Phase 3), 'title'/'parentLevel' (Phase 4), 'crosshair'/'bandHighlight'
+        // (Phase 5), and 'crossLines' (Phase 6) are read directly from their
+        // respective holders' replacements (`axis.options.X` for axis-built-ins;
+        // the plugin's own `applyOptions(opts)` setter for axis-attached
+        // plugins). jsonApply has no field to walk into for these keys.
         skip = [
             'type',
             'label',
@@ -2038,6 +2038,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             'parentLevel',
             'crosshair',
             'bandHighlight',
+            'crossLines',
             ...skip,
         ];
 

@@ -181,28 +181,24 @@ export abstract class Axis<
 {
     static readonly defaultTickMinSpacing = 50;
 
-    protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
-
     readonly id: AxisID = 'unknown' as AxisID;
 
-    private _crossLines: CrossLine[] = [];
-    set crossLines(value: CrossLine[]) {
-        const { CrossLineConstructor } = this.constructor as typeof Axis;
-        for (const crossLine of this._crossLines) {
-            this.detachCrossLine(crossLine);
-        }
-        this._crossLines = value.map((crossLine) => {
-            const instance = new CrossLineConstructor();
-            instance.set(crossLine);
-            return instance;
-        });
-        for (const crossLine of this._crossLines) {
-            this.attachCrossLine(crossLine);
-            this.initCrossLine(crossLine);
-        }
+    /**
+     * Live runtime cross-line instances owned by the {@link CrossLinesPlugin}.
+     * Phase 6 migrated cross-lines off `Axis._crossLines` onto the unified
+     * `applyAxisModules` path. The plugin's `getInstances()` is the single
+     * source of truth — this getter exists to serve consumers that still read
+     * `axis.crossLines` (e.g. cartesian-chart padding, navigator mini-chart).
+     */
+    getCrossLines(): readonly CrossLine[] {
+        const plugin = this.moduleMap?.getModule('crossLines') as
+            | { getInstances?: () => readonly CrossLine[] }
+            | undefined;
+        return plugin?.getInstances?.() ?? [];
     }
-    get crossLines() {
-        return this._crossLines;
+
+    get crossLines(): readonly CrossLine[] {
+        return this.getCrossLines();
     }
 
     // user pass-through option: no validation required.
@@ -372,9 +368,6 @@ export abstract class Axis<
         this.id = id;
         this.options = options;
         this.range = this.scale.range.slice() as [number, number];
-        for (const crossLine of this.crossLines) {
-            this.initCrossLine(crossLine);
-        }
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
@@ -1137,7 +1130,23 @@ export abstract class Axis<
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
+            crossLineHooks: {
+                createCrossLine: () => this.createCrossLine(),
+                attachCrossLine: (crossLine) => this.attachCrossLine(crossLine),
+                detachCrossLine: (crossLine) => this.detachCrossLine(crossLine),
+                initCrossLine: (crossLine) => this.initCrossLine(crossLine),
+            },
         };
+    }
+
+    /**
+     * Per-axis factory for {@link CrossLine} runtime instances. Overridden by polar
+     * axes (`AngleAxis`, `RadiusAxis`) to return their direction-specific
+     * implementation. Called by the cross-lines plugin during `applyOptions`
+     * reconciliation.
+     */
+    createCrossLine(): CrossLine {
+        return new CartesianCrossLine();
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {
