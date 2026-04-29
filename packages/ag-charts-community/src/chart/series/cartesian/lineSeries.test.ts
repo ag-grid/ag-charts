@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { deepClone } from 'ag-charts-core';
 import type {
@@ -227,7 +227,7 @@ describe('LineSeries', () => {
 
     describe('#create', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         it.each(Object.entries(EXAMPLES))(
@@ -556,7 +556,7 @@ describe('LineSeries', () => {
 
     describe('multiple overlapping lines', () => {
         beforeEach(() => {
-            console.warn = jest.fn();
+            console.warn = vi.fn();
         });
 
         it('should render line series with the correct relative Z-index', async () => {

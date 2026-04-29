@@ -33,7 +33,7 @@ const componentTheme: WithThemeParams<AgRangesButtonStyles> = {
     fontSize: { $path: '../fontSize' },
     fontFamily: { $path: '../fontFamily' },
     fontWeight: { $path: '../fontWeight' },
-    padding: { $path: '../padding' } as any,
+    padding: { $path: '../padding' },
     stroke: { $path: '../stroke' },
     strokeWidth: { $path: '../strokeWidth' },
     textColor: { $path: '../textColor' },

@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import * as Logger from '../logging/logger';
 import { isPlainObject } from '../utils/types/typeGuards';
@@ -6,16 +6,16 @@ import { MementoCaretaker, type MementoOriginator } from './memento';
 
 describe('Memento Caretaker', () => {
     beforeEach(() => {
-        jest.spyOn(console, 'warn').mockImplementation(() => void 0);
-        jest.spyOn(console, 'error').mockImplementation(() => void 0);
-        jest.spyOn(console, 'trace').mockImplementation(() => void 0);
-        jest.spyOn(console, 'debug').mockImplementation(() => void 0);
-        jest.spyOn(console, 'info').mockImplementation(() => void 0);
-        jest.spyOn(console, 'log').mockImplementation(() => void 0);
+        vi.spyOn(console, 'warn').mockImplementation(() => void 0);
+        vi.spyOn(console, 'error').mockImplementation(() => void 0);
+        vi.spyOn(console, 'trace').mockImplementation(() => void 0);
+        vi.spyOn(console, 'debug').mockImplementation(() => void 0);
+        vi.spyOn(console, 'info').mockImplementation(() => void 0);
+        vi.spyOn(console, 'log').mockImplementation(() => void 0);
     });
 
     afterEach(() => {
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     class TestMemento {

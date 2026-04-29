@@ -1422,6 +1422,6 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
         maxDepth: number
     ) {
         this.diagramChild(diagram, edge, parentPath, parentVertex, childPath, childVertex);
-        this.diagramNeighbours(diagram, childPath, childVertex as any, depth + 1, maxDepth);
+        this.diagramNeighbours(diagram, childPath, childVertex, depth + 1, maxDepth);
     }
 }

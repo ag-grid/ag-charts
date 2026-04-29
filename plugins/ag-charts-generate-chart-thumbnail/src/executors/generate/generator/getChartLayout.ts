@@ -5,7 +5,7 @@ export function getChartLayout(indexHtml: string) {
         window: { document },
     } = new JSDOM(`<html><head><style></style></head><body>${indexHtml}</body></html>`);
 
-    const chartContainers = Array.from(document.querySelectorAll<HTMLElement>('[id]'));
+    const chartContainers = Array.from(document.querySelectorAll('[id]')) as HTMLElement[];
     const chartPositions = chartContainers.map((container) => {
         const gridArea = container.style.gridArea;
         if (gridArea === '') return { row: 0, column: 0 };

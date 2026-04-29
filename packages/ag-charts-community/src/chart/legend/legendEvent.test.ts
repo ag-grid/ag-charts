@@ -1,4 +1,4 @@
-import { afterEach, describe, expect } from '@jest/globals';
+import { afterEach, describe, expect, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -34,7 +34,7 @@ const OPTIONS: AgCartesianChartOptions = {
 };
 
 function strictKeyMatcher<T>(matcherObject: { [K in keyof T]: null }) {
-    return jest.fn((event: object) => {
+    return vi.fn((event: object) => {
         const actualKeys = Object.getOwnPropertyNames(event).sort((a, b) => a.localeCompare(b, 'en-US'));
         const expectKeys = Object.keys(matcherObject).sort((a, b) => a.localeCompare(b, 'en-US'));
         expect(actualKeys).toEqual(expectKeys);
@@ -72,7 +72,7 @@ describe('LegendEvent', () => {
 
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick } } });
             await clickAction(355, 575)(chart);
-            expect(legendItemClick).toBeCalledTimes(1);
+            expect(legendItemClick).toHaveBeenCalledTimes(1);
         });
 
         test('dblclick', async () => {
@@ -87,7 +87,7 @@ describe('LegendEvent', () => {
 
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick } } });
             await doubleClickAction(355, 575)(chart);
-            expect(legendItemDoubleClick).toBeCalledTimes(1);
+            expect(legendItemDoubleClick).toHaveBeenCalledTimes(1);
         });
 
         test('visibilityChange', async () => {
@@ -101,11 +101,11 @@ describe('LegendEvent', () => {
 
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             await clickAction(355, 575)(chart);
-            expect(seriesVisibilityChange).toBeCalledTimes(1);
+            expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
 
         test('visibilityChange-pie', async () => {
-            const seriesVisibilityChange = jest.fn((event: AgSeriesVisibilityChange) => {
+            const seriesVisibilityChange = vi.fn((event: AgSeriesVisibilityChange) => {
                 expect(event).toStrictEqual({
                     type: 'seriesVisibilityChange',
                     seriesId: 'PieSeries-1',
@@ -123,17 +123,17 @@ describe('LegendEvent', () => {
                 listeners: { seriesVisibilityChange },
             });
             await clickAction(355, 575)(chart);
-            expect(seriesVisibilityChange).toBeCalledTimes(1);
+            expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
     });
 
     describe('click and visibility change events', () => {
         test('call order', async () => {
-            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {
-                expect(seriesVisibilityChange).not.toBeCalled();
+            const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {
+                expect(seriesVisibilityChange).not.toHaveBeenCalled();
             });
-            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {
-                expect(legendItemClick).toBeCalled();
+            const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {
+                expect(legendItemClick).toHaveBeenCalled();
             });
             chart = await createChart({
                 ...OPTIONS,
@@ -141,15 +141,15 @@ describe('LegendEvent', () => {
                 legend: { listeners: { legendItemClick } },
             });
             await clickAction(355, 575)(chart);
-            expect(legendItemClick).toBeCalledTimes(1);
-            expect(seriesVisibilityChange).toBeCalledTimes(1);
+            expect(legendItemClick).toHaveBeenCalledTimes(1);
+            expect(seriesVisibilityChange).toHaveBeenCalledTimes(1);
         });
 
         test('legendItemClick preventDefault', async () => {
-            const legendItemClick = jest.fn((event: AgChartLegendClickEvent) => {
+            const legendItemClick = vi.fn((event: AgChartLegendClickEvent) => {
                 event.preventDefault();
             });
-            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {});
+            const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {});
 
             chart = await createChart({
                 ...OPTIONS,
@@ -157,15 +157,15 @@ describe('LegendEvent', () => {
                 legend: { listeners: { legendItemClick } },
             });
             await clickAction(355, 575)(chart);
-            expect(legendItemClick).toBeCalledTimes(1);
-            expect(seriesVisibilityChange).not.toBeCalled();
+            expect(legendItemClick).toHaveBeenCalledTimes(1);
+            expect(seriesVisibilityChange).not.toHaveBeenCalled();
             await compare();
         });
     });
 
     describe('update', () => {
         test('initialState legend change triggers visibility change', async () => {
-            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {});
+            const seriesVisibilityChange = vi.fn((_event: AgSeriesVisibilityChange) => {});
 
             const opts = prepareTestOptions({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             const apiChart = AgCharts.create(opts);
@@ -202,7 +202,7 @@ describe('LegendEvent', () => {
     describe('label.text', () => {
         test('line', async () => {
             // https://plnkr.co/edit/95LNJoaB0eYqh6DU?open=main.js&preview
-            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
             chart = await createChart({
                 data: [
                     { x: 0, Au: 3, Ag: 5, Cu: 3 },
@@ -222,12 +222,12 @@ describe('LegendEvent', () => {
             expect(legendItemClick.mock.calls[0][0].text).toEqual('Gold');
             expect(legendItemClick.mock.calls[1][0].text).toEqual('Silver');
             expect(legendItemClick.mock.calls[2][0].text).toEqual('Copper');
-            expect(legendItemClick).toBeCalledTimes(3);
+            expect(legendItemClick).toHaveBeenCalledTimes(3);
         });
 
         test('pie', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
-            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
             chart = await createChart({
                 data: [
                     { votes: 30, name: 'Labour' },
@@ -243,12 +243,12 @@ describe('LegendEvent', () => {
             expect(legendItemClick.mock.calls[0][0].text).toEqual('Labour');
             expect(legendItemClick.mock.calls[1][0].text).toEqual('LibDem');
             expect(legendItemClick.mock.calls[2][0].text).toEqual('Greens');
-            expect(legendItemClick).toBeCalledTimes(3);
+            expect(legendItemClick).toHaveBeenCalledTimes(3);
         });
 
         test('donuts', async () => {
             // https://plnkr.co/edit/BoHbSyw1KYOpprOg?open=main.js
-            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            const legendItemClick = vi.fn((_event: AgChartLegendClickEvent) => {});
             chart = await createChart({
                 data: [
                     { votes2020: 10, votes2024: 30, name: 'Labour' },
@@ -288,7 +288,7 @@ describe('LegendEvent', () => {
             expect(legendItemClick.mock.calls[3][0].text).toEqual('2024 - Labour');
             expect(legendItemClick.mock.calls[4][0].text).toEqual('2024 - LibDem');
             expect(legendItemClick.mock.calls[5][0].text).toEqual('2024 - Greens');
-            expect(legendItemClick).toBeCalledTimes(6);
+            expect(legendItemClick).toHaveBeenCalledTimes(6);
         });
     });
 });

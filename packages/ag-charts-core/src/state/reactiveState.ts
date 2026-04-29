@@ -76,7 +76,7 @@ export class ReactiveState<StateMap extends object = Record<string, unknown>> {
             return path.length === 0
                 ? this.getValue(key)
                 : getNestedValue(this.stateMap.get(key)?.value, path.split('.'));
-        }) as ValueGetter<StateMap>;
+        });
         callback(getter);
         for (const [key, paths] of observeKeys) {
             this.getState(key).observers.set(callback, paths);

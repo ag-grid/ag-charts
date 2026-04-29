@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { Size, SizeMonitor } from '../util/sizeMonitor';
 import { DOMElementProxy } from './domElementProxy';
@@ -46,7 +46,7 @@ describe('DOMElementProxy', () => {
     describe('setProperty()', () => {
         it('should call element.style.setProperty on first write', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
             proxy.setProperty('left', '10px');
@@ -55,7 +55,7 @@ describe('DOMElementProxy', () => {
 
         it('should skip write when value is unchanged', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
             proxy.setProperty('left', '10px');
@@ -67,7 +67,7 @@ describe('DOMElementProxy', () => {
 
         it('should write again when value differs', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el);
 
             proxy.setProperty('left', '10px');
@@ -81,7 +81,7 @@ describe('DOMElementProxy', () => {
     describe('toggleClass()', () => {
         it('should call element.classList.toggle on first write', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.classList, 'toggle');
+            const spy = vi.spyOn(el.classList, 'toggle');
             const proxy = new DOMElementProxy(el);
 
             proxy.toggleClass('active', true);
@@ -90,7 +90,7 @@ describe('DOMElementProxy', () => {
 
         it('should skip when force value is unchanged', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.classList, 'toggle');
+            const spy = vi.spyOn(el.classList, 'toggle');
             const proxy = new DOMElementProxy(el);
 
             proxy.toggleClass('active', true);
@@ -104,7 +104,7 @@ describe('DOMElementProxy', () => {
     describe('setAttr()', () => {
         it('should call setAttribute for non-null value', () => {
             const el = createElement();
-            const spy = jest.spyOn(el, 'setAttribute');
+            const spy = vi.spyOn(el, 'setAttribute');
             const proxy = new DOMElementProxy(el);
 
             proxy.setAttr('role', 'tooltip');
@@ -113,7 +113,7 @@ describe('DOMElementProxy', () => {
 
         it('should call removeAttribute for null value', () => {
             const el = createElement();
-            const spy = jest.spyOn(el, 'removeAttribute');
+            const spy = vi.spyOn(el, 'removeAttribute');
             const proxy = new DOMElementProxy(el);
 
             proxy.setAttr('role', null);
@@ -122,7 +122,7 @@ describe('DOMElementProxy', () => {
 
         it('should skip duplicate setAttribute calls', () => {
             const el = createElement();
-            const spy = jest.spyOn(el, 'setAttribute');
+            const spy = vi.spyOn(el, 'setAttribute');
             const proxy = new DOMElementProxy(el);
 
             proxy.setAttr('role', 'tooltip');
@@ -134,7 +134,7 @@ describe('DOMElementProxy', () => {
 
         it('should skip duplicate removeAttribute calls', () => {
             const el = createElement();
-            const spy = jest.spyOn(el, 'removeAttribute');
+            const spy = vi.spyOn(el, 'removeAttribute');
             const proxy = new DOMElementProxy(el);
 
             proxy.setAttr('role', null);
@@ -165,7 +165,7 @@ describe('DOMElementProxy', () => {
             proxy.setInnerHTML('<span>new</span>');
 
             // After innerHTML change, setContentStyles should re-apply even with same styles
-            const spy = jest.spyOn(Object, 'assign');
+            const spy = vi.spyOn(Object, 'assign');
             proxy.setContentStyles({ color: 'red' });
             expect(spy).toHaveBeenCalled();
             spy.mockRestore();
@@ -196,7 +196,7 @@ describe('DOMElementProxy', () => {
             const proxy = new DOMElementProxy(el);
 
             proxy.setContentStyles({ color: 'red' });
-            const spy = jest.spyOn(Object, 'assign');
+            const spy = vi.spyOn(Object, 'assign');
 
             proxy.setContentStyles({ color: 'red' });
             expect(spy).not.toHaveBeenCalled();
@@ -286,7 +286,7 @@ describe('DOMElementProxy', () => {
 
         it('should skip redundant writes in deferred mode', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
@@ -299,7 +299,7 @@ describe('DOMElementProxy', () => {
 
         it('should deduplicate writes to the same property, applying only the last value', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
@@ -316,7 +316,7 @@ describe('DOMElementProxy', () => {
 
         it('should clear pending writes after flush', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
@@ -342,7 +342,7 @@ describe('DOMElementProxy', () => {
 
         it('flushKey() should remove the key from pendingWrites so flush() does not re-apply it', () => {
             const el = createElement();
-            const spy = jest.spyOn(el.style, 'setProperty');
+            const spy = vi.spyOn(el.style, 'setProperty');
             const proxy = new DOMElementProxy(el, { deferredMode: { scheduleFlush: () => {} } });
 
             proxy.setProperty('left', '10px');
@@ -440,8 +440,8 @@ describe('DOMElementProxy', () => {
 
         it('should delegate to SizeMonitor and return unsubscribe function', () => {
             const el = createElement();
-            const observeFn = jest.fn();
-            const unobserveFn = jest.fn();
+            const observeFn = vi.fn();
+            const unobserveFn = vi.fn();
             const mockSizeMonitor = {
                 observe: observeFn,
                 unobserve: unobserveFn,

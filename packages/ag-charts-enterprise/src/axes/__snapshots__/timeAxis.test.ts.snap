@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`Time Axis Examples should prioritise parentLevel.tick over tick 1`] = `
+exports[`Time Axis Examples > should prioritise parentLevel.tick over tick 1`] = `
 {
   "height": 30.798828125,
   "width": 722,
@@ -9,7 +9,7 @@ exports[`Time Axis Examples should prioritise parentLevel.tick over tick 1`] = `
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0, 1] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0, 1] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,
@@ -18,7 +18,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.2, 0.5] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.2, 0.5] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,
@@ -27,7 +27,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.3, 0.35] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.3, 0.35] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,
@@ -36,7 +36,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.4, 0.4125] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.4, 0.4125] 1`] = `
 {
   "height": 24.798828125,
   "width": 732.3400001525879,
@@ -45,7 +45,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.25, 0.35] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.25, 0.35] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,
@@ -54,7 +54,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.35, 0.375] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.35, 0.375] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,
@@ -63,7 +63,7 @@ exports[`Time Axis Examples when zooming for should render as expected as zoom [
 }
 `;
 
-exports[`Time Axis Examples when zooming for should render as expected as zoom [0.45, 0.45625] 1`] = `
+exports[`Time Axis Examples > when zooming > for should render as expected as zoom [0.45, 0.45625] 1`] = `
 {
   "height": 24.798828125,
   "width": 722,

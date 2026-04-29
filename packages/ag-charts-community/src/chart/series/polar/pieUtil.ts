@@ -91,9 +91,7 @@ export function preparePieSeriesAnimationFunctions(
         const { stroke, fill } = datum.sectorFormat;
 
         if (status === 'removed' && prevLive) {
-            // eslint-disable-next-line sonarjs/deprecation
             startAngle = prevLive.unsafeDatum?.endAngle;
-            // eslint-disable-next-line sonarjs/deprecation
             endAngle = prevLive.unsafeDatum?.endAngle;
         } else if (status === 'removed' && !prevLive) {
             startAngle = rotation;
@@ -114,7 +112,6 @@ export function preparePieSeriesAnimationFunctions(
     type D = { radius: number };
     type T = { size: number; phase?: typeof phase };
     const innerCircleFromFn: FromToMotionPropFn<D, Marker<D>, T> = (node, _) => {
-        // eslint-disable-next-line sonarjs/deprecation
         return { size: node.unsafePreviousDatum?.radius ?? node.size ?? 0, phase };
     };
     const innerCircleToFn: FromToMotionPropFn<D, Marker<D>, T> = (_, datum) => {

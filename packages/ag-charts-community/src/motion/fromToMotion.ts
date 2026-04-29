@@ -126,13 +126,11 @@ export function fromToMotion<
             if (!isLive) {
                 status = 'removed';
             } else if (getDatumId && diff) {
-                // eslint-disable-next-line sonarjs/deprecation
                 status = calculateStatus(node, node.unsafeDatum as D, getDatumId, diff);
             }
 
             node.transitionOut = status === 'removed';
 
-            // eslint-disable-next-line sonarjs/deprecation
             const { phase, start, finish, delay, duration, ...from } = fromFn(node, node.unsafeDatum as D, status, ctx);
             const {
                 phase: toPhase,
@@ -141,7 +139,6 @@ export function fromToMotion<
                 delay: toDelay,
                 duration: toDuration,
                 ...to
-                // eslint-disable-next-line sonarjs/deprecation
             } = toFn(node, node.unsafeDatum as D, status, ctx);
 
             const collapsable = finish == null;

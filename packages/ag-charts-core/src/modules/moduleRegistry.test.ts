@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from '@jest/globals';
+import { beforeEach, describe, expect, test } from 'vitest';
 
 import {
     type AxisModuleDefinition,
@@ -38,7 +38,7 @@ const createChartModule = (
 ): ChartModuleDefinition<any> => ({
     type: ModuleType.Chart,
     name,
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -50,7 +50,7 @@ const createAxisModule = (
     type: ModuleType.Axis,
     name,
     chartType: 'cartesian',
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -62,7 +62,7 @@ const createSeriesModule = (
     type: ModuleType.Series,
     name,
     chartType: 'cartesian',
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -73,7 +73,7 @@ const createPresetModule = (
 ): PresetModuleDefinition<any> => ({
     type: ModuleType.Preset,
     name,
-    options: {} as any,
+    options: {},
     ...everyModuleDefaults,
     ...overrides,
 });
@@ -176,7 +176,7 @@ describe('moduleRegistry', () => {
 
             expect(getChartModule('chart-module')).toBe(chart);
             expect(() => getChartModule('axis-module')).toThrowErrorMatchingInlineSnapshot(
-                `"AG Charts - Unknown chart type; Check options are correctly structured and series types are specified"`
+                `[Error: AG Charts - Unknown chart type; Check options are correctly structured and series types are specified]`
             );
 
             expect(getPresetModule('preset-module')).toBe(preset);

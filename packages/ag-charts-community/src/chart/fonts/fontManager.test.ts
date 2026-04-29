@@ -1,4 +1,4 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import { type DynamicContext, EventEmitter } from 'ag-charts-core';
 
@@ -24,8 +24,8 @@ class MockResizeObserver {
 
 function createMockDomManager(): DOMManager {
     return {
-        addStyles: jest.fn(),
-        addChild: jest.fn(),
+        addStyles: vi.fn(),
+        addChild: vi.fn(),
         getDocument: () => ({
             createElement: (_tag: string, _styles: Record<string, string>) => ({
                 textContent: '',
@@ -40,7 +40,7 @@ describe('FontManager', () => {
         const domManager = createMockDomManager();
         const fontManager = new FontManager({ domManager, eventsHub } as unknown as DynamicContext<ChartRegistry>);
 
-        const handler = jest.fn();
+        const handler = vi.fn();
         eventsHub.on('font:load', handler);
 
         fontManager.updateFonts(new Set(['Pacifico']));
@@ -59,7 +59,7 @@ describe('FontManager', () => {
         const domManager = createMockDomManager();
         const fontManager = new FontManager({ domManager, eventsHub } as unknown as DynamicContext<ChartRegistry>);
 
-        const handler = jest.fn();
+        const handler = vi.fn();
         eventsHub.on('font:load', handler);
 
         fontManager.updateFonts(new Set(['Roboto']));

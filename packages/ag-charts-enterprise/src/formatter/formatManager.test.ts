@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
@@ -23,7 +23,7 @@ describe('Format Manager (Enterprise)', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     describe('AG-16613 null/undefined category key handling', () => {

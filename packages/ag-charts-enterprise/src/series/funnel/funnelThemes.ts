@@ -77,13 +77,13 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
                     ],
                 },
             ],
-        } as any,
+        },
         strokes: {
             $applyCycle: [
                 { $size: { $path: ['./data', { $path: '/data' }] } },
                 [{ $path: ['/0', undefined, { $palette: 'strokes' }] }],
             ],
-        } as any,
+        },
         label: {
             ...LABEL_BOXING_DEFAULTS,
             enabled: true,
