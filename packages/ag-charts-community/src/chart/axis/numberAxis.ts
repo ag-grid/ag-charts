@@ -1,5 +1,5 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
-import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -15,17 +15,21 @@ export class NumberAxis<
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
-    @Property
-    min?: number;
+    get min(): number | undefined {
+        return this.options.min;
+    }
 
-    @Property
-    max?: number;
+    get max(): number | undefined {
+        return this.options.max;
+    }
 
-    @Property
-    preferredMin?: number;
+    get preferredMin(): number | undefined {
+        return this.options.preferredMin;
+    }
 
-    @Property
-    preferredMax?: number;
+    get preferredMax(): number | undefined {
+        return this.options.preferredMax;
+    }
 
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,

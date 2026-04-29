@@ -5,7 +5,7 @@ import type {
     NormalisedBaseCategoryStyleAxisOptions,
     NormalisedCategoryAxisOptions,
 } from 'ag-charts-core';
-import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import { ChartUpdateType, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -28,34 +28,47 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
-    @Property
-    groupPaddingInner: number = 0.1;
+    get groupPaddingInner(): number {
+        return (this.options as { groupPaddingInner?: number }).groupPaddingInner ?? 0.1;
+    }
 
-    @Property
-    paddingInner?: number;
+    get paddingInner(): number | undefined {
+        return (this.options as { paddingInner?: number }).paddingInner;
+    }
 
-    @Property
-    paddingOuter?: number;
+    get paddingOuter(): number | undefined {
+        return (this.options as { paddingOuter?: number }).paddingOuter;
+    }
 
-    @ProxyPropertyOnWrite('layoutConstraints', 'align')
-    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
+    get bandAlignment(): 'justify' | 'start' | 'center' | 'end' | undefined {
+        return (this.options as { bandAlignment?: 'justify' | 'start' | 'center' | 'end' }).bandAlignment;
+    }
 
-    @Property
-    skipNullBars?: boolean;
+    get skipNullBars(): boolean | undefined {
+        return (this.options as { skipNullBars?: boolean }).skipNullBars;
+    }
 
-    @ActionOnSet<CategoryAxis>({
-        newValue(value?: number) {
-            if (value == null || value <= 0) {
-                this.layoutConstraints.width = 100;
-                this.layoutConstraints.unit = 'percent';
-            } else {
-                this.layoutConstraints.width = value;
-                this.layoutConstraints.unit = 'px';
-                this.animationManager.skipCurrentBatch();
-            }
-        },
-    })
-    override requiredRange?: number;
+    override get layoutConstraints(): import('../chartAxis').ChartAxis['layoutConstraints'] {
+        const align = this.bandAlignment;
+        if (align == null) return this._layoutConstraints;
+        return { ...this._layoutConstraints, align };
+    }
+
+    override set requiredRange(value: number | undefined) {
+        this._requiredRange = value;
+        if (value == null || value <= 0) {
+            this._layoutConstraints.width = 100;
+            this._layoutConstraints.unit = 'percent';
+        } else {
+            this._layoutConstraints.width = value;
+            this._layoutConstraints.unit = 'px';
+            this.animationManager.skipCurrentBatch();
+        }
+    }
+
+    override get requiredRange(): number | undefined {
+        return this._requiredRange;
+    }
 
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,

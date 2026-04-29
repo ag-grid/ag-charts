@@ -6,7 +6,6 @@ import {
     type DynamicContext,
     type NormalisedAngleAxisLabelOptions,
     type NormalisedBasePolarAxisOptions,
-    Property,
     type Scale,
     type ScaleTickParams,
     type WrapOptions,
@@ -47,11 +46,13 @@ export abstract class AngleAxis<
         return new AngleCrossLine();
     }
 
-    @Property
-    startAngle: number = 0;
+    get startAngle(): number {
+        return (this.options as { startAngle?: number }).startAngle ?? 0;
+    }
 
-    @Property
-    endAngle: number | undefined = undefined;
+    get endAngle(): number | undefined {
+        return (this.options as { endAngle?: number }).endAngle;
+    }
 
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,

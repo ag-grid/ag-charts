@@ -1,7 +1,6 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedAngleNumberAxisOptions } from 'ag-charts-core';
 import {
-    Property,
     type ScaleTickParams,
     angleBetween,
     findMinMax,
@@ -17,19 +16,25 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, Normali
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
 
-    override shape = 'circle' as const;
+    override get shape(): 'circle' {
+        return 'circle';
+    }
 
-    @Property
-    min?: number;
+    get min(): number | undefined {
+        return this.options.min;
+    }
 
-    @Property
-    max?: number;
+    get max(): number | undefined {
+        return this.options.max;
+    }
 
-    @Property
-    preferredMin?: number;
+    get preferredMin(): number | undefined {
+        return this.options.preferredMin;
+    }
 
-    @Property
-    preferredMax?: number;
+    get preferredMax(): number | undefined {
+        return this.options.preferredMax;
+    }
 
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,

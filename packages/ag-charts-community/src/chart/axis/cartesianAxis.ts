@@ -8,7 +8,6 @@ import type {
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
-    Property,
     StateMachine,
     arraysEqual,
     calcLineHeight,
@@ -82,17 +81,21 @@ export abstract class CartesianAxis<
         return value instanceof CartesianAxis;
     }
 
-    @Property
-    thickness?: number;
+    get thickness(): number | undefined {
+        return this.options.thickness;
+    }
 
-    @Property
-    maxThicknessRatio: number = 0.3;
+    get maxThicknessRatio(): number {
+        return this.options.maxThicknessRatio ?? 0.3;
+    }
 
-    @Property
-    position!: AgCartesianAxisPosition;
+    get position(): AgCartesianAxisPosition {
+        return this.options.position!;
+    }
 
-    @Property
-    crossAt?: { value: D; sticky?: boolean };
+    get crossAt(): { value: D; sticky?: boolean } | undefined {
+        return this.options.crossAt as { value: D; sticky?: boolean } | undefined;
+    }
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
 

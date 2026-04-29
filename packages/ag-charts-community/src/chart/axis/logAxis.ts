@@ -62,14 +62,28 @@ export class LogAxis extends NumberAxis {
         return { domain: extent, clipped };
     }
 
-    set base(value: number) {
-        (this.scale as LogScale).base = value;
-    }
     get base(): number {
-        return (this.scale as LogScale).base;
+        return this.optionsBase ?? (this.scale as LogScale).base;
+    }
+
+    private get optionsBase(): number | undefined {
+        return (this.options as { base?: number }).base;
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedNumberAxisOptions) {
         super(moduleCtx, id, options, new LogScale());
+        this.syncScaleBase();
+    }
+
+    private syncScaleBase(): void {
+        const base = this.optionsBase;
+        if (base != null) {
+            (this.scale as LogScale).base = base;
+        }
+    }
+
+    protected override updateScale(): void {
+        this.syncScaleBase();
+        super.updateScale();
     }
 }

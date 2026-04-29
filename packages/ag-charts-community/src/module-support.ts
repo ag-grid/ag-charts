@@ -303,7 +303,6 @@ export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
 export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
 export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';
-export { AxisTick } from './chart/axis/axisTick';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';

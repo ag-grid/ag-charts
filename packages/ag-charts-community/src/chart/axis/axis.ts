@@ -16,8 +16,6 @@ import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
-    ObserveChanges,
-    Property,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -201,15 +199,27 @@ export abstract class Axis<
         return this.getCrossLines();
     }
 
-    // user pass-through option: no validation required.
-    context?: unknown;
+    /**
+     * User pass-through option for callback resolution. Declared via `declare`
+     * (not initialised) so the property is absent on instances that did not
+     * receive a `context` option — `callbackCache.maybeSetContext` relies on
+     * the `'context' in axis` check to decide whether to fall back to the
+     * chartService's context.
+     */
+    declare context?: unknown;
 
-    @Property
+    /**
+     * `nice` is user-facing only on continuous axis types (`AgContinuousAxisOptions`),
+     * but every axis subclass reads it (e.g. via `getDomainExtentsNice`). Treated as
+     * an internal axis-instance field initialised from `options.nice` in the base
+     * constructor; mini-chart and `CategoryAxis` mutate it directly.
+     */
     nice: boolean = true;
 
     /** Reverse the axis scale domain. */
-    @Property
-    reverse: boolean = false;
+    get reverse(): boolean {
+        return this.options.reverse ?? false;
+    }
 
     options: TOptions;
 
@@ -227,9 +237,21 @@ export abstract class Axis<
 
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
+     * Use {@link setGridLength} to update so the grid-visibility callback fires.
      */
-    @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
-    gridLength: number = 0;
+    private _gridLength: number = 0;
+
+    get gridLength(): number {
+        return this._gridLength;
+    }
+
+    set gridLength(value: number) {
+        const previous = this._gridLength;
+        this._gridLength = value;
+        if (previous !== value) {
+            this.onGridLengthChange(value, previous);
+        }
+    }
 
     /**
      * The distance between the grid ticks and the axis ticks.
@@ -247,14 +269,37 @@ export abstract class Axis<
 
     abstract get direction(): ChartAxisDirection;
 
-    layoutConstraints: ChartAxis['layoutConstraints'] = {
+    /**
+     * Backing field for {@link layoutConstraints}. Mutated in-place by the
+     * `requiredRange` setter on {@link CategoryAxis}. Subclasses (notably
+     * `CategoryAxis`) may override the getter to project `bandAlignment` onto
+     * `align` without changing the stored object.
+     */
+    protected _layoutConstraints: ChartAxis['layoutConstraints'] = {
         stacked: true,
         align: 'justify',
         width: 100,
         unit: 'percent',
     };
 
-    requiredRange?: number;
+    get layoutConstraints(): ChartAxis['layoutConstraints'] {
+        return this._layoutConstraints;
+    }
+
+    /**
+     * Backing field for the `requiredRange` accessor. Subclasses (notably
+     * `CategoryAxis`) override the setter to react to changes; the base
+     * implementation just stores the value.
+     */
+    protected _requiredRange?: number;
+
+    get requiredRange(): number | undefined {
+        return this._requiredRange;
+    }
+
+    set requiredRange(value: number | undefined) {
+        this._requiredRange = value;
+    }
 
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -367,6 +412,20 @@ export abstract class Axis<
     ) {
         this.id = id;
         this.options = options;
+        // Only assign `context` when the user supplied one — a missing key
+        // must leave the property absent so `'context' in axis` returns
+        // `false` and chart-level context can fall through. See the field
+        // declaration above.
+        const userContext = (options as { context?: unknown }).context;
+        if (userContext !== undefined) {
+            this.context = userContext;
+        }
+        this.nice = (options as { nice?: boolean }).nice ?? true;
+        const userLayoutConstraints = (options as { layoutConstraints?: Partial<ChartAxis['layoutConstraints']> })
+            .layoutConstraints;
+        if (userLayoutConstraints) {
+            this._layoutConstraints = { ...this._layoutConstraints, ...userLayoutConstraints };
+        }
         this.range = this.scale.range.slice() as [number, number];
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),

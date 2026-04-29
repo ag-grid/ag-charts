@@ -27,7 +27,6 @@ import {
     isFiniteNumber,
     isInputPending,
     jsonApply,
-    jsonDiff,
     mergeDefaults,
     pause,
     roundTo,
@@ -59,7 +58,6 @@ import { Mutex } from '../util/mutex';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
-import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import { Background } from './background/background';
 import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
@@ -80,7 +78,6 @@ import { type LayoutContext, LayoutElement } from './layout/layoutManager';
 import type { ChartLegend } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
-import { isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
@@ -126,6 +123,49 @@ const HORIZONTAL_AXIS_POSITIONS = new Set(['top', 'bottom']);
 
 const TIME_LIKE_AXIS_TYPES = new Set(['time', 'unit-time', 'ordinal-time']);
 
+/**
+ * Mirrors `axis.context` on top of the latest options reference. The base
+ * `Axis` declares `context` with `declare` so the property is absent unless
+ * the user supplied one — this preserves the `'context' in axis` semantics
+ * that `callWithContext` depends on for chart-level context fallback. See
+ * `axis.ts` for the field-declaration rationale.
+ */
+function syncAxisContext(axis: ChartAxis, opts: AgBaseAxisOptions): void {
+    const userContext = (opts as { context?: unknown }).context;
+    if (userContext !== undefined) {
+        (axis as { context?: unknown }).context = userContext;
+    } else if ('context' in axis) {
+        delete (axis as { context?: unknown }).context;
+    }
+}
+
+const MINI_CHART_AXIS_STRIPPED_KEYS = new Set(['thickness', 'title', 'crosshair', 'depthOptions']);
+
+function stripAxisOptionsForMiniChart(axisOptions: AgBaseAxisOptions): AgBaseAxisOptions {
+    const source = axisOptions as Record<string, unknown>;
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(source)) {
+        if (MINI_CHART_AXIS_STRIPPED_KEYS.has(key)) continue;
+        result[key] = source[key];
+    }
+    return result as AgBaseAxisOptions;
+}
+
+/**
+ * Mini-chart grouped-category axes show only the leaf-level depth labels.
+ * Returns a derived `depthOptions` array (or `[{ label: { enabled: true } }]`
+ * if the source omitted the field) with non-leaf labels disabled.
+ */
+function deriveMiniChartGroupedCategoryDepth(sourceDepth: unknown[] | undefined) {
+    if (!Array.isArray(sourceDepth) || sourceDepth.length === 0) {
+        return [{ label: { enabled: true } }];
+    }
+    return sourceDepth.map((entry, i) => {
+        if (i === 0) return entry;
+        return mergeDefaults({ label: { enabled: false } }, entry as { label?: { enabled?: boolean } } | undefined);
+    });
+}
+
 function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions {
     const sourceAxes = (completeOptions as { axes?: Record<string, AgBaseAxisOptions> }).axes;
     if (sourceAxes == null) return completeOptions;
@@ -152,18 +192,28 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         const intervalOverride = isHorizontal ? horizontalIntervalOverride : undefined;
         const parentLevelOverride =
             isHorizontal && TIME_LIKE_AXIS_TYPES.has(axisOptions.type ?? '') ? { enabled: false } : undefined;
+        // Mini-chart never inherits axis thickness, title, crosshair, or
+        // grouped-category depth styling from the main chart's options. Build
+        // the derived axis options without those keys so the mini-chart axis
+        // never sees them.
+        const sourceDepth = (axisOptions as { depthOptions?: unknown[] }).depthOptions;
+        const groupedCategoryDepth = isGroupedCategoryHorizontal
+            ? deriveMiniChartGroupedCategoryDepth(sourceDepth)
+            : undefined;
+        const restAxisOptions = stripAxisOptionsForMiniChart(axisOptions);
         derivedAxes[id] = {
-            ...axisOptions,
+            ...restAxisOptions,
             label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
             gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
             tick: mergeDefaults({ enabled: false }, axisOptions.tick),
             line: mergeDefaults(lineOverride, axisOptions.line),
             interval: mergeDefaults(intervalOverride, axisOptions.interval),
             ...({
-                title: mergeDefaults({ enabled: false }, (axisOptions as { title?: object }).title),
+                title: { enabled: false },
                 ...(parentLevelOverride != null && {
                     parentLevel: mergeDefaults(parentLevelOverride, (axisOptions as any).parentLevel),
                 }),
+                ...(groupedCategoryDepth != null && { depthOptions: groupedCategoryDepth }),
             } as Pick<AgBaseAxisOptions, never>),
         };
     }
@@ -1675,7 +1725,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus, [])) {
+        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus)) {
             forceNodeDataRefresh = true;
         }
 
@@ -1868,7 +1918,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             this.filterMiniChartSeries(oldSeries)
         );
         const derivedOptions = deriveMiniChartOptions(completeOptions);
-        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus, ['thickness', 'title', 'crosshair']);
+        this.applyAxes(miniChart, derivedOptions, oldOpts, miniChartSeriesStatus);
 
         const series: UnknownSeries[] = miniChart.series;
         for (const s of series) {
@@ -1877,22 +1927,10 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
 
         const axes = miniChart.axes as ChartAxis[];
-        const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
 
         for (const axis of axes) {
             axis.nice = false;
             axis.interactionEnabled = false;
-        }
-
-        if (horizontalAxis != null && horizontalAxis.type === 'grouped-category') {
-            const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
-            if (depthOptions.length === 0) {
-                depthOptions.set([{ label: { enabled: true } }]);
-            } else {
-                for (let i = 1; i < depthOptions.length; i++) {
-                    depthOptions[i].label.enabled = false;
-                }
-            }
         }
     }
 
@@ -2013,58 +2051,30 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
     private applyAxes(
         chart: { axes: ChartAxes },
         options: AgChartOptions,
-        oldOpts: AgChartOptions,
-        seriesStatus: SeriesChangeType,
-        skip: string[] = []
+        _oldOpts: AgChartOptions,
+        seriesStatus: SeriesChangeType
     ) {
         if (!('axes' in options) || !options.axes) {
             return false;
         }
-
-        // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2), 'interval'
-        // (Phase 3), 'title'/'parentLevel' (Phase 4), 'crosshair'/'bandHighlight'
-        // (Phase 5), and 'crossLines' (Phase 6) are read directly from their
-        // respective holders' replacements (`axis.options.X` for axis-built-ins;
-        // the plugin's own `applyOptions(opts)` setter for axis-attached
-        // plugins). jsonApply has no field to walk into for these keys.
-        skip = [
-            'type',
-            'label',
-            'line',
-            'tick',
-            'gridLine',
-            'interval',
-            'title',
-            'parentLevel',
-            'crosshair',
-            'bandHighlight',
-            'crossLines',
-            ...skip,
-        ];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';
         const matchingTypes = !forceRecreate && chart.axes.matches(axes);
 
         // Try to optimise series updates if series count and types didn't change.
-        if (matchingTypes && isAgCartesianChartOptions(oldOpts)) {
+        if (matchingTypes) {
             for (const axis of chart.axes) {
                 const newOpts = axes[axis.id];
                 axis.options = newOpts as typeof axis.options;
-
-                const previousOpts = oldOpts.axes?.[axis.id] ?? {};
-                const axisDiff = jsonDiff(previousOpts, newOpts) as any;
-
-                debug(`Chart.applyAxes() - applying axis diff idx ${axis.id}`, axisDiff);
-
+                syncAxisContext(axis, newOpts);
                 this.applyAxisModules(axis, newOpts);
-                jsonApply(axis, axisDiff, { skip });
             }
             return true;
         }
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
-        chart.axes = this.createAxes(axes, skip);
+        chart.axes = this.createAxes(axes);
         return true;
     }
 
@@ -2129,7 +2139,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         }
     }
 
-    private createAxes(options: Record<string, AgBaseAxisOptions>, skip: string[]): ChartAxes {
+    private createAxes(options: Record<string, AgBaseAxisOptions>): ChartAxes {
         const newAxes = this.createChartAxes();
         const moduleContext = this.getModuleContext();
 
@@ -2140,7 +2150,6 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 axisOptions
             ) as any;
             this.applyAxisModules(axis, axisOptions);
-            jsonApply(axis, axisOptions, { skip });
 
             newAxes.push(axis);
         }

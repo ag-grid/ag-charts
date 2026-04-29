@@ -1,5 +1,5 @@
 import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
-import { ChartAxisDirection, Property } from 'ag-charts-core';
+import { ChartAxisDirection } from 'ag-charts-core';
 
 import type { BBox } from '../../scene/bbox';
 import type { ChartAxisLabelFlipFlag } from '../chartAxis';
@@ -27,11 +27,25 @@ export abstract class PolarAxis<
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
-    @Property
-    shape: 'polygon' | 'circle' = 'polygon';
+    get shape(): 'polygon' | 'circle' {
+        return (this.options as { shape?: 'polygon' | 'circle' }).shape ?? 'polygon';
+    }
 
-    @Property
-    innerRadiusRatio: number = 0;
+    /**
+     * `innerRadiusRatio` is user-facing on radius axes only. The polar chart
+     * copies the radius axis's value onto the angle axis at layout time
+     * (`polarChart.updateAxes`), so we keep an instance-level setter; reads
+     * fall back to `options.innerRadiusRatio` if no override has been written.
+     */
+    private _innerRadiusRatio?: number;
+
+    get innerRadiusRatio(): number {
+        return this._innerRadiusRatio ?? (this.options as { innerRadiusRatio?: number }).innerRadiusRatio ?? 0;
+    }
+
+    set innerRadiusRatio(value: number) {
+        this._innerRadiusRatio = value;
+    }
 
     override defaultTickMinSpacing = 20;
 

@@ -3,7 +3,6 @@ import {
     type AxisID,
     type DynamicContext,
     type NormalisedAngleCategoryAxisOptions,
-    Property,
     type ScaleTickParams,
     isNumberEqual,
 } from 'ag-charts-core';
@@ -21,11 +20,13 @@ export class AngleCategoryAxis extends AngleAxis<
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 
-    @Property
-    groupPaddingInner: number = 0;
+    get groupPaddingInner(): number {
+        return (this.options as { groupPaddingInner?: number }).groupPaddingInner ?? 0;
+    }
 
-    @Property
-    paddingInner: number = 0;
+    get paddingInner(): number {
+        return (this.options as { paddingInner?: number }).paddingInner ?? 0;
+    }
 
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,

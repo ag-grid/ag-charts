@@ -1,6 +1,6 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusNumberAxisOptions } from 'ag-charts-core';
-import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
@@ -20,19 +20,25 @@ export class RadiusNumberAxis extends RadiusAxis<
     static readonly className = 'RadiusNumberAxis';
     static readonly type = 'radius-number' as const;
 
-    override shape: 'polygon' | 'circle' = 'polygon';
+    override get shape(): 'polygon' | 'circle' {
+        return this.options.shape ?? 'polygon';
+    }
 
-    @Property
-    min?: number;
+    get min(): number | undefined {
+        return this.options.min;
+    }
 
-    @Property
-    max?: number;
+    get max(): number | undefined {
+        return this.options.max;
+    }
 
-    @Property
-    preferredMin?: number;
+    get preferredMin(): number | undefined {
+        return this.options.preferredMin;
+    }
 
-    @Property
-    preferredMax?: number;
+    get preferredMax(): number | undefined {
+        return this.options.preferredMax;
+    }
 
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,

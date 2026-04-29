@@ -1,8 +1,5 @@
 import type { AxisID, DynamicContext, NormalisedGroupedCategoryAxisOptions } from 'ag-charts-core';
 import {
-    BaseProperties,
-    PropertiesArray,
-    Property,
     type ScaleTickParams,
     type WrapOptions,
     angularPadding,
@@ -20,19 +17,16 @@ import {
     toPlainText,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
-import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
-import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
 import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
@@ -53,72 +47,6 @@ interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
     tickSizeAtDepth: number[];
     spacing: number;
-}
-
-class DepthLabelProperties extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    avoidCollisions?: boolean;
-
-    @Property
-    border = new LabelBorder();
-
-    @Property
-    color?: string;
-
-    @Property
-    cornerRadius?: number;
-
-    @Property
-    spacing?: number;
-
-    @Property
-    rotation?: number;
-
-    @Property
-    wrapping?: TextWrap;
-
-    @Property
-    truncate?: boolean;
-
-    @Property
-    fill?: ShapeColor;
-
-    @Property
-    fontStyle?: FontStyle;
-
-    @Property
-    fontWeight?: FontWeight;
-
-    @Property
-    fontSize?: number;
-
-    @Property
-    fontFamily?: string;
-
-    @Property
-    padding?: Padding;
-}
-
-class DepthTickProperties extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    width?: number;
-
-    @Property
-    stroke?: string;
-}
-
-class DepthProperties extends BaseProperties {
-    @Property
-    label = new DepthLabelProperties();
-
-    @Property
-    tick = new DepthTickProperties();
 }
 
 export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<GroupedCategoryKey>> {
@@ -151,8 +79,9 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private ftdByDepth: { positions: number[]; ticks: GroupedCategoryKey[] }[] = [];
     private readonly ftdStack: TreeNode[] = [];
 
-    @Property
-    depthOptions = new PropertiesArray(DepthProperties);
+    get depthOptions(): NonNullable<NormalisedGroupedCategoryAxisOptions['depthOptions']> {
+        return (this.options as unknown as NormalisedGroupedCategoryAxisOptions).depthOptions ?? [];
+    }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedGroupedCategoryAxisOptions) {
         super(moduleCtx, id, options as any, new GroupedCategoryScale<GroupedCategoryKey>());
@@ -168,15 +97,16 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         const label = this.options.label;
         const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
+            const depthLabel = depthOptions[i]?.label;
             optionsMap.push(
-                depthOptions[i]?.label.enabled ?? label?.enabled ?? true
+                depthLabel?.enabled ?? label?.enabled ?? true
                     ? {
                           enabled: true,
-                          spacing: depthOptions[i]?.label.spacing ?? label?.spacing ?? 5,
-                          wrapping: depthOptions[i]?.label.wrapping ?? label?.wrapping,
-                          truncate: depthOptions[i]?.label.truncate ?? label?.truncate,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label?.rotation), // Default top-level label rotation only applies to label leaves
-                          avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label?.avoidCollisions ?? true,
+                          spacing: depthLabel?.spacing ?? label?.spacing ?? 5,
+                          wrapping: depthLabel?.wrapping ?? label?.wrapping,
+                          truncate: depthLabel?.truncate ?? label?.truncate,
+                          rotation: depthLabel?.rotation ?? (i ? defaultNonLeafRotation : label?.rotation), // Default top-level label rotation only applies to label leaves
+                          avoidCollisions: depthLabel?.avoidCollisions ?? label?.avoidCollisions ?? true,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );

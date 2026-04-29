@@ -6,9 +6,6 @@ import type {
     NormalisedTimeAxisOptions,
 } from 'ag-charts-core';
 import {
-    Logger,
-    Property,
-    ProxyPropertyOnWrite,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -29,6 +26,8 @@ import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/serie
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
+type TimeBound = Date | number | undefined;
+
 export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTimeAxisOptions> extends CartesianAxis<
     TimeScale,
     number | Date,
@@ -37,29 +36,21 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
-    @Property
-    min?: Date | number = undefined;
-
-    @Property
-    max?: Date | number = undefined;
-
-    @Property
-    preferredMin?: Date | number = undefined;
-
-    @Property
-    preferredMax?: Date | number = undefined;
-
-    // eslint-disable-next-line sonarjs/use-type-alias
-    get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
-        return undefined;
-    }
-    set _unit(_unit: AgTimeInterval | AgTimeIntervalUnit | undefined) {
-        Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
+    get min(): TimeBound {
+        return this.options.min;
     }
 
-    @Property
-    @ProxyPropertyOnWrite('_unit')
-    unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
+    get max(): TimeBound {
+        return this.options.max;
+    }
+
+    get preferredMin(): TimeBound {
+        return this.options.preferredMin;
+    }
+
+    get preferredMax(): TimeBound {
+        return this.options.preferredMax;
+    }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: TOptions) {
         super(moduleCtx, id, new TimeScale(), options);
@@ -179,9 +170,8 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 export function minimumTimeAxisDatumGranularity(
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
-    // eslint-disable-next-line sonarjs/use-type-alias
-    min: Date | number | undefined,
-    max: Date | number | undefined
+    min: TimeBound,
+    max: TimeBound
 ) {
     const minTimeInterval = boundSeries.reduce((t, series) => {
         return Math.min(series.minTimeInterval() ?? Infinity, t);
@@ -197,8 +187,8 @@ export function minimumTimeAxisDatumGranularity(
 export function calculateDefaultUnit(
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
-    min: Date | number | undefined,
-    max: Date | number | undefined
+    min: TimeBound,
+    max: TimeBound
 ): AgTimeInterval | undefined {
     let start = Infinity;
     let end = -Infinity;

@@ -5,7 +5,6 @@ import {
     ChartAxisDirection,
     type DynamicContext,
     type NormalisedBaseRadiusAxisOptions,
-    Property,
     type Scale,
     ZIndexMap,
     isNumberEqual,
@@ -32,8 +31,9 @@ export abstract class RadiusAxis<
         return new RadiusCrossLine();
     }
 
-    @Property
-    positionAngle: number = 0;
+    get positionAngle(): number {
+        return (this.options as { positionAngle?: number }).positionAngle ?? 0;
+    }
 
     protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,

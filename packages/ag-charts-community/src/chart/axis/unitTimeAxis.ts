@@ -1,6 +1,5 @@
 import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedUnitTimeAxisOptions } from 'ag-charts-core';
 import {
-    Property,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -20,27 +19,34 @@ import type { AxisTickFormatParams } from './axis';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { calculateDefaultUnit } from './timeAxis';
 
+type TimeBound = Date | number | undefined;
+type UnitInterval = AgTimeInterval | AgTimeIntervalUnit | undefined;
+
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnitTimeAxisOptions> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 
     override defaultTickMinSpacing = 20;
 
-    @Property
-    min?: Date | number = undefined;
+    get min(): TimeBound {
+        return this.options.min;
+    }
 
-    @Property
-    max?: Date | number = undefined;
+    get max(): TimeBound {
+        return this.options.max;
+    }
 
-    @Property
-    preferredMin?: Date | number = undefined;
+    get preferredMin(): TimeBound {
+        return this.options.preferredMin;
+    }
 
-    @Property
-    preferredMax?: Date | number = undefined;
+    get preferredMax(): TimeBound {
+        return this.options.preferredMax;
+    }
 
-    @Property
-    // eslint-disable-next-line sonarjs/use-type-alias
-    unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
+    get unit(): UnitInterval {
+        return this.options.unit;
+    }
 
     override get primaryLabel() {
         const parentLevel = this.options.parentLevel;
@@ -75,12 +81,12 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         return true;
     }
 
-    private defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
+    private defaultUnit: UnitInterval = undefined;
 
     override processData(): void {
         super.processData();
 
-        let defaultUnit: AgTimeInterval | AgTimeIntervalUnit | undefined;
+        let defaultUnit: UnitInterval;
 
         const { domain } = this.dataDomain;
         if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
