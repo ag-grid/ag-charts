@@ -2,11 +2,10 @@ import {
     BaseProperties,
     Property,
     callWithContext,
+    coerceTextValue,
     createElement,
     isArray,
-    isDate,
     isHTMLElement,
-    isNumber,
     toPlainText,
     toTextString,
 } from 'ag-charts-core';
@@ -62,11 +61,10 @@ export class Overlay extends BaseProperties {
 
         // The renderer is optional, and per the documented Renderer<P, R> contract may
         // return `undefined` to fall through to the default overlay text. An empty string
-        // still renders (as an empty overlay). Number/Date returns (TextValue) are coerced
-        // via toTextString to keep behaviour consistent with other Renderer<P, R> consumers.
+        // still renders (as an empty overlay).
         const params: AgChartOverlayRendererParams<DatumDefault> = {};
         const rendered = this.renderer ? callWithContext(callers, this.renderer, params) : undefined;
-        const htmlContent = isNumber(rendered) || isDate(rendered) ? toTextString(rendered) : rendered;
+        const htmlContent = coerceTextValue(rendered);
 
         if (typeof htmlContent === 'string' || isHTMLElement(htmlContent)) {
             if (isHTMLElement(htmlContent)) {

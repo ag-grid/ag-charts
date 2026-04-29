@@ -5,11 +5,9 @@ import {
     ChartUpdateType,
     Property,
     ZIndexMap,
+    coerceTextValue,
     createId,
-    isDate,
-    isNumber,
     toPlainText,
-    toTextString,
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
@@ -401,14 +399,11 @@ export class Crosshair extends AbstractModuleInstance {
         const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
         // Returning `undefined` from the renderer falls through to the default formatted value,
         // matching the documented Renderer<P, R> contract. Empty strings still render an empty label.
-        // Number/Date returns (TextValue) are coerced via toTextString to keep behaviour consistent
-        // with other Renderer<P, R> consumers.
         const rendered = this.label.renderer?.({ value, fractionDigits });
         if (rendered === undefined) {
             return label.toLabelHtml(defaults);
         }
-        const input = isNumber(rendered) || isDate(rendered) ? toTextString(rendered) : rendered;
-        return label.toLabelHtml(input, defaults);
+        return label.toLabelHtml(coerceTextValue(rendered), defaults);
     }
 
     private showLabel(x: number, y: number, value: any, key: string) {
