@@ -17,15 +17,13 @@ import {
     SELECTION_STROKEWIDTH,
 } from './dataSelectionConstants';
 import {
-    type BufferMap,
+    type SelectionChanges,
     clearAllSelections,
-    copySelectionBuffers,
-    diffSelectionBuffers,
     getAllDataSets,
     hasAddToSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
-    restoreSelectionBuffers,
+    rollbackChanges,
     setSelected,
     toBBox,
     toggleSelection,
@@ -93,8 +91,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const { chartService } = this.ctx;
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
-        clearAllSelections(chartService.series);
+        const changes = this.allocSelectionChanges();
+        clearAllSelections(changes, chartService.series);
 
         if (!isUnknownIterable(items)) {
             Logger.warn('Selection items is not iterable');
@@ -125,12 +123,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 continue;
             }
 
-            const selection = data.enableSelection(item.seriesId);
-            selection.select(datumIndex);
+            setSelected(changes, series, data, datumIndex);
         }
 
         this.dispatchInternalSelectionChange(chartService.series);
-        this.dispatchExternalSelectionChange('api-call', bufferMap);
+        this.dispatchExternalSelectionChange('api-call', changes);
         this.redraw(ChartUpdateType.FULL);
     }
 
@@ -139,11 +136,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const { chartService } = this.ctx;
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
-        clearAllSelections(chartService.series);
+        const changes = this.allocSelectionChanges();
+        clearAllSelections(changes, chartService.series);
 
         this.dispatchInternalSelectionChange(chartService.series);
-        this.dispatchExternalSelectionChange('api-call', bufferMap);
+        this.dispatchExternalSelectionChange('api-call', changes);
         this.redraw(ChartUpdateType.FULL);
     }
 
@@ -166,9 +163,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
+        const changes = this.allocSelectionChanges();
         if (clickMiss) {
-            clearAllSelections(this.ctx.chartService.series);
+            clearAllSelections(changes, this.ctx.chartService.series);
             this.dispatchInternalSelectionChange(this.ctx.chartService.series);
         } else {
             const { data } = clickedNode.series;
@@ -181,15 +178,15 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
 
             if (clickMode === 'multiple' || modifierPressed) {
-                toggleSelection(series, data, datumIndex);
+                toggleSelection(changes, series, data, datumIndex);
             } else {
                 clickMode satisfies 'single';
-                clearAllSelections(this.ctx.chartService.series);
-                setSelected(series, data, datumIndex);
+                clearAllSelections(changes, this.ctx.chartService.series);
+                setSelected(changes, series, data, datumIndex);
             }
             this.dispatchInternalSelectionChange([series]);
         }
-        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
+        this.dispatchExternalSelectionChange('user-interaction', changes);
         this.redraw(ChartUpdateType.FULL);
     }
 
@@ -239,13 +236,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
+        const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         if (shouldClearSelections) {
-            clearAllSelections(this.ctx.chartService.series);
+            clearAllSelections(changes, this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         const changedSeries: Series[] = [];
 
         for (const series of this.ctx.chartService.series) {
@@ -259,7 +256,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 const datumIndex: unknown = datum.datumIndex;
                 if (typeof datumIndex === 'number') {
                     changed = true;
-                    setSelected(series, data, datumIndex);
+                    setSelected(changes, series, data, datumIndex);
                 } else {
                     Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
                 }
@@ -271,7 +268,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
 
         this.dispatchInternalSelectionChange(changedSeries);
-        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
+        this.dispatchExternalSelectionChange('user-interaction', changes);
         this.endDrag();
     }
 
@@ -299,12 +296,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
     private dispatchExternalSelectionChange(
         source: AgSelectionChangeEventSource,
-        bufferMap: BufferMap | undefined
+        changes: SelectionChanges | undefined
     ): void {
-        if (bufferMap === undefined) return;
+        if (changes === undefined) return;
 
-        const { chartService } = this.ctx;
-        const { added, removed } = diffSelectionBuffers(chartService, bufferMap);
+        const { added, removed } = changes;
 
         if (added.length === 0 && removed.length === 0) {
             // No selection changes to emit.
@@ -325,7 +321,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         });
 
         if (defaultPrevented) {
-            restoreSelectionBuffers(chartService, bufferMap);
+            rollbackChanges(changes, this.ctx.chartService.series);
         }
+    }
+
+    private allocSelectionChanges(): SelectionChanges | undefined {
+        if (!this.ctx.chartService.hasListener('selectionChange')) return undefined;
+        return { added: [], removed: [] };
     }
 }
