@@ -1,16 +1,23 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
+    AgChartOptions,
+    AgCharts,
     CategoryAxisModule,
+    CrossLinesModule,
     LegendModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-community';
 
-import { DataType } from './data';
-import { getData } from './data';
+import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    CrossLinesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const customItems = ['Jun', 'Jul', 'Aug', 'Sep'];
 
 const options: AgChartOptions<DataType> = {

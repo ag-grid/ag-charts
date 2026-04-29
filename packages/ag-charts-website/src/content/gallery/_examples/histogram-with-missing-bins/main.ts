@@ -1,7 +1,7 @@
 import {
     AgChartOptions,
     AgCharts,
-    ContextMenuModule,
+    CrossLinesModule,
     HistogramSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -9,7 +9,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([HistogramSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CrossLinesModule, HistogramSeriesModule, NumberAxisModule]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

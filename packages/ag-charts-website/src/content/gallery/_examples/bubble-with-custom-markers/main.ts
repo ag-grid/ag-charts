@@ -3,7 +3,7 @@ import {
     AgCharts,
     AgMarkerShapeFnParams,
     BubbleSeriesModule,
-    ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,7 +11,7 @@ import {
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule, CrosshairModule]);
+ModuleRegistry.registerModules([BubbleSeriesModule, CrosshairModule, CrossLinesModule, NumberAxisModule]);
 const data = getData();
 const seasons = ['Spring', 'Summer', 'Autumn', 'Winter'];
 

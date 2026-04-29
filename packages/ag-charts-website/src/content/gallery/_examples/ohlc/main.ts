@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,7 +11,13 @@ import {
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([NumberAxisModule, OhlcSeriesModule, OrdinalTimeAxisModule, CrosshairModule]);
+ModuleRegistry.registerModules([
+    CrosshairModule,
+    CrossLinesModule,
+    NumberAxisModule,
+    OhlcSeriesModule,
+    OrdinalTimeAxisModule,
+]);
 const numberFormatter = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 4,
     maximumFractionDigits: 4,

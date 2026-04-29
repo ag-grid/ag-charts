@@ -4,14 +4,20 @@ import {
     BandHighlightModule,
     BoxPlotSeriesModule,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BandHighlightModule, BoxPlotSeriesModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BoxPlotSeriesModule,
+    CategoryAxisModule,
+    CrossLinesModule,
+    NumberAxisModule,
+]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

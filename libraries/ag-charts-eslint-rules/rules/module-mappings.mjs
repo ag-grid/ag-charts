@@ -90,6 +90,7 @@ export const pluginOptionToModule = new Map([
 // Nested axis plugin option → Module ID
 export const axisPluginToModule = new Map([
     ['crosshair', 'CrosshairModule'],
+    ['crossLines', 'CrossLinesModule'],
     ['bandHighlight', 'BandHighlightModule'],
 ]);
 
@@ -241,6 +242,7 @@ export const enterpriseModules = new Set([
     'ChartToolbarModule',
     'ContextMenuModule',
     'CrosshairModule',
+    'CrossLinesModule',
     'DataSourceModule',
     'ErrorBarsModule',
     'GradientLegendModule',
@@ -405,6 +407,7 @@ export const bundleContents = new Map([
             'ChartToolbarModule',
             'ContextMenuModule',
             'CrosshairModule',
+            'CrossLinesModule',
             'DataSourceModule',
             'ErrorBarsModule',
             'GradientLegendModule',
@@ -548,6 +551,7 @@ export const validModuleIds = new Set([
     'ChartToolbarModule',
     'ContextMenuModule',
     'CrosshairModule',
+    'CrossLinesModule',
     'DataSourceModule',
     'ErrorBarsModule',
     'GradientLegendModule',

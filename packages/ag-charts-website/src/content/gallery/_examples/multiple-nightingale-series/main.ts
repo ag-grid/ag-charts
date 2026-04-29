@@ -2,7 +2,7 @@ import {
     AgCharts,
     AgPolarChartOptions,
     AngleCategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
@@ -10,7 +10,12 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AngleCategoryAxisModule, NightingaleSeriesModule, RadiusNumberAxisModule]);
+ModuleRegistry.registerModules([
+    AngleCategoryAxisModule,
+    CrossLinesModule,
+    NightingaleSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

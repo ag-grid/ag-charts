@@ -2,7 +2,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BandHighlightModule,
-    ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     LegendModule,
     LineSeriesModule,
@@ -17,6 +17,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     BandHighlightModule,
     CrosshairModule,
+    CrossLinesModule,
     LegendModule,
     LineSeriesModule,
     NumberAxisModule,
