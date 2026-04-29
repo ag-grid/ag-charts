@@ -108,6 +108,7 @@ export { ChartOptions } from './module/optionsModule';
 export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export { type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
+export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
 export { ChartAxes } from './chart/chartAxes';
 export { NiceMode, resetAxisLabelSelectionFn } from './chart/axis/axisUtil';

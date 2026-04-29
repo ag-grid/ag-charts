@@ -42,6 +42,8 @@ import type {
     AgInitialStateLegendOptions,
     AgLocaleOptions,
     AgMiniChartSeriesOptions,
+    AgSelectionItem,
+    AgSelectionItemIds,
     FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
@@ -592,6 +594,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
             }
         }
+    }
+
+    getSelection(): Iterable<AgSelectionItem<unknown>> | undefined {
+        return this.modulesManager.selection()?.getSelection();
+    }
+
+    setSelection(items: Iterable<AgSelectionItemIds>): void {
+        return this.modulesManager.selection()?.setSelection(items);
+    }
+
+    clearSelection(): void {
+        return this.modulesManager.selection()?.clearSelection();
     }
 
     resetAnimations() {
