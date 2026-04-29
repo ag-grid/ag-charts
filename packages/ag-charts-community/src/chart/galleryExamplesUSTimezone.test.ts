@@ -1,7 +1,4 @@
-/**
- * @timezone US/Pacific
- */
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
@@ -15,6 +12,10 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from './test/utils';
+
+beforeAll(() => {
+    process.env.TZ = 'US/Pacific';
+});
 
 const TIME_AXIS_EXAMPLES = Object.entries(EXAMPLES)
     .filter(([, { options }]) => {

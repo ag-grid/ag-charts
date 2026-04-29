@@ -1,4 +1,5 @@
 import { Canvas } from 'skia-canvas';
+import { afterEach, beforeEach } from 'vitest';
 
 import { resetIds } from 'ag-charts-core';
 import { CANVAS_HEIGHT, CANVAS_WIDTH, mockCanvas } from 'ag-charts-test';

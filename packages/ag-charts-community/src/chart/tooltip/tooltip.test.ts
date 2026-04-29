@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { type AgChartOptions } from 'ag-charts-types';
 
@@ -25,8 +25,11 @@ describe('Tooltip', () => {
     const ctx = setupMockCanvas();
     let chart: AgChartProxy | Chart;
 
-    afterEach(() => {
-        chart?.destroy();
+    afterEach(async () => {
+        if (chart) {
+            await waitForChartStability(chart);
+            chart.destroy();
+        }
     });
 
     const compare = async () => {
@@ -456,7 +459,7 @@ describe('Tooltip', () => {
         });
 
         it('should call axis formatter with actual null value (not "null" string) when allowNullKeys is true', async () => {
-            const formatterMock = jest.fn((params: { value: unknown }) =>
+            const formatterMock = vi.fn((params: { value: unknown }) =>
                 params.value === null ? 'NULL' : String(params.value)
             );
             chart = await createChart({
@@ -514,7 +517,7 @@ describe('Tooltip', () => {
         });
 
         it('should not show empty row for missing bubble size', async () => {
-            const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
             try {
                 chart = await createChart({
                     data: [
@@ -616,7 +619,7 @@ describe('Tooltip', () => {
 
     describe('Delayed Tooltip Hiding', () => {
         afterEach(() => {
-            jest.useRealTimers();
+            vi.useRealTimers();
         });
 
         it('tooltip removal is immediate by default', async () => {
@@ -640,7 +643,7 @@ describe('Tooltip', () => {
             await waitForChartStability(chart);
 
             // Manually show tooltip
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
                 { type: 'structured', title: 'Test' },
             ]);
             await waitForChartStability(chart);
@@ -675,10 +678,14 @@ describe('Tooltip', () => {
             await waitForChartStability(chart);
 
             // Enable fake timers
-            jest.useFakeTimers();
+            // Vitest migration: only fake setTimeout/clearTimeout. Faking requestAnimationFrame
+            // breaks jsdom's rAF permanently — vi.useRealTimers() fails to restore it after
+            // multiple fake/real cycles, leaving rAF callbacks silently undelivered. The tooltip
+            // delay mechanism uses setTimeout, so that's all we need to control here.
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
             // Show tooltip
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
                 { type: 'structured', title: 'Test' },
             ]);
             await waitForChartStability(chart);
@@ -691,11 +698,11 @@ describe('Tooltip', () => {
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Wait 50ms - still visible (delay is 100ms)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Wait another 75ms (total 125ms) - now hidden
-            jest.advanceTimersByTime(75);
+            vi.advanceTimersByTime(75);
             await waitForChartStability(chart);
             expect(chart.tooltip.isVisible()).toBe(false);
         });
@@ -720,11 +727,10 @@ describe('Tooltip', () => {
             chart = await createChart(options);
             await waitForChartStability(chart);
 
-            // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
             // Show first tooltip
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
                 { type: 'structured', title: 'First' },
             ]);
             await waitForChartStability(chart);
@@ -734,11 +740,11 @@ describe('Tooltip', () => {
             chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
 
             // Wait 50ms (less than 100ms delay)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Show new tooltip before delay completes
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 200, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 200, canvasY: 200 }, [
                 { type: 'structured', title: 'Second' },
             ]);
             await waitForChartStability(chart);
@@ -747,7 +753,7 @@ describe('Tooltip', () => {
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Wait for original delay to complete (another 75ms)
-            jest.advanceTimersByTime(75);
+            vi.advanceTimersByTime(75);
             await waitForChartStability(chart);
 
             // Should STILL be visible (delayed removal was cancelled)
@@ -774,11 +780,10 @@ describe('Tooltip', () => {
             chart = await createChart(options);
             await waitForChartStability(chart);
 
-            // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
             // Show tooltip
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
                 { type: 'structured', title: 'Test' },
             ]);
             await waitForChartStability(chart);
@@ -788,21 +793,21 @@ describe('Tooltip', () => {
             chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
 
             // Wait 50ms (halfway through 100ms countdown)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Second delayed removal call - should NOT reset countdown
             chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
 
             // Wait another 25ms (total 75ms from first call, 25ms from second call)
-            jest.advanceTimersByTime(25);
+            vi.advanceTimersByTime(25);
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Third delayed removal call - should still NOT reset countdown
             chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
 
             // Wait another 50ms (total 125ms from first call)
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             await waitForChartStability(chart);
 
             // Should be hidden now (100ms from FIRST call has elapsed)
@@ -829,11 +834,10 @@ describe('Tooltip', () => {
             chart = await createChart(options);
             await waitForChartStability(chart);
 
-            // Enable fake timers
-            jest.useFakeTimers();
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 
             // Show tooltip
-            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 } as any, [
+            chart.ctx.tooltipManager.updateTooltip('test', { canvasX: 100, canvasY: 200 }, [
                 { type: 'structured', title: 'Test' },
             ]);
             await waitForChartStability(chart);
@@ -843,7 +847,7 @@ describe('Tooltip', () => {
             chart.ctx.tooltipManager.removeTooltip('test', undefined, true);
 
             // Wait 50ms
-            jest.advanceTimersByTime(50);
+            vi.advanceTimersByTime(50);
             expect(chart.tooltip.isVisible()).toBe(true);
 
             // Request immediate removal before delay completes
@@ -854,7 +858,7 @@ describe('Tooltip', () => {
             expect(chart.tooltip.isVisible()).toBe(false);
 
             // Wait for original delay period to verify no double-hide
-            jest.advanceTimersByTime(75);
+            vi.advanceTimersByTime(75);
             await waitForChartStability(chart);
 
             // Should still be hidden (no errors)

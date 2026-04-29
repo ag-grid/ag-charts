@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { cachedTextMeasurer, wrapText } from 'ag-charts-core';
 import type { TextWrap } from 'ag-charts-types';

@@ -10,7 +10,7 @@
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/**/__image_snapshots__/**",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/jest.config.[jt]s"
+      "!{projectRoot}/vitest.config.[jt]s"
     ],
     "buildOutputExcludes": ["!{projectRoot}/dist/**"],
     "production": ["default", "defaultExcludes"],
@@ -229,7 +229,7 @@
       }
     },
     "test": {
-      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
+      "inputs": ["default", "buildOutputExcludes", "^production"],
       "outputs": [],
       "cache": true
     },
@@ -239,9 +239,7 @@
       "inputs": ["jsOutputs"],
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "commands": [
-          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
-        ],
+        "commands": ["npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts'"],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
         }
@@ -250,12 +248,12 @@
       "configurations": {
         "update": {
           "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
+            "npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts' --update"
           ]
         },
         "ci": {
           "commands": [
-            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
+            "npx vitest run --config {projectRoot}/vitest.config.ts --include 'benchmarks/**/*.test.ts' --update"
           ],
           "env": {
             "AG_BENCHMARK_REPEAT_LIMIT": "3"
@@ -274,19 +272,6 @@
     "pack": {
       "inputs": ["allTransitiveOutputs", "{projectRoot}/.npmignore"],
       "cache": true
-    },
-    "@nx/jest:jest": {
-      "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
-      "cache": true,
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "update": true
-        }
-      }
     },
     "nx:noop": {
       "cache": true,

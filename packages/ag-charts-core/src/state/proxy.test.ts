@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ProxyOnWrite, ProxyProperty, ProxyPropertyOnWrite } from './proxy';
 
@@ -47,7 +47,7 @@ describe('proxy module', () => {
             proxiedProp2?: string;
             child: { proxiedProp?: string; otherProp?: string } = {};
         }
-        console.warn = jest.fn();
+        console.warn = vi.fn();
         test = new TestProxy();
     });
 

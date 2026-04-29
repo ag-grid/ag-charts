@@ -2,11 +2,11 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": true,
-    "types": ["node", "jest"],
+    "types": ["node", "vitest/globals"],
     "paths": {
       "ag-charts-core": ["../../packages/ag-charts-core/dist/types/src/main.d.ts"]
     }
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
+  "exclude": ["vitest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"]
 }

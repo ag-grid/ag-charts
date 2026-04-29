@@ -337,7 +337,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
-        const index = isLeaf ? rootIndex : nodeDatum.depth ?? -1;
+        const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
 
         const highlightedNode = this.getActiveHighlightNode();
         const tileHighlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
@@ -935,11 +935,13 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const format: Required<ItemStyle> = this.getItemStyle(
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
             { ...nodeDatum, colorValue: datumColor ?? nodeDatum.colorValue } as TreemapNode,
             isLeaf,
             false
         );
 
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
         const color = format.fill as InternalAgColorType;
 
         const markerStyle = {

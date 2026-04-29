@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import type { AgCartesianChartOptions, AgChartInstance, AgPolarChartOptions } from 'ag-charts-types';
 
@@ -27,7 +27,7 @@ describe('Format Manager', () => {
             chart.destroy();
             (chart as unknown) = undefined;
         }
-        jest.restoreAllMocks();
+        vi.restoreAllMocks();
     });
 
     const compare = async (defaults = IMAGE_SNAPSHOT_DEFAULTS) => {
@@ -65,8 +65,8 @@ describe('Format Manager', () => {
     });
 
     it('should return the correct bound series', async () => {
-        const xFormatter = jest.fn();
-        const yFormatter = jest.fn();
+        const xFormatter = vi.fn();
+        const yFormatter = vi.fn();
         const options: AgCartesianChartOptions = {
             data: [
                 { product: 'iPhone', value: 140 },
@@ -259,7 +259,7 @@ describe('Format Manager', () => {
 
     // AG-16604: Object values should be accessible in formatters (not converted to "[object Object]")
     it('should pass object values to category axis formatter without stringifying', async () => {
-        const xFormatter = jest.fn();
+        const xFormatter = vi.fn();
         const objectCategory = { id: 1, label: 'Group A' };
         const options: AgCartesianChartOptions = {
             data: [
@@ -333,7 +333,7 @@ describe('Format Manager', () => {
             it.each(NULL_KEY_CASES)(
                 'chart-level formatter.x: $name',
                 async ({ nullValue, allowNullKeys, expectWarning }) => {
-                    const xFormatter = jest.fn((params: { value: unknown }) => formatNullValue(params.value));
+                    const xFormatter = vi.fn((params: { value: unknown }) => formatNullValue(params.value));
 
                     const options: AgCartesianChartOptions = {
                         data: [
@@ -375,7 +375,7 @@ describe('Format Manager', () => {
             );
 
             it('axis label formatter receives null value when allowNullKeys is true', async () => {
-                const axisFormatter = jest.fn((params: { value: unknown }) =>
+                const axisFormatter = vi.fn((params: { value: unknown }) =>
                     params.value === null ? 'NULL' : String(params.value)
                 );
 
@@ -398,7 +398,7 @@ describe('Format Manager', () => {
             });
 
             it('domain includes null when allowNullKeys is true', async () => {
-                const xFormatter = jest.fn();
+                const xFormatter = vi.fn();
 
                 const options: AgCartesianChartOptions = {
                     data: [
@@ -414,12 +414,12 @@ describe('Format Manager', () => {
                 await waitForChartStability(chart);
 
                 const callWithDomain = xFormatter.mock.calls.find(
-                    (c: [{ domain: unknown[] }]) => Array.isArray(c[0].domain) && c[0].domain.length === 3
+                    (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
                 );
                 expect(callWithDomain).toBeDefined();
-                expect(callWithDomain[0].domain).toContain(null);
-                expect(callWithDomain[0].domain).toContain('iPhone');
-                expect(callWithDomain[0].domain).toContain('Mac');
+                expect(callWithDomain![0].domain).toContain(null);
+                expect(callWithDomain![0].domain).toContain('iPhone');
+                expect(callWithDomain![0].domain).toContain('Mac');
             });
         });
 
@@ -429,7 +429,7 @@ describe('Format Manager', () => {
             it.each(NULL_KEY_CASES)(
                 'chart-level formatter.x: $name',
                 async ({ nullValue, allowNullKeys, expectWarning }) => {
-                    const xFormatter = jest.fn((params: { value: unknown }) => formatNullValue(params.value));
+                    const xFormatter = vi.fn((params: { value: unknown }) => formatNullValue(params.value));
 
                     const options: AgCartesianChartOptions = {
                         data: [
@@ -469,7 +469,7 @@ describe('Format Manager', () => {
             );
 
             it('domain includes null when allowNullKeys is true', async () => {
-                const xFormatter = jest.fn();
+                const xFormatter = vi.fn();
 
                 const options: AgCartesianChartOptions = {
                     data: [
@@ -485,17 +485,17 @@ describe('Format Manager', () => {
                 await waitForChartStability(chart);
 
                 const callWithDomain = xFormatter.mock.calls.find(
-                    (c: [{ domain: unknown[] }]) => Array.isArray(c[0].domain) && c[0].domain.length === 3
+                    (c) => Array.isArray(c[0]?.domain) && c[0].domain.length === 3
                 );
                 expect(callWithDomain).toBeDefined();
-                expect(callWithDomain[0].domain).toContain(null);
+                expect(callWithDomain![0].domain).toContain(null);
             });
         });
 
         // Bar-specific tests for tooltip and label formatting (these use specific hover positions)
         describe('bar series tooltip and label formatting', () => {
             it('formats tooltip heading for null category when allowNullKeys is true', async () => {
-                const xFormatter = jest.fn((params: { value: unknown }) =>
+                const xFormatter = vi.fn((params: { value: unknown }) =>
                     params.value === null ? 'No Product' : String(params.value)
                 );
 
@@ -520,7 +520,7 @@ describe('Format Manager', () => {
             });
 
             it('calls formatter.x for tooltip with null category when allowNullKeys is true', async () => {
-                const xFormatter = jest.fn((params: { value: unknown; source: string }) => {
+                const xFormatter = vi.fn((params: { value: unknown; source: string }) => {
                     if (params.source === 'tooltip' && params.value === null) {
                         return 'Tooltip Null';
                     }
@@ -549,7 +549,7 @@ describe('Format Manager', () => {
             });
 
             it('calls series label formatter for data with null category when allowNullKeys is true', async () => {
-                const labelFormatter = jest.fn((params: { value: unknown }) =>
+                const labelFormatter = vi.fn((params: { value: unknown }) =>
                     params.value === null ? 'NULL' : String(params.value)
                 );
 

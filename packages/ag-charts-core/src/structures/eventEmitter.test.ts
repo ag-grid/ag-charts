@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { EventEmitter } from './eventEmitter';
 
 describe('EventEmitter', () => {
@@ -13,7 +15,7 @@ describe('EventEmitter', () => {
     });
 
     it('registers and triggers an event listener', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         emitter.on('eventA', listener);
 
         emitter.emit('eventA', 'test event');
@@ -23,7 +25,7 @@ describe('EventEmitter', () => {
     });
 
     it('removes a registered listener', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         const unsubscribe = emitter.on('eventA', listener);
 
         unsubscribe(); // Remove the listener
@@ -33,8 +35,8 @@ describe('EventEmitter', () => {
     });
 
     it('supports multiple listeners for the same event', () => {
-        const listener1 = jest.fn();
-        const listener2 = jest.fn();
+        const listener1 = vi.fn();
+        const listener2 = vi.fn();
 
         emitter.on('eventA', listener1);
         emitter.on('eventA', listener2);
@@ -48,8 +50,8 @@ describe('EventEmitter', () => {
     });
 
     it('removes a specific listener while keeping others', () => {
-        const listener1 = jest.fn();
-        const listener2 = jest.fn();
+        const listener1 = vi.fn();
+        const listener2 = vi.fn();
 
         emitter.on('eventA', listener1);
         const unsubscribe = emitter.on('eventA', listener2);
@@ -62,8 +64,8 @@ describe('EventEmitter', () => {
     });
 
     it('clears all listeners for a specific event', () => {
-        const listenerA = jest.fn();
-        const listenerB = jest.fn();
+        const listenerA = vi.fn();
+        const listenerB = vi.fn();
         emitter.on('eventA', listenerA);
         emitter.on('eventB', listenerB);
 
@@ -76,8 +78,8 @@ describe('EventEmitter', () => {
     });
 
     it('clears all listeners for all events', () => {
-        const listenerA = jest.fn();
-        const listenerB = jest.fn();
+        const listenerA = vi.fn();
+        const listenerB = vi.fn();
 
         emitter.on('eventA', listenerA);
         emitter.on('eventB', listenerB);
@@ -95,7 +97,7 @@ describe('EventEmitter', () => {
     });
 
     it('does not throw when removing a listener that does not exist', () => {
-        const listener = jest.fn();
+        const listener = vi.fn();
         expect(() => emitter.off('eventA', listener)).not.toThrow();
     });
 });

@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
 import type { MatchImageSnapshotOptions } from 'jest-image-snapshot';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { AgCharts } from '../api/agCharts';
 import type { Chart } from './chart';

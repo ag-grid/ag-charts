@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+
 import { getDocument } from 'ag-charts-core';
 import type {
     AgAxisLabelFormatterParams,
@@ -487,7 +489,7 @@ describe('AG-16613 null category callbacks', () => {
     ];
 
     test('tooltipRenderer receives null xValue', async () => {
-        const tooltipRenderer = jest.fn(() => '');
+        const tooltipRenderer = vi.fn(() => '');
         chart = await createChart({
             data: nullCategoryData,
             series: [
@@ -515,7 +517,7 @@ describe('AG-16613 null category callbacks', () => {
     });
 
     test('itemStyler receives null datum', async () => {
-        const itemStyler = jest.fn(() => undefined);
+        const itemStyler = vi.fn(() => undefined);
         chart = await createChart({
             data: nullCategoryData,
             series: [
@@ -539,7 +541,7 @@ describe('AG-16613 null category callbacks', () => {
     });
 
     test('axisLabelFormatter called with value: null', async () => {
-        const axisLabelFormatter = jest.fn();
+        const axisLabelFormatter = vi.fn();
         chart = await createChart({
             data: nullCategoryData,
             series: [

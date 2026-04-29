@@ -82,7 +82,8 @@ jobs:
                         - 'yarn.lock'
                         - 'nx.json'
                         - 'tsconfig.*.json'
-                        - 'jest.preset.js'
+                        - '**/vitest.config.ts'
+                        - '**/vitest.setup.ts'
                       ci:
                         - '.github/**'
 

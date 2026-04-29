@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import type { InternalAgColorType } from 'ag-charts-core';
 import type {
@@ -95,7 +95,7 @@ describe('themes module', () => {
                 baseTheme: 'ag-default-dark',
                 palette: {
                     fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
-                } as AgChartThemePalette,
+                },
             },
         });
         await waitForChartStability(chart);
@@ -110,7 +110,7 @@ describe('themes module', () => {
                 baseTheme: 'ag-default-dark',
                 palette: {
                     strokes: ['black'],
-                } as AgChartThemePalette,
+                },
             },
         });
         await waitForChartStability(chart);

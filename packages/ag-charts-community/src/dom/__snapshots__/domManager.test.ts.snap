@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`DOMManager for disconnected container cases should initialize the expected DOM 1`] = `
+exports[`DOMManager > for disconnected container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
     class="ag-charts-wrapper ag-charts-styles"
@@ -73,17 +73,7 @@ exports[`DOMManager for disconnected container cases should initialize the expec
     <style
       data-ag-charts="ag-charts-community"
       nonce="416d1171"
-    >
-      @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-    </style>
+    />
     <style
       data-ag-charts="test"
       nonce="416d1171"
@@ -94,7 +84,7 @@ exports[`DOMManager for disconnected container cases should initialize the expec
 </div>
 `;
 
-exports[`DOMManager for normal container cases should initialize the expected DOM 1`] = `
+exports[`DOMManager > for normal container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
     class="ag-charts-wrapper ag-charts-styles"
@@ -168,22 +158,12 @@ exports[`DOMManager for normal container cases should initialize the expected DO
 </div>
 `;
 
-exports[`DOMManager for normal container cases should initialize the expected DOM 2`] = `
+exports[`DOMManager > for normal container cases > should initialize the expected DOM 2`] = `
 <head>
   <style
     data-ag-charts="ag-charts-community"
     nonce="416d1177"
-  >
-    @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-  </style>
+  />
   <style
     data-ag-charts="test"
     nonce="416d1177"
@@ -193,7 +173,7 @@ exports[`DOMManager for normal container cases should initialize the expected DO
 </head>
 `;
 
-exports[`DOMManager for shadow-DOM container cases should initialize the expected DOM 1`] = `
+exports[`DOMManager > for shadow-DOM container cases > should initialize the expected DOM 1`] = `
 <div>
   <div
     class="ag-charts-wrapper ag-charts-styles"
@@ -266,17 +246,7 @@ exports[`DOMManager for shadow-DOM container cases should initialize the expecte
     <style
       data-ag-charts="ag-charts-community"
       nonce="416d1177"
-    >
-      @import url(./dom/domStyles.css);
-@import url(./dom/proxyInteractionStyles.css);
-@import url(./dom/focusStyles.css);
-@import url(./chart/update/overlaysProcessor.css);
-@import url(./chart/interaction/tooltipManager.css);
-@import url(./components/popover/popover.css);
-@import url(./components/menu/menu.css);
-@import url(./components/toolbar/toolbar.css);
-
-    </style>
+    />
     <style
       data-ag-charts="test"
       nonce="416d1177"

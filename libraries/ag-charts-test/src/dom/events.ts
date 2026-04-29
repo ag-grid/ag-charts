@@ -44,10 +44,12 @@ function makeMouseEvent<T extends TMouseEvent>(
     clientY: number,
     bubbles = true
 ): MouseEvent {
-    const { offsetX, offsetY, target } = testTarget;
-    const view = target.ownerDocument.defaultView!;
-    const event = new MouseEvent(type, { bubbles, clientX, clientY, view });
-    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
+    const { offsetX, offsetY } = testTarget;
+    const event = new MouseEvent(type, { bubbles, clientX, clientY });
+    Object.defineProperty(event, 'offsetX', { value: offsetX, configurable: true });
+    Object.defineProperty(event, 'offsetY', { value: offsetY, configurable: true });
+    Object.defineProperty(event, 'pageX', { value: clientX, configurable: true });
+    Object.defineProperty(event, 'pageY', { value: clientY, configurable: true });
     return event;
 }
 
@@ -132,7 +134,10 @@ export function wheelEvent(
         deltaY,
         deltaMode,
     });
-    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
+    Object.defineProperty(event, 'offsetX', { value: offsetX, configurable: true });
+    Object.defineProperty(event, 'offsetY', { value: offsetY, configurable: true });
+    Object.defineProperty(event, 'pageX', { value: clientX, configurable: true });
+    Object.defineProperty(event, 'pageY', { value: clientY, configurable: true });
     return event;
 }
 

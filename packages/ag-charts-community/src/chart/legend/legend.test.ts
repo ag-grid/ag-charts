@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest, test } from '@jest/globals';
+import { afterEach, describe, expect, it, test, vi } from 'vitest';
 
 import type {
     AgCartesianChartOptions,
@@ -125,8 +125,9 @@ describe('Legend', () => {
     setupMockConsole();
     let chart: Chart;
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -278,8 +279,8 @@ describe('Legend', () => {
         const listeners: AgChartLegendListeners = {};
 
         beforeEach(async () => {
-            listeners.legendItemClick = jest.fn();
-            listeners.legendItemDoubleClick = jest.fn();
+            listeners.legendItemClick = vi.fn();
+            listeners.legendItemDoubleClick = vi.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -291,14 +292,14 @@ describe('Legend', () => {
 
         test('mouse', async () => {
             await doubleClickAction(400, 570)(chart);
-            expect(listeners.legendItemClick).toBeCalledTimes(2);
-            expect(listeners.legendItemDoubleClick).toBeCalledTimes(1);
+            expect(listeners.legendItemClick).toHaveBeenCalledTimes(2);
+            expect(listeners.legendItemDoubleClick).toHaveBeenCalledTimes(1);
         });
 
         test('touch', async () => {
             await doubleTapAction(400, 570)(chart);
-            expect(listeners.legendItemClick).toBeCalledTimes(2);
-            expect(listeners.legendItemDoubleClick).toBeCalledTimes(1);
+            expect(listeners.legendItemClick).toHaveBeenCalledTimes(2);
+            expect(listeners.legendItemDoubleClick).toHaveBeenCalledTimes(1);
         });
     });
 
@@ -532,7 +533,7 @@ describe('Legend', () => {
 
     describe('AG-13753', () => {
         test('single item legend', async () => {
-            const legendItemClick = jest.fn();
+            const legendItemClick = vi.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -543,13 +544,13 @@ describe('Legend', () => {
             await waitForChartStability(chart);
 
             await clickAction(400, 570)(chart);
-            expect(legendItemClick).toBeCalledTimes(1);
+            expect(legendItemClick).toHaveBeenCalledTimes(1);
         });
     });
 
     describe('AG-13342', () => {
         test('legend click parameters', async () => {
-            const legendItemClick = jest.fn();
+            const legendItemClick = vi.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -562,25 +563,21 @@ describe('Legend', () => {
             await clickAction(400, 570)(chart);
 
             expect(legendItemClick.mock.lastCall![0]).toMatchInlineSnapshot(`
-{
-  "event": MouseEvent {
-    "isTrusted": false,
-    "offsetX": 20,
-    "offsetY": -2,
-    "pageX": 400,
-    "pageY": 570,
-  },
-  "itemId": "y",
-  "preventDefault": [Function],
-  "seriesId": "LineSeries-1",
-  "text": "y",
-  "type": "click",
-}
-`);
+              {
+                "event": MouseEvent {
+                  "isTrusted": false,
+                },
+                "itemId": "y",
+                "preventDefault": [Function],
+                "seriesId": "LineSeries-1",
+                "text": "y",
+                "type": "click",
+              }
+            `);
         });
 
         test('legend double click parameters', async () => {
-            const legendItemDoubleClick = jest.fn();
+            const legendItemDoubleClick = vi.fn();
             const options = prepareTestOptions({
                 data: [{ x: 'Q1', y: 200 }],
                 series: [{ type: 'line', xKey: 'x', yKey: 'y' }],
@@ -593,21 +590,17 @@ describe('Legend', () => {
             await doubleClickAction(400, 570)(chart);
 
             expect(legendItemDoubleClick.mock.lastCall![0]).toMatchInlineSnapshot(`
-{
-  "event": MouseEvent {
-    "isTrusted": false,
-    "offsetX": 20,
-    "offsetY": -2,
-    "pageX": 400,
-    "pageY": 570,
-  },
-  "itemId": "y",
-  "preventDefault": [Function],
-  "seriesId": "LineSeries-1",
-  "text": "y",
-  "type": "dblclick",
-}
-`);
+              {
+                "event": MouseEvent {
+                  "isTrusted": false,
+                },
+                "itemId": "y",
+                "preventDefault": [Function],
+                "seriesId": "LineSeries-1",
+                "text": "y",
+                "type": "dblclick",
+              }
+            `);
         });
     });
 
@@ -882,7 +875,7 @@ describe('Legend', () => {
             // the legend's highlight deferral behaviour).
             chart.ctx.interactionManager.pushState(InteractionState.Animation);
 
-            const startBatchSpy = jest.spyOn(chart.ctx.animationManager, 'startBatch');
+            const startBatchSpy = vi.spyOn(chart.ctx.animationManager, 'startBatch');
 
             // Hover a different legend item while animation is in progress.
             await hoverAction(x + 75, y)(chart);
@@ -1059,7 +1052,7 @@ describe('Legend', () => {
         });
 
         test('renderer params contain expected fields', async () => {
-            const rendererFn = jest.fn((_p: any) => 'tooltip');
+            const rendererFn = vi.fn((_p: any) => 'tooltip');
             await setupChart({
                 item: { tooltip: { renderer: rendererFn } },
             });

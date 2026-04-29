@@ -891,7 +891,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         mutableNode.placement = ctx.labelPlacement;
 
         // Update point in-place
-        const mutablePoint = mutableNode.point as Mutable<SizedPoint>;
+        const mutablePoint = mutableNode.point;
         mutablePoint.x = x;
         mutablePoint.y = y;
         mutablePoint.size = Math.sqrt(dilation) * markerSize;

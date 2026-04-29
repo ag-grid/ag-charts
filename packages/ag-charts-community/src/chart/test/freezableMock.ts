@@ -1,3 +1,5 @@
+import { expect, vi } from 'vitest';
+
 import type { NonNullablePath } from 'ag-charts-core';
 import { Caster } from 'ag-charts-test';
 import type {
@@ -210,7 +212,7 @@ export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?
     type Rtn = ReturnType<F>;
     type Arg = Parameters<F>[0];
 
-    const mock: jest.Mock<Rtn, Arg[]> = jest.fn<any, any>(mockImp);
+    const mock = vi.fn(mockImp);
     function getCallContext(args: (typeof mock.mock.calls)[number]) {
         expect(args).toBeDefined();
         expect(args[0]).toBeDefined();
@@ -218,7 +220,7 @@ export function newFreezableMock<D, C, F extends MockAPICallback<D, C>>(mockImp?
     }
     return {
         mock,
-        frozen: Object.freeze((params: Arg): Rtn => mock(params)),
+        frozen: Object.freeze((params: Arg): Rtn => (mock as any)(params)),
         expect() {
             return {
                 mockClear() {

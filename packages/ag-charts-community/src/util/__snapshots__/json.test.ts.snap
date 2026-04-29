@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`json module #jsonDiff for non-trivial cases should correctly diff complex object structures 1`] = `
+exports[`json module > #jsonDiff > for non-trivial cases > should correctly diff complex object structures 1`] = `
 {
   "changing": "123",
   "foo": {
@@ -21,7 +21,7 @@ exports[`json module #jsonDiff for non-trivial cases should correctly diff compl
 }
 `;
 
-exports[`json module #jsonDiff for non-trivial cases should correctly diff function changes in arrays 1`] = `
+exports[`json module > #jsonDiff > for non-trivial cases > should correctly diff function changes in arrays 1`] = `
 {
   "foo": [
     {
@@ -31,7 +31,7 @@ exports[`json module #jsonDiff for non-trivial cases should correctly diff funct
 }
 `;
 
-exports[`json module #jsonDiff for trivial cases should correctly diff primitives 1`] = `
+exports[`json module > #jsonDiff > for trivial cases > should correctly diff primitives 1`] = `
 {
   "alice": 2022-01-27T00:00:00.000Z,
   "foo": "bar",
@@ -40,7 +40,7 @@ exports[`json module #jsonDiff for trivial cases should correctly diff primitive
 }
 `;
 
-exports[`json module #jsonDiff for trivial cases should correctly diff with negative values 1`] = `
+exports[`json module > #jsonDiff > for trivial cases > should correctly diff with negative values 1`] = `
 {
   "a": [
     0,
@@ -49,7 +49,7 @@ exports[`json module #jsonDiff for trivial cases should correctly diff with nega
 }
 `;
 
-exports[`json module #mergeDefaults for objects and arrays should create deep clones for arrays 1`] = `
+exports[`json module > #mergeDefaults > for objects and arrays > should create deep clones for arrays 1`] = `
 {
   "a": [
     {
@@ -59,7 +59,7 @@ exports[`json module #mergeDefaults for objects and arrays should create deep cl
 }
 `;
 
-exports[`json module #mergeDefaults for objects and arrays should create deep clones for objects 1`] = `
+exports[`json module > #mergeDefaults > for objects and arrays > should create deep clones for objects 1`] = `
 {
   "a": {
     "x": 1,
@@ -69,7 +69,7 @@ exports[`json module #mergeDefaults for objects and arrays should create deep cl
 }
 `;
 
-exports[`json module #mergeDefaults for objects and arrays should honour \`avoidDeepClone 1`] = `
+exports[`json module > #mergeDefaults > for objects and arrays > should honour \`avoidDeepClone 1`] = `
 {
   "a": [
     {
@@ -84,7 +84,7 @@ exports[`json module #mergeDefaults for objects and arrays should honour \`avoid
 }
 `;
 
-exports[`json module #mergeDefaults for trivial cases should merge array properties correctly 1`] = `
+exports[`json module > #mergeDefaults > for trivial cases > should merge array properties correctly 1`] = `
 {
   "a": [
     [
@@ -113,7 +113,7 @@ exports[`json module #mergeDefaults for trivial cases should merge array propert
 }
 `;
 
-exports[`json module #mergeDefaults for trivial cases should merge arrays correctly 1`] = `
+exports[`json module > #mergeDefaults > for trivial cases > should merge arrays correctly 1`] = `
 {
   "a": [
     [
@@ -134,7 +134,7 @@ exports[`json module #mergeDefaults for trivial cases should merge arrays correc
 }
 `;
 
-exports[`json module #mergeDefaults for trivial cases should merge primitives correctly 1`] = `
+exports[`json module > #mergeDefaults > for trivial cases > should merge primitives correctly 1`] = `
 {
   "date": 2022-01-27T00:00:00.000Z,
   "date2": 2022-01-27T00:00:00.000Z,
@@ -149,7 +149,7 @@ exports[`json module #mergeDefaults for trivial cases should merge primitives co
 }
 `;
 
-exports[`json module #mergeDefaults for trivial cases should take highest precedent value when types conflict 1`] = `
+exports[`json module > #mergeDefaults > for trivial cases > should take highest precedent value when types conflict 1`] = `
 {
   "a": "a",
   "b": {},

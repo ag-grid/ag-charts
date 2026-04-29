@@ -126,8 +126,7 @@ export class HighlightManager {
 
         return (
             a != null &&
-            b != null &&
-            a.series === b.series &&
+            a.series === b?.series &&
             this.idsMatch(a, b) &&
             this.pointsMatch(a, b) &&
             a.datum === b.datum
@@ -156,6 +155,6 @@ export class HighlightManager {
     }
 
     private pointsAreEqual(a: Point | undefined, b: Point | undefined): boolean {
-        return a === b || (a !== undefined && b !== undefined && a.x === b.x && a.y === b.y);
+        return a === b || (a !== undefined && a.x === b?.x && a.y === b.y);
     }
 }

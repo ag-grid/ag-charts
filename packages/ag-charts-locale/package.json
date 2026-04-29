@@ -50,13 +50,7 @@
   ],
   "homepage": "https://www.ag-grid.com/charts/",
   "devDependencies": {
-    "@jest/globals": "29.6.1",
-    "@types/jest": "^29.5.0",
     "@types/node": "^16.0.0",
-    "jest": "^29.5.0",
-    "jest-runner": "^29.5.0",
-    "jest-serial-runner": "1.2.2",
-    "ts-jest": "29.4.9",
     "typescript": "^5.4.5"
   },
   "publishConfig": {
