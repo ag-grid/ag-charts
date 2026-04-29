@@ -126,6 +126,7 @@ export type {
     UngroupedData,
 } from './chart/data/dataModel';
 export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
+export type { DataSelectionState } from './chart/data/dataSelectionState';
 export {
     accumulativeValueProperty,
     animationValidation,

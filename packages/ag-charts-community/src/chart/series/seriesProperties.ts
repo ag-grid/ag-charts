@@ -36,6 +36,7 @@ export enum HighlightState {
 }
 
 export enum SelectionState {
+    None,
     Selected,
     Unselected,
 }
