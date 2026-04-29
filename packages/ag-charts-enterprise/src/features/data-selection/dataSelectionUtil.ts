@@ -1,15 +1,26 @@
 import type { AgSelectionChangeEvent, AgSelectionItem, AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, Logger } from 'ag-charts-core';
+import { type AreExact, type RequireOptional } from 'ag-charts-core';
+
+type ChangeItem = AgSelectionItem<unknown>;
+type SelectionChanges = { added: ChangeItem[]; removed: ChangeItem[] };
+type OptChanges = SelectionChanges | undefined;
 
 type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
-type ChartService = _ModuleSupport.ChartRegistry['chartService'];
+type DataSetSelection = _ModuleSupport.DataSetSelection;
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
-export type BufferMap = Map<string, Uint8Array>;
-export type BufferDiff = Pick<AgSelectionChangeEvent<unknown, never>, 'added' | 'removed'>;
+export type { SelectionChanges };
+
+function makeChangeItem(seriesId: string, data: DataSet, datumIndex: number): ChangeItem {
+    const itemId = data.getItemIdFromIndex(datumIndex);
+    const datum = data.data[datumIndex];
+    type Rules1 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['added'][number]>;
+    type Rules2 = RequireOptional<AgSelectionChangeEvent<unknown, unknown>['removed'][number]>;
+    return { seriesId, itemId, datum } satisfies Rules1 satisfies Rules2;
+}
 
 export function toStartAndLength(start: number, end: number): [number, number] {
     if (start > end) {
@@ -28,68 +39,35 @@ export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boole
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
-export function copySelectionBuffers(chartService: ChartService): BufferMap | undefined {
-    if (!chartService.hasListener('selectionChange')) return undefined;
-
-    const result: BufferMap = new Map();
-    for (const series of chartService.series) {
-        const { data } = series;
-        if (data === undefined) continue;
-
-        const selection = data.enableSelection(series.id);
-        const buffer = selection.copyBuffer();
-        result.set(series.id, buffer);
-    }
-    return result;
-}
-
-export function restoreSelectionBuffers(chartService: ChartService, bufferMap: BufferMap): void {
-    for (const series of chartService.series) {
-        const data = series.data;
-        if (data === undefined) continue;
-
-        const buffer = bufferMap.get(series.id);
-        if (buffer === undefined) continue;
-
-        const selection = data.enableSelection(series.id);
-        selection.restoreBuffer(buffer);
-    }
-}
-
-export function diffSelectionBuffers(chartService: ChartService, bufferMap: BufferMap): BufferDiff {
-    const added: AgSelectionItem<unknown>[] = [];
-    const removed: AgSelectionItem<unknown>[] = [];
-
-    function makeAgSelectionItem(seriesId: string, index: number, data: DataSet): AgSelectionItem<unknown> {
-        const datum = data.data[index];
-        const itemId = data.getIdArray()?.[index] ?? index;
-        return { seriesId, datum, itemId };
-    }
-
-    for (const series of chartService.series) {
-        const data = series.data;
-        if (data === undefined) continue;
-
-        const oldBuffer = bufferMap.get(series.id);
-        if (oldBuffer === undefined) continue;
-
-        const selection = data.enableSelection(series.id);
-        const newBuffer = selection.getSelection();
-
-        if (oldBuffer.length !== newBuffer.length) {
-            Logger.error(`length mismatch (seriesId: ${series.id}): ${oldBuffer.length} !== ${newBuffer.length}`);
-            continue;
-        }
-
-        for (let i = 0; i < oldBuffer.length; i++) {
-            if (oldBuffer[i] && !newBuffer[i]) {
-                removed.push(makeAgSelectionItem(series.id, i, data));
-            } else if (!oldBuffer[i] && newBuffer[i]) {
-                added.push(makeAgSelectionItem(series.id, i, data));
-            }
+export function rollbackChanges(changes: SelectionChanges, allSeries: Series[]): void {
+    type K = Series['id'];
+    type V = { dataSet: DataSet; selection: DataSetSelection };
+    const seriesMap = new Map<K, V>();
+    for (const dataSet of getAllDataSets(allSeries)) {
+        for (const [seriesId, selection] of dataSet.selections) {
+            seriesMap.set(seriesId, { dataSet, selection });
         }
     }
-    return { added, removed };
+
+    for (const change of changes.added) {
+        const entry = seriesMap.get(change.seriesId);
+        if (entry === undefined) return undefined;
+
+        const datumIndex = entry.dataSet.getIndexFromItemId(change.itemId);
+        if (datumIndex === undefined) continue;
+
+        entry.selection.deselect(datumIndex);
+    }
+
+    for (const change of changes.removed) {
+        const entry = seriesMap.get(change.seriesId);
+        if (entry === undefined) continue;
+
+        const datumIndex = entry.dataSet.getIndexFromItemId(change.itemId);
+        if (datumIndex === undefined) continue;
+
+        entry.selection.select(datumIndex);
+    }
 }
 
 export function getAllDataSets(allSeries: Series[]): Set<DataSet> {
@@ -102,18 +80,39 @@ export function getAllDataSets(allSeries: Series[]): Set<DataSet> {
     return result;
 }
 
-export function toggleSelection(series: Series, data: DataSet, datumIndex: number): void {
+export function toggleSelection(changes: OptChanges, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
+    if (changes !== undefined) {
+        const item = makeChangeItem(series.id, data, datumIndex);
+        if (selections.isSelected(datumIndex)) {
+            changes.removed.push(item);
+        } else {
+            changes.added.push(item);
+        }
+    }
     selections.toggle(datumIndex);
 }
 
-export function setSelected(series: Series, data: DataSet, datumIndex: number): void {
+export function setSelected(changes: OptChanges, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
+    if (changes !== undefined && !selections.isSelected(datumIndex)) {
+        changes.added.push(makeChangeItem(series.id, data, datumIndex));
+    }
     selections.select(datumIndex);
 }
 
-export function clearAllSelections(allSeries: Series[]): void {
+export function clearAllSelections(changes: OptChanges, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
+    if (changes !== undefined) {
+        for (const data of dataSets) {
+            for (const [seriesId, selection] of data.selections) {
+                const n = selection.getLength();
+                for (let datumIndex = 0; datumIndex < n; datumIndex++) {
+                    changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
+                }
+            }
+        }
+    }
     for (const data of dataSets) {
         data.selections.clear();
     }
