@@ -1,6 +1,6 @@
 import { ModuleType } from 'ag-charts-core';
 
-export type ChartType = 'cartesian' | 'polar' | 'topology' | 'standalone';
+import type { ChartType } from '../chartType';
 
 export interface ModulePlaceholder {
     type: `${ModuleType}` | ModuleType;

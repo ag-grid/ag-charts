@@ -89,6 +89,22 @@ test.describe('caption tooltip', () => {
         await expect(tooltip).not.toBeVisible();
     });
 
+    test('renderer returning undefined falls back to caption text', async ({ page }) => {
+        await page.locator('#undefined-renderer').click();
+        await hoverTitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Quarterly Revenue');
+    });
+
+    test('renderer returning undefined falls back to tooltip text when set', async ({ page }) => {
+        await page.locator('#undefined-renderer').click();
+        await hoverSubtitle(page);
+        const tooltip = page.locator(SELECTORS.tooltip);
+        await expect(tooltip).toBeVisible();
+        await expect(tooltip).toContainText('Subtitle fallback text');
+    });
+
     test('auto mode shows tooltip when truncated', async ({ page }) => {
         await page.locator('#truncate').click();
         await hoverTitle(page);

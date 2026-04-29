@@ -42,6 +42,8 @@ import type {
     AgInitialStateLegendOptions,
     AgLocaleOptions,
     AgMiniChartSeriesOptions,
+    AgSelectionItem,
+    AgSelectionItemIds,
     FormatterConfiguration,
     SeriesOptionsTypes,
     SeriesType,
@@ -71,10 +73,10 @@ import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
 import type { ChartState } from './chartState';
+import type { ChartType } from './chartType';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
-import type { ChartType } from './factory/expectedModules';
 import { SyncManager, type SyncStatus } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { type LayoutContext, LayoutElement } from './layout/layoutManager';
@@ -592,6 +594,18 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 }
             }
         }
+    }
+
+    getSelection(): Iterable<AgSelectionItem<unknown>> | undefined {
+        return this.modulesManager.selection()?.getSelection();
+    }
+
+    setSelection(items: Iterable<AgSelectionItemIds>): void {
+        return this.modulesManager.selection()?.setSelection(items);
+    }
+
+    clearSelection(): void {
+        return this.modulesManager.selection()?.clearSelection();
     }
 
     resetAnimations() {

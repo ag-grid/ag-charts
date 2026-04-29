@@ -825,7 +825,7 @@ export abstract class OhlcSeriesBase<
             this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle: (FillOptions & StrokeOptions & LineDashOptions & { opacity?: number }) | undefined =
             this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(itemType));
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(itemType));
 
         let style = baseStyle;
 

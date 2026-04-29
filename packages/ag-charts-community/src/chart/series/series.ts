@@ -1296,8 +1296,8 @@ export abstract class Series<
             ? this.getSelectionStyle(datumIndex, selectionState)
             : undefined;
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             defaultOverrideStyle,
             marker.getStyle(),
             inheritedStyle

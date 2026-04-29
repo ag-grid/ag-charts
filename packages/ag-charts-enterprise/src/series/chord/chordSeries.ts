@@ -421,8 +421,8 @@ export class ChordSeries extends FlowProportionSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, nodeDatum.datumIndex);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             properties.node.getStyle(fills, strokes, fromNodeDatumIndex)
         );
 
@@ -524,8 +524,8 @@ export class ChordSeries extends FlowProportionSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             properties.link.getStyle(fills, strokes, fromNodeDatumIndex.index)
         );
 

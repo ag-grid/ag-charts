@@ -32,4 +32,5 @@ function testRule(ruleNameSuffix: string) {
 
 testRule('change-detection');
 testRule('require-explicit-generic');
+testRule('require-shared-renderer');
 testRule('validate-module-registration');

@@ -509,7 +509,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex);
         const selectionStyle = this.getSelectionStyle(datumIndex);
-        const baseStyle = mergeDefaults(highlightStyle, selectionStyle, properties.getStyle(datumIndex));
+        const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle(datumIndex));
         let style = baseStyle;
 
         if (itemStyler != null && datumIndex != null) {

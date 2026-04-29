@@ -468,7 +468,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
 
-        let style = mergeDefaults(highlightStyle, selectionStyle, this.getNodeDefaultStyle(), {
+        let style = mergeDefaults(selectionStyle, highlightStyle, this.getNodeDefaultStyle(), {
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),

@@ -1049,8 +1049,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         let style = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState)
         );
 

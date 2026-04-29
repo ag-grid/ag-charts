@@ -5,6 +5,7 @@ import type {
     ContextDefault,
     Formatter,
     FormatterParams,
+    Renderer,
     TextValue,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -40,7 +41,7 @@ export class CrosshairLabelProperties
     format?: string = undefined;
 
     @Property
-    renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult = undefined;
+    renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult> = undefined;
 
     private _cachedFormatter: FormatterCache | undefined = undefined;
     formatValue(

@@ -1,5 +1,5 @@
 import type { ChartAnimationPhase, DynamicContext } from 'ag-charts-core';
-import { Logger, type Point, StateMachine, arraysEqual, clamp, formatValue, mergeDefaults } from 'ag-charts-core';
+import { Logger, type Point, StateMachine, arraysEqual, clamp, mergeDefaults } from 'ag-charts-core';
 import type { AgActiveItemState, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
@@ -17,6 +17,7 @@ import {
     type GradientLegendDatum,
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
 } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, ItemId, SeriesNodeDatum } from '../seriesTypes';
@@ -350,7 +351,13 @@ export abstract class HierarchySeries<
         const enabled = visible && (legendManager?.getItemEnabled({ seriesId }) ?? true);
 
         if (legendType === 'category' && colorScaleProps.mode === 'discrete' && hasColorScale) {
-            return buildColorCategoryLegendData(this.colorScale, colorScaleProps.fills, seriesId, enabled, formatValue);
+            return buildColorCategoryLegendData(
+                this.colorScale,
+                colorScaleProps.fills,
+                seriesId,
+                enabled,
+                colorScaleLegendFormatterContext(this)
+            );
         }
 
         if (legendType === 'gradient') {

@@ -780,8 +780,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
         let style = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             this.getStyle(datumIndex === undefined, highlightState)
         );
 

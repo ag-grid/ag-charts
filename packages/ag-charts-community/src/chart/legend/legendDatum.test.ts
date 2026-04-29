@@ -1,11 +1,33 @@
 import { describe, expect, test } from '@jest/globals';
 
 import { ColorScale } from '../../scale/colorScale';
-import { buildColorCategoryLegendData, buildGradientLegendDatum } from './legendDatum';
+import { FormatManager } from '../formatter/formatManager';
+import {
+    type ColorScaleLegendFormatterContext,
+    buildColorCategoryLegendData,
+    buildGradientLegendDatum,
+} from './legendDatum';
 
 describe('legendDatum', () => {
     describe('buildColorCategoryLegendData', () => {
-        const fmt = (v: number, digits?: number) => v.toFixed(digits ?? 2);
+        // Mirrors the legacy `(v, d) => v.toFixed(d ?? 2)` behaviour by routing through
+        // the chart-level formatter. Used by tests that assert on the literal label text.
+        function fixedDigitsFormatterContext(): ColorScaleLegendFormatterContext {
+            const formatManager = new FormatManager();
+            formatManager.setFormatter({
+                color: (p) => {
+                    const fractionDigits = p.type === 'number' ? p.fractionDigits : undefined;
+                    return (p.value as number).toFixed(fractionDigits ?? 2);
+                },
+            });
+            return {
+                formatManager,
+                formatInContext: (fn, params) => fn(params),
+                key: 'value',
+                legendItemName: undefined,
+                boundSeries: [{ seriesId: 'series-1', key: 'value', name: undefined }],
+            };
+        }
 
         test('creates one legend item per bin', () => {
             const scale = new ColorScale();
@@ -15,7 +37,7 @@ describe('legendDatum', () => {
             scale.update();
 
             const fills = [{ color: 'red' }, { color: 'green' }];
-            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fmt);
+            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fixedDigitsFormatterContext());
 
             expect(result).toHaveLength(2);
             expect(result[0].legendType).toBe('category');
@@ -38,7 +60,7 @@ describe('legendDatum', () => {
                 { color: 'red', name: 'Low' },
                 { color: 'green', name: 'High' },
             ];
-            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fmt);
+            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fixedDigitsFormatterContext());
 
             expect(result[0].label.text).toBe('Low');
             expect(result[1].label.text).toBe('High');
@@ -52,7 +74,7 @@ describe('legendDatum', () => {
             scale.update();
 
             const fills = [{ color: 'red' }, { color: 'green' }];
-            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fmt);
+            const result = buildColorCategoryLegendData(scale, fills, 'series-1', true, fixedDigitsFormatterContext());
 
             expect(result[0].label.text).toBe('0\u201349');
             expect(result[1].label.text).toBe('50.00\u2013100.00');
@@ -62,7 +84,7 @@ describe('legendDatum', () => {
             const scale = new ColorScale();
             scale.mode = 'discrete';
             scale.range = [];
-            const result = buildColorCategoryLegendData(scale, [], 'series-1', true, fmt);
+            const result = buildColorCategoryLegendData(scale, [], 'series-1', true, fixedDigitsFormatterContext());
             expect(result).toEqual([]);
         });
 
@@ -74,13 +96,88 @@ describe('legendDatum', () => {
             scale.update();
 
             const fills = [{ color: 'red' }, { color: 'green' }];
-            const result = buildColorCategoryLegendData(scale, fills, 'my-series', false, fmt);
+            const result = buildColorCategoryLegendData(
+                scale,
+                fills,
+                'my-series',
+                false,
+                fixedDigitsFormatterContext()
+            );
 
             expect(result[0].seriesId).toBe('my-series');
             expect(result[0].enabled).toBe(false);
             expect(result[0].id).toBe('my-series');
             expect(result[0].itemId).toBe(0);
             expect(result[1].itemId).toBe(1);
+        });
+
+        test('routes bin labels through chart-level formatter.color callback', () => {
+            const scale = new ColorScale();
+            scale.mode = 'discrete';
+            scale.domain = [0, 50, 100];
+            scale.range = ['red', 'green'];
+            scale.update();
+
+            const formatManager = new FormatManager();
+            formatManager.setFormatter({ color: (p) => `[${p.value}]` });
+
+            const result = buildColorCategoryLegendData(scale, [{ color: 'red' }, { color: 'green' }], 's', true, {
+                formatManager,
+                formatInContext: (fn, params) => fn(params),
+                key: 'value',
+                legendItemName: undefined,
+                boundSeries: [{ seriesId: 's', key: 'value', name: undefined }],
+            });
+
+            expect(result[0].label.text).toBe('[0]\u2013[49]');
+            expect(result[1].label.text).toBe('[50]\u2013[100]');
+        });
+
+        test('reports source: gradient-legend and property: color to the user formatter', () => {
+            const scale = new ColorScale();
+            scale.mode = 'discrete';
+            scale.domain = [0, 100];
+            scale.range = ['red'];
+            scale.update();
+
+            const formatManager = new FormatManager();
+            const seen: { property?: string; source?: string }[] = [];
+            formatManager.setFormatter({
+                color: (p) => {
+                    seen.push({ property: p.property, source: p.source });
+                    return String(p.value);
+                },
+            });
+
+            buildColorCategoryLegendData(scale, [{ color: 'red' }], 's', true, {
+                formatManager,
+                formatInContext: (fn, params) => fn(params),
+                key: 'value',
+                legendItemName: undefined,
+                boundSeries: [{ seriesId: 's', key: 'value', name: undefined }],
+            });
+
+            expect(seen[0]).toEqual({ property: 'color', source: 'gradient-legend' });
+        });
+
+        test('falls back to default numeric formatting when no formatter is configured', () => {
+            const scale = new ColorScale();
+            scale.mode = 'discrete';
+            scale.domain = [0, 50, 100];
+            scale.range = ['red', 'green'];
+            scale.update();
+
+            const result = buildColorCategoryLegendData(scale, [{ color: 'red' }, { color: 'green' }], 's', true, {
+                formatManager: new FormatManager(),
+                formatInContext: (fn, params) => fn(params),
+                key: 'value',
+                legendItemName: undefined,
+                boundSeries: [{ seriesId: 's', key: 'value', name: undefined }],
+            });
+
+            // Default integer-bin path uses fractionDigits = 0, so no decimal places.
+            expect(result[0].label.text).toBe('0\u201349');
+            expect(result[1].label.text).toBe('50\u2013100');
         });
     });
 

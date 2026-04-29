@@ -5,6 +5,7 @@ import { Group } from '../scene/group';
 import type { CaptionLike } from './captionLike';
 import type { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
+import type { ChartType } from './chartType';
 import type { SeriesProperties } from './series/seriesProperties';
 import type { DatumIndexType, ISeries, SeriesNodeDatum } from './series/seriesTypes';
 
@@ -25,6 +26,7 @@ export interface ChartService {
     readonly touch: DeepRequired<AgTouchOptions>;
     readonly context?: unknown;
     readonly highlight?: ChartHighlight;
+    getChartType(): ChartType;
     overrideFocusVisible(visible: boolean | undefined): void;
     hasListener(type: ChartServiceEventType): boolean;
     callListener(event: ChartServiceEvent): void;
