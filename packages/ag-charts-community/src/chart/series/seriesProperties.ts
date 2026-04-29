@@ -78,6 +78,8 @@ export function getSelectionStyleOptionKeys(selectionState: SelectionState): Sel
             return ['selectedItem'];
         case SelectionState.Unselected:
             return ['unselectedItem'];
+        case SelectionState.None:
+            return [];
         default: {
             const unreachable = (a: never): never => a;
             return unreachable(selectionState);
@@ -121,6 +123,8 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
             return 'selected';
         case SelectionState.Unselected:
             return 'unselected';
+        case SelectionState.None:
+            return 'none';
         default:
             return unreachable(state);
     }
