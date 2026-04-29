@@ -34,7 +34,11 @@ export {
     annotationShapeStylesDefs,
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
-export { commonAxisThemeTemplate } from './chart/themes/axisThemeTemplate';
+export {
+    commonAxisThemeTemplate,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+} from './chart/themes/axisThemeTemplate';
 export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,
@@ -305,7 +309,7 @@ export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';
 export { CartesianAxis } from './chart/axis/cartesianAxis';
 export { DiscreteTimeAxis } from './chart/axis/discreteTimeAxis';
-export { TimeAxisParentLevel, minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
+export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';

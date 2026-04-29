@@ -16,20 +16,15 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ChartRegistry } from '../../module/moduleContext';
 import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { AxisTickFormatParams } from './axis';
-import { AxisTick } from './axisTick';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
-import { TimeAxisParentLevel, calculateDefaultUnit } from './timeAxis';
+import { calculateDefaultUnit } from './timeAxis';
 
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnitTimeAxisOptions> {
     static override readonly className = 'UnitTimeAxis' as const;
     static override readonly type = 'unit-time' as const;
 
     override defaultTickMinSpacing = 20;
-
-    @Property
-    readonly parentLevel = new TimeAxisParentLevel();
 
     @Property
     min?: Date | number = undefined;
@@ -47,12 +42,14 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     // eslint-disable-next-line sonarjs/use-type-alias
     unit: AgTimeInterval | AgTimeIntervalUnit | undefined = undefined;
 
-    override get primaryLabel(): SeriesLabelProperties | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    override get primaryLabel() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.label : undefined;
     }
 
-    override get primaryTick(): AxisTick | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    override get primaryTick() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.tick : undefined;
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
@@ -60,8 +57,9 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
-    protected override getPrimaryLabelFormat() {
-        return this.primaryLabel?.format;
+    protected override getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.primaryLabel?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedUnitTimeAxisOptions) {

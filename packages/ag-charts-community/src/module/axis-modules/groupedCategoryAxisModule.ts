@@ -4,7 +4,7 @@ import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
 import { groupedCategoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { GroupedCategoryAxis } from '../../chart/axis/groupedCategoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
+import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -24,6 +24,7 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
         },
+        titleAxisThemeTemplate,
         commonAxisThemeTemplate
     ),
 

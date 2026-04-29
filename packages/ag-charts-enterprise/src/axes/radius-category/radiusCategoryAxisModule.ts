@@ -16,7 +16,9 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
             positionAngle: 0,
             line: { enabled: false },
             label: { minSpacing: 5 },
+            title: { spacing: 10 },
         },
+        _ModuleSupport.titleAxisThemeTemplate,
         _ModuleSupport.commonAxisThemeTemplate
     ),
 

@@ -4,7 +4,11 @@ import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { UnitTimeAxis } from '../../chart/axis/unitTimeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
+import {
+    commonAxisThemeTemplate,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+} from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -24,6 +28,8 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
             parentLevel: { enabled: true },
             interval: { placement: 'between' },
         },
+        titleAxisThemeTemplate,
+        parentLevelAxisThemeTemplate,
         commonAxisThemeTemplate
     ),
 

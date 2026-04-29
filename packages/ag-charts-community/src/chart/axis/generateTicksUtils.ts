@@ -590,7 +590,7 @@ function labelSpecifier(
     if (typeof format === 'string') {
         return format;
     } else if (isPlainObject(format) && timeInterval != null) {
-        return format[intervalUnit(timeInterval)];
+        return (format as Record<string, string>)[intervalUnit(timeInterval)];
     }
 }
 

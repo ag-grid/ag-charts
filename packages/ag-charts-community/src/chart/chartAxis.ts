@@ -15,6 +15,7 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
     Padding as AgPadding,
+    AgTimeAxisFormattableLabelUnitFormat,
     AgTimeIntervalUnit,
     FormatterParams,
     RichFormatter,
@@ -158,7 +159,7 @@ export interface ChartAxisLabel extends TextOptions {
     avoidCollisions: boolean;
     border?: { enabled?: boolean; stroke?: string };
     enabled: boolean;
-    format?: string | Record<string, string>;
+    format?: string | Record<string, string> | AgTimeAxisFormattableLabelUnitFormat;
     formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;

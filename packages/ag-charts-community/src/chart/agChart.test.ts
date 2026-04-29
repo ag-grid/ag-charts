@@ -421,7 +421,7 @@ describe('AgChart', () => {
         let leftAxis = axes.find((axis) => axis.position === 'left') as any;
         expect(axes.find((axis) => axis.position === 'bottom')).toBeDefined();
         expect(leftAxis).toBeDefined();
-        expect(leftAxis?.title?.text).toBe('Hello');
+        expect(leftAxis?.options.title?.text).toBe('Hello');
 
         expect(leftAxis?.options.gridLine.style).toEqual([
             { fillOpacity: 1, stroke: '#e8e8e9', strokeWidth: 1, lineDash: [] },

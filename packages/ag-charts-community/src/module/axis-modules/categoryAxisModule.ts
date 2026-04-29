@@ -4,7 +4,7 @@ import type { AgCategoryAxisOptions } from 'ag-charts-types';
 import { categoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { CategoryAxis } from '../../chart/axis/categoryAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
+import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -23,6 +23,7 @@ export const CategoryAxisModule: AxisModuleDefinition<AgCategoryAxisOptions> = {
             gridLine: { enabled: false },
             interval: { placement: 'between' },
         },
+        titleAxisThemeTemplate,
         commonAxisThemeTemplate
     ),
 

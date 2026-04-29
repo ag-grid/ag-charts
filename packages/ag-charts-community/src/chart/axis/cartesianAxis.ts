@@ -158,7 +158,7 @@ export abstract class CartesianAxis<
             },
         });
 
-        this.headingLabelGroup.appendChild(this.title.caption.node);
+        this.headingLabelGroup.appendChild(this.caption.node);
 
         let previousSize: readonly [number, number] | undefined = undefined;
         this.cleanup.register(
@@ -170,7 +170,7 @@ export abstract class CartesianAxis<
                 }
                 previousSize = size;
             }),
-            this.title.caption.registerInteraction(this.moduleCtx, 'afterend')
+            this.caption.registerInteraction(this.moduleCtx, 'afterend')
         );
     }
 
@@ -633,9 +633,10 @@ export abstract class CartesianAxis<
         scrollbar: ScrollbarLayout | undefined,
         scrollbarThickness: number
     ) {
-        const { primaryTick, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const { primaryTick, primaryLabel, position, horizontal, seriesAreaPadding } = this;
         const tick = this.options.tick;
         const label = this.options.label;
+        const title = this.options.title;
         const boxes: BBox[] = [];
 
         boxes.push(this.lineNodeBBox());
@@ -706,7 +707,7 @@ export abstract class CartesianAxis<
     }
 
     protected titleProps(caption: Caption, domain: D[], spacing: number) {
-        const { title } = this;
+        const title = this.options.title;
 
         if (!title.enabled) {
             caption.enabled = false;
@@ -866,7 +867,7 @@ export abstract class CartesianAxis<
     }
 
     protected updateTitle(domain: D[], spacing: number): void {
-        const { caption } = this.title;
+        const { caption } = this;
         const titleProps = this.titleProps(caption, domain, spacing);
         caption.node.visible = titleProps.visible;
         caption.node.text = titleProps.text;
@@ -930,7 +931,7 @@ export abstract class CartesianAxis<
             this.id,
             'title',
             animationManager,
-            [this.title.caption.node],
+            [this.caption.node],
             fns.label,
             // eslint-disable-next-line sonarjs/deprecation
             (node) => node.unsafeDatum.tickId,
@@ -946,7 +947,7 @@ export abstract class CartesianAxis<
         resetMotion([this.gridLineGroupSelection, this.tickLineGroupSelection], resetAxisLineSelectionFn());
         resetMotion([this.gridFillGroupSelection], resetAxisFillSelectionFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
-        resetMotion([this.title.caption.node], resetAxisLabelSelectionFn());
+        resetMotion([this.caption.node], resetAxisLabelSelectionFn());
         resetMotion([this.lineNode], resetAxisLineSelectionFn());
     }
 }

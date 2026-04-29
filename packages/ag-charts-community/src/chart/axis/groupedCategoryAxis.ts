@@ -211,9 +211,10 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateScale();
 
         const { step } = this.scale;
-        const { title, range, depthOptions, horizontal } = this;
+        const { range, depthOptions, horizontal } = this;
         const line = this.options.line;
         const label = this.options.label;
+        const title = this.options.title;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
         const tickSpacing = this.getTickSpacing();

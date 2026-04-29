@@ -59,7 +59,6 @@ import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { debouncedCallback } from '../util/render';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
-import type { TimeAxis } from './axis/timeAxis';
 import { Background } from './background/background';
 import { Caption } from './caption';
 import { ChartAxes } from './chartAxes';
@@ -124,6 +123,8 @@ const MINI_CHART_LABEL_EXCLUDED: ReadonlySet<string> = new Set([
 
 const HORIZONTAL_AXIS_POSITIONS = new Set(['top', 'bottom']);
 
+const TIME_LIKE_AXIS_TYPES = new Set(['time', 'unit-time', 'ordinal-time']);
+
 function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions {
     const sourceAxes = (completeOptions as { axes?: Record<string, AgBaseAxisOptions> }).axes;
     if (sourceAxes == null) return completeOptions;
@@ -148,6 +149,8 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         // on the horizontal axis only (vertical axes keep their line as a frame).
         const lineOverride = isHorizontal ? { enabled: false } : undefined;
         const intervalOverride = isHorizontal ? horizontalIntervalOverride : undefined;
+        const parentLevelOverride =
+            isHorizontal && TIME_LIKE_AXIS_TYPES.has(axisOptions.type ?? '') ? { enabled: false } : undefined;
         derivedAxes[id] = {
             ...axisOptions,
             label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
@@ -155,6 +158,12 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
             tick: mergeDefaults({ enabled: false }, axisOptions.tick),
             line: mergeDefaults(lineOverride, axisOptions.line),
             interval: mergeDefaults(intervalOverride, axisOptions.interval),
+            ...({
+                title: mergeDefaults({ enabled: false }, (axisOptions as { title?: object }).title),
+                ...(parentLevelOverride != null && {
+                    parentLevel: mergeDefaults(parentLevelOverride, (axisOptions as any).parentLevel),
+                }),
+            } as Pick<AgBaseAxisOptions, never>),
         };
     }
 
@@ -1874,22 +1883,14 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             axis.interactionEnabled = false;
         }
 
-        if (horizontalAxis != null) {
-            if (horizontalAxis.type === 'grouped-category') {
-                const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
-                if (depthOptions.length === 0) {
-                    depthOptions.set([{ label: { enabled: true } }]);
-                } else {
-                    for (let i = 1; i < depthOptions.length; i++) {
-                        depthOptions[i].label.enabled = false;
-                    }
+        if (horizontalAxis != null && horizontalAxis.type === 'grouped-category') {
+            const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
+            if (depthOptions.length === 0) {
+                depthOptions.set([{ label: { enabled: true } }]);
+            } else {
+                for (let i = 1; i < depthOptions.length; i++) {
+                    depthOptions[i].label.enabled = false;
                 }
-            } else if (
-                horizontalAxis.type === 'time' ||
-                horizontalAxis.type === 'unit-time' ||
-                horizontalAxis.type === 'ordinal-time'
-            ) {
-                (horizontalAxis as TimeAxis).parentLevel.enabled = false;
             }
         }
     }
@@ -2019,10 +2020,11 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             return false;
         }
 
-        // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2) and 'interval'
-        // (Phase 3) are read directly from `axis.options.X` after their class-based
-        // holders were removed; jsonApply has no field to walk into for these keys.
-        skip = ['type', 'label', 'line', 'tick', 'gridLine', 'interval', ...skip];
+        // 'label' (Phase 1b.2), 'line'/'tick'/'gridLine' (Phase 2), 'interval'
+        // (Phase 3) and 'title'/'parentLevel' (Phase 4) are read directly from
+        // `axis.options.X` after their class-based holders were removed; jsonApply
+        // has no field to walk into for these keys.
+        skip = ['type', 'label', 'line', 'tick', 'gridLine', 'interval', 'title', 'parentLevel', ...skip];
 
         const axes = options.axes;
         const forceRecreate = seriesStatus === 'replaced';

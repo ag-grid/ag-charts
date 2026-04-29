@@ -1,3 +1,62 @@
+import { FONT_SIZE_RATIO } from 'ag-charts-core';
+
+/**
+ * Title defaults for axes that render a title (cartesian + radius). Composed via
+ * `mergeDefaults` into the relevant module `themeTemplate`s so the Normalised
+ * `title` R-list keys are guaranteed populated post-theme-merge.
+ */
+export const titleAxisThemeTemplate = {
+    title: {
+        enabled: false,
+        text: 'Axis Title',
+        spacing: 25,
+        fontWeight: { $ref: 'fontWeight' },
+        fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
+        fontFamily: { $ref: 'fontFamily' },
+        color: { $ref: 'textColor' },
+        wrapping: 'always',
+        truncate: true,
+    },
+};
+
+/**
+ * Parent-level defaults for time-style cartesian axes (`time`, `unit-time`,
+ * `ordinal-time`). Composed via `mergeDefaults` into those modules'
+ * `themeTemplate`s so the Normalised `parentLevel` R-list keys are guaranteed
+ * populated post-theme-merge.
+ */
+export const parentLevelAxisThemeTemplate = {
+    parentLevel: {
+        enabled: false,
+        label: {
+            // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
+            enabled: { $path: '../../label/enabled' },
+            border: {
+                enabled: {
+                    $or: [{ $isUserOption: ['../border', true, false] }, { $path: '../../../label/border/enabled' }],
+                },
+                strokeWidth: { $path: '../../../label/border/strokeWidth' },
+                stroke: { $path: '../../../label/border/stroke' },
+            },
+            fill: { $path: '../../label/fill' },
+            fontSize: { $path: '../../label/fontSize' },
+            fontFamily: { $path: '../../label/fontFamily' },
+            fontWeight: 'bold',
+            spacing: { $path: '../../label/spacing' },
+            color: { $path: '../../label/color' },
+            cornerRadius: { $path: '../../label/cornerRadius' },
+            padding: { $path: '../../label/padding' },
+            avoidCollisions: { $path: '../../label/avoidCollisions' },
+        },
+        tick: {
+            enabled: { $path: '../../tick/enabled' },
+            width: { $path: '../../tick/width' },
+            size: { $path: '../../tick/size' },
+            stroke: { $path: '../../tick/stroke' },
+        },
+    },
+};
+
 /**
  * Shared axis theme defaults composed into every axis module's `themeTemplate`.
  *

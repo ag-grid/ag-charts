@@ -6,7 +6,6 @@ import type {
     NormalisedTimeAxisOptions,
 } from 'ag-charts-core';
 import {
-    BaseProperties,
     Logger,
     Property,
     ProxyPropertyOnWrite,
@@ -26,22 +25,9 @@ import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterP
 import type { ChartRegistry } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
-import { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
-import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
-
-export class TimeAxisParentLevel extends BaseProperties {
-    @Property
-    enabled = false;
-
-    @Property
-    readonly label = new SeriesLabelProperties();
-
-    @Property
-    readonly tick = new AxisTick();
-}
 
 export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTimeAxisOptions> extends CartesianAxis<
     TimeScale,
@@ -50,9 +36,6 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
 > {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
-
-    @Property
-    readonly parentLevel = new TimeAxisParentLevel();
 
     @Property
     min?: Date | number = undefined;
@@ -91,8 +74,9 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
         return false;
     }
 
-    override get primaryLabel(): SeriesLabelProperties | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    override get primaryLabel() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.label : undefined;
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
@@ -103,12 +87,14 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
-    protected override getPrimaryLabelFormat() {
-        return this.primaryLabel?.format;
+    protected override getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.primaryLabel?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
-    override get primaryTick(): AxisTick | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    override get primaryTick() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.tick : undefined;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {

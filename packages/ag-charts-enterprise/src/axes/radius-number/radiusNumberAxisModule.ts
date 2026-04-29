@@ -17,7 +17,9 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
             line: { enabled: false },
             shape: { $findFirstSiblingNotOperation: undefined },
             label: { minSpacing: 5 },
+            title: { spacing: 10 },
         },
+        _ModuleSupport.titleAxisThemeTemplate,
         _ModuleSupport.commonAxisThemeTemplate
     ),
 

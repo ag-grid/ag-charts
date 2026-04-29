@@ -18,6 +18,8 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
             gridLine: { enabled: false },
             interval: { placement: 'between' },
         },
+        _ModuleSupport.titleAxisThemeTemplate,
+        _ModuleSupport.parentLevelAxisThemeTemplate,
         _ModuleSupport.commonAxisThemeTemplate
     ),
 

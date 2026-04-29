@@ -4,7 +4,7 @@ import type { AgLogAxisOptions } from 'ag-charts-types';
 import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
+import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -21,6 +21,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
             base: 10,
             line: { enabled: false },
         },
+        titleAxisThemeTemplate,
         commonAxisThemeTemplate
     ),
 

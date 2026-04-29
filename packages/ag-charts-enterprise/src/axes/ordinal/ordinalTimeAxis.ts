@@ -9,7 +9,6 @@ import {
     type AxisID,
     type DynamicContext,
     type NormalisedOrdinalTimeAxisOptions,
-    Property,
     dateTruncationForDomain,
     intervalEpoch,
     intervalMilliseconds,
@@ -19,13 +18,8 @@ import {
     lowestGranularityUnitForValue,
 } from 'ag-charts-core';
 
-const {
-    OrdinalTimeScale,
-    ApproximateOrdinalTimeScale,
-    APPROXIMATE_THRESHOLD,
-    TimeAxisParentLevel,
-    minimumTimeAxisDatumGranularity,
-} = _ModuleSupport;
+const { OrdinalTimeScale, ApproximateOrdinalTimeScale, APPROXIMATE_THRESHOLD, minimumTimeAxisDatumGranularity } =
+    _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
     _ModuleSupport.OrdinalTimeScale,
@@ -34,18 +28,17 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
 
-    @Property
-    readonly parentLevel = new TimeAxisParentLevel();
-
     private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
     private readonly approximateScale: _ModuleSupport.ApproximateOrdinalTimeScale;
 
-    override get primaryLabel(): _ModuleSupport.SeriesLabelProperties | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    override get primaryLabel() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.label : undefined;
     }
 
-    override get primaryTick(): _ModuleSupport.AxisTick | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    override get primaryTick() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.tick : undefined;
     }
 
     protected override getLabelFormat(): string | Record<string, string> | undefined {
@@ -53,8 +46,9 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
         return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
-    protected override getPrimaryLabelFormat() {
-        return this.primaryLabel?.format;
+    protected override getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.primaryLabel?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
     }
 
     constructor(

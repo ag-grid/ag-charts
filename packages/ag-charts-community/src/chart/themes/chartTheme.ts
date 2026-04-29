@@ -209,98 +209,50 @@ export class ChartTheme {
         };
     }
 
-    private static getAxisDefaults({ title, time }: { title: boolean; time: boolean }, customTheme?: object) {
-        return mergeDefaults(
-            customTheme,
-            title && {
-                title: {
-                    enabled: false,
-                    text: 'Axis Title',
-                    spacing: 25,
-                    fontWeight: { $ref: 'fontWeight' },
-                    fontSize: { $rem: FONT_SIZE_RATIO.MEDIUM },
-                    fontFamily: { $ref: 'fontFamily' },
-                    color: { $ref: 'textColor' },
-                },
-            },
-            time && {
-                parentLevel: {
-                    enabled: false,
-                    label: {
-                        // TODO: { $merge: [{ $path: '../../label' }, { fontWeight: 'bold' }]}
-                        enabled: { $path: '../../label/enabled' },
-                        border: {
-                            enabled: {
-                                $or: [
-                                    { $isUserOption: ['../border', true, false] },
-                                    { $path: '../../../label/border/enabled' },
-                                ],
+    private static getAxisDefaults(customTheme?: object) {
+        return mergeDefaults(customTheme, {
+            crossLines: {
+                $apply: [
+                    {
+                        enabled: true,
+                        fill: { $ref: 'foregroundColor' },
+                        stroke: { $ref: 'foregroundColor' },
+                        fillOpacity: 0.08,
+                        strokeWidth: 1,
+                        label: {
+                            fontSize: { $ref: 'fontSize' },
+                            fontFamily: { $ref: 'fontFamily' },
+                            fontWeight: { $ref: 'fontWeight' },
+                            padding: {
+                                $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
                             },
-                            strokeWidth: { $path: '../../../label/border/strokeWidth' },
-                            stroke: { $path: '../../../label/border/stroke' },
-                        },
-                        fill: { $path: '../../label/fill' },
-                        fontSize: { $path: '../../label/fontSize' },
-                        fontFamily: { $path: '../../label/fontFamily' },
-                        fontWeight: 'bold',
-                        spacing: { $path: '../../label/spacing' },
-                        color: { $path: '../../label/color' },
-                        cornerRadius: { $path: '../../label/cornerRadius' },
-                        padding: { $path: '../../label/padding' },
-                        avoidCollisions: { $path: '../../label/avoidCollisions' },
-                    },
-                    tick: {
-                        enabled: { $path: '../../tick/enabled' },
-                        width: { $path: '../../tick/width' },
-                        size: { $path: '../../tick/size' },
-                        stroke: { $path: '../../tick/stroke' },
-                    },
-                },
-            },
-            {
-                crossLines: {
-                    $apply: [
-                        {
-                            enabled: true,
-                            fill: { $ref: 'foregroundColor' },
-                            stroke: { $ref: 'foregroundColor' },
-                            fillOpacity: 0.08,
-                            strokeWidth: 1,
-                            label: {
-                                fontSize: { $ref: 'fontSize' },
-                                fontFamily: { $ref: 'fontFamily' },
-                                fontWeight: { $ref: 'fontWeight' },
-                                padding: {
-                                    $if: [{ $path: './border/enabled' }, { left: 12, right: 12, top: 8, bottom: 8 }, 5],
-                                },
-                                color: { $ref: 'textColor' },
-                                cornerRadius: 4,
-                                border: {
-                                    enabled: false,
-                                    stroke: { $foregroundOpacity: 0.08 },
-                                    strokeOpacity: 1,
-                                    strokeWidth: 1,
-                                },
+                            color: { $ref: 'textColor' },
+                            cornerRadius: 4,
+                            border: {
+                                enabled: false,
+                                stroke: { $foregroundOpacity: 0.08 },
+                                strokeOpacity: 1,
+                                strokeWidth: 1,
                             },
                         },
-                        undefined,
-                        // TODO: can we just infer this common path?
-                        // `axisType` path is relative to the axis that is currently being resolved
-                        // e.g. `/axes/x/crossLines/[variables]` + `../type` = `/axes/x/type`
-                        { $pathString: ['/common/axes/$axisType/crossLines', { axisType: { $path: ['../type'] } }] },
-                        {
-                            $pathString: [
-                                '/$seriesType/axes/$axisType/crossLines',
-                                {
-                                    seriesType: { $path: ['/series/0/type', 'line'] },
-                                    axisType: { $path: ['../type'] },
-                                },
-                            ],
-                        },
-                    ],
-                },
-            }
-        );
+                    },
+                    undefined,
+                    // TODO: can we just infer this common path?
+                    // `axisType` path is relative to the axis that is currently being resolved
+                    // e.g. `/axes/x/crossLines/[variables]` + `../type` = `/axes/x/type`
+                    { $pathString: ['/common/axes/$axisType/crossLines', { axisType: { $path: ['../type'] } }] },
+                    {
+                        $pathString: [
+                            '/$seriesType/axes/$axisType/crossLines',
+                            {
+                                seriesType: { $path: ['/series/0/type', 'line'] },
+                                axisType: { $path: ['../type'] },
+                            },
+                        ],
+                    },
+                ],
+            },
+        });
     }
 
     protected getChartDefaults() {
@@ -444,23 +396,17 @@ export class ChartTheme {
     }
 
     private static readonly axisDefault = {
-        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults({ title: true, time: false }),
-        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({ title: true, time: false }),
-        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
-        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({ title: true, time: false }),
-        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
-        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
-        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({ title: true, time: true }),
-        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({ title: false, time: false }),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ title: false, time: false }),
-        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(
-            { title: true, time: false },
-            { title: { spacing: 10 } }
-        ),
-        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(
-            { title: true, time: false },
-            { title: { spacing: 10 } }
-        ),
+        [CARTESIAN_AXIS_TYPE.NUMBER]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.UNIT_TIME]: ChartTheme.getAxisDefaults(),
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults(),
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults(),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults(),
+        [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults(),
+        [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults(),
     };
 
     constructor(options: AgChartTheme = {}) {

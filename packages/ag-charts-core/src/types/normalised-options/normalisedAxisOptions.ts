@@ -5,6 +5,7 @@ import type {
     AgAngleNumberAxisOptions,
     AgAxisBaseIntervalOptions,
     AgAxisBaseTickOptions,
+    AgAxisCaptionOptions,
     AgAxisCategoryIntervalOptions,
     AgAxisContinuousIntervalOptions,
     AgAxisGridLineOptions,
@@ -25,6 +26,7 @@ import type {
     AgRadiusCategoryAxisOptions,
     AgRadiusNumberAxisOptions,
     AgTimeAxisOptions,
+    AgTimeAxisParentLevel,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AgUnitTimeAxisOptions,
@@ -41,11 +43,20 @@ import type { Normalised } from './normalise';
 // per invariant I2.
 
 // `fontWeight | color | cornerRadius | padding` are populated by the common axis
-// theme template but cannot be required here yet: `SeriesLabelProperties` (still
-// used by `primaryLabel` until Phase 4 dismantles `TimeAxisParentLevel`) declares
-// them as optional. Phase 4 promotes them to required once primaryLabel returns
-// an options shape.
-type AxisLabelRequiredKeys = 'enabled' | 'avoidCollisions' | 'spacing' | 'fontSize' | 'fontFamily' | 'border';
+// theme template. Phase 4 dismantled `TimeAxisParentLevel`, so `primaryLabel`
+// now returns the parent-level label options shape and can satisfy the same
+// required-key set as the leaf `axis.options.label`.
+type AxisLabelRequiredKeys =
+    | 'enabled'
+    | 'avoidCollisions'
+    | 'spacing'
+    | 'fontSize'
+    | 'fontFamily'
+    | 'fontWeight'
+    | 'color'
+    | 'cornerRadius'
+    | 'padding'
+    | 'border';
 
 /**
  * `fontFamily` is narrowed from `FontFamilyFull` (which can be a `GoogleFontFamily`
@@ -136,19 +147,45 @@ export type NormalisedAxisContinuousIntervalOptions<
     TInterval extends AgTimeInterval | AgTimeIntervalUnit | number = number,
 > = Normalised<AgAxisContinuousIntervalOptions<TInterval>>;
 
+// --- Title / parent-level normalised shapes ---
+//
+// Phase 4 dismantles the `AxisTitle` shell and `TimeAxisParentLevel` holder.
+// Title defaults move to `titleAxisThemeTemplate` (composed into every axis
+// module that renders a title — every cartesian module plus `radius-number`/
+// `radius-category`). Parent-level defaults move to `parentLevelAxisThemeTemplate`
+// (composed into the time-style axis modules: `time`, `unit-time`,
+// `ordinal-time`).
+
+export type NormalisedAxisTitleOptions = Normalised<
+    AgAxisCaptionOptions,
+    'enabled' | 'text' | 'spacing' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'color' | 'wrapping' | 'truncate',
+    { fontFamily: string }
+>;
+
+export type NormalisedTimeAxisParentLevelOptions<TContext = ContextDefault> = Normalised<
+    AgTimeAxisParentLevel<TContext>,
+    'enabled' | 'label' | 'tick',
+    { label: NormalisedCartesianTimeAxisLabelOptions<TContext>; tick: NormalisedAxisTickOptions }
+>;
+
 // --- Axis-level normalised shapes ---
 //
-// Phase 1b morphs `label`; Phase 2 morphs `line`/`tick`/`gridLine`. The remaining
-// holders (`title`, `parentLevel`) keep their user-facing shapes here and gain
-// dedicated normalised aliases when Phase 4 eliminates them.
+// Phase 1b morphs `label`; Phase 2 morphs `line`/`tick`/`gridLine`. Phase 4
+// promotes `title` to a required key on cartesian/radius axes via the per-axis
+// aliases below; the base alias keeps `title` optional because angle axes do
+// not render a title.
 
 type AxisRequiredKeys = 'label' | 'line' | 'tick' | 'gridLine';
+type TitledAxisRequiredKeys = AxisRequiredKeys | 'title';
 
 type AxisLineTickGridLineMorph = {
     line: NormalisedAxisLineOptions;
     tick: NormalisedAxisTickOptions;
     gridLine: NormalisedAxisGridLineOptions;
 };
+
+type AxisTitleMorph = { title: NormalisedAxisTitleOptions };
+type TimeAxisParentLevelMorph<TContext> = { parentLevel?: NormalisedTimeAxisParentLevelOptions<TContext> };
 
 export type NormalisedBaseAxisOptions<TLabel = NormalisedBaseAxisLabelOptions, TContext = ContextDefault> = Normalised<
     AgBaseAxisOptions<TLabel, TContext>,
@@ -159,7 +196,11 @@ export type NormalisedBaseAxisOptions<TLabel = NormalisedBaseAxisLabelOptions, T
 export type NormalisedBaseCartesianAxisOptions<
     TLabel = NormalisedBaseCartesianAxisLabelOptions,
     TContext = ContextDefault,
-> = Normalised<AgBaseCartesianAxisOptions<TLabel, unknown, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
+> = Normalised<
+    AgBaseCartesianAxisOptions<TLabel, unknown, TContext>,
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph
+>;
 
 /**
  * Category-style cartesian axes (`category`, `time`, `unit-time`, `ordinal-time`) all
@@ -179,48 +220,64 @@ export type NormalisedBasePolarAxisOptions<
     TContext = ContextDefault,
 > = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
 
+/**
+ * Constraint base for radius axes — they render a title (unlike angle axes).
+ * Required keys plus the title morph live here so generic-typed reads on
+ * `RadiusAxis<...>` resolve `this.options.title` without a cast.
+ */
+export type NormalisedBaseRadiusAxisOptions<
+    TLabel = NormalisedBaseAxisLabelOptions,
+    TContext = ContextDefault,
+> = NormalisedBasePolarAxisOptions<TLabel, TContext> & { title: NormalisedAxisTitleOptions };
+
 // --- Concrete cartesian axes ---
 
 export type NormalisedNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgNumberAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedLogAxisOptions<TContext = ContextDefault> = Normalised<
     AgLogAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgCategoryAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedBaseCartesianAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedBaseCartesianAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgTimeAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph &
+        AxisTitleMorph &
+        TimeAxisParentLevelMorph<TContext> & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedUnitTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgUnitTimeAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph &
+        AxisTitleMorph &
+        TimeAxisParentLevelMorph<TContext> & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedOrdinalTimeAxisOptions<TContext = ContextDefault> = Normalised<
     AgOrdinalTimeAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph &
+        AxisTitleMorph &
+        TimeAxisParentLevelMorph<TContext> & { label: NormalisedCartesianTimeAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedGroupedCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgGroupedCategoryAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedGroupedCategoryAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedGroupedCategoryAxisLabelOptions<TContext> }
 >;
 
 // --- Concrete polar axes ---
@@ -246,12 +303,12 @@ export type NormalisedAngleCategoryAxisOptions<TContext = ContextDefault> = Norm
 
 export type NormalisedRadiusNumberAxisOptions<TContext = ContextDefault> = Normalised<
     AgRadiusNumberAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedNumericAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedNumericAxisLabelOptions<TContext> }
 >;
 
 export type NormalisedRadiusCategoryAxisOptions<TContext = ContextDefault> = Normalised<
     AgRadiusCategoryAxisOptions<TContext>,
-    AxisRequiredKeys,
-    AxisLineTickGridLineMorph & { label: NormalisedBaseAxisLabelOptions<TContext> }
+    TitledAxisRequiredKeys,
+    AxisLineTickGridLineMorph & AxisTitleMorph & { label: NormalisedBaseAxisLabelOptions<TContext> }
 >;

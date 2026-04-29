@@ -4,7 +4,7 @@ import {
     type AxisID,
     ChartAxisDirection,
     type DynamicContext,
-    type NormalisedBasePolarAxisOptions,
+    type NormalisedBaseRadiusAxisOptions,
     Property,
     type Scale,
     ZIndexMap,
@@ -26,7 +26,7 @@ interface GeneratedTicks {
 export abstract class RadiusAxis<
     S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
     D = unknown,
-    TOptions extends NormalisedBasePolarAxisOptions = NormalisedBasePolarAxisOptions,
+    TOptions extends NormalisedBaseRadiusAxisOptions = NormalisedBaseRadiusAxisOptions,
 > extends _ModuleSupport.PolarAxis<S, D, TOptions> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
@@ -70,9 +70,9 @@ export abstract class RadiusAxis<
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, id: AxisID, scale: S, options: TOptions) {
         super(moduleCtx, id, scale, options);
 
-        this.headingLabelGroup.appendChild(this.title.caption.node);
+        this.headingLabelGroup.appendChild(this.caption.node);
 
-        this.cleanup.register(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
+        this.cleanup.register(this.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
 
     private getAxisTransform() {
@@ -290,22 +290,23 @@ export abstract class RadiusAxis<
 
     private updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
-        const { title, range: requestedRange } = this;
-        const { formatter = identityFormatter } = this.title;
+        const { caption, range: requestedRange } = this;
+        const title = this.options.title;
+        const { formatter = identityFormatter } = title;
 
-        title.caption.enabled = title.enabled;
-        title.caption.fontFamily = title.fontFamily;
-        title.caption.fontSize = title.fontSize;
-        title.caption.fontStyle = title.fontStyle;
-        title.caption.fontWeight = title.fontWeight;
-        title.caption.color = title.color;
-        title.caption.wrapping = title.wrapping;
-        title.caption.truncate = title.truncate;
-        title.caption.maxWidth = title.maxWidth;
-        title.caption.maxHeight = title.maxHeight;
+        caption.enabled = title.enabled;
+        caption.fontFamily = title.fontFamily;
+        caption.fontSize = title.fontSize;
+        caption.fontStyle = title.fontStyle;
+        caption.fontWeight = title.fontWeight;
+        caption.color = title.color;
+        caption.wrapping = title.wrapping;
+        caption.truncate = title.truncate;
+        caption.maxWidth = title.maxWidth;
+        caption.maxHeight = title.maxHeight;
 
         let titleVisible = false;
-        const titleNode = title.caption.node;
+        const titleNode = caption.node;
         if (title.enabled) {
             const axisLength = Math.abs(requestedRange[1] - requestedRange[0]);
 
@@ -318,8 +319,8 @@ export abstract class RadiusAxis<
             titleNode.textBaseline = 'bottom';
 
             titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
-            title.caption.text = titleNode.text;
-            title.caption.computeTextWrap(axisLength, Infinity);
+            caption.text = titleNode.text;
+            caption.computeTextWrap(axisLength, Infinity);
         }
 
         titleNode.visible = titleVisible;

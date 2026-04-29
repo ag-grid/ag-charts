@@ -4,7 +4,11 @@ import type { AgTimeAxisOptions } from 'ag-charts-types';
 import { timeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { TimeAxis } from '../../chart/axis/timeAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
-import { commonAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
+import {
+    commonAxisThemeTemplate,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+} from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
@@ -20,6 +24,8 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
         {
             gridLine: { enabled: false },
         },
+        titleAxisThemeTemplate,
+        parentLevelAxisThemeTemplate,
         commonAxisThemeTemplate
     ),
 

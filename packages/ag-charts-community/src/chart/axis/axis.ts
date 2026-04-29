@@ -6,6 +6,7 @@ import type {
     DomainWithMetadata,
     DynamicContext,
     Normalised,
+    NormalisedAxisTickOptions,
     NormalisedBaseAxisLabelOptions,
     NormalisedBaseAxisOptions,
     Point,
@@ -30,6 +31,7 @@ import {
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
+    AgTimeAxisFormattableLabelUnitFormat,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
@@ -55,15 +57,14 @@ import { type TextBoxingProperties, type TextSizeProperties, TransformableText }
 import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
-import type { SeriesLabelProperties } from '../series/seriesLabelProperties';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
-import { AxisTick, type TickInterval } from './axisTick';
-import { AxisTitle } from './axisTitle';
+import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
 
@@ -226,8 +227,7 @@ export abstract class Axis<
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    @Property
-    readonly title = new AxisTitle();
+    readonly caption = new Caption();
 
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
@@ -310,11 +310,15 @@ export abstract class Axis<
 
     protected readonly formatterCache: AxisLabelFormatterCache = createAxisLabelFormatterCache();
 
-    protected get primaryLabel(): SeriesLabelProperties | undefined {
+    protected get primaryLabel():
+        | (NormalisedBaseAxisLabelOptions & {
+              format?: string | Record<string, string> | AgTimeAxisFormattableLabelUnitFormat;
+          })
+        | undefined {
         return undefined;
     }
 
-    protected get primaryTick(): AxisTick | undefined {
+    protected get primaryTick(): NormalisedAxisTickOptions | undefined {
         return undefined;
     }
 
@@ -1048,7 +1052,8 @@ export abstract class Axis<
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
-        return { domain, direction, boundSeries, defaultValue: this.title?.text };
+        const title = (this.options as { title?: { text?: string } }).title;
+        return { domain, direction, boundSeries, defaultValue: title?.text };
     }
 
     protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {
