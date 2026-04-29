@@ -41,6 +41,7 @@ export default defineConfig({
         pool: 'forks',
         poolOptions: {
             forks: {
+                singleFork: true,
                 execArgv: ['--expose-gc'],
             },
         },
