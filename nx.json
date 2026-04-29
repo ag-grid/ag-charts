@@ -239,7 +239,9 @@
       "inputs": ["jsOutputs"],
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
-        "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts"],
+        "commands": [
+          "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts"
+        ],
         "env": {
           "AG_BENCHMARK_LATEST_VERSION": "1"
         }
@@ -247,10 +249,14 @@
       "parallelism": false,
       "configurations": {
         "update": {
-          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"]
+          "commands": [
+            "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
+          ]
         },
         "ci": {
-          "commands": ["npx vitest run --config {projectRoot}/vitest.config.benchmark.ts --update"],
+          "commands": [
+            "node --expose-gc node_modules/vitest/vitest.mjs run --config {projectRoot}/vitest.config.benchmark.ts --update"
+          ],
           "env": {
             "AG_BENCHMARK_REPEAT_LIMIT": "3"
           }

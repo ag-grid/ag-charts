@@ -39,11 +39,10 @@ export default defineConfig({
             'ag-charts-locale': new URL('../ag-charts-locale/src/main.ts', import.meta.url).pathname,
             'ag-charts-community-test': new URL('../ag-charts-community/src/main-test.ts', import.meta.url).pathname,
         },
-        pool: 'forks',
+        pool: 'threads',
         poolOptions: {
-            forks: {
-                singleFork: true,
-                execArgv: ['--expose-gc', '--max-old-space-size=6144'],
+            threads: {
+                singleThread: true,
             },
         },
     },
