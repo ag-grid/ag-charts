@@ -32,7 +32,7 @@ export default defineConfig({
         testTimeout: 30_000,
         env: {
             TZ: 'Europe/London',
-        },
+  are      },
         alias: {
             'ag-charts-community': new URL('../ag-charts-community/src/main.ts', import.meta.url).pathname,
             'ag-charts-types': new URL('../ag-charts-types/src/main.ts', import.meta.url).pathname,
@@ -43,7 +43,7 @@ export default defineConfig({
         poolOptions: {
             forks: {
                 singleFork: true,
-                execArgv: ['--expose-gc'],
+                execArgv: ['--expose-gc', '--max-old-space-size=4096'],
             },
         },
     },
