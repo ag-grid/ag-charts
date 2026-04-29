@@ -621,7 +621,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         } else {
             fill = 'transparent';
         }
-        const style = mergeDefaults(highlightStyle, selectionStyle, {
+        const style = mergeDefaults(selectionStyle, highlightStyle, {
             fill,
             fillOpacity: 1,
             stroke,

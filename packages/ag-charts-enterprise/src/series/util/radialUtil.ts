@@ -167,8 +167,8 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
     const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex);
     const baseStyle = mergeDefaults(
-        highlightStyle,
         selectionStyle,
+        highlightStyle,
         getStyle(series, nodeDatum === undefined, highlightState)
     );
     let style = baseStyle;
