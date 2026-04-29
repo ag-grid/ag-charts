@@ -43,7 +43,7 @@ export default defineConfig({
         poolOptions: {
             forks: {
                 singleFork: true,
-                execArgv: ['--expose-gc'],
+                execArgv: ['--expose-gc', '--max-old-space-size=6144'],
             },
         },
     },

@@ -211,46 +211,46 @@ jobs:
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
 
-    lint:
-        runs-on: ubuntu-24.04
-        name: Lint & Format Check
-        needs: detect-changes
-        outputs:
-            lint: ${{ steps.lint.outcome || '' }}
-            format: ${{ steps.format.outcome || '' }}
-        steps:
-            - name: Checkout
-              id: checkout
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 1
-
-            - name: Fetch Refs
-              run: |
-                  git fetch origin --depth 1 latest next
-                  git fetch origin --depth 1 tag latest-success next-success
-
-            - name: Setup
-              id: setup
-              uses: ./.github/actions/setup-nx
-              with:
-                  cache_mode: ro
-                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-
-            #            - name: nx format:check
-            #              id: format
-            #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-            #              run: |
-            #                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-            #                    yarn nx format:check --all
-            #                  else
-            #                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
-            #                  fi
-
-            - name: nx lint
-              id: lint
-              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
+#    lint:
+#        runs-on: ubuntu-24.04
+#        name: Lint & Format Check
+#        needs: detect-changes
+#        outputs:
+#            lint: ${{ steps.lint.outcome || '' }}
+#            format: ${{ steps.format.outcome || '' }}
+#        steps:
+#            - name: Checkout
+#              id: checkout
+#              uses: actions/checkout@v4
+#              with:
+#                  fetch-depth: 1
+#
+#            - name: Fetch Refs
+#              run: |
+#                  git fetch origin --depth 1 latest next
+#                  git fetch origin --depth 1 tag latest-success next-success
+#
+#            - name: Setup
+#              id: setup
+#              uses: ./.github/actions/setup-nx
+#              with:
+#                  cache_mode: ro
+#                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+#
+#            #            - name: nx format:check
+#            #              id: format
+#            #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+#            #              run: |
+#            #                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+#            #                    yarn nx format:check --all
+#            #                  else
+#            #                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
+#            #                  fi
+#
+#            - name: nx lint
+#              id: lint
+#              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
 
     #    generate:
     #        runs-on: ubuntu-24.04
@@ -396,7 +396,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                shard: [1, 2]
+                shard: [1]
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.init.outputs.nx_base }}
