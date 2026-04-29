@@ -438,7 +438,7 @@ jobs:
 #            - name: nx pack:verify
 #              if: matrix.shard == 0
 #              id: pack-verify
-#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
+#              run: yarn nx ${{ git hub.event.inputs.nx_command || 'affected' }} -t pack:verify
 
             - name: Snapshot Branch
               uses: ./.github/actions/snapshot-branch
