@@ -38,10 +38,11 @@ export default defineConfig({
             'ag-charts-types': new URL('../ag-charts-types/src/main.ts', import.meta.url).pathname,
             'ag-charts-locale': new URL('../ag-charts-locale/src/main.ts', import.meta.url).pathname,
         },
-        pool: 'threads',
+        pool: 'forks',
         poolOptions: {
-            threads: {
-                singleThread: true,
+            forks: {
+                singleFork: true,
+                execArgv: ['--expose-gc'],
             },
         },
     },
