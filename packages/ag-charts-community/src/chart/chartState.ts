@@ -7,6 +7,7 @@ import type {
 import type { AgActiveItemState, AgChartOptions } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../core/eventsHub';
+import type { DataSelectionState } from './data/dataSelectionState';
 import type { CategoryLegendDatum } from './legend/legendDatum';
 
 export type ResolvedChartOptions = Omit<AgChartOptions, 'legend' | 'selection' | 'zoom'> & {
@@ -23,4 +24,5 @@ export interface ChartState {
     legendVisible: boolean;
     zoom: ZoomState | undefined;
     initialZoom: ZoomState | undefined;
+    selectionState: DataSelectionState | undefined;
 }

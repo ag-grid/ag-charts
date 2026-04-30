@@ -3,16 +3,19 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { type AreExact, type RequireOptional } from 'ag-charts-core';
 
 type ChangeItem = AgSelectionItem<unknown>;
-type SelectionChanges = { added: ChangeItem[]; removed: ChangeItem[] };
-type OptChanges = SelectionChanges | undefined;
+type SelectionChangesWithItems = { countDelta: number; added: ChangeItem[]; removed: ChangeItem[] };
+type SelectionChangesDeltaOnly = { countDelta: number; added?: never; removed?: never };
+type Changes = SelectionChanges;
 
-type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type Series = NonNullable<ClickedNode['series']>;
 type DataSet = _ModuleSupport.DataSet<unknown>;
+type State = _ModuleSupport.DataSelectionState;
+
+type ClickedNode = NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>;
 type DataSetSelection = _ModuleSupport.DataSetSelection;
 type DragWidgetEvent = _ModuleSupport.DragWidgetEvent;
 
-export type { SelectionChanges };
+export type SelectionChanges = SelectionChangesWithItems | SelectionChangesDeltaOnly;
 
 function makeChangeItem(seriesId: string, data: DataSet, datumIndex: number): ChangeItem {
     const itemId = data.getItemIdFromIndex(datumIndex);
@@ -39,7 +42,7 @@ export function hasAddToSelectionModifier(event: { sourceEvent: { ctrlKey: boole
     return event.sourceEvent.ctrlKey || event.sourceEvent.metaKey;
 }
 
-export function rollbackChanges(changes: SelectionChanges, allSeries: Series[]): void {
+export function rollbackChanges(changes: SelectionChangesWithItems, allSeries: Series[]): void {
     type K = Series['id'];
     type V = { dataSet: DataSet; selection: DataSetSelection };
     const seriesMap = new Map<K, V>();
@@ -80,30 +83,34 @@ export function getAllDataSets(allSeries: Series[]): Set<DataSet> {
     return result;
 }
 
-export function toggleSelection(changes: OptChanges, series: Series, data: DataSet, datumIndex: number): void {
+export function toggleSelection(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
-    if (changes !== undefined) {
+    const wasSelected = selections.isSelected(datumIndex);
+    if (changes?.removed !== undefined) {
         const item = makeChangeItem(series.id, data, datumIndex);
-        if (selections.isSelected(datumIndex)) {
+        if (wasSelected) {
             changes.removed.push(item);
         } else {
             changes.added.push(item);
         }
     }
+    changes.countDelta += wasSelected ? -1 : 1;
     selections.toggle(datumIndex);
 }
 
-export function setSelected(changes: OptChanges, series: Series, data: DataSet, datumIndex: number): void {
+export function setSelected(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
     const selections = data.enableSelection(series.id);
-    if (changes !== undefined && !selections.isSelected(datumIndex)) {
+    const wasSelected = selections.isSelected(datumIndex);
+    if (changes.added !== undefined && !wasSelected) {
         changes.added.push(makeChangeItem(series.id, data, datumIndex));
     }
+    changes.countDelta += Number(!wasSelected);
     selections.select(datumIndex);
 }
 
-export function clearAllSelections(changes: OptChanges, allSeries: Series[]): void {
+export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
-    if (changes !== undefined) {
+    if (changes.removed !== undefined) {
         for (const data of dataSets) {
             for (const [seriesId, selection] of data.selections) {
                 const n = selection.getLength();
@@ -116,6 +123,7 @@ export function clearAllSelections(changes: OptChanges, allSeries: Series[]): vo
     for (const data of dataSets) {
         data.selections.clear();
     }
+    state.selectedCount = 0;
 }
 
 export function isUnknownIterable(value: unknown): value is Iterable<unknown> {
