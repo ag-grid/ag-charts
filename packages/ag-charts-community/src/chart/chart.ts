@@ -204,21 +204,23 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
             ? deriveMiniChartGroupedCategoryDepth(sourceDepth)
             : undefined;
         const restAxisOptions = stripAxisOptionsForMiniChart(axisOptions);
-        derivedAxes[id] = {
+        const derived: Record<string, unknown> = {
             ...restAxisOptions,
             label: mergeDefaults(visibilityOverride, baseLabel, axisOptions.label),
             gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
             tick: mergeDefaults({ enabled: false }, axisOptions.tick),
             line: mergeDefaults(lineOverride, axisOptions.line),
             interval: mergeDefaults(intervalOverride, axisOptions.interval),
-            ...({
-                title: { enabled: false },
-                ...(parentLevelOverride != null && {
-                    parentLevel: mergeDefaults(parentLevelOverride, (axisOptions as any).parentLevel),
-                }),
-                ...(groupedCategoryDepth != null && { depthOptions: groupedCategoryDepth }),
-            } as Pick<AgBaseAxisOptions, never>),
+            title: { enabled: false },
         };
+        if (parentLevelOverride != null) {
+            const sourceParentLevel = (axisOptions as { parentLevel?: object }).parentLevel;
+            derived.parentLevel = mergeDefaults(parentLevelOverride, sourceParentLevel);
+        }
+        if (groupedCategoryDepth != null) {
+            derived.depthOptions = groupedCategoryDepth;
+        }
+        derivedAxes[id] = derived as AgBaseAxisOptions;
     }
 
     return { ...completeOptions, axes: derivedAxes } as AgChartOptions;

@@ -209,22 +209,43 @@ export type NormalisedBaseCartesianAxisOptions<
 >;
 
 /**
- * Category-style cartesian axes (`category`, `time`, `unit-time`, `ordinal-time`) all
- * accept `interval.placement`. `NormalisedBaseCartesianAxisOptions` carries the base
- * `AgAxisBaseIntervalOptions` shape, which omits `placement` — class generics
- * constrained on the base would lose access to it. This narrower constraint exposes
- * `placement` while keeping subtypes (continuous/discrete-time interval shapes) free
- * to bring their own additional fields.
+ * Category-style cartesian axes (`category`, `grouped-category`, `unit-time`, `ordinal-time`)
+ * all accept `interval.placement` plus the band-padding/null-bar fields. `NormalisedBaseCartesianAxisOptions`
+ * carries the base `AgAxisBaseIntervalOptions` shape, which omits these — class generics
+ * constrained on the base would lose access to them. This narrower constraint exposes
+ * the shared category-style fields directly so subclass `this.options.fooBar` reads
+ * resolve without per-getter casts. `bandAlignment` and `skipNullBars` are absent from
+ * `grouped-category`, but staying optional here keeps the shared constraint usable
+ * across all category-style axes.
  */
 export type NormalisedBaseCategoryStyleAxisOptions<
     TLabel = NormalisedBaseCartesianAxisLabelOptions,
     TContext = ContextDefault,
-> = NormalisedBaseCartesianAxisOptions<TLabel, TContext> & { interval?: AgAxisCategoryIntervalOptions };
+> = NormalisedBaseCartesianAxisOptions<TLabel, TContext> & {
+    interval?: AgAxisCategoryIntervalOptions;
+    groupPaddingInner?: number;
+    paddingInner?: number;
+    paddingOuter?: number;
+    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
+    skipNullBars?: boolean;
+};
 
+/**
+ * Polar-axis fields shared between angle and radius axes for class-generic reads
+ * (e.g. `polarAxis.options.shape`). The user-facing types declare these on each
+ * concrete subtype; staying optional here lets the shared base constraint expose
+ * them without committing every concrete subtype to every field.
+ */
 export type NormalisedBasePolarAxisOptions<
     TLabel = NormalisedBaseAxisLabelOptions,
     TContext = ContextDefault,
-> = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph>;
+> = Normalised<AgBaseAxisOptions<TLabel, TContext>, AxisRequiredKeys, AxisLineTickGridLineMorph> & {
+    shape?: 'polygon' | 'circle';
+    innerRadiusRatio?: number;
+    positionAngle?: number;
+    startAngle?: number;
+    endAngle?: number;
+};
 
 /**
  * Constraint base for radius axes — they render a title (unlike angle axes).

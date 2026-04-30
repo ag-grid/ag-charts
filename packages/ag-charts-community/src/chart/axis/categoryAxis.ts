@@ -29,23 +29,23 @@ export class CategoryAxis<
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
     get groupPaddingInner(): number {
-        return (this.options as { groupPaddingInner?: number }).groupPaddingInner ?? 0.1;
+        return this.options.groupPaddingInner ?? 0.1;
     }
 
     get paddingInner(): number | undefined {
-        return (this.options as { paddingInner?: number }).paddingInner;
+        return this.options.paddingInner;
     }
 
     get paddingOuter(): number | undefined {
-        return (this.options as { paddingOuter?: number }).paddingOuter;
+        return this.options.paddingOuter;
     }
 
     get bandAlignment(): 'justify' | 'start' | 'center' | 'end' | undefined {
-        return (this.options as { bandAlignment?: 'justify' | 'start' | 'center' | 'end' }).bandAlignment;
+        return this.options.bandAlignment;
     }
 
     get skipNullBars(): boolean | undefined {
-        return (this.options as { skipNullBars?: boolean }).skipNullBars;
+        return this.options.skipNullBars;
     }
 
     override get layoutConstraints(): import('../chartAxis').ChartAxis['layoutConstraints'] {

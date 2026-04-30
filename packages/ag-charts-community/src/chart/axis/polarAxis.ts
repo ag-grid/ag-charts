@@ -28,7 +28,7 @@ export abstract class PolarAxis<
     gridRange: number[] | undefined;
 
     get shape(): 'polygon' | 'circle' {
-        return (this.options as { shape?: 'polygon' | 'circle' }).shape ?? 'polygon';
+        return this.options.shape ?? 'polygon';
     }
 
     /**
@@ -40,7 +40,7 @@ export abstract class PolarAxis<
     private _innerRadiusRatio?: number;
 
     get innerRadiusRatio(): number {
-        return this._innerRadiusRatio ?? (this.options as { innerRadiusRatio?: number }).innerRadiusRatio ?? 0;
+        return this._innerRadiusRatio ?? this.options.innerRadiusRatio ?? 0;
     }
 
     set innerRadiusRatio(value: number) {

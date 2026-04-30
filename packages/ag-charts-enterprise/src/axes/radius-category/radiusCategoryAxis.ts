@@ -4,7 +4,11 @@ import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusCatego
 import { RadiusAxis } from '../radius/radiusAxis';
 
 const { CategoryScale } = _ModuleSupport;
-export class RadiusCategoryAxis extends RadiusAxis {
+export class RadiusCategoryAxis extends RadiusAxis<
+    _ModuleSupport.BandScale<string | object>,
+    string | object,
+    NormalisedRadiusCategoryAxisOptions
+> {
     static readonly className = 'RadiusCategoryAxis';
     static readonly type = 'radius-category' as const;
 
@@ -13,15 +17,15 @@ export class RadiusCategoryAxis extends RadiusAxis {
     }
 
     get groupPaddingInner(): number {
-        return (this.options as { groupPaddingInner?: number }).groupPaddingInner ?? 0;
+        return this.options.groupPaddingInner ?? 0;
     }
 
     get paddingInner(): number {
-        return (this.options as { paddingInner?: number }).paddingInner ?? 0;
+        return this.options.paddingInner ?? 0;
     }
 
     get paddingOuter(): number {
-        return (this.options as { paddingOuter?: number }).paddingOuter ?? 0;
+        return this.options.paddingOuter ?? 0;
     }
 
     constructor(

@@ -32,7 +32,7 @@ export abstract class RadiusAxis<
     }
 
     get positionAngle(): number {
-        return (this.options as { positionAngle?: number }).positionAngle ?? 0;
+        return this.options.positionAngle ?? 0;
     }
 
     protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(

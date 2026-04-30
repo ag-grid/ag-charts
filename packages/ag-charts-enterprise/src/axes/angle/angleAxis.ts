@@ -47,11 +47,11 @@ export abstract class AngleAxis<
     }
 
     get startAngle(): number {
-        return (this.options as { startAngle?: number }).startAngle ?? 0;
+        return this.options.startAngle ?? 0;
     }
 
     get endAngle(): number | undefined {
-        return (this.options as { endAngle?: number }).endAngle;
+        return this.options.endAngle;
     }
 
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(

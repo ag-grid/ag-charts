@@ -21,11 +21,11 @@ export class AngleCategoryAxis extends AngleAxis<
     static readonly type = 'angle-category' as const;
 
     get groupPaddingInner(): number {
-        return (this.options as { groupPaddingInner?: number }).groupPaddingInner ?? 0;
+        return this.options.groupPaddingInner ?? 0;
     }
 
     get paddingInner(): number {
-        return (this.options as { paddingInner?: number }).paddingInner ?? 0;
+        return this.options.paddingInner ?? 0;
     }
 
     constructor(
