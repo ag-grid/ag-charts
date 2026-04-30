@@ -856,18 +856,12 @@ describe('HeatmapSeries', () => {
             await waitForChartStability(chart);
 
             const seriesImpl = chart.series[0] as HeatmapSeries;
-            const nodeData = seriesImpl.getNodeData()!;
-            const firstDatum = nodeData.find((n) => n.datumIndex === 0)!;
-            const secondDatum = nodeData.find((n) => n.datumIndex === 1)!;
+            const initialNodeData = seriesImpl.getNodeData()!;
+            const firstDatum = initialNodeData.find((n) => n.datumIndex === 0)!;
             const firstCanvas = _ModuleSupport.Transformable.toCanvasPoint(
                 seriesImpl.contentGroup,
                 firstDatum.point.x,
                 firstDatum.point.y
-            );
-            const secondCanvas = _ModuleSupport.Transformable.toCanvasPoint(
-                seriesImpl.contentGroup,
-                secondDatum.point.x,
-                secondDatum.point.y
             );
 
             await hoverAction(firstCanvas.x, firstCanvas.y)(chart);
@@ -889,6 +883,18 @@ describe('HeatmapSeries', () => {
                 })
             );
             await waitForChartStability(chart);
+
+            // Re-resolve node data and canvas coordinates after the update — layout, scale
+            // domains and node identity may all have changed, so the pre-update points are no
+            // longer guaranteed to land on the second datum.
+            const updatedSeriesImpl = chart.series[0] as HeatmapSeries;
+            const updatedNodeData = updatedSeriesImpl.getNodeData()!;
+            const secondDatum = updatedNodeData.find((n) => n.datumIndex === 1)!;
+            const secondCanvas = _ModuleSupport.Transformable.toCanvasPoint(
+                updatedSeriesImpl.contentGroup,
+                secondDatum.point.x,
+                secondDatum.point.y
+            );
 
             await hoverAction(secondCanvas.x, secondCanvas.y)(chart);
             await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
