@@ -14,7 +14,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private expanderNode?: OrganizationExpanderNode;
 
+    private appliedStyles?: RequiredOrganizationNodeStyle;
+
     update(datum: OrganizationDatum['datum'], descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+        this.appliedStyles = styles;
         this.updateShapeNode(styles);
         this.updateImageNode(datum.image, styles);
         this.updateTitleNode(datum.title, styles);
@@ -99,23 +102,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    realign(
-        styles: {
-            image: {
-                position: 'top' | 'right' | 'bottom' | 'left';
-                spacing: number;
-            };
-            padding: number;
-            title: { textAlign: TextAlign };
-            subtitle: { textAlign: TextAlign };
-            labels: { textAlign: TextAlign }[];
-        },
-        bbox: _ModuleSupport.BBox
-    ) {
+    realign(bbox: _ModuleSupport.BBox) {
+        const styles = this.appliedStyles;
+        if (!styles) return;
+
         const { imageNode, titleNode, subtitleNode, labelNodes } = this;
 
         let imageOffset = 0;
-        const imageSide = styles.image.position === 'left' ? 1 : -1;
 
         if (imageNode) {
             if (styles.image.position === 'top' || styles.image.position === 'bottom') {
@@ -129,36 +122,30 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
         }
 
-        if (titleNode) {
-            if (styles.title.textAlign === 'right') {
-                titleNode.x += bbox.width - styles.padding * 2 - imageOffset;
-            } else if (styles.title.textAlign === 'center') {
-                titleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
-            }
-            titleNode.textAlign = styles.title.textAlign;
-        }
+        const textAreaLeft = styles.image.position === 'left' ? styles.padding + imageOffset : styles.padding;
+        const textAreaRight =
+            styles.image.position === 'right' ? bbox.width - styles.padding - imageOffset : bbox.width - styles.padding;
 
-        if (subtitleNode) {
-            if (styles.subtitle.textAlign === 'right') {
-                subtitleNode.x += bbox.width - styles.padding * 2 - imageOffset;
-            } else if (styles.subtitle.textAlign === 'center') {
-                subtitleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
+        const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
+            switch (textAlign) {
+                case 'right':
+                    node.x = textAreaRight;
+                    break;
+                case 'center':
+                    node.x = (textAreaLeft + textAreaRight) / 2;
+                    break;
+                default:
+                    node.x = textAreaLeft;
             }
-            subtitleNode.textAlign = styles.subtitle.textAlign;
-        }
+            node.textAlign = textAlign;
+        };
 
-        let index = 0;
-        for (const labelStyles of styles.labels) {
-            const labelNode = labelNodes?.[index];
-            if (labelNode) {
-                if (labelStyles.textAlign === 'right') {
-                    labelNode.x += bbox.width - styles.padding * 2 - imageOffset;
-                } else if (labelStyles.textAlign === 'center') {
-                    labelNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
-                }
-                labelNode.textAlign = labelStyles.textAlign;
-            }
-            index++;
+        if (titleNode) alignTextNode(titleNode, styles.title.textAlign);
+        if (subtitleNode) alignTextNode(subtitleNode, styles.subtitle.textAlign);
+
+        for (const [i, labelStyles] of styles.labels.entries()) {
+            const labelNode = labelNodes?.[i];
+            if (labelNode) alignTextNode(labelNode, labelStyles.textAlign);
         }
     }
 

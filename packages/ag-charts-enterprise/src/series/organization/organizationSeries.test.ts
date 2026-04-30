@@ -202,6 +202,33 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
+const segmentTitleFormatter = ({ value }: { value: any }) => {
+    const parts = String(value).split(' ');
+    return [
+        { text: parts[0] + ' ', color: 'red' },
+        { text: parts.slice(1).join(' '), color: 'blue' },
+    ];
+};
+
+function createSegmentAlignmentExample(textAlign: TextAlign, mode: 'property' | 'itemStyler'): any {
+    const align = mode === 'property' ? { textAlign } : { itemStyler: () => ({ textAlign }) };
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                node: {
+                    title: { key: 'name', formatter: segmentTitleFormatter, ...align },
+                    subtitle: { key: 'job', ...align },
+                    labels: [{ key: 'location', ...align }],
+                },
+            },
+        ],
+    };
+}
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -259,6 +286,57 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED: {
+        options: createSegmentAlignmentExample('left', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED: {
+        options: createSegmentAlignmentExample('right', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED: {
+        options: createSegmentAlignmentExample('center', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('left', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('center', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
+        // Confirms cached per-datum styles aren't shared between OrganizationNodes:
+        // each row gets a different alignment based on its job.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ datum }: { datum: any }) => {
+                                if (datum.job === 'Chief Executive Officer') return { textAlign: 'left' };
+                                if (datum.job === 'Chief Technology Officer') return { textAlign: 'center' };
+                                return { textAlign: 'right' };
+                            },
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('right', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };
