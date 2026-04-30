@@ -184,18 +184,22 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumSelection.each((node, datum) => {
             const datumIndex = this.graph.findNeighbourValue(datum.vertex, 'datumIndex') as number;
             const depth = this.graph.findNeighbourValue(datum.vertex, 'depth') as number;
+            const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
 
             const isHighlight = highlightedDatum?.datumIndex === datum.datumIndex;
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState);
+            // Only report `isCollapsed` for nodes whose descendants would actually be hidden;
+            // a leaf id present in `collapsedManager` is a no-op visually and would mislead
+            // styler consumers about the rendered tree state.
+            const isCollapsed =
+                descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
+            const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
 
             const title = this.formatText(datum.datum.title, this.properties.node.title.formatter, datumIndex);
             const subtitle = this.formatText(datum.datum.subtitle, this.properties.node.subtitle.formatter, datumIndex);
             const labels = datum.datum.labels?.map((label, index) =>
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
             );
-
-            const descendantsCount = this.graph.findNeighbourValue(datum.vertex, 'descendants') as number;
 
             node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles);
         });
@@ -458,7 +462,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number | undefined,
         depth: number,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
     ): RequiredOrganizationNodeStyle {
         const { dataModel, processedData } = this;
         const { itemStyler } = this.properties.node;
@@ -474,11 +479,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
         });
-
-        const isCollapsed =
-            dataModel != null && processedData != null && datumIndex != null
-                ? this.isDatumCollapsed(dataModel, processedData, datumIndex)
-                : false;
 
         if (itemStyler && dataModel && processedData && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
@@ -545,16 +545,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         return style;
-    }
-
-    private isDatumCollapsed(
-        dataModel: NonNullable<typeof this.dataModel>,
-        processedData: NonNullable<typeof this.processedData>,
-        datumIndex: number
-    ): boolean {
-        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
-        const itemId = idValues[datumIndex];
-        return itemId != null && this.ctx.collapsedManager.isCollapsed(String(itemId));
     }
 
     private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {

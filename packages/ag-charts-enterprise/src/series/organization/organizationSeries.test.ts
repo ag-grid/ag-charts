@@ -607,6 +607,10 @@ describe('OrganizationSeries', () => {
                 // setState collapse/expand toggle. The styler flips fill based on
                 // `isCollapsed`; if the cache key omitted that signal, the post-toggle
                 // snapshot would carry over the pre-toggle styling.
+                //
+                // Snapshots after each setState so the test fails distinctively whether the
+                // styler ignores `isCollapsed` (snap 1 wrong), or reads stale cache after
+                // expand (snap 2 wrong).
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     series: [
@@ -628,8 +632,8 @@ describe('OrganizationSeries', () => {
 
                 chart = AgCharts.create(options);
                 await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                await compare();
                 await chart.setState({ version: '13.3.0', collapsed: [] });
-
                 await compare();
             });
         });
