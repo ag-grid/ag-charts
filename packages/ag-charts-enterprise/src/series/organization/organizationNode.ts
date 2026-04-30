@@ -181,6 +181,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         this.imageNode.width = styles.image.width;
         this.imageNode.height = styles.image.height;
+        // `'circle'` clips the image to a circle when width === height; otherwise produces an
+        // axis-aligned ellipse via the rounded-rect path.
+        this.imageNode.cornerRadius =
+            styles.image.shape === 'circle' ? Math.min(styles.image.width, styles.image.height) / 2 : 0;
     }
 
     private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {

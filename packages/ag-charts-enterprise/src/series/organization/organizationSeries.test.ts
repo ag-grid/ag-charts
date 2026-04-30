@@ -254,7 +254,8 @@ function createExpanderHeightExample(height: number): any {
 
 function createTextImageExample(
     textAlign: TextAlign,
-    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition
+    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
+    imageShape?: 'circle' | 'square'
 ): any {
     return {
         ...SIMPLE_ORG_CHART,
@@ -264,7 +265,11 @@ function createTextImageExample(
                 idKey: 'id',
                 parentIdKey: 'parentId',
                 node: {
-                    image: { position: imagePosition, key: 'avatar' },
+                    image: {
+                        position: imagePosition,
+                        key: 'avatar',
+                        ...(imageShape != null ? { shape: imageShape } : {}),
+                    },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
                     labels: [{ key: 'location', textAlign }],
@@ -305,6 +310,24 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_TOP: {
+        // Verifies `shape: 'circle'` clips the image to a circle (width === height) when the
+        // image sits above the text tiers.
+        options: createTextImageExample('center', 'top', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_BOTTOM: {
+        options: createTextImageExample('left', 'bottom', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_LEFT: {
+        options: createTextImageExample('left', 'left', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_RIGHT: {
+        options: createTextImageExample('right', 'right', 'circle'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
