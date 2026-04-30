@@ -115,7 +115,6 @@ export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptio
     ...commonSeriesOptionsDefs,
     ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
-    expander: _ModuleSupport.organizationSeriesExpanderOptionsDef,
     idKey: string,
     link: link,
     node: node,

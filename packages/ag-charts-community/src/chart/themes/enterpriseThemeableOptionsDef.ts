@@ -390,17 +390,13 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
-export const organizationSeriesExpanderOptionsDef: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
-    height: positiveNumberNonZero,
-};
-
 // TODO: duplicate series options defs here?
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     innerSpacing: defined,
     // outerSpacing: defined,
     verticalSpacing: defined,
-    expander: organizationSeriesExpanderOptionsDef,
+    expander: { height: positiveNumberNonZero } satisfies OptionsDefs<AgOrganizationSeriesOptionsExpander>,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,
