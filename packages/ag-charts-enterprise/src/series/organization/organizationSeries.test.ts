@@ -601,6 +601,37 @@ describe('OrganizationSeries', () => {
 
                 await compare();
             });
+
+            it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
+                // Guards against the styler-cache returning stale `isCollapsed` after a
+                // setState collapse/expand toggle. The styler flips fill based on
+                // `isCollapsed`; if the cache key omitted that signal, the post-toggle
+                // snapshot would carry over the pre-toggle styling.
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                    isCollapsed ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2 } : undefined,
+                                title: { key: 'name' },
+                                subtitle: { key: 'job' },
+                                labels: [{ key: 'location' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                await chart.setState({ version: '13.3.0', collapsed: [] });
+
+                await compare();
+            });
         });
     });
 

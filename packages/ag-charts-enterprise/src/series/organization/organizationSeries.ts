@@ -482,7 +482,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         if (itemStyler && dataModel && processedData && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
-                _ModuleSupport.createDatumId(this.id, datumIndex, 'node'),
+                _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
                 () => {
                     const params = this.makeNodeItemStylerParams(
                         dataModel,
@@ -652,7 +652,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         const overrides = this.cachedDatumCallback(
-            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix),
+            _ModuleSupport.createDatumId(this.id, datumIndex, datumIdSuffix, isCollapsed),
             () => {
                 const params = this.makeNodeTextStylerParams(
                     dataModel,
