@@ -12,6 +12,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     dragAction,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     standaloneChartAssertions,
@@ -692,6 +693,36 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: [] });
                 await compare();
             });
+        });
+    });
+
+    describe('theme defaults', () => {
+        it('should apply default highlight stroke when a node is hovered', async () => {
+            // Regression test for AG-17192. Theme defaults add a stronger stroke and
+            // strokeWidth on `highlight.highlightedItem`; without the default the highlighted
+            // node would render identical to its neighbours.
+            //
+            // The chart overrides `node.cornerRadius` to 0 so the JSDOM mock canvas can
+            // hit-test the node rect — `Rect.updatePath()` only installs a bbox-based
+            // hit-tester for unrounded rects (per .claude/rules/testing.md).
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                theme: {
+                    overrides: {
+                        organization: { series: { node: { cornerRadius: 0 } } },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Root card (Alice Chen) sits centred across the top of the canvas. Hover its
+            // approximate centre to trigger the highlight pipeline through the public
+            // pointer event path.
+            await hoverAction(400, 65)(chart);
+            await compare();
         });
     });
 

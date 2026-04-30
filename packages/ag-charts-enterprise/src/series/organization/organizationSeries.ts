@@ -470,7 +470,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { itemStyler: titleStyler } = this.properties.node.title;
         const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
 
-        // TODO: AG-17010 MVP does not include default highlight styles
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
 

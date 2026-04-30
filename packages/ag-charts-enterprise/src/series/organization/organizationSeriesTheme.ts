@@ -9,6 +9,13 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         expander: {
             height: 24,
         },
+        highlight: {
+            enabled: { $path: ['/highlight/enabled', true] },
+            highlightedItem: {
+                stroke: { $foregroundBackgroundMix: 0.5 },
+                strokeWidth: 2,
+            },
+        },
         link: {
             interpolation: {
                 type: 'step',
