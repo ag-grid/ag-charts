@@ -54,8 +54,9 @@ export interface AgOrganizationSeriesOptionsExpander {
     /**
      * Outer height of the expander pill, in pixels. Increasing this value reserves additional
      * vertical space between a parent node and its children to fit a larger pill; decreasing it
-     * pulls children closer. The pill grows beyond this value when its content (e.g. a wide
-     * descendant count) does not fit; layout always reserves at least this much space.
+     * pulls children closer. Set this to at least the rendered subtitle's line height plus its
+     * top and bottom padding so the descendant-count text fits without overflow — the pill is
+     * rendered at exactly this value so layout reservations and rendered geometry stay aligned.
      *
      * Default: `24`
      */

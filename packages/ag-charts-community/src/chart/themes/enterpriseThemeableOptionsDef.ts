@@ -61,6 +61,7 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
+    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
@@ -389,13 +390,17 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
     highlight: multiSeriesHighlightOptionsDef(barHighlightOptionsDef, barHighlightOptionsDef),
 };
 
+export const organizationSeriesExpanderOptionsDef: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
+    height: positiveNumberNonZero,
+};
+
 // TODO: duplicate series options defs here?
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     innerSpacing: defined,
     // outerSpacing: defined,
     verticalSpacing: defined,
-    expander: defined,
+    expander: organizationSeriesExpanderOptionsDef,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

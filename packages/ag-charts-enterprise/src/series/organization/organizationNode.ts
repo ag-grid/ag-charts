@@ -262,9 +262,11 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
 
         const rawBBox = this.countNode.getBBox();
         const grownBBox = rawBBox.clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
-        // `expander.height` is the requested outer height; the pill grows beyond it if content
-        // (count text + padding) needs more room, preserving the legacy "no clipping" guarantee.
-        const pillHeight = Math.max(styles.expander.height, grownBBox.height);
+        // Render the pill at exactly `expander.height` so the layout reservation in
+        // `networkTreeLayout` matches the rendered pill — diverging here would let link
+        // elbows or child rows overlap the expander when `height` is under-specified.
+        // The public type contract documents that `height` must accommodate the count text.
+        const pillHeight = styles.expander.height;
         this.countNode.y = (pillHeight - rawBBox.height) / 2;
 
         this.shapeNode.x = 0;
