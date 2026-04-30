@@ -59,6 +59,7 @@ import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
+import type { CrossLinesPlugin } from '../crossline/crossLinesPlugin';
 import { FormatManager } from '../formatter/formatManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
@@ -182,21 +183,21 @@ export abstract class Axis<
     readonly id: AxisID = 'unknown' as AxisID;
 
     /**
-     * Live runtime cross-line instances owned by the {@link CrossLinesPlugin}.
-     * Phase 6 migrated cross-lines off `Axis._crossLines` onto the unified
-     * `applyAxisModules` path. The plugin's `getInstances()` is the single
-     * source of truth — this getter exists to serve consumers that still read
-     * `axis.crossLines` (e.g. cartesian-chart padding, navigator mini-chart).
+     * Cached reference to the {@link CrossLinesPlugin} attached via `applyAxisModules`.
+     * Phase 6 migrated cross-lines off `Axis._crossLines` onto the unified plugin
+     * path. Kept in sync by `Chart.applyAxisModules` through {@link setCrossLinesPlugin}
+     * — the plugin reference can only change there. Reading directly avoids
+     * `moduleMap.getModule(...)` lookup overhead in the per-axis padding loops in
+     * `cartesianChart.calculateCrossLinePadding` and `miniChart.applyCrossLinePositions`.
      */
-    getCrossLines(): readonly CrossLine[] {
-        const plugin = this.moduleMap?.getModule('crossLines') as
-            | { getInstances?: () => readonly CrossLine[] }
-            | undefined;
-        return plugin?.getInstances?.() ?? [];
+    private _crossLinesPlugin?: CrossLinesPlugin;
+
+    setCrossLinesPlugin(plugin: CrossLinesPlugin | undefined): void {
+        this._crossLinesPlugin = plugin;
     }
 
     get crossLines(): readonly CrossLine[] {
-        return this.getCrossLines();
+        return this._crossLinesPlugin?.getInstances() ?? [];
     }
 
     /**

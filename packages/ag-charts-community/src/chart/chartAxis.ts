@@ -32,6 +32,7 @@ import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
 import type { CrossLine } from './crossline/crossLine';
+import type { CrossLinesPlugin } from './crossline/crossLinesPlugin';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 
@@ -119,6 +120,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
+    setCrossLinesPlugin(plugin: CrossLinesPlugin | undefined): void;
     setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
@@ -126,7 +128,6 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
     crossLines: readonly CrossLine[];
-    getCrossLines(): readonly CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
     gridLength: number;
