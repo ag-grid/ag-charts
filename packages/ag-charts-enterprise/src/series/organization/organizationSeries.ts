@@ -694,7 +694,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            highlightState: 'none',
             selectionState: 'unselected',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
