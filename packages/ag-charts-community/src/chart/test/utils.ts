@@ -188,6 +188,23 @@ export function repeat<T>(value: T, count: number): T[] {
 }
 
 /**
+ * Get the tooltip DOM element rendered for `chart`, or `null` if the tooltip has not been
+ * attached. Scoped to the chart's container so concurrent charts in the same test environment
+ * don't interfere.
+ */
+export function getTooltipElement(chart: Chart): Element | null {
+    return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
+}
+
+/**
+ * Returns whether the tooltip is currently presented (visible). Checks the DOM
+ * attribute the tooltip layer toggles, rather than reaching into chart internals.
+ */
+export function isTooltipVisible(chart: Chart): boolean {
+    return getTooltipElement(chart)?.hasAttribute('data-presented-as-popover') ?? false;
+}
+
+/**
  * Assert that `series.getTooltipContent` returns `undefined` for every datum the predicate flags
  * as missing, and a defined result for at least one non-missing datum. Consolidates the recurring
  * `data.map(...).filter(i => i >= 0)` + per-index `expect` block used across colour-scale series

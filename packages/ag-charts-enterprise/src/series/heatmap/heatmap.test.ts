@@ -11,6 +11,7 @@ import {
     expectWarningsCalls,
     extractImageData,
     hoverAction,
+    isTooltipVisible,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -821,10 +822,10 @@ describe('HeatmapSeries', () => {
             const missingIndex = data.findIndex((d) => d.spending == null);
 
             await hoverDatumByIndex(chart, 0, presentIndex);
-            expect((chart as Chart).tooltip.isVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
 
             await hoverDatumByIndex(chart, 0, missingIndex, MIN_TOOLTIP_HIDE_DELAY);
-            expect((chart as Chart).tooltip.isVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         // AG-16046 pt2 broadened semantic: when a series has tooltip.enabled = false, hovering
@@ -853,7 +854,7 @@ describe('HeatmapSeries', () => {
             await waitForChartStability(chart);
 
             await hoverDatumByIndex(chart, 0, 0);
-            expect((chart as Chart).tooltip.isVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
 
             await proxy.update(
                 prepareEnterpriseTestOptions({
@@ -875,7 +876,7 @@ describe('HeatmapSeries', () => {
             // may all have changed, so pre-update coordinates aren't guaranteed to land on the
             // second datum.
             await hoverDatumByIndex(chart, 0, 1, MIN_TOOLTIP_HIDE_DELAY);
-            expect((chart as Chart).tooltip.isVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         it('should allow itemStyler to override missingDataFill', async () => {

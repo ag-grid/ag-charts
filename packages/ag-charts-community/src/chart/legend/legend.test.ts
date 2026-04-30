@@ -25,7 +25,9 @@ import {
     doubleClickAction,
     doubleTapAction,
     extractImageData,
+    getTooltipElement,
     hoverAction,
+    isTooltipVisible,
     looserSnapshotDefaults,
     prepareTestOptions,
     setupMockCanvas,
@@ -914,22 +916,12 @@ describe('Legend', () => {
         let legendX: number;
         let legendY: number;
 
-        function getTooltipElement() {
-            // Scope to the current chart's container to avoid picking up
-            // stale/unrelated tooltip elements from other charts.
-            return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
-        }
-
-        function isTooltipVisible() {
-            return getTooltipElement()?.hasAttribute('data-presented-as-popover') ?? false;
-        }
-
         function getTooltipText() {
-            return getTooltipElement()?.textContent ?? '';
+            return getTooltipElement(chart)?.textContent ?? '';
         }
 
         function getTooltipHTML() {
-            return getTooltipElement()?.innerHTML ?? '';
+            return getTooltipElement(chart)?.innerHTML ?? '';
         }
 
         async function setupChart(legendOverrides: AgCartesianChartOptions['legend'] = {}) {
@@ -954,7 +946,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         test('visible: always — tooltip shown on every hover', async () => {
@@ -962,7 +954,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('Series Y');
         });
 
@@ -976,7 +968,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         test('text — static text shown on every hover', async () => {
@@ -984,7 +976,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('Click to toggle');
         });
 
@@ -999,7 +991,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipHTML()).toContain('Series Y');
         });
 
@@ -1015,7 +1007,7 @@ describe('Legend', () => {
 
             // Non-truncated item: no tooltip
             await hoverLegendItem();
-            expect(isTooltipVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         test('renderer returns empty string — no tooltip', async () => {
@@ -1029,7 +1021,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(false);
+            expect(isTooltipVisible(chart)).toBe(false);
         });
 
         test('both text and renderer — renderer takes precedence', async () => {
@@ -1044,7 +1036,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipHTML()).toContain('Custom: Series Y');
         });
 
@@ -1054,7 +1046,7 @@ describe('Legend', () => {
             await hoverLegendItem();
 
             // Text provided without explicit visible — should default to 'always'
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('Info');
         });
 
@@ -1084,7 +1076,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
         });
     });
 });
