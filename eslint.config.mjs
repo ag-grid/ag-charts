@@ -105,6 +105,7 @@ export default [
             '**/typings',
             '**/eslint.config.mjs',
             '**/vitest.*.{cjs,js,ts}',
+            '**/benchmarks/*.cjs',
             '**/.dependency-cruiser.js',
             '**/.size-limit.js',
         ],

@@ -211,180 +211,180 @@ jobs:
                       external/*/dist/
                       packages/ag-charts-website/e2e/generated/
 
-#    lint:
-#        runs-on: ubuntu-24.04
-#        name: Lint & Format Check
-#        needs: detect-changes
-#        outputs:
-#            lint: ${{ steps.lint.outcome || '' }}
-#            format: ${{ steps.format.outcome || '' }}
-#        steps:
-#            - name: Checkout
-#              id: checkout
-#              uses: actions/checkout@v4
-#              with:
-#                  fetch-depth: 1
-#
-#            - name: Fetch Refs
-#              run: |
-#                  git fetch origin --depth 1 latest next
-#                  git fetch origin --depth 1 tag latest-success next-success
-#
-#            - name: Setup
-#              id: setup
-#              uses: ./.github/actions/setup-nx
-#              with:
-#                  cache_mode: ro
-#                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-#
-#            #            - name: nx format:check
-#            #              id: format
-#            #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-#            #              run: |
-#            #                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
-#            #                    yarn nx format:check --all
-#            #                  else
-#            #                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
-#            #                  fi
-#
-#            - name: nx lint
-#              id: lint
+    lint:
+        runs-on: ubuntu-24.04
+        name: Lint & Format Check
+        needs: detect-changes
+        outputs:
+            lint: ${{ steps.lint.outcome || '' }}
+            format: ${{ steps.format.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+#            - name: nx format:check
+#              id: format
 #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
+#              run: |
+#                  if [[ "${{ github.event.inputs.nx_command || 'affected' }}" == "run-many" ]] ; then
+#                    yarn nx format:check --all
+#                  else
+#                    yarn nx format:check --base ${{ steps.setup.outputs.base }}
+#                  fi
 
-    #    generate:
-    #        runs-on: ubuntu-24.04
-    #        name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
-    #        needs: [detect-changes, init]
-    #        if: needs.detect-changes.outputs.run_full_ci == 'true'
-    #        strategy:
-    #            fail-fast: false
-    #            matrix:
-    #                shard: [1, 2]
-    #        outputs:
-    #            generate: ${{ steps.generate.outcome || '' }}
-    #        steps:
-    #            - name: Checkout
-    #              id: checkout
-    #              uses: actions/checkout@v4
-    #              with:
-    #                  fetch-depth: 1
-    #
-    #            - name: Fetch Refs
-    #              run: |
-    #                  git fetch origin --depth 1 latest next
-    #                  git fetch origin --depth 1 tag latest-success next-success
-    #
-    #            - name: Setup
-    #              id: setup
-    #              uses: ./.github/actions/setup-nx
-    #              with:
-    #                  cache_mode: ro
-    #                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-    #
-    #            - name: nx generate
-    #              id: generate
-    #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-    #              run: |
-    #                  projects=$(node ./external/ag-shared/scripts/shard/shard-projects.js -t generate -s ${{ matrix.shard }} --total ${{ strategy.job-total }} --command ${{ github.event.inputs.nx_command || 'affected' }})
-    #                  if [ -n "$projects" ]; then
-    #                    yarn nx run-many -t generate -c production -p ${projects}
-    #                  fi
+            - name: nx lint
+              id: lint
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t lint --exclude all
 
-    #    build:
-    #        runs-on: ubuntu-24.04
-    #        name: Build
-    #        needs: [detect-changes, init]
-    #        if: needs.detect-changes.outputs.run_full_ci == 'true'
-    #        outputs:
-    #            build: ${{ steps.build.outcome || '' }}
-    #        steps:
-    #            - name: Checkout
-    #              id: checkout
-    #              uses: actions/checkout@v4
-    #              with:
-    #                  fetch-depth: 1
-    #
-    #            - name: Fetch Refs
-    #              run: |
-    #                  git fetch origin --depth 1 latest next
-    #                  git fetch origin --depth 1 tag latest-success next-success
-    #
-    #            - name: Setup
-    #              id: setup
-    #              uses: ./.github/actions/setup-nx
-    #              with:
-    #                  cache_mode: ro
-    #                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-    #
-    #            - name: nx build
-    #              id: build
-    #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-    #              run: |
-    #                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
+    generate:
+        runs-on: ubuntu-24.04
+        name: Generate (${{ matrix.shard }}/${{ strategy.job-total }})
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        strategy:
+            fail-fast: false
+            matrix:
+                shard: [1, 2]
+        outputs:
+            generate: ${{ steps.generate.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
 
-    #    validate:
-    #        runs-on: ubuntu-24.04
-    #        name: Validate Examples
-    #        needs: [detect-changes, init]
-    #        if: needs.detect-changes.outputs.run_full_ci == 'true'
-    #        outputs:
-    #            validate: ${{ steps.validate.outcome || '' }}
-    #        steps:
-    #            - name: Checkout
-    #              id: checkout
-    #              uses: actions/checkout@v4
-    #              with:
-    #                  fetch-depth: 1
-    #
-    #            - name: Fetch Refs
-    #              run: |
-    #                  git fetch origin --depth 1 latest next
-    #                  git fetch origin --depth 1 tag latest-success next-success
-    #
-    #            - name: Setup
-    #              id: setup
-    #              uses: ./.github/actions/setup-nx
-    #              with:
-    #                  cache_mode: ro
-    #                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-    #
-    #            - name: nx run-many -t validate-examples
-    #              id: validate
-    #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-    #              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
 
-    #    website_build:
-    #        runs-on: ubuntu-24.04
-    #        name: Website Build
-    #        needs: [detect-changes, init]
-    #        if: needs.detect-changes.outputs.run_full_ci == 'true'
-    #        outputs:
-    #            build: ${{ steps.build.outcome || '' }}
-    #        steps:
-    #            - name: Checkout
-    #              id: checkout
-    #              uses: actions/checkout@v4
-    #              with:
-    #                  fetch-depth: 1
-    #
-    #            - name: Fetch Refs
-    #              run: |
-    #                  git fetch origin --depth 1 latest next
-    #                  git fetch origin --depth 1 tag latest-success next-success
-    #
-    #            - name: Setup
-    #              id: setup
-    #              uses: ./.github/actions/setup-nx
-    #              with:
-    #                  cache_mode: ro
-    #                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-    #
-    #            - name: nx build ag-charts-website
-    #              id: build
-    #              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
-    #              run: |
-    #                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx generate
+              id: generate
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  projects=$(node ./external/ag-shared/scripts/shard/shard-projects.js -t generate -s ${{ matrix.shard }} --total ${{ strategy.job-total }} --command ${{ github.event.inputs.nx_command || 'affected' }})
+                  if [ -n "$projects" ]; then
+                    yarn nx run-many -t generate -c production -p ${projects}
+                  fi
+
+    build:
+        runs-on: ubuntu-24.04
+        name: Build
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        outputs:
+            build: ${{ steps.build.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx build
+              id: build
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude all,ag-charts-website
+
+    validate:
+        runs-on: ubuntu-24.04
+        name: Validate Examples
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        outputs:
+            validate: ${{ steps.validate.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx run-many -t validate-examples
+              id: validate
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t validate-examples --exclude all
+
+    website_build:
+        runs-on: ubuntu-24.04
+        name: Website Build
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        outputs:
+            build: ${{ steps.build.outcome || '' }}
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx build ag-charts-website
+              id: build
+              if: steps.setup.outcome == 'success' || steps.setup.outcome == 'skipped'
+              run: |
+                  yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t build --exclude='*,!ag-charts-website'
 
     test:
         runs-on: ubuntu-24.04
@@ -395,8 +395,7 @@ jobs:
         if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.test_count > 0
         strategy:
             fail-fast: false
-            matrix:
-                shard: [1]
+            matrix: ${{ fromJson(needs.init.outputs.test_matrix )}}
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.init.outputs.nx_base }}
@@ -419,26 +418,26 @@ jobs:
                   cache_mode: ro
                   base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-#            - name: nx test
-#              if: matrix.shard != 0
-#              id: test
-#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude tag:no-sharding --exclude all --shard=${{ matrix.shard }}/6
+            - name: nx test
+              if: matrix.shard != 0
+              id: test
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude tag:no-sharding --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
             - name: nx benchmark
               if: matrix.shard != 0
               id: benchmark
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t benchmark --configuration=ci --exclude all --shard=${{ matrix.shard }}/6
-#            - name: nx test (non-sharded)
-#              if: matrix.shard == 0
-#              id: test-no-shard
-#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude '*,!tag:no-sharding'
-#            - name: nx test:validate-size
-#              if: matrix.shard == 0
-#              id: test-no-shard-validate-size
-#              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test:validate-size --configuration=ci
-#            - name: nx pack:verify
-#              if: matrix.shard == 0
-#              id: pack-verify
-#              run: yarn nx ${{ git hub.event.inputs.nx_command || 'affected' }} -t pack:verify
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t benchmark --configuration=ci --exclude all --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1))
+            - name: nx test (non-sharded)
+              if: matrix.shard == 0
+              id: test-no-shard
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test --configuration=ci --exclude '*,!tag:no-sharding'
+            - name: nx test:validate-size
+              if: matrix.shard == 0
+              id: test-no-shard-validate-size
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test:validate-size --configuration=ci
+            - name: nx pack:verify
+              if: matrix.shard == 0
+              id: pack-verify
+              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t pack:verify
 
             - name: Snapshot Branch
               uses: ./.github/actions/snapshot-branch
@@ -457,320 +456,320 @@ jobs:
                       reports/
                       packages/**/__diff_output__/*
 
-#    e2e:
-#        runs-on: ubuntu-latest
-#        name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
-#        permissions:
-#            contents: write
-#        needs: [detect-changes, init]
-#        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
-#        strategy:
-#            fail-fast: false
-#            matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
-#        env:
-#            NX_BASE: ${{ needs.init.outputs.nx_base }}
-#            AG_FORCE_ALL_TESTS: 1
-#        steps:
-#            - name: Checkout
-#              id: checkout
-#              uses: actions/checkout@v4
-#
-#            - name: Restore Init Build Outputs
-#              uses: actions/download-artifact@v4
-#              with:
-#                  name: e2e-init-outputs
-#
-#            - name: Setup
-#              id: setup
-#              uses: ./.github/actions/setup-nx
-#              with:
-#                  yarn_postinstall: no-install
-#                  nx_restore: false # Restored in previous step.
-#                  cache_mode: ro
-#                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-#
-#            - name: nx test:e2e
-#              id: test
-#              run: |
-#                  cd packages/ag-charts-website/
-#
-#                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
-#              timeout-minutes: 15
-#
-#            - name: Snapshot Branch
-#              uses: ./.github/actions/snapshot-branch
-#              with:
-#                  path: packages/ag-charts-website/e2e/
-#                  source_branch: ${{ github.head_ref || 'latest' }}
-#                  branch: ${{ needs.init.outputs.snapshot_branch }}
-#                  type: test:e2e (shard ${{matrix.shard}})
-#
-#            - name: Persist test results
-#              if: always()
-#              uses: actions/upload-artifact@v4
-#              with:
-#                  name: test-results-e2e-shard-${{matrix.shard}}
-#                  path: |
-#                      reports/
+    e2e:
+        runs-on: ubuntu-latest
+        name: E2E Tests (${{ matrix.shard }}/${{ strategy.job-total }})
+        permissions:
+            contents: write
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.init.outputs.e2e_matrix )}}
+        env:
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+            AG_FORCE_ALL_TESTS: 1
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
 
-#    fw_pkg_test:
-#        runs-on: ubuntu-24.04
-#        name: Framework Package Tests (${{ matrix.framework }})
-#        permissions:
-#            contents: write
-#        needs: [detect-changes, init]
-#        strategy:
-#            fail-fast: false
-#            matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
-#        if: needs.detect-changes.outputs.run_full_ci == 'true' && (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
-#        env:
-#            NX_BASE: ${{ needs.init.outputs.nx_base }}
-#        steps:
-#            - name: Checkout
-#              id: checkout
-#              if: matrix.framework != 'none'
-#              uses: actions/checkout@v4
-#              with:
-#                  fetch-depth: 1
-#
-#            - name: Fetch Refs
-#              if: matrix.framework != 'none'
-#              run: |
-#                  git fetch origin --depth 1 latest next
-#                  git fetch origin --depth 1 tag latest-success next-success
-#
-#            - name: Setup
-#              id: setup
-#              if: matrix.framework != 'none'
-#              uses: ./.github/actions/setup-nx
-#              with:
-#                  cache_mode: ro
-#                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-#
-#            - name: nx package:test
-#              id: package-test
-#              if: matrix.framework != 'none'
-#              run: yarn nx run-many -t test:package -p ${{ matrix.framework }}-package-tests --configuration=update
-#
-#            - name: Snapshot Branch
-#              if: matrix.framework != 'none'
-#              uses: ./.github/actions/snapshot-branch
-#              with:
-#                  path: tests/*-package-tests/e2e/*-snapshots/
-#                  source_branch: ${{ github.head_ref || 'latest' }}
-#                  branch: ${{ needs.init.outputs.snapshot_branch }}
-#                  type: ${{ matrix.framework }}-package-tests:test:package
+            - name: Restore Init Build Outputs
+              uses: actions/download-artifact@v4
+              with:
+                  name: e2e-init-outputs
 
-#    bundle_tests:
-#        runs-on: ubuntu-24.04
-#        name: Bundle Tests
-#        permissions:
-#            contents: write
-#        needs: [detect-changes, init]
-#        if: needs.detect-changes.outputs.run_full_ci == 'true'
-#        env:
-#            NX_BASE: ${{ needs.init.outputs.nx_base }}
-#        steps:
-#            - name: Checkout
-#              uses: actions/checkout@v4
-#              with:
-#                  fetch-depth: 1
-#
-#            - name: Fetch Refs
-#              run: |
-#                  git fetch origin --depth 1 latest next
-#                  git fetch origin --depth 1 tag latest-success next-success
-#
-#            - name: Setup
-#              id: setup
-#              uses: ./.github/actions/setup-nx
-#              with:
-#                  cache_mode: ro
-#                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
-#
-#            - name: nx test:bundle-treeshake
-#              id: treeshake
-#              run: yarn nx run bundle-treeshake-tests:test:bundle-treeshake
-#
-#            - name: nx test:bundle-render
-#              id: render
-#              run: yarn nx run bundle-render-tests:test:bundle-render
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  yarn_postinstall: no-install
+                  nx_restore: false # Restored in previous step.
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
 
-#    report:
-#        runs-on: ubuntu-24.04
-#        permissions:
-#            contents: write
-#            pull-requests: write
-#        needs:
-#            [
-#                detect-changes,
-#                init,
-#                lint,
-#                generate,
-#                build,
-#                validate,
-#                website_build,
-#                test,
-#                e2e,
-#                sonarqube,
-#                fw_pkg_test,
-#                bundle_tests,
-#            ]
-#        if: cancelled() != true
-#        steps:
-#            - name: Checkout
-#              id: checkout
-#              uses: actions/checkout@v4
-#              with:
-#                  fetch-depth: 1
-#
-#            - name: Fetch Refs
-#              run: |
-#                  git fetch origin --depth 1 latest next
-#                  git fetch origin --depth 1 tag latest-success
-#
-#            - uses: actions/download-artifact@v4
-#              with:
-#                  path: test-results/
-#
-#            - name: Snapshot Notify
-#              id: snapshot-notify
-#              uses: ./.github/actions/snapshot-notify
-#              with:
-#                  branch: ${{ needs.init.outputs.snapshot_branch }}
-#                  run_started_at: ${{ github.run_started_at }}
-#                  github_token: ${{ secrets.GITHUB_TOKEN }}
-#                  slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
-#
-#            - name: Merge JUnit Report XMLs
-#              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped'
-#              continue-on-error: true
-#              run: |
-#                  yarn global add junit-report-merger
-#                  reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
-#                  mkdir -p reports/
-#                  echo "$reports" | (while read name ; do
-#                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
-#                  done)
-#
-#            - name: Test Report
-#              uses: dorny/test-reporter@v1
-#              if: needs.test.result == 'success' || needs.test.result == 'failure'
-#              id: testReport
-#              continue-on-error: true
-#              with:
-#                  name: 'Tests Results'
-#                  path: reports/*.xml
-#                  reporter: jest-junit
-#
-#            - name: Check last job status
-#              id: lastJobStatus
-#              if: always()
-#              run: |
-#                  WORKFLOW_STATUS="success"
-#                  if [[ "${{steps.snapshot-notify.outputs.updated}}" == 'true' ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [[ "${{ needs.lint.result }}" == "failure" ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [[ "${{ needs.generate.result }}" == "failure" ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [[ "${{ needs.build.result }}" == "failure" ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [[ "${{ needs.validate.result }}" == "failure" ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [[ "${{ needs.website_build.result }}" == "failure" ]] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [ "${{ needs.init.result }}" == "failure" ] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [ "${{ needs.test.result }}" == "failure" ] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
-#                    WORKFLOW_STATUS="failure"
-#                  elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
-#                    WORKFLOW_STATUS="partial"
-#                  fi
-#                  echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
-#
-#                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
-#                  if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
-#                    # Handle re-run cases - there is no way to query the previous run status, so we assume the most
-#                    # common scenario will be re-run after failure.
-#                    LAST_WORKFLOW_STATUS="failure"
-#                  fi
-#                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
-#                    echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
-#                    echo "changedState=true" >> $GITHUB_OUTPUT
-#                  else
-#                    echo "status is still $WORKFLOW_STATUS"
-#                    echo "changedState=false" >> $GITHUB_OUTPUT
-#                  fi
-#              env:
-#                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#
-#            - name: Commit History
-#              id: commits
-#              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
-#              run: |
-#                  GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
-#                  echo "GIT_LOG<<EOF" >> $GITHUB_ENV
-#                  echo "$GIT_LOG" >> $GITHUB_ENV
-#                  echo "EOF" >> $GITHUB_ENV
-#
-#            - name: Tag Latest Successful Commit
-#              if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
-#              uses: EndBug/latest-tag@latest
-#              with:
-#                  ref: ${{ github.ref_name }}-success
-#                  description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
-#
-#            - name: Slack Notification
-#              uses: rtCamp/action-slack-notify@v2
-#              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
-#              env:
-#                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-#                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
-#                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
-#                  SLACK_USERNAME: ag-charts CI
-#                  SLACK_FOOTER: ''
-#                  SLACK_MESSAGE: >
-#                      ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && steps.lastJobStatus.outputs.workflowStatus != 'partial' && '✅ CI workflow completed successfully' || '❌ CI workflow failed:' }}
-#                      ${{ needs.init.result == 'failure' && '- ❌ Init' || '' }}
-#                      ${{ needs.lint.outputs.lint == 'failure' && '- ❌ Lint' || '' }}
-#                      ${{ needs.lint.outputs.format == 'failure' && '- ❌ Format' || '' }}
-#                      ${{ needs.generate.outputs.generate == 'failure' && '- ❌ Generate' || '' }}
-#                      ${{ needs.build.outputs.build == 'failure' && '- ❌ Build' || '' }}
-#                      ${{ needs.validate.outputs.validate == 'failure' && '- ❌ Validate' || '' }}
-#                      ${{ needs.website_build.outputs.build == 'failure' && '- ❌ Website' || '' }}
-#                      ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
-#                      ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
-#                      ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
-#                      ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
-#
-#                      *Changes:*
-#
-#                      ${{ env.GIT_LOG }}
-#
-#            - name: Fail job if workflow failed
-#              if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
-#              run: |
-#                  echo "Workflow failed, failing the build."
-#                  exit 1
+            - name: nx test:e2e
+              id: test
+              run: |
+                  cd packages/ag-charts-website/
 
-#    sonarqube:
-#        runs-on: ubuntu-24.04
-#        steps:
-#            - uses: actions/checkout@v4
-#              with:
-#                  # Disabling shallow clones is recommended for improving the relevancy of reporting
-#                  fetch-depth: 0
-#
-#            - name: SonarQube Scan
-#              uses: sonarsource/sonarqube-scan-action@master
-#              with:
-#                  args: >
-#                      -Dsonar.qualitygate.wait=true
-#              env:
-#                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
-#                  SONAR_HOST_URL: https://sonarcloud.io
+                  ./playwright.sh --host test -u changed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+              timeout-minutes: 15
+
+            - name: Snapshot Branch
+              uses: ./.github/actions/snapshot-branch
+              with:
+                  path: packages/ag-charts-website/e2e/
+                  source_branch: ${{ github.head_ref || 'latest' }}
+                  branch: ${{ needs.init.outputs.snapshot_branch }}
+                  type: test:e2e (shard ${{matrix.shard}})
+
+            - name: Persist test results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-results-e2e-shard-${{matrix.shard}}
+                  path: |
+                      reports/
+
+    fw_pkg_test:
+        runs-on: ubuntu-24.04
+        name: Framework Package Tests (${{ matrix.framework }})
+        permissions:
+            contents: write
+        needs: [detect-changes, init]
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
+        env:
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+        steps:
+            - name: Checkout
+              id: checkout
+              if: matrix.framework != 'none'
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              if: matrix.framework != 'none'
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              if: matrix.framework != 'none'
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx package:test
+              id: package-test
+              if: matrix.framework != 'none'
+              run: yarn nx run-many -t test:package -p ${{ matrix.framework }}-package-tests --configuration=update
+
+            - name: Snapshot Branch
+              if: matrix.framework != 'none'
+              uses: ./.github/actions/snapshot-branch
+              with:
+                  path: tests/*-package-tests/e2e/*-snapshots/
+                  source_branch: ${{ github.head_ref || 'latest' }}
+                  branch: ${{ needs.init.outputs.snapshot_branch }}
+                  type: ${{ matrix.framework }}-package-tests:test:package
+
+    bundle_tests:
+        runs-on: ubuntu-24.04
+        name: Bundle Tests
+        permissions:
+            contents: write
+        needs: [detect-changes, init]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
+        env:
+            NX_BASE: ${{ needs.init.outputs.nx_base }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success next-success
+
+            - name: Setup
+              id: setup
+              uses: ./.github/actions/setup-nx
+              with:
+                  cache_mode: ro
+                  base_ref: ${{ github.event.pull_request.base.ref || github.event.base_ref }}
+
+            - name: nx test:bundle-treeshake
+              id: treeshake
+              run: yarn nx run bundle-treeshake-tests:test:bundle-treeshake
+
+            - name: nx test:bundle-render
+              id: render
+              run: yarn nx run bundle-render-tests:test:bundle-render
+
+    report:
+        runs-on: ubuntu-24.04
+        permissions:
+            contents: write
+            pull-requests: write
+        needs:
+            [
+                detect-changes,
+                init,
+                lint,
+                generate,
+                build,
+                validate,
+                website_build,
+                test,
+                e2e,
+                sonarqube,
+                fw_pkg_test,
+                bundle_tests,
+            ]
+        if: cancelled() != true
+        steps:
+            - name: Checkout
+              id: checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 1
+
+            - name: Fetch Refs
+              run: |
+                  git fetch origin --depth 1 latest next
+                  git fetch origin --depth 1 tag latest-success
+
+            - uses: actions/download-artifact@v4
+              with:
+                  path: test-results/
+
+            - name: Snapshot Notify
+              id: snapshot-notify
+              uses: ./.github/actions/snapshot-notify
+              with:
+                  branch: ${{ needs.init.outputs.snapshot_branch }}
+                  run_started_at: ${{ github.run_started_at }}
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  slack_webhook: ${{ secrets.SLACK_WEBHOOK }}
+
+            - name: Merge JUnit Report XMLs
+              if: needs.test.result != 'skipped' || needs.e2e.result != 'skipped'
+              continue-on-error: true
+              run: |
+                  yarn global add junit-report-merger
+                  reports=$(find test-results/ -name \*.xml -type f -exec basename \{\} \; | sort | uniq)
+                  mkdir -p reports/
+                  echo "$reports" | (while read name ; do
+                    yarn exec -s jrm reports/${name} "test-results/**/${name}"
+                  done)
+
+            - name: Test Report
+              uses: dorny/test-reporter@v1
+              if: needs.test.result == 'success' || needs.test.result == 'failure'
+              id: testReport
+              continue-on-error: true
+              with:
+                  name: 'Tests Results'
+                  path: reports/*.xml
+                  reporter: jest-junit
+
+            - name: Check last job status
+              id: lastJobStatus
+              if: always()
+              run: |
+                  WORKFLOW_STATUS="success"
+                  if [[ "${{steps.snapshot-notify.outputs.updated}}" == 'true' ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.lint.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.generate.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.build.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.validate.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [[ "${{ needs.website_build.result }}" == "failure" ]] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.init.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.test.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="partial"
+                  fi
+                  echo "workflowStatus=${WORKFLOW_STATUS}" >> $GITHUB_OUTPUT
+
+                  LAST_WORKFLOW_STATUS=$(gh run list --workflow .github/workflows/ci.yml -b ${{ github.ref_name }} | grep -oh "completed.*" | grep -v "cancelled" | head -1 | awk '{print $2}')
+                  if [ "$GITHUB_RUN_ATTEMPT" -ge 2 ]; then
+                    # Handle re-run cases - there is no way to query the previous run status, so we assume the most
+                    # common scenario will be re-run after failure.
+                    LAST_WORKFLOW_STATUS="failure"
+                  fi
+                  if [ "$LAST_WORKFLOW_STATUS" != "$WORKFLOW_STATUS" ]; then
+                    echo "status changed from $LAST_WORKFLOW_STATUS to $WORKFLOW_STATUS"
+                    echo "changedState=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "status is still $WORKFLOW_STATUS"
+                    echo "changedState=false" >> $GITHUB_OUTPUT
+                  fi
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Commit History
+              id: commits
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              run: |
+                  GIT_LOG=$(git log HEAD ^${{ needs.init.outputs.nx_base }} --format="%an (%h) %s")
+                  echo "GIT_LOG<<EOF" >> $GITHUB_ENV
+                  echo "$GIT_LOG" >> $GITHUB_ENV
+                  echo "EOF" >> $GITHUB_ENV
+
+            - name: Tag Latest Successful Commit
+              if: success() && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.workflowStatus != 'failure'
+              uses: EndBug/latest-tag@latest
+              with:
+                  ref: ${{ github.ref_name }}-success
+                  description: Latest commit to pass GitHub Actions workflow on ${{ github.ref_name }} branch.
+
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: always() && job.status != 'cancelled' && needs.init.result == 'success' && needs.init.outputs.build_type != 'pr' && steps.lastJobStatus.outputs.changedState == 'true'
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && 'success' || 'failure' }}
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_MESSAGE: >
+                      ${{ steps.lastJobStatus.outputs.workflowStatus != 'failure' && steps.lastJobStatus.outputs.workflowStatus != 'partial' && '✅ CI workflow completed successfully' || '❌ CI workflow failed:' }}
+                      ${{ needs.init.result == 'failure' && '- ❌ Init' || '' }}
+                      ${{ needs.lint.outputs.lint == 'failure' && '- ❌ Lint' || '' }}
+                      ${{ needs.lint.outputs.format == 'failure' && '- ❌ Format' || '' }}
+                      ${{ needs.generate.outputs.generate == 'failure' && '- ❌ Generate' || '' }}
+                      ${{ needs.build.outputs.build == 'failure' && '- ❌ Build' || '' }}
+                      ${{ needs.validate.outputs.validate == 'failure' && '- ❌ Validate' || '' }}
+                      ${{ needs.website_build.outputs.build == 'failure' && '- ❌ Website' || '' }}
+                      ${{ needs.test.result == 'failure' && '- ❌ Test' || '' }}
+                      ${{ needs.e2e.result == 'failure' && '- ❌ E2E' || '' }}
+                      ${{ needs.fw_pkg_test.result == 'failure' && '- ❌ FW Pkg' || '' }}
+                      ${{ needs.sonarqube.result == 'failure' && '- ❌ Sonar' || '' }}
+
+                      *Changes:*
+
+                      ${{ env.GIT_LOG }}
+
+            - name: Fail job if workflow failed
+              if: success() && steps.lastJobStatus.outputs.workflowStatus == 'failure'
+              run: |
+                  echo "Workflow failed, failing the build."
+                  exit 1
+
+    sonarqube:
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  # Disabling shallow clones is recommended for improving the relevancy of reporting
+                  fetch-depth: 0
+
+            - name: SonarQube Scan
+              uses: sonarsource/sonarqube-scan-action@master
+              with:
+                  args: >
+                      -Dsonar.qualitygate.wait=true
+              env:
+                  SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}
+                  SONAR_HOST_URL: https://sonarcloud.io

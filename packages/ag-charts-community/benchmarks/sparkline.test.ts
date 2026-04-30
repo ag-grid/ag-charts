@@ -1,13 +1,13 @@
-import { beforeEach, describe as benchDescribe } from 'vitest';
+import { beforeEach, describe as jestDescribe } from '@jest/globals';
 
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { benchmark, setupBenchmark } from './benchmark';
 import { isAtOrAfterVersion } from './compatibility';
 
-let describe: any = benchDescribe;
+let describe: any = jestDescribe;
 if (!isAtOrAfterVersion(11, 0, 0)) {
-    describe = benchDescribe.skip;
+    describe = jestDescribe.skip;
 }
 
 describe('sparkline benchmark', () => {

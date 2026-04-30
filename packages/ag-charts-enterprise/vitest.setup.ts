@@ -6,8 +6,6 @@ import { expect, vi } from 'vitest';
 
 import { mockCanvas, toMatchImage } from 'ag-charts-test';
 
-import { isAtOrAfterVersion } from './benchmarks/benchmark';
-
 // @ts-expect-error types don't exactly align
 globalThis.Canvas = mockCanvas.ConfiguredCanvas;
 
@@ -82,8 +80,8 @@ expect.extend({ toMatchImageSnapshot, toMatchImage });
 
 vi.mock('./src/license/licenseManager');
 
-// ModuleRegistry was introduced in pre-13.0.0
-if (isAtOrAfterVersion(12, 4, 0)) {
-    const { setupEnterpriseModules } = await import('./src/setup');
-    setupEnterpriseModules();
-}
+const { setupEnterpriseModules } = await import('./src/setup');
+setupEnterpriseModules();
+
+const { ModuleRegistry } = await import('ag-charts-core');
+ModuleRegistry.setRegistryMode(ModuleRegistry.RegistryMode.Enterprise);

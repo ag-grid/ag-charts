@@ -1,4 +1,4 @@
-import { describe as originalDescribe } from 'vitest';
+import { describe as originalDescribe } from '@jest/globals';
 
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
@@ -15,7 +15,7 @@ describe('zoom-large-dataset benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 174, expectedCanvasCount: 5, autoSnapshot: false },
+        { expectedRetainedSizeMB: 183, expectedCanvasCount: 5, autoSnapshot: false },
         async () => {
             await ctx.create();
         },

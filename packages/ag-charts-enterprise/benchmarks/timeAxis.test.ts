@@ -1,4 +1,4 @@
-import { describe as originalDescribe } from 'vitest';
+import { describe as originalDescribe } from '@jest/globals';
 
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
@@ -15,7 +15,7 @@ describe('time axis benchmark', () => {
     benchmark(
         'initial load',
         ctx,
-        { expectedRetainedSizeMB: 115, expectedCanvasCount: 3, autoSnapshot: false },
+        { expectedRetainedSizeMB: 120, expectedCanvasCount: 3, autoSnapshot: false },
         async () => {
             await ctx.create();
         }

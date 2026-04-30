@@ -1,4 +1,4 @@
-import { describe as originalDescribe } from 'vitest';
+import { describe as originalDescribe } from '@jest/globals';
 
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
