@@ -322,7 +322,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: this.properties.node.width,
             nodeMaxHeight: this.properties.node.maxHeight,
             nodeMaxWidth: this.properties.node.maxWidth,
-            expanderPillHeight: 24,
+            expanderPillHeight: this.properties.expander.height,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
@@ -478,6 +478,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
+            expander: { height: this.properties.expander.height },
         });
 
         if (itemStyler && dataModel && processedData && datumIndex != null) {

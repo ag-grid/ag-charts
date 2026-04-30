@@ -452,6 +452,49 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    EXPANDER_HEIGHT_SHORT: {
+        // Layout reserves the pill at the configured height; the `Math.max(height, content)` floor
+        // keeps the count text from clipping when the user under-specifies. Verifies all three
+        // `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink in step.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    expander: { height: 16 },
+                    node: {
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_HEIGHT_TALL: {
+        // Inverse of EXPANDER_HEIGHT_SHORT: a taller pill expands the parent–child gap and the
+        // count text remains vertically centred against the rendered pill height (not a constant).
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    expander: { height: 32 },
+                    node: {
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.

@@ -47,4 +47,5 @@ export type RequiredOrganizationNodeStyle = DeepRequired<AgOrganizationSeriesNod
     title: RequiredOrganizationNodeTextStyle;
     subtitle: RequiredOrganizationNodeTextStyle;
     labels: RequiredOrganizationNodeTextStyle[];
+    expander: { height: number };
 };

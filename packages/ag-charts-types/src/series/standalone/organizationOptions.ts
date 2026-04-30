@@ -41,11 +41,25 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     // outerSpacing?: PixelSize;
     verticalSpacing?: PixelSize;
 
+    expander?: AgOrganizationSeriesOptionsExpander;
+
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
+}
+
+export interface AgOrganizationSeriesOptionsExpander {
+    /**
+     * Outer height of the expander pill, in pixels. Increasing this value reserves additional
+     * vertical space between a parent node and its children to fit a larger pill; decreasing it
+     * pulls children closer. The pill grows beyond this value when its content (e.g. a wide
+     * descendant count) does not fit; layout always reserves at least this much space.
+     *
+     * Default: `24`
+     */
+    height?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>

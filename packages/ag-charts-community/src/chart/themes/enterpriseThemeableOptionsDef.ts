@@ -395,6 +395,7 @@ export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSe
     innerSpacing: defined,
     // outerSpacing: defined,
     verticalSpacing: defined,
+    expander: defined,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

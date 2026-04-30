@@ -6,6 +6,9 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         innerSpacing: 20,
         // outerSpacing: 40,
         verticalSpacing: 40,
+        expander: {
+            height: 24,
+        },
         link: {
             interpolation: {
                 type: 'step',

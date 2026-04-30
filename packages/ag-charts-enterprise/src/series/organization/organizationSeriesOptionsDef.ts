@@ -3,6 +3,7 @@ import {
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesOptions,
+    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesOptionsLink,
     type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
@@ -40,6 +41,10 @@ import {
 const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpolation> = {
     type: required(constant('step')),
     cornerRadius: positiveNumber,
+};
+
+const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
+    height: positiveNumberNonZero,
 };
 
 const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
@@ -115,6 +120,7 @@ export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptio
     ...commonSeriesOptionsDefs,
     ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
+    expander: expander,
     idKey: string,
     link: link,
     node: node,

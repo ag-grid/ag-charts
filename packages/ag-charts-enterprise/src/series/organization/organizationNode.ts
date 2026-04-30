@@ -259,14 +259,18 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.countNode.textAlign = 'left';
         applyTextStyles(this.countNode, styles.subtitle);
         this.countNode.x = 12;
-        this.countNode.y = 4;
 
-        const bbox = this.countNode.getBBox().clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+        const rawBBox = this.countNode.getBBox();
+        const grownBBox = rawBBox.clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+        // `expander.height` is the requested outer height; the pill grows beyond it if content
+        // (count text + padding) needs more room, preserving the legacy "no clipping" guarantee.
+        const pillHeight = Math.max(styles.expander.height, grownBBox.height);
+        this.countNode.y = (pillHeight - rawBBox.height) / 2;
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, bbox.width);
-        this.shapeNode.height = Math.max(24, bbox.height);
+        this.shapeNode.width = Math.max(48, grownBBox.width);
+        this.shapeNode.height = pillHeight;
 
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
