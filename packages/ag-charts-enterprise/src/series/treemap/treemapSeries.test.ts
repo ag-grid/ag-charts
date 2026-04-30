@@ -555,14 +555,15 @@ describe('TreemapSeries', () => {
         });
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const data = [
+                { name: 'A', valuation: 100, change: 3 },
+                { name: 'B', valuation: 80, change: null },
+                { name: 'C', valuation: 60 },
+                { name: 'D', valuation: 40, change: -4 },
+            ];
             const options: AgChartOptions = {
                 ...TREEMAP_BASE,
-                data: [
-                    { name: 'A', valuation: 100, change: 3 },
-                    { name: 'B', valuation: 80, change: null },
-                    { name: 'C', valuation: 60 },
-                    { name: 'D', valuation: 40, change: -4 },
-                ],
+                data,
                 series: [
                     {
                         type: 'treemap',
@@ -580,6 +581,16 @@ describe('TreemapSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+
+            const seriesImpl = chart.series[0] as TreemapSeries;
+            const missingIndices = data
+                .map((d, i) => (d.change == null ? [i] : null))
+                .filter((p): p is number[] => p != null);
+            const presentIndex = data.findIndex((d) => d.change != null);
+            for (const path of missingIndices) {
+                expect(seriesImpl.getTooltipContent(path)).toBeUndefined();
+            }
+            expect(seriesImpl.getTooltipContent([presentIndex])).toBeDefined();
         });
 
         it('should render with discrete named stops colorScale', async () => {

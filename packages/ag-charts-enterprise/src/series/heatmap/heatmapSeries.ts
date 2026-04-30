@@ -761,11 +761,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
+
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
+        // Reachable only when colorKey is null (missing-colour datums returned above).
         let fill: InternalAgColorType;
         if (colorValue == null) {
-            fill = properties.colorScale.missingDataFill ?? colorRange[0];
+            fill = colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
             const domain = dataModel.getDomain(this, `colorValue`, 'value', processedData).domain;

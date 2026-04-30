@@ -955,6 +955,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
                 if (colorScaleValid && datum.colorValue != null) {
                     stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                } else if (
+                    colorKey != null &&
+                    datum.colorValue == null &&
+                    this.properties.colorScale.missingDataFill != null
+                ) {
+                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
                 }
 
                 datum.style = this.getMarkerStyle(
@@ -1236,6 +1242,13 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
+
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            if (colorValue == null) {
+                return;
+            }
+        }
 
         const data: TooltipContentDataRow[] = [];
 

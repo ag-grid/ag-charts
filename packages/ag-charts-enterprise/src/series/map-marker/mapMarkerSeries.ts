@@ -1048,6 +1048,10 @@ export class MapMarkerSeries
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
+        if (colorKey != null && colorValue == null) {
+            return;
+        }
+
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {

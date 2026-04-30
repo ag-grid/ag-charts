@@ -432,7 +432,14 @@ describe('MapMarkerSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
             await compare();
+
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
+            const missingIndex = data.findIndex((datum: any) => missingNames.has(datum.name));
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+            const presentIndex = data.findIndex((datum: any) => !missingNames.has(datum.name));
+            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
         });
 
         it('should preserve missingDataFill on highlighted marker', async () => {

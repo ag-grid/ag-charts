@@ -1266,7 +1266,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private showTooltip(datum: PickedNode, canvasX: number, canvasY: number, pagination?: TooltipPaginationState) {
         const tooltipContent = this.getTooltipContent(datum, 'tooltip');
-        const shouldUpdateTooltip = tooltipContent != null;
+        const shouldUpdateTooltip = tooltipContent != null && tooltipContent.length > 0;
         if (shouldUpdateTooltip) {
             const { series } = datum;
             const meta = TooltipManager.makeTooltipMeta(

@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgChartOptions, AgCharts } from 'ag-charts-community';
+import { type AgChartOptions, AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
+    MIN_TOOLTIP_HIDE_DELAY,
     computeLegendBBox,
     deproxy,
     expectWarningsCalls,
@@ -15,6 +16,7 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
+import type { HeatmapSeries } from './heatmapSeries';
 
 describe('HeatmapSeries', () => {
     setupMockConsole();
@@ -735,15 +737,16 @@ describe('HeatmapSeries', () => {
         });
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const data: Array<{ year: string; person: string; spending?: number | null }> = [
+                { year: '2020', person: 'Florian', spending: 10 },
+                { year: '2020', person: 'Julian', spending: null },
+                { year: '2020', person: 'Martian' },
+                { year: '2021', person: 'Florian', spending: 20 },
+                { year: '2021', person: 'Julian', spending: 30 },
+                { year: '2021', person: 'Martian', spending: 40 },
+            ];
             const options = prepareEnterpriseTestOptions({
-                data: [
-                    { year: '2020', person: 'Florian', spending: 10 },
-                    { year: '2020', person: 'Julian', spending: null },
-                    { year: '2020', person: 'Martian' },
-                    { year: '2021', person: 'Florian', spending: 20 },
-                    { year: '2021', person: 'Julian', spending: 30 },
-                    { year: '2021', person: 'Martian', spending: 40 },
-                ],
+                data,
                 series: [
                     {
                         type: 'heatmap',
@@ -758,8 +761,138 @@ describe('HeatmapSeries', () => {
                 ],
             });
 
-            chart = AgCharts.create(options);
+            chart = deproxy(AgCharts.create(options));
             await compare();
+
+            const seriesImpl = chart.series[0] as HeatmapSeries;
+            const missingIndices = data.map((d, i) => (d.spending == null ? i : -1)).filter((i) => i >= 0);
+            const presentIndex = data.findIndex((d) => d.spending != null);
+            for (const i of missingIndices) {
+                expect(seriesImpl.getTooltipContent(i)).toBeUndefined();
+            }
+            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
+        });
+
+        // AG-16046 pt2 regression: previously, hovering a missing-data datum left the prior
+        // neighbour's tooltip stuck because seriesAreaManager.showTooltip skipped the dismissal
+        // path when the per-series tooltipContent array came back empty. This drives the chart
+        // through real hover events to exercise that pipeline end-to-end.
+        it('AG-16046: should dismiss tooltip when hovering a missing colorValue datum', async () => {
+            const data: Array<{ year: string; person: string; spending?: number | null }> = [
+                { year: '2020', person: 'Florian', spending: 10 },
+                { year: '2020', person: 'Julian', spending: null },
+                { year: '2021', person: 'Florian', spending: 30 },
+                { year: '2021', person: 'Julian', spending: 40 },
+            ];
+            const options = prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            missingDataFill: '#cccccc',
+                        },
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as HeatmapSeries;
+            const nodeData = seriesImpl.getNodeData()!;
+            const presentIndex = data.findIndex((d) => d.spending != null);
+            const missingIndex = data.findIndex((d) => d.spending == null);
+            const presentDatum = nodeData.find((n) => n.datumIndex === presentIndex)!;
+            const missingDatum = nodeData.find((n) => n.datumIndex === missingIndex)!;
+
+            const presentCanvas = _ModuleSupport.Transformable.toCanvasPoint(
+                seriesImpl.contentGroup,
+                presentDatum.point.x,
+                presentDatum.point.y
+            );
+            const missingCanvas = _ModuleSupport.Transformable.toCanvasPoint(
+                seriesImpl.contentGroup,
+                missingDatum.point.x,
+                missingDatum.point.y
+            );
+
+            await hoverAction(presentCanvas.x, presentCanvas.y)(chart);
+            await waitForChartStability(chart);
+            expect((chart as Chart).tooltip.isVisible()).toBe(true);
+
+            await hoverAction(missingCanvas.x, missingCanvas.y)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            expect((chart as Chart).tooltip.isVisible()).toBe(false);
+        });
+
+        // AG-16046 pt2 broadened semantic: when a series has tooltip.enabled = false, hovering
+        // it now also dismisses any prior tooltip via the same empty-content path.
+        it('AG-16046: should dismiss tooltip when hovering a series with tooltip disabled', async () => {
+            const data = [
+                { year: '2020', person: 'Florian', spending: 10 },
+                { year: '2020', person: 'Julian', spending: 20 },
+                { year: '2021', person: 'Florian', spending: 30 },
+                { year: '2021', person: 'Julian', spending: 40 },
+            ];
+            const options = prepareEnterpriseTestOptions({
+                data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                    },
+                ],
+            });
+
+            const proxy = AgCharts.create(options);
+            chart = deproxy(proxy);
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[0] as HeatmapSeries;
+            const nodeData = seriesImpl.getNodeData()!;
+            const firstDatum = nodeData.find((n) => n.datumIndex === 0)!;
+            const secondDatum = nodeData.find((n) => n.datumIndex === 1)!;
+            const firstCanvas = _ModuleSupport.Transformable.toCanvasPoint(
+                seriesImpl.contentGroup,
+                firstDatum.point.x,
+                firstDatum.point.y
+            );
+            const secondCanvas = _ModuleSupport.Transformable.toCanvasPoint(
+                seriesImpl.contentGroup,
+                secondDatum.point.x,
+                secondDatum.point.y
+            );
+
+            await hoverAction(firstCanvas.x, firstCanvas.y)(chart);
+            await waitForChartStability(chart);
+            expect((chart as Chart).tooltip.isVisible()).toBe(true);
+
+            await proxy.update(
+                prepareEnterpriseTestOptions({
+                    data,
+                    series: [
+                        {
+                            type: 'heatmap',
+                            xKey: 'year',
+                            yKey: 'person',
+                            colorKey: 'spending',
+                            tooltip: { enabled: false },
+                        },
+                    ],
+                })
+            );
+            await waitForChartStability(chart);
+
+            await hoverAction(secondCanvas.x, secondCanvas.y)(chart);
+            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            expect((chart as Chart).tooltip.isVisible()).toBe(false);
         });
 
         it('should allow itemStyler to override missingDataFill', async () => {

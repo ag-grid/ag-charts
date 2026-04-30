@@ -612,6 +612,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { datum, depth } = nodeDatum;
         if (datum == null || depth == null) return;
 
+        // Mirrors the rendering gate (`getDatumStyle`): sunburst applies missingDataFill at
+        // any depth when colorKey is missing, so suppress tooltip at any depth too.
+        if (colorKey != null && datum[colorKey] == null) {
+            return;
+        }
+
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         const datumSize = sizeKey == null ? undefined : datum[sizeKey];
