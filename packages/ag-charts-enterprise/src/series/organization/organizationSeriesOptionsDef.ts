@@ -19,6 +19,7 @@ import {
     callbackOf,
     commonSeriesOptionsDefs,
     constant,
+    fillCssOptionsDef,
     fillOptionsDef,
     fontOptionsDef,
     lineDashOptionsDef,
@@ -64,10 +65,18 @@ const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
 
 const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
     ...fontOptionsDef,
+    ...fillCssOptionsDef,
+    ...strokeOptionsDef,
+    cornerRadius: positiveNumber,
+    padding: positiveNumber,
     enabled: boolean,
     formatter: callbackOf(textOrSegments),
     itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
         ...fontOptionsDef,
+        ...fillCssOptionsDef,
+        ...strokeOptionsDef,
+        cornerRadius: positiveNumber,
+        padding: positiveNumber,
         enabled: boolean,
         overflowStrategy: overflowStrategy,
         spacing: number,

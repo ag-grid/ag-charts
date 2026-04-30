@@ -606,6 +606,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             spacing,
             textAlign,
             wrapping,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            cornerRadius,
+            padding,
         } = props;
         return {
             color,
@@ -618,6 +625,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             spacing,
             textAlign,
             wrapping,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            cornerRadius,
+            padding,
         };
     }
 

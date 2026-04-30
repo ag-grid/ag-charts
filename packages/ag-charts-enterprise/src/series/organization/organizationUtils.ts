@@ -35,3 +35,40 @@ export function applyTextStyles(
     node.textAlign = styles.textAlign;
     node.textBaseline = 'top';
 }
+
+export function applyTextBoxingStyles(
+    node: _ModuleSupport.Text,
+    styles: {
+        fill?: CssColor;
+        fillOpacity?: number;
+        stroke?: CssColor;
+        strokeWidth?: number;
+        strokeOpacity?: number;
+        cornerRadius?: number;
+        padding?: number;
+    }
+) {
+    const hasFill = styles.fill != null && styles.fill !== '';
+    const hasStroke = styles.stroke != null && styles.stroke !== '' && (styles.strokeWidth ?? 0) > 0;
+    const padding = styles.padding ?? 0;
+
+    if (!hasFill && !hasStroke && padding === 0) {
+        node.setBoxing({});
+        return;
+    }
+
+    node.setBoxing({
+        fill: hasFill ? styles.fill : undefined,
+        fillOpacity: styles.fillOpacity,
+        cornerRadius: styles.cornerRadius,
+        padding,
+        border: hasStroke
+            ? {
+                  enabled: true,
+                  stroke: styles.stroke,
+                  strokeWidth: styles.strokeWidth,
+                  strokeOpacity: styles.strokeOpacity,
+              }
+            : undefined,
+    });
+}
