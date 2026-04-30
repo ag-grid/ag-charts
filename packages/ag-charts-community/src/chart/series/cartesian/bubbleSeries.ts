@@ -956,6 +956,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
                 if (colorScaleValid && datum.colorValue != null) {
                     stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                } else if (
+                    colorKey != null &&
+                    datum.colorValue == null &&
+                    this.properties.colorScale.missingDataFill != null
+                ) {
+                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
                 }
 
                 datum.style = this.getMarkerStyle(
@@ -1237,6 +1243,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
+
+        // Suppress the tooltip only when the datum is rendered with `missingDataFill` —
+        // mirrors the rendering condition in `updateDatumStyles` so a `colorKey`-with-no-
+        // `missingDataFill` config still produces a tooltip for visible default-styled markers.
+        if (colorKey != null && this.properties.colorScale.missingDataFill != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            if (colorValue == null) {
+                return;
+            }
+        }
 
         const data: TooltipContentDataRow[] = [];
 

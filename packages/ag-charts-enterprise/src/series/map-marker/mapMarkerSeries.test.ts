@@ -11,6 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    assertTooltipSuppressedForMissing,
     clickAction,
     computeLegendBBox,
     deproxy,
@@ -432,7 +433,16 @@ describe('MapMarkerSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
             await compare();
+
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data,
+                (datum: any) => missingNames.has(datum.name),
+                (i) => i
+            );
         });
 
         it('should preserve missingDataFill on highlighted marker', async () => {
