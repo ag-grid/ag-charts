@@ -202,35 +202,16 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
-function createSegmentAlignmentExample(textAlign: TextAlign): any {
-    return {
-        ...SIMPLE_ORG_CHART,
-        series: [
-            {
-                type: 'organization',
-                idKey: 'id',
-                parentIdKey: 'parentId',
-                node: {
-                    title: {
-                        key: 'name',
-                        textAlign,
-                        formatter: ({ value }: { value: any }) => {
-                            const parts = String(value).split(' ');
-                            return [
-                                { text: parts[0] + ' ', color: 'red' },
-                                { text: parts.slice(1).join(' '), color: 'blue' },
-                            ];
-                        },
-                    },
-                    subtitle: { key: 'job', textAlign },
-                    labels: [{ key: 'location', textAlign }],
-                },
-            },
-        ],
-    };
-}
+const segmentTitleFormatter = ({ value }: { value: any }) => {
+    const parts = String(value).split(' ');
+    return [
+        { text: parts[0] + ' ', color: 'red' },
+        { text: parts.slice(1).join(' '), color: 'blue' },
+    ];
+};
 
-function createSegmentItemStylerAlignmentExample(textAlign: TextAlign): any {
+function createSegmentAlignmentExample(textAlign: TextAlign, mode: 'property' | 'itemStyler'): any {
+    const align = mode === 'property' ? { textAlign } : { itemStyler: () => ({ textAlign }) };
     return {
         ...SIMPLE_ORG_CHART,
         series: [
@@ -239,27 +220,9 @@ function createSegmentItemStylerAlignmentExample(textAlign: TextAlign): any {
                 idKey: 'id',
                 parentIdKey: 'parentId',
                 node: {
-                    title: {
-                        key: 'name',
-                        formatter: ({ value }: { value: any }) => {
-                            const parts = String(value).split(' ');
-                            return [
-                                { text: parts[0] + ' ', color: 'red' },
-                                { text: parts.slice(1).join(' '), color: 'blue' },
-                            ];
-                        },
-                        itemStyler: () => ({ textAlign }),
-                    },
-                    subtitle: {
-                        key: 'job',
-                        itemStyler: () => ({ textAlign }),
-                    },
-                    labels: [
-                        {
-                            key: 'location',
-                            itemStyler: () => ({ textAlign }),
-                        },
-                    ],
+                    title: { key: 'name', formatter: segmentTitleFormatter, ...align },
+                    subtitle: { key: 'job', ...align },
+                    labels: [{ key: 'location', ...align }],
                 },
             },
         ],
@@ -326,23 +289,23 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
-        options: createSegmentAlignmentExample('left'),
+        options: createSegmentAlignmentExample('left', 'property'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_RIGHT_ALIGNED: {
-        options: createSegmentAlignmentExample('right'),
+        options: createSegmentAlignmentExample('right', 'property'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_CENTER_ALIGNED: {
-        options: createSegmentAlignmentExample('center'),
+        options: createSegmentAlignmentExample('center', 'property'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
-        options: createSegmentItemStylerAlignmentExample('left'),
+        options: createSegmentAlignmentExample('left', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
-        options: createSegmentItemStylerAlignmentExample('right'),
+        options: createSegmentAlignmentExample('right', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };
