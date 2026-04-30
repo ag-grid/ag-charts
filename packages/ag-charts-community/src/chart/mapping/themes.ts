@@ -1,4 +1,5 @@
 import {
+    Debug,
     Logger,
     ModuleRegistry,
     type OptionsDefs,
@@ -87,6 +88,7 @@ export const themes: ThemeMap = {
 
 const chartThemeCache = new Map<unknown, ChartTheme>();
 let chartThemeCacheRevision = -1;
+const themeCacheDebug = Debug.create(true, 'perf');
 
 export const getChartTheme: typeof createChartTheme = (value) => {
     chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
@@ -94,8 +96,11 @@ export const getChartTheme: typeof createChartTheme = (value) => {
     });
     let theme = chartThemeCache.get(value);
     if (theme == null) {
+        themeCacheDebug('[CACHE] ChartTheme', 'miss', createChartTheme.name, [value]);
         theme = createChartTheme(value);
         chartThemeCache.set(value, theme);
+    } else {
+        themeCacheDebug('[CACHE] ChartTheme', 'hit', createChartTheme.name, [value]);
     }
     return theme;
 };
