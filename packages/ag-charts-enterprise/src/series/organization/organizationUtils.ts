@@ -35,3 +35,33 @@ export function applyTextStyles(
     node.textAlign = styles.textAlign;
     node.textBaseline = 'top';
 }
+
+export function applyTextBoxingStyles(
+    node: _ModuleSupport.Text,
+    styles: {
+        fill?: CssColor;
+        fillOpacity?: number;
+        stroke?: CssColor;
+        strokeWidth?: number;
+        strokeOpacity?: number;
+        cornerRadius?: number;
+        padding?: number;
+    }
+) {
+    const hasStroke = styles.stroke != null && (styles.strokeWidth ?? 0) > 0;
+
+    node.setBoxing({
+        fill: styles.fill,
+        fillOpacity: styles.fillOpacity,
+        cornerRadius: styles.cornerRadius,
+        padding: styles.padding ?? 0,
+        border: hasStroke
+            ? {
+                  enabled: true,
+                  stroke: styles.stroke,
+                  strokeWidth: styles.strokeWidth,
+                  strokeOpacity: styles.strokeOpacity,
+              }
+            : undefined,
+    });
+}

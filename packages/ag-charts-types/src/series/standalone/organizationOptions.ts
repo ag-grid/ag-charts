@@ -15,7 +15,14 @@ import type {
     TextAlign,
     TextWrap,
 } from '../../chart/types';
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
+import type {
+    FillCssOptions,
+    FillOptions,
+    FontOptions,
+    LineDashOptions,
+    StrokeOptions,
+    Toggleable,
+} from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -123,12 +130,16 @@ export interface AgOrganizationSeriesOptionsNodeLabel<TDatum = DatumDefault, TCo
     key: string;
 }
 
-export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, Toggleable {
+export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
     color?: CssColor;
     overflowStrategy?: OverflowStrategy;
     spacing?: number;
     textAlign?: TextAlign;
     wrapping?: TextWrap;
+    /** Corner radius of the backing box. Has no effect unless `fill` or `stroke` is set. */
+    cornerRadius?: PixelSize;
+    /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. */
+    padding?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {

@@ -27,6 +27,7 @@ import type {
     OrganizationLinkDatum,
     OrganizationVertex,
     RequiredOrganizationNodeStyle,
+    RequiredOrganizationNodeTextStyle,
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
@@ -592,32 +593,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    private getNodeTextDefaultStyle(
-        props: OrganizationSeriesNodeTextProperties
-    ): DeepRequired<AgOrganizationSeriesNodeTextStyle> {
-        const {
-            color,
-            enabled,
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            overflowStrategy,
-            spacing,
-            textAlign,
-            wrapping,
-        } = props;
+    private getNodeTextDefaultStyle(props: OrganizationSeriesNodeTextProperties): RequiredOrganizationNodeTextStyle {
         return {
-            color,
-            enabled,
-            fontFamily,
-            fontSize,
-            fontStyle,
-            fontWeight,
-            overflowStrategy,
-            spacing,
-            textAlign,
-            wrapping,
+            color: props.color,
+            enabled: props.enabled,
+            fontFamily: props.fontFamily,
+            fontSize: props.fontSize,
+            fontStyle: props.fontStyle,
+            fontWeight: props.fontWeight,
+            overflowStrategy: props.overflowStrategy,
+            spacing: props.spacing,
+            textAlign: props.textAlign,
+            wrapping: props.wrapping,
+            fill: props.fill,
+            fillOpacity: props.fillOpacity,
+            stroke: props.stroke,
+            strokeWidth: props.strokeWidth,
+            strokeOpacity: props.strokeOpacity,
+            cornerRadius: props.cornerRadius,
+            padding: props.padding,
         };
     }
 
@@ -625,7 +619,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         styler:
             | Styler<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>, AgOrganizationSeriesNodeTextStyle>
             | undefined,
-        style: DeepRequired<AgOrganizationSeriesNodeTextStyle>,
+        style: RequiredOrganizationNodeTextStyle,
         datumIdSuffix: string,
         dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
@@ -712,7 +706,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
-        style: Required<AgOrganizationSeriesNodeTextStyle>
+        style: RequiredOrganizationNodeTextStyle
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
 

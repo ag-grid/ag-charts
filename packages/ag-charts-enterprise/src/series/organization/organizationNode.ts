@@ -3,7 +3,7 @@ import type { Point } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
-import { applyFillStyles, applyStrokeStyles, applyTextStyles } from './organizationUtils';
+import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;
@@ -193,6 +193,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.titleNode.text = text;
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
+        applyTextBoxingStyles(this.titleNode, styles.title);
     }
 
     private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
@@ -205,6 +206,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
         this.subtitleNode.text = text;
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
+        applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
     }
 
     private updateLabelNodes(
@@ -226,6 +228,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
             this.labelNodes[index]!.text = labelText;
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
+            applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
             index++;
         }
     }

@@ -339,6 +339,96 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: createSegmentAlignmentExample('right', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    TEXT_TIER_BACKING_BOX: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            fill: '#fff1e5',
+                            stroke: '#006f9b',
+                            strokeWidth: 1,
+                            cornerRadius: 4,
+                            padding: 4,
+                        },
+                        subtitle: {
+                            key: 'job',
+                            fill: '#e0e8ff',
+                            cornerRadius: 8,
+                            padding: 6,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                stroke: '#999',
+                                strokeWidth: 1,
+                                cornerRadius: 2,
+                                padding: 2,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_VIA_ITEM_STYLER: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ datum }: { datum: any }) =>
+                                datum.job === 'Chief Executive Officer'
+                                    ? { fill: '#ffd700', cornerRadius: 12, padding: 6 }
+                                    : { fill: '#e0e8ff', cornerRadius: 4, padding: 4 },
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
+        // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
+        // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            stroke: '#006f9b',
+                            strokeWidth: 1,
+                            cornerRadius: 4,
+                            padding: 4,
+                            itemStyler: ({ datum }: { datum: any }) =>
+                                datum.job === 'Chief Executive Officer' ? { fill: '#ffd700' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
 };
 
 describe('OrganizationSeries', () => {
