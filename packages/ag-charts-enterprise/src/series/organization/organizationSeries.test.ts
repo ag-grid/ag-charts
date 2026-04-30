@@ -718,9 +718,9 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Root card (Alice Chen) sits centred across the top of the canvas. Hover its
-            // approximate centre to trigger the highlight pipeline through the public
-            // pointer event path.
+            // Root card (Alice Chen) sits centred across the top of the 800x600 mock
+            // canvas. Hover its approximate centre to trigger the highlight pipeline
+            // through the public pointer-event path.
             await hoverAction(400, 65)(chart);
             await compare();
         });
@@ -741,8 +741,9 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Drag upward by a large delta — far enough that without clipping the top row
-            // of cards would overlap the chart title.
+            // 800x600 mock canvas. Drag upward from below the centre to above it —
+            // far enough that without clipping the top row of cards would overlap the
+            // chart title.
             await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
 
             await compare();
