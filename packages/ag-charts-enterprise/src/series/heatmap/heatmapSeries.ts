@@ -754,13 +754,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<HeatmapSeriesT
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
         const colorValue =
-            colorKey != null && this.isColorScaleValid()
-                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-                : undefined;
+            colorKey == null
+                ? undefined
+                : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return;
 
+        // Per-datum suppression: only datums with a missing colour value are non-tooltip-bearing.
+        // Independent of `isColorScaleValid()` so an invalidly-configured scale doesn't take out
+        // tooltips for datums whose own data is fine.
         if (colorKey != null && colorValue == null) {
             return;
         }

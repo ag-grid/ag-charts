@@ -187,6 +187,39 @@ export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
 
+/**
+ * Assert that `series.getTooltipContent` returns `undefined` for every datum the predicate flags
+ * as missing, and a defined result for at least one non-missing datum. Consolidates the recurring
+ * `data.map(...).filter(i => i >= 0)` + per-index `expect` block used across colour-scale series
+ * tests.
+ *
+ * `indexFor` adapts the datum index to the series-specific shape: a plain number for cartesian /
+ * heatmap / map-marker, a path tuple for hierarchy series.
+ */
+export function assertTooltipSuppressedForMissing<T, K>(
+    series: { getTooltipContent(index: K): unknown },
+    data: readonly T[],
+    missingPredicate: (datum: T) => boolean,
+    indexFor: (i: number, datum: T) => K
+): void {
+    const missing: K[] = [];
+    let presentIndex = -1;
+    for (let i = 0; i < data.length; i++) {
+        const datum = data[i];
+        if (missingPredicate(datum)) {
+            missing.push(indexFor(i, datum));
+        } else if (presentIndex === -1) {
+            presentIndex = i;
+        }
+    }
+    expect(missing.length).toBeGreaterThan(0);
+    expect(presentIndex).toBeGreaterThanOrEqual(0);
+    for (const k of missing) {
+        expect(series.getTooltipContent(k)).toBeUndefined();
+    }
+    expect(series.getTooltipContent(indexFor(presentIndex, data[presentIndex]))).toBeDefined();
+}
+
 export function range(start: number, end: number, step = 1): number[] {
     const result = new Array(Math.floor((end - start) / step));
 

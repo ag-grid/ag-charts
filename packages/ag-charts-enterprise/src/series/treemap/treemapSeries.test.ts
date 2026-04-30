@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     TREEMAP_SERIES_LABELS,
+    assertTooltipSuppressedForMissing,
     clickAction,
     deproxy,
     extractImageData,
@@ -583,14 +584,12 @@ describe('TreemapSeries', () => {
             await compare();
 
             const seriesImpl = chart.series[0] as TreemapSeries;
-            const missingIndices = data
-                .map((d, i) => (d.change == null ? [i] : null))
-                .filter((p): p is number[] => p != null);
-            const presentIndex = data.findIndex((d) => d.change != null);
-            for (const path of missingIndices) {
-                expect(seriesImpl.getTooltipContent(path)).toBeUndefined();
-            }
-            expect(seriesImpl.getTooltipContent([presentIndex])).toBeDefined();
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data,
+                (d) => d.change == null,
+                (i) => [i]
+            );
         });
 
         it('should render with discrete named stops colorScale', async () => {

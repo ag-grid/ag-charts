@@ -14,6 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
+    assertTooltipSuppressedForMissing,
     clickAction,
     deproxy,
     extractImageData,
@@ -711,12 +712,12 @@ describe('SunburstSeries', () => {
 
             const seriesImpl = chart.series[0] as SunburstSeries;
             const americas = data.findIndex((d) => d.name === 'Americas');
-            const canada = data[americas].children.findIndex((c) => c.name === 'Canada');
-            const brazil = data[americas].children.findIndex((c) => c.name === 'Brazil');
-            const usa = data[americas].children.findIndex((c) => c.name === 'United States');
-            expect(seriesImpl.getTooltipContent([americas, canada])).toBeUndefined();
-            expect(seriesImpl.getTooltipContent([americas, brazil])).toBeUndefined();
-            expect(seriesImpl.getTooltipContent([americas, usa])).toBeDefined();
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data[americas].children,
+                (c: { change?: number | null }) => c.change == null,
+                (i) => [americas, i]
+            );
         });
     });
 

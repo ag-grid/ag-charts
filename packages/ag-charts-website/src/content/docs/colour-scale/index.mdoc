@@ -224,7 +224,7 @@ Set `colorScale.missingDataFill` to use one placeholder colour across all of the
 -   Datums without a `temperature` value are rendered in `#e0e0e0`.
 -   On Map Lines, the value is applied as the stroke.
 -   On Map Shapes and Map Lines, setting `missingDataFill` also makes these datums respond to hover, since they are no longer skipped.
--   Across all colour-scale series, hovering a missing-data datum dismisses any neighbour's tooltip without showing one of its own.
+-   When `missingDataFill` is set, hovering a missing-data datum dismisses any prior tooltip rather than showing one of its own.
 
 ## Legend Type
 

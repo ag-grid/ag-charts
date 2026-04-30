@@ -6,7 +6,13 @@ import {
     AgCharts,
     type AgScatterSeriesOptions,
 } from 'ag-charts-community';
-import { deproxy, setupMockCanvas, setupMockConsole, waitForChartStability } from 'ag-charts-community-test';
+import {
+    assertTooltipSuppressedForMissing,
+    deproxy,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from './utils';
 
@@ -14,19 +20,54 @@ interface ColorScaleSeriesLike {
     getTooltipContent(datumIndex: number): unknown;
 }
 
-const colorScale = {
-    fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
-    missingDataFill: '#cccccc',
+const fills = [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }];
+
+const data: Array<{ x: number; y: number; size: number; intensity?: number | null }> = [
+    { x: 1, y: 1, size: 5, intensity: 10 },
+    { x: 2, y: 2, size: 5, intensity: null },
+    { x: 3, y: 3, size: 5 },
+    { x: 4, y: 4, size: 5, intensity: 20 },
+];
+
+const seriesBaseByType = {
+    bubble: { type: 'bubble' as const, xKey: 'x', yKey: 'y', sizeKey: 'size', colorKey: 'intensity' },
+    scatter: { type: 'scatter' as const, xKey: 'x', yKey: 'y', colorKey: 'intensity' },
 };
 
-const cases: Array<{ name: string; series: AgBubbleSeriesOptions | AgScatterSeriesOptions }> = [
+interface SuppressionCase {
+    name: string;
+    seriesType: 'bubble' | 'scatter';
+    missingDataFill: string | undefined;
+    expectsSuppression: boolean;
+}
+
+// Suppression mirrors the rendering condition: only when `missingDataFill` is configured does the
+// missing-colorValue datum get a distinct fill, and only then is its tooltip suppressed. Without
+// `missingDataFill`, the marker keeps its default fill and is visibly normal — its tooltip stays.
+const cases: SuppressionCase[] = [
     {
-        name: 'BubbleSeries',
-        series: { type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 'size', colorKey: 'intensity', colorScale },
+        name: 'BubbleSeries with missingDataFill',
+        seriesType: 'bubble',
+        missingDataFill: '#cccccc',
+        expectsSuppression: true,
     },
     {
-        name: 'ScatterSeries',
-        series: { type: 'scatter', xKey: 'x', yKey: 'y', colorKey: 'intensity', colorScale },
+        name: 'ScatterSeries with missingDataFill',
+        seriesType: 'scatter',
+        missingDataFill: '#cccccc',
+        expectsSuppression: true,
+    },
+    {
+        name: 'BubbleSeries without missingDataFill',
+        seriesType: 'bubble',
+        missingDataFill: undefined,
+        expectsSuppression: false,
+    },
+    {
+        name: 'ScatterSeries without missingDataFill',
+        seriesType: 'scatter',
+        missingDataFill: undefined,
+        expectsSuppression: false,
     },
 ];
 
@@ -43,28 +84,34 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
     afterEach(() => {
         if (chart) {
             chart.destroy();
-            (chart as unknown) = undefined;
+            chart = undefined;
         }
     });
 
-    it.each(cases)('$name should suppress tooltips for datums with a missing colorValue', async ({ series }) => {
-        const data: Array<{ x: number; y: number; size: number; intensity?: number | null }> = [
-            { x: 1, y: 1, size: 5, intensity: 10 },
-            { x: 2, y: 2, size: 5, intensity: null },
-            { x: 3, y: 3, size: 5 },
-            { x: 4, y: 4, size: 5, intensity: 20 },
-        ];
+    it.each(cases)('$name', async ({ seriesType, missingDataFill, expectsSuppression }) => {
+        const series: AgBubbleSeriesOptions | AgScatterSeriesOptions = {
+            ...seriesBaseByType[seriesType],
+            colorScale: { fills, ...(missingDataFill != null && { missingDataFill }) },
+        };
         const options: AgChartOptions = prepareEnterpriseTestOptions({ data, series: [series] });
 
         chart = deproxy(AgCharts.create(options));
         await waitForChartStability(chart);
 
         const seriesImpl = chart.series[0] as ColorScaleSeriesLike;
-        const missingIndices = data.map((d, i) => (d.intensity == null ? i : -1)).filter((i) => i >= 0);
-        const presentIndex = data.findIndex((d) => d.intensity != null);
-        for (const i of missingIndices) {
-            expect(seriesImpl.getTooltipContent(i)).toBeUndefined();
+        if (expectsSuppression) {
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data,
+                (d) => d.intensity == null,
+                (i) => i
+            );
+        } else {
+            // Default-styled markers must remain tooltip-bearing even when colorValue is null.
+            const missingIndex = data.findIndex((d) => d.intensity == null);
+            const presentIndex = data.findIndex((d) => d.intensity != null);
+            expect(seriesImpl.getTooltipContent(missingIndex)).toBeDefined();
+            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
         }
-        expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
     });
 });

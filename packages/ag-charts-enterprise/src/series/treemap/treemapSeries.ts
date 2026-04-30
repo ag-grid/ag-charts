@@ -882,9 +882,10 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const isLeaf = children.length === 0;
 
-        // Mirrors the rendering gate (`getDatumStyle`): only leaves use missingDataFill,
-        // so only leaves are non-tooltip-bearing when colorKey is missing.
-        if (isLeaf && colorKey != null && datum[colorKey] == null) {
+        // Mirrors the rendering gate (`getDatumStyle`): only leaves use missingDataFill, and
+        // only when it's configured. Without `missingDataFill`, the leaf keeps its default fill
+        // and is visibly normal, so it should retain a tooltip.
+        if (isLeaf && colorKey != null && properties.colorScale.missingDataFill != null && datum[colorKey] == null) {
             return;
         }
 

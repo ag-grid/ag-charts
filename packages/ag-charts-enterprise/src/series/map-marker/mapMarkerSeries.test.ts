@@ -11,6 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    assertTooltipSuppressedForMissing,
     clickAction,
     computeLegendBBox,
     deproxy,
@@ -436,10 +437,12 @@ describe('MapMarkerSeries', () => {
             await compare();
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
-            const missingIndex = data.findIndex((datum: any) => missingNames.has(datum.name));
-            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
-            const presentIndex = data.findIndex((datum: any) => !missingNames.has(datum.name));
-            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data,
+                (datum: any) => missingNames.has(datum.name),
+                (i) => i
+            );
         });
 
         it('should preserve missingDataFill on highlighted marker', async () => {

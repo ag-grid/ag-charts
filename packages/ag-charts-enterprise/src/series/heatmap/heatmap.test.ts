@@ -5,6 +5,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    assertTooltipSuppressedForMissing,
     computeLegendBBox,
     deproxy,
     expectWarningsCalls,
@@ -17,6 +18,19 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import type { HeatmapSeries } from './heatmapSeries';
+
+// Drives a hover at the canvas point of the given datum index and waits for chart stability.
+// Resolves nodeData fresh on every call so it stays valid across `proxy.update(...)` rebuilds.
+async function hoverDatumByIndex(chart: Chart, seriesIndex: number, datumIndex: number, hideDelay?: number) {
+    const series = chart.series[seriesIndex] as HeatmapSeries;
+    const nodeData = series.getNodeData();
+    expect(nodeData).toBeDefined();
+    const datum = nodeData!.find((n) => n.datumIndex === datumIndex);
+    expect(datum).toBeDefined();
+    const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, datum!.point.x, datum!.point.y);
+    await hoverAction(x, y)(chart);
+    await waitForChartStability(chart, hideDelay);
+}
 
 describe('HeatmapSeries', () => {
     setupMockConsole();
@@ -765,12 +779,12 @@ describe('HeatmapSeries', () => {
             await compare();
 
             const seriesImpl = chart.series[0] as HeatmapSeries;
-            const missingIndices = data.map((d, i) => (d.spending == null ? i : -1)).filter((i) => i >= 0);
-            const presentIndex = data.findIndex((d) => d.spending != null);
-            for (const i of missingIndices) {
-                expect(seriesImpl.getTooltipContent(i)).toBeUndefined();
-            }
-            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
+            assertTooltipSuppressedForMissing(
+                seriesImpl,
+                data,
+                (d) => d.spending == null,
+                (i) => i
+            );
         });
 
         // AG-16046 pt2 regression: previously, hovering a missing-data datum left the prior
@@ -803,30 +817,13 @@ describe('HeatmapSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series[0] as HeatmapSeries;
-            const nodeData = seriesImpl.getNodeData()!;
             const presentIndex = data.findIndex((d) => d.spending != null);
             const missingIndex = data.findIndex((d) => d.spending == null);
-            const presentDatum = nodeData.find((n) => n.datumIndex === presentIndex)!;
-            const missingDatum = nodeData.find((n) => n.datumIndex === missingIndex)!;
 
-            const presentCanvas = _ModuleSupport.Transformable.toCanvasPoint(
-                seriesImpl.contentGroup,
-                presentDatum.point.x,
-                presentDatum.point.y
-            );
-            const missingCanvas = _ModuleSupport.Transformable.toCanvasPoint(
-                seriesImpl.contentGroup,
-                missingDatum.point.x,
-                missingDatum.point.y
-            );
-
-            await hoverAction(presentCanvas.x, presentCanvas.y)(chart);
-            await waitForChartStability(chart);
+            await hoverDatumByIndex(chart, 0, presentIndex);
             expect((chart as Chart).tooltip.isVisible()).toBe(true);
 
-            await hoverAction(missingCanvas.x, missingCanvas.y)(chart);
-            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            await hoverDatumByIndex(chart, 0, missingIndex, MIN_TOOLTIP_HIDE_DELAY);
             expect((chart as Chart).tooltip.isVisible()).toBe(false);
         });
 
@@ -855,17 +852,7 @@ describe('HeatmapSeries', () => {
             chart = deproxy(proxy);
             await waitForChartStability(chart);
 
-            const seriesImpl = chart.series[0] as HeatmapSeries;
-            const initialNodeData = seriesImpl.getNodeData()!;
-            const firstDatum = initialNodeData.find((n) => n.datumIndex === 0)!;
-            const firstCanvas = _ModuleSupport.Transformable.toCanvasPoint(
-                seriesImpl.contentGroup,
-                firstDatum.point.x,
-                firstDatum.point.y
-            );
-
-            await hoverAction(firstCanvas.x, firstCanvas.y)(chart);
-            await waitForChartStability(chart);
+            await hoverDatumByIndex(chart, 0, 0);
             expect((chart as Chart).tooltip.isVisible()).toBe(true);
 
             await proxy.update(
@@ -884,20 +871,10 @@ describe('HeatmapSeries', () => {
             );
             await waitForChartStability(chart);
 
-            // Re-resolve node data and canvas coordinates after the update — layout, scale
-            // domains and node identity may all have changed, so the pre-update points are no
-            // longer guaranteed to land on the second datum.
-            const updatedSeriesImpl = chart.series[0] as HeatmapSeries;
-            const updatedNodeData = updatedSeriesImpl.getNodeData()!;
-            const secondDatum = updatedNodeData.find((n) => n.datumIndex === 1)!;
-            const secondCanvas = _ModuleSupport.Transformable.toCanvasPoint(
-                updatedSeriesImpl.contentGroup,
-                secondDatum.point.x,
-                secondDatum.point.y
-            );
-
-            await hoverAction(secondCanvas.x, secondCanvas.y)(chart);
-            await waitForChartStability(chart, MIN_TOOLTIP_HIDE_DELAY);
+            // Re-resolve via the helper post-update — layout, scale domains and node identity
+            // may all have changed, so pre-update coordinates aren't guaranteed to land on the
+            // second datum.
+            await hoverDatumByIndex(chart, 0, 1, MIN_TOOLTIP_HIDE_DELAY);
             expect((chart as Chart).tooltip.isVisible()).toBe(false);
         });
 
