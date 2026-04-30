@@ -1,4 +1,5 @@
 import type {
+    AreExact,
     BoxBounds,
     ChartAnimationPhase,
     DomainWithMetadata,
@@ -1266,6 +1267,7 @@ export abstract class Series<
             checkForHighlight?: boolean;
             resolveMarkerSubPath?: string[];
             resolveStyler?: boolean;
+            hideWithSize0?: boolean;
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1277,9 +1279,17 @@ export abstract class Series<
             checkForHighlight = true,
             resolveMarkerSubPath = ['marker'],
             resolveStyler = false,
+            hideWithSize0 = false,
         } = opts ?? {};
         const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
         const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
+
+        if (hideWithSize0 && (selectionState === SelectionState.None || selectionState === SelectionState.Unselected)) {
+            type ActualComplement = Exclude<SelectionState, typeof selectionState>;
+            type ExpectedComplement = SelectionState.Selected;
+            true satisfies AreExact<ActualComplement, ExpectedComplement>;
+            return { size: 0 } satisfies AgSeriesMarkerStyle;
+        }
 
         if (resolveStyler) {
             const resolveOpt = { permissivePath: true };

@@ -1,5 +1,5 @@
 import type { Point, Scale, SizedPoint } from 'ag-charts-core';
-import { clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
+import { ChartAxisDirection, clamp, findRangeExtent, inverseEaseOut } from 'ag-charts-core';
 import type { AgDrawingMode, AgMarkerShape, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import { QUICK_TRANSITION } from '../../../motion/animation';
@@ -167,11 +167,11 @@ export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     return Transformable.toCanvas(series.contentGroup, new BBox(x, y, paddedSize, paddedSize));
 }
 
-export function markerEnabled(
+function markerEnabled(
     dataCount: number,
     scale: Scale<unknown, number, unknown>,
     marker: { enabled: boolean },
-    markerStyle: { enabled?: boolean } = marker
+    markerStyle: { enabled?: boolean }
 ) {
     const enabled = markerStyle.enabled ?? marker.enabled;
     if (!enabled) return false;
@@ -180,6 +180,30 @@ export function markerEnabled(
 
     const step = scale.step ?? findRangeExtent(scale.range) / Math.max(1, dataCount);
     return step > minSpacing;
+}
+
+type CartesianMarkerDrawMode = {
+    needsNodeData: boolean;
+    hideWithSize0: boolean;
+};
+export function cartesianMarkerDrawMode(
+    properties: { selection: { enabled: boolean } },
+    contextNodeData: { crossFiltering?: boolean } | undefined,
+    processedData: { input: { count: number } },
+    axes: { [ChartAxisDirection.X]?: { scale: Scale<unknown, number, unknown> } },
+    marker: { enabled: boolean },
+    markerStyle: { enabled?: boolean } = marker
+): CartesianMarkerDrawMode {
+    const markersEnabled =
+        contextNodeData?.crossFiltering === true ||
+        markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+
+    if (properties.selection.enabled) {
+        // selection.enabled needs NodeData for selected-style overrides to function.
+        return { needsNodeData: true, hideWithSize0: !markersEnabled };
+    } else {
+        return { needsNodeData: markersEnabled, hideWithSize0: false };
+    }
 }
 
 type SeriesStyler<TStylerParams, TStylerResult> = (params: TStylerParams) => TStylerResult;
