@@ -1080,7 +1080,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('Fallback text');
         });
 
@@ -1096,7 +1096,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('Series Y');
         });
 
@@ -1111,7 +1111,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('42');
         });
 
@@ -1127,7 +1127,7 @@ describe('Legend', () => {
 
             await hoverLegendItem();
 
-            expect(isTooltipVisible()).toBe(true);
+            expect(isTooltipVisible(chart)).toBe(true);
             expect(getTooltipText()).toContain('2026');
             expect(getTooltipText()).toContain('Jun');
         });
