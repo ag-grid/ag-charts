@@ -202,6 +202,70 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
+function createSegmentAlignmentExample(textAlign: TextAlign): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                node: {
+                    title: {
+                        key: 'name',
+                        textAlign,
+                        formatter: ({ value }: { value: any }) => {
+                            const parts = String(value).split(' ');
+                            return [
+                                { text: parts[0] + ' ', color: 'red' },
+                                { text: parts.slice(1).join(' '), color: 'blue' },
+                            ];
+                        },
+                    },
+                    subtitle: { key: 'job', textAlign },
+                    labels: [{ key: 'location', textAlign }],
+                },
+            },
+        ],
+    };
+}
+
+function createSegmentItemStylerAlignmentExample(textAlign: TextAlign): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                node: {
+                    title: {
+                        key: 'name',
+                        formatter: ({ value }: { value: any }) => {
+                            const parts = String(value).split(' ');
+                            return [
+                                { text: parts[0] + ' ', color: 'red' },
+                                { text: parts.slice(1).join(' '), color: 'blue' },
+                            ];
+                        },
+                        itemStyler: () => ({ textAlign }),
+                    },
+                    subtitle: {
+                        key: 'job',
+                        itemStyler: () => ({ textAlign }),
+                    },
+                    labels: [
+                        {
+                            key: 'location',
+                            itemStyler: () => ({ textAlign }),
+                        },
+                    ],
+                },
+            },
+        ],
+    };
+}
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
@@ -259,6 +323,26 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED: {
+        options: createSegmentAlignmentExample('left'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED: {
+        options: createSegmentAlignmentExample('right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED: {
+        options: createSegmentAlignmentExample('center'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentItemStylerAlignmentExample('left'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentItemStylerAlignmentExample('right'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
 };

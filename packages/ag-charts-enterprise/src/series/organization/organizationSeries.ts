@@ -218,7 +218,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         if (regularBBox) {
             node.updateBBox(regularBBox);
-            node.realign(this.properties.node, regularBBox);
+            node.realign(regularBBox);
         }
     }
 
