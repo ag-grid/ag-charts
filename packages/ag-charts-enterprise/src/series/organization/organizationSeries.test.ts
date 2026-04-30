@@ -401,6 +401,38 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
+        // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
+        // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            stroke: '#006f9b',
+                            strokeWidth: 1,
+                            cornerRadius: 4,
+                            padding: 4,
+                            itemStyler: ({ datum }: { datum: any }) =>
+                                datum.job === 'Chief Executive Officer' ? { fill: '#ffd700' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentItemStylerAlignmentExample('center'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
 };
 
 describe('OrganizationSeries', () => {

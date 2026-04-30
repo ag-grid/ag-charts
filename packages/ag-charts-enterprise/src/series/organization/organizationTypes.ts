@@ -1,5 +1,10 @@
 import type { DeepRequired } from 'ag-charts-core';
-import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, TextOrSegments } from 'ag-charts-types';
+import type {
+    AgOrganizationSeriesNodeStyle,
+    AgOrganizationSeriesNodeTextStyle,
+    CssColor,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 
@@ -27,10 +32,19 @@ export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, Orga
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;
 
-export type RequiredOrganizationNodeStyle = DeepRequired<
-    AgOrganizationSeriesNodeStyle & {
-        title: AgOrganizationSeriesNodeTextStyle;
-        subtitle: AgOrganizationSeriesNodeTextStyle;
-        labels: AgOrganizationSeriesNodeTextStyle[];
-    }
->;
+// `fill` and `stroke` for text tiers explicitly carry `undefined` rather than being
+// erased: unset means "no backing box", which the public contract surfaces to
+// itemStyler params as `fill: undefined` (instead of an empty-string sentinel).
+export type RequiredOrganizationNodeTextStyle = Omit<
+    DeepRequired<AgOrganizationSeriesNodeTextStyle>,
+    'fill' | 'stroke'
+> & {
+    fill: CssColor | undefined;
+    stroke: CssColor | undefined;
+};
+
+export type RequiredOrganizationNodeStyle = DeepRequired<AgOrganizationSeriesNodeStyle> & {
+    title: RequiredOrganizationNodeTextStyle;
+    subtitle: RequiredOrganizationNodeTextStyle;
+    labels: RequiredOrganizationNodeTextStyle[];
+};

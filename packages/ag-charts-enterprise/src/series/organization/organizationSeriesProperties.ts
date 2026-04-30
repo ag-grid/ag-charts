@@ -198,13 +198,13 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
     overflowStrategy: OverflowStrategy = 'ellipsis';
 
     @Property
-    fill: CssColor = '';
+    fill?: CssColor;
 
     @Property
     fillOpacity: number = 1;
 
     @Property
-    stroke: CssColor = '';
+    stroke?: CssColor;
 
     @Property
     strokeWidth: number = 0;

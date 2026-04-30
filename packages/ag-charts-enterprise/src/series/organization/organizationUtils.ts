@@ -48,20 +48,13 @@ export function applyTextBoxingStyles(
         padding?: number;
     }
 ) {
-    const hasFill = styles.fill != null && styles.fill !== '';
-    const hasStroke = styles.stroke != null && styles.stroke !== '' && (styles.strokeWidth ?? 0) > 0;
-    const padding = styles.padding ?? 0;
-
-    if (!hasFill && !hasStroke && padding === 0) {
-        node.setBoxing({});
-        return;
-    }
+    const hasStroke = styles.stroke != null && (styles.strokeWidth ?? 0) > 0;
 
     node.setBoxing({
-        fill: hasFill ? styles.fill : undefined,
+        fill: styles.fill,
         fillOpacity: styles.fillOpacity,
         cornerRadius: styles.cornerRadius,
-        padding,
+        padding: styles.padding ?? 0,
         border: hasStroke
             ? {
                   enabled: true,

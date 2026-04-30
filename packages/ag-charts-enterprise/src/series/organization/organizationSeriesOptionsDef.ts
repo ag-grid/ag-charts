@@ -63,31 +63,24 @@ const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
     spacing: positiveNumber,
 };
 
-const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
+const nodeTextStyleDef = {
     ...fontOptionsDef,
     ...fillCssOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: positiveNumber,
     padding: positiveNumber,
     enabled: boolean,
-    formatter: callbackOf(textOrSegments),
-    itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>({
-        ...fontOptionsDef,
-        ...fillCssOptionsDef,
-        ...strokeOptionsDef,
-        cornerRadius: positiveNumber,
-        padding: positiveNumber,
-        enabled: boolean,
-        overflowStrategy: overflowStrategy,
-        spacing: number,
-        textAlign: textAlign,
-        wrapping: textWrap,
-    }),
-    key: string,
     overflowStrategy: overflowStrategy,
     spacing: number,
     textAlign: textAlign,
     wrapping: textWrap,
+};
+
+const nodeText: OptionsDefs<AgOrganizationSeriesOptionsNodeTitle | AgOrganizationSeriesOptionsNodeSubtitle> = {
+    ...nodeTextStyleDef,
+    formatter: callbackOf(textOrSegments),
+    itemStyler: callbackDefs<AgOrganizationSeriesNodeTextStyle>(nodeTextStyleDef),
+    key: string,
 };
 
 const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {

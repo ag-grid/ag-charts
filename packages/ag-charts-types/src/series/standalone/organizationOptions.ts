@@ -136,9 +136,9 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
     spacing?: number;
     textAlign?: TextAlign;
     wrapping?: TextWrap;
-    /** Corner radius of the backing box. */
+    /** Corner radius of the backing box. Has no effect unless `fill` or `stroke` is set. */
     cornerRadius?: PixelSize;
-    /** Padding between the text and the backing box edge. */
+    /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. */
     padding?: PixelSize;
 }
 
