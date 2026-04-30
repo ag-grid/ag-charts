@@ -634,6 +634,76 @@ describe('HeatmapSeries', () => {
             // (treemap/sunburst whose datumIndex is a path array).
             expect(highlightManager.getActiveHighlight()).toBeUndefined();
         });
+
+        it('AG-16043: discrete-bin legend items render with the default cursor, not pointer', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: EXAMPLE_OPTIONS.data,
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                            mode: 'discrete' as const,
+                        },
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            // Discrete-bin items don't toggle and don't drive series highlight, so the
+            // pointer cursor would mislead users into expecting an interactive response.
+            const legendButtons = document.querySelectorAll<HTMLElement>('button.ag-charts-proxy-elem[role="switch"]');
+            expect(legendButtons.length).toBeGreaterThan(0);
+            for (const button of Array.from(legendButtons)) {
+                expect(button.style.cursor).toBe('default');
+            }
+        });
+
+        it('AG-16043: discrete-bin legend labels run through chart-level formatter.color', async () => {
+            const options = prepareEnterpriseTestOptions({
+                data: [
+                    { year: '2020', person: 'A', spending: 43384 },
+                    { year: '2020', person: 'B', spending: 250000 },
+                    { year: '2020', person: 'C', spending: 1500000 },
+                ],
+                formatter: {
+                    color: (p) => new Intl.NumberFormat('en', { notation: 'compact' }).format(p.value as number),
+                },
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'year',
+                        yKey: 'person',
+                        colorKey: 'spending',
+                        colorScale: {
+                            mode: 'discrete' as const,
+                            fills: [
+                                { color: '#fdd49e', stop: 150000 },
+                                { color: '#fdbb84', stop: 500000 },
+                                { color: '#e34a33', stop: 1000000 },
+                                { color: '#b30000' },
+                            ],
+                        },
+                    },
+                ],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const series = (chart as Chart).series[0];
+            const legendData = series.getLegendData('category') as { label: { text: string } }[];
+            const labels = legendData.map((d) => d.label.text);
+
+            // Compact-notation formatting should be applied to every bin boundary.
+            // Stops are 150000 / 500000 / 1000000; final bin runs to data max (1.5M).
+            expect(labels).toEqual(['43K–150K', '150K–500K', '500K–1M', '1M–1.5M']);
+        });
     });
 
     describe('null category key', () => {

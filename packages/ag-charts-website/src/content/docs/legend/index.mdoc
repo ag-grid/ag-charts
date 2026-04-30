@@ -198,64 +198,6 @@ It is possible to override this behaviour and set the `strokeWidth` and `length`
 }
 ```
 
-## Item Tooltip
-
-Legend items display a tooltip when hovering over items with truncated labels. Use `legend.item.tooltip` to customise this behaviour.
-
-{% chartExampleRunner title="Legend Item Tooltip" name="legend-item-tooltip" type="generated" /%}
-
-The `visible` property controls when the tooltip is shown:
-
--   `'auto'` (default) — shows the tooltip only when the label text is truncated.
--   `'always'` — shows the tooltip on every hover.
--   `'never'` — disables the tooltip entirely.
-
-```js format="snippet"
-{
-    legend: {
-        item: {
-            tooltip: {
-                visible: 'always',
-            },
-        },
-    },
-}
-```
-
-Use the `text` property to set static tooltip text for all items. When `text` is provided without an explicit `visible` value, the tooltip defaults to `'always'`.
-
-```js format="snippet"
-{
-    legend: {
-        item: {
-            tooltip: {
-                text: 'Click to toggle series visibility',
-            },
-        },
-    },
-}
-```
-
-For dynamic per-item content, use the `renderer` callback. This receives parameters including the item's `text`, `seriesId`, `itemId`, and `enabled` state.
-The renderer can return plain text or an HTML string.
-
-```js format="snippet"
-{
-    legend: {
-        item: {
-            tooltip: {
-                renderer: ({ text, enabled }) => {
-                    const status = enabled ? 'Visible' : 'Hidden';
-                    return `<b>${text}</b><br/><em>${status}</em>`;
-                },
-            },
-        },
-    },
-}
-```
-
-When both `text` and `renderer` are provided, the `renderer` takes precedence.
-
 ## Series Visibility Toggling
 
 {% chartExampleRunner title="Series Visibility Toggling" name="legend-click-series-toggle" type="generated" /%}

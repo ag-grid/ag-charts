@@ -24,6 +24,7 @@ import {
     isTextTruncated,
     objectsEqual,
     toPlainText,
+    toTextString,
     truncateLine,
 } from 'ag-charts-core';
 import type { AgChartLegendContextMenuEvent, AgMarkerShapeFn } from 'ag-charts-types';
@@ -1058,17 +1059,18 @@ export class Legend {
         if (visible === 'never') return undefined;
         if (visible === 'auto' && !isTruncated) return undefined;
 
-        // Content precedence: renderer > text > default label
+        // Content precedence: renderer > text > default label.
+        // A renderer returning '' suppresses the tooltip; returning undefined falls through to text/label.
         if (tooltipOpts?.renderer) {
             const params = {
                 seriesId: datum.seriesId,
                 itemId: datum.itemId ?? datum.id,
                 text: toPlainText(datum.label.text),
-                enabled: datum.enabled,
+                visible: datum.enabled,
             };
             const result = this.cachedCallWithContext(tooltipOpts.renderer, params);
-            if (result == null || result === '') return undefined;
-            return [{ type: 'raw', rawHtmlString: result }];
+            if (result === '') return undefined;
+            if (result != null) return [{ type: 'raw', rawHtmlString: toTextString(result) }];
         }
 
         if (tooltipOpts?.text != null) {

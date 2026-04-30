@@ -341,11 +341,6 @@
                         },
                         {
                             "type": "item",
-                            "title": "Titles",
-                            "path": "titles"
-                        },
-                        {
-                            "type": "item",
                             "title": "RTL Text & Layout",
                             "path": "rtl"
                         },

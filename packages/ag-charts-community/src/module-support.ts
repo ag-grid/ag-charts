@@ -126,6 +126,7 @@ export type {
     UngroupedData,
 } from './chart/data/dataModel';
 export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
+export type { DataSelectionState } from './chart/data/dataSelectionState';
 export {
     accumulativeValueProperty,
     animationValidation,
@@ -312,9 +313,11 @@ export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosit
 export {
     buildColorCategoryLegendData,
     buildGradientLegendDatum,
+    colorScaleLegendFormatterContext,
     type CategoryLegendDatum,
     type ChartLegendDatum,
     type ChartLegendType,
+    type ColorScaleLegendFormatterContext,
     type GradientLegendDatum,
     type GradientLegendNamedLabel,
 } from './chart/legend/legendDatum';

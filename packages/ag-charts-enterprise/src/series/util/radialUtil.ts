@@ -4,6 +4,7 @@ import type {
     AgRadialSeriesStyle,
     AgRadialSeriesStylerParams,
     HighlightState as HighlightStateString,
+    SelectionState as SelectionStateString,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -55,6 +56,7 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
         datumIndex?: number
     ): HighlightStateString;
     getSelectionStyle(datumIndex?: number): AgRadialSeriesStyle | undefined;
+    getSelectionStateString(datumIndex: number | undefined): SelectionStateString | undefined;
 }
 
 export function makeStylerParams(
@@ -137,17 +139,20 @@ export function makeItemStylerParams<D extends BaseNodeDatum, S extends RadialSe
 
     const activeHighlight = series.ctx.highlightManager?.getActiveHighlight();
     const highlightStateString = series.getHighlightStateString(activeHighlight, isHighlight, nodeDatum.datumIndex);
+    const selectionStateString = series.getSelectionStateString(nodeDatum.datumIndex);
     const fill = series.filterItemStylerFillParams(style.fill) ?? style.fill;
 
+    type ItemStylerParamRules = CallbackParamRules<AgRadialSeriesItemStylerParams<unknown, never>>;
     return {
         seriesId,
         datum: nodeDatum.datum,
         highlightState: highlightStateString,
+        selectionState: selectionStateString,
         angleKey,
         radiusKey,
         ...style,
         fill,
-    };
+    } satisfies ItemStylerParamRules;
 }
 
 export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeries<D>>(
@@ -162,8 +167,8 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
     const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex);
     const baseStyle = mergeDefaults(
-        highlightStyle,
         selectionStyle,
+        highlightStyle,
         getStyle(series, nodeDatum === undefined, highlightState)
     );
     let style = baseStyle;

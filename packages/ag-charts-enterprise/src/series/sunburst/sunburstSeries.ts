@@ -183,7 +183,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);
         const highlightStyles = this.getHierarchyHighlightStyles(highlightState, this.properties.highlight);
         const selectionState = this.getSelectionStyle(nodeDatum.datumIndex);
-        const baseStyle = mergeDefaults(highlightStyles, selectionState, properties.getStyle(rootIndex));
+        const baseStyle = mergeDefaults(selectionState, highlightStyles, properties.getStyle(rootIndex));
 
         if (nodeDatum.colorValue != null && highlightStyles?.fill == null) {
             baseStyle.fill = colorScale.convert(nodeDatum.colorValue);

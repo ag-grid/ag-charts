@@ -206,6 +206,46 @@ HTMLCollection [
 `);
         });
 
+        test('renderer returning undefined falls through to default no data overlay', async () => {
+            chart = await createChart({
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                overlays: {
+                    noData: { renderer: () => undefined },
+                },
+            });
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.innerText).toEqual('No data to display');
+        });
+
+        test('renderer returning a number is coerced to string content', async () => {
+            chart = await createChart({
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                overlays: {
+                    noData: { renderer: () => 42 },
+                },
+            });
+            // textContent is used here (not innerText) because JSDOM's innerText is unreliable
+            // for raw text nodes — see overlay.ts where a non-element renderer result is wrapped in tempDiv.
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.textContent).toEqual('42');
+        });
+
+        test('renderer returning a Date is coerced to string content', async () => {
+            chart = await createChart({
+                data: [],
+                series: [{ type: 'line', xKey: 'x', yKey: 'y1' }],
+                overlays: {
+                    // Mid-year noon UTC so the Date stringifies to the same calendar day in every timezone.
+                    noData: { renderer: () => new Date('2026-06-15T12:00:00Z') },
+                },
+            });
+            const overlayEl = chart.ctx.agDocument.body.querySelector('.ag-charts-overlay')?.firstChild as HTMLElement;
+            expect(overlayEl?.textContent).toContain('2026');
+            expect(overlayEl?.textContent).toContain('Jun');
+        });
+
         test('custom no data text with multiple html elements', async () => {
             chart = await createChart({
                 data: [],

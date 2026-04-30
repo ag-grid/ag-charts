@@ -349,8 +349,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
             : this.getGroupHighlightStyle(groupHighlightState);
         const selectionStyle = this.getSelectionStyle(nodeDatum.datumIndex);
         const baseStyle = mergeDefaults(
-            highlightStyle,
             selectionStyle,
+            highlightStyle,
             properties.getStyle(isLeaf, fills, strokes, index)
         );
 
