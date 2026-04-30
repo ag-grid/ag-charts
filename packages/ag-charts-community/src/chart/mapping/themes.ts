@@ -1,6 +1,6 @@
 import {
-    Debug,
     Logger,
+    ModuleRegistry,
     type OptionsDefs,
     arrayOf,
     boolean,
@@ -14,7 +14,6 @@ import {
     number,
     object,
     or,
-    simpleMemorize,
     string,
     union,
     validate,
@@ -44,32 +43,62 @@ import { VividLight } from '../themes/vividLight';
 type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
 type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
-const lightTheme = simpleMemorize(() => new ChartTheme());
+/**
+ * Each `ChartTheme` instance bakes in per-series-type / per-axis-type defaults derived from
+ * `ModuleRegistry.listModulesByType` at construction time. The result must be invalidated whenever
+ * the registry changes — e.g. when enterprise modules register after the first chart was created —
+ * otherwise subsequent charts see a stale `theme.config` missing the new types and throw during
+ * axis layout.
+ *
+ * `ModuleRegistry.ifRegistryChanged` returns the current registry revision and runs the supplied
+ * callback only when it differs from the caller's last-seen value, giving each cache an explicit,
+ * O(1) invalidation point.
+ */
+function memoizeByRegistry<T>(factory: () => T): () => T {
+    let cached: T | undefined;
+    let lastSeen = -1;
+    return () => {
+        lastSeen = ModuleRegistry.ifRegistryChanged(lastSeen, () => {
+            cached = factory();
+        });
+        return cached!;
+    };
+}
 
-const themeCacheDebug = Debug.create(true, 'perf');
-const cacheCallback = (status: 'hit' | 'miss', fn: Function, keys: any[]) => {
-    themeCacheDebug(`[CACHE] ChartTheme`, status, fn.name, keys);
-};
+const lightTheme = memoizeByRegistry(() => new ChartTheme());
 
 export const themes: ThemeMap = {
     // darkThemes,
-    'ag-default-dark': simpleMemorize(() => new DarkTheme()),
-    'ag-sheets-dark': simpleMemorize(() => new SheetsDark(), cacheCallback),
-    'ag-polychroma-dark': simpleMemorize(() => new PolychromaDark(), cacheCallback),
-    'ag-vivid-dark': simpleMemorize(() => new VividDark(), cacheCallback),
-    'ag-material-dark': simpleMemorize(() => new MaterialDark(), cacheCallback),
-    'ag-financial-dark': simpleMemorize(() => new FinancialDark(), cacheCallback),
+    'ag-default-dark': memoizeByRegistry(() => new DarkTheme()),
+    'ag-sheets-dark': memoizeByRegistry(() => new SheetsDark()),
+    'ag-polychroma-dark': memoizeByRegistry(() => new PolychromaDark()),
+    'ag-vivid-dark': memoizeByRegistry(() => new VividDark()),
+    'ag-material-dark': memoizeByRegistry(() => new MaterialDark()),
+    'ag-financial-dark': memoizeByRegistry(() => new FinancialDark()),
 
     // lightThemes,
     'ag-default': lightTheme,
-    'ag-sheets': simpleMemorize(() => new SheetsLight(), cacheCallback),
-    'ag-polychroma': simpleMemorize(() => new PolychromaLight(), cacheCallback),
-    'ag-vivid': simpleMemorize(() => new VividLight(), cacheCallback),
-    'ag-material': simpleMemorize(() => new MaterialLight(), cacheCallback),
-    'ag-financial': simpleMemorize(() => new FinancialLight(), cacheCallback),
+    'ag-sheets': memoizeByRegistry(() => new SheetsLight()),
+    'ag-polychroma': memoizeByRegistry(() => new PolychromaLight()),
+    'ag-vivid': memoizeByRegistry(() => new VividLight()),
+    'ag-material': memoizeByRegistry(() => new MaterialLight()),
+    'ag-financial': memoizeByRegistry(() => new FinancialLight()),
 };
 
-export const getChartTheme = simpleMemorize(createChartTheme, cacheCallback);
+const chartThemeCache = new Map<unknown, ChartTheme>();
+let chartThemeCacheRevision = -1;
+
+export const getChartTheme: typeof createChartTheme = (value) => {
+    chartThemeCacheRevision = ModuleRegistry.ifRegistryChanged(chartThemeCacheRevision, () => {
+        chartThemeCache.clear();
+    });
+    let theme = chartThemeCache.get(value);
+    if (theme == null) {
+        theme = createChartTheme(value);
+        chartThemeCache.set(value, theme);
+    }
+    return theme;
+};
 
 function createChartTheme(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {
