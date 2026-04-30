@@ -143,10 +143,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         if (titleNode) alignTextNode(titleNode, styles.title.textAlign);
         if (subtitleNode) alignTextNode(subtitleNode, styles.subtitle.textAlign);
 
-        styles.labels.forEach((labelStyles, i) => {
+        for (const [i, labelStyles] of styles.labels.entries()) {
             const labelNode = labelNodes?.[i];
             if (labelNode) alignTextNode(labelNode, labelStyles.textAlign);
-        });
+        }
     }
 
     expanderContainsPoint(point: Point) {
