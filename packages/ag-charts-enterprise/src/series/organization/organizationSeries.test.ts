@@ -304,6 +304,37 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: createSegmentAlignmentExample('left', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('center', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
+        // Confirms cached per-datum styles aren't shared between OrganizationNodes:
+        // each row gets a different alignment based on its job.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ datum }: { datum: any }) => {
+                                if (datum.job === 'Chief Executive Officer') return { textAlign: 'left' };
+                                if (datum.job === 'Chief Technology Officer') return { textAlign: 'center' };
+                                return { textAlign: 'right' };
+                            },
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
         options: createSegmentAlignmentExample('right', 'itemStyler'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
