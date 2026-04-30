@@ -10,6 +10,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    dragAction,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -691,6 +692,29 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: [] });
                 await compare();
             });
+        });
+    });
+
+    describe('series-area clipping', () => {
+        it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
+            // Regression test for AG-17233. Chart has a title which shrinks the series-area
+            // rect; a large upward drag would otherwise pull node cards into the title
+            // region. With clipping, nodes are cropped at the series-area boundary instead.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                title: { text: 'Organisation Chart', fontSize: 18 },
+                subtitle: { text: 'Reporting structure' },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Drag upward by a large delta — far enough that without clipping the top row
+            // of cards would overlap the chart title.
+            await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
+
+            await compare();
         });
     });
 

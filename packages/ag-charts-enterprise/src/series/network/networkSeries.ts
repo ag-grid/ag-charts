@@ -100,6 +100,9 @@ export abstract class AbstractNetworkSeries<
         super({
             moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            // Network series support drag-to-pan, so content can extend past the series-area
+            // bounds. Clipping prevents nodes/links overflowing into title/subtitle/footnote.
+            alwaysClip: true,
         });
 
         this.graph = this.createNetworkGraph();
