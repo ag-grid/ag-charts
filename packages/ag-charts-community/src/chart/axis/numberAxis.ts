@@ -34,8 +34,8 @@ export class NumberAxis<
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
         id: AxisID,
-        options: TOptions,
-        scale: LinearScale | LogScale = new LinearScale()
+        scale: LinearScale | LogScale = new LinearScale(),
+        options: TOptions
     ) {
         super(moduleCtx, id, scale, options);
     }

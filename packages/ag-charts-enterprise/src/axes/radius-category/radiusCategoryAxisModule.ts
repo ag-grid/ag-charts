@@ -1,9 +1,14 @@
 import { type AgRadiusCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedRadiusCategoryAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
 
-export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions> = {
+export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions, RadiusCategoryAxis> = {
     type: 'axis',
     name: 'radius-category',
     chartType: 'polar',
@@ -23,5 +28,5 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
-        new RadiusCategoryAxis(ctx, id, options as any),
+        new RadiusCategoryAxis(ctx, id, options as NormalisedRadiusCategoryAxisOptions),
 };

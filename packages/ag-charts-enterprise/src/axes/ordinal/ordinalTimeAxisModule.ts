@@ -1,9 +1,14 @@
 import { type AgOrdinalTimeAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedOrdinalTimeAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { OrdinalTimeAxis } from './ordinalTimeAxis';
 
-export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions> = {
+export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOptions, OrdinalTimeAxis> = {
     type: 'axis',
     name: 'ordinal-time',
     chartType: 'cartesian',
@@ -24,5 +29,5 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
-        new OrdinalTimeAxis(ctx, id, options as any),
+        new OrdinalTimeAxis(ctx, id, options as NormalisedOrdinalTimeAxisOptions),
 };

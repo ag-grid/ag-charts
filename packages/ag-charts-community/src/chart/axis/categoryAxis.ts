@@ -73,8 +73,8 @@ export class CategoryAxis<
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
         id: AxisID,
-        options: TOptions,
         scale: S = new CategoryScale<string | object>() as S,
+        options: TOptions,
         includeInvisibleDomains: boolean = true
     ) {
         super(moduleCtx, id, scale, options);

@@ -1,9 +1,14 @@
 import { type AgAngleCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedAngleCategoryAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { AngleCategoryAxis } from './angleCategoryAxis';
 
-export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions> = {
+export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions, AngleCategoryAxis> = {
     type: 'axis',
     name: 'angle-category',
     chartType: 'polar',
@@ -21,5 +26,5 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
-        new AngleCategoryAxis(ctx, id, options as any),
+        new AngleCategoryAxis(ctx, id, options as NormalisedAngleCategoryAxisOptions),
 };

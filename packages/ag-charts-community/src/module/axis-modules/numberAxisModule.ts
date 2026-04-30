@@ -1,4 +1,9 @@
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedNumberAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgNumberAxisOptions } from 'ag-charts-types';
 
 import { numberAxisOptionsDefs } from '../../chart/axesOptionsDefs';
@@ -8,7 +13,7 @@ import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/the
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
-export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
+export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberAxis> = {
     type: 'axis',
     name: 'number',
     chartType: 'cartesian',
@@ -24,5 +29,6 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions> = {
         commonAxisThemeTemplate
     ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new NumberAxis(ctx, id, options as any),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new NumberAxis(ctx, id, undefined, options as NormalisedNumberAxisOptions),
 };

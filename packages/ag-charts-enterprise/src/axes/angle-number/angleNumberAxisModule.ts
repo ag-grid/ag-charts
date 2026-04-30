@@ -1,9 +1,14 @@
 import { type AgAngleNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedAngleNumberAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { AngleNumberAxis } from './angleNumberAxis';
 
-export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions> = {
+export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOptions, AngleNumberAxis> = {
     type: 'axis',
     name: 'angle-number',
     chartType: 'polar',
@@ -20,5 +25,5 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
     ),
 
     create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
-        new AngleNumberAxis(ctx, id, options as any),
+        new AngleNumberAxis(ctx, id, options as NormalisedAngleNumberAxisOptions),
 };

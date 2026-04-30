@@ -1,4 +1,9 @@
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedNumberAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgLogAxisOptions } from 'ag-charts-types';
 
 import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
@@ -8,7 +13,7 @@ import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/the
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
-export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
+export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
     type: 'axis',
     name: 'log',
     chartType: 'cartesian',
@@ -25,5 +30,6 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
         commonAxisThemeTemplate
     ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new LogAxis(ctx, id, options as any),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new LogAxis(ctx, id, options as NormalisedNumberAxisOptions),
 };

@@ -71,7 +71,7 @@ export class LogAxis extends NumberAxis {
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedNumberAxisOptions) {
-        super(moduleCtx, id, options, new LogScale());
+        super(moduleCtx, id, new LogScale(), options);
         this.syncScaleBase();
     }
 

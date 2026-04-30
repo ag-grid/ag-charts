@@ -84,7 +84,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     }
 
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedGroupedCategoryAxisOptions) {
-        super(moduleCtx, id, options as any, new GroupedCategoryScale<GroupedCategoryKey>());
+        super(moduleCtx, id, new GroupedCategoryScale<GroupedCategoryKey>(), options as any);
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;

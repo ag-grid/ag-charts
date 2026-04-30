@@ -1,4 +1,9 @@
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedTimeAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgTimeAxisOptions } from 'ag-charts-types';
 
 import { timeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
@@ -12,7 +17,7 @@ import {
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
-export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
+export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> = {
     type: 'axis',
     name: 'time',
     chartType: 'cartesian',
@@ -29,5 +34,6 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions> = {
         commonAxisThemeTemplate
     ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new TimeAxis(ctx, id, options as any),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new TimeAxis(ctx, id, options as NormalisedTimeAxisOptions),
 };

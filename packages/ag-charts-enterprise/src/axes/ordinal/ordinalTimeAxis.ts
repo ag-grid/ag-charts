@@ -57,7 +57,7 @@ export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
         options: NormalisedOrdinalTimeAxisOptions
     ) {
         const accurateScale = new OrdinalTimeScale();
-        super(moduleCtx, id, options, accurateScale);
+        super(moduleCtx, id, accurateScale, options);
         this.accurateScale = accurateScale;
         this.approximateScale = new ApproximateOrdinalTimeScale();
 

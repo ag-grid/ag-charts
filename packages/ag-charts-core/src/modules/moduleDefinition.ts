@@ -106,12 +106,13 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<Modul
     processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
 }
 
-export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Axis, TOptions> {
+export interface AxisModuleDefinition<TOptions, TInstance extends ModuleInstance = ModuleInstance>
+    extends ModuleDefinition<ModuleType.Axis, TOptions, TInstance> {
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
 
-    create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): ModuleInstance;
+    create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): TInstance;
 }
 
 /** The post-theme-merge options shape passed to {@link AxisModuleDefinition.create}. */

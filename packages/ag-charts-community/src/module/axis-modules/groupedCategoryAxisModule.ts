@@ -1,4 +1,9 @@
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedGroupedCategoryAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgGroupedCategoryAxisOptions } from 'ag-charts-types';
 
 import { groupedCategoryAxisOptionsDefs } from '../../chart/axesOptionsDefs';
@@ -8,7 +13,7 @@ import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/the
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
-export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAxisOptions> = {
+export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAxisOptions, GroupedCategoryAxis> = {
     type: 'axis',
     name: 'grouped-category',
     chartType: 'cartesian',
@@ -28,5 +33,6 @@ export const GroupedCategoryAxisModule: AxisModuleDefinition<AgGroupedCategoryAx
         commonAxisThemeTemplate
     ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new GroupedCategoryAxis(ctx, id, options as any),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new GroupedCategoryAxis(ctx, id, options as NormalisedGroupedCategoryAxisOptions),
 };

@@ -2162,7 +2162,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
                 moduleContext,
                 id as AxisID,
                 axisOptions
-            ) as any;
+            ) as ChartAxis;
             this.applyAxisModules(axis, axisOptions);
 
             newAxes.push(axis);

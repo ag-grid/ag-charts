@@ -1,4 +1,9 @@
-import { type AxisModuleDefinition, type DynamicContext, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedUnitTimeAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgUnitTimeAxisOptions } from 'ag-charts-types';
 
 import { unitTimeAxisOptionsDefs } from '../../chart/axesOptionsDefs';
@@ -12,7 +17,7 @@ import {
 import { VERSION } from '../../version';
 import type { ChartRegistry } from '../moduleContext';
 
-export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
+export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, UnitTimeAxis> = {
     type: 'axis',
     name: 'unit-time',
     chartType: 'cartesian',
@@ -33,5 +38,6 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions> = {
         commonAxisThemeTemplate
     ),
 
-    create: (ctx: DynamicContext<ChartRegistry>, id, options) => new UnitTimeAxis(ctx, id, options as any),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new UnitTimeAxis(ctx, id, options as NormalisedUnitTimeAxisOptions),
 };
