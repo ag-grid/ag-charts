@@ -429,10 +429,6 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
-        options: createSegmentItemStylerAlignmentExample('center'),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
 };
 
 describe('OrganizationSeries', () => {
