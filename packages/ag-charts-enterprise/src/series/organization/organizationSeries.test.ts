@@ -401,6 +401,57 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
+        // when isCollapsed is true. Verifies the param is plumbed through and reflects the
+        // current collapsed state per node.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                            isCollapsed
+                                ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2, lineDash: [4, 2] }
+                                : undefined,
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
+        // text-tier itemStyler params, not just node-level.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                isCollapsed ? { color: '#ff7faa', fontStyle: 'italic' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.

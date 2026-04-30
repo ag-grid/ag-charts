@@ -174,6 +174,8 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeStyle {
     /** The depth of the data point within the organization. */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -182,6 +184,8 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeTextStyle {
     /** The depth of the data */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>

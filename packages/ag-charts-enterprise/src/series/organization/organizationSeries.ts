@@ -475,6 +475,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
         });
 
+        const isCollapsed =
+            dataModel != null && processedData != null && datumIndex != null
+                ? this.isDatumCollapsed(dataModel, processedData, datumIndex)
+                : false;
+
         if (itemStyler && dataModel && processedData && datumIndex != null) {
             const overrides = this.cachedDatumCallback(
                 _ModuleSupport.createDatumId(this.id, datumIndex, 'node'),
@@ -485,6 +490,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                         datumIndex,
                         depth,
                         highlightState,
+                        isCollapsed,
                         style
                     );
                     return this.ctx.optionsGraphService.resolvePartial(
@@ -507,7 +513,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             processedData,
             datumIndex,
             depth,
-            highlightState
+            highlightState,
+            isCollapsed
         );
         style.subtitle = this.getNodeTextItemStylerStyle(
             subtitleStyler,
@@ -517,7 +524,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             processedData,
             datumIndex,
             depth,
-            highlightState
+            highlightState,
+            isCollapsed
         );
 
         let labelIndex = 0;
@@ -530,12 +538,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 processedData,
                 datumIndex,
                 depth,
-                highlightState
+                highlightState,
+                isCollapsed
             );
             labelIndex++;
         }
 
         return style;
+    }
+
+    private isDatumCollapsed(
+        dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number
+    ): boolean {
+        const idValues = dataModel.resolveKeysById(this, 'idValue', processedData);
+        const itemId = idValues[datumIndex];
+        return itemId != null && this.ctx.collapsedManager.isCollapsed(String(itemId));
     }
 
     private getNodeDefaultStyle(): DeepRequired<AgOrganizationSeriesNodeStyle> {
@@ -625,7 +644,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         processedData: _ModuleSupport.ProcessedData<any> | undefined,
         datumIndex: number | undefined,
         depth: number,
-        highlightState: _ModuleSupport.HighlightState | undefined
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
     ) {
         if (!styler || !dataModel || !processedData || datumIndex == null) {
             return style;
@@ -640,6 +660,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                     datumIndex,
                     depth,
                     highlightState,
+                    isCollapsed,
                     style
                 );
                 return this.ctx.optionsGraphService.resolvePartial(
@@ -684,6 +705,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean,
         style: Required<AgOrganizationSeriesNodeStyle>
     ): AgOrganizationSeriesNodeItemStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -694,6 +716,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             ...style,
             datum,
             depth,
+            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
@@ -706,6 +729,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         datumIndex: number,
         depth: number,
         highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean,
         style: RequiredOrganizationNodeTextStyle
     ): AgOrganizationSeriesNodeTextStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -716,6 +740,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             ...style,
             datum,
             depth,
+            isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected',
