@@ -261,6 +261,11 @@ export abstract class DataModelSeries<
     protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
         if (datumIndex === undefined || !this.properties.selection.enabled) return undefined;
 
+        const selectionState = this.ctx.chartState.getValue('selectionState');
+        if (selectionState === undefined) return undefined;
+
+        if (selectionState.selectedCount === 0) return SelectionState.None;
+
         const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
         return isSelected ? SelectionState.Selected : SelectionState.Unselected;
     }

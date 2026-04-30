@@ -25,7 +25,7 @@ export type HighlightState =
     | 'unhighlighted-series'
     | 'none';
 
-export type SelectionState = 'selected' | 'unselected';
+export type SelectionState = 'none' | 'selected' | 'unselected';
 
 /**
  * Highlight states for hierarchical series (e.g., treemap, sunburst) that support
