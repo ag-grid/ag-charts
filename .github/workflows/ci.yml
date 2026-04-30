@@ -521,7 +521,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.init.outputs.test_pkg_matrix )}}
-#        if: needs.detect-changes.outputs.run_full_ci == 'true' && (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
+        if: needs.detect-changes.outputs.run_full_ci == 'true' && (needs.init.outputs.build_type == 'latest' || needs.init.outputs.build_type == 'release' || needs.init.outputs.pkg_tests_modified == 'true')
         env:
             NX_BASE: ${{ needs.init.outputs.nx_base }}
         steps:
