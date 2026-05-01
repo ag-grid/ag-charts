@@ -143,6 +143,25 @@ function syncAxisContext(axis: ChartAxis, opts: AgBaseAxisOptions): void {
 
 const MINI_CHART_AXIS_STRIPPED_KEYS = new Set(['thickness', 'title', 'crosshair', 'depthOptions']);
 
+// Mini-chart axes never inherit main-axis tick-density controls. Pre-refactor
+// this was achieved by post-construction `=` assignments that cleared the
+// fields; here we rebuild the interval object so these four keys come solely
+// from the user-supplied `navigator.miniChart.label.interval` (or stay
+// undefined). Other interval keys, e.g. category-axis `placement`, still
+// fall through from the main axis.
+const MINI_CHART_INTERVAL_DENSITY_KEYS = ['step', 'values', 'minSpacing', 'maxSpacing'] as const;
+
+function deriveMiniChartInterval(
+    intervalOverride: Record<string, unknown> | undefined,
+    sourceInterval: object | undefined
+): Record<string, unknown> {
+    const merged: Record<string, unknown> = { ...(sourceInterval as object), ...(intervalOverride ?? {}) };
+    for (const key of MINI_CHART_INTERVAL_DENSITY_KEYS) {
+        merged[key] = intervalOverride?.[key];
+    }
+    return merged;
+}
+
 function stripAxisOptionsForMiniChart(axisOptions: AgBaseAxisOptions): AgBaseAxisOptions {
     const source = axisOptions as Record<string, unknown>;
     const result: Record<string, unknown> = {};
@@ -191,7 +210,6 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
         // Mini-chart strips axis chrome: gridLines and ticks always off; line off
         // on the horizontal axis only (vertical axes keep their line as a frame).
         const lineOverride = isHorizontal ? { enabled: false } : undefined;
-        const intervalOverride = isHorizontal ? horizontalIntervalOverride : undefined;
         const parentLevelOverride =
             isHorizontal && TIME_LIKE_AXIS_TYPES.has(axisOptions.type ?? '') ? { enabled: false } : undefined;
         // Mini-chart never inherits axis thickness, title, crosshair, or
@@ -209,7 +227,12 @@ function deriveMiniChartOptions(completeOptions: AgChartOptions): AgChartOptions
             gridLine: mergeDefaults({ enabled: false }, axisOptions.gridLine),
             tick: mergeDefaults({ enabled: false }, axisOptions.tick),
             line: mergeDefaults(lineOverride, axisOptions.line),
-            interval: mergeDefaults(intervalOverride, axisOptions.interval),
+            interval: isHorizontal
+                ? deriveMiniChartInterval(
+                      horizontalIntervalOverride as Record<string, unknown> | undefined,
+                      axisOptions.interval
+                  )
+                : axisOptions.interval,
             title: { enabled: false },
         };
         if (parentLevelOverride != null) {
@@ -2082,7 +2105,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         if (matchingTypes) {
             for (const axis of chart.axes) {
                 const newOpts = axes[axis.id];
-                axis.options = newOpts as typeof axis.options;
+                axis.applyOptions(newOpts as typeof axis.options);
                 syncAxisContext(axis, newOpts);
                 this.applyAxisModules(axis, newOpts);
             }

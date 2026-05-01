@@ -127,6 +127,7 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     processData(): void;
     update(animated?: boolean): void;
+    applyOptions(options: TOptions): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
