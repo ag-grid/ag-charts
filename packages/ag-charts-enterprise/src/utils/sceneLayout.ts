@@ -18,12 +18,16 @@ export function layoutScenesRow(
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
-                alignSceneLeftEdge(scene_, x, layoutSetX);
+                // Correct each scene's bbox left edge before computeChildrenBBox measures the
+                // column width — backing-box padding extends the bbox past the anchor point, so
+                // width would be over-counted without this shift. Note: callers that apply a
+                // subsequent text-alignment pass (e.g. realign()) will overwrite x for rendering.
+                alignSceneLeftEdge(scene_, x);
             }
             x += _ModuleSupport.Group.computeChildrenBBox(scene).width + gap;
         } else {
             layoutSetX(scene, x);
-            alignSceneLeftEdge(scene, x, layoutSetX);
+            alignSceneLeftEdge(scene, x);
             x += scene.getBBox().width + gap;
         }
         index++;
@@ -43,12 +47,12 @@ export function layoutScenesColumn(
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetY(scene_, y);
-                alignSceneTopEdge(scene_, y, layoutSetY);
+                alignSceneTopEdge(scene_, y);
             }
             y += _ModuleSupport.Group.computeChildrenBBox(scene).height + gap;
         } else {
             layoutSetY(scene, y);
-            alignSceneTopEdge(scene, y, layoutSetY);
+            alignSceneTopEdge(scene, y);
             y += scene.getBBox().height + gap;
         }
         index++;
@@ -58,15 +62,15 @@ export function layoutScenesColumn(
 // Position the scene so its bbox top sits at `targetY`. Text nodes with backing-box
 // padding return a bbox that extends `padding` above `scene.y` — without this shift,
 // a fixed `scene.y` would let the box overflow above its slot and shrink the gap to
-// the previous sibling. Generic over y/x via the layoutSetter callback.
-function alignSceneTopEdge(scene: PositionedScene, targetY: number, setter: (s: PositionedScene, v: number) => void) {
+// the previous sibling.
+function alignSceneTopEdge(scene: PositionedScene, targetY: number) {
     const overflow = targetY - scene.getBBox().y;
-    if (overflow !== 0) setter(scene, ('y1' in scene ? scene.y1 : scene.y) + overflow);
+    if (overflow !== 0) layoutSetY(scene, ('y1' in scene ? scene.y1 : scene.y) + overflow);
 }
 
-function alignSceneLeftEdge(scene: PositionedScene, targetX: number, setter: (s: PositionedScene, v: number) => void) {
+function alignSceneLeftEdge(scene: PositionedScene, targetX: number) {
     const overflow = targetX - scene.getBBox().x;
-    if (overflow !== 0) setter(scene, ('x1' in scene ? scene.x1 : scene.x) + overflow);
+    if (overflow !== 0) layoutSetX(scene, ('x1' in scene ? scene.x1 : scene.x) + overflow);
 }
 
 function layoutSetX(scene: PositionedScene, x: number) {
