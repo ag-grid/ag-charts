@@ -10,7 +10,9 @@ import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    dragAction,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     standaloneChartAssertions,
@@ -248,7 +250,8 @@ function createExpanderHeightExample(height: number): any {
 
 function createTextImageExample(
     textAlign: TextAlign,
-    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition
+    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
+    imageShape?: 'circle' | 'square'
 ): any {
     return {
         ...SIMPLE_ORG_CHART,
@@ -258,7 +261,11 @@ function createTextImageExample(
                 idKey: 'id',
                 parentIdKey: 'parentId',
                 node: {
-                    image: { position: imagePosition, key: 'avatar' },
+                    image: {
+                        position: imagePosition,
+                        key: 'avatar',
+                        ...(imageShape == null ? {} : { shape: imageShape }),
+                    },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
                     labels: [{ key: 'location', textAlign }],
@@ -299,6 +306,24 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
     },
     TEXT_CENTER_IMAGE_RIGHT: {
         options: createTextImageExample('center', 'right'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_TOP: {
+        // Verifies `shape: 'circle'` clips the image to a circle (width === height) when the
+        // image sits above the text tiers.
+        options: createTextImageExample('center', 'top', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_BOTTOM: {
+        options: createTextImageExample('left', 'bottom', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_LEFT: {
+        options: createTextImageExample('left', 'left', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_RIGHT: {
+        options: createTextImageExample('right', 'right', 'circle'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
@@ -662,6 +687,60 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: [] });
                 await compare();
             });
+        });
+    });
+
+    describe('theme defaults', () => {
+        it('should apply default highlight stroke when a node is hovered', async () => {
+            // Regression test for AG-17192. Theme defaults add a stronger stroke and
+            // strokeWidth on `highlight.highlightedItem`; without the default the highlighted
+            // node would render identical to its neighbours.
+            //
+            // The chart overrides `node.cornerRadius` to 0 so the JSDOM mock canvas can
+            // hit-test the node rect — `Rect.updatePath()` only installs a bbox-based
+            // hit-tester for unrounded rects (per .claude/rules/testing.md).
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                theme: {
+                    overrides: {
+                        organization: { series: { node: { cornerRadius: 0 } } },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Root card (Alice Chen) sits centred across the top of the 800x600 mock
+            // canvas. Hover its approximate centre to trigger the highlight pipeline
+            // through the public pointer-event path.
+            await hoverAction(400, 65)(chart);
+            await compare();
+        });
+    });
+
+    describe('series-area clipping', () => {
+        it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
+            // Regression test for AG-17233. Chart has a title which shrinks the series-area
+            // rect; a large upward drag would otherwise pull node cards into the title
+            // region. With clipping, nodes are cropped at the series-area boundary instead.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                title: { text: 'Organisation Chart', fontSize: 18 },
+                subtitle: { text: 'Reporting structure' },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // 800x600 mock canvas. Drag upward from below the centre to above it —
+            // far enough that without clipping the top row of cards would overlap the
+            // chart title.
+            await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
+
+            await compare();
         });
     });
 

@@ -35,6 +35,15 @@ export class StandaloneChart extends Chart {
             group.translationY = Math.floor(seriesRect.y);
         }
 
+        // Series like the network/organization family pan their content via translation, so
+        // unclipped rendering would let nodes and links bleed into title/subtitle/footnote.
+        // Match the cartesian opt-in pattern: clip the full layout box (i.e. the seriesRect
+        // re-grown by seriesArea padding) when any attached series declares `alwaysClip`,
+        // so series content remains free to render inside the padding band.
+        const clipRect = this.series.some((s) => s.alwaysClip) ? ctx.layoutBox : undefined;
+        seriesRoot.setClipRect(clipRect);
+        annotationRoot.setClipRect(clipRect);
+
         seriesRoot.visible = this.series[0].visible;
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
