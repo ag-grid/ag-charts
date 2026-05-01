@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, it } from '@jest/globals';
 
 import {
     type AgBubbleSeriesOptions,
@@ -7,7 +7,7 @@ import {
     type AgScatterSeriesOptions,
 } from 'ag-charts-community';
 import {
-    assertTooltipSuppressedForMissing,
+    assertTooltipPresentForAll,
     deproxy,
     setupMockCanvas,
     setupMockConsole,
@@ -34,41 +34,20 @@ const seriesBaseByType = {
     scatter: { type: 'scatter' as const, xKey: 'x', yKey: 'y', colorKey: 'intensity' },
 };
 
-interface SuppressionCase {
+interface PresenceCase {
     name: string;
     seriesType: 'bubble' | 'scatter';
     missingDataFill: string | undefined;
-    expectsSuppression: boolean;
 }
 
-// Suppression mirrors the rendering condition: only when `missingDataFill` is configured does the
-// missing-colorValue datum get a distinct fill, and only then is its tooltip suppressed. Without
-// `missingDataFill`, the marker keeps its default fill and is visibly normal — its tooltip stays.
-const cases: SuppressionCase[] = [
-    {
-        name: 'BubbleSeries with missingDataFill',
-        seriesType: 'bubble',
-        missingDataFill: '#cccccc',
-        expectsSuppression: true,
-    },
-    {
-        name: 'ScatterSeries with missingDataFill',
-        seriesType: 'scatter',
-        missingDataFill: '#cccccc',
-        expectsSuppression: true,
-    },
-    {
-        name: 'BubbleSeries without missingDataFill',
-        seriesType: 'bubble',
-        missingDataFill: undefined,
-        expectsSuppression: false,
-    },
-    {
-        name: 'ScatterSeries without missingDataFill',
-        seriesType: 'scatter',
-        missingDataFill: undefined,
-        expectsSuppression: false,
-    },
+// Tier-2 colour-scale series (bubble, scatter) keep the tooltip on missing-colour datums:
+// the marker, label and geometry exist independently of colour, so the mark stays queryable.
+// `missingDataFill` is a cosmetic override — it does not change tooltip behaviour.
+const cases: PresenceCase[] = [
+    { name: 'BubbleSeries with missingDataFill', seriesType: 'bubble', missingDataFill: '#cccccc' },
+    { name: 'ScatterSeries with missingDataFill', seriesType: 'scatter', missingDataFill: '#cccccc' },
+    { name: 'BubbleSeries without missingDataFill', seriesType: 'bubble', missingDataFill: undefined },
+    { name: 'ScatterSeries without missingDataFill', seriesType: 'scatter', missingDataFill: undefined },
 ];
 
 // AG-16046 pt2: BubbleSeries and ScatterSeries are defined in community but their `colorKey`
@@ -88,7 +67,7 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
         }
     });
 
-    it.each(cases)('$name', async ({ seriesType, missingDataFill, expectsSuppression }) => {
+    it.each(cases)('$name', async ({ seriesType, missingDataFill }) => {
         const series: AgBubbleSeriesOptions | AgScatterSeriesOptions = {
             ...seriesBaseByType[seriesType],
             colorScale: { fills, ...(missingDataFill != null && { missingDataFill }) },
@@ -99,19 +78,11 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
         await waitForChartStability(chart);
 
         const seriesImpl = chart.series[0] as ColorScaleSeriesLike;
-        if (expectsSuppression) {
-            assertTooltipSuppressedForMissing(
-                seriesImpl,
-                data,
-                (d) => d.intensity == null,
-                (i) => i
-            );
-        } else {
-            // Default-styled markers must remain tooltip-bearing even when colorValue is null.
-            const missingIndex = data.findIndex((d) => d.intensity == null);
-            const presentIndex = data.findIndex((d) => d.intensity != null);
-            expect(seriesImpl.getTooltipContent(missingIndex)).toBeDefined();
-            expect(seriesImpl.getTooltipContent(presentIndex)).toBeDefined();
-        }
+        assertTooltipPresentForAll(
+            seriesImpl,
+            data,
+            (d) => d.intensity == null,
+            (i) => i
+        );
     });
 });

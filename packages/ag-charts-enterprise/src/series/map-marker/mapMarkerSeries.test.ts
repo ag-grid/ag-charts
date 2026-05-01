@@ -11,7 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
-    assertTooltipSuppressedForMissing,
+    assertTooltipPresentForAll,
     clickAction,
     computeLegendBBox,
     deproxy,
@@ -437,7 +437,7 @@ describe('MapMarkerSeries', () => {
             await compare();
 
             const seriesImpl = chart.series[1] as MapMarkerSeries;
-            assertTooltipSuppressedForMissing(
+            assertTooltipPresentForAll(
                 seriesImpl,
                 data,
                 (datum: any) => missingNames.has(datum.name),

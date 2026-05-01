@@ -1049,13 +1049,6 @@ export class MapMarkerSeries
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
-        // Mirrors the rendering gate: suppress only when the marker is actually rendered with
-        // `missingDataFill`. Without it, the marker keeps its default fill and is visibly
-        // normal, so it should retain a tooltip.
-        if (colorKey != null && properties.colorScale.missingDataFill != null && colorValue == null) {
-            return;
-        }
-
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (this.isLabelEnabled() && labelKey != null && labelKey !== idKey) {
