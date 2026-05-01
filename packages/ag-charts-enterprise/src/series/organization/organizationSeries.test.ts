@@ -234,19 +234,13 @@ interface StandaloneTestCase extends ChartTestCase {
 }
 
 function createExpanderHeightExample(height: number): any {
+    const series = SIMPLE_ORG_CHART.series![0];
     return {
         ...SIMPLE_ORG_CHART,
         series: [
             {
-                type: 'organization',
-                idKey: 'id',
-                parentIdKey: 'parentId',
+                ...series,
                 expander: { height },
-                node: {
-                    title: { key: 'name' },
-                    subtitle: { key: 'job' },
-                    labels: [{ key: 'location' }],
-                },
             },
         ],
     };
