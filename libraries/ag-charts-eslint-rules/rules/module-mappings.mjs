@@ -242,7 +242,6 @@ export const enterpriseModules = new Set([
     'ChartToolbarModule',
     'ContextMenuModule',
     'CrosshairModule',
-    'CrossLinesModule',
     'DataSourceModule',
     'ErrorBarsModule',
     'GradientLegendModule',
