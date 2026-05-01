@@ -350,8 +350,7 @@ export class MapLineSeries
 
     override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, properties } = this;
-        const { label, legendItemName, colorKey } = properties;
-        const { missingDataFill } = properties.colorScale;
+        const { label, legendItemName } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -387,10 +386,6 @@ export class MapLineSeries
             const projectedGeometry = projectedGeometries.get(dataValues.idValue);
             if (projectedGeometry == null) {
                 missingGeometries.push(dataValues.idValue);
-            }
-
-            if (colorKey != null && dataValues.colorValue == null && missingDataFill == null) {
-                continue;
             }
 
             const labelDatum = this.getLabelDatum(
@@ -794,14 +789,6 @@ export class MapLineSeries
             colorKey == null
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
-
-        // Mirrors the rendering filter in `createNodeData`: lines without a colour value AND
-        // without `missingDataFill` are excluded from `nodeData` entirely, so there is no
-        // hoverable shape — suppress the tooltip to match. With `missingDataFill` set, the
-        // line renders, so the tooltip stays (omitting the colour row below).
-        if (colorKey != null && colorValue == null && properties.colorScale.missingDataFill == null) {
-            return;
-        }
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
