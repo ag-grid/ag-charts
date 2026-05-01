@@ -64,22 +64,4 @@ export class DataSetSelection {
     getSelection(): Uint8Array {
         return this.selection;
     }
-
-    getSelectedCount(): number {
-        let count = 0;
-        for (let i = 0; i < this.selection.length; i++) {
-            count += this.selection[i];
-        }
-        return count;
-    }
-
-    getSelectedIndices(): number[] {
-        const indices: number[] = [];
-        for (let i = 0; i < this.selection.length; i++) {
-            if (this.selection[i] === 1) {
-                indices.push(i);
-            }
-        }
-        return indices;
-    }
 }
