@@ -401,6 +401,57 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
+        // when isCollapsed is true. Verifies the param is plumbed through and reflects the
+        // current collapsed state per node.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                            isCollapsed
+                                ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2, lineDash: [4, 2] }
+                                : undefined,
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
+        // text-tier itemStyler params, not just node-level.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                isCollapsed ? { color: '#ff7faa', fontStyle: 'italic' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
@@ -548,6 +599,41 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['cfo', 'cto'] });
                 await chart.setState({ version: '13.3.0', collapsed: ['cfo'] });
 
+                await compare();
+            });
+
+            it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
+                // Guards against the styler-cache returning stale `isCollapsed` after a
+                // setState collapse/expand toggle. The styler flips fill based on
+                // `isCollapsed`; if the cache key omitted that signal, the post-toggle
+                // snapshot would carry over the pre-toggle styling.
+                //
+                // Snapshots after each setState so the test fails distinctively whether the
+                // styler ignores `isCollapsed` (snap 1 wrong), or reads stale cache after
+                // expand (snap 2 wrong).
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                    isCollapsed ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2 } : undefined,
+                                title: { key: 'name' },
+                                subtitle: { key: 'job' },
+                                labels: [{ key: 'location' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                await compare();
+                await chart.setState({ version: '13.3.0', collapsed: [] });
                 await compare();
             });
         });

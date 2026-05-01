@@ -159,7 +159,7 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
+    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
     /** The data point from which the link starts. */
@@ -174,6 +174,8 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeStyle {
     /** The depth of the data point within the organization. */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -182,6 +184,8 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeTextStyle {
     /** The depth of the data */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
