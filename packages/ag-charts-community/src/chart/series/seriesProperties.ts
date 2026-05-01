@@ -1,4 +1,5 @@
 import type {
+    AreExact,
     ColorSpace,
     InternalAgColorType,
     RequiredInternalAgGradientColor,
@@ -128,6 +129,16 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
         default:
             return unreachable(state);
     }
+}
+
+export function isSelected(state: SelectionState | undefined): boolean {
+    if (state === SelectionState.None || state === SelectionState.Unselected) {
+        // Compile-time check for SelectionState exhaustiveness:
+        type ActualComplement = Exclude<SelectionState, typeof state>;
+        type ExpectedComplement = SelectionState.Selected;
+        return true satisfies AreExact<ActualComplement, ExpectedComplement>;
+    }
+    return false;
 }
 
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;
