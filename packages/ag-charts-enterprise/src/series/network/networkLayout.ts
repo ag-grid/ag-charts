@@ -24,6 +24,13 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {
+    /**
+     * Bounding box of all laid-out nodes at native (scale-1) sizes, in layout-space coordinates.
+     * Set by concrete subclasses after each `update()` call. Used by `applyViewportTransform()`
+     * to compute the fit-to-viewport scale without requiring a layout re-run.
+     */
+    contentBBox?: _ModuleSupport.BBox;
+
     protected regularBBox?: _ModuleSupport.BBox;
 
     private readonly maxRegularDimensionsCount = 1000;

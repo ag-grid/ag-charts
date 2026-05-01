@@ -98,7 +98,7 @@ export abstract class AbstractNetworkSeries<
 
     private pendingCollapsedIds?: string[];
 
-    private seriesRect?: _ModuleSupport.BBox;
+    protected seriesRect?: _ModuleSupport.BBox;
 
     /** Item id to pan to after the next layout + series update. Set only on state-change source. */
     private pendingPanToItemId?: string;
@@ -213,19 +213,43 @@ export abstract class AbstractNetworkSeries<
     /**
      * Applies a scale + translate transform to `viewportGroup` from the current zoom state.
      *
-     * At fit state `{x: {0,1}, y: {0,1}}` the transform is identity (scale=1, translation=0,0),
-     * so the rendered output is pixel-identical to what `NetworkTreeLayout.updateOffset()` produced
-     * before this group was introduced.
+     * The zoom window `[xMin, xMax] × [yMin, yMax]` (values in [0, 1]) selects a content-space
+     * slice. The mapping follows plan §2:
      *
-     * For a zoom window `[xMin, xMax] × [yMin, yMax]`:
-     *   s  = 1 / (xMax − xMin)
-     *   tx = −xMin × V_w × s
-     *   ty = −yMin × V_h × s
+     *   fitX = V_w / C_w,  fitY = V_h / C_h       (per-direction fit scales)
+     *   sX   = fitX / xRange,  sY = fitY / yRange  (per-direction zoom scales)
+     *   s    = min(sX, sY)                          (isotropic: use the constraining axis)
+     *   tx   = seriesRect.x − (xMin·C_w + offsetX) · s + centerX
+     *   ty   = seriesRect.y − (yMin·C_h + offsetY) · s + centerY
+     *
+     * where `offsetX/Y` is the auto-centre translation written by the layout to `dataNodeGroup`,
+     * and `centerX/Y = max(0, (V_w − C_w·s) / 2)` re-centres content on the non-constraining axis.
+     *
+     * At fit state `{0,1}` this produces `s = min(V_w/C_w, V_h/C_h)`, so the entire content
+     * bbox is visible (plan §2: "fit-to-viewport at default zoom"). At `xRange = V_w/C_w` the
+     * content renders at 1:1 native pixel ratio.
+     *
+     * When `contentBBox` is not yet available (first render before layout) we fall back to
+     * identity so the group remains correctly positioned until layout runs.
      */
     private applyViewportTransform() {
         const zoom = this.ctx.chartState.getValue('zoom');
-        const vw = this.seriesRect?.width ?? 0;
-        const vh = this.seriesRect?.height ?? 0;
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
+
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) {
+            // Not yet laid out — reset to identity and wait.
+            this.viewportGroup.translationX = 0;
+            this.viewportGroup.translationY = 0;
+            this.viewportGroup.scalingX = 1;
+            this.viewportGroup.scalingY = 1;
+            return;
+        }
+
+        const vw = seriesRect.width;
+        const vh = seriesRect.height;
+        const cw = contentBBox.width;
+        const ch = contentBBox.height;
 
         const xMin = zoom?.x?.min ?? 0;
         const xMax = zoom?.x?.max ?? 1;
@@ -235,16 +259,33 @@ export abstract class AbstractNetworkSeries<
         const xRange = xMax - xMin;
         const yRange = yMax - yMin;
 
-        // Guard against degenerate zoom windows (e.g. NaN or zero-width range).
-        const sx = xRange > 0 ? 1 / xRange : 1;
-        const sy = yRange > 0 ? 1 / yRange : 1;
-        // Use the smaller scale to preserve aspect ratio when x/y ranges differ.
-        const s = Math.min(sx, sy);
+        // Fit scales: how much to scale content to fill the viewport in each direction.
+        const fitX = vw / cw;
+        const fitY = vh / ch;
 
-        this.viewportGroup.translationX = -xMin * vw * s;
-        this.viewportGroup.translationY = -yMin * vh * s;
+        // Per-direction zoom scales. Guard against degenerate ranges.
+        const sX = xRange > 0 ? fitX / xRange : fitX;
+        const sY = yRange > 0 ? fitY / yRange : fitY;
+
+        // Isotropic scale: use the constraining direction (smaller scale fills that axis exactly).
+        const s = Math.min(sX, sY);
+
+        // Centering offset: when content is narrower / shorter than the viewport on one axis
+        // (the non-constraining axis), centre it in the leftover space.
+        const centerX = Math.max(0, (vw - cw * s) / 2);
+        const centerY = Math.max(0, (vh - ch * s) / 2);
+
+        // The layout writes an auto-centre translation to dataNodeGroup. Because dataNodeGroup
+        // is a child of viewportGroup, those translations are multiplied by viewportGroup's
+        // scale. Subtracting offsetX*s from tx cancels the layout offset in screen space and
+        // lets viewportGroup own all viewport-space placement.
+        const offsetX = this.dataNodeGroup.translationX;
+        const offsetY = this.dataNodeGroup.translationY;
+
         this.viewportGroup.scalingX = s;
         this.viewportGroup.scalingY = s;
+        this.viewportGroup.translationX = seriesRect.x - (xMin * cw + offsetX) * s + centerX;
+        this.viewportGroup.translationY = seriesRect.y - (yMin * ch + offsetY) * s + centerY;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
@@ -252,6 +293,12 @@ export abstract class AbstractNetworkSeries<
 
         this.updateSelections();
         this.updateNodes();
+
+        // Re-apply the viewport transform now that the layout has run and contentBBox is current.
+        // The push-based zoom observer fires applyViewportTransform() when the zoom state changes,
+        // but at that point contentBBox may not yet be set (the layout has not run yet). Calling
+        // it here, after layout, ensures the transform uses the correct content dimensions.
+        this.applyViewportTransform();
 
         // Phase 5: pan viewport to the active item after layout, if a state-change triggered it.
         this.maybePanToItem();

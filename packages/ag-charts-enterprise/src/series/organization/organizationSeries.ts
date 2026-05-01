@@ -116,16 +116,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
-     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp and aspect-ratio guard.
+     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp, native-pixel floor, and aspect-ratio guard.
      *
      * Responsibility order within this single listener:
      *   1. Pan-boundary clamp (AG-17204) — ensures the window overlaps [0, 1].
-     *   2. Aspect-ratio guard (Phase 4) — projects off-isotropic zoom states onto the
+     *   2. Native-pixel floor — prevents zooming in past 1:1 native pixel ratio.
+     *   3. Aspect-ratio guard (Phase 4) — projects off-isotropic zoom states onto the
      *      isotropic line. Belt-and-braces with keepAspectRatio: true for programmatic
      *      inputs (chart.updateZoom) that bypass the Zoom feature's gesture handling.
      *
      * Multiple constrainChanges calls compose: each updates event.state in-place, so
-     * later guards see the pan-clamped state when the isotropy guard runs.
+     * later guards see the pan-clamped state when the floor and isotropy guards run.
      */
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         // Resets take the window to {0,1} which always overlaps; skip all constraints
@@ -133,6 +134,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (event.isReset) return;
 
         this.applyPanBoundaryClamp(event);
+        this.applyNativePixelFloor(event);
         this.applyIsotropyGuard(event);
     }
 
@@ -180,12 +182,91 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
+     * Native-pixel floor: prevent zooming in past the 1:1 native-pixel ratio.
+     *
+     * The plan §2 mapping defines native pixel ratio as `xRange = V_w / C_w` (and
+     * analogously for y). Allowing xRange below that threshold would render content
+     * larger than native pixels — creating an over-magnified, unreadable view.
+     *
+     * The floor is `min(V_w / C_w, MAX_ZOOM_IN)` where `MAX_ZOOM_IN = 0.1` (10× zoom).
+     * The cap is necessary for small trees whose content fits the viewport (`V_w/C_w > 1`):
+     * without it those trees would have minRange = 1 (no zoom-in), which is poor UX —
+     * users should be able to magnify a small tree for inspection. The 10× cap is an
+     * empirical limit beyond which individual nodes become unreadably large.
+     *
+     * For large trees (`V_w / C_w < 0.1`) the floor is exactly `V_w / C_w`, meaning
+     * users cannot zoom in past 1:1 native pixels.
+     *
+     * Phase 4 previously relied on `isVisibleItemsCountAtLeast` / `getZoomRangeFittingItems`
+     * for this floor, but that path is a no-op for synthetic axes (`boundSeries.size === 0`
+     * returns true unconditionally), so it never fired. This guard replaces it.
+     */
+    private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        /** Minimum xRange allowed: at most 10× zoom-in (xRange = 0.1 of the fit-state range). */
+        const MAX_ZOOM_IN = 0.1;
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+
+        const minXRange = Math.min(seriesRect.width / contentBBox.width, MAX_ZOOM_IN);
+        const minYRange = Math.min(seriesRect.height / contentBBox.height, MAX_ZOOM_IN);
+
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+
+        const constrained: _ModuleSupport.CoreZoomState = {};
+        let didConstrain = false;
+
+        if (xId) {
+            const { min, max } = event.state[xId]!;
+            const xRange = max - min;
+            if (xRange < minXRange - ISOTROPY_EPSILON) {
+                // Expand the window symmetrically about its midpoint to reach the floor.
+                const mid = (min + max) / 2;
+                constrained[xId] = {
+                    min: mid - minXRange / 2,
+                    max: mid + minXRange / 2,
+                    direction: ChartAxisDirection.X,
+                };
+                didConstrain = true;
+            }
+        }
+
+        if (yId) {
+            const { min, max } = event.state[yId]!;
+            const yRange = max - min;
+            if (yRange < minYRange - ISOTROPY_EPSILON) {
+                const mid = (min + max) / 2;
+                constrained[yId] = {
+                    min: mid - minYRange / 2,
+                    max: mid + minYRange / 2,
+                    direction: ChartAxisDirection.Y,
+                };
+                didConstrain = true;
+            }
+        }
+
+        if (didConstrain) {
+            event.constrainChanges(constrained);
+        }
+    }
+
+    /**
      * Phase 4: Aspect-ratio guard.
      *
-     * The render transform uses `s = min(1/xRange, 1/yRange)`, so the isotropic
-     * (equal-scale-on-both-axes) state is `xRange = yRange`. If the two ranges differ
-     * after the pan-boundary clamp, project both to `max(xRange, yRange)` (the
-     * less-zoomed-in direction wins, preserving more content).
+     * The render transform uses `s = min(fitX/xRange, fitY/yRange)` (plan §2). For
+     * square content (`fitX = fitY`) the isotropic condition simplifies to `xRange = yRange`.
+     * For non-square content the true isotropic condition is `xRange/fitX = yRange/fitY`, but
+     * because the org-chart theme forces `keepAspectRatio: true` and square-content trees are
+     * the common case, `xRange = yRange` is a correct approximation and matches the `min(sX,sY)`
+     * choice in the transform. If the two ranges differ after the native-pixel-floor clamp,
+     * project both to `max(xRange, yRange)` (less-zoomed-in direction wins, more content shown).
      *
      * This is belt-and-braces with `keepAspectRatio: true` to catch programmatic
      * `chart.updateZoom()` inputs that bypass the Zoom feature's gesture handling.
