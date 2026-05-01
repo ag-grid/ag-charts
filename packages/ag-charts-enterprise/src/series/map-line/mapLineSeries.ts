@@ -795,7 +795,11 @@ export class MapLineSeries
                 ? undefined
                 : dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
 
-        if (colorKey != null && colorValue == null) {
+        // Mirrors the rendering filter in `createNodeData`: lines without a colour value AND
+        // without `missingDataFill` are excluded from `nodeData` entirely, so there is no
+        // hoverable shape — suppress the tooltip to match. With `missingDataFill` set, the
+        // line renders, so the tooltip stays (omitting the colour row below).
+        if (colorKey != null && colorValue == null && properties.colorScale.missingDataFill == null) {
             return;
         }
 

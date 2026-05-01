@@ -11,6 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     expectWarningMessages,
@@ -275,6 +276,16 @@ describe('MapLineSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+
+            // With `missingDataFill` configured, the line is rendered, so the tooltip stays
+            // queryable for the missing-colour datum (with the colour row omitted).
+            const seriesImpl = chart.series[0] as MapLineSeries;
+            assertTooltipPresentForAll(
+                seriesImpl,
+                dataWithMissing,
+                (d: any) => d.dailyVehicles == null,
+                (i) => i
+            );
         });
     });
 

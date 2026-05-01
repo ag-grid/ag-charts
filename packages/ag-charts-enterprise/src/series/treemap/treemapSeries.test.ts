@@ -13,7 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     TREEMAP_SERIES_LABELS,
-    assertTooltipSuppressedForMissing,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     extractImageData,
@@ -584,7 +584,7 @@ describe('TreemapSeries', () => {
             await compare();
 
             const seriesImpl = chart.series[0] as TreemapSeries;
-            assertTooltipSuppressedForMissing(
+            assertTooltipPresentForAll(
                 seriesImpl,
                 data,
                 (d) => d.change == null,

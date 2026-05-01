@@ -14,7 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
-    assertTooltipSuppressedForMissing,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     extractImageData,
@@ -712,7 +712,7 @@ describe('SunburstSeries', () => {
 
             const seriesImpl = chart.series[0] as SunburstSeries;
             const americas = data.findIndex((d) => d.name === 'Americas');
-            assertTooltipSuppressedForMissing(
+            assertTooltipPresentForAll(
                 seriesImpl,
                 data[americas].children,
                 (c: { change?: number | null }) => c.change == null,
