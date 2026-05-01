@@ -405,7 +405,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
             selectionValues: this.properties.selectedKey
                 ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
-                : this.data?.selections?.get(this.id)?.getSelection(),
+                : undefined,
             xScale,
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,
