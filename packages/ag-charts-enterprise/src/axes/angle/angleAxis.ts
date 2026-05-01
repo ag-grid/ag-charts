@@ -17,8 +17,6 @@ import {
     wrapTextOrSegments,
 } from 'ag-charts-core';
 
-import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
-
 const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
     text: TextOrSegments;
@@ -42,10 +40,6 @@ export abstract class AngleAxis<
     TOptions extends
         NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
 > extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
-    override createCrossLine(): _ModuleSupport.CrossLine {
-        return new AngleCrossLine();
-    }
-
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,
         Line,
@@ -502,16 +496,14 @@ export abstract class AngleAxis<
         return { textAlign, textBaseline };
     }
 
-    protected override updateCrossLines() {
-        const { shape, gridLength: radius, innerRadiusRatio } = this;
-        for (const crossLine of this.crossLines) {
-            if (crossLine instanceof AngleCrossLine) {
-                crossLine.ticks = this.tickData.map((t) => t.value);
-                crossLine.shape = shape;
-                crossLine.axisOuterRadius = radius;
-                crossLine.axisInnerRadius = radius * innerRadiusRatio;
-            }
-        }
-        super.updateCrossLines();
+    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+        const radius = this.gridLength;
+        return {
+            ...this.calculateRotations(),
+            shape: this.shape,
+            axisOuterRadius: radius,
+            axisInnerRadius: radius * this.innerRadiusRatio,
+            ticks: this.tickData.map((t) => t.value),
+        };
     }
 }

@@ -1,5 +1,6 @@
 import type {
     AxisID,
+    AxisPluginModuleInstance,
     Callback,
     CallbackParam,
     ChartAnimationPhase,
@@ -57,9 +58,7 @@ import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
-import type { CrossLinesPlugin } from '../crossline/crossLinesPlugin';
 import { FormatManager } from '../formatter/formatManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
@@ -181,24 +180,6 @@ export abstract class Axis<
     static readonly defaultTickMinSpacing = 50;
 
     readonly id: AxisID = 'unknown' as AxisID;
-
-    /**
-     * Cached reference to the {@link CrossLinesPlugin} attached via `applyAxisModules`.
-     * Phase 6 migrated cross-lines off `Axis._crossLines` onto the unified plugin
-     * path. Kept in sync by `Chart.applyAxisModules` through {@link setCrossLinesPlugin}
-     * — the plugin reference can only change there. Reading directly avoids
-     * `moduleMap.getModule(...)` lookup overhead in the per-axis padding loops in
-     * `cartesianChart.calculateCrossLinePadding` and `miniChart.applyCrossLinePositions`.
-     */
-    private _crossLinesPlugin?: CrossLinesPlugin;
-
-    setCrossLinesPlugin(plugin: CrossLinesPlugin | undefined): void {
-        this._crossLinesPlugin = plugin;
-    }
-
-    get crossLines(): readonly CrossLine[] {
-        return this._crossLinesPlugin?.getInstances() ?? [];
-    }
 
     /**
      * User pass-through option for callback resolution. Declared via `declare`
@@ -326,16 +307,23 @@ export abstract class Axis<
     protected readonly gridFillGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridFills` }));
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
-    protected readonly crossLineRangeGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Range`,
+    /**
+     * Three z-index-ordered overlay container groups attached to the chart-level overlay zones
+     * via {@link attachAxis}. Plugins (currently only the cross-lines plugin) anchor their per-axis
+     * scene-graph contributions into these groups via {@link AxisContext.attachAxisOverlay}, which
+     * keeps overlay rendering scoped to the axis's host chart (main chart vs navigator mini-chart)
+     * without the axis itself knowing what gets drawn.
+     */
+    private readonly overlayLowGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-Low`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
     });
-    protected readonly crossLineLineGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Line`,
+    private readonly overlayMidGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-Mid`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
     });
-    protected readonly crossLineLabelGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Label`,
+    private readonly overlayHighGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-High`,
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
@@ -462,18 +450,6 @@ export abstract class Axis<
         }
     }
 
-    private attachCrossLine(crossLine: CrossLine) {
-        this.crossLineRangeGroup.appendChild(crossLine.rangeGroup);
-        this.crossLineLineGroup.appendChild(crossLine.lineGroup);
-        this.crossLineLabelGroup.appendChild(crossLine.labelGroup);
-    }
-
-    private detachCrossLine(crossLine: CrossLine) {
-        crossLine.rangeGroup.remove();
-        crossLine.lineGroup.remove();
-        crossLine.labelGroup.remove();
-    }
-
     destroy() {
         this.moduleMap.destroy();
         this.moduleContext?.destroy();
@@ -490,38 +466,26 @@ export abstract class Axis<
     }
 
     protected updateScale() {
-        const {
-            range: [r0, r1],
-        } = this;
-
         this.setScaleRange(this.visibleRange);
-        for (const crossLine of this.crossLines) {
-            crossLine.clippedRange = [r0, r1];
-        }
-    }
-
-    setCrossLinesVisible(visible: boolean) {
-        this.crossLineRangeGroup.visible = visible;
-        this.crossLineLineGroup.visible = visible;
-        this.crossLineLabelGroup.visible = visible;
+        this.notifyAxisPlugins('onScaleChange');
     }
 
     attachAxis(groups: AxisGroups) {
         groups.gridNode.appendChild(this.gridGroup);
         groups.axisNode.appendChild(this.axisGroup);
         groups.labelNode.appendChild(this.labelGroup);
-        groups.crossLineRangeNode.appendChild(this.crossLineRangeGroup);
-        groups.crossLineLineNode.appendChild(this.crossLineLineGroup);
-        groups.crossLineLabelNode.appendChild(this.crossLineLabelGroup);
+        groups.overlayLowNode.appendChild(this.overlayLowGroup);
+        groups.overlayMidNode.appendChild(this.overlayMidGroup);
+        groups.overlayHighNode.appendChild(this.overlayHighGroup);
     }
 
     detachAxis() {
         this.gridGroup.remove();
         this.axisGroup.remove();
         this.labelGroup.remove();
-        this.crossLineRangeGroup.remove();
-        this.crossLineLineGroup.remove();
-        this.crossLineLabelGroup.remove();
+        this.overlayLowGroup.remove();
+        this.overlayMidGroup.remove();
+        this.overlayHighGroup.remove();
     }
 
     attachLabel(axisLabelNode: Node) {
@@ -561,9 +525,7 @@ export abstract class Axis<
         if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
-        for (const crossLine of this.crossLines) {
-            this.initCrossLine(crossLine);
-        }
+        this.notifyAxisPlugins('onGridChange');
     }
 
     protected onGridVisibilityChange() {}
@@ -580,7 +542,7 @@ export abstract class Axis<
         this.gridLineGroup.visible = this.options.gridLine.enabled;
 
         this.updateLabels();
-        this.updateCrossLines();
+        this.notifyAxisPlugins('onAxisUpdate');
     }
 
     protected getLabelStyles(
@@ -808,7 +770,7 @@ export abstract class Axis<
             format: this.getLabelFormat(),
         };
 
-        this.layoutCrossLines();
+        this.notifyAxisPlugins('onAxisLayout');
 
         return { primaryTickCount, bbox };
     }
@@ -824,8 +786,6 @@ export abstract class Axis<
         if (!scrollbar?.enabled) return 'none';
         return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
     }
-
-    abstract layoutCrossLines(): void;
 
     abstract calculateTickLayout(
         domain: D[],
@@ -844,23 +804,31 @@ export abstract class Axis<
 
     abstract hasDefinedDomain(): boolean;
 
-    protected updateCrossLines() {
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        for (const crossLine of this.crossLines) {
-            crossLine.gridPadding = this.gridPadding;
-            crossLine.update(crosslinesVisible);
-        }
-    }
-
     protected updatePosition() {
-        const { crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup, gridGroup, translation } = this;
+        const { gridGroup, overlayLowGroup, overlayMidGroup, overlayHighGroup, translation } = this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
         gridGroup.setProperties({ translationX, translationY });
-        crossLineRangeGroup.setProperties({ translationX, translationY });
-        crossLineLineGroup.setProperties({ translationX, translationY });
-        crossLineLabelGroup.setProperties({ translationX, translationY });
+        overlayLowGroup.setProperties({ translationX, translationY });
+        overlayMidGroup.setProperties({ translationX, translationY });
+        overlayHighGroup.setProperties({ translationX, translationY });
+    }
+
+    private getOverlayGroup(slot: 'low' | 'mid' | 'high'): TransformableGroup<never> {
+        if (slot === 'low') return this.overlayLowGroup;
+        if (slot === 'mid') return this.overlayMidGroup;
+        return this.overlayHighGroup;
+    }
+
+    /**
+     * Generic dispatch that fans an axis-lifecycle phase out to every {@link AxisPluginModuleInstance}
+     * registered in the module map. Plugins read whatever live state they need from {@link AxisContext}.
+     */
+    protected notifyAxisPlugins(method: 'onAxisUpdate' | 'onAxisLayout' | 'onScaleChange' | 'onGridChange') {
+        for (const module of this.moduleMap.modules()) {
+            (module as Partial<AxisPluginModuleInstance>)[method]?.();
+        }
     }
 
     protected abstract updateSelections(): void;
@@ -1060,13 +1028,7 @@ export abstract class Axis<
         return this.axisGroup.getBBox();
     }
 
-    private initCrossLine(crossLine: CrossLine) {
-        crossLine.scale = this.scale;
-        crossLine.gridLength = this.gridLength;
-        crossLine.gridPadding = this.gridPadding;
-    }
-
-    protected hasVisibleSeries() {
+    hasVisibleSeries() {
         return this.boundSeries.some((s) => s.isEnabled());
     }
 
@@ -1139,17 +1101,41 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        this.moduleContext ??= this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
+        // `crossLine` is declared on the typed registry but not registered here — it's installed
+        // later by `CrossLinesModule.register` (community-cartesian or enterprise-polar variant)
+        // before the cross-lines plugin's first read. The type just reserves the slot.
+        this.moduleContext ??= this.moduleCtx
+            .child<{ parent: AxisContext; crossLine: CrossLine }>()
+            .constant('parent', this.axisContext);
         return this.moduleContext;
     }
 
     createAxisContext(): AxisContext {
+        const axis = this;
         const { scale } = this;
         return {
             axisId: this.id,
+            axisType: this.type,
             scale: this.scale,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+            get mirrored() {
+                return axis.mirrored;
+            },
+            get reverse() {
+                return axis.options.reverse;
+            },
+            get gridLength() {
+                return axis.gridLength;
+            },
+            get gridPadding() {
+                return axis.gridPadding;
+            },
+            get range() {
+                return axis.range;
+            },
+            hasDefinedDomain: () => this.hasDefinedDomain(),
+            hasVisibleSeries: () => this.hasVisibleSeries(),
             getCanvasBounds: () => {
                 return Transformable.toCanvas(this.axisGroup);
             },
@@ -1181,27 +1167,12 @@ export abstract class Axis<
                 );
             },
             attachLabel: (node: Node) => this.attachLabel(node),
+            attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
             measureBand: (value) => this.measureBand(value),
-            crossLineHooks: {
-                createCrossLine: () => this.createCrossLine(),
-                attachCrossLine: (crossLine) => this.attachCrossLine(crossLine),
-                detachCrossLine: (crossLine) => this.detachCrossLine(crossLine),
-                initCrossLine: (crossLine) => this.initCrossLine(crossLine),
-            },
         };
-    }
-
-    /**
-     * Per-axis factory for {@link CrossLine} runtime instances. Overridden by polar
-     * axes (`AngleAxis`, `RadiusAxis`) to return their direction-specific
-     * implementation. Called by the cross-lines plugin during `applyOptions`
-     * reconciliation.
-     */
-    createCrossLine(): CrossLine {
-        return new CartesianCrossLine();
     }
 
     pickBand(point: Point): AxisBandDatum | undefined {

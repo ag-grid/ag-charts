@@ -70,9 +70,9 @@ export class MiniChart extends AbstractModuleInstance {
                 axisNode: this.axisGroup,
                 gridNode: this.axisGridGroup,
                 labelNode: this.axisLabelGroup,
-                crossLineLineNode: this.axisCrosslineLineGroup,
-                crossLineRangeNode: this.axisCrosslineRangeGroup,
-                crossLineLabelNode: this.axisCrosslineLabelGroup,
+                overlayLowNode: this.axisCrosslineRangeGroup,
+                overlayMidNode: this.axisCrosslineLineGroup,
+                overlayHighNode: this.axisCrosslineLabelGroup,
             };
 
             for (const axis of oldValue) {
@@ -293,10 +293,13 @@ export class MiniChart extends AbstractModuleInstance {
                 axis.resetAnimation('initial');
             }
 
-            for (const crossLine of axis.crossLines) {
-                if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
-                    crossLine.position = axis.position ?? 'top';
-                    crossLine.label.parallel ??= axis.parallel;
+            const crossLines = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances();
+            if (crossLines) {
+                for (const crossLine of crossLines) {
+                    if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
+                        crossLine.position = axis.position ?? 'top';
+                        crossLine.label.parallel ??= axis.parallel;
+                    }
                 }
             }
 

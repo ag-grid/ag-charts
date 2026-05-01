@@ -23,6 +23,7 @@ import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
+import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
 import type { LayoutContext, ScrollbarLayoutMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
@@ -199,7 +200,7 @@ export class CartesianChart extends Chart {
 
         for (const axis of this.axes) {
             axis.update();
-            axis.setCrossLinesVisible(!overflows);
+            getCrossLinesPlugin(axis)?.setVisible(!overflows);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
@@ -487,7 +488,9 @@ export class CartesianChart extends Chart {
 
         for (const axis of this.axes) {
             const { position } = axis;
-            for (const crossLine of axis.crossLines) {
+            const crossLines = getCrossLinesPlugin(axis)?.getInstances();
+            if (!crossLines) continue;
+            for (const crossLine of crossLines) {
                 if (crossLine instanceof CartesianCrossLine) {
                     crossLine.position = position ?? 'top';
                     crossLine.label.parallel ??= axis.parallel;

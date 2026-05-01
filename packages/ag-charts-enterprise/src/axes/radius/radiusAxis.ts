@@ -12,8 +12,6 @@ import {
     toRadians,
 } from 'ag-charts-core';
 
-import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
-
 const { Group, TransformableGroup, Path, Line, Selection, generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } =
     _ModuleSupport;
 
@@ -27,10 +25,6 @@ export abstract class RadiusAxis<
     D = unknown,
     TOptions extends NormalisedBaseRadiusAxisOptions = NormalisedBaseRadiusAxisOptions,
 > extends _ModuleSupport.PolarAxis<S, D, TOptions> {
-    override createCrossLine(): _ModuleSupport.CrossLine {
-        return new RadiusCrossLine();
-    }
-
     protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
@@ -325,18 +319,15 @@ export abstract class RadiusAxis<
         titleNode.visible = titleVisible;
     }
 
-    protected override updateCrossLines() {
-        for (const crossLine of this.crossLines) {
-            if (crossLine instanceof RadiusCrossLine) {
-                const { shape, gridAngles, range, innerRadiusRatio } = this;
-                const radius = range[0];
-                crossLine.shape = shape;
-                crossLine.gridAngles = gridAngles;
-                crossLine.axisOuterRadius = radius;
-                crossLine.axisInnerRadius = radius * innerRadiusRatio;
-            }
-        }
-        super.updateCrossLines();
+    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+        const radius = this.range[0];
+        return {
+            ...this.calculateRotations(),
+            shape: this.shape,
+            axisOuterRadius: radius,
+            axisInnerRadius: radius * this.innerRadiusRatio,
+            gridAngles: this.gridAngles,
+        };
     }
 
     // TODO - abstract out (shared with cartesian axis)

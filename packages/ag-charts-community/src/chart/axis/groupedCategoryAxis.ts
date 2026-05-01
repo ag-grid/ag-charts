@@ -360,7 +360,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
 
         const mergedBBox = BBox.merge(bboxes);
 
-        this.layoutCrossLines();
+        this.notifyAxisPlugins('onAxisLayout');
 
         return { bbox: mergedBBox, spacing, tickSizeAtDepth, tickLabelLayout };
     }
@@ -702,7 +702,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         this.updateGridFills();
         this.updateTickLines();
         this.updateTitle(this.scale.domain, spacing);
-        this.updateCrossLines();
+        this.notifyAxisPlugins('onAxisUpdate');
         this.resetSelectionNodes();
     }
 

@@ -1,11 +1,8 @@
 import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
-import { ChartAxisDirection } from 'ag-charts-core';
 
+import type { AxisContext, PolarAxisLayout } from '../../module/axisContext';
 import type { BBox } from '../../scene/bbox';
-import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { PolarCrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
-import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { TickInterval } from './axisTick';
 import { resetAxisLabelSelectionFn } from './axisUtil';
 
@@ -58,19 +55,19 @@ export abstract class PolarAxis<
         this.tickLabelGroup.visible = this.options.label.enabled;
     }
 
-    layoutCrossLines() {
-        const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-
-        for (const crossLine of this.crossLines as PolarCrossLine[]) {
-            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
-            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.Angle : ChartAxisDirection.Radius;
-            crossLine.parallelFlipRotation = parallelFlipRotation;
-            crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout?.(crosslinesVisible, this.options.reverse);
-        }
+    override createAxisContext(): AxisContext {
+        const ctx = super.createAxisContext();
+        ctx.getPolarLayout = () => this.computePolarLayout();
+        return ctx;
     }
+
+    /**
+     * Builds the polar-layout snapshot exposed via {@link AxisContext.getPolarLayout}. Each
+     * concrete polar-axis subclass projects its own outer/inner radius (the angle axis derives
+     * radii from `gridLength`; the radius axis from `range`) and supplies the per-axis-type
+     * extras (`ticks` for angle axes, `gridAngles` for radius axes).
+     */
+    protected abstract computePolarLayout(): PolarAxisLayout;
 
     override updatePosition(): void {
         super.updatePosition();
@@ -83,15 +80,6 @@ export abstract class PolarAxis<
 
         this.tickLabelGroup.translationX = translationX;
         this.tickLabelGroup.translationY = translationY;
-
-        this.crossLineRangeGroup.translationX = translationX;
-        this.crossLineRangeGroup.translationY = translationY;
-
-        this.crossLineLineGroup.translationX = translationX;
-        this.crossLineLineGroup.translationY = translationY;
-
-        this.crossLineLabelGroup.translationX = translationX;
-        this.crossLineLabelGroup.translationY = translationY;
 
         this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn());
     }

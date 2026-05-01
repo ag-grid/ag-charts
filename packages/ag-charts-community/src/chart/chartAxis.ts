@@ -31,8 +31,6 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
-import type { CrossLine } from './crossline/crossLine';
-import type { CrossLinesPlugin } from './crossline/crossLinesPlugin';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 
@@ -48,10 +46,17 @@ interface AxisLayoutConstraints {
 export interface AxisGroups {
     axisNode: Group;
     gridNode: Group;
-    crossLineRangeNode: Group;
-    crossLineLineNode: Group;
-    crossLineLabelNode: Group;
     labelNode: Group;
+    /**
+     * Three z-index-ordered overlay slots that follow the axis transform. Used by axis plugins
+     * (currently {@link CrossLinesPlugin}) to render content scoped to the axis area without
+     * the axis itself needing to know what the plugin draws. Slot order, low to high, matches
+     * the previous `crossLine{Range,Line,Label}Node` zones — kept stable so existing z-index
+     * relationships (cross-lines below series labels, etc.) are preserved.
+     */
+    overlayLowNode: Group;
+    overlayMidNode: Group;
+    overlayHighNode: Group;
 }
 
 export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
@@ -120,14 +125,11 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
-    setCrossLinesPlugin(plugin: CrossLinesPlugin | undefined): void;
-    setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
-    crossLines: readonly CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
     gridLength: number;

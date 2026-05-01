@@ -8,49 +8,61 @@ import {
 
 import type { AxisContext } from '../../module/axisContext';
 import type { ChartAxisRegistry } from '../../module/moduleContext';
-import type { CrossLine } from './crossLine';
+import { Group } from '../../scene/group';
+import { getAxisLabelSideFlag } from '../axis/axisLabelUtil';
+import type { ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { CrossLine, PolarCrossLine } from './crossLine';
 
 /**
- * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances.
+ * Axis plugin that owns a per-axis runtime list of {@link CrossLine} instances along with the
+ * scene-graph groups they render into.
  *
- * `applyOptions` is called every `Chart.applyAxes` cycle (whether or not the
- * cross-lines options changed), so the body short-circuits when the new
- * options are structurally equivalent to the previous call — preserving the
- * pre-refactor `jsonDiff`-gated setter behaviour and avoiding scene-graph
- * detach/recreate churn on no-op updates.
+ * Ownership model (post-refactor — the axis itself has no cross-line awareness):
+ * - The plugin creates its own per-axis `rangeGroup` / `lineGroup` / `labelGroup` and attaches
+ *   them to the chart-level scene-graph zones owned by {@link AxisManager}. Those zones already
+ *   sit at the correct z-indices for cross-line rendering.
+ * - Per-instance `CrossLine` runtime is constructed by reading `ctx.crossLine`, a factory
+ *   installed via `DynamicContext.factory()` by `CrossLinesModule.register`. Community installs
+ *   the cartesian implementation; the enterprise `CrossLinesModule` overrides with a polar-aware
+ *   factory that branches on `axisCtx.axisType`.
+ * - Lifecycle is driven by the generic {@link AxisPluginModuleInstance} hooks
+ *   ({@link update}, {@link layout}, {@link onScaleChange}, {@link onGridChange}). The axis
+ *   invokes them generically without knowing what cross-lines are.
  *
- * On a real change, previously-attached cross-lines are detached, then a fresh
- * instance is created via {@link AxisContext.crossLineHooks}.createCrossLine,
- * configured with the user options, attached to the axis-owned scene groups,
- * and initialised. Per invariant I1 the options array is read-only — the plugin
- * stores its own runtime state on the per-instance `CrossLine`s, never on the
- * incoming options.
+ * `applyOptions` is called every `Chart.applyAxes` cycle (whether or not the cross-lines options
+ * changed), so the body short-circuits when the new options are structurally equivalent to the
+ * previous call — preserving the pre-refactor `jsonDiff`-gated setter behaviour and avoiding
+ * scene-graph detach/recreate churn on no-op updates. Per invariant I1 the options array is
+ * read-only — the plugin stores its own runtime state on the per-instance `CrossLine`s.
  */
 export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPluginModuleInstance {
     static readonly className = 'CrossLines';
 
+    private readonly ctx: DynamicContext<ChartAxisRegistry<AxisContext>>;
     private readonly axisCtx: AxisContext;
+    private readonly rangeGroup = new Group({ name: 'CrossLines-Range' });
+    private readonly lineGroup = new Group({ name: 'CrossLines-Line' });
+    private readonly labelGroup = new Group({ name: 'CrossLines-Label' });
     private instances: CrossLine[] = [];
     private lastOptions: NormalisedAxisCrossLineOptions[] | undefined;
 
     constructor(ctx: DynamicContext<ChartAxisRegistry<AxisContext>>) {
         super();
+        this.ctx = ctx;
         this.axisCtx = ctx.parent;
+        this.axisCtx.attachAxisOverlay(this.rangeGroup, 'low');
+        this.axisCtx.attachAxisOverlay(this.lineGroup, 'mid');
+        this.axisCtx.attachAxisOverlay(this.labelGroup, 'high');
     }
 
     applyOptions(options: NormalisedAxisCrossLineOptions[] | undefined): void {
-        const hooks = this.axisCtx.crossLineHooks;
-        if (hooks == null) {
-            return;
-        }
-
         if (this.optionsEquivalent(options)) {
             return;
         }
         this.lastOptions = options;
 
         for (const crossLine of this.instances) {
-            hooks.detachCrossLine(crossLine);
+            this.detachInstance(crossLine);
         }
 
         if (options == null) {
@@ -59,19 +71,63 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
         }
 
         this.instances = options.map((crossLineOptions) => {
-            const instance = hooks.createCrossLine();
+            const instance = this.ctx.crossLine;
             instance.set(crossLineOptions);
-            hooks.attachCrossLine(instance);
-            hooks.initCrossLine(instance);
+            this.attachInstance(instance);
+            this.initInstance(instance);
             return instance;
         });
     }
 
-    private optionsEquivalent(options: NormalisedAxisCrossLineOptions[] | undefined): boolean {
-        const previous = this.lastOptions;
-        if (options === previous) return true;
-        if (options == null || previous == null) return false;
-        return jsonDiff(previous, options) == null;
+    onAxisUpdate(): void {
+        const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
+        const { gridPadding } = this.axisCtx;
+        const polar = this.axisCtx.getPolarLayout?.();
+        for (const crossLine of this.instances) {
+            crossLine.gridPadding = gridPadding;
+            if (polar) (crossLine as PolarCrossLine).applyPolarLayout(polar);
+            crossLine.update(visible);
+        }
+    }
+
+    onAxisLayout(): void {
+        const polar = this.axisCtx.getPolarLayout?.();
+        const visible = this.axisCtx.hasDefinedDomain() || this.axisCtx.hasVisibleSeries();
+        const { reverse } = this.axisCtx;
+
+        if (polar) {
+            const sideFlag = -getAxisLabelSideFlag(this.axisCtx.mirrored) as ChartAxisLabelFlipFlag;
+            for (const crossLine of this.instances) {
+                const polarCrossLine = crossLine as PolarCrossLine;
+                polarCrossLine.sideFlag = sideFlag;
+                polarCrossLine.parallelFlipRotation = polar.parallelFlipRotation;
+                polarCrossLine.regularFlipRotation = polar.regularFlipRotation;
+                polarCrossLine.calculateLayout?.(visible, reverse);
+            }
+        } else {
+            for (const crossLine of this.instances) {
+                crossLine.calculateLayout?.(visible, reverse);
+            }
+        }
+    }
+
+    onScaleChange(): void {
+        const [r0, r1] = this.axisCtx.range;
+        for (const crossLine of this.instances) {
+            crossLine.clippedRange = [r0, r1];
+        }
+    }
+
+    onGridChange(): void {
+        for (const crossLine of this.instances) {
+            this.initInstance(crossLine);
+        }
+    }
+
+    setVisible(visible: boolean): void {
+        this.rangeGroup.visible = visible;
+        this.lineGroup.visible = visible;
+        this.labelGroup.visible = visible;
     }
 
     getInstances(): readonly CrossLine[] {
@@ -79,13 +135,38 @@ export class CrossLinesPlugin extends AbstractModuleInstance implements AxisPlug
     }
 
     override destroy(): void {
-        const hooks = this.axisCtx.crossLineHooks;
-        if (hooks != null) {
-            for (const crossLine of this.instances) {
-                hooks.detachCrossLine(crossLine);
-            }
+        for (const crossLine of this.instances) {
+            this.detachInstance(crossLine);
         }
         this.instances = [];
+        this.rangeGroup.remove();
+        this.lineGroup.remove();
+        this.labelGroup.remove();
         super.destroy();
+    }
+
+    private attachInstance(crossLine: CrossLine): void {
+        this.rangeGroup.appendChild(crossLine.rangeGroup);
+        this.lineGroup.appendChild(crossLine.lineGroup);
+        this.labelGroup.appendChild(crossLine.labelGroup);
+    }
+
+    private detachInstance(crossLine: CrossLine): void {
+        crossLine.rangeGroup.remove();
+        crossLine.lineGroup.remove();
+        crossLine.labelGroup.remove();
+    }
+
+    private initInstance(crossLine: CrossLine): void {
+        crossLine.scale = this.axisCtx.scale;
+        crossLine.gridLength = this.axisCtx.gridLength;
+        crossLine.gridPadding = this.axisCtx.gridPadding;
+    }
+
+    private optionsEquivalent(options: NormalisedAxisCrossLineOptions[] | undefined): boolean {
+        const previous = this.lastOptions;
+        if (options === previous) return true;
+        if (options == null || previous == null) return false;
+        return jsonDiff(previous, options) == null;
     }
 }

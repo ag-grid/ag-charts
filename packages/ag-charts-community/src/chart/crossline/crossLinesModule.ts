@@ -2,6 +2,7 @@ import type { AxisPluginModuleDefinition } from 'ag-charts-core';
 import type { AgBaseCrossLineOptions } from 'ag-charts-types';
 
 import { VERSION } from '../../version';
+import { CartesianCrossLine } from './cartesianCrossLine';
 import { CrossLinesPlugin } from './crossLinesPlugin';
 
 export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions[]> = {
@@ -49,5 +50,8 @@ export const CrossLinesModule: AxisPluginModuleDefinition<AgBaseCrossLineOptions
         ],
     },
 
+    register: (ctx) => {
+        ctx.factory('crossLine', () => new CartesianCrossLine());
+    },
     create: (ctx) => new CrossLinesPlugin(ctx),
 };

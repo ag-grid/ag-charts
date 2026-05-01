@@ -110,7 +110,7 @@ export type {
     ZoomSaveMementoEvent,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
-export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
+export type { AxisBandDatum, AxisContext, AxisFormattableLabel, PolarAxisLayout } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
 export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
@@ -313,6 +313,7 @@ export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
+export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
 export {
     buildColorCategoryLegendData,

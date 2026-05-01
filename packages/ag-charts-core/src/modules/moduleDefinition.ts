@@ -56,6 +56,16 @@ export interface PropertyDefinitionOpts {
 
 export interface AxisPluginModuleInstance extends ModuleInstance {
     applyOptions(this: void, options: any): void;
+    /**
+     * Generic axis-lifecycle hooks. Each is optional and called from the corresponding axis phase;
+     * plugins read whatever live state they need from {@link AxisContext} when invoked. The names
+     * are prefixed `onAxis*` so that plugins implementing them are not forced to give up unrelated
+     * private `update` / `layout` helpers (e.g. chart-level `layout:complete` listeners).
+     */
+    onAxisUpdate?(this: void): void;
+    onAxisLayout?(this: void): void;
+    onScaleChange?(this: void): void;
+    onGridChange?(this: void): void;
 }
 
 export interface SeriesPluginModuleInstance extends ModuleInstance {

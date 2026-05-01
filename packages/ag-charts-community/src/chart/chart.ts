@@ -71,7 +71,6 @@ import type { ChartMode } from './chartMode';
 import type { ChartService, ChartServiceEvent, ChartServiceEventType } from './chartService';
 import type { ChartState } from './chartState';
 import type { ChartType } from './chartType';
-import type { CrossLinesPlugin } from './crossline/crossLinesPlugin';
 import { type CachedData } from './data/caching';
 import { DataController } from './data/dataController';
 import { DataSet } from './data/dataSet';
@@ -2188,18 +2187,13 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
             if (!shouldBeEnabled) {
                 if (isEnabled) {
                     moduleMap.removeModule(module.name);
-                    if (module.name === 'crossLines') {
-                        axis.setCrossLinesPlugin(undefined);
-                    }
                 }
                 continue;
             }
 
             if (!isEnabled) {
+                module.register?.(moduleContext);
                 moduleMap.addModule(module.name, module.create(moduleContext));
-                if (module.name === 'crossLines') {
-                    axis.setCrossLinesPlugin(moduleMap.getModule(module.name) as CrossLinesPlugin);
-                }
             }
 
             const plugin = moduleMap.getModule(module.name) as AxisPluginModuleInstance;

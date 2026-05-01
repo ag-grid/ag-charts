@@ -1,7 +1,7 @@
 import type { AxisID, BoxBounds, ChartAxisDirection, Point, Scale } from 'ag-charts-core';
 import type { AgCartesianAxisPosition, FormatterParams, TextOrSegments } from 'ag-charts-types';
 
-import type { CrossLine } from '../chart/crossline/crossLine';
+import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 
 export type ContextFormatter<Params> = (
@@ -29,26 +29,38 @@ export interface AxisBandDatum extends AxisBandMeasurement {
 }
 
 /**
- * Axis-specific hooks consumed by the {@link CrossLinesPlugin}. The hooks bundle
- * the axis-side surface that cross-lines need (factory + scene-graph wiring +
- * lifecycle helpers) so that the plugin never receives the axis instance
- * directly. Present iff the axis supports cross-lines.
+ * Polar-axis layout snapshot. Defined only on polar axes (`AngleAxis` / `RadiusAxis`) via
+ * {@link AxisContext.getPolarLayout}; cartesian axes leave it undefined. Describes the polar
+ * axis's own layout — generic axis state, not specific to any one plugin. `ticks` is populated
+ * for angle axes; `gridAngles` for radius axes.
  */
-export interface AxisCrossLineHooks {
-    createCrossLine(): CrossLine;
-    attachCrossLine(crossLine: CrossLine): void;
-    detachCrossLine(crossLine: CrossLine): void;
-    initCrossLine(crossLine: CrossLine): void;
+export interface PolarAxisLayout {
+    rotation: number;
+    parallelFlipRotation: number;
+    regularFlipRotation: number;
+    shape: 'polygon' | 'circle';
+    axisOuterRadius: number;
+    axisInnerRadius: number;
+    ticks?: unknown[];
+    gridAngles?: number[];
 }
 
 export interface AxisContext {
     context?: unknown;
     axisId: AxisID;
+    /** Static axis-type identifier (matches the axis module's name, e.g. `'number'`, `'angle-category'`). */
+    readonly axisType: string;
     continuous: boolean;
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
     scale: Scale<any, any, any>;
-    crossLineHooks?: AxisCrossLineHooks;
+    readonly mirrored: boolean;
+    readonly reverse: boolean;
+    readonly gridLength: number;
+    readonly gridPadding: number;
+    readonly range: readonly [number, number];
+    hasDefinedDomain(): boolean;
+    hasVisibleSeries(): boolean;
     getCanvasBounds(): BoxBounds | undefined;
     seriesKeyProperties(): Set<string>;
     seriesIds(): string[];
@@ -60,8 +72,17 @@ export interface AxisContext {
         label?: AxisFormattableLabel<FormatParams, FormatterParams<any>>
     ): string;
     attachLabel(node: Node): void;
+    /**
+     * Attaches a plugin-owned scene group into one of three z-index-ordered overlay slots that
+     * follow the axis transform. The slot order (`'low' | 'mid' | 'high'`) describes z-index
+     * only — it carries no semantic about what gets drawn — so plugins choose the layer that
+     * matches their rendering needs without the axis having to enumerate consumer roles.
+     */
+    attachAxisOverlay(group: Group, slot: 'low' | 'mid' | 'high'): void;
     inRange(value: number, tolerance?: number): boolean;
     getRangeOverflow(value: number): number;
     pickBand(point: Point): AxisBandDatum | undefined;
     measureBand(value: string): AxisBandMeasurement | undefined;
+    /** Defined only on polar axes; cartesian axes leave it undefined. */
+    getPolarLayout?(): PolarAxisLayout;
 }

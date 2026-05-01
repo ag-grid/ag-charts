@@ -180,7 +180,11 @@ export abstract class CartesianAxis<
     }
 
     override createAxisContext(): AxisContext {
-        return { ...super.createAxisContext(), position: this.position };
+        // Mutate rather than spread so the live getters defined on the base context
+        // (`range`, `gridLength`, `mirrored`, etc.) are preserved.
+        const ctx = super.createAxisContext();
+        ctx.position = this.position;
+        return ctx;
     }
 
     protected updateDirection() {
@@ -212,13 +216,6 @@ export abstract class CartesianAxis<
     override calculateLayout(primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {
         this.updateDirection();
         return super.calculateLayout(primaryTickCount, chartLayout);
-    }
-
-    layoutCrossLines(): void {
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        for (const crossLine of this.crossLines) {
-            crossLine.calculateLayout?.(crosslinesVisible);
-        }
     }
 
     override calculateTickLayout(
