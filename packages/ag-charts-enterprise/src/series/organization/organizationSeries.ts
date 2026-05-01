@@ -13,6 +13,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type AxisID,
     type CallbackParamRules,
     ChartAxisDirection,
     type DeepRequired,
@@ -40,6 +41,9 @@ import type {
 } from './organizationTypes';
 
 const { keyProperty, valueProperty } = _ModuleSupport;
+
+/** Tolerance used when comparing zoom factors for isotropy. */
+const ISOTROPY_EPSILON = 1e-6;
 
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
@@ -112,21 +116,32 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
-     * AG-17204: Pan-boundary clamp.
+     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp and aspect-ratio guard.
      *
-     * For each axis in the requested zoom state, ensure the window overlaps the
-     * content space [0, 1]. If a pan would push the window entirely outside that
-     * range the window is translated back so its nearest edge touches 0 or 1.
+     * Responsibility order within this single listener:
+     *   1. Pan-boundary clamp (AG-17204) — ensures the window overlaps [0, 1].
+     *   2. Aspect-ratio guard (Phase 4) — projects off-isotropic zoom states onto the
+     *      isotropic line. Belt-and-braces with keepAspectRatio: true for programmatic
+     *      inputs (chart.updateZoom) that bypass the Zoom feature's gesture handling.
      *
-     * This fires for every zoom:change-request (pan, scroll, double-click reset,
-     * toolbar buttons, etc.). The guard is harmless when the window is already
-     * within bounds — constrainChanges is only called when a clamp is needed.
+     * Multiple constrainChanges calls compose: each updates event.state in-place, so
+     * later guards see the pan-clamped state when the isotropy guard runs.
      */
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        // Resets take the window to {0,1} which always overlaps; skip clamping to
-        // avoid interfering with the reset path.
+        // Resets take the window to {0,1} which always overlaps; skip all constraints
+        // to avoid interfering with the reset path.
         if (event.isReset) return;
 
+        this.applyPanBoundaryClamp(event);
+        this.applyIsotropyGuard(event);
+    }
+
+    /**
+     * AG-17204: Clamp the zoom window so it always overlaps the content space [0, 1].
+     * If a pan would push the window entirely outside that range, translate back so the
+     * nearest edge touches 0 or 1.
+     */
+    private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
         const clamped: _ModuleSupport.CoreZoomState = {};
         let didClamp = false;
 
@@ -161,6 +176,66 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         if (didClamp) {
             event.constrainChanges(clamped);
+        }
+    }
+
+    /**
+     * Phase 4: Aspect-ratio guard.
+     *
+     * The render transform uses `s = min(1/xRange, 1/yRange)`, so the isotropic
+     * (equal-scale-on-both-axes) state is `xRange = yRange`. If the two ranges differ
+     * after the pan-boundary clamp, project both to `max(xRange, yRange)` (the
+     * less-zoomed-in direction wins, preserving more content).
+     *
+     * This is belt-and-braces with `keepAspectRatio: true` to catch programmatic
+     * `chart.updateZoom()` inputs that bypass the Zoom feature's gesture handling.
+     */
+    private applyIsotropyGuard(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        // Identify the x and y axis entries from the current (post-clamp) event state.
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+
+        if (!xId || !yId) return;
+
+        const xEntry = event.state[xId]!;
+        const yEntry = event.state[yId]!;
+
+        let xMin = xEntry.min;
+        let xMax = xEntry.max;
+        let yMin = yEntry.min;
+        let yMax = yEntry.max;
+
+        // Aspect-ratio guard: xRange = yRange is the isotropic state. If they differ,
+        // use the larger range (less zoomed-in) for both axes to preserve aspect ratio.
+        const xWidth = xMax - xMin;
+        const yWidth = yMax - yMin;
+        if (Math.abs(xWidth - yWidth) > ISOTROPY_EPSILON) {
+            const targetWidth = Math.max(xWidth, yWidth);
+            const xMid = (xMin + xMax) / 2;
+            const yMid = (yMin + yMax) / 2;
+            xMin = xMid - targetWidth / 2;
+            xMax = xMid + targetWidth / 2;
+            yMin = yMid - targetWidth / 2;
+            yMax = yMid + targetWidth / 2;
+        }
+
+        // Only constrain if the state actually changed from what was requested.
+        const xChanged =
+            Math.abs(xMin - xEntry.min) > ISOTROPY_EPSILON || Math.abs(xMax - xEntry.max) > ISOTROPY_EPSILON;
+        const yChanged =
+            Math.abs(yMin - yEntry.min) > ISOTROPY_EPSILON || Math.abs(yMax - yEntry.max) > ISOTROPY_EPSILON;
+
+        if (xChanged || yChanged) {
+            const constrained: _ModuleSupport.CoreZoomState = {} as _ModuleSupport.CoreZoomState;
+            constrained[xId] = { min: xMin, max: xMax, direction: ChartAxisDirection.X };
+            constrained[yId] = { min: yMin, max: yMax, direction: ChartAxisDirection.Y };
+            event.constrainChanges(constrained);
         }
     }
 

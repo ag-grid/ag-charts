@@ -928,4 +928,53 @@ describe('OrganizationSeries', () => {
             await compare();
         });
     });
+
+    describe('aspect-ratio guard (Phase 4)', () => {
+        // Helper: read the actual zoom state from the ZoomManager after constrainment.
+        function getZoom(c: any) {
+            return deproxy(c).ctx.chartState.getValue('zoom') as
+                | { x: { min: number; max: number }; y: { min: number; max: number } }
+                | undefined;
+        }
+
+        it('should project off-isotropic zoom state onto the isotropic line', async () => {
+            // Request deliberately off-isotropic zoom: xRange ≠ yRange. The guard should
+            // project both to the same range width (max of the two — the less-zoomed-in
+            // direction wins, preserving more content).
+            //
+            // The test uses values well within [0, 1] to avoid ZoomManager out-of-bounds
+            // validation warnings. Values: x centred at 0.5 with width 0.3; y centred at
+            // 0.5 with width 0.5. Post-projection both should equal max(0.3, 0.5) = 0.5.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const xWidth = 0.3; // narrower — more zoomed-in
+            const yWidth = 0.5; // wider — less zoomed-in (wins)
+            deproxy(chart).ctx.zoomManager?.updateZoom(
+                { source: 'state-change', sourceDetail: 'unspecified' },
+                {
+                    x: { min: 0.5 - xWidth / 2, max: 0.5 + xWidth / 2 },
+                    y: { min: 0.5 - yWidth / 2, max: 0.5 + yWidth / 2 },
+                }
+            );
+            await waitForChartStability(chart);
+
+            const zoom = getZoom(chart);
+            expect(zoom).toBeDefined();
+
+            const acceptedXWidth = zoom!.x.max - zoom!.x.min;
+            const acceptedYWidth = zoom!.y.max - zoom!.y.min;
+
+            // Both directions must converge to the same range width (isotropy restored).
+            // The guard takes the max of the two widths (0.5) for both.
+            expect(Math.abs(acceptedXWidth - acceptedYWidth)).toBeLessThan(1e-6);
+
+            // Visual snapshot: the chart should render at the projected isotropic state.
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+        });
+    });
 });
