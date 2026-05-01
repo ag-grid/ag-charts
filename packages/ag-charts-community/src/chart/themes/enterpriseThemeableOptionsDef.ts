@@ -394,9 +394,12 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     innerSpacing: defined,
-    // outerSpacing: defined,
+    outerSpacing: defined,
     verticalSpacing: defined,
-    expander: { height: positiveNumberNonZero } satisfies OptionsDefs<AgOrganizationSeriesOptionsExpander>,
+    expander: {
+        height: positiveNumberNonZero,
+        spacing: positiveNumber,
+    } satisfies OptionsDefs<AgOrganizationSeriesOptionsExpander>,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

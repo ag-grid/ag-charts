@@ -76,18 +76,30 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             nodeBBox = this.regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
-            // TODO: Fix outer padding, see `org-chart-tudor` example for issue.
-            if (prevHasChildren) {
-                groupBBox.width += options.outerSpacing;
+            // Pre-check whether this vertex has children. The structural graph check is
+            // used (rather than post-layout visibility) so that gaps between siblings stay
+            // stable across collapse/expand toggles, and so the decision can be made
+            // before laying out descendants.
+            const currentHasChildren =
+                (options.graph.neighboursWithEdgeValue(vertex, 'child' as TEdge)?.length ?? 0) > 0;
+
+            // Apply spacing between this vertex and the previous one. outerSpacing
+            // protects subtree boundaries when either side roots a subtree (cousin gap);
+            // innerSpacing is the tighter gap reserved for two leaf siblings sharing a
+            // parent.
+            if (index > 0) {
+                groupBBox.width += prevHasChildren || currentHasChildren ? options.outerSpacing : options.innerSpacing;
             }
 
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(options, vertex, groupBBox, nodeBBox);
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
+                options,
+                vertex,
+                groupBBox,
+                nodeBBox
+            );
 
-            const hasVisibleChildren =
-                childrenCount > 0 && descendentsContainerBBox != null && descendentsContainerBBox.width > 0;
-            prevHasChildren = hasVisibleChildren;
+            prevHasChildren = currentHasChildren;
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -108,12 +120,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
 
-            // Add inner padding to childless siblings in the group except for the last node.
-            // TODO: Fix outerSpacing and add `!hasVisibleChildren` condition here
-            if (index < vertices.length - 1) {
-                groupBBox.width += options.innerSpacing;
-            }
-
             // Request the series to layout the links between children and their parents.
             if (childrenBBoxes) {
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
@@ -124,9 +130,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 }
             }
         }
-
-        // Add outer padding between this set of siblings and their cousins.
-        // groupBBox.width += this.outerPadding;
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }

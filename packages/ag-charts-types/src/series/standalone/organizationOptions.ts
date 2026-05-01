@@ -38,7 +38,14 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     innerSpacing?: PixelSize;
-    // outerSpacing?: PixelSize;
+    /**
+     * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
+     * uses `outerSpacing` for these cross-subtree gaps and `innerSpacing` for gaps between nodes
+     * that share the same parent.
+     *
+     * Default: `40`
+     */
+    outerSpacing?: PixelSize;
     verticalSpacing?: PixelSize;
 
     expander?: AgOrganizationSeriesOptionsExpander;
@@ -61,6 +68,15 @@ export interface AgOrganizationSeriesOptionsExpander {
      * Default: `24`
      */
     height?: PixelSize;
+    /**
+     * Vertical gap in pixels between the bottom of the last text element in a parent card
+     * and the top of the expander pill. The card's effective bottom padding is the maximum
+     * of `node.padding` and `expander.height / 2 + expander.spacing`, so a short pill has
+     * no effect on layout while a tall pill increases the reserved content space.
+     *
+     * Default: `4`
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
