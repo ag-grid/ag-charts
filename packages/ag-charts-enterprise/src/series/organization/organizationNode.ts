@@ -271,6 +271,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 const CHEVRON_WIDTH = 8;
 const CHEVRON_HEIGHT = 5;
 const CHEVRON_GAP = 5; // gap between count text right edge and chevron left edge
+// Inset the pill content by the same amount on both sides so the count text and the
+// chevron are visually balanced within the pill.
+const PILL_HORIZONTAL_PADDING = 12;
+// Render the chevron slightly muted versus the count digit so the number reads as the
+// primary affordance and the directional cue stays a secondary glyph.
+const CHEVRON_OPACITY = 0.7;
 
 class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     override name = 'organization-node-expander';
@@ -286,7 +292,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.countNode.text = `${descendantsCount}`;
         this.countNode.textAlign = 'left';
         applyTextStyles(this.countNode, styles.subtitle);
-        this.countNode.x = 12;
+        this.countNode.x = PILL_HORIZONTAL_PADDING;
 
         const rawBBox = this.countNode.getBBox();
         // Render the pill at exactly `expander.height` so the layout reservation in
@@ -300,13 +306,13 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         const chevronMidY = pillHeight / 2;
 
         this.chevronNode ??= this.appendChild(new _ModuleSupport.Path());
-        this.updateChevron(this.chevronNode, chevronLeft, chevronMidY, isCollapsed, styles.subtitle.color ?? '#000');
+        this.updateChevron(this.chevronNode, chevronLeft, chevronMidY, isCollapsed);
 
-        const pillContentWidth = chevronLeft + CHEVRON_WIDTH + 12; // trailing padding matches leading
-        const grownBBox = rawBBox.clone().grow({ top: 4, right: 8 + CHEVRON_WIDTH + CHEVRON_GAP, bottom: 4, left: 8 });
+        // Pill width: leading padding + count text + gap + chevron + trailing padding.
+        const pillContentWidth = chevronLeft + CHEVRON_WIDTH + PILL_HORIZONTAL_PADDING;
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, Math.max(grownBBox.width, pillContentWidth));
+        this.shapeNode.width = Math.max(48, pillContentWidth);
         this.shapeNode.height = pillHeight;
 
         applyFillStyles(this.shapeNode, styles);
@@ -314,7 +320,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.shapeNode.cornerRadius = styles.cornerRadius;
     }
 
-    private updateChevron(path: _ModuleSupport.Path, left: number, midY: number, isCollapsed: boolean, color: string) {
+    private updateChevron(path: _ModuleSupport.Path, left: number, midY: number, isCollapsed: boolean) {
         // Point-down chevron (expanded state) — apex at bottom centre, base at top.
         // Flip vertically for collapsed state (point up, apex at top centre).
         const halfW = CHEVRON_WIDTH / 2;
@@ -329,9 +335,13 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         path.path.lineTo(left + halfW, apexY);
         path.path.closePath();
 
-        path.fill = color;
+        // Match the count digit's colour so the chevron and number read as a single
+        // affordance inside the pill. countNode.fill is set immediately before this
+        // is called via `applyTextStyles`; it is always a string at runtime.
+        const countFill = this.countNode?.fill;
+        path.fill = typeof countFill === 'string' ? countFill : '#000';
         path.stroke = 'none';
-        path.opacity = 0.7;
+        path.opacity = CHEVRON_OPACITY;
     }
 
     // override containsPoint(x: number, y: number) {

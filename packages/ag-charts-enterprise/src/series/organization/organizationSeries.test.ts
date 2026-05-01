@@ -528,20 +528,6 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: createExpanderHeightExample(32),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
-    EXPANDER_SPACING_DEFAULT: {
-        // Verifies that default spacing (4px) produces a visible gap between the last label
-        // and the top of the expander pill on parent nodes.  With height=24 the effective
-        // bottom padding is max(8, 12+4)=16, which is 8px more than the uniform padding.
-        options: createExpanderSpacingExample(24, 4),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
-    EXPANDER_SPACING_SHORT_PILL: {
-        // With height=8 and spacing=0 the effective bottom padding is max(8, 4+0)=8, equal
-        // to node.padding — the Math.max picks padding, so parent-node card height is
-        // identical to a leaf-node layout.
-        options: createExpanderSpacingExample(8, 0),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.

@@ -55,7 +55,7 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     height: number = 24;
 
     @Property
-    spacing: number = 0;
+    spacing: number = 4;
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {
