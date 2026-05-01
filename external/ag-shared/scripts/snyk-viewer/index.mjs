@@ -692,7 +692,7 @@ const server = createServer((req, res) => {
 
 server.listen(args.port, '127.0.0.1', () => {
     const url = `http://localhost:${args.port}`;
-    console.log(`\nSnyk Viewer running at ${url}`);
+    console.log(`\nSnyk Viewer running at \x1b[36m\x1b[4m${url}\x1b[0m`);
     console.log(`Loaded ${snykData.length} project(s) from ${args.file}`);
     console.log('Press Ctrl+C to stop.\n');
     if (args.open) openBrowser(url);
