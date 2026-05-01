@@ -579,6 +579,13 @@ describe('OrganizationSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    // Helper: read the zoom state from chartState.
+    function getZoom(c: any) {
+        return deproxy(c).ctx.chartState.getValue('zoom') as
+            | { x: { min: number; max: number }; y: { min: number; max: number } }
+            | undefined;
+    }
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -929,14 +936,97 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    describe('aspect-ratio guard (Phase 4)', () => {
-        // Helper: read the actual zoom state from the ZoomManager after constrainment.
-        function getZoom(c: any) {
-            return deproxy(c).ctx.chartState.getValue('zoom') as
-                | { x: { min: number; max: number }; y: { min: number; max: number } }
-                | undefined;
-        }
+    describe('pan-to-active (Phase 5)', () => {
+        it('should pan to active item after setState when the node is outside the zoom window', async () => {
+            // 'acc' (child of CFO) is at roughly 58% horizontal / 57% vertical of the series
+            // area in fit-state. setState with zoom at the top-left quadrant
+            // ({ratioX: 0.0–0.5, ratioY: 0.0–0.5}) places 'acc' off-screen.
+            // maybePanToItem must call panToBBox — verified via spy.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
 
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            // Restore both zoom (top-left quadrant, 'acc' at ~58%/57% is off-screen) and
+            // active in one setState call. This is the canonical state-restore path that must
+            // trigger a pan.
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0, end: 0.5 }, ratioY: { start: 0, end: 0.5 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            await compare();
+        });
+
+        it('should NOT pan when the active node is already within the zoom window', async () => {
+            // 'acc' is at ~58%/57% in fit-state. Zoom to the bottom-right quadrant
+            // ({ratioX: 0.5–1.0, ratioY: 0.5–1.0}) keeps 'acc' inside the visible area.
+            // maybePanToItem must detect the node is in view and skip panToBBox.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            // Bottom-right quadrant: 'acc' at ~58%/57% is well inside [0.5, 1] × [0.5, 1].
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0.5, end: 1 }, ratioY: { start: 0.5, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+        });
+
+        it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
+            // Zoom into the bottom-right quadrant so 'acc' would require a pan if this were
+            // a state-change. Then simulate hover (source: 'user-interaction') by calling
+            // activeManager.update() directly. The zoom state must be unchanged.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            deproxy(chart).ctx.zoomManager?.updateZoom(
+                { source: 'state-change', sourceDetail: 'unspecified' },
+                { x: { min: 0.5, max: 1 }, y: { min: 0.5, max: 1 } }
+            );
+            await waitForChartStability(chart);
+            const zoomBefore = getZoom(chart);
+
+            // Simulate a hover-driven active change (user-interaction source).
+            // activeManager.update() calls performUpdate('user-interaction', ...), which
+            // does NOT emit 'active:load-memento', so no pan should occur.
+            const seriesId = deproxy(chart).series[0].id;
+            deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'acc' }, undefined);
+            await waitForChartStability(chart);
+
+            const zoomAfter = getZoom(chart);
+            expect(zoomAfter?.x.min).toBeCloseTo(zoomBefore?.x.min ?? 0.5, 6);
+            expect(zoomAfter?.x.max).toBeCloseTo(zoomBefore?.x.max ?? 1, 6);
+            expect(zoomAfter?.y.min).toBeCloseTo(zoomBefore?.y.min ?? 0.5, 6);
+            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 1, 6);
+        });
+    });
+
+    describe('aspect-ratio guard (Phase 4)', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             // Request deliberately off-isotropic zoom: xRange ≠ yRange. The guard should
             // project both to the same range width (max of the two — the less-zoomed-in

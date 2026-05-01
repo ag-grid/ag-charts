@@ -4,6 +4,7 @@ import {
     type ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
+    Logger,
     type Point,
     Property,
     Vertex,
@@ -97,8 +98,17 @@ export abstract class AbstractNetworkSeries<
 
     private pendingCollapsedIds?: string[];
 
-    private height?: number;
-    private width?: number;
+    private seriesRect?: _ModuleSupport.BBox;
+
+    /** Item id to pan to after the next layout + series update. Set only on state-change source. */
+    private pendingPanToItemId?: string;
+
+    /**
+     * Set to `true` when `active:load-memento` fires (i.e. the next `activeItem` change comes from
+     * a state restore rather than from a hover / user-interaction). Cleared once the observer
+     * consumes it so the flag stays false for subsequent hover-driven changes.
+     */
+    private nextActiveIsFromStateChange = false;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -113,8 +123,7 @@ export abstract class AbstractNetworkSeries<
         this.layout = this.createNetworkLayout();
 
         ctx.eventsHub.on('layout:complete', (event) => {
-            this.height = event.series.rect.height;
-            this.width = event.series.rect.width;
+            this.seriesRect = event.series.rect;
         });
 
         ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
@@ -124,11 +133,28 @@ export abstract class AbstractNetworkSeries<
             }
         });
 
+        // Phase 5: track when the next activeItem change is from a state restore so the
+        // pan-to-active logic can skip hover-driven changes (source: 'user-interaction').
+        // `active:load-memento` fires synchronously before chartState.setValue('activeItem'),
+        // so the flag is already set when the chartState.observe callback runs.
+        ctx.eventsHub.on('active:load-memento', () => {
+            this.nextActiveIsFromStateChange = true;
+        });
+
         ctx.chartState.observe((get) => {
             const activeItem = get('activeItem');
             if (activeItem?.seriesId === this.id) {
                 this.expandNetworkToItem(activeItem.itemId);
+
+                // Phase 5: schedule a pan-to-bbox after the next layout, but only for
+                // state-change / initial-state sources. Hover-driven changes (user-interaction)
+                // must not pan the viewport (AG-17011 G7 semantics).
+                if (this.nextActiveIsFromStateChange) {
+                    this.pendingPanToItemId = String(activeItem.itemId);
+                }
             }
+            // Always reset the flag so stale state doesn't leak into later hover events.
+            this.nextActiveIsFromStateChange = false;
         });
 
         // Push-based zoom subscription. When zoom state changes, recompute the viewportGroup
@@ -198,8 +224,8 @@ export abstract class AbstractNetworkSeries<
      */
     private applyViewportTransform() {
         const zoom = this.ctx.chartState.getValue('zoom');
-        const vw = this.width ?? 0;
-        const vh = this.height ?? 0;
+        const vw = this.seriesRect?.width ?? 0;
+        const vh = this.seriesRect?.height ?? 0;
 
         const xMin = zoom?.x?.min ?? 0;
         const xMax = zoom?.x?.max ?? 1;
@@ -226,6 +252,50 @@ export abstract class AbstractNetworkSeries<
 
         this.updateSelections();
         this.updateNodes();
+
+        // Phase 5: pan viewport to the active item after layout, if a state-change triggered it.
+        this.maybePanToItem();
+    }
+
+    /**
+     * Phase 5: pan the viewport so the pending active item is visible after layout.
+     *
+     * Only runs when `pendingPanToItemId` is set (i.e. the active item changed via
+     * state-restore / programmatic API, not via hover). The item's canvas-space bbox is
+     * computed via `Transformable.toCanvas` so the transform includes the current zoom scale
+     * and translate, giving the correct target in the same coordinate space as `seriesRect`.
+     */
+    private maybePanToItem() {
+        const { pendingPanToItemId, seriesRect } = this;
+        if (!pendingPanToItemId || !seriesRect) return;
+
+        // Clear the pending request whether or not we succeed — avoid infinite retries.
+        this.pendingPanToItemId = undefined;
+
+        // `vertexDatumIndex` is keyed by vertex.value, which equals the item id string.
+        const nodeDatumIndex = this.vertexDatumIndex[pendingPanToItemId];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
+        if (!canvasBBox?.isFinite()) return;
+
+        // Guard: if the node centre is already visible, no pan needed.
+        const cx = canvasBBox.x + canvasBBox.width / 2;
+        const cy = canvasBBox.y + canvasBBox.height / 2;
+        if (seriesRect.containsPoint(cx, cy)) return;
+
+        const { zoomManager } = this.ctx;
+        if (!zoomManager) return;
+
+        const panSuccess = zoomManager.panToBBox(seriesRect, canvasBBox);
+        if (!panSuccess) {
+            Logger.warnOnce(
+                'OrganizationSeries: panToBBox returned false for active item — chart may be too small to pan.'
+            );
+        }
     }
 
     processPendingCollapse() {
@@ -244,8 +314,8 @@ export abstract class AbstractNetworkSeries<
 
     protected makeLayoutUpdateOptions(): NetworkLayoutUpdateOptions<TVertex, TEdge> {
         return {
-            height: this.height ?? 0,
-            width: this.width ?? 0,
+            height: this.seriesRect?.height ?? 0,
+            width: this.seriesRect?.width ?? 0,
             // dragOffset has been retired; pan is owned by the Zoom feature (Phase 3).
             // The `offset` field is kept in NetworkLayoutUpdateOptions for TBD-6 cleanup.
             offset: { x: 0, y: 0 },
