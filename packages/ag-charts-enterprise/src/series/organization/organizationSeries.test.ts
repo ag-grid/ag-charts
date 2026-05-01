@@ -913,7 +913,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            applyZoom(chart, 0.5, 1.0, 0.0, 0.5);
+            applyZoom(chart, 0.5, 1, 0, 0.5);
             await compare();
         });
     });

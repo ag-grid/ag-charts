@@ -181,6 +181,21 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             if (!entry) continue;
             axis.setZoom({ min: entry.min, max: entry.max });
         }
+        // Synthetic-axis charts (topologyChart, standalone+org) have no rich axes for some/all
+        // registered SimpleAxis entries — there is nothing to call setZoom() on. The getter for
+        // those axes falls back to chartState.zoom, so we must mirror the write here, otherwise
+        // the next read returns the prior chartState.zoom value and updates appear to revert.
+        const syntheticIds = this.allAxes.filter((a) => !this.axes.some((rich) => rich.id === a.id));
+        if (syntheticIds.length === 0) return;
+        const syntheticState: CoreZoomState = {};
+        for (const axis of syntheticIds) {
+            const entry = value[axis.id];
+            if (entry) syntheticState[axis.id] = entry;
+        }
+        const nextZoom = toZoomState(syntheticState);
+        if (nextZoom != null) {
+            this.ctx.chartState.setValue('zoom', nextZoom);
+        }
     }
     private readonly axes: CartesianAxisLike[] = [];
     private readonly allAxes: SimpleAxis[] = [];
