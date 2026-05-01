@@ -270,7 +270,7 @@ function createTextImageExample(
                     image: {
                         position: imagePosition,
                         key: 'avatar',
-                        ...(imageShape != null ? { shape: imageShape } : {}),
+                        ...(imageShape == null ? {} : { shape: imageShape }),
                     },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
