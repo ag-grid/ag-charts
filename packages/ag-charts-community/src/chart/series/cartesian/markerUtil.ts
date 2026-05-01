@@ -196,7 +196,7 @@ export function cartesianMarkerDrawMode(
 ): CartesianMarkerDrawMode {
     const markersEnabled =
         contextNodeData?.crossFiltering === true ||
-        markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
+        markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
     if (properties.selection.enabled) {
         // selection.enabled needs NodeData for selected-style overrides to function.
