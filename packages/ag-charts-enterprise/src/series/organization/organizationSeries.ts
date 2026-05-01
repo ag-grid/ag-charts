@@ -201,7 +201,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
             );
 
-            node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles);
+            node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
         });
     }
 
@@ -477,7 +477,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
-            expander: { height: this.properties.expander.height },
+            expander: { height: this.properties.expander.height, spacing: this.properties.expander.spacing },
         });
 
         if (itemStyler && dataModel && processedData && datumIndex != null) {

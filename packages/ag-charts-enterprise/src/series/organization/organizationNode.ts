@@ -16,14 +16,19 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private appliedStyles?: RequiredOrganizationNodeStyle;
 
-    update(datum: OrganizationDatum['datum'], descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    update(
+        datum: OrganizationDatum['datum'],
+        descendantsCount: number,
+        styles: RequiredOrganizationNodeStyle,
+        isCollapsed: boolean
+    ) {
         this.appliedStyles = styles;
         this.updateShapeNode(styles);
         this.updateImageNode(datum.image, styles);
         this.updateTitleNode(datum.title, styles);
         this.updateSubtitleNode(datum.subtitle, styles);
         this.updateLabelNodes(datum.labels, styles);
-        this.updateExpanderNode(descendantsCount, styles);
+        this.updateExpanderNode(descendantsCount, isCollapsed, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -79,7 +84,19 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         layoutScenesColumn(columnScenes, styles.padding, columnGaps);
         layoutScenesRow(rowScenes, styles.padding, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
+        // For parent nodes the pill intrudes up into the card by half its height, so the
+        // effective bottom content padding must be at least `height/2 + spacing` to keep
+        // the last label clear of the pill.  Leaf nodes use plain `padding` on all sides.
+        const bottomPadding =
+            descendantsCount > 0
+                ? Math.max(styles.padding, styles.expander.height / 2 + styles.expander.spacing)
+                : styles.padding;
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow({
+            top: styles.padding,
+            right: styles.padding,
+            bottom: bottomPadding,
+            left: styles.padding,
+        }); // TODO: add stroke width by side
 
         if (this.shapeNode) {
             this.shapeNode.x = 0;
@@ -238,7 +255,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    private updateExpanderNode(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         if (descendantsCount === 0) {
             this.expanderNode?.remove();
             this.expanderNode = undefined;
@@ -246,17 +263,23 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
-        this.expanderNode.update(descendantsCount, styles);
+        this.expanderNode.update(descendantsCount, isCollapsed, styles);
     }
 }
+
+// Chevron geometry constants (all in px).
+const CHEVRON_WIDTH = 8;
+const CHEVRON_HEIGHT = 5;
+const CHEVRON_GAP = 5; // gap between count text right edge and chevron left edge
 
 class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     override name = 'organization-node-expander';
 
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
+    private chevronNode?: _ModuleSupport.Path;
 
-    update(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    update(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
@@ -266,7 +289,6 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.countNode.x = 12;
 
         const rawBBox = this.countNode.getBBox();
-        const grownBBox = rawBBox.clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
         // Render the pill at exactly `expander.height` so the layout reservation in
         // `networkTreeLayout` matches the rendered pill — diverging here would let link
         // elbows or child rows overlap the expander when `height` is under-specified.
@@ -274,14 +296,42 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         const pillHeight = styles.expander.height;
         this.countNode.y = (pillHeight - rawBBox.height) / 2;
 
+        const chevronLeft = this.countNode.x + rawBBox.width + CHEVRON_GAP;
+        const chevronMidY = pillHeight / 2;
+
+        this.chevronNode ??= this.appendChild(new _ModuleSupport.Path());
+        this.updateChevron(this.chevronNode, chevronLeft, chevronMidY, isCollapsed, styles.subtitle.color ?? '#000');
+
+        const pillContentWidth = chevronLeft + CHEVRON_WIDTH + 12; // trailing padding matches leading
+        const grownBBox = rawBBox.clone().grow({ top: 4, right: 8 + CHEVRON_WIDTH + CHEVRON_GAP, bottom: 4, left: 8 });
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, grownBBox.width);
+        this.shapeNode.width = Math.max(48, Math.max(grownBBox.width, pillContentWidth));
         this.shapeNode.height = pillHeight;
 
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
         this.shapeNode.cornerRadius = styles.cornerRadius;
+    }
+
+    private updateChevron(path: _ModuleSupport.Path, left: number, midY: number, isCollapsed: boolean, color: string) {
+        // Point-down chevron (expanded state) — apex at bottom centre, base at top.
+        // Flip vertically for collapsed state (point up, apex at top centre).
+        const halfW = CHEVRON_WIDTH / 2;
+        const halfH = CHEVRON_HEIGHT / 2;
+
+        const apexY = isCollapsed ? midY - halfH : midY + halfH;
+        const baseY = isCollapsed ? midY + halfH : midY - halfH;
+
+        path.path.clear();
+        path.path.moveTo(left, baseY);
+        path.path.lineTo(left + CHEVRON_WIDTH, baseY);
+        path.path.lineTo(left + halfW, apexY);
+        path.path.closePath();
+
+        path.fill = color;
+        path.stroke = 'none';
+        path.opacity = 0.7;
     }
 
     // override containsPoint(x: number, y: number) {

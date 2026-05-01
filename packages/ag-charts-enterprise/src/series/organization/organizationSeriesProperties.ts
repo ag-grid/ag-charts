@@ -53,6 +53,9 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
 class OrganizationSeriesExpanderProperties extends BaseProperties {
     @Property
     height: number = 24;
+
+    @Property
+    spacing: number = 0;
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {

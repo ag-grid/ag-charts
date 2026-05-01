@@ -254,6 +254,25 @@ function createExpanderHeightExample(height: number): any {
     };
 }
 
+function createExpanderSpacingExample(expanderHeight: number, expanderSpacing: number): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                expander: { height: expanderHeight, spacing: expanderSpacing },
+                node: {
+                    title: { key: 'name' },
+                    subtitle: { key: 'job' },
+                    labels: [{ key: 'location' }],
+                },
+            },
+        ],
+    };
+}
+
 function createTextImageExample(
     textAlign: TextAlign,
     imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
@@ -509,6 +528,20 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: createExpanderHeightExample(32),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    EXPANDER_SPACING_DEFAULT: {
+        // Verifies that default spacing (4px) produces a visible gap between the last label
+        // and the top of the expander pill on parent nodes.  With height=24 the effective
+        // bottom padding is max(8, 12+4)=16, which is 8px more than the uniform padding.
+        options: createExpanderSpacingExample(24, 4),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_SPACING_SHORT_PILL: {
+        // With height=8 and spacing=0 the effective bottom padding is max(8, 4+0)=8, equal
+        // to node.padding — the Math.max picks padding, so parent-node card height is
+        // identical to a leaf-node layout.
+        options: createExpanderSpacingExample(8, 0),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
         // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
         // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
@@ -599,6 +632,29 @@ describe('OrganizationSeries', () => {
                 }
             }
         );
+    });
+
+    describe('expander chevron', () => {
+        it('should render a point-down chevron when a node is expanded', async () => {
+            // Baseline: no initialState collapse — cto and cfo are expanded and their
+            // expander pills should show a downward-pointing chevron.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render a point-up chevron when a node is collapsed', async () => {
+            // cto is collapsed via setState; its expander pill must switch to an
+            // upward-pointing chevron to signal that clicking will expand.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+            await compare();
+        });
     });
 
     describe('expand collapse', () => {
@@ -697,6 +753,15 @@ describe('OrganizationSeries', () => {
     });
 
     describe('theme defaults', () => {
+        it('should apply Figma-aligned theme defaults', async () => {
+            // Guards the defaults pass: padding 8, spacing 4, image circle, verticalSpacing 52.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
         it('should apply default highlight stroke when a node is hovered', async () => {
             // Regression test for AG-17192. Theme defaults add a stronger stroke and
             // strokeWidth on `highlight.highlightedItem`; without the default the highlighted
@@ -761,6 +826,63 @@ describe('OrganizationSeries', () => {
                     { id: 'acc', name: 'Frank Cash', job: 'Accountant', parentId: 'cfo' },
                 ],
             };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should use outerSpacing for cousin gaps and innerSpacing for sibling gaps', async () => {
+            // 2-level tree: two parents (A, B) each with two leaf children (C/D and E/F).
+            // With innerSpacing=20 and outerSpacing=40, the gap between D and E (cousins)
+            // must be larger than the gap between C and D (siblings) or E and F (siblings).
+            // The snapshot captures the layout; the test name documents the intent so a
+            // regression is immediately identifiable.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                data: [
+                    { id: 'root', name: 'Root', job: 'Root', parentId: null },
+                    { id: 'a', name: 'Parent A', job: 'Manager', parentId: 'root' },
+                    { id: 'b', name: 'Parent B', job: 'Manager', parentId: 'root' },
+                    { id: 'c', name: 'Child C', job: 'Report', parentId: 'a' },
+                    { id: 'd', name: 'Child D', job: 'Report', parentId: 'a' },
+                    { id: 'e', name: 'Child E', job: 'Report', parentId: 'b' },
+                    { id: 'f', name: 'Child F', job: 'Report', parentId: 'b' },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        innerSpacing: 20,
+                        outerSpacing: 40,
+                        node: { title: { key: 'name' }, subtitle: { key: 'job' } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should not overlap last label with expander pill at default spacing', async () => {
+            // Regression for the overlap introduced by node.padding shrinking from 16 to 8.
+            // With expander.height=24 and expander.spacing=4 the effective bottom padding
+            // becomes max(8, 12+4)=16, giving 4 px clearance between the last label bottom
+            // and the pill top.  The snapshot documents non-overlap.
+            const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should leave card layout unchanged when expander is short enough', async () => {
+            // When height=8 and spacing=0 the Math.max computation yields max(8, 4+0)=8,
+            // equal to node.padding — parent-card bottom padding is identical to that of a
+            // leaf card, so no extra space is reserved.  Snapshot documents this invariance.
+            const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);

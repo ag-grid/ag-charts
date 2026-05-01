@@ -76,7 +76,9 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             nodeBBox = this.regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
-            // TODO: Fix outer padding, see `org-chart-tudor` example for issue.
+            // When the previous subtree had children, use outerSpacing to separate the two
+            // subtrees (cousin gap). Without children the siblings are close enough that
+            // outerSpacing is not applied here; innerSpacing is added below instead.
             if (prevHasChildren) {
                 groupBBox.width += options.outerSpacing;
             }
@@ -108,9 +110,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
 
-            // Add inner padding to childless siblings in the group except for the last node.
-            // TODO: Fix outerSpacing and add `!hasVisibleChildren` condition here
-            if (index < vertices.length - 1) {
+            // Add innerSpacing between leaf siblings. Nodes with children get their
+            // inter-subtree gap from the outerSpacing applied at the start of the next
+            // iteration (prevHasChildren path above), so no additional gap is needed here.
+            if (index < vertices.length - 1 && !hasVisibleChildren) {
                 groupBBox.width += options.innerSpacing;
             }
 
@@ -124,9 +127,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 }
             }
         }
-
-        // Add outer padding between this set of siblings and their cousins.
-        // groupBBox.width += this.outerPadding;
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }

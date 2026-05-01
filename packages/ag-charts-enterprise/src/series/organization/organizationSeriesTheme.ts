@@ -4,10 +4,11 @@ import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
         innerSpacing: 20,
-        // outerSpacing: 40,
-        verticalSpacing: 40,
+        outerSpacing: 40,
+        verticalSpacing: 52,
         expander: {
             height: 24,
+            spacing: 4,
         },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
@@ -32,7 +33,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         node: {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
-            padding: 16,
+            padding: 8,
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,
             strokeWidth: 1,
@@ -41,8 +42,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 width: 50,
                 height: 50,
                 position: 'top',
-                shape: 'square',
-                spacing: 10,
+                shape: 'circle',
+                spacing: 8,
             },
             title: {
                 color: { $ref: 'foregroundColor' },
@@ -52,7 +53,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 fontWeight: 'bold',
                 key: 'title',
                 overflowStrategy: 'ellipsis',
-                spacing: 10,
+                spacing: 4,
                 textAlign: 'center',
                 wrapping: 'on-space',
             },
@@ -64,7 +65,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 fontWeight: 'normal',
                 key: 'subtitle',
                 overflowStrategy: 'ellipsis',
-                spacing: 10,
+                spacing: 4,
                 textAlign: 'center',
                 wrapping: 'on-space',
             },
@@ -76,7 +77,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                     fontStyle: 'normal',
                     fontWeight: 'normal',
                     overflowStrategy: 'ellipsis',
-                    spacing: 10,
+                    spacing: 4,
                     textAlign: 'center',
                     wrapping: 'on-space',
                 },
