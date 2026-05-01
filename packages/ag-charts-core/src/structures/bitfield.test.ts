@@ -1,19 +1,18 @@
-import { Bitfield } from "./Bitfield";
-import type { Bit } from "./Bitfield";
+import { Bitfield } from './Bitfield';
+import type { Bit } from './Bitfield';
 
-
-describe("Bitfield (larger scale tests)", () => {
-    test("length", () => {
+describe('Bitfield (larger scale tests)', () => {
+    test('length', () => {
         const bf = new Bitfield(2048);
         expect(bf.length).toBe(2048);
     });
 
-    test("unaligned length", () => {
+    test('unaligned length', () => {
         const bf = new Bitfield(100);
         expect(bf.length).toBe(100);
     });
 
-    test("initial state is all zeros", () => {
+    test('initial state is all zeros', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i++) {
@@ -21,7 +20,7 @@ describe("Bitfield (larger scale tests)", () => {
         }
     });
 
-    test("setBit / getBit across full range", () => {
+    test('setBit / getBit across full range', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i += 3) {
@@ -29,12 +28,12 @@ describe("Bitfield (larger scale tests)", () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i % 3 === 0) ? 1 : 0;
+            const expected = i % 3 === 0 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
 
-    test("unsetBit clears correctly across words", () => {
+    test('unsetBit clears correctly across words', () => {
         const bf = new Bitfield(2024);
 
         // set everything
@@ -48,12 +47,12 @@ describe("Bitfield (larger scale tests)", () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i % 4 === 0) ? 0 : 1;
+            const expected = i % 4 === 0 ? 0 : 1;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
 
-    test("toggleBit behaves consistently over large range", () => {
+    test('toggleBit behaves consistently over large range', () => {
         const bf = new Bitfield(2048);
 
         for (let i = 0; i < bf.length; i++) {
@@ -61,7 +60,7 @@ describe("Bitfield (larger scale tests)", () => {
         }
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i % 7 === 0) ? 1 : 0;
+            const expected = i % 7 === 0 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
 
@@ -75,41 +74,41 @@ describe("Bitfield (larger scale tests)", () => {
         }
     });
 
-    test("fill (aligned large range)", () => {
+    test('fill (aligned large range)', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 64, 1024); // aligned on word boundaries
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i >= 64 && i < 1024) ? 1 : 0;
+            const expected = i >= 64 && i < 1024 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
 
-    test("fill (unaligned large range across many words)", () => {
+    test('fill (unaligned large range across many words)', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 13, 1900);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i >= 13 && i < 1900) ? 1 : 0;
+            const expected = i >= 13 && i < 1900 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
 
-    test("fill clear large region inside set region", () => {
+    test('fill clear large region inside set region', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 0, bf.length);
         bf.fill(0, 300, 1700);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i < 300 || i >= 1700) ? 1 : 0;
+            const expected = i < 300 || i >= 1700 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
 
-    test("multiple overlapping fills", () => {
+    test('multiple overlapping fills', () => {
         const bf = new Bitfield(2048);
 
         bf.fill(1, 100, 1500);
@@ -131,7 +130,7 @@ describe("Bitfield (larger scale tests)", () => {
         }
     });
 
-    test("boundary stress: crossing many word boundaries", () => {
+    test('boundary stress: crossing many word boundaries', () => {
         const SIZE = 2048;
         const bf = new Bitfield(2048);
 
@@ -139,9 +138,8 @@ describe("Bitfield (larger scale tests)", () => {
         bf.fill(1, 7, SIZE - 13);
 
         for (let i = 0; i < bf.length; i++) {
-            const expected = (i >= 7 && i < SIZE - 13) ? 1 : 0;
+            const expected = i >= 7 && i < SIZE - 13 ? 1 : 0;
             expect(bf.getBit(i)).toBe(expected as Bit);
         }
     });
-
 });
