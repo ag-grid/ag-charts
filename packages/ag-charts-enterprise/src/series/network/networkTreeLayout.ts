@@ -7,6 +7,14 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
+interface ContentBoundsAccumulator {
+    count: number;
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
 export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkLayoutUpdateOptions<TVertex, TEdge> {
     nodeHeight?: number;
     nodeWidth?: number;
@@ -25,12 +33,54 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
+    /**
+     * Tracks the true bounding box of all laid-out node bboxes during a single `update()` pass.
+     *
+     * Why this is separate from the `groupBBox` / `containerBBox` returned by `updateNodes`:
+     * `groupBBox` is mutated for sibling-positioning purposes, and the recursive merge of each
+     * subtree's `descendentsContainerBBox` causes `groupBBox.height` to over-accumulate by
+     * `parent.height + verticalSpacing` per processed sibling at every level of the tree.
+     * For an N-node balanced tree of depth log_b(N), the accumulated height is O(N) instead of
+     * O(depth * nodeH). The positioning logic doesn't read `height` so it doesn't notice; but
+     * `applyViewportTransform` reads `contentBBox.height` for fitY and produces the wrong scale.
+     *
+     * The accumulator below records the merged bbox of every actual `layoutBBox` we emit,
+     * giving the true content extent without disturbing the positioning algorithm.
+     */
+    private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
+        count: 0,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    };
+
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
+        const acc = this.contentBoundsAccumulator;
+        acc.count = 0;
         const { containerBBox } = this.updateNodes(options);
-        this.contentBBox = containerBBox;
+        this.contentBBox =
+            acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
         this.updateOffset(options, containerBBox);
+    }
+
+    private accumulateContentBounds(bbox: TBBox) {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) {
+            acc.left = bbox.x;
+            acc.top = bbox.y;
+            acc.right = bbox.x + bbox.width;
+            acc.bottom = bbox.y + bbox.height;
+            acc.count = 1;
+            return;
+        }
+        if (bbox.x < acc.left) acc.left = bbox.x;
+        if (bbox.y < acc.top) acc.top = bbox.y;
+        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
+        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
+        acc.count++;
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -110,6 +160,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             const layoutBBox = new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
+            this.accumulateContentBounds(layoutBBox);
 
             // Request the series to layout the node per the calculated bbox.
             layoutDatumNode(vertex, layoutBBox, this.regularBBox);

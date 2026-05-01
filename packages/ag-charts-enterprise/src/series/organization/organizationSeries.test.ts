@@ -1028,21 +1028,21 @@ describe('OrganizationSeries', () => {
 
     describe('aspect-ratio guard (Phase 4)', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
-            // Request deliberately off-isotropic zoom: xRange ≠ yRange. The guard should
-            // project both to the same range width (max of the two — the less-zoomed-in
-            // direction wins, preserving more content).
-            //
-            // The test uses values well within [0, 1] to avoid ZoomManager out-of-bounds
-            // validation warnings. Values: x centred at 0.5 with width 0.3; y centred at
-            // 0.5 with width 0.5. Post-projection both should equal max(0.3, 0.5) = 0.5.
+            // Request a deliberately off-isotropic zoom: xRange ≠ yRange. The native-pixel
+            // floor is the sole owner of isotropy projection (the standalone isotropy guard
+            // was retired); it projects to the line `xRange/fitX = yRange/fitY` which yields
+            // a single visual zoom factor `t = max(xRange/fitX, yRange/fitY)` (less-zoomed
+            // direction wins). For non-square content (`fitX ≠ fitY`) this means the
+            // projected `xRange` and `yRange` must remain in the ratio `fitX:fitY`, NOT
+            // numerically equal to each other.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const xWidth = 0.3; // narrower — more zoomed-in
-            const yWidth = 0.5; // wider — less zoomed-in (wins)
+            const xWidth = 0.3;
+            const yWidth = 0.5;
             deproxy(chart).ctx.zoomManager?.updateZoom(
                 { source: 'state-change', sourceDetail: 'unspecified' },
                 {
@@ -1058,9 +1058,19 @@ describe('OrganizationSeries', () => {
             const acceptedXWidth = zoom!.x.max - zoom!.x.min;
             const acceptedYWidth = zoom!.y.max - zoom!.y.min;
 
-            // Both directions must converge to the same range width (isotropy restored).
-            // The guard takes the max of the two widths (0.5) for both.
-            expect(Math.abs(acceptedXWidth - acceptedYWidth)).toBeLessThan(1e-6);
+            // Pull seriesRect + contentBBox from the live series to derive fitX, fitY.
+            const series = deproxy(chart).series[0] as any;
+            const seriesRect = series.seriesRect;
+            const contentBBox = series.layout.contentBBox;
+            expect(seriesRect).toBeDefined();
+            expect(contentBBox).toBeDefined();
+            const fitX = seriesRect.width / contentBBox.width;
+            const fitY = seriesRect.height / contentBBox.height;
+
+            // Isotropy condition: xRange/fitX === yRange/fitY (single rendered scale `s`).
+            const xT = acceptedXWidth / fitX;
+            const yT = acceptedYWidth / fitY;
+            expect(Math.abs(xT - yT)).toBeLessThan(1e-6);
 
             // Visual snapshot: the chart should render at the projected isotropic state.
             const imageData = extractImageData(ctx);

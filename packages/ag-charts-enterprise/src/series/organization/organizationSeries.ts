@@ -45,6 +45,17 @@ const { keyProperty, valueProperty } = _ModuleSupport;
 /** Tolerance used when comparing zoom factors for isotropy. */
 const ISOTROPY_EPSILON = 1e-6;
 
+/**
+ * Constrain a midpoint so that the centred window `[mid - range/2, mid + range/2]` stays inside
+ * `[0, 1]`. Caller-supplied range must be in [0, 1] — otherwise the midpoint is undefined.
+ */
+function clampMid(mid: number, range: number): number {
+    const half = range / 2;
+    if (mid - half < 0) return half;
+    if (mid + half > 1) return 1 - half;
+    return mid;
+}
+
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -116,26 +127,24 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
-     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp, native-pixel floor, and aspect-ratio guard.
+     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp + native-pixel floor (with isotropy projection).
      *
-     * Responsibility order within this single listener:
-     *   1. Pan-boundary clamp (AG-17204) — ensures the window overlaps [0, 1].
-     *   2. Native-pixel floor — prevents zooming in past 1:1 native pixel ratio.
-     *   3. Aspect-ratio guard (Phase 4) — projects off-isotropic zoom states onto the
-     *      isotropic line. Belt-and-braces with keepAspectRatio: true for programmatic
-     *      inputs (chart.updateZoom) that bypass the Zoom feature's gesture handling.
+     * Order matters because `event.constrainChanges` mutates `event.state` in-place, so each
+     * subsequent guard sees the previous one's effect:
+     *   1. Pan-boundary clamp (AG-17204) — ensures the window overlaps `[0, 1]` so the user
+     *      always has *some* content visible after a pan.
+     *   2. Native-pixel floor — projects to the isotropic line and caps the rendered scale
+     *      `s` at 1 (or a UX upper bound for small trees). Replaces the old separate isotropy
+     *      guard, which had buggy `xRange = yRange` semantics for non-square content.
      *
-     * Multiple constrainChanges calls compose: each updates event.state in-place, so
-     * later guards see the pan-clamped state when the floor and isotropy guards run.
+     * Resets (`event.isReset`) take the window to `{0, 1}` which trivially satisfies both
+     * guards, so we skip to avoid double-work.
      */
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        // Resets take the window to {0,1} which always overlaps; skip all constraints
-        // to avoid interfering with the reset path.
         if (event.isReset) return;
 
         this.applyPanBoundaryClamp(event);
         this.applyNativePixelFloor(event);
-        this.applyIsotropyGuard(event);
     }
 
     /**
@@ -182,34 +191,41 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
-     * Native-pixel floor: prevent zooming in past the 1:1 native-pixel ratio.
+     * Native-pixel floor: prevent zooming in past 1:1 native pixels (and project off-isotropic
+     * states back onto the isotropic line so the constraint state matches the visual).
      *
-     * The plan §2 mapping defines native pixel ratio as `xRange = V_w / C_w` (and
-     * analogously for y). Allowing xRange below that threshold would render content
-     * larger than native pixels — creating an over-magnified, unreadable view.
+     * Plan §2 transform: `s = min(fitX/xRange, fitY/yRange)`, where `fitX = V_w / C_w` and
+     * `fitY = V_h / C_h`. Native pixel ratio means `s = 1` (one layout-space unit renders as one
+     * canvas pixel). For small content where `min(fitX, fitY) > 1` the cap is loosened to a UX
+     * upper bound of `MAX_ZOOM_FACTOR` × the fit scale so users can magnify a small tree to
+     * inspect it.
      *
-     * The floor is `min(V_w / C_w, MAX_ZOOM_IN)` where `MAX_ZOOM_IN = 0.1` (10× zoom).
-     * The cap is necessary for small trees whose content fits the viewport (`V_w/C_w > 1`):
-     * without it those trees would have minRange = 1 (no zoom-in), which is poor UX —
-     * users should be able to magnify a small tree for inspection. The 10× cap is an
-     * empirical limit beyond which individual nodes become unreadably large.
+     * Caps in scale space:
+     *   `s_max = max(1, MAX_ZOOM_FACTOR * min(fitX, fitY))`
      *
-     * For large trees (`V_w / C_w < 0.1`) the floor is exactly `V_w / C_w`, meaning
-     * users cannot zoom in past 1:1 native pixels.
+     * The corresponding constraint on `xRange` and `yRange` (since `s` is the min over the two):
+     *   `xRange ≥ fitX / s_max`  AND  `yRange ≥ fitY / s_max`
      *
-     * Phase 4 previously relied on `isVisibleItemsCountAtLeast` / `getZoomRangeFittingItems`
-     * for this floor, but that path is a no-op for synthetic axes (`boundSeries.size === 0`
-     * returns true unconditionally), so it never fired. This guard replaces it.
+     * **Aspect-ratio (isotropy) projection.** For non-square content (`fitX ≠ fitY`) the
+     * isotropic condition is `xRange/fitX = yRange/fitY`, NOT `xRange = yRange`. The transform
+     * already handles non-isotropic state correctly via `min(sX, sY)`, but the stored ratios
+     * ought to match the visual to keep memento round-trip and gesture math sane. Projection
+     * uses the **larger** of `xRange/fitX` and `yRange/fitY` (less-zoomed-in axis wins so more
+     * content stays visible after the snap-back) and applies it to both axes.
+     *
+     * The floor and the projection compose: project to isotropic first, then clamp `s` to
+     * `s_max`. Both ratios may need expanding, never shrinking.
      */
     private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        /** Minimum xRange allowed: at most 10× zoom-in (xRange = 0.1 of the fit-state range). */
-        const MAX_ZOOM_IN = 0.1;
+        /** UX upper bound in scale space for small content (when fit-scale > 1). */
+        const MAX_ZOOM_FACTOR = 10;
         const { seriesRect } = this;
         const contentBBox = this.layout.contentBBox;
         if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
 
-        const minXRange = Math.min(seriesRect.width / contentBBox.width, MAX_ZOOM_IN);
-        const minYRange = Math.min(seriesRect.height / contentBBox.height, MAX_ZOOM_IN);
+        const fitX = seriesRect.width / contentBBox.width;
+        const fitY = seriesRect.height / contentBBox.height;
+        const sMax = Math.max(1, MAX_ZOOM_FACTOR * Math.min(fitX, fitY));
 
         let xId: AxisID | undefined;
         let yId: AxisID | undefined;
@@ -219,103 +235,49 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             if (entry.direction === 'x') xId = id;
             else yId = id;
         }
-
-        const constrained: _ModuleSupport.CoreZoomState = {};
-        let didConstrain = false;
-
-        if (xId) {
-            const { min, max } = event.state[xId]!;
-            const xRange = max - min;
-            if (xRange < minXRange - ISOTROPY_EPSILON) {
-                // Expand the window symmetrically about its midpoint to reach the floor.
-                const mid = (min + max) / 2;
-                constrained[xId] = {
-                    min: mid - minXRange / 2,
-                    max: mid + minXRange / 2,
-                    direction: ChartAxisDirection.X,
-                };
-                didConstrain = true;
-            }
-        }
-
-        if (yId) {
-            const { min, max } = event.state[yId]!;
-            const yRange = max - min;
-            if (yRange < minYRange - ISOTROPY_EPSILON) {
-                const mid = (min + max) / 2;
-                constrained[yId] = {
-                    min: mid - minYRange / 2,
-                    max: mid + minYRange / 2,
-                    direction: ChartAxisDirection.Y,
-                };
-                didConstrain = true;
-            }
-        }
-
-        if (didConstrain) {
-            event.constrainChanges(constrained);
-        }
-    }
-
-    /**
-     * Phase 4: Aspect-ratio guard.
-     *
-     * The render transform uses `s = min(fitX/xRange, fitY/yRange)` (plan §2). For
-     * square content (`fitX = fitY`) the isotropic condition simplifies to `xRange = yRange`.
-     * For non-square content the true isotropic condition is `xRange/fitX = yRange/fitY`, but
-     * because the org-chart theme forces `keepAspectRatio: true` and square-content trees are
-     * the common case, `xRange = yRange` is a correct approximation and matches the `min(sX,sY)`
-     * choice in the transform. If the two ranges differ after the native-pixel-floor clamp,
-     * project both to `max(xRange, yRange)` (less-zoomed-in direction wins, more content shown).
-     *
-     * This is belt-and-braces with `keepAspectRatio: true` to catch programmatic
-     * `chart.updateZoom()` inputs that bypass the Zoom feature's gesture handling.
-     */
-    private applyIsotropyGuard(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        // Identify the x and y axis entries from the current (post-clamp) event state.
-        let xId: AxisID | undefined;
-        let yId: AxisID | undefined;
-        for (const id of strictObjectKeys(event.state)) {
-            const entry = event.state[id];
-            if (entry == null) continue;
-            if (entry.direction === 'x') xId = id;
-            else yId = id;
-        }
-
         if (!xId || !yId) return;
 
         const xEntry = event.state[xId]!;
         const yEntry = event.state[yId]!;
+        const xRange = xEntry.max - xEntry.min;
+        const yRange = yEntry.max - yEntry.min;
+        if (xRange <= 0 || yRange <= 0) return;
 
-        let xMin = xEntry.min;
-        let xMax = xEntry.max;
-        let yMin = yEntry.min;
-        let yMax = yEntry.max;
+        // Project to isotropic line: t = max(xRange/fitX, yRange/fitY) (less-zoomed wins).
+        const xt = xRange / fitX;
+        const yt = yRange / fitY;
+        let targetT = Math.max(xt, yt);
+        // Apply the s_max floor in t-space: s = 1/t ≤ s_max  ⇔  t ≥ 1/s_max.
+        const minT = 1 / sMax;
+        if (targetT < minT) targetT = minT;
 
-        // Aspect-ratio guard: xRange = yRange is the isotropic state. If they differ,
-        // use the larger range (less zoomed-in) for both axes to preserve aspect ratio.
-        const xWidth = xMax - xMin;
-        const yWidth = yMax - yMin;
-        if (Math.abs(xWidth - yWidth) > ISOTROPY_EPSILON) {
-            const targetWidth = Math.max(xWidth, yWidth);
-            const xMid = (xMin + xMax) / 2;
-            const yMid = (yMin + yMax) / 2;
-            xMin = xMid - targetWidth / 2;
-            xMax = xMid + targetWidth / 2;
-            yMin = yMid - targetWidth / 2;
-            yMax = yMid + targetWidth / 2;
-        }
+        const targetXRange = Math.min(1, targetT * fitX);
+        const targetYRange = Math.min(1, targetT * fitY);
 
-        // Only constrain if the state actually changed from what was requested.
+        // Re-centre symmetrically about the midpoint (preserves the user's pan focus). If the
+        // expanded range no longer fits in [0, 1] we clamp the midpoint to keep the window valid.
+        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
+        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
+
         const xChanged =
-            Math.abs(xMin - xEntry.min) > ISOTROPY_EPSILON || Math.abs(xMax - xEntry.max) > ISOTROPY_EPSILON;
+            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
         const yChanged =
-            Math.abs(yMin - yEntry.min) > ISOTROPY_EPSILON || Math.abs(yMax - yEntry.max) > ISOTROPY_EPSILON;
+            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
 
         if (xChanged || yChanged) {
-            const constrained: _ModuleSupport.CoreZoomState = {} as _ModuleSupport.CoreZoomState;
-            constrained[xId] = { min: xMin, max: xMax, direction: ChartAxisDirection.X };
-            constrained[yId] = { min: yMin, max: yMax, direction: ChartAxisDirection.Y };
+            const constrained: _ModuleSupport.CoreZoomState = {};
+            constrained[xId] = {
+                min: xMid - targetXRange / 2,
+                max: xMid + targetXRange / 2,
+                direction: ChartAxisDirection.X,
+            };
+            constrained[yId] = {
+                min: yMid - targetYRange / 2,
+                max: yMid + targetYRange / 2,
+                direction: ChartAxisDirection.Y,
+            };
             event.constrainChanges(constrained);
         }
     }
