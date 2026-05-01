@@ -922,16 +922,18 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0–0.5)', async () => {
+        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
             // Zoom state: right-half × top-half of the fit-state viewport, scale = 2.
             // The viewportGroup translates so only the right/top content is visible.
+            // Y is in cartesian convention (y-up): yMin=0.5, yMax=1 → top half of content
+            // visible (top of cartesian = top of screen for org chart's y-down rendering).
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            applyZoom(chart, 0.5, 1, 0, 0.5);
+            applyZoom(chart, 0.5, 1, 0.5, 1);
             await compare();
         });
     });
@@ -940,7 +942,8 @@ describe('OrganizationSeries', () => {
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
             // 'acc' (child of CFO) is at roughly 58% horizontal / 57% vertical of the series
             // area in fit-state. setState with zoom at the top-left quadrant
-            // ({ratioX: 0.0–0.5, ratioY: 0.0–0.5}) places 'acc' off-screen.
+            // ({ratioX: 0.0–0.5, ratioY: 0.5–1.0}; y-up cartesian: yMax=1 = top of view)
+            // places 'acc' off-screen on the right and below the visible window.
             // maybePanToItem must call panToBBox — verified via spy.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
@@ -957,7 +960,7 @@ describe('OrganizationSeries', () => {
             // trigger a pan.
             await chart.setState({
                 version: '13.3.0',
-                zoom: { ratioX: { start: 0, end: 0.5 }, ratioY: { start: 0, end: 0.5 } },
+                zoom: { ratioX: { start: 0, end: 0.5 }, ratioY: { start: 0.5, end: 1 } },
                 active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
             });
             await waitForChartStability(chart);
@@ -970,7 +973,8 @@ describe('OrganizationSeries', () => {
 
         it('should NOT pan when the active node is already within the zoom window', async () => {
             // 'acc' is at ~58%/57% in fit-state. Zoom to the bottom-right quadrant
-            // ({ratioX: 0.5–1.0, ratioY: 0.5–1.0}) keeps 'acc' inside the visible area.
+            // ({ratioX: 0.5–1.0, ratioY: 0.0–0.5}; y-up cartesian: yMax=0.5 = mid-screen
+            // bottom-half visible) keeps 'acc' inside the visible area.
             // maybePanToItem must detect the node is in view and skip panToBBox.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
@@ -982,10 +986,11 @@ describe('OrganizationSeries', () => {
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // Bottom-right quadrant: 'acc' at ~58%/57% is well inside [0.5, 1] × [0.5, 1].
+            // Right-half × screen-bottom-half (y-up cartesian: y=0–0.5 = bottom half visible):
+            // 'acc' at ~58%/57% screen position is inside the visible region.
             await chart.setState({
                 version: '13.3.0',
-                zoom: { ratioX: { start: 0.5, end: 1 }, ratioY: { start: 0.5, end: 1 } },
+                zoom: { ratioX: { start: 0.5, end: 1 }, ratioY: { start: 0, end: 0.5 } },
                 active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
             });
             await waitForChartStability(chart);
@@ -995,9 +1000,10 @@ describe('OrganizationSeries', () => {
         });
 
         it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
-            // Zoom into the bottom-right quadrant so 'acc' would require a pan if this were
-            // a state-change. Then simulate hover (source: 'user-interaction') by calling
-            // activeManager.update() directly. The zoom state must be unchanged.
+            // Zoom into the right-half × screen-bottom-half so 'acc' is inside the visible
+            // region. (y-up cartesian: y=0–0.5 = bottom half visible.) Then simulate hover
+            // (source: 'user-interaction') by calling activeManager.update() directly. The
+            // zoom state must be unchanged.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -1006,7 +1012,7 @@ describe('OrganizationSeries', () => {
 
             deproxy(chart).ctx.zoomManager?.updateZoom(
                 { source: 'state-change', sourceDetail: 'unspecified' },
-                { x: { min: 0.5, max: 1 }, y: { min: 0.5, max: 1 } }
+                { x: { min: 0.5, max: 1 }, y: { min: 0, max: 0.5 } }
             );
             await waitForChartStability(chart);
             const zoomBefore = getZoom(chart);
@@ -1021,8 +1027,8 @@ describe('OrganizationSeries', () => {
             const zoomAfter = getZoom(chart);
             expect(zoomAfter?.x.min).toBeCloseTo(zoomBefore?.x.min ?? 0.5, 6);
             expect(zoomAfter?.x.max).toBeCloseTo(zoomBefore?.x.max ?? 1, 6);
-            expect(zoomAfter?.y.min).toBeCloseTo(zoomBefore?.y.min ?? 0.5, 6);
-            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 1, 6);
+            expect(zoomAfter?.y.min).toBeCloseTo(zoomBefore?.y.min ?? 0, 6);
+            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 0.5, 6);
         });
     });
 

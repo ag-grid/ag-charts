@@ -214,20 +214,28 @@ export abstract class AbstractNetworkSeries<
      * Applies a scale + translate transform to `viewportGroup` from the current zoom state.
      *
      * The zoom window `[xMin, xMax] × [yMin, yMax]` (values in [0, 1]) selects a content-space
-     * slice. The mapping follows plan §2:
+     * slice. The Zoom feature publishes ratios in the cartesian convention (y-up):
+     * `yMin = bottom of visible window, yMax = top of visible window`. Network/organization
+     * series render y-down, so we convert to a screen-space "top fraction" via `1 − yMax`.
+     * Without this conversion, drag-pan and wheel-zoom anchor would be Y-inverted because the
+     * Zoom feature's `pointToRatio` (zoomUtils) and `ZoomPanner.translateZooms` (zoomPanner)
+     * both treat positive screen-Y delta as a decrease in `yMin` — the opposite of what a
+     * y-down renderer needs.
      *
-     *   fitX = V_w / C_w,  fitY = V_h / C_h       (per-direction fit scales)
-     *   sX   = fitX / xRange,  sY = fitY / yRange  (per-direction zoom scales)
-     *   s    = min(sX, sY)                          (isotropic: use the constraining axis)
+     * The mapping follows plan §2 with the cartesian → screen substitution:
+     *
+     *   fitX = V_w / C_w,  fitY = V_h / C_h           (per-direction fit scales)
+     *   sX   = fitX / xRange,  sY = fitY / yRange      (per-direction zoom scales)
+     *   s    = min(sX, sY)                              (isotropic: use the constraining axis)
      *   tx   = seriesRect.x − (xMin·C_w + offsetX) · s + centerX
-     *   ty   = seriesRect.y − (yMin·C_h + offsetY) · s + centerY
+     *   ty   = seriesRect.y − ((1 − yMax)·C_h + offsetY) · s + centerY
      *
      * where `offsetX/Y` is the auto-centre translation written by the layout to `dataNodeGroup`,
      * and `centerX/Y = max(0, (V_w − C_w·s) / 2)` re-centres content on the non-constraining axis.
      *
-     * At fit state `{0,1}` this produces `s = min(V_w/C_w, V_h/C_h)`, so the entire content
-     * bbox is visible (plan §2: "fit-to-viewport at default zoom"). At `xRange = V_w/C_w` the
-     * content renders at 1:1 native pixel ratio.
+     * At fit state `{x: 0..1, y: 0..1}` this produces `s = min(V_w/C_w, V_h/C_h)` and
+     * `1 − yMax = 0`, so the entire content bbox is visible (plan §2: "fit-to-viewport at
+     * default zoom"). At `xRange = V_w/C_w` the content renders at 1:1 native pixel ratio.
      *
      * When `contentBBox` is not yet available (first render before layout) we fall back to
      * identity so the group remains correctly positioned until layout runs.
@@ -282,10 +290,13 @@ export abstract class AbstractNetworkSeries<
         const offsetX = this.dataNodeGroup.translationX;
         const offsetY = this.dataNodeGroup.translationY;
 
+        // Convert cartesian-y zoom (yMax = top of view) to screen-y top fraction.
+        const screenTopFractionY = 1 - yMax;
+
         this.viewportGroup.scalingX = s;
         this.viewportGroup.scalingY = s;
         this.viewportGroup.translationX = seriesRect.x - (xMin * cw + offsetX) * s + centerX;
-        this.viewportGroup.translationY = seriesRect.y - (yMin * ch + offsetY) * s + centerY;
+        this.viewportGroup.translationY = seriesRect.y - (screenTopFractionY * ch + offsetY) * s + centerY;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
@@ -337,7 +348,32 @@ export abstract class AbstractNetworkSeries<
         const { zoomManager } = this.ctx;
         if (!zoomManager) return;
 
-        const panSuccess = zoomManager.panToBBox(seriesRect, canvasBBox);
+        // `calcPanToBBoxRatios` (community) is y-down: it maps `ratio.min ↔ viewport.y1` (top
+        // pixel), `ratio.max ↔ viewport.y2` (bottom pixel). The Zoom feature stores Y in
+        // cartesian convention (y-up: yMin = bottom of view, yMax = top of view), so calling
+        // `panToBBox` with a y-down target produces ratios that, when consumed by
+        // `applyViewportTransform`, pan the viewport in the wrong Y direction.
+        //
+        // To compensate, mirror the target's screen-y around the seriesRect midline BEFORE
+        // calling `panToBBox`. With the flip:
+        //   - A target above the viewport on screen (small pixel y) becomes below (large
+        //     pixel y) in the function's view.
+        //   - The function pans the viewport to a "down-shifted" pixel position and converts
+        //     that pixel position to ratios under its y-down assumption.
+        //   - The same numeric ratios, interpreted by `applyViewportTransform` as y-up
+        //     cartesian, position the viewport so the unflipped target is visible.
+        //
+        // This mirror works because the function's pixel→ratio conversion is linear: flipping
+        // pixel-y around the viewport midline produces ratios that are the y-up complement of
+        // what the function would have produced for the unflipped target.
+        const flippedTarget = {
+            x: canvasBBox.x,
+            y: 2 * seriesRect.y + seriesRect.height - canvasBBox.y - canvasBBox.height,
+            width: canvasBBox.width,
+            height: canvasBBox.height,
+        };
+
+        const panSuccess = zoomManager.panToBBox(seriesRect, flippedTarget);
         if (!panSuccess) {
             Logger.warnOnce(
                 'OrganizationSeries: panToBBox returned false for active item — chart may be too small to pan.'
