@@ -3,6 +3,16 @@ import type { Bit } from "./Bitfield";
 
 
 describe("Bitfield (larger scale tests)", () => {
+    test("length", () => {
+        const bf = new Bitfield(2048);
+        expect(bf.length).toBe(2048);
+    });
+
+    test("unaligned length", () => {
+        const bf = new Bitfield(100);
+        expect(bf.length).toBe(100);
+    });
+
     test("initial state is all zeros", () => {
         const bf = new Bitfield(2048);
 
