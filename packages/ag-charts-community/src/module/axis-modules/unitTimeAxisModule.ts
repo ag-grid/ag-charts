@@ -28,6 +28,7 @@ export const UnitTimeAxisModule: AxisModuleDefinition<AgUnitTimeAxisOptions, Uni
     themeTemplate: mergeDefaults(
         {
             groupPaddingInner: 0.1,
+            maxThicknessRatio: 0.3,
             label: { autoRotate: false },
             gridLine: { enabled: false },
             parentLevel: { enabled: true },

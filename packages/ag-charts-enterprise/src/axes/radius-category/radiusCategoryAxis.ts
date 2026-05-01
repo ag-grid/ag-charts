@@ -16,32 +16,20 @@ export class RadiusCategoryAxis extends RadiusAxis<
         return 'circle';
     }
 
-    get groupPaddingInner(): number {
-        return this.options.groupPaddingInner ?? 0;
-    }
-
-    get paddingInner(): number {
-        return this.options.paddingInner ?? 0;
-    }
-
-    get paddingOuter(): number {
-        return this.options.paddingOuter ?? 0;
-    }
-
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
         id: AxisID,
         options: NormalisedRadiusCategoryAxisOptions
     ) {
-        super(moduleCtx, id, new CategoryScale(), options as any);
+        super(moduleCtx, id, new CategoryScale(), options);
     }
 
     protected override updateScale(): void {
         super.updateScale();
         // Propagate padding options to the underlying band scale.
         if (CategoryScale.is(this.scale)) {
-            this.scale.paddingInner = this.paddingInner;
-            this.scale.paddingOuter = this.paddingOuter;
+            this.scale.paddingInner = this.options.paddingInner;
+            this.scale.paddingOuter = this.options.paddingOuter;
         }
     }
 

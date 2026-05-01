@@ -19,6 +19,10 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
     themeTemplate: mergeDefaults(
         {
             positionAngle: 0,
+            groupPaddingInner: 0,
+            paddingInner: 0,
+            paddingOuter: 0,
+            shape: 'circle',
             line: { enabled: false },
             label: { minSpacing: 5 },
             title: { spacing: 10 },

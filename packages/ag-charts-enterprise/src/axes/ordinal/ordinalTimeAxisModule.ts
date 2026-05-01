@@ -19,6 +19,7 @@ export const OrdinalTimeAxisModule: AxisModuleDefinition<AgOrdinalTimeAxisOption
     themeTemplate: mergeDefaults(
         {
             groupPaddingInner: 0,
+            maxThicknessRatio: 0.3,
             label: { autoRotate: false, minSpacing: 40 },
             gridLine: { enabled: false },
             interval: { placement: 'between' },

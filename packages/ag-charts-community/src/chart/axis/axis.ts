@@ -217,11 +217,6 @@ export abstract class Axis<
      */
     nice: boolean = true;
 
-    /** Reverse the axis scale domain. */
-    get reverse(): boolean {
-        return this.options.reverse ?? false;
-    }
-
     options: TOptions;
 
     /**
@@ -677,7 +672,7 @@ export abstract class Axis<
             return v == null;
         });
 
-        if (this.reverse) {
+        if (this.options.reverse) {
             this.dataDomain = { ...this.dataDomain, domain: this.dataDomain.domain.toReversed() };
         }
 
@@ -1235,7 +1230,7 @@ export abstract class Axis<
     }
 
     isReversed() {
-        return this.reverse;
+        return this.options.reverse;
     }
 
     protected cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {

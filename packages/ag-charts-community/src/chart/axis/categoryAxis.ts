@@ -17,9 +17,18 @@ import type { AxisTickFormatParams } from './axis';
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
 import { CartesianAxis, type GridLineStyleTickDatum } from './cartesianAxis';
 
+/**
+ * The `TLabel` parameter on `NormalisedBaseCategoryStyleAxisOptions` is intentionally
+ * relaxed to `any` here. The structural cause is `Styler<P, R>`'s contravariance in
+ * `P`: `GroupedCategoryAxis`'s label styler requires a `depth: number` field on its
+ * params, so its label type is not assignable to the cartesian-axis-label base. Either
+ * threading `TLabel` through this constraint (Plan v2 Option A) or parameterising
+ * `itemStyler` in `ag-charts-types` (Plan v2 Option B) failed to resolve the variance
+ * at the constraint level. `<any>` is the documented Option C fallback.
+ */
 export class CategoryAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-    TOptions extends NormalisedBaseCategoryStyleAxisOptions = NormalisedCategoryAxisOptions,
+    TOptions extends NormalisedBaseCategoryStyleAxisOptions<any> = NormalisedCategoryAxisOptions,
 > extends CartesianAxis<S, any, TOptions> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
@@ -28,28 +37,8 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
-    get groupPaddingInner(): number {
-        return this.options.groupPaddingInner ?? 0.1;
-    }
-
-    get paddingInner(): number | undefined {
-        return this.options.paddingInner;
-    }
-
-    get paddingOuter(): number | undefined {
-        return this.options.paddingOuter;
-    }
-
-    get bandAlignment(): 'justify' | 'start' | 'center' | 'end' | undefined {
-        return this.options.bandAlignment;
-    }
-
-    get skipNullBars(): boolean | undefined {
-        return this.options.skipNullBars;
-    }
-
     override get layoutConstraints(): import('../chartAxis').ChartAxis['layoutConstraints'] {
-        const align = this.bandAlignment;
+        const align = this.options.bandAlignment;
         if (align == null) return this._layoutConstraints;
         return { ...this._layoutConstraints, align };
     }
@@ -97,7 +86,8 @@ export class CategoryAxis<
     }
 
     override getUpdateTypeOnResize(): ChartUpdateType {
-        if (this.bandAlignment == null || this.bandAlignment === 'justify') {
+        const { bandAlignment } = this.options;
+        if (bandAlignment == null || bandAlignment === 'justify') {
             return super.getUpdateTypeOnResize();
         }
         return ChartUpdateType.PROCESS_DOMAIN;
@@ -106,7 +96,7 @@ export class CategoryAxis<
     protected override updateScale() {
         super.updateScale();
 
-        let { paddingInner, paddingOuter } = this;
+        let { paddingInner, paddingOuter } = this.options;
         if (!isFiniteNumber(paddingInner) || !isFiniteNumber(paddingOuter)) {
             const padding = this.reduceBandScalePadding();
             paddingInner ??= padding.inner;

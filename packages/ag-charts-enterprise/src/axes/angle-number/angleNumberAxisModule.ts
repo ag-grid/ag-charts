@@ -18,6 +18,8 @@ export const AngleNumberAxisModule: AxisModuleDefinition<AgAngleNumberAxisOption
     options: _ModuleSupport.angleNumberAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
+            startAngle: 0,
+            shape: 'circle',
             label: { spacing: 5 },
             gridLine: { enabled: false },
         },

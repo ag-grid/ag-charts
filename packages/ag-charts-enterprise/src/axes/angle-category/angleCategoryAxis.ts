@@ -20,14 +20,6 @@ export class AngleCategoryAxis extends AngleAxis<
     static readonly className = 'AngleCategoryAxis';
     static readonly type = 'angle-category' as const;
 
-    get groupPaddingInner(): number {
-        return this.options.groupPaddingInner ?? 0;
-    }
-
-    get paddingInner(): number {
-        return this.options.paddingInner ?? 0;
-    }
-
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
         id: AxisID,

@@ -31,10 +31,6 @@ export abstract class RadiusAxis<
         return new RadiusCrossLine();
     }
 
-    get positionAngle(): number {
-        return this.options.positionAngle ?? 0;
-    }
-
     protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
@@ -79,9 +75,9 @@ export abstract class RadiusAxis<
 
     private getAxisTransform() {
         const maxRadius = this.scale.range[0];
-        const { translation, positionAngle, innerRadiusRatio } = this;
+        const { translation, innerRadiusRatio } = this;
         const innerRadius = maxRadius * innerRadiusRatio;
-        const rotation = toRadians(positionAngle);
+        const rotation = toRadians(this.options.positionAngle);
         return {
             translationX: translation.x,
             translationY: translation.y - maxRadius - innerRadius,
@@ -151,7 +147,8 @@ export abstract class RadiusAxis<
         const labelSpacing = this.options.label.spacing;
         const labelX = sideFlag * (this.getTickSize() + labelSpacing + this.seriesAreaPadding);
 
-        const { range, reverse, defaultTickMinSpacing } = this;
+        const { range, defaultTickMinSpacing } = this;
+        const { reverse } = this.options;
         const tickGenerationResult = generateTicks({
             scale: this.scale,
             label: this.options.label,
@@ -352,7 +349,7 @@ export abstract class RadiusAxis<
         const range = this.scale.range;
         const text = datum.tickLabel ?? '';
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
-        const labelX = sideFlag * (this.getTickSize() + (label?.spacing ?? 5) + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
 
         return {

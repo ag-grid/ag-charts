@@ -20,26 +20,6 @@ export class RadiusNumberAxis extends RadiusAxis<
     static readonly className = 'RadiusNumberAxis';
     static readonly type = 'radius-number' as const;
 
-    override get shape(): 'polygon' | 'circle' {
-        return this.options.shape ?? 'polygon';
-    }
-
-    get min(): number | undefined {
-        return this.options.min;
-    }
-
-    get max(): number | undefined {
-        return this.options.max;
-    }
-
-    get preferredMin(): number | undefined {
-        return this.options.preferredMin;
-    }
-
-    get preferredMax(): number | undefined {
-        return this.options.preferredMax;
-    }
-
     constructor(
         moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
         id: AxisID,
@@ -49,7 +29,7 @@ export class RadiusNumberAxis extends RadiusAxis<
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
@@ -73,7 +53,7 @@ export class RadiusNumberAxis extends RadiusAxis<
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,
@@ -88,7 +68,7 @@ export class RadiusNumberAxis extends RadiusAxis<
     }
 
     override getDomainExtentsNice(): [boolean, boolean] {
-        return [this.min == null && this.nice, this.max == null && this.nice];
+        return [this.options.min == null && this.nice, this.options.max == null && this.nice];
     }
 
     override tickFormatParams(

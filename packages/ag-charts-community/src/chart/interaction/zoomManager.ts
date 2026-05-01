@@ -57,8 +57,10 @@ export type CartesianAxisLike = SimpleAxis & {
     scale: Scale<any, any>;
     range: [number, number];
     boundSeries: ISeries<any, any, any>[];
-    min?: number;
-    max?: number;
+    // User-supplied `min`/`max` bounds, read by zoom autoScaling to detect a fixed
+    // domain. `NumberAxis`, `TimeAxis`, and `LogAxis` populate these via `axis.options.min/max`;
+    // axis types without numeric bounds (e.g. category) leave `options` shaped without these keys.
+    options?: { min?: number; max?: number };
     // Axis-local zoom — added during the zoom-state-migration work. `CartesianAxis` implements
     // these; `SimpleAxis` literals (e.g. topologyChart) do not, and ZoomManager must guard with
     // `'setZoom' in axis`.

@@ -5,7 +5,7 @@ import {
     ChartAxisDirection,
     type DynamicContext,
     type NormalisedAngleAxisLabelOptions,
-    type NormalisedBasePolarAxisOptions,
+    type NormalisedBaseAngleAxisOptions,
     type Scale,
     type ScaleTickParams,
     type WrapOptions,
@@ -40,18 +40,10 @@ export abstract class AngleAxis<
     TDomain,
     TScale extends Scale<TDomain, any>,
     TOptions extends
-        NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBasePolarAxisOptions<NormalisedAngleAxisLabelOptions>,
+        NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
 > extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
     override createCrossLine(): _ModuleSupport.CrossLine {
         return new AngleCrossLine();
-    }
-
-    get startAngle(): number {
-        return this.options.startAngle ?? 0;
-    }
-
-    get endAngle(): number | undefined {
-        return this.options.endAngle;
     }
 
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
@@ -81,7 +73,7 @@ export abstract class AngleAxis<
     }
 
     calculateRotations() {
-        const rotation = toRadians(this.startAngle);
+        const rotation = toRadians(this.options.startAngle);
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -146,13 +138,12 @@ export abstract class AngleAxis<
     }
 
     private normalizedAngles(): [number, number] {
-        const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
+        const { startAngle, endAngle } = this.options;
+        const start = normalizeAngle360(-Math.PI / 2 + toRadians(startAngle));
         const sweep =
-            this.endAngle == null
-                ? 2 * Math.PI
-                : normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle));
-        const endAngle = startAngle + sweep;
-        return [startAngle, endAngle];
+            endAngle == null ? 2 * Math.PI : normalizeAngle360Inclusive(toRadians(endAngle) - toRadians(startAngle));
+        const end = start + sweep;
+        return [start, end];
     }
 
     override computeRange() {

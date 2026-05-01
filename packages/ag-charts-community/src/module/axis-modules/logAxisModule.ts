@@ -24,6 +24,7 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
     themeTemplate: mergeDefaults(
         {
             base: 10,
+            maxThicknessRatio: 0.3,
             line: { enabled: false },
         },
         titleAxisThemeTemplate,

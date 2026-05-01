@@ -18,9 +18,12 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     options: _ModuleSupport.angleCategoryAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
+            startAngle: 0,
+            groupPaddingInner: 0,
+            paddingInner: 0,
             label: { spacing: 5 },
             gridLine: { enabled: false },
-            shape: { $findFirstSiblingNotOperation: undefined },
+            shape: { $findFirstSiblingNotOperation: ['polygon'] },
         },
         _ModuleSupport.commonAxisThemeTemplate
     ),

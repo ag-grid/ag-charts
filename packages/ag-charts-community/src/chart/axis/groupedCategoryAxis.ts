@@ -49,7 +49,10 @@ interface ComputedGroupAxisLayout {
     spacing: number;
 }
 
-export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<GroupedCategoryKey>> {
+export class GroupedCategoryAxis extends CategoryAxis<
+    GroupedCategoryScale<GroupedCategoryKey>,
+    NormalisedGroupedCategoryAxisOptions
+> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
@@ -79,12 +82,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private ftdByDepth: { positions: number[]; ticks: GroupedCategoryKey[] }[] = [];
     private readonly ftdStack: TreeNode[] = [];
 
-    get depthOptions(): NonNullable<NormalisedGroupedCategoryAxisOptions['depthOptions']> {
-        return (this.options as unknown as NormalisedGroupedCategoryAxisOptions).depthOptions ?? [];
-    }
-
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedGroupedCategoryAxisOptions) {
-        super(moduleCtx, id, new GroupedCategoryScale<GroupedCategoryKey>(), options as any);
+        super(moduleCtx, id, new GroupedCategoryScale<GroupedCategoryKey>(), options);
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -93,7 +92,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
-        const { depthOptions } = this;
+        const depthOptions = this.options.depthOptions ?? [];
         const label = this.options.label;
         const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
@@ -141,7 +140,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateScale();
 
         const { step } = this.scale;
-        const { range, depthOptions, horizontal } = this;
+        const { range, horizontal } = this;
+        const depthOptions = this.options.depthOptions ?? [];
         const line = this.options.line;
         const label = this.options.label;
         const title = this.options.title;
@@ -197,7 +197,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
             if (label?.avoidCollisions ?? true) {
                 const rotation = optionsMap[depth].rotation;
-                let maxHeight = this.thickness;
+                let maxHeight = this.options.thickness;
                 if (rotation != null) {
                     const innerRect = getMaxInnerRectSize(rotation, maxWidth, maxHeight);
                     maxWidth = innerRect.width;
@@ -679,7 +679,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                       const { tickId, translation: offset } = gridLineData[index];
                       const depth = tickDepth(tickLabel);
 
-                      const tickOptions = this.depthOptions[depth]?.tick;
+                      const tickOptions = (this.options.depthOptions ?? [])[depth]?.tick;
                       const tickSize = tickSizeAtDepth[depth] ?? 0;
 
                       const stroke = tickOptions?.stroke ?? tick.stroke;

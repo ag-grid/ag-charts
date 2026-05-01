@@ -251,7 +251,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         let groupPaddingInner = 0;
         if (radiusAxis instanceof RadiusCategoryAxis) {
-            groupPaddingInner = radiusAxis.groupPaddingInner;
+            groupPaddingInner = radiusAxis.options.groupPaddingInner;
         }
 
         const { groupScale } = this;

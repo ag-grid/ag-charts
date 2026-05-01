@@ -66,6 +66,7 @@ export const parentLevelAxisThemeTemplate = {
  * populated post-theme-merge.
  */
 export const commonAxisThemeTemplate = {
+    reverse: false,
     label: {
         enabled: true,
         fontSize: { $ref: 'fontSize' },

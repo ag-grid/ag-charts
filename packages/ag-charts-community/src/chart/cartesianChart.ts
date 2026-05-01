@@ -217,7 +217,7 @@ export class CartesianChart extends Chart {
         const maxIterations = 10;
 
         // Axes that have `crossAt` configured
-        const crossAtAxes = this.axes.filter((axis) => axis.crossAt?.value != null);
+        const crossAtAxes = this.axes.filter((axis) => axis.options.crossAt?.value != null);
 
         do {
             // Start with a good approximation from the last update.
@@ -293,15 +293,16 @@ export class CartesianChart extends Chart {
 
             this.sizeAxis(axis, seriesRect, position);
 
-            if (axis.thickness == null) {
+            const { thickness, maxThicknessRatio } = axis.options;
+            if (thickness == null) {
                 const availableSize = getSize(isVertical, scene);
-                axisWidth = availableSize * (axis.maxThicknessRatio ?? 1);
+                axisWidth = availableSize * maxThicknessRatio;
             } else {
-                axisWidth = axis.thickness;
+                axisWidth = thickness;
             }
 
             const chartLayout = {
-                sizeLimit: axisWidth - (axis.options.label?.spacing ?? 5),
+                sizeLimit: axisWidth - axis.options.label.spacing,
                 padding: this.padding,
                 scrollbars,
             };
@@ -314,7 +315,7 @@ export class CartesianChart extends Chart {
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            if (axis.thickness == null) {
+            if (axis.options.thickness == null) {
                 axisWidth = Math.min(getSize(isVertical, bbox) ?? 0, axisWidth);
             }
             axisWidths.set(axis.id, Math.ceil(axisWidth));
@@ -401,11 +402,12 @@ export class CartesianChart extends Chart {
         } = perpendicularAxis;
         const halfBandwidth = (bandwidth ?? 0) / 2;
 
-        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
+        const { crossAt } = axis.options;
+        const crossPosition = perpendicularAxis.scale.convert(crossAt?.value, { clamp: false }) + halfBandwidth;
 
         if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
 
-        if (axis.crossAt?.sticky === false) {
+        if (crossAt?.sticky === false) {
             return { crossPosition: undefined, visible: false };
         }
 

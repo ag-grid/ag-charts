@@ -142,12 +142,8 @@ export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = Normalis
     position?: AgCartesianAxisPosition;
     range: [number, number];
     requiredRange?: number;
-    reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
-    skipNullBars?: boolean;
-    thickness?: number;
-    maxThicknessRatio?: number;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     translation: { x: number; y: number };
     type: string;

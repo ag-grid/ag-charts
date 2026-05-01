@@ -231,10 +231,11 @@ export class MiniChart extends AbstractModuleInstance {
         }
 
         for (const axis of this.axes) {
-            const { position, thickness, options } = axis;
+            if (!(axis instanceof _ModuleSupport.CartesianAxis)) continue;
+            const { position } = axis;
             if (position == null) continue;
 
-            const { label, line } = options;
+            const { thickness, label, line } = axis.options;
             let size: number;
             if (thickness) {
                 size = thickness;

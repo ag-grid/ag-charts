@@ -23,6 +23,7 @@ export const NumberAxisModule: AxisModuleDefinition<AgNumberAxisOptions, NumberA
     options: numberAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
+            maxThicknessRatio: 0.3,
             line: { enabled: false },
         },
         titleAxisThemeTemplate,

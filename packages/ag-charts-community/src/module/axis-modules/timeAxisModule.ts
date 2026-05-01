@@ -27,6 +27,7 @@ export const TimeAxisModule: AxisModuleDefinition<AgTimeAxisOptions, TimeAxis> =
     options: timeAxisOptionsDefs,
     themeTemplate: mergeDefaults(
         {
+            maxThicknessRatio: 0.3,
             gridLine: { enabled: false },
         },
         titleAxisThemeTemplate,

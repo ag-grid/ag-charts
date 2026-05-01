@@ -36,7 +36,7 @@ export class LogAxis extends NumberAxis {
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,

@@ -36,28 +36,12 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
-    get min(): TimeBound {
-        return this.options.min;
-    }
-
-    get max(): TimeBound {
-        return this.options.max;
-    }
-
-    get preferredMin(): TimeBound {
-        return this.options.preferredMin;
-    }
-
-    get preferredMax(): TimeBound {
-        return this.options.preferredMax;
-    }
-
     constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: TOptions) {
         super(moduleCtx, id, new TimeScale(), options);
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
@@ -89,20 +73,16 @@ export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTim
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {
-        const { extent, clipped } = normalisedTimeExtentWithMetadata(
-            d,
-            this.min,
-            this.max,
-            this.preferredMin,
-            this.preferredMax
-        );
+        const { min, max, preferredMin, preferredMax } = this.options;
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(d, min, max, preferredMin, preferredMax);
         return { domain: extent, clipped };
     }
 
     override processData(): void {
         super.processData();
 
-        const { boundSeries, direction, min, max } = this;
+        const { boundSeries, direction } = this;
+        const { min, max } = this.options;
         this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 

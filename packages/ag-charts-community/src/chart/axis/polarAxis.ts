@@ -28,7 +28,7 @@ export abstract class PolarAxis<
     gridRange: number[] | undefined;
 
     get shape(): 'polygon' | 'circle' {
-        return this.options.shape ?? 'polygon';
+        return this.options.shape;
     }
 
     /**
@@ -68,7 +68,7 @@ export abstract class PolarAxis<
             crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.Angle : ChartAxisDirection.Radius;
             crossLine.parallelFlipRotation = parallelFlipRotation;
             crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout?.(crosslinesVisible, this.reverse);
+            crossLine.calculateLayout?.(crosslinesVisible, this.options.reverse);
         }
     }
 

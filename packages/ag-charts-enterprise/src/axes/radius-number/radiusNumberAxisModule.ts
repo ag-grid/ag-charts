@@ -20,7 +20,7 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
         {
             positionAngle: 0,
             line: { enabled: false },
-            shape: { $findFirstSiblingNotOperation: undefined },
+            shape: { $findFirstSiblingNotOperation: ['polygon'] },
             label: { minSpacing: 5 },
             title: { spacing: 10 },
         },

@@ -81,20 +81,8 @@ export abstract class CartesianAxis<
         return value instanceof CartesianAxis;
     }
 
-    get thickness(): number | undefined {
-        return this.options.thickness;
-    }
-
-    get maxThicknessRatio(): number {
-        return this.options.maxThicknessRatio ?? 0.3;
-    }
-
     get position(): AgCartesianAxisPosition {
         return this.options.position!;
-    }
-
-    get crossAt(): { value: D; sticky?: boolean } | undefined {
-        return this.options.crossAt as { value: D; sticky?: boolean } | undefined;
     }
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
@@ -250,15 +238,14 @@ export abstract class CartesianAxis<
     } {
         const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const label = this.options.label;
-        const labelX =
-            sideFlag * (this.getTickSize() + this.getTickSpacing() + (label?.spacing ?? 5) + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + this.getTickSpacing() + label.spacing + this.seriesAreaPadding);
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         if (
             niceMode[0] === NiceMode.Off &&
             niceMode[1] === NiceMode.Off &&
-            label?.enabled === false &&
+            !label.enabled &&
             this.options.tick.enabled === false &&
             this.options.gridLine.enabled === false
         ) {
@@ -284,8 +271,8 @@ export abstract class CartesianAxis<
             };
         }
 
-        const { primaryLabel, scale, range, reverse, defaultTickMinSpacing, minimumTimeGranularity } = this;
-        const interval = this.options.interval;
+        const { primaryLabel, scale, range, defaultTickMinSpacing, minimumTimeGranularity } = this;
+        const { interval, reverse } = this.options;
 
         const tickGenerationResult = generateTicks({
             label,
@@ -575,7 +562,7 @@ export abstract class CartesianAxis<
         const { tempCaption } = this;
         const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
-        tempCaption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+        tempCaption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
         return tempCaption.node.getBBox();
     }
 
@@ -651,7 +638,7 @@ export abstract class CartesianAxis<
         }
 
         const { tempText } = this;
-        if (label?.enabled) {
+        if (label.enabled) {
             for (const datum of labels) {
                 if (!datum.visible) continue;
 
@@ -671,9 +658,9 @@ export abstract class CartesianAxis<
             boxes.push(
                 new BBox(
                     0,
-                    calcLineHeight(label?.fontSize ?? 0) + inexactMeasurementPadding,
+                    calcLineHeight(label.fontSize) + inexactMeasurementPadding,
                     1,
-                    this.getTickSize(tick) + this.getTickSpacing(tick) + (label?.spacing ?? 5) + seriesAreaPadding
+                    this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding
                 )
             );
 
@@ -879,7 +866,7 @@ export abstract class CartesianAxis<
 
         if (titleProps.visible) {
             const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
-            caption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+            caption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
         }
     }
 

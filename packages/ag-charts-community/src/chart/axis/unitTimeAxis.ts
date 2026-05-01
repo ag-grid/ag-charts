@@ -19,7 +19,6 @@ import type { AxisTickFormatParams } from './axis';
 import { DiscreteTimeAxis } from './discreteTimeAxis';
 import { calculateDefaultUnit } from './timeAxis';
 
-type TimeBound = Date | number | undefined;
 type UnitInterval = AgTimeInterval | AgTimeIntervalUnit | undefined;
 
 export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnitTimeAxisOptions> {
@@ -27,26 +26,6 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     static override readonly type = 'unit-time' as const;
 
     override defaultTickMinSpacing = 20;
-
-    get min(): TimeBound {
-        return this.options.min;
-    }
-
-    get max(): TimeBound {
-        return this.options.max;
-    }
-
-    get preferredMin(): TimeBound {
-        return this.options.preferredMin;
-    }
-
-    get preferredMax(): TimeBound {
-        return this.options.preferredMax;
-    }
-
-    get unit(): UnitInterval {
-        return this.options.unit;
-    }
 
     override get primaryLabel() {
         const parentLevel = this.options.parentLevel;
@@ -73,7 +52,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
@@ -92,7 +71,8 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         if (domain.length === 2 && domain[0].valueOf() === domain[1].valueOf()) {
             defaultUnit = lowestGranularityUnitForValue(domain[0]);
         } else {
-            const { boundSeries, direction, min, max } = this;
+            const { boundSeries, direction } = this;
+            const { min, max } = this.options;
             defaultUnit = calculateDefaultUnit(boundSeries, direction, min, max);
         }
 
@@ -104,17 +84,12 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
     protected override updateScale(): void {
         super.updateScale();
 
-        this.scale.interval = this.unit ?? this.defaultUnit;
+        this.scale.interval = this.options.unit ?? this.defaultUnit;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {
-        const { extent, clipped } = normalisedTimeExtentWithMetadata(
-            d,
-            this.min,
-            this.max,
-            this.preferredMin,
-            this.preferredMax
-        );
+        const { min, max, preferredMin, preferredMax } = this.options;
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(d, min, max, preferredMin, preferredMax);
         return { domain: extent, clipped };
     }
 
@@ -139,7 +114,7 @@ export class UnitTimeAxis extends DiscreteTimeAxis<UnitTimeScale, NormalisedUnit
         timeInterval: AgTimeInterval | AgTimeIntervalUnit | undefined,
         style: DateFormatterStyle
     ): FormatterParams<any> {
-        const interval = this.unit ?? this.defaultUnit ?? 'millisecond';
+        const interval = this.options.unit ?? this.defaultUnit ?? 'millisecond';
 
         timeInterval ??= interval;
 
