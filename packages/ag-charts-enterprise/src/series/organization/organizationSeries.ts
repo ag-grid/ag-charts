@@ -12,7 +12,16 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDefaults } from 'ag-charts-core';
+import {
+    type CallbackParamRules,
+    ChartAxisDirection,
+    type DeepRequired,
+    type DynamicContext,
+    type Point,
+    Vertex,
+    mergeDefaults,
+    strictObjectKeys,
+} from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
@@ -53,6 +62,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+
+        // AG-17204: Pan-boundary clamp. Ensure the zoom window always overlaps the
+        // content space [0, 1] so that some content remains visible after a pan
+        // gesture. The Zoom feature's constrainAxis already prevents min < 0 or
+        // max > 1, but this belt-and-suspenders guard survives any future changes
+        // to upstream constraint logic.
+        this.cleanup.register(ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)));
+    }
+
     createNetworkGraph() {
         return new OrganizationGraph();
     }
@@ -89,6 +109,59 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         this.linkGroup.translationX = offset.x;
         this.linkGroup.translationY = offset.y;
+    }
+
+    /**
+     * AG-17204: Pan-boundary clamp.
+     *
+     * For each axis in the requested zoom state, ensure the window overlaps the
+     * content space [0, 1]. If a pan would push the window entirely outside that
+     * range the window is translated back so its nearest edge touches 0 or 1.
+     *
+     * This fires for every zoom:change-request (pan, scroll, double-click reset,
+     * toolbar buttons, etc.). The guard is harmless when the window is already
+     * within bounds — constrainChanges is only called when a clamp is needed.
+     */
+    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        // Resets take the window to {0,1} which always overlaps; skip clamping to
+        // avoid interfering with the reset path.
+        if (event.isReset) return;
+
+        const clamped: _ModuleSupport.CoreZoomState = {};
+        let didClamp = false;
+
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+
+            const { min, max, direction } = entry;
+            const size = max - min;
+
+            let clampedMin = min;
+            let clampedMax = max;
+
+            if (min >= 1) {
+                // Window is entirely to the right of / below the content.
+                clampedMax = 1;
+                clampedMin = 1 - size;
+                didClamp = true;
+            } else if (max <= 0) {
+                // Window is entirely to the left of / above the content.
+                clampedMin = 0;
+                clampedMax = size;
+                didClamp = true;
+            }
+
+            // direction values are equivalent at runtime ('x' / 'y'); the enum vs string-literal
+            // distinction between ZoomMinMaxDirection and CoreZoomEntry is purely nominal so we
+            // map back to the ChartAxisDirection enum for CoreZoomState compatibility.
+            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+        }
+
+        if (didClamp) {
+            event.constrainChanges(clamped);
+        }
     }
 
     async processData(dataController: _ModuleSupport.DataController) {

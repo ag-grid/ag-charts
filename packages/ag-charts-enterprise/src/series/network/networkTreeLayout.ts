@@ -230,10 +230,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        offset = Vec2.add(offset, options.offset);
-
-        // TODO: clamp the offset so that any one node is always visible
-
+        // Phase 3 (AG-17179): pan ownership moved to the Zoom feature, so `options.offset`
+        // is permanently {0,0}. The auto-centre offset above is the only translation applied
+        // to the data/link groups; further pan is handled by the viewportGroup transform.
+        // AG-17204 pan-boundary clamp is now enforced via OrganizationSeries.zoom:change-request.
         options.updateOffset(offset);
     }
 }

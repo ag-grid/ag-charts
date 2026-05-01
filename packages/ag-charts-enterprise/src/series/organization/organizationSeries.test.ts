@@ -783,6 +783,11 @@ describe('OrganizationSeries', () => {
             // Regression test for AG-17233. Chart has a title which shrinks the series-area
             // rect; a large upward drag would otherwise pull node cards into the title
             // region. With clipping, nodes are cropped at the series-area boundary instead.
+            //
+            // Phase 3 (AG-17179) note: pan ownership has moved to the Zoom feature, which
+            // skips panning when both axes are at full range {0,1}. Zoom in first via the
+            // ZoomManager so the subsequent drag pans content. The clip-rect on the
+            // series-area is what's being verified here, not the pan mechanism.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -791,6 +796,12 @@ describe('OrganizationSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            deproxy(chart).ctx.zoomManager?.updateZoom(
+                { source: 'state-change', sourceDetail: 'unspecified' },
+                { x: { min: 0.25, max: 0.75 }, y: { min: 0.25, max: 0.75 } }
+            );
             await waitForChartStability(chart);
 
             // 800x600 mock canvas. Drag upward from below the centre to above it —

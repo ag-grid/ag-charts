@@ -99,8 +99,6 @@ export abstract class AbstractNetworkSeries<
 
     private height?: number;
     private width?: number;
-    private startDragOffset: Point = { x: 0, y: 0 };
-    private dragOffset: Point = { x: 0, y: 0 };
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -156,13 +154,6 @@ export abstract class AbstractNetworkSeries<
                 this.collapseItem(clickedNode.itemId, point);
             }
         });
-
-        if (ctx.widgets.seriesDragInterpreter) {
-            this.cleanup.register(
-                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
-            );
-        }
     }
 
     abstract createNetworkGraph(): TGraph;
@@ -191,18 +182,6 @@ export abstract class AbstractNetworkSeries<
 
     dataCount() {
         return this.datumSelection.length;
-    }
-
-    private onSeriesAreaDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
-        this.dragOffset = {
-            x: this.startDragOffset.x + event.originDeltaX,
-            y: this.startDragOffset.y + event.originDeltaY,
-        };
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-    }
-
-    private onSeriesAreaDragEnd() {
-        this.startDragOffset = { ...this.dragOffset };
     }
 
     /**
@@ -267,7 +246,9 @@ export abstract class AbstractNetworkSeries<
         return {
             height: this.height ?? 0,
             width: this.width ?? 0,
-            offset: this.dragOffset,
+            // dragOffset has been retired; pan is owned by the Zoom feature (Phase 3).
+            // The `offset` field is kept in NetworkLayoutUpdateOptions for TBD-6 cleanup.
+            offset: { x: 0, y: 0 },
             graph: this.graph,
             vertices: this.getRootVertices(),
             getFocusedVertex: this.getFocusedVertex.bind(this),
