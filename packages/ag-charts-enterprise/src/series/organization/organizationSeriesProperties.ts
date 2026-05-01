@@ -41,10 +41,18 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     verticalSpacing?: number;
 
     @Property
+    expander = new OrganizationSeriesExpanderProperties();
+
+    @Property
     link = new OrganizationSeriesLinkProperties();
 
     @Property
     node = new OrganizationSeriesNodeProperties();
+}
+
+class OrganizationSeriesExpanderProperties extends BaseProperties {
+    @Property
+    height: number = 24;
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {

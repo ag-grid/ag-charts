@@ -233,6 +233,19 @@ interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
 
+function createExpanderHeightExample(height: number): any {
+    const series = SIMPLE_ORG_CHART.series![0];
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                ...series,
+                expander: { height },
+            },
+        ],
+    };
+}
+
 function createTextImageExample(
     textAlign: TextAlign,
     imagePosition: AgOrganizationSeriesOptionsNodeImagePosition
@@ -450,6 +463,19 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_HEIGHT_SHORT: {
+        // Layout reserves and renders the pill at exactly the configured height; verifies all
+        // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink
+        // in step so children sit closer to the parent without elbow misalignment.
+        options: createExpanderHeightExample(16),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_HEIGHT_TALL: {
+        // Inverse of EXPANDER_HEIGHT_SHORT: a taller pill expands the parent–child gap and the
+        // count text remains vertically centred against the rendered pill height (not a constant).
+        options: createExpanderHeightExample(32),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {

@@ -259,14 +259,20 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.countNode.textAlign = 'left';
         applyTextStyles(this.countNode, styles.subtitle);
         this.countNode.x = 12;
-        this.countNode.y = 4;
 
-        const bbox = this.countNode.getBBox().clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+        const rawBBox = this.countNode.getBBox();
+        const grownBBox = rawBBox.clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+        // Render the pill at exactly `expander.height` so the layout reservation in
+        // `networkTreeLayout` matches the rendered pill — diverging here would let link
+        // elbows or child rows overlap the expander when `height` is under-specified.
+        // The public type contract documents that `height` must accommodate the count text.
+        const pillHeight = styles.expander.height;
+        this.countNode.y = (pillHeight - rawBBox.height) / 2;
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, bbox.width);
-        this.shapeNode.height = Math.max(24, bbox.height);
+        this.shapeNode.width = Math.max(48, grownBBox.width);
+        this.shapeNode.height = pillHeight;
 
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
