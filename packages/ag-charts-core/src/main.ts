@@ -12,6 +12,7 @@ export * from './types/scene';
 export * from './types/scales';
 
 // Structures
+export * from './structures/bitfield'
 export * from './structures/eventEmitter';
 export * from './structures/lruCache';
 export * as Debug from './logging/debugLogger';
