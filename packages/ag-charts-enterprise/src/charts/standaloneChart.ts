@@ -1,4 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { AxisID } from 'ag-charts-core';
+import { ChartAxisDirection, createId } from 'ag-charts-core';
 
 import { HierarchyDataSet } from './hierarchyDataSet';
 
@@ -8,8 +10,43 @@ export class StandaloneChart extends Chart {
     static override readonly className = 'StandaloneChart';
     static readonly type = 'standalone' as const;
 
+    private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
+    private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
+    private standaloneZoomRegistered = false;
+
     override getChartType() {
         return 'standalone' as const;
+    }
+
+    override updateData() {
+        super.updateData();
+        this.maybeRegisterStandaloneZoom();
+    }
+
+    /**
+     * Lazily registers synthetic ZoomManager axes when any series opts in via the
+     * `static optsIntoStandaloneZoom` marker. Called from updateData() because
+     * this.series is empty at construction time and is only populated during
+     * applyOptions(), which runs after the constructor returns.
+     *
+     * Mirrors the unconditional registration in topologyChart.ts:34-38, but
+     * guarded so gauge-only and other standalone charts are unaffected.
+     */
+    private maybeRegisterStandaloneZoom() {
+        if (this.standaloneZoomRegistered) return;
+
+        const hasOptedIn = this.series.some(
+            (s) => (s.constructor as typeof s.constructor & { optsIntoStandaloneZoom?: boolean }).optsIntoStandaloneZoom
+        );
+        if (!hasOptedIn) return;
+
+        const { zoomManager } = this.ctx;
+        if (zoomManager) {
+            zoomManager.setAxes([this.xAxis, this.yAxis]);
+            zoomManager.panToBBoxScalingMode =
+                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+        }
+        this.standaloneZoomRegistered = true;
     }
 
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {

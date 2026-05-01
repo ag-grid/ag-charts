@@ -44,6 +44,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
 
+    // Phase 1: opt-in marker for StandaloneChart synthetic-axis registration.
+    // Allows StandaloneChart to detect which series want ZoomManager support
+    // without requiring chart-level knowledge of concrete series types.
+    static readonly optsIntoStandaloneZoom = true;
+
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
