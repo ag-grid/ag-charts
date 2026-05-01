@@ -68,11 +68,17 @@ export abstract class AbstractNetworkSeries<
     protected readonly graph: TGraph;
     protected readonly layout: TLayout;
 
-    protected readonly dataNodeGroup = this.contentGroup.appendChild(
+    // Single ancestor group for all content. Zoom transforms (scale + translate) are applied
+    // here so that picking, animations, and clipping all work in the correct coordinate space.
+    protected readonly viewportGroup = this.contentGroup.appendChild(
+        new (_ModuleSupport.Scalable(_ModuleSupport.TranslatableGroup))({ name: `${this.id}-viewport` })
+    );
+
+    protected readonly dataNodeGroup = this.viewportGroup.appendChild(
         new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 2 })
     );
 
-    protected readonly linkGroup = this.contentGroup.appendChild(
+    protected readonly linkGroup = this.viewportGroup.appendChild(
         new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
     );
 
@@ -126,6 +132,17 @@ export abstract class AbstractNetworkSeries<
                 this.expandNetworkToItem(activeItem.itemId);
             }
         });
+
+        // Push-based zoom subscription. When zoom state changes, recompute the viewportGroup
+        // transform and request a SCENE_RENDER (no re-layout needed). At fit state {0..1, 0..1}
+        // the transform is identity — output is pixel-identical to today's auto-centre.
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                get('zoom');
+                this.applyViewportTransform();
+                ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+            })
+        );
 
         ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
             if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
@@ -186,6 +203,43 @@ export abstract class AbstractNetworkSeries<
 
     private onSeriesAreaDragEnd() {
         this.startDragOffset = { ...this.dragOffset };
+    }
+
+    /**
+     * Applies a scale + translate transform to `viewportGroup` from the current zoom state.
+     *
+     * At fit state `{x: {0,1}, y: {0,1}}` the transform is identity (scale=1, translation=0,0),
+     * so the rendered output is pixel-identical to what `NetworkTreeLayout.updateOffset()` produced
+     * before this group was introduced.
+     *
+     * For a zoom window `[xMin, xMax] × [yMin, yMax]`:
+     *   s  = 1 / (xMax − xMin)
+     *   tx = −xMin × V_w × s
+     *   ty = −yMin × V_h × s
+     */
+    private applyViewportTransform() {
+        const zoom = this.ctx.chartState.getValue('zoom');
+        const vw = this.width ?? 0;
+        const vh = this.height ?? 0;
+
+        const xMin = zoom?.x?.min ?? 0;
+        const xMax = zoom?.x?.max ?? 1;
+        const yMin = zoom?.y?.min ?? 0;
+        const yMax = zoom?.y?.max ?? 1;
+
+        const xRange = xMax - xMin;
+        const yRange = yMax - yMin;
+
+        // Guard against degenerate zoom windows (e.g. NaN or zero-width range).
+        const sx = xRange > 0 ? 1 / xRange : 1;
+        const sy = yRange > 0 ? 1 / yRange : 1;
+        // Use the smaller scale to preserve aspect ratio when x/y ranges differ.
+        const s = Math.min(sx, sy);
+
+        this.viewportGroup.translationX = -xMin * vw * s;
+        this.viewportGroup.translationY = -yMin * vh * s;
+        this.viewportGroup.scalingX = s;
+        this.viewportGroup.scalingY = s;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {

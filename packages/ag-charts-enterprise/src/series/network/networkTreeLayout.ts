@@ -25,10 +25,14 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
+    /** Bounding box of all laid-out nodes at native (scale-1) sizes. Set after each `update()` call. */
+    contentBBox: TBBox | undefined;
+
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
         const { containerBBox } = this.updateNodes(options);
+        this.contentBBox = containerBBox;
         this.updateOffset(options, containerBBox);
     }
 

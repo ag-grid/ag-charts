@@ -10,6 +10,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     dragAction,
     extractImageData,
     hoverAction,
@@ -872,6 +873,47 @@ describe('OrganizationSeries', () => {
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('viewportGroup zoom transform', () => {
+        // These tests drive zoom state directly via the internal ZoomManager because the zoom
+        // feature is NOT enabled in the org-chart theme template until Phase 3. The public
+        // `initialState.zoom` path is gated on `zoom.enabled`, so it would be a no-op here.
+        // Once Phase 3 lands and enables zoom by default, these tests can be rewritten to use
+        // `AgCharts.create({ ..., initialState: { zoom: { ratioX: ..., ratioY: ... } } })`.
+        function applyZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
+            deproxy(c).ctx.zoomManager?.updateZoom(
+                { source: 'state-change', sourceDetail: 'unspecified' },
+                { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
+            );
+        }
+
+        it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
+            // Zoom state: centre quarter of the fit-state viewport, scale = 2.
+            // The viewportGroup applies s = 1 / (0.75 - 0.25) = 2, tx = -0.25 * V_w * 2,
+            // ty = -0.25 * V_h * 2. Content that was centred at fit state remains centred.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            applyZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            await compare();
+        });
+
+        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0–0.5)', async () => {
+            // Zoom state: right-half × top-half of the fit-state viewport, scale = 2.
+            // The viewportGroup translates so only the right/top content is visible.
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            applyZoom(chart, 0.5, 1.0, 0.0, 0.5);
             await compare();
         });
     });
