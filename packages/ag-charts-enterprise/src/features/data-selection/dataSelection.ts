@@ -133,7 +133,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
-        this.redraw(ChartUpdateType.FULL);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     clearSelection(): void {
@@ -146,7 +146,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
-        this.redraw(ChartUpdateType.FULL);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
@@ -192,7 +192,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.redraw(ChartUpdateType.FULL);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -286,7 +286,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private endDrag(): void {
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
-        this.redraw(ChartUpdateType.FULL);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private redraw(type: ChartUpdateType): void {
