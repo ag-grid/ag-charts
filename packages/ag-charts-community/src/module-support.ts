@@ -257,7 +257,7 @@ export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
     computeMarkerFocusBounds,
     getMarkerStyles,
-    markerEnabled,
+    cartesianMarkerDrawMode,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     resetMarkerFn,
