@@ -206,6 +206,11 @@ function addSnykIgnoreEntry(snykFile, vulnId, depPath, reason, expires) {
         content = '# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.\nversion: v1.25.1\n\nignore:\npatch: {}\n';
     }
 
+    // Snyk CLI / snykClean.mjs writes `ignore: {}` when the section is empty.
+    // YAML rejects mixing the inline empty mapping with block-style children,
+    // so collapse it to `ignore:` before inserting any vuln block beneath it.
+    content = content.replace(/^ignore:[ \t]*\{[ \t]*\}[ \t]*$/m, 'ignore:');
+
     // Use js-yaml to get a correctly-quoted key for the dep path.
     // Dump as a single-key mapping, strip the ": null" value, then append ":".
     // e.g. "@nx/foo@1 > bar@2"  →  "'@nx/foo@1 > bar@2':"
