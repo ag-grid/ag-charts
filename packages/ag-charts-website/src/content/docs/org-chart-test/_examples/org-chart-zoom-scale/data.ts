@@ -51,8 +51,9 @@ function nodeName(rng: () => number, index: number): string {
  *
  * Uses a BFS queue so parent assignment runs in O(n). Each node (except
  * the root) is assigned to the next available slot in BFS order, with a
- * branching factor of 6. Depth is O(log₆ n): approximately 4 levels at
- * 100 nodes and 8 levels at 100 000 nodes.
+ * branching factor of 3 — biased toward vertical structure so the chart
+ * exercises tall layouts. Depth is O(log₃ n): roughly 5 levels at 100
+ * nodes, 11 levels at 100 000 nodes.
  */
 export function generateOrg(targetCount: number): OrgDatum[] {
     if (targetCount <= 0) return [];
@@ -60,7 +61,7 @@ export function generateOrg(targetCount: number): OrgDatum[] {
     const rng = makeRng(42);
     const data: OrgDatum[] = [];
 
-    const BRANCHING = 6;
+    const BRANCHING = 3;
 
     data.push({
         id: 'node-0',
