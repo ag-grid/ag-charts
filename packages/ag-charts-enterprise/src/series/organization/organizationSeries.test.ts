@@ -91,32 +91,22 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     },
 };
 
-/**
- * A chart whose laid-out content exceeds the 800x600 mock canvas in both axes. Used by tests
- * that need a "real" zoom-in scenario — with the `s ≤ 1` native-pixel cap, content that fits
- * inside the viewport cannot be zoomed past native, so SIMPLE_ORG_CHART is unusable for any
- * test that asserts non-fit zoom behaviour (pan-to-active, off-isotropic projection, etc.).
- *
- * Layout: a single chain of 7 levels under the CEO at the leftmost VP, plus 7 sibling VPs
- * to widen things out. Both `fitX` and `fitY` end up well below 1, so the projection logic's
- * `targetT * fit ≤ 1` constraint is exercised without saturating to `{0..1, 0..1}` on either axis.
- */
+// Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
+// that exercise non-fit zoom behaviour — the `s ≤ 1` native-pixel cap snaps content that fits
+// back to fit, so SIMPLE_ORG_CHART can't drive pan-to-active or off-isotropic projection.
 const OVERFLOWING_ORG_CHART: AgChartOptions = {
     data: (() => {
         const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
             { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
         ];
-        // 8 VPs as direct children of the CEO.
         for (let i = 0; i < 8; i++) {
             const vp = `vp-${i}`;
             data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
-            // Each VP has 8 team leads — wide horizontal fan-out to push fitX well below 1.
             for (let j = 0; j < 8; j++) {
                 const leaf = `leaf-${i}-${j}`;
                 data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
             }
         }
-        // Add a tall chain hanging off `leaf-0-0` to push fitY well below 1 too.
         let parent = 'leaf-0-0';
         for (let k = 0; k < 6; k++) {
             const id = `chain-${k}`;
@@ -633,11 +623,9 @@ describe('OrganizationSeries', () => {
             | undefined;
     }
 
-    // The `setZoom` helper drives the ZoomManager directly to bypass the memento path's
-    // theme-template projection (`keepAspectRatio`, `autoScaling`). These tests assert the
-    // renderer / floor math at exact zoom states; theme projection would re-write the input
-    // before the code under test sees it. For tests that exercise the full state-restore
-    // pipeline, use `chart.setState({zoom: ...})` instead.
+    // Drives ZoomManager directly to bypass the memento path's theme-template projection
+    // (`keepAspectRatio`, `autoScaling`) — tests below assert exact zoom states. Use
+    // `chart.setState({zoom: ...})` to exercise the full state-restore pipeline.
     function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
         deproxy(c).ctx.zoomManager?.updateZoom(
             { source: 'state-change', sourceDetail: 'unspecified' },
@@ -689,8 +677,6 @@ describe('OrganizationSeries', () => {
 
     describe('expander chevron', () => {
         it('should render a point-down chevron when a node is expanded', async () => {
-            // Baseline: no initialState collapse — cto and cfo are expanded and their
-            // expander pills should show a downward-pointing chevron.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -699,8 +685,6 @@ describe('OrganizationSeries', () => {
         });
 
         it('should render a point-up chevron when a node is collapsed', async () => {
-            // cto is collapsed via setState; its expander pill must switch to an
-            // upward-pointing chevron to signal that clicking will expand.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -769,14 +753,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
-                // Guards against the styler-cache returning stale `isCollapsed` after a
-                // setState collapse/expand toggle. The styler flips fill based on
-                // `isCollapsed`; if the cache key omitted that signal, the post-toggle
-                // snapshot would carry over the pre-toggle styling.
-                //
-                // Snapshots after each setState so the test fails distinctively whether the
-                // styler ignores `isCollapsed` (snap 1 wrong), or reads stale cache after
-                // expand (snap 2 wrong).
+                // The styler flips fill on `isCollapsed`; snapshotting after each toggle
+                // catches a stale-cache regression where `isCollapsed` is omitted from the key.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     series: [
@@ -807,7 +785,6 @@ describe('OrganizationSeries', () => {
 
     describe('theme defaults', () => {
         it('should apply Figma-aligned theme defaults', async () => {
-            // Guards the defaults pass: padding 8, spacing 4, image circle, verticalSpacing 52.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -816,13 +793,9 @@ describe('OrganizationSeries', () => {
         });
 
         it('should apply default highlight stroke when a node is hovered', async () => {
-            // Regression test for AG-17192. Theme defaults add a stronger stroke and
-            // strokeWidth on `highlight.highlightedItem`; without the default the highlighted
-            // node would render identical to its neighbours.
-            //
-            // The chart overrides `node.cornerRadius` to 0 so the JSDOM mock canvas can
-            // hit-test the node rect — `Rect.updatePath()` only installs a bbox-based
-            // hit-tester for unrounded rects (per .claude/rules/testing.md).
+            // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
+            // .claude/rules/testing.md); without the theme stroke default the hovered node
+            // would render identical to its neighbours.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 theme: {
@@ -836,9 +809,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Root card (Alice Chen) sits centred across the top of the 800x600 mock
-            // canvas. Hover its approximate centre to trigger the highlight pipeline
-            // through the public pointer-event path.
+            // Root card centre on the 800x600 mock canvas.
             await hoverAction(400, 65)(chart);
             await compare();
         });
@@ -846,13 +817,8 @@ describe('OrganizationSeries', () => {
 
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
-            // Regression test for AG-17233. Chart has a title which shrinks the series-area
-            // rect; a large upward drag would otherwise pull node cards into the title
-            // region. With clipping, nodes are cropped at the series-area boundary instead.
-            //
-            // Pan is owned by the Zoom feature, which skips panning at full range {0, 1}.
-            // Zoom in first so the subsequent drag pans content; the clip-rect is what
-            // we're verifying here, not the pan mechanism.
+            // AG-17233 regression. The Zoom feature skips panning at {0, 1}, so the test
+            // zooms in first; the assertion is the clip-rect, not the pan mechanism.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -869,9 +835,6 @@ describe('OrganizationSeries', () => {
             );
             await waitForChartStability(chart);
 
-            // 800x600 mock canvas. Drag upward from below the centre to above it —
-            // far enough that without clipping the top row of cards would overlap the
-            // chart title.
             await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
 
             await compare();
@@ -896,11 +859,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should use outerSpacing for cousin gaps and innerSpacing for sibling gaps', async () => {
-            // 2-level tree: two parents (A, B) each with two leaf children (C/D and E/F).
-            // With innerSpacing=20 and outerSpacing=40, the gap between D and E (cousins)
-            // must be larger than the gap between C and D (siblings) or E and F (siblings).
-            // The snapshot captures the layout; the test name documents the intent so a
-            // regression is immediately identifiable.
+            // innerSpacing=20, outerSpacing=40: cousin gap (D↔E) must exceed sibling gaps.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 data: [
@@ -930,10 +889,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should not overlap last label with expander pill at default spacing', async () => {
-            // Regression for the overlap introduced by node.padding shrinking from 16 to 8.
-            // With expander.height=24 and expander.spacing=4 the effective bottom padding
-            // becomes max(8, 12+4)=16, giving 4 px clearance between the last label bottom
-            // and the pill top.  The snapshot documents non-overlap.
+            // Regression for the overlap caused by node.padding shrinking 16→8: the bottom
+            // padding becomes max(padding, expanderHeight/2 + spacing).
             const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
@@ -942,9 +899,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should leave card layout unchanged when expander is short enough', async () => {
-            // When height=8 and spacing=0 the Math.max computation yields max(8, 4+0)=8,
-            // equal to node.padding — parent-card bottom padding is identical to that of a
-            // leaf card, so no extra space is reserved.  Snapshot documents this invariance.
+            // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
+            // leaf cards share the same bottom padding — no extra space reserved.
             const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
@@ -978,9 +934,9 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    // OVERFLOWING_ORG_CHART throughout: the `s ≤ 1` cap snaps fitting content back to fit, so
+    // `panToBBox` is never invoked on SIMPLE_ORG_CHART.
     describe('pan-to-active', () => {
-        // OVERFLOWING_ORG_CHART is required: SIMPLE_ORG_CHART fits at native size so the
-        // `s ≤ 1` cap snaps any sub-window back to fit and `panToBBox` is never called.
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
@@ -988,12 +944,10 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // panToBBox is internal — spying directly is the only way to assert "was/wasn't called".
             const zoomManager = deproxy(chart).ctx.zoomManager;
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // `leaf-7-7` is rightmost-of-rightmost: off-screen for any left-anchored sub-window.
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
@@ -1018,7 +972,6 @@ describe('OrganizationSeries', () => {
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // `leaf-7-4` is on the rightmost slice — already visible.
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
@@ -1039,15 +992,13 @@ describe('OrganizationSeries', () => {
             setZoom(chart, 0.8, 1, 0, 1);
             await waitForChartStability(chart);
 
-            // Spy after the initial zoom so we only observe pan calls caused by the hover.
+            // Spy after the initial zoom so only hover-induced pans count.
             const zoomManager = deproxy(chart).ctx.zoomManager;
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
             const ratiosBefore = getZoomRatios(chart);
 
-            // No public API simulates hover without firing `active:load-memento` (and JSDOM
-            // canvas hit-testing is stubbed, so DOM-driven hover doesn't reach picking either).
-            // `activeManager.update` is the canonical hover simulation — the test exists to
-            // prove the source-gate works, so this internal call is unavoidable here.
+            // `activeManager.update` is the canonical hover simulation — JSDOM canvas
+            // hit-testing is stubbed so DOM events can't drive picking (testing.md).
             const seriesId = deproxy(chart).series[0].id;
             deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
             await waitForChartStability(chart);
@@ -1065,16 +1016,13 @@ describe('OrganizationSeries', () => {
 
     describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
-            // OVERFLOWING_ORG_CHART has fitX ≠ fitY and both ≪ 1, so the projection is
-            // observable without saturating to `{0..1, 0..1}`. The snapshot validates the
-            // post-projection render — drift would change the visible content area.
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Off-isotropic request: x window 0.6 wide, y window 0.2 wide. Centred at 0.5,0.5.
+            // Off-isotropic request (x=0.6 wide, y=0.2 wide) centred at 0.5,0.5.
             setZoom(chart, 0.2, 0.8, 0.4, 0.6);
             await waitForChartStability(chart);
 

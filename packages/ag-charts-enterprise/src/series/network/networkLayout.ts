@@ -23,13 +23,13 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {
-    /** Native-size bounds of laid-out nodes, in layout-space. Subclasses populate via `update()`. */
+    // Native-size bounds of laid-out nodes, populated by `update()`. Read by
+    // `NetworkSeries.applyViewportTransform` to compute fit-to-viewport scale.
     protected _contentBBox?: _ModuleSupport.BBox;
     protected regularBBox?: _ModuleSupport.BBox;
 
     private readonly maxRegularDimensionsCount = 1000;
 
-    /** Read by `NetworkSeries.applyViewportTransform` to compute fit-to-viewport scale. */
     get contentBBox(): _ModuleSupport.BBox | undefined {
         return this._contentBBox;
     }

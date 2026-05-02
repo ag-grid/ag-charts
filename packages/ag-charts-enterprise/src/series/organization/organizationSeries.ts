@@ -44,7 +44,7 @@ const { keyProperty, valueProperty } = _ModuleSupport;
 
 const ISOTROPY_EPSILON = 1e-6;
 
-/** Constrain a midpoint so the centred window `[mid - range/2, mid + range/2]` stays in `[0, 1]`. */
+// Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
 function clampMid(mid: number, range: number): number {
     const half = range / 2;
     if (mid - half < 0) return half;
@@ -111,15 +111,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.linkGroup.translationY = offset.y;
     }
 
-    // Order is load-bearing: `applyNativePixelFloor` reads the post-clamp window from
-    // `event.state`, mutated in-place by `applyPanBoundaryClamp`.
+    // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
+    // `applyPanBoundaryClamp`.
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.isReset) return;
         this.applyPanBoundaryClamp(event);
         this.applyNativePixelFloor(event);
     }
 
-    /** AG-17204: keep the zoom window overlapping `[0, 1]` so some content remains visible. */
+    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
     private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
         const clamped: _ModuleSupport.CoreZoomState = {};
         let didClamp = false;
@@ -144,8 +144,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 didClamp = true;
             }
 
-            // CoreZoomState requires the ChartAxisDirection enum, not the 'x'/'y' literals
-            // carried on `event.state` entries (runtime-equivalent, nominal-type-only difference).
+            // CoreZoomState wants the enum, not 'x'/'y' literals (runtime-equivalent).
             const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
             clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
         }
@@ -155,10 +154,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    /**
-     * Cap rendered scale at native pixels (`s ≤ 1`) and project off-isotropic states onto the
-     * isotropic line `xRange/fitX = yRange/fitY`. Less-zoomed axis wins (preserves content).
-     */
+    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
+    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
     private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
         const sMax = 1;
         const { seriesRect } = this;
@@ -184,12 +181,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
 
-        // Project to isotropic line, then floor at sMax (i.e. t ≥ 1/sMax).
+        // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
         const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
         const targetXRange = Math.min(1, targetT * fitX);
         const targetYRange = Math.min(1, targetT * fitY);
 
-        // Re-centre symmetrically about the midpoint, clamped to keep the window in `[0, 1]`.
         const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
         const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
 

@@ -33,8 +33,7 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    // Records the true content extent independently of `containerBBox`, which over-accumulates
-    // height by O(N) instead of O(depth * nodeH) due to its recursive sibling-merge.
+    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
     private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
         count: 0,
         left: 0,
@@ -266,7 +265,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        // Pan / clamp are owned by the Zoom feature; this only writes the auto-centre offset.
+        // Auto-centre only — Zoom feature owns pan/clamp.
         options.updateOffset(offset);
     }
 }

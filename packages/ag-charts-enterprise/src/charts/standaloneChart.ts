@@ -32,9 +32,8 @@ export class StandaloneChart extends Chart {
         this.refreshStandaloneZoomRegistration();
     }
 
-    // Lazy: `this.series` is empty at construction. Series opt in via `supportsStandaloneZoom`
-    // (instance flag, mirror of `alwaysClip`). Tracks state across hot-swaps so axes register
-    // when an opt-in series joins and unregister when the last one leaves.
+    // Lazy because `this.series` is empty at construction; the flag tracks state across
+    // hot-swaps so axes register when an opt-in series joins and unregister when it leaves.
     private refreshStandaloneZoomRegistration() {
         const { zoomManager } = this.ctx;
         if (!zoomManager) return;
@@ -69,8 +68,7 @@ export class StandaloneChart extends Chart {
             group.translationY = Math.floor(seriesRect.y);
         }
 
-        // Match cartesian: any `alwaysClip` series clips to layoutBox so panned content
-        // doesn't bleed into title/subtitle/footnote.
+        // Matches cartesian: clip panned content out of title/subtitle/footnote.
         const clipRect = this.series.some((s) => s.alwaysClip) ? ctx.layoutBox : undefined;
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);

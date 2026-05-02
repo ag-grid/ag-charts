@@ -275,11 +275,7 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
     readonly alwaysClip: boolean = false;
-    /**
-     * Opts the series into the synthetic-axis ZoomManager registration on `StandaloneChart`.
-     * Default `false` so gauge / treemap / sunburst remain unaffected; set to `true` from
-     * series whose viewport content benefits from scale + translate zoom (e.g. organization).
-     */
+    /** Opts into StandaloneChart zoom (axis registration + scale/translate viewport). */
     readonly supportsStandaloneZoom: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;

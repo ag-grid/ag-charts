@@ -14,7 +14,6 @@ export const OrganizationSeriesModule: SeriesModuleDefinition<AgOrganizationSeri
     enterprise: true,
     solo: true,
     version: VERSION,
-    // ZoomModule provides ctx.zoomManager — required by the synthetic-axis registration.
     dependencies: [StandaloneChartModule, ZoomModule],
     options: organizationSeriesOptionsDef,
     themeTemplate: organizationSeriesTheme,

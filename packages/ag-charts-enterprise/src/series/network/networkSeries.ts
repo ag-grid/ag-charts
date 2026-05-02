@@ -69,7 +69,7 @@ export abstract class AbstractNetworkSeries<
     protected readonly graph: TGraph;
     protected readonly layout: TLayout;
 
-    // Shared parent for `dataNodeGroup` + `linkGroup`. Zoom scale + translate are applied here.
+    // Zoom scale + translate are applied to this group; `dataNodeGroup` and `linkGroup` ride along.
     protected readonly viewportGroup = this.contentGroup.appendChild(
         new (_ModuleSupport.Scalable(_ModuleSupport.TranslatableGroup))({ name: `${this.id}-viewport` })
     );
@@ -99,14 +99,13 @@ export abstract class AbstractNetworkSeries<
 
     protected seriesRect?: _ModuleSupport.BBox;
 
-    /** Item id to pan to after the next layout + series update. Set only on state-change source. */
     private pendingPanToItemId?: string;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            // Pan/zoom via ZoomManager — clip stops viewportGroup overflow into title/footnote.
+            // Clip stops viewportGroup overflow into title/footnote during zoom/pan.
             alwaysClip: true,
             supportsStandaloneZoom: true,
         });
@@ -125,8 +124,7 @@ export abstract class AbstractNetworkSeries<
             }
         });
 
-        // Pan-to-active fires only for state-restore / programmatic setState — `active:load-memento`
-        // never fires for hover, so this gate gives us AG-17011 G7 semantics for free.
+        // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
         this.cleanup.register(
             ctx.eventsHub.on('active:load-memento', ({ activeItem }) => {
                 if (activeItem?.seriesId !== this.id) return;
@@ -134,7 +132,7 @@ export abstract class AbstractNetworkSeries<
             })
         );
 
-        // Expand-to-active runs on every activeItem change (incl. hover) so collapsed ancestors open.
+        // Runs on every activeItem change incl. hover — opens collapsed ancestors.
         ctx.chartState.observe((get) => {
             const activeItem = get('activeItem');
             if (activeItem?.seriesId === this.id) {
@@ -142,7 +140,7 @@ export abstract class AbstractNetworkSeries<
             }
         });
 
-        // Zoom changes re-render via transform only — no re-layout needed.
+        // Zoom is a transform-only update — no re-layout.
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 get('zoom');
@@ -193,18 +191,10 @@ export abstract class AbstractNetworkSeries<
         return this.datumSelection.length;
     }
 
-    /**
-     * Applies viewport-group scale + translate from the current zoom state.
-     *
-     *   fitX/Y = V/C            sX/Y = fit / range            s = min(sX, sY, 1)
-     *   tx = −(C.x + xMin·C_w + offsetX)·s + centerX
-     *   ty = −(C.y + (1−yMax)·C_h + offsetY)·s + centerY
-     *
-     * Y is mirrored (`1 − yMax`) because the Zoom feature publishes y-up cartesian ratios but
-     * we render y-down. `seriesRect.x/y` is NOT applied here — `seriesRoot` already does so.
-     * The `s ≤ 1` cap protects fit semantics for small content; subtracting `dataNodeGroup`
-     * translation cancels the layout's auto-centre so the transform owns final placement.
-     */
+    // Y is mirrored (`1 − yMax`) because Zoom publishes y-up ratios but we render y-down.
+    // `seriesRect.x/y` lives on `seriesRoot`, not here. The `s ≤ 1` cap preserves fit
+    // semantics for small content; subtracting the dataNodeGroup offset cancels the
+    // layout's auto-centre so this transform owns final placement.
     private applyViewportTransform() {
         const zoom = this.ctx.chartState.getValue('zoom');
         const { seriesRect } = this;
@@ -254,12 +244,11 @@ export abstract class AbstractNetworkSeries<
         // TODO: this.contentGroup.batchedUpdate() ?
         this.updateSelections();
         this.updateNodes();
-        // contentBBox is now current — the zoom observer's earlier early-return is corrected here.
+        // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
         this.applyViewportTransform();
         this.maybePanToItem();
     }
 
-    /** Pan the viewport so a pending active item (state-restore / programmatic) is visible. */
     private maybePanToItem() {
         const { pendingPanToItemId, seriesRect } = this;
         if (!pendingPanToItemId || !seriesRect) return;
@@ -276,8 +265,7 @@ export abstract class AbstractNetworkSeries<
         const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
         if (!canvasBBox?.isFinite()) return;
 
-        // Stability heuristic: only pan when the node's centre is off-screen. A bbox check
-        // would jitter for nodes near the boundary.
+        // Centre-based check — bbox-based would jitter for nodes near the boundary.
         const cx = canvasBBox.x + canvasBBox.width / 2;
         const cy = canvasBBox.y + canvasBBox.height / 2;
         if (seriesRect.containsPoint(cx, cy)) return;
@@ -285,10 +273,9 @@ export abstract class AbstractNetworkSeries<
         const { zoomManager } = this.ctx;
         if (!zoomManager) return;
 
-        // FIXME(AG-17179 follow-up): `calcPanToBBoxRatios` is y-down internally but we render
-        // y-up — mirror the target's pixel-y around the viewport midline so the ratios it
-        // emits land in the right place under `applyViewportTransform`. Remove once the helper
-        // is direction-aware.
+        // FIXME(AG-17179 follow-up): mirror y around the viewport midline because
+        // `calcPanToBBoxRatios` is y-down internally and we render y-up. Remove once the
+        // helper is direction-aware.
         const flippedTarget = {
             x: canvasBBox.x,
             y: 2 * seriesRect.y + seriesRect.height - canvasBBox.y - canvasBBox.height,

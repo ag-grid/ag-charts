@@ -2,7 +2,6 @@ import type { ExtensibleTheme } from 'ag-charts-community';
 import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
-    // Org-specific zoom defaults — scoped to this template, doesn't leak to cartesian.
     zoom: {
         enabled: true,
         enableAxisDragging: false,
@@ -18,7 +17,6 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         autoScaling: { enabled: false },
         onDataChange: { strategy: 'preserveRatios' },
         minVisibleItems: 1,
-        // AG-17179 AC 4.2: no toolbar buttons.
         buttons: { enabled: false },
     },
     series: {
