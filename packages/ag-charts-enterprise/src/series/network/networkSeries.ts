@@ -298,7 +298,7 @@ export abstract class AbstractNetworkSeries<
 
         const panSuccess = zoomManager.panToBBox(seriesRect, flippedTarget);
         if (!panSuccess) {
-            Logger.warnOnce('OrganizationSeries: panToBBox failed — chart may be too small.');
+            Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
         }
     }
 

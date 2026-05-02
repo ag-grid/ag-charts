@@ -850,10 +850,9 @@ describe('OrganizationSeries', () => {
             // rect; a large upward drag would otherwise pull node cards into the title
             // region. With clipping, nodes are cropped at the series-area boundary instead.
             //
-            // Phase 3 (AG-17179) note: pan ownership has moved to the Zoom feature, which
-            // skips panning when both axes are at full range {0,1}. Zoom in first via the
-            // ZoomManager so the subsequent drag pans content. The clip-rect on the
-            // series-area is what's being verified here, not the pan mechanism.
+            // Pan is owned by the Zoom feature, which skips panning at full range {0, 1}.
+            // Zoom in first so the subsequent drag pans content; the clip-rect is what
+            // we're verifying here, not the pan mechanism.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
@@ -979,7 +978,7 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    describe('pan-to-active (Phase 5)', () => {
+    describe('pan-to-active', () => {
         // OVERFLOWING_ORG_CHART is required: SIMPLE_ORG_CHART fits at native size so the
         // `s ≤ 1` cap snaps any sub-window back to fit and `panToBBox` is never called.
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
@@ -1064,7 +1063,7 @@ describe('OrganizationSeries', () => {
         });
     });
 
-    describe('aspect-ratio guard (Phase 4)', () => {
+    describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             // OVERFLOWING_ORG_CHART has fitX ≠ fitY and both ≪ 1, so the projection is
             // observable without saturating to `{0..1, 0..1}`. The snapshot validates the
