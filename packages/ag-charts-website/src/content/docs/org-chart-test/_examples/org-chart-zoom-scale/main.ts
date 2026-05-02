@@ -1,9 +1,15 @@
 // @ag-skip-fws
-import { AgCharts, AgStandaloneChartOptions, ModuleRegistry, OrganizationSeriesModule } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgStandaloneChartOptions,
+    ModuleRegistry,
+    OrganizationSeriesModule,
+    ZoomModule,
+} from 'ag-charts-enterprise';
 
 import { generateOrg } from './data';
 
-ModuleRegistry.registerModules([OrganizationSeriesModule]);
+ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
 
 type Scale = 100 | 1_000 | 10_000 | 100_000;
 
