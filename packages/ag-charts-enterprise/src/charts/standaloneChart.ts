@@ -14,6 +14,15 @@ export class StandaloneChart extends Chart {
     private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
     private standaloneZoomRegistered = false;
 
+    constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
+        super(options, resources);
+
+        if (this.ctx.zoomManager) {
+            this.ctx.zoomManager.panToBBoxScalingMode =
+                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+        }
+    }
+
     override getChartType() {
         return 'standalone' as const;
     }
@@ -34,10 +43,6 @@ export class StandaloneChart extends Chart {
         if (wantsZoom === this.standaloneZoomRegistered) return;
 
         zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
-        if (wantsZoom) {
-            zoomManager.panToBBoxScalingMode =
-                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
-        }
         this.standaloneZoomRegistered = wantsZoom;
     }
 
