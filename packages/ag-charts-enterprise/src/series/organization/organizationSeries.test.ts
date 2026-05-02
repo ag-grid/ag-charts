@@ -91,6 +91,54 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
     },
 };
 
+/**
+ * A chart whose laid-out content exceeds the 800x600 mock canvas in both axes. Used by tests
+ * that need a "real" zoom-in scenario — with the `s ≤ 1` native-pixel cap, content that fits
+ * inside the viewport cannot be zoomed past native, so SIMPLE_ORG_CHART is unusable for any
+ * test that asserts non-fit zoom behaviour (pan-to-active, off-isotropic projection, etc.).
+ *
+ * Layout: a single chain of 7 levels under the CEO at the leftmost VP, plus 7 sibling VPs
+ * to widen things out. Both `fitX` and `fitY` end up well below 1, so the projection logic's
+ * `targetT * fit ≤ 1` constraint is exercised without saturating to `{0..1, 0..1}` on either axis.
+ */
+const OVERFLOWING_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        // 8 VPs as direct children of the CEO.
+        for (let i = 0; i < 8; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            // Each VP has 8 team leads — wide horizontal fan-out to push fitX well below 1.
+            for (let j = 0; j < 8; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+            }
+        }
+        // Add a tall chain hanging off `leaf-0-0` to push fitY well below 1 too.
+        let parent = 'leaf-0-0';
+        for (let k = 0; k < 6; k++) {
+            const id = `chain-${k}`;
+            data.push({ id, name: `Chain ${k}`, job: 'Senior Developer', location: 'London', parentId: parent });
+            parent = id;
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
 const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
     ...SIMPLE_ORG_CHART,
     theme: {
@@ -939,13 +987,14 @@ describe('OrganizationSeries', () => {
     });
 
     describe('pan-to-active (Phase 5)', () => {
+        // OVERFLOWING_ORG_CHART (8 VPs × 8 leads = 65 nodes wide) is used because the strict
+        // `s ≤ 1` native-pixel cap means a chart that fits the viewport at native scale cannot
+        // be zoomed in any further — any sub-window request gets snapped back to fit-state by
+        // `applyNativePixelFloor`, leaving every node visible and `panToBBox` never called.
+        // Only an overflowing dataset exercises a meaningful sub-window where pan-to-active
+        // actually changes the zoom state.
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
-            // 'acc' (child of CFO) is at roughly 58% horizontal / 57% vertical of the series
-            // area in fit-state. setState with zoom at the top-left quadrant
-            // ({ratioX: 0.0–0.5, ratioY: 0.5–1.0}; y-up cartesian: yMax=1 = top of view)
-            // places 'acc' off-screen on the right and below the visible window.
-            // maybePanToItem must call panToBBox — verified via spy.
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -955,13 +1004,13 @@ describe('OrganizationSeries', () => {
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // Restore both zoom (top-left quadrant, 'acc' at ~58%/57% is off-screen) and
-            // active in one setState call. This is the canonical state-restore path that must
-            // trigger a pan.
+            // Zoom into the leftmost slice. `leaf-7-7` is the rightmost leaf of the rightmost
+            // VP — guaranteed off-screen on the right of any left-anchored sub-window. The
+            // pan-to-active machinery must fire `panToBBox` to bring it into view.
             await chart.setState({
                 version: '13.3.0',
-                zoom: { ratioX: { start: 0, end: 0.5 }, ratioY: { start: 0.5, end: 1 } },
-                active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
+                zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-7' } },
             });
             await waitForChartStability(chart);
 
@@ -972,11 +1021,9 @@ describe('OrganizationSeries', () => {
         });
 
         it('should NOT pan when the active node is already within the zoom window', async () => {
-            // 'acc' is at ~58%/57% in fit-state. Zoom to the bottom-right quadrant
-            // ({ratioX: 0.5–1.0, ratioY: 0.0–0.5}; y-up cartesian: yMax=0.5 = mid-screen
-            // bottom-half visible) keeps 'acc' inside the visible area.
-            // maybePanToItem must detect the node is in view and skip panToBBox.
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            // Restore the rightmost slice plus an active item that lives inside it: any leaf
+            // under `vp-7` is already on screen, so no pan is needed.
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -986,12 +1033,10 @@ describe('OrganizationSeries', () => {
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // Right-half × screen-bottom-half (y-up cartesian: y=0–0.5 = bottom half visible):
-            // 'acc' at ~58%/57% screen position is inside the visible region.
             await chart.setState({
                 version: '13.3.0',
-                zoom: { ratioX: { start: 0.5, end: 1 }, ratioY: { start: 0, end: 0.5 } },
-                active: { activeItem: { type: 'series-node', seriesId, itemId: 'acc' } },
+                zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-4' } },
             });
             await waitForChartStability(chart);
 
@@ -1000,11 +1045,9 @@ describe('OrganizationSeries', () => {
         });
 
         it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
-            // Zoom into the right-half × screen-bottom-half so 'acc' is inside the visible
-            // region. (y-up cartesian: y=0–0.5 = bottom half visible.) Then simulate hover
-            // (source: 'user-interaction') by calling activeManager.update() directly. The
-            // zoom state must be unchanged.
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            // Hover-driven active changes (source: 'user-interaction') must not pan even when
+            // the focused node would be off-screen.
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -1012,23 +1055,20 @@ describe('OrganizationSeries', () => {
 
             deproxy(chart).ctx.zoomManager?.updateZoom(
                 { source: 'state-change', sourceDetail: 'unspecified' },
-                { x: { min: 0.5, max: 1 }, y: { min: 0, max: 0.5 } }
+                { x: { min: 0.8, max: 1 }, y: { min: 0, max: 1 } }
             );
             await waitForChartStability(chart);
             const zoomBefore = getZoom(chart);
 
-            // Simulate a hover-driven active change (user-interaction source).
-            // activeManager.update() calls performUpdate('user-interaction', ...), which
-            // does NOT emit 'active:load-memento', so no pan should occur.
             const seriesId = deproxy(chart).series[0].id;
-            deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'acc' }, undefined);
+            deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
             await waitForChartStability(chart);
 
             const zoomAfter = getZoom(chart);
-            expect(zoomAfter?.x.min).toBeCloseTo(zoomBefore?.x.min ?? 0.5, 6);
+            expect(zoomAfter?.x.min).toBeCloseTo(zoomBefore?.x.min ?? 0.8, 6);
             expect(zoomAfter?.x.max).toBeCloseTo(zoomBefore?.x.max ?? 1, 6);
             expect(zoomAfter?.y.min).toBeCloseTo(zoomBefore?.y.min ?? 0, 6);
-            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 0.5, 6);
+            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 1, 6);
         });
     });
 
@@ -1041,14 +1081,32 @@ describe('OrganizationSeries', () => {
             // direction wins). For non-square content (`fitX ≠ fitY`) this means the
             // projected `xRange` and `yRange` must remain in the ratio `fitX:fitY`, NOT
             // numerically equal to each other.
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            //
+            // OVERFLOWING_ORG_CHART is required: the strict `s ≤ 1` cap means SIMPLE_ORG_CHART
+            // (which fits at native size) snaps every zoom request to {0..1, 0..1}, where both
+            // axes saturate at the [0, 1] window edge and projection is masked by clamping.
+            // OVERFLOWING_ORG_CHART has `fitX ≪ 1` so the projected ranges remain inside [0, 1]
+            // and the isotropy invariant `xRange/fitX = yRange/fitY` is observable.
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const xWidth = 0.3;
-            const yWidth = 0.5;
+            // Pull seriesRect + contentBBox from the live series to derive fitX, fitY.
+            const series = deproxy(chart).series[0] as any;
+            const seriesRect = series.seriesRect;
+            const contentBBox = series.layout.contentBBox;
+            expect(seriesRect).toBeDefined();
+            expect(contentBBox).toBeDefined();
+            const fitX = seriesRect.width / contentBBox.width;
+            const fitY = seriesRect.height / contentBBox.height;
+
+            // Choose ranges that, after projection to t = max(xRange/fitX, yRange/fitY) and
+            // before saturation, both stay inside [0, 1]. We start off-isotropic by setting xt
+            // and yt to differ; after projection both must equal max(xt, yt).
+            const xWidth = Math.min(0.9, fitX * 1.5); // visible factor 1/1.5 = ~0.67 of fit
+            const yWidth = Math.min(0.9, fitY * 0.4); // smaller (more zoomed) than X
             deproxy(chart).ctx.zoomManager?.updateZoom(
                 { source: 'state-change', sourceDetail: 'unspecified' },
                 {
@@ -1063,15 +1121,6 @@ describe('OrganizationSeries', () => {
 
             const acceptedXWidth = zoom!.x.max - zoom!.x.min;
             const acceptedYWidth = zoom!.y.max - zoom!.y.min;
-
-            // Pull seriesRect + contentBBox from the live series to derive fitX, fitY.
-            const series = deproxy(chart).series[0] as any;
-            const seriesRect = series.seriesRect;
-            const contentBBox = series.layout.contentBBox;
-            expect(seriesRect).toBeDefined();
-            expect(contentBBox).toBeDefined();
-            const fitX = seriesRect.width / contentBBox.width;
-            const fitY = seriesRect.height / contentBBox.height;
 
             // Isotropy condition: xRange/fitX === yRange/fitY (single rendered scale `s`).
             const xT = acceptedXWidth / fitX;

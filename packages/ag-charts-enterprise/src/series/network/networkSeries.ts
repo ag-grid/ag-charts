@@ -222,20 +222,34 @@ export abstract class AbstractNetworkSeries<
      * both treat positive screen-Y delta as a decrease in `yMin` — the opposite of what a
      * y-down renderer needs.
      *
-     * The mapping follows plan §2 with the cartesian → screen substitution:
+     * The mapping follows plan §2, expressed in **seriesRoot-local space** (StandaloneChart's
+     * `performLayout` already translates `seriesRoot` to `(seriesRect.x, seriesRect.y)`, so the
+     * viewportGroup formula must NOT add `seriesRect.x/y` again — doing so would double-shift
+     * the content into the post-title region):
      *
      *   fitX = V_w / C_w,  fitY = V_h / C_h           (per-direction fit scales)
      *   sX   = fitX / xRange,  sY = fitY / yRange      (per-direction zoom scales)
-     *   s    = min(sX, sY)                              (isotropic: use the constraining axis)
-     *   tx   = seriesRect.x − (xMin·C_w + offsetX) · s + centerX
-     *   ty   = seriesRect.y − ((1 − yMax)·C_h + offsetY) · s + centerY
+     *   s    = min(sX, sY, 1)                          (isotropic + native-pixel cap)
+     *   tx   = −(contentBBox.x + xMin·C_w + offsetX) · s + centerX
+     *   ty   = −(contentBBox.y + (1 − yMax)·C_h + offsetY) · s + centerY
      *
      * where `offsetX/Y` is the auto-centre translation written by the layout to `dataNodeGroup`,
      * and `centerX/Y = max(0, (V_w − C_w·s) / 2)` re-centres content on the non-constraining axis.
      *
-     * At fit state `{x: 0..1, y: 0..1}` this produces `s = min(V_w/C_w, V_h/C_h)` and
-     * `1 − yMax = 0`, so the entire content bbox is visible (plan §2: "fit-to-viewport at
-     * default zoom"). At `xRange = V_w/C_w` the content renders at 1:1 native pixel ratio.
+     * **Why include `contentBBox.x/y` in the slice anchor.** The content's layout-space origin is
+     * not necessarily `(0, 0)` — `accumulateContentBounds` records the true left/top of the laid-out
+     * tree, and for trees where the root (or its centring offset) puts the leftmost / topmost node
+     * at non-zero layout coordinates, `contentBBox.x > 0` and/or `contentBBox.y > 0`. Without
+     * subtracting them, a node at the leftmost layout-x of `contentBBox.x` lands `contentBBox.x · s`
+     * pixels right / down of the intended anchor, leaving an unwanted gap on one edge and
+     * clipping the opposite. The Y axis was the symptom in the Tudor chart (gap at top, last row
+     * clipped at the bottom) before this anchor correction.
+     *
+     * **Native-pixel cap (`s ≤ 1`).** Even with `applyNativePixelFloor` rejecting `s > 1` zoom
+     * requests, the renderer caps `s` at 1 as a final guarantee — programmatic `chart.updateZoom()`
+     * could in principle bypass the floor. The cap also gives small content (`fitX > 1`,
+     * `fitY > 1`) the correct fit semantics: render at native size with viewport slack, not
+     * upscaled past native.
      *
      * When `contentBBox` is not yet available (first render before layout) we fall back to
      * identity so the group remains correctly positioned until layout runs.
@@ -275,8 +289,9 @@ export abstract class AbstractNetworkSeries<
         const sX = xRange > 0 ? fitX / xRange : fitX;
         const sY = yRange > 0 ? fitY / yRange : fitY;
 
-        // Isotropic scale: use the constraining direction (smaller scale fills that axis exactly).
-        const s = Math.min(sX, sY);
+        // Isotropic scale capped at 1: use the constraining direction (smaller scale fills that
+        // axis exactly), then cap at native-pixel ratio (1) so content is never upscaled.
+        const s = Math.min(sX, sY, 1);
 
         // Centering offset: when content is narrower / shorter than the viewport on one axis
         // (the non-constraining axis), centre it in the leftover space.
@@ -295,8 +310,8 @@ export abstract class AbstractNetworkSeries<
 
         this.viewportGroup.scalingX = s;
         this.viewportGroup.scalingY = s;
-        this.viewportGroup.translationX = seriesRect.x - (xMin * cw + offsetX) * s + centerX;
-        this.viewportGroup.translationY = seriesRect.y - (screenTopFractionY * ch + offsetY) * s + centerY;
+        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw + offsetX) * s + centerX;
+        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch + offsetY) * s + centerY;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {

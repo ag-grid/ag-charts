@@ -194,17 +194,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
      * Native-pixel floor: prevent zooming in past 1:1 native pixels (and project off-isotropic
      * states back onto the isotropic line so the constraint state matches the visual).
      *
-     * Plan §2 transform: `s = min(fitX/xRange, fitY/yRange)`, where `fitX = V_w / C_w` and
+     * Plan §2 transform: `s = min(fitX/xRange, fitY/yRange, 1)`, where `fitX = V_w / C_w` and
      * `fitY = V_h / C_h`. Native pixel ratio means `s = 1` (one layout-space unit renders as one
-     * canvas pixel). For small content where `min(fitX, fitY) > 1` the cap is loosened to a UX
-     * upper bound of `MAX_ZOOM_FACTOR` × the fit scale so users can magnify a small tree to
-     * inspect it.
-     *
-     * Caps in scale space:
-     *   `s_max = max(1, MAX_ZOOM_FACTOR * min(fitX, fitY))`
+     * canvas pixel). The cap is strict: `s_max = 1` regardless of content size, so users cannot
+     * upscale content past native — wheel-zoom and pinch-zoom both saturate at native pixels.
      *
      * The corresponding constraint on `xRange` and `yRange` (since `s` is the min over the two):
-     *   `xRange ≥ fitX / s_max`  AND  `yRange ≥ fitY / s_max`
+     *   `xRange ≥ fitX`  AND  `yRange ≥ fitY`
      *
      * **Aspect-ratio (isotropy) projection.** For non-square content (`fitX ≠ fitY`) the
      * isotropic condition is `xRange/fitX = yRange/fitY`, NOT `xRange = yRange`. The transform
@@ -214,18 +210,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
      * content stays visible after the snap-back) and applies it to both axes.
      *
      * The floor and the projection compose: project to isotropic first, then clamp `s` to
-     * `s_max`. Both ratios may need expanding, never shrinking.
+     * `s_max = 1`. Both ratios may need expanding, never shrinking.
      */
     private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        /** UX upper bound in scale space for small content (when fit-scale > 1). */
-        const MAX_ZOOM_FACTOR = 10;
+        /** Native-pixel cap: never zoom in past 1:1 layout-pixel-to-canvas-pixel ratio. */
+        const sMax = 1;
         const { seriesRect } = this;
         const contentBBox = this.layout.contentBBox;
         if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
 
         const fitX = seriesRect.width / contentBBox.width;
         const fitY = seriesRect.height / contentBBox.height;
-        const sMax = Math.max(1, MAX_ZOOM_FACTOR * Math.min(fitX, fitY));
 
         let xId: AxisID | undefined;
         let yId: AxisID | undefined;
