@@ -7,7 +7,6 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
     height: number;
     width: number;
-    offset: Point;
     graph: NetworkGraph<TVertex, TEdge>;
     vertices: Vertex<TVertex, TEdge>[];
     getDatumNodeBBox: (vertex: Vertex<TVertex, TEdge>) => _ModuleSupport.BBox | undefined;
@@ -24,21 +23,22 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
 }
 
 export abstract class NetworkLayout<TVertex, TEdge> {
-    /**
-     * Bounding box of all laid-out nodes at native (scale-1) sizes, in layout-space coordinates.
-     * Set by concrete subclasses after each `update()` call. Used by `applyViewportTransform()`
-     * to compute the fit-to-viewport scale without requiring a layout re-run.
-     */
-    contentBBox?: _ModuleSupport.BBox;
-
+    /** Native-size bounds of laid-out nodes, in layout-space. Subclasses populate via `update()`. */
+    protected _contentBBox?: _ModuleSupport.BBox;
     protected regularBBox?: _ModuleSupport.BBox;
 
     private readonly maxRegularDimensionsCount = 1000;
+
+    /** Read by `NetworkSeries.applyViewportTransform` to compute fit-to-viewport scale. */
+    get contentBBox(): _ModuleSupport.BBox | undefined {
+        return this._contentBBox;
+    }
 
     abstract update(options: NetworkLayoutUpdateOptions<TVertex, TEdge>): void;
 
     clear() {
         this.regularBBox = undefined;
+        this._contentBBox = undefined;
     }
 
     protected calculateRegularDimensions(options: NetworkLayoutUpdateOptions<TVertex, TEdge>) {

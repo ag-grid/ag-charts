@@ -2,12 +2,7 @@ import type { ExtensibleTheme } from 'ag-charts-community';
 import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
-    // Opt org charts into the Zoom feature with org-specific defaults. The `axes: 'xy'` and
-    // `keepAspectRatio` overrides are scoped to this series module's theme template and do NOT
-    // leak to cartesian charts. The `autoScaling.enabled: false` keeps the viewport stable
-    // across data changes; `onDataChange.strategy: 'preserveRatios'` keeps the current
-    // zoom window proportional on data updates. `minVisibleItems: 1` activates the
-    // `getZoomRangeFittingItems` code path (implemented in Phase 4 to enforce the 1:1 cap).
+    // Org-specific zoom defaults — scoped to this template, doesn't leak to cartesian.
     zoom: {
         enabled: true,
         enableAxisDragging: false,
@@ -23,16 +18,8 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         autoScaling: { enabled: false },
         onDataChange: { strategy: 'preserveRatios' },
         minVisibleItems: 1,
-        buttons: {
-            visible: 'hover',
-            buttons: {
-                $shallowSimple: [
-                    { icon: 'zoom-out', value: 'zoom-out', section: 'scale' },
-                    { icon: 'zoom-in', value: 'zoom-in', section: 'scale' },
-                    { icon: 'reset', value: 'reset', section: 'reset' },
-                ],
-            },
-        },
+        // AG-17179 AC 4.2: no toolbar buttons.
+        buttons: { enabled: false },
     },
     series: {
         innerSpacing: 20,

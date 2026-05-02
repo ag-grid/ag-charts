@@ -218,6 +218,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
     alwaysClip?: boolean;
+    supportsStandaloneZoom?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -274,6 +275,12 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
     readonly alwaysClip: boolean = false;
+    /**
+     * Opts the series into the synthetic-axis ZoomManager registration on `StandaloneChart`.
+     * Default `false` so gauge / treemap / sunburst remain unaffected; set to `true` from
+     * series whose viewport content benefits from scale + translate zoom (e.g. organization).
+     */
+    readonly supportsStandaloneZoom: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
 
@@ -454,6 +461,7 @@ export abstract class Series<
             canHaveAxes = false,
             usesPlacedLabels = false,
             alwaysClip = false,
+            supportsStandaloneZoom = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -463,6 +471,7 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
         this.alwaysClip = alwaysClip;
+        this.supportsStandaloneZoom = supportsStandaloneZoom;
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(

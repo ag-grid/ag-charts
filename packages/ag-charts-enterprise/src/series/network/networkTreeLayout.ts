@@ -33,20 +33,8 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
-    /**
-     * Tracks the true bounding box of all laid-out node bboxes during a single `update()` pass.
-     *
-     * Why this is separate from the `groupBBox` / `containerBBox` returned by `updateNodes`:
-     * `groupBBox` is mutated for sibling-positioning purposes, and the recursive merge of each
-     * subtree's `descendentsContainerBBox` causes `groupBBox.height` to over-accumulate by
-     * `parent.height + verticalSpacing` per processed sibling at every level of the tree.
-     * For an N-node balanced tree of depth log_b(N), the accumulated height is O(N) instead of
-     * O(depth * nodeH). The positioning logic doesn't read `height` so it doesn't notice; but
-     * `applyViewportTransform` reads `contentBBox.height` for fitY and produces the wrong scale.
-     *
-     * The accumulator below records the merged bbox of every actual `layoutBBox` we emit,
-     * giving the true content extent without disturbing the positioning algorithm.
-     */
+    // Records the true content extent independently of `containerBBox`, which over-accumulates
+    // height by O(N) instead of O(depth * nodeH) due to its recursive sibling-merge.
     private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
         count: 0,
         left: 0,
@@ -61,7 +49,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         const acc = this.contentBoundsAccumulator;
         acc.count = 0;
         const { containerBBox } = this.updateNodes(options);
-        this.contentBBox =
+        this._contentBBox =
             acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
         this.updateOffset(options, containerBBox);
     }
@@ -278,10 +266,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        // Phase 3 (AG-17179): pan ownership moved to the Zoom feature, so `options.offset`
-        // is permanently {0,0}. The auto-centre offset above is the only translation applied
-        // to the data/link groups; further pan is handled by the viewportGroup transform.
-        // AG-17204 pan-boundary clamp is now enforced via OrganizationSeries.zoom:change-request.
+        // Pan / clamp are owned by the Zoom feature; this only writes the auto-centre offset.
         options.updateOffset(offset);
     }
 }

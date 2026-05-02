@@ -42,13 +42,9 @@ import type {
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
-/** Tolerance used when comparing zoom factors for isotropy. */
 const ISOTROPY_EPSILON = 1e-6;
 
-/**
- * Constrain a midpoint so that the centred window `[mid - range/2, mid + range/2]` stays inside
- * `[0, 1]`. Caller-supplied range must be in [0, 1] — otherwise the midpoint is undefined.
- */
+/** Constrain a midpoint so the centred window `[mid - range/2, mid + range/2]` stays in `[0, 1]`. */
 function clampMid(mid: number, range: number): number {
     const half = range / 2;
     if (mid - half < 0) return half;
@@ -68,23 +64,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     static override readonly className = 'OrganizationSeries';
     static readonly type = 'organization' as const;
 
-    // Phase 1: opt-in marker for StandaloneChart synthetic-axis registration.
-    // Allows StandaloneChart to detect which series want ZoomManager support
-    // without requiring chart-level knowledge of concrete series types.
-    static readonly optsIntoStandaloneZoom = true;
-
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super(ctx);
-
-        // AG-17204: Pan-boundary clamp. Ensure the zoom window always overlaps the
-        // content space [0, 1] so that some content remains visible after a pan
-        // gesture. The Zoom feature's constrainAxis already prevents min < 0 or
-        // max > 1, but this belt-and-suspenders guard survives any future changes
-        // to upstream constraint logic.
         this.cleanup.register(ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)));
     }
 
@@ -126,32 +111,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         this.linkGroup.translationY = offset.y;
     }
 
-    /**
-     * AG-17204 + AG-17179 Phase 4: Pan-boundary clamp + native-pixel floor (with isotropy projection).
-     *
-     * Order matters because `event.constrainChanges` mutates `event.state` in-place, so each
-     * subsequent guard sees the previous one's effect:
-     *   1. Pan-boundary clamp (AG-17204) — ensures the window overlaps `[0, 1]` so the user
-     *      always has *some* content visible after a pan.
-     *   2. Native-pixel floor — projects to the isotropic line and caps the rendered scale
-     *      `s` at 1 (or a UX upper bound for small trees). Replaces the old separate isotropy
-     *      guard, which had buggy `xRange = yRange` semantics for non-square content.
-     *
-     * Resets (`event.isReset`) take the window to `{0, 1}` which trivially satisfies both
-     * guards, so we skip to avoid double-work.
-     */
+    // Order is load-bearing: `applyNativePixelFloor` reads the post-clamp window from
+    // `event.state`, mutated in-place by `applyPanBoundaryClamp`.
     private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
         if (event.isReset) return;
-
         this.applyPanBoundaryClamp(event);
         this.applyNativePixelFloor(event);
     }
 
-    /**
-     * AG-17204: Clamp the zoom window so it always overlaps the content space [0, 1].
-     * If a pan would push the window entirely outside that range, translate back so the
-     * nearest edge touches 0 or 1.
-     */
+    /** AG-17204: keep the zoom window overlapping `[0, 1]` so some content remains visible. */
     private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
         const clamped: _ModuleSupport.CoreZoomState = {};
         let didClamp = false;
@@ -167,20 +135,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             let clampedMax = max;
 
             if (min >= 1) {
-                // Window is entirely to the right of / below the content.
                 clampedMax = 1;
                 clampedMin = 1 - size;
                 didClamp = true;
             } else if (max <= 0) {
-                // Window is entirely to the left of / above the content.
                 clampedMin = 0;
                 clampedMax = size;
                 didClamp = true;
             }
 
-            // direction values are equivalent at runtime ('x' / 'y'); the enum vs string-literal
-            // distinction between ZoomMinMaxDirection and CoreZoomEntry is purely nominal so we
-            // map back to the ChartAxisDirection enum for CoreZoomState compatibility.
+            // CoreZoomState requires the ChartAxisDirection enum, not the 'x'/'y' literals
+            // carried on `event.state` entries (runtime-equivalent, nominal-type-only difference).
             const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
             clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
         }
@@ -191,29 +156,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     /**
-     * Native-pixel floor: prevent zooming in past 1:1 native pixels (and project off-isotropic
-     * states back onto the isotropic line so the constraint state matches the visual).
-     *
-     * Plan §2 transform: `s = min(fitX/xRange, fitY/yRange, 1)`, where `fitX = V_w / C_w` and
-     * `fitY = V_h / C_h`. Native pixel ratio means `s = 1` (one layout-space unit renders as one
-     * canvas pixel). The cap is strict: `s_max = 1` regardless of content size, so users cannot
-     * upscale content past native — wheel-zoom and pinch-zoom both saturate at native pixels.
-     *
-     * The corresponding constraint on `xRange` and `yRange` (since `s` is the min over the two):
-     *   `xRange ≥ fitX`  AND  `yRange ≥ fitY`
-     *
-     * **Aspect-ratio (isotropy) projection.** For non-square content (`fitX ≠ fitY`) the
-     * isotropic condition is `xRange/fitX = yRange/fitY`, NOT `xRange = yRange`. The transform
-     * already handles non-isotropic state correctly via `min(sX, sY)`, but the stored ratios
-     * ought to match the visual to keep memento round-trip and gesture math sane. Projection
-     * uses the **larger** of `xRange/fitX` and `yRange/fitY` (less-zoomed-in axis wins so more
-     * content stays visible after the snap-back) and applies it to both axes.
-     *
-     * The floor and the projection compose: project to isotropic first, then clamp `s` to
-     * `s_max = 1`. Both ratios may need expanding, never shrinking.
+     * Cap rendered scale at native pixels (`s ≤ 1`) and project off-isotropic states onto the
+     * isotropic line `xRange/fitX = yRange/fitY`. Less-zoomed axis wins (preserves content).
      */
     private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
-        /** Native-pixel cap: never zoom in past 1:1 layout-pixel-to-canvas-pixel ratio. */
         const sMax = 1;
         const { seriesRect } = this;
         const contentBBox = this.layout.contentBBox;
@@ -238,19 +184,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
 
-        // Project to isotropic line: t = max(xRange/fitX, yRange/fitY) (less-zoomed wins).
-        const xt = xRange / fitX;
-        const yt = yRange / fitY;
-        let targetT = Math.max(xt, yt);
-        // Apply the s_max floor in t-space: s = 1/t ≤ s_max  ⇔  t ≥ 1/s_max.
-        const minT = 1 / sMax;
-        if (targetT < minT) targetT = minT;
-
+        // Project to isotropic line, then floor at sMax (i.e. t ≥ 1/sMax).
+        const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
         const targetXRange = Math.min(1, targetT * fitX);
         const targetYRange = Math.min(1, targetT * fitY);
 
-        // Re-centre symmetrically about the midpoint (preserves the user's pan focus). If the
-        // expanded range no longer fits in [0, 1] we clamp the midpoint to keep the window valid.
+        // Re-centre symmetrically about the midpoint, clamped to keep the window in `[0, 1]`.
         const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
         const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
 

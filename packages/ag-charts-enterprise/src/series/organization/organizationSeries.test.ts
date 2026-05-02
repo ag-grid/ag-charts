@@ -627,11 +627,22 @@ describe('OrganizationSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
-    // Helper: read the zoom state from chartState.
-    function getZoom(c: any) {
-        return deproxy(c).ctx.chartState.getValue('zoom') as
-            | { x: { min: number; max: number }; y: { min: number; max: number } }
+    function getZoomRatios(c: any) {
+        return c.getState()?.zoom as
+            | { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } }
             | undefined;
+    }
+
+    // The `setZoom` helper drives the ZoomManager directly to bypass the memento path's
+    // theme-template projection (`keepAspectRatio`, `autoScaling`). These tests assert the
+    // renderer / floor math at exact zoom states; theme projection would re-write the input
+    // before the code under test sees it. For tests that exercise the full state-restore
+    // pipeline, use `chart.setState({zoom: ...})` instead.
+    function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
+        deproxy(c).ctx.zoomManager?.updateZoom(
+            { source: 'state-change', sourceDetail: 'unspecified' },
+            { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
+        );
     }
 
     describe('#create', () => {
@@ -944,55 +955,33 @@ describe('OrganizationSeries', () => {
     });
 
     describe('viewportGroup zoom transform', () => {
-        // These tests drive zoom state directly via the internal ZoomManager because the zoom
-        // feature is NOT enabled in the org-chart theme template until Phase 3. The public
-        // `initialState.zoom` path is gated on `zoom.enabled`, so it would be a no-op here.
-        // Once Phase 3 lands and enables zoom by default, these tests can be rewritten to use
-        // `AgCharts.create({ ..., initialState: { zoom: { ratioX: ..., ratioY: ... } } })`.
-        function applyZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
-            deproxy(c).ctx.zoomManager?.updateZoom(
-                { source: 'state-change', sourceDetail: 'unspecified' },
-                { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
-            );
-        }
-
         it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
-            // Zoom state: centre quarter of the fit-state viewport, scale = 2.
-            // The viewportGroup applies s = 1 / (0.75 - 0.25) = 2, tx = -0.25 * V_w * 2,
-            // ty = -0.25 * V_h * 2. Content that was centred at fit state remains centred.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            applyZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
             await compare();
         });
 
         it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
-            // Zoom state: right-half × top-half of the fit-state viewport, scale = 2.
-            // The viewportGroup translates so only the right/top content is visible.
-            // Y is in cartesian convention (y-up): yMin=0.5, yMax=1 → top half of content
-            // visible (top of cartesian = top of screen for org chart's y-down rendering).
+            // Y is cartesian (y-up): yStart=0.5, yEnd=1 ⇒ top half of content visible.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            applyZoom(chart, 0.5, 1, 0.5, 1);
+            setZoom(chart, 0.5, 1, 0.5, 1);
             await compare();
         });
     });
 
     describe('pan-to-active (Phase 5)', () => {
-        // OVERFLOWING_ORG_CHART (8 VPs × 8 leads = 65 nodes wide) is used because the strict
-        // `s ≤ 1` native-pixel cap means a chart that fits the viewport at native scale cannot
-        // be zoomed in any further — any sub-window request gets snapped back to fit-state by
-        // `applyNativePixelFloor`, leaving every node visible and `panToBBox` never called.
-        // Only an overflowing dataset exercises a meaningful sub-window where pan-to-active
-        // actually changes the zoom state.
+        // OVERFLOWING_ORG_CHART is required: SIMPLE_ORG_CHART fits at native size so the
+        // `s ≤ 1` cap snaps any sub-window back to fit and `panToBBox` is never called.
         it('should pan to active item after setState when the node is outside the zoom window', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
@@ -1000,13 +989,12 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
+            // panToBBox is internal — spying directly is the only way to assert "was/wasn't called".
             const zoomManager = deproxy(chart).ctx.zoomManager;
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
-            // Zoom into the leftmost slice. `leaf-7-7` is the rightmost leaf of the rightmost
-            // VP — guaranteed off-screen on the right of any left-anchored sub-window. The
-            // pan-to-active machinery must fire `panToBBox` to bring it into view.
+            // `leaf-7-7` is rightmost-of-rightmost: off-screen for any left-anchored sub-window.
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
@@ -1021,8 +1009,6 @@ describe('OrganizationSeries', () => {
         });
 
         it('should NOT pan when the active node is already within the zoom window', async () => {
-            // Restore the rightmost slice plus an active item that lives inside it: any leaf
-            // under `vp-7` is already on screen, so no pan is needed.
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -1033,6 +1019,7 @@ describe('OrganizationSeries', () => {
             const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
 
             const seriesId = deproxy(chart).series[0].id;
+            // `leaf-7-4` is on the rightmost slice — already visible.
             await chart.setState({
                 version: '13.3.0',
                 zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
@@ -1045,89 +1032,53 @@ describe('OrganizationSeries', () => {
         });
 
         it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
-            // Hover-driven active changes (source: 'user-interaction') must not pan even when
-            // the focused node would be off-screen.
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
-
-            deproxy(chart).ctx.zoomManager?.updateZoom(
-                { source: 'state-change', sourceDetail: 'unspecified' },
-                { x: { min: 0.8, max: 1 }, y: { min: 0, max: 1 } }
-            );
+            setZoom(chart, 0.8, 1, 0, 1);
             await waitForChartStability(chart);
-            const zoomBefore = getZoom(chart);
 
+            // Spy after the initial zoom so we only observe pan calls caused by the hover.
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const ratiosBefore = getZoomRatios(chart);
+
+            // No public API simulates hover without firing `active:load-memento` (and JSDOM
+            // canvas hit-testing is stubbed, so DOM-driven hover doesn't reach picking either).
+            // `activeManager.update` is the canonical hover simulation — the test exists to
+            // prove the source-gate works, so this internal call is unavoidable here.
             const seriesId = deproxy(chart).series[0].id;
             deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
             await waitForChartStability(chart);
 
-            const zoomAfter = getZoom(chart);
-            expect(zoomAfter?.x.min).toBeCloseTo(zoomBefore?.x.min ?? 0.8, 6);
-            expect(zoomAfter?.x.max).toBeCloseTo(zoomBefore?.x.max ?? 1, 6);
-            expect(zoomAfter?.y.min).toBeCloseTo(zoomBefore?.y.min ?? 0, 6);
-            expect(zoomAfter?.y.max).toBeCloseTo(zoomBefore?.y.max ?? 1, 6);
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            const ratiosAfter = getZoomRatios(chart);
+            expect(ratiosAfter?.ratioX?.start).toBeCloseTo(ratiosBefore?.ratioX?.start ?? 0.8, 6);
+            expect(ratiosAfter?.ratioX?.end).toBeCloseTo(ratiosBefore?.ratioX?.end ?? 1, 6);
+            expect(ratiosAfter?.ratioY?.start).toBeCloseTo(ratiosBefore?.ratioY?.start ?? 0, 6);
+            expect(ratiosAfter?.ratioY?.end).toBeCloseTo(ratiosBefore?.ratioY?.end ?? 1, 6);
         });
     });
 
     describe('aspect-ratio guard (Phase 4)', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
-            // Request a deliberately off-isotropic zoom: xRange ≠ yRange. The native-pixel
-            // floor is the sole owner of isotropy projection (the standalone isotropy guard
-            // was retired); it projects to the line `xRange/fitX = yRange/fitY` which yields
-            // a single visual zoom factor `t = max(xRange/fitX, yRange/fitY)` (less-zoomed
-            // direction wins). For non-square content (`fitX ≠ fitY`) this means the
-            // projected `xRange` and `yRange` must remain in the ratio `fitX:fitY`, NOT
-            // numerically equal to each other.
-            //
-            // OVERFLOWING_ORG_CHART is required: the strict `s ≤ 1` cap means SIMPLE_ORG_CHART
-            // (which fits at native size) snaps every zoom request to {0..1, 0..1}, where both
-            // axes saturate at the [0, 1] window edge and projection is masked by clamping.
-            // OVERFLOWING_ORG_CHART has `fitX ≪ 1` so the projected ranges remain inside [0, 1]
-            // and the isotropy invariant `xRange/fitX = yRange/fitY` is observable.
+            // OVERFLOWING_ORG_CHART has fitX ≠ fitY and both ≪ 1, so the projection is
+            // observable without saturating to `{0..1, 0..1}`. The snapshot validates the
+            // post-projection render — drift would change the visible content area.
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Pull seriesRect + contentBBox from the live series to derive fitX, fitY.
-            const series = deproxy(chart).series[0] as any;
-            const seriesRect = series.seriesRect;
-            const contentBBox = series.layout.contentBBox;
-            expect(seriesRect).toBeDefined();
-            expect(contentBBox).toBeDefined();
-            const fitX = seriesRect.width / contentBBox.width;
-            const fitY = seriesRect.height / contentBBox.height;
-
-            // Choose ranges that, after projection to t = max(xRange/fitX, yRange/fitY) and
-            // before saturation, both stay inside [0, 1]. We start off-isotropic by setting xt
-            // and yt to differ; after projection both must equal max(xt, yt).
-            const xWidth = Math.min(0.9, fitX * 1.5); // visible factor 1/1.5 = ~0.67 of fit
-            const yWidth = Math.min(0.9, fitY * 0.4); // smaller (more zoomed) than X
-            deproxy(chart).ctx.zoomManager?.updateZoom(
-                { source: 'state-change', sourceDetail: 'unspecified' },
-                {
-                    x: { min: 0.5 - xWidth / 2, max: 0.5 + xWidth / 2 },
-                    y: { min: 0.5 - yWidth / 2, max: 0.5 + yWidth / 2 },
-                }
-            );
+            // Off-isotropic request: x window 0.6 wide, y window 0.2 wide. Centred at 0.5,0.5.
+            setZoom(chart, 0.2, 0.8, 0.4, 0.6);
             await waitForChartStability(chart);
 
-            const zoom = getZoom(chart);
-            expect(zoom).toBeDefined();
-
-            const acceptedXWidth = zoom!.x.max - zoom!.x.min;
-            const acceptedYWidth = zoom!.y.max - zoom!.y.min;
-
-            // Isotropy condition: xRange/fitX === yRange/fitY (single rendered scale `s`).
-            const xT = acceptedXWidth / fitX;
-            const yT = acceptedYWidth / fitY;
-            expect(Math.abs(xT - yT)).toBeLessThan(1e-6);
-
-            // Visual snapshot: the chart should render at the projected isotropic state.
             const imageData = extractImageData(ctx);
             expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });

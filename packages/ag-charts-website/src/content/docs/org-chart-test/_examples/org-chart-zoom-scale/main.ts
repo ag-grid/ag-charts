@@ -47,6 +47,12 @@ function updateStatus(text: string): void {
 /** inScope */
 async function loadScale(scale: Scale): Promise<void> {
     if (scale === activeScale) return;
+    if (
+        scale >= 100_000 &&
+        !confirm(`Loading ${SCALE_LABELS[scale]} nodes may take several seconds and use significant memory. Continue?`)
+    ) {
+        return;
+    }
 
     activeScale = scale;
     setActiveButton(scale);

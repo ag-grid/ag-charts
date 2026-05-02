@@ -20,33 +20,25 @@ export class StandaloneChart extends Chart {
 
     override updateData() {
         super.updateData();
-        this.maybeRegisterStandaloneZoom();
+        this.refreshStandaloneZoomRegistration();
     }
 
-    /**
-     * Lazily registers synthetic ZoomManager axes when any series opts in via the
-     * `static optsIntoStandaloneZoom` marker. Called from updateData() because
-     * this.series is empty at construction time and is only populated during
-     * applyOptions(), which runs after the constructor returns.
-     *
-     * Mirrors the unconditional registration in topologyChart.ts:34-38, but
-     * guarded so gauge-only and other standalone charts are unaffected.
-     */
-    private maybeRegisterStandaloneZoom() {
-        if (this.standaloneZoomRegistered) return;
-
-        const hasOptedIn = this.series.some(
-            (s) => (s.constructor as typeof s.constructor & { optsIntoStandaloneZoom?: boolean }).optsIntoStandaloneZoom
-        );
-        if (!hasOptedIn) return;
-
+    // Lazy: `this.series` is empty at construction. Series opt in via `supportsStandaloneZoom`
+    // (instance flag, mirror of `alwaysClip`). Tracks state across hot-swaps so axes register
+    // when an opt-in series joins and unregister when the last one leaves.
+    private refreshStandaloneZoomRegistration() {
         const { zoomManager } = this.ctx;
-        if (zoomManager) {
-            zoomManager.setAxes([this.xAxis, this.yAxis]);
+        if (!zoomManager) return;
+
+        const wantsZoom = this.series.some((s) => s.supportsStandaloneZoom);
+        if (wantsZoom === this.standaloneZoomRegistered) return;
+
+        zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
+        if (wantsZoom) {
             zoomManager.panToBBoxScalingMode =
                 _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
         }
-        this.standaloneZoomRegistered = true;
+        this.standaloneZoomRegistered = wantsZoom;
     }
 
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
@@ -72,11 +64,8 @@ export class StandaloneChart extends Chart {
             group.translationY = Math.floor(seriesRect.y);
         }
 
-        // Series like the network/organization family pan their content via translation, so
-        // unclipped rendering would let nodes and links bleed into title/subtitle/footnote.
-        // Match the cartesian opt-in pattern: clip the full layout box (i.e. the seriesRect
-        // re-grown by seriesArea padding) when any attached series declares `alwaysClip`,
-        // so series content remains free to render inside the padding band.
+        // Match cartesian: any `alwaysClip` series clips to layoutBox so panned content
+        // doesn't bleed into title/subtitle/footnote.
         const clipRect = this.series.some((s) => s.alwaysClip) ? ctx.layoutBox : undefined;
         seriesRoot.setClipRect(clipRect);
         annotationRoot.setClipRect(clipRect);
