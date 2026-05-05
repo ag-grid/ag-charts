@@ -185,6 +185,8 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     seriesId: string;
     /** Context for this callback. */
     context?: TContext;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
     /** The default label value that would have been used without a formatter. */
     value: any;
 }
