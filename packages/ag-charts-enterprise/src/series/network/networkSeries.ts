@@ -4,6 +4,7 @@ import {
     type ChartAxisDirection,
     ChartUpdateType,
     type DynamicContext,
+    Logger,
     type Point,
     Property,
     Vertex,
@@ -68,11 +69,16 @@ export abstract class AbstractNetworkSeries<
     protected readonly graph: TGraph;
     protected readonly layout: TLayout;
 
-    protected readonly dataNodeGroup = this.contentGroup.appendChild(
+    // Zoom scale + translate are applied to this group; `dataNodeGroup` and `linkGroup` ride along.
+    protected readonly viewportGroup = this.contentGroup.appendChild(
+        new (_ModuleSupport.Scalable(_ModuleSupport.TranslatableGroup))({ name: `${this.id}-viewport` })
+    );
+
+    protected readonly dataNodeGroup = this.viewportGroup.appendChild(
         new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-dataNodes`, zIndex: 2 })
     );
 
-    protected readonly linkGroup = this.contentGroup.appendChild(
+    protected readonly linkGroup = this.viewportGroup.appendChild(
         new _ModuleSupport.TranslatableGroup({ name: `${this.id}-series-links`, zIndex: 1 })
     );
 
@@ -91,61 +97,79 @@ export abstract class AbstractNetworkSeries<
 
     private pendingCollapsedIds?: string[];
 
-    private height?: number;
-    private width?: number;
-    private startDragOffset: Point = { x: 0, y: 0 };
-    private dragOffset: Point = { x: 0, y: 0 };
+    protected seriesRect?: _ModuleSupport.BBox;
+
+    private pendingPanToItemId?: string;
 
     constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
             moduleCtx: ctx,
             pickModes: [_ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            // Network series support drag-to-pan, so content can extend past the series-area
-            // bounds. Clipping prevents nodes/links overflowing into title/subtitle/footnote.
+            // Clip stops viewportGroup overflow into title/footnote during zoom/pan.
             alwaysClip: true,
+            supportsStandaloneZoom: true,
         });
 
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
-        ctx.eventsHub.on('layout:complete', (event) => {
-            this.height = event.series.rect.height;
-            this.width = event.series.rect.width;
-        });
+        this.cleanup.register(
+            ctx.eventsHub.on('layout:complete', (event) => {
+                this.seriesRect = event.series.rect;
+            })
+        );
 
-        ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
-            if (!collapsed) return;
-            if (this.graph.getVertexCount() === 0) {
-                this.pendingCollapsedIds = collapsed;
-            }
-        });
+        this.cleanup.register(
+            ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
+                if (!collapsed) return;
+                if (this.graph.getVertexCount() === 0) {
+                    this.pendingCollapsedIds = collapsed;
+                }
+            })
+        );
 
-        ctx.chartState.observe((get) => {
-            const activeItem = get('activeItem');
-            if (activeItem?.seriesId === this.id) {
-                this.expandNetworkToItem(activeItem.itemId);
-            }
-        });
+        // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
+        this.cleanup.register(
+            ctx.eventsHub.on('active:load-memento', ({ activeItem }) => {
+                if (activeItem?.seriesId !== this.id) return;
+                this.pendingPanToItemId = String(activeItem.itemId);
+            })
+        );
 
-        ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
-            if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
-            const point = {
-                x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
-                y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
-            };
-            if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                this.expandItem(clickedNode.itemId, point);
-            } else {
-                this.collapseItem(clickedNode.itemId, point);
-            }
-        });
+        // Runs on every activeItem change incl. hover — opens collapsed ancestors.
+        this.cleanup.register(
+            ctx.chartState.observe((get) => {
+                const activeItem = get('activeItem');
+                if (activeItem?.seriesId === this.id) {
+                    this.expandNetworkToItem(activeItem.itemId);
+                }
+            })
+        );
 
-        if (ctx.widgets.seriesDragInterpreter) {
-            this.cleanup.register(
-                ctx.widgets.seriesDragInterpreter.events.on('drag-move', (event) => this.onSeriesAreaDragMove(event)),
-                ctx.widgets.seriesDragInterpreter.events.on('drag-end', () => this.onSeriesAreaDragEnd())
-            );
-        }
+        // Zoom is a transform-only update — no re-layout. We don't read the zoom value here
+        // (applyViewportTransform pulls it from chartState), so the event is sufficient and
+        // avoids ReactiveState's initial-fire on subscribe.
+        this.cleanup.register(
+            ctx.eventsHub.on('zoom:change-complete', () => {
+                this.applyViewportTransform();
+                ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
+            })
+        );
+
+        this.cleanup.register(
+            ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
+                if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
+                const point = {
+                    x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
+                    y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
+                };
+                if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
+                    this.expandItem(clickedNode.itemId, point);
+                } else {
+                    this.collapseItem(clickedNode.itemId, point);
+                }
+            })
+        );
     }
 
     abstract createNetworkGraph(): TGraph;
@@ -176,23 +200,102 @@ export abstract class AbstractNetworkSeries<
         return this.datumSelection.length;
     }
 
-    private onSeriesAreaDragMove(event: _ModuleSupport.DragWidgetEvent<'drag-move'>) {
-        this.dragOffset = {
-            x: this.startDragOffset.x + event.originDeltaX,
-            y: this.startDragOffset.y + event.originDeltaY,
-        };
-        this.ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.PERFORM_LAYOUT });
-    }
+    // Y is mirrored (`1 − yMax`) because Zoom publishes y-up ratios but we render y-down.
+    // `seriesRect.x/y` lives on `seriesRoot`, not here. The `s ≤ 1` cap preserves fit
+    // semantics for small content; subtracting the dataNodeGroup offset cancels the
+    // layout's auto-centre so this transform owns final placement.
+    private applyViewportTransform() {
+        const zoom = this.ctx.chartState.getValue('zoom');
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
 
-    private onSeriesAreaDragEnd() {
-        this.startDragOffset = { ...this.dragOffset };
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) {
+            this.viewportGroup.translationX = 0;
+            this.viewportGroup.translationY = 0;
+            this.viewportGroup.scalingX = 1;
+            this.viewportGroup.scalingY = 1;
+            return;
+        }
+
+        const vw = seriesRect.width;
+        const vh = seriesRect.height;
+        const cw = contentBBox.width;
+        const ch = contentBBox.height;
+
+        const xMin = zoom?.x?.min ?? 0;
+        const xMax = zoom?.x?.max ?? 1;
+        const yMin = zoom?.y?.min ?? 0;
+        const yMax = zoom?.y?.max ?? 1;
+
+        const xRange = xMax - xMin;
+        const yRange = yMax - yMin;
+
+        const fitX = vw / cw;
+        const fitY = vh / ch;
+        const sX = xRange > 0 ? fitX / xRange : fitX;
+        const sY = yRange > 0 ? fitY / yRange : fitY;
+        const s = Math.min(sX, sY, 1);
+
+        const centerX = Math.max(0, (vw - cw * s) / 2);
+        const centerY = Math.max(0, (vh - ch * s) / 2);
+
+        const offsetX = this.dataNodeGroup.translationX;
+        const offsetY = this.dataNodeGroup.translationY;
+        const screenTopFractionY = 1 - yMax;
+
+        this.viewportGroup.scalingX = s;
+        this.viewportGroup.scalingY = s;
+        this.viewportGroup.translationX = -(contentBBox.x + xMin * cw + offsetX) * s + centerX;
+        this.viewportGroup.translationY = -(contentBBox.y + screenTopFractionY * ch + offsetY) * s + centerY;
     }
 
     override update(_opts: { seriesRect?: _ModuleSupport.BBox }) {
         // TODO: this.contentGroup.batchedUpdate() ?
-
         this.updateSelections();
         this.updateNodes();
+        // Re-apply now that contentBBox is current (the zoom observer early-returned earlier).
+        this.applyViewportTransform();
+        this.maybePanToItem();
+    }
+
+    private maybePanToItem() {
+        const { pendingPanToItemId, seriesRect } = this;
+        if (!pendingPanToItemId || !seriesRect) return;
+
+        // Clear unconditionally — never retry on failure.
+        this.pendingPanToItemId = undefined;
+
+        const nodeDatumIndex = this.vertexDatumIndex[pendingPanToItemId];
+        if (typeof nodeDatumIndex !== 'number') return;
+
+        const node = this.datumSelection.at(nodeDatumIndex);
+        if (!node) return;
+
+        const canvasBBox = _ModuleSupport.Transformable.toCanvas(node);
+        if (!canvasBBox?.isFinite()) return;
+
+        // Centre-based check — bbox-based would jitter for nodes near the boundary.
+        const cx = canvasBBox.x + canvasBBox.width / 2;
+        const cy = canvasBBox.y + canvasBBox.height / 2;
+        if (seriesRect.containsPoint(cx, cy)) return;
+
+        const { zoomManager } = this.ctx;
+        if (!zoomManager) return;
+
+        // FIXME(AG-17179 follow-up): mirror y around the viewport midline because
+        // `calcPanToBBoxRatios` is y-down internally and we render y-up. Remove once the
+        // helper is direction-aware.
+        const flippedTarget = {
+            x: canvasBBox.x,
+            y: 2 * seriesRect.y + seriesRect.height - canvasBBox.y - canvasBBox.height,
+            width: canvasBBox.width,
+            height: canvasBBox.height,
+        };
+
+        const panSuccess = zoomManager.panToBBox(seriesRect, flippedTarget);
+        if (!panSuccess) {
+            Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
+        }
     }
 
     processPendingCollapse() {
@@ -211,9 +314,8 @@ export abstract class AbstractNetworkSeries<
 
     protected makeLayoutUpdateOptions(): NetworkLayoutUpdateOptions<TVertex, TEdge> {
         return {
-            height: this.height ?? 0,
-            width: this.width ?? 0,
-            offset: this.dragOffset,
+            height: this.seriesRect?.height ?? 0,
+            width: this.seriesRect?.width ?? 0,
             graph: this.graph,
             vertices: this.getRootVertices(),
             getFocusedVertex: this.getFocusedVertex.bind(this),
@@ -231,6 +333,11 @@ export abstract class AbstractNetworkSeries<
     }
 
     private updateSelections() {
+        // Without the gate, per-vertex datum objects are re-allocated on every update; that
+        // tricks HighlightManager's `a.datum === b.datum` check into a spurious change → loop.
+        if (!this.nodeDataRefresh) return;
+        this.nodeDataRefresh = false;
+
         this.contextNodeData = this.createNodeData();
         if (!this.contextNodeData) return;
 

@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     ariaAnnounceChart: 'grafiek, ${seriesCount}[number] reeksen',
     ariaAnnounceFlowProportionLink: 'link ${index} van ${count}, van ${from} naar ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'knooppunt ${index} van ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, niveau ${level}[number], ${posInSet}[number] van ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, niveau ${level}[number], ${posInSet}[number] van ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'ingeklapt',
+    ariaOrgChartExpanded: 'uitgeklapt',
     ariaAnnounceGaugeChart: 'meterdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hiërarchie diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] kinderen, ${description}',

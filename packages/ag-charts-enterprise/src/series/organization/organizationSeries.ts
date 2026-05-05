@@ -12,7 +12,18 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisID,
+    type CallbackParamRules,
+    ChartAxisDirection,
+    type DeepRequired,
+    type DynamicContext,
+    type Point,
+    Vertex,
+    clamp,
+    mergeDefaults,
+    strictObjectKeys,
+} from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
@@ -32,6 +43,16 @@ import type {
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
+const ISOTROPY_EPSILON = 1e-6;
+
+// Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
+function clampMid(mid: number, range: number): number {
+    const half = range / 2;
+    if (mid - half < 0) return half;
+    if (mid + half > 1) return 1 - half;
+    return mid;
+}
+
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -47,6 +68,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
+
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+        this.cleanup.register(ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)));
+    }
 
     createNetworkGraph() {
         return new OrganizationGraph();
@@ -84,6 +110,107 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         this.linkGroup.translationX = offset.x;
         this.linkGroup.translationY = offset.y;
+    }
+
+    // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
+    // `applyPanBoundaryClamp`.
+    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        if (event.isReset) return;
+        this.applyPanBoundaryClamp(event);
+        this.applyNativePixelFloor(event);
+    }
+
+    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
+    private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const clamped: _ModuleSupport.CoreZoomState = {};
+        let didClamp = false;
+
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+
+            const { min, max, direction } = entry;
+            const size = max - min;
+
+            let clampedMin = min;
+            let clampedMax = max;
+
+            if (min >= 1) {
+                clampedMax = 1;
+                clampedMin = 1 - size;
+                didClamp = true;
+            } else if (max <= 0) {
+                clampedMin = 0;
+                clampedMax = size;
+                didClamp = true;
+            }
+
+            // CoreZoomState wants the enum, not 'x'/'y' literals (runtime-equivalent).
+            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+        }
+
+        if (didClamp) {
+            event.constrainChanges(clamped);
+        }
+    }
+
+    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
+    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
+    private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const sMax = 1;
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+
+        const fitX = seriesRect.width / contentBBox.width;
+        const fitY = seriesRect.height / contentBBox.height;
+
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+        if (!xId || !yId) return;
+
+        const xEntry = event.state[xId]!;
+        const yEntry = event.state[yId]!;
+        const xRange = xEntry.max - xEntry.min;
+        const yRange = yEntry.max - yEntry.min;
+        if (xRange <= 0 || yRange <= 0) return;
+
+        // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
+        const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
+        const targetXRange = Math.min(1, targetT * fitX);
+        const targetYRange = Math.min(1, targetT * fitY);
+
+        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
+        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
+
+        const xChanged =
+            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
+        const yChanged =
+            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
+
+        if (xChanged || yChanged) {
+            const constrained: _ModuleSupport.CoreZoomState = {};
+            constrained[xId] = {
+                min: xMid - targetXRange / 2,
+                max: xMid + targetXRange / 2,
+                direction: ChartAxisDirection.X,
+            };
+            constrained[yId] = {
+                min: yMid - targetYRange / 2,
+                max: yMid + targetYRange / 2,
+                direction: ChartAxisDirection.Y,
+            };
+            event.constrainChanges(constrained);
+        }
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -195,13 +322,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
 
-            const title = this.formatText(datum.datum.title, this.properties.node.title.formatter, datumIndex);
-            const subtitle = this.formatText(datum.datum.subtitle, this.properties.node.subtitle.formatter, datumIndex);
-            const labels = datum.datum.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
+            const fields = this.resolveVertexFields(datum.vertex);
+            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
+            const subtitle = this.formatText(
+                fields.subtitle,
+                this.properties.node.subtitle.formatter,
+                datumIndex,
+                isCollapsed
+            );
+            const labels = fields.labels?.map((label, index) =>
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
-            node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
+            node.update({ image: fields.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
         });
     }
 
@@ -277,14 +410,143 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         //     return;
         // }
 
-        this.ctx.collapsedManager.expand([id]);
+        if (this.ctx.collapsedManager.expand([id])) {
+            this.markNodeDataDirty();
+        }
     }
 
     collapseItem(itemIdOrIndex: string | number, _point: Point) {
         const id = this.getItemId(itemIdOrIndex);
         if (id == null) return;
 
-        this.ctx.collapsedManager.collapseAppend([id]);
+        if (this.ctx.collapsedManager.collapseAppend([id])) {
+            this.markNodeDataDirty();
+        }
+    }
+
+    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const nodeData = this.contextNodeData?.nodeData;
+        if (!nodeData?.length) return;
+
+        const currentNodeIdx = clamp(0, opts.datumIndex - opts.datumIndexDelta, nodeData.length - 1);
+        const currentVertex = nodeData[currentNodeIdx]?.vertex;
+        if (!currentVertex) return;
+
+        const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
+        if (!next) return;
+
+        const nextDatumIdx = this.vertexDatumIndex[next.value as string];
+        if (nextDatumIdx == null) return;
+
+        const node = this.datumSelection.at(nextDatumIdx);
+        if (!node) return;
+
+        // Card rect, not the node group's bbox — the group includes the expander pill below.
+        const cardBBox = node.getCardBBox();
+        if (!cardBBox) return;
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
+        if (!bounds?.isFinite()) return;
+
+        const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
+
+        const datum = node.datum;
+        if (!datum) return;
+
+        return {
+            datum,
+            datumIndex: nextDatumIdx,
+            otherIndex: depth,
+            bounds,
+            clipFocusBox: true,
+        };
+    }
+
+    getDatumAriaText(datum: OrganizationDatum, description: string): string | undefined {
+        const { vertex } = datum;
+        const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
+
+        const siblings = this.getSiblings(vertex);
+        const posInSet = siblings.indexOf(vertex) + 1;
+        const setSize = siblings.length;
+
+        const childCount = this.getChildren(vertex).length;
+
+        // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
+        if (childCount === 0) {
+            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+                description,
+                level: depth,
+                posInSet,
+                setSize,
+            });
+        }
+
+        const itemId = vertex.value as string;
+        const collapsedState = this.ctx.localeManager.t(
+            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
+        );
+        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+            description,
+            level: depth,
+            posInSet,
+            setSize,
+            collapsedState,
+        });
+    }
+
+    // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
+    // at the top tier, ArrowDown into a leaf or collapsed node) so focus stays put.
+    private resolveFocusVertex(
+        current: Vertex<OrganizationVertex, OrganizationEdge>,
+        siblingDelta: number,
+        depthDelta: number
+    ): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
+        if (depthDelta > 0) {
+            const itemId = current.value as string;
+            if (this.ctx.collapsedManager.isCollapsed(itemId)) return;
+            return this.getChildren(current)[0];
+        }
+        if (depthDelta < 0) {
+            const parent = this.graph.findNeighbour(current, 'parent') as
+                | Vertex<OrganizationVertex, OrganizationEdge>
+                | undefined;
+            if (!parent) return;
+            // The synthetic root carries no datumIndex — clamp at the top tier.
+            const parentDatumIdx = this.graph.findNeighbourValue(parent, 'datumIndex');
+            if (parentDatumIdx == null) return;
+            return parent;
+        }
+        if (siblingDelta !== 0) {
+            const siblings = this.getSiblings(current);
+            const idx = siblings.indexOf(current);
+            if (idx === -1) return;
+            const next = clamp(0, idx + siblingDelta, siblings.length - 1);
+            return siblings[next];
+        }
+        return current;
+    }
+
+    private getSiblings(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+    ): Vertex<OrganizationVertex, OrganizationEdge>[] {
+        const parent = this.graph.findNeighbour(vertex, 'parent') as
+            | Vertex<OrganizationVertex, OrganizationEdge>
+            | undefined;
+        // Top-tier nodes' parent is the synthetic root; falling back to `getRootVertices()` keeps
+        // the sibling set consistent for ArrowLeft/ArrowRight at the top of the tree.
+        if (parent === this.rootVertex || parent == null) {
+            return this.getRootVertices();
+        }
+        return this.getChildren(parent);
+    }
+
+    private getChildren(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+    ): Vertex<OrganizationVertex, OrganizationEdge>[] {
+        return (
+            (this.graph.neighboursWithEdgeValue(vertex, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
+            []
+        );
     }
 
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
@@ -307,7 +569,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return this.formatTooltipWithContext(
             this.properties.tooltip,
-            { heading: nodeDatum.datum.title },
+            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
             {
                 seriesId: this.id,
                 datum: datum,
@@ -401,7 +663,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private formatText(
         text: TextOrSegments | undefined,
         formatter: Formatter<AgOrganizationNodeTextFormatterParams> | undefined,
-        datumIndex: number | undefined
+        datumIndex: number | undefined,
+        isCollapsed: boolean
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -409,22 +672,28 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, text)
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, text)
             ) ?? text
         );
     }
 
+    private resolveVertexFields(vertex: Vertex<OrganizationVertex, OrganizationEdge>) {
+        return {
+            image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
+            title: this.graph.findNeighbourValue(vertex, 'title') as TextOrSegments | undefined,
+            subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as TextOrSegments | undefined,
+            labels: this.graph.findNeighbourValue(vertex, 'labels') as (TextOrSegments | undefined)[] | undefined,
+        };
+    }
+
     private createNodeDatumFromVertex(vertex: Vertex<OrganizationVertex, OrganizationEdge>): OrganizationDatum {
+        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number;
+        const userDatum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         return {
             series: this,
-            datum: {
-                image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
-                title: this.graph.findNeighbourValue(vertex, 'title') as string | undefined,
-                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as string | undefined,
-                labels: this.graph.findNeighbourValue(vertex, 'labels') as string[] | undefined,
-            },
+            datum: userDatum,
             itemId: vertex.value as string,
-            datumIndex: this.graph.findNeighbourValue(vertex, 'datumIndex') as number,
+            datumIndex,
             vertex,
         };
     }
@@ -740,6 +1009,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
+        isCollapsed: boolean,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -748,6 +1018,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             datum,
+            isCollapsed,
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;

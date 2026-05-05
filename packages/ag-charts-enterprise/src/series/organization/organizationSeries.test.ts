@@ -10,6 +10,7 @@ import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
     dragAction,
     extractImageData,
     hoverAction,
@@ -88,6 +89,140 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
             },
         },
     },
+};
+
+// Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
+// that exercise non-fit zoom behaviour — the `s ≤ 1` native-pixel cap snaps content that fits
+// back to fit, so SIMPLE_ORG_CHART can't drive pan-to-active or off-isotropic projection.
+const OVERFLOWING_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        for (let i = 0; i < 8; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            for (let j = 0; j < 8; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+            }
+        }
+        let parent = 'leaf-0-0';
+        for (let k = 0; k < 6; k++) {
+            const id = `chain-${k}`;
+            data.push({ id, name: `Chain ${k}`, job: 'Senior Developer', location: 'London', parentId: parent });
+            parent = id;
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
+// Tall + narrow layout: contentBBox fits the canvas horizontally but overflows vertically.
+// Used by the series-area clipping test so y-only zoom + vertical pan produces an unmistakable
+// "card cut off at the title boundary" demonstration with readable cards.
+const TALL_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const branches = 3;
+        const chainDepth = 12;
+        for (let i = 0; i < branches; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            let parent: string = vp;
+            for (let k = 0; k < chainDepth; k++) {
+                const id = `chain-${i}-${k}`;
+                data.push({
+                    id,
+                    name: `Lead ${i}.${k}`,
+                    job: 'Senior Developer',
+                    location: 'London',
+                    parentId: parent,
+                });
+                parent = id;
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
+// Square-aspect overflow: contentBBox aspect ratio matches the 800×600 canvas so fitX ≈ fitY,
+// AND content is densely distributed across both axes (not just one corner). Each leaf has its
+// own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
+// nodes — without that, zoom-centred snapshots land in blank whitespace.
+//
+// `applyNativePixelFloor`'s isotropic projection sets `t = max(xRange/fitX, yRange/fitY)` and
+// applies it to both axes; if one axis overflows much more than the other (as in
+// OVERFLOWING_ORG_CHART, which is very wide but only modestly tall), the smaller-fit axis
+// dominates and the requested zoom on the other axis gets snapped back to {0, 1}. Tests that
+// assert symmetric x/y zoom behaviour need fits that are comparable on both axes.
+const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const vpCount = 4;
+        const leavesPerVp = 4;
+        const chainDepth = 20;
+        for (let i = 0; i < vpCount; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            for (let j = 0; j < leavesPerVp; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+                let parent: string = leaf;
+                for (let k = 0; k < chainDepth; k++) {
+                    const id = `chain-${i}-${j}-${k}`;
+                    data.push({
+                        id,
+                        name: `${i}.${j}.${k}`,
+                        job: 'Senior Developer',
+                        location: 'London',
+                        parentId: parent,
+                    });
+                    parent = id;
+                }
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
 };
 
 const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
@@ -561,6 +696,41 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
+        // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
+        // verifies the param reaches the formatter callback for all three text tiers.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} (collapsed)` : value,
+                        },
+                        subtitle: {
+                            key: 'job',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} +` : value,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                    isCollapsed ? `${value} *` : value,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     EXPANDER_HEIGHT_SHORT: {
         // Layout reserves and renders the pill at exactly the configured height; verifies all
         // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink
@@ -624,6 +794,22 @@ describe('OrganizationSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    function getZoomRatios(c: any) {
+        return c.getState()?.zoom as
+            | { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } }
+            | undefined;
+    }
+
+    // Drives ZoomManager directly to bypass the memento path's theme-template projection
+    // (`keepAspectRatio`, `autoScaling`) — tests below assert exact zoom states. Use
+    // `chart.setState({zoom: ...})` to exercise the full state-restore pipeline.
+    function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
+        deproxy(c).ctx.zoomManager?.updateZoom(
+            { source: 'state-change', sourceDetail: 'unspecified' },
+            { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
+        );
+    }
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -668,8 +854,6 @@ describe('OrganizationSeries', () => {
 
     describe('expander chevron', () => {
         it('should render a point-down chevron when a node is expanded', async () => {
-            // Baseline: no initialState collapse — cto and cfo are expanded and their
-            // expander pills should show a downward-pointing chevron.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -678,8 +862,6 @@ describe('OrganizationSeries', () => {
         });
 
         it('should render a point-up chevron when a node is collapsed', async () => {
-            // cto is collapsed via setState; its expander pill must switch to an
-            // upward-pointing chevron to signal that clicking will expand.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -748,14 +930,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
-                // Guards against the styler-cache returning stale `isCollapsed` after a
-                // setState collapse/expand toggle. The styler flips fill based on
-                // `isCollapsed`; if the cache key omitted that signal, the post-toggle
-                // snapshot would carry over the pre-toggle styling.
-                //
-                // Snapshots after each setState so the test fails distinctively whether the
-                // styler ignores `isCollapsed` (snap 1 wrong), or reads stale cache after
-                // expand (snap 2 wrong).
+                // The styler flips fill on `isCollapsed`; snapshotting after each toggle
+                // catches a stale-cache regression where `isCollapsed` is omitted from the key.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     series: [
@@ -786,7 +962,6 @@ describe('OrganizationSeries', () => {
 
     describe('theme defaults', () => {
         it('should apply Figma-aligned theme defaults', async () => {
-            // Guards the defaults pass: padding 8, spacing 4, image circle, verticalSpacing 52.
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
@@ -795,13 +970,9 @@ describe('OrganizationSeries', () => {
         });
 
         it('should apply default highlight stroke when a node is hovered', async () => {
-            // Regression test for AG-17192. Theme defaults add a stronger stroke and
-            // strokeWidth on `highlight.highlightedItem`; without the default the highlighted
-            // node would render identical to its neighbours.
-            //
-            // The chart overrides `node.cornerRadius` to 0 so the JSDOM mock canvas can
-            // hit-test the node rect — `Rect.updatePath()` only installs a bbox-based
-            // hit-tester for unrounded rects (per .claude/rules/testing.md).
+            // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
+            // .claude/rules/testing.md); without the theme stroke default the hovered node
+            // would render identical to its neighbours.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 theme: {
@@ -815,21 +986,20 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Root card (Alice Chen) sits centred across the top of the 800x600 mock
-            // canvas. Hover its approximate centre to trigger the highlight pipeline
-            // through the public pointer-event path.
-            await hoverAction(400, 65)(chart);
+            // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
+            await hoverAction(440, 155)(chart);
             await compare();
         });
     });
 
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
-            // Regression test for AG-17233. Chart has a title which shrinks the series-area
-            // rect; a large upward drag would otherwise pull node cards into the title
-            // region. With clipping, nodes are cropped at the series-area boundary instead.
+            // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
+            // vertically, so y-only zoom + a downward drag pans content upward and lands an
+            // upper card directly on the series-area top boundary. The clip-rect must cut the
+            // card off at that boundary instead of letting it bleed into the title above.
             const options: AgChartOptions = {
-                ...SIMPLE_ORG_CHART,
+                ...TALL_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
                 subtitle: { text: 'Reporting structure' },
             };
@@ -838,10 +1008,13 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // 800x600 mock canvas. Drag upward from below the centre to above it —
-            // far enough that without clipping the top row of cards would overlap the
-            // chart title.
-            await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
+            setZoom(chart, 0, 1, 0.3, 0.7);
+            await waitForChartStability(chart);
+
+            // Drag content up far enough that an upper card straddles the title boundary —
+            // the clip-rect must cut it at the series-area top instead of letting it bleed
+            // into the title. AG-17233's bug was a missing clip-rect during pan.
+            await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
 
             await compare();
         });
@@ -865,11 +1038,7 @@ describe('OrganizationSeries', () => {
         });
 
         it('should use outerSpacing for cousin gaps and innerSpacing for sibling gaps', async () => {
-            // 2-level tree: two parents (A, B) each with two leaf children (C/D and E/F).
-            // With innerSpacing=20 and outerSpacing=40, the gap between D and E (cousins)
-            // must be larger than the gap between C and D (siblings) or E and F (siblings).
-            // The snapshot captures the layout; the test name documents the intent so a
-            // regression is immediately identifiable.
+            // innerSpacing=20, outerSpacing=40: cousin gap (D↔E) must exceed sibling gaps.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 data: [
@@ -899,10 +1068,8 @@ describe('OrganizationSeries', () => {
         });
 
         it('should not overlap last label with expander pill at default spacing', async () => {
-            // Regression for the overlap introduced by node.padding shrinking from 16 to 8.
-            // With expander.height=24 and expander.spacing=4 the effective bottom padding
-            // becomes max(8, 12+4)=16, giving 4 px clearance between the last label bottom
-            // and the pill top.  The snapshot documents non-overlap.
+            // Regression for the overlap caused by node.padding shrinking 16→8: the bottom
+            // padding becomes max(padding, expanderHeight/2 + spacing).
             const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
@@ -911,14 +1078,272 @@ describe('OrganizationSeries', () => {
         });
 
         it('should leave card layout unchanged when expander is short enough', async () => {
-            // When height=8 and spacing=0 the Math.max computation yields max(8, 4+0)=8,
-            // equal to node.padding — parent-card bottom padding is identical to that of a
-            // leaf card, so no extra space is reserved.  Snapshot documents this invariance.
+            // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
+            // leaf cards share the same bottom padding — no extra space reserved.
             const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    describe('viewportGroup zoom transform', () => {
+        it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
+            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the
+            // requested xRange and yRange both pass through `applyNativePixelFloor`'s
+            // isotropic projection. SIMPLE_ORG_CHART would snap zoom back to {0, 1}, and
+            // the wide-only OVERFLOWING_ORG_CHART would force yRange to 1.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            await compare();
+        });
+
+        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
+            // Y is cartesian (y-up): yStart=0.5, yEnd=1 ⇒ top half of content visible.
+            // SQUARE_OVERFLOW_ORG_CHART is required for the same reason as the centred test above.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.5, 1, 0.5, 1);
+            await compare();
+        });
+    });
+
+    // OVERFLOWING_ORG_CHART throughout: the `s ≤ 1` cap snaps fitting content back to fit, so
+    // `panToBBox` is never invoked on SIMPLE_ORG_CHART.
+    describe('pan-to-active', () => {
+        it('should pan to active item after setState when the node is outside the zoom window', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-7' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            await compare();
+        });
+
+        it('should NOT pan when the active node is already within the zoom window', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-4' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+        });
+
+        it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            setZoom(chart, 0.8, 1, 0, 1);
+            await waitForChartStability(chart);
+
+            // Spy after the initial zoom so only hover-induced pans count.
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? jest.spyOn(zoomManager, 'panToBBox') : undefined;
+            const ratiosBefore = getZoomRatios(chart);
+
+            // `activeManager.update` is the canonical hover simulation — JSDOM canvas
+            // hit-testing is stubbed so DOM events can't drive picking (testing.md).
+            const seriesId = deproxy(chart).series[0].id;
+            deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
+            await waitForChartStability(chart);
+
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            const ratiosAfter = getZoomRatios(chart);
+            expect(ratiosAfter?.ratioX?.start).toBeCloseTo(ratiosBefore?.ratioX?.start ?? 0.8, 6);
+            expect(ratiosAfter?.ratioX?.end).toBeCloseTo(ratiosBefore?.ratioX?.end ?? 1, 6);
+            expect(ratiosAfter?.ratioY?.start).toBeCloseTo(ratiosBefore?.ratioY?.start ?? 0, 6);
+            expect(ratiosAfter?.ratioY?.end).toBeCloseTo(ratiosBefore?.ratioY?.end ?? 1, 6);
+        });
+    });
+
+    describe('keyboard navigation', () => {
+        // Same `(otherIndexDelta, datumIndexDelta)` deltas the seriesAreaManager dispatches for
+        // arrow keys.
+        const ARROW_UP = { datumIndexDelta: 0, otherIndexDelta: -1 };
+        const ARROW_DOWN = { datumIndexDelta: 0, otherIndexDelta: 1 };
+        const ARROW_LEFT = { datumIndexDelta: -1, otherIndexDelta: 0 };
+        const ARROW_RIGHT = { datumIndexDelta: 1, otherIndexDelta: 0 };
+
+        async function setupChart() {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).series[0] as any;
+        }
+
+        function press(series: any, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
+            return series.pickFocus({
+                datumIndex: datumIndex + key.datumIndexDelta,
+                datumIndexDelta: key.datumIndexDelta,
+                otherIndex: otherIndex + key.otherIndexDelta,
+                otherIndexDelta: key.otherIndexDelta,
+            });
+        }
+
+        it('ArrowDown moves from the root to its first child', async () => {
+            const series = await setupChart();
+            const pick = press(series, ARROW_DOWN, 0, 0);
+            expect(pick?.datum.itemId).toBe('cto');
+            expect(pick?.otherIndex).toBe(2);
+        });
+
+        it('ArrowDown into a leaf is a no-op', async () => {
+            const series = await setupChart();
+            // dev is at nodeData[2], depth 3, leaf.
+            expect(press(series, ARROW_DOWN, 2, 3)).toBeUndefined();
+        });
+
+        it('ArrowUp moves from a child to its parent', async () => {
+            const series = await setupChart();
+            // cfo (datumIndex 4, depth 2) → ceo (datumIndex 0, depth 1).
+            const pick = press(series, ARROW_UP, 4, 2);
+            expect(pick?.datum.itemId).toBe('ceo');
+            expect(pick?.otherIndex).toBe(1);
+        });
+
+        it('ArrowUp at the top tier is a no-op', async () => {
+            const series = await setupChart();
+            expect(press(series, ARROW_UP, 0, 1)).toBeUndefined();
+        });
+
+        it('ArrowRight moves to the next sibling', async () => {
+            const series = await setupChart();
+            // cto (datumIndex 1) → cfo (datumIndex 4).
+            const pick = press(series, ARROW_RIGHT, 1, 2);
+            expect(pick?.datum.itemId).toBe('cfo');
+        });
+
+        it('ArrowLeft moves to the previous sibling', async () => {
+            const series = await setupChart();
+            // qa (datumIndex 3) → dev (datumIndex 2).
+            const pick = press(series, ARROW_LEFT, 3, 3);
+            expect(pick?.datum.itemId).toBe('dev');
+        });
+
+        it('ArrowRight at the last sibling clamps (no wrap)', async () => {
+            const series = await setupChart();
+            // qa is the last sibling under cto; ArrowRight should stay on qa.
+            const pick = press(series, ARROW_RIGHT, 3, 3);
+            expect(pick?.datum.itemId).toBe('qa');
+        });
+
+        it('ArrowDown into a collapsed node is a no-op', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            // With cto collapsed, nodeData is [ceo, cto, cfo, acc]; cto sits at index 1, depth 2.
+            expect(press(series, ARROW_DOWN, 1, 2)).toBeUndefined();
+        });
+
+        // Follows the same DOM chain a screen reader would: the visible swap-chain announcer
+        // (`aria-hidden="false"`) labelled by a hidden `<div>` carrying the message.
+        function readLiveAnnouncement(): string {
+            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+            const labelId = announcer?.getAttribute('aria-labelledby');
+            const label = labelId ? document.getElementById(labelId) : null;
+            return label?.textContent ?? '';
+        }
+
+        function pressArrowOnSeriesArea(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            if (!seriesArea) throw new Error('series-area element not found');
+            seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+        }
+
+        it('announces a parent node identity-first with level, position, and expanded state', async () => {
+            await setupChart();
+            // Default focus sits on the root (ceo); ArrowDown moves to its first child (cto).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+        });
+
+        it('omits collapsed-state from a leaf announcement', async () => {
+            await setupChart();
+            // ArrowDown twice: ceo → cto → dev (a leaf at depth 3).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            const announcement = readLiveAnnouncement();
+            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            // Guard against the empty-collapsedState stutter VoiceOver caught before the
+            // leaf/parent locale-key split.
+            expect(announcement).not.toContain(',,');
+            expect(announcement).not.toContain(', ,');
+        });
+
+        it('reports collapsed parents in the live announcement', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+        });
+    });
+
+    describe('aspect-ratio guard', () => {
+        it('should project off-isotropic zoom state onto the isotropic line', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Off-isotropic request (x=0.6 wide, y=0.2 wide) centred at 0.5,0.5.
+            setZoom(chart, 0.2, 0.8, 0.4, 0.6);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 });
