@@ -187,7 +187,7 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
 
         const syntheticIds = this.allAxes.filter((a) => !realAxisIds.has(a.id));
         if (syntheticIds.length === 0) return;
-        
+
         const syntheticState: CoreZoomState = {};
         for (const axis of syntheticIds) {
             const entry = value[axis.id];
