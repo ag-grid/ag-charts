@@ -9,6 +9,7 @@ import {
 import {
     assertTooltipPresentForAll,
     deproxy,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -85,4 +86,64 @@ describe('colorScale.missingDataFill - bubble/scatter', () => {
             (i) => i
         );
     });
+
+    let capturedFill: unknown;
+
+    const swatchFillCases: Array<
+        | { seriesType: 'bubble'; build: (missingDataFill: string) => AgBubbleSeriesOptions }
+        | { seriesType: 'scatter'; build: (missingDataFill: string) => AgScatterSeriesOptions }
+    > = [
+        {
+            seriesType: 'bubble',
+            build: (missingDataFill) => ({
+                ...seriesBaseByType.bubble,
+                colorScale: { fills, missingDataFill },
+                tooltip: {
+                    renderer: (params) => {
+                        capturedFill = params.fill;
+                        return '';
+                    },
+                },
+            }),
+        },
+        {
+            seriesType: 'scatter',
+            build: (missingDataFill) => ({
+                ...seriesBaseByType.scatter,
+                colorScale: { fills, missingDataFill },
+                tooltip: {
+                    renderer: (params) => {
+                        capturedFill = params.fill;
+                        return '';
+                    },
+                },
+            }),
+        },
+    ];
+
+    it.each(swatchFillCases)(
+        '$seriesType tooltip swatch uses missingDataFill for missing-colour datum',
+        async ({ build }) => {
+            const missingDataFill = 'tomato';
+            const options: AgChartOptions = prepareEnterpriseTestOptions({
+                data,
+                series: [build(missingDataFill)],
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const markerAt = (predicate: (d: (typeof data)[number]) => boolean) => {
+                const datumIndex = data.findIndex(predicate);
+                const node = chart.series[0].contextNodeData?.nodeData?.[datumIndex];
+                if (node?.midPoint == null) throw new Error(`No rendered marker at index ${datumIndex}`);
+                return node.midPoint as { x: number; y: number };
+            };
+
+            const missingMarker = markerAt((d) => d.intensity == null);
+            await hoverAction(missingMarker.x, missingMarker.y)(chart);
+            await waitForChartStability(chart);
+            expect(capturedFill).toBe(missingDataFill);
+        }
+    );
 });
