@@ -973,7 +973,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                         highlightState,
                         resolveMarkerSubPath: [],
                     },
-                    stylerStyle
+                    { ...stylerStyle, size: datum.point.size }
                 );
             }
         });
@@ -1003,8 +1003,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 dilation,
             } = datum;
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = { ...(datum.style ?? contextNodeData.styles[state]) };
-            style.size = size;
+            const style = datum.style == null ? { ...contextNodeData.styles[state], size } : { ...datum.style };
 
             if (dilation > 1) {
                 const fillOpacity = style.fillOpacity ?? 0;
