@@ -1035,9 +1035,9 @@ export abstract class Series<
         });
     }
 
-    public iterateAllDatumIndicesForSample(sampleDatumIndex: TDatumIndex): Iterable<TDatumIndex> {
+    public getRangeOfAggregateIndex(sampleDatumIndex: TDatumIndex): undefined | [TDatumIndex, TDatumIndex] {
         // Override point for subclasses with aggregation
-        return [sampleDatumIndex];
+        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;

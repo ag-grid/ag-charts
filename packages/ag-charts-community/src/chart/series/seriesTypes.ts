@@ -118,7 +118,7 @@ export interface ISeries<
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
-    iterateAllDatumIndicesForSample(sampleDatumIndex: TDatumIndex): Iterable<TDatumIndex>;
+    getRangeOfAggregateIndex(sampleDatumIndex: TDatumIndex): undefined | [TDatumIndex, TDatumIndex];
 }
 
 type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;

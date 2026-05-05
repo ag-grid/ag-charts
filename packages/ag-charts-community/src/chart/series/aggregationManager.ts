@@ -127,25 +127,6 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         this.executor.cancel();
     }
 
-    iterateAllDatumIndicesForSample(
-        sampleDatumIndex: number,
-        filter: TFilter,
-        getBucketForDatum: (datumIndex: number, maxRange: number) => number,
-        dataLength: number
-    ): Iterable<number> {
-        const targetBucket = getBucketForDatum(sampleDatumIndex, filter.maxRange);
-
-        function* iterator() {
-            for (let i = 0; i < dataLength; i++) {
-                if (getBucketForDatum(i, filter.maxRange) === targetBucket) {
-                    yield i;
-                }
-            }
-        }
-
-        return iterator();
-    }
-
     private mergeFilters(deferredFilters: TFilter[]): void {
         if (!this._filters || deferredFilters.length === 0) return;
 
