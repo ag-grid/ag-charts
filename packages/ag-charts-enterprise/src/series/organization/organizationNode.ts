@@ -5,6 +5,13 @@ import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
 import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
 
+export interface OrganizationNodeFields {
+    image?: string;
+    title?: TextOrSegments;
+    subtitle?: TextOrSegments;
+    labels?: (TextOrSegments | undefined)[];
+}
+
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;
     private imageNode?: _ModuleSupport.Rect;
@@ -17,17 +24,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private appliedStyles?: RequiredOrganizationNodeStyle;
 
     update(
-        datum: OrganizationDatum['datum'],
+        fields: OrganizationNodeFields,
         descendantsCount: number,
         styles: RequiredOrganizationNodeStyle,
         isCollapsed: boolean
     ) {
         this.appliedStyles = styles;
         this.updateShapeNode(styles);
-        this.updateImageNode(datum.image, styles);
-        this.updateTitleNode(datum.title, styles);
-        this.updateSubtitleNode(datum.subtitle, styles);
-        this.updateLabelNodes(datum.labels, styles);
+        this.updateImageNode(fields.image, styles);
+        this.updateTitleNode(fields.title, styles);
+        this.updateSubtitleNode(fields.subtitle, styles);
+        this.updateLabelNodes(fields.labels, styles);
         this.updateExpanderNode(descendantsCount, isCollapsed, styles);
 
         let rowScenes = [];
@@ -169,6 +176,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     expanderContainsPoint(point: Point) {
         if (!this.expanderNode) return false;
         return this.expanderNode.containsPoint(point.x, point.y);
+    }
+
+    // Card-only bbox in node-local coords; excludes the expander pill that hangs below.
+    getCardBBox(): _ModuleSupport.BBox | undefined {
+        if (!this.shapeNode) return;
+        return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {

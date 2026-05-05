@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     ariaAnnounceChart: 'چارٹ، ${seriesCount}[number] سیریز',
     ariaAnnounceFlowProportionLink: 'لنک ${index} کا ${count} میں سے، ${from} سے ${to} تک، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'نوڈ ${index} کا ${count}، ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'گیج چارٹ, ${caption}',
     ariaAnnounceHierarchyChart: 'درجہ بندی چارٹ، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number], ${count}[number] بچے, ${description}',

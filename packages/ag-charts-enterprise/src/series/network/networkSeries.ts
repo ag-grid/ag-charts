@@ -333,6 +333,11 @@ export abstract class AbstractNetworkSeries<
     }
 
     private updateSelections() {
+        // Without the gate, per-vertex datum objects are re-allocated on every update; that
+        // tricks HighlightManager's `a.datum === b.datum` check into a spurious change → loop.
+        if (!this.nodeDataRefresh) return;
+        this.nodeDataRefresh = false;
+
         this.contextNodeData = this.createNodeData();
         if (!this.contextNodeData) return;
 

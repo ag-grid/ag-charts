@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_ZH_HK: Record<string, string> = {
     ariaAnnounceChart: '圖表，${seriesCount}[number] 系列',
     ariaAnnounceFlowProportionLink: '連結 ${index} 的 ${count}，從 ${from} 到 ${to}，${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '節點 ${index} 在 ${count} 中, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: '儀表圖, ${caption}',
     ariaAnnounceHierarchyChart: '層次圖, ${caption}',
     ariaAnnounceHierarchyDatum: '層級 ${level}[number]，${count}[number] 個子項，${description}',

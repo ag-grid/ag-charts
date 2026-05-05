@@ -1,10 +1,5 @@
 import type { DeepRequired } from 'ag-charts-core';
-import type {
-    AgOrganizationSeriesNodeStyle,
-    AgOrganizationSeriesNodeTextStyle,
-    CssColor,
-    TextOrSegments,
-} from 'ag-charts-types';
+import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, CssColor } from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 
@@ -22,12 +17,9 @@ export type OrganizationEdge =
     | 'labels';
 
 export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    datum: {
-        image?: string;
-        title?: TextOrSegments;
-        subtitle?: TextOrSegments;
-        labels?: (TextOrSegments | undefined)[];
-    };
+    // The user's source data row — stable across renders so reference-equality
+    // (e.g. HighlightManager) works correctly.
+    datum: unknown;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;

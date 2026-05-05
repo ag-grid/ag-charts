@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceChart: '차트, ${seriesCount}[number] 시리즈',
     ariaAnnounceFlowProportionLink: '링크 ${index} / ${count}, ${from}에서 ${to}로, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '노드 ${index} / ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: '게이지 차트, ${caption}',
     ariaAnnounceHierarchyChart: '계층 차트, ${caption}',
     ariaAnnounceHierarchyDatum: '레벨 ${level}[number], ${count}[number] 자식, ${description}',

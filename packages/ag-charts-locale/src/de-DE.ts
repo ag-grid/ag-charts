@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_DE_DE: Record<string, string> = {
     ariaAnnounceChart: 'Diagramm, ${seriesCount}[number] Reihen',
     ariaAnnounceFlowProportionLink: 'Link ${index} von ${count}, von ${from} bis ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'Knoten ${index} von ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'Tachometerdiagramm, ${caption}',
     ariaAnnounceHierarchyChart: 'Hierarchiediagramm, ${caption}',
     ariaAnnounceHierarchyDatum: 'Ebene ${level}[number], ${count}[number] Kinder, ${description}',

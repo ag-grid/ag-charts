@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     ariaAnnounceChart: 'תרשים, ${seriesCount}[number] סדרות',
     ariaAnnounceFlowProportionLink: 'קישור ${index} מתוך ${count}, מ-${from} ל-${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'צומת ${index} מתוך ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'תרשים מד, ${caption}',
     ariaAnnounceHierarchyChart: 'תרשים היררכי, ${caption}',
     ariaAnnounceHierarchyDatum: 'רמה ${level}[number], ${count}[number] ילדים, ${description}',

@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     ariaAnnounceChart: 'چارت، ${seriesCount}[number] مجموعه',
     ariaAnnounceFlowProportionLink: 'لینک ${index} از ${count}، از ${from} به ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'گره ${index} از ${count}، ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'چارت سنجشی، ${caption}',
     ariaAnnounceHierarchyChart: 'نمودار سلسله مراتبی، ${caption}',
     ariaAnnounceHierarchyDatum: 'سطح ${level}[number]، ${count}[number] فرزند، ${description}',

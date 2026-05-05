@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     ariaAnnounceChart: 'チャート, ${seriesCount}[number]シリーズ',
     ariaAnnounceFlowProportionLink: 'リンク ${index} / ${count}、${from} から ${to} へ、${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'ノード ${index} / ${count}、${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'ゲージチャート、${caption}',
     ariaAnnounceHierarchyChart: '階層チャート, ${caption}',
     ariaAnnounceHierarchyDatum: 'レベル ${level}[number]、${count}[number] の子供、${description}',

@@ -1198,6 +1198,138 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('keyboard navigation', () => {
+        // Same `(otherIndexDelta, datumIndexDelta)` deltas the seriesAreaManager dispatches for
+        // arrow keys.
+        const ARROW_UP = { datumIndexDelta: 0, otherIndexDelta: -1 };
+        const ARROW_DOWN = { datumIndexDelta: 0, otherIndexDelta: 1 };
+        const ARROW_LEFT = { datumIndexDelta: -1, otherIndexDelta: 0 };
+        const ARROW_RIGHT = { datumIndexDelta: 1, otherIndexDelta: 0 };
+
+        async function setupChart() {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).series[0] as any;
+        }
+
+        function press(series: any, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
+            return series.pickFocus({
+                datumIndex: datumIndex + key.datumIndexDelta,
+                datumIndexDelta: key.datumIndexDelta,
+                otherIndex: otherIndex + key.otherIndexDelta,
+                otherIndexDelta: key.otherIndexDelta,
+            });
+        }
+
+        it('ArrowDown moves from the root to its first child', async () => {
+            const series = await setupChart();
+            const pick = press(series, ARROW_DOWN, 0, 0);
+            expect(pick?.datum.itemId).toBe('cto');
+            expect(pick?.otherIndex).toBe(2);
+        });
+
+        it('ArrowDown into a leaf is a no-op', async () => {
+            const series = await setupChart();
+            // dev is at nodeData[2], depth 3, leaf.
+            expect(press(series, ARROW_DOWN, 2, 3)).toBeUndefined();
+        });
+
+        it('ArrowUp moves from a child to its parent', async () => {
+            const series = await setupChart();
+            // cfo (datumIndex 4, depth 2) → ceo (datumIndex 0, depth 1).
+            const pick = press(series, ARROW_UP, 4, 2);
+            expect(pick?.datum.itemId).toBe('ceo');
+            expect(pick?.otherIndex).toBe(1);
+        });
+
+        it('ArrowUp at the top tier is a no-op', async () => {
+            const series = await setupChart();
+            expect(press(series, ARROW_UP, 0, 1)).toBeUndefined();
+        });
+
+        it('ArrowRight moves to the next sibling', async () => {
+            const series = await setupChart();
+            // cto (datumIndex 1) → cfo (datumIndex 4).
+            const pick = press(series, ARROW_RIGHT, 1, 2);
+            expect(pick?.datum.itemId).toBe('cfo');
+        });
+
+        it('ArrowLeft moves to the previous sibling', async () => {
+            const series = await setupChart();
+            // qa (datumIndex 3) → dev (datumIndex 2).
+            const pick = press(series, ARROW_LEFT, 3, 3);
+            expect(pick?.datum.itemId).toBe('dev');
+        });
+
+        it('ArrowRight at the last sibling clamps (no wrap)', async () => {
+            const series = await setupChart();
+            // qa is the last sibling under cto; ArrowRight should stay on qa.
+            const pick = press(series, ARROW_RIGHT, 3, 3);
+            expect(pick?.datum.itemId).toBe('qa');
+        });
+
+        it('ArrowDown into a collapsed node is a no-op', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            // With cto collapsed, nodeData is [ceo, cto, cfo, acc]; cto sits at index 1, depth 2.
+            expect(press(series, ARROW_DOWN, 1, 2)).toBeUndefined();
+        });
+
+        // Follows the same DOM chain a screen reader would: the visible swap-chain announcer
+        // (`aria-hidden="false"`) labelled by a hidden `<div>` carrying the message.
+        function readLiveAnnouncement(): string {
+            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+            const labelId = announcer?.getAttribute('aria-labelledby');
+            const label = labelId ? document.getElementById(labelId) : null;
+            return label?.textContent ?? '';
+        }
+
+        function pressArrowOnSeriesArea(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            if (!seriesArea) throw new Error('series-area element not found');
+            seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+        }
+
+        it('announces a parent node identity-first with level, position, and expanded state', async () => {
+            await setupChart();
+            // Default focus sits on the root (ceo); ArrowDown moves to its first child (cto).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+        });
+
+        it('omits collapsed-state from a leaf announcement', async () => {
+            await setupChart();
+            // ArrowDown twice: ceo → cto → dev (a leaf at depth 3).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            const announcement = readLiveAnnouncement();
+            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            // Guard against the empty-collapsedState stutter VoiceOver caught before the
+            // leaf/parent locale-key split.
+            expect(announcement).not.toContain(',,');
+            expect(announcement).not.toContain(', ,');
+        });
+
+        it('reports collapsed parents in the live announcement', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+        });
+    });
+
     describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };

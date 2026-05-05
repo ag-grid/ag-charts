@@ -12,6 +12,11 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzel ${index} z ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
     ariaAnnounceGaugeChart: 'graf měřidla, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchický graf, ${caption}',
     ariaAnnounceHierarchyDatum: 'úroveň ${level}[number], ${count}[number] děti, ${description}',
