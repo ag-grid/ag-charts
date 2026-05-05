@@ -1,15 +1,9 @@
 // @ag-skip-fws
-import {
-    AgCharts,
-    AgStandaloneChartOptions,
-    ModuleRegistry,
-    OrganizationSeriesModule,
-    ZoomModule,
-} from 'ag-charts-enterprise';
+import { AgCharts, AgStandaloneChartOptions, ModuleRegistry, OrganizationSeriesModule } from 'ag-charts-enterprise';
 
 import { generateOrg } from './data';
 
-ModuleRegistry.registerModules([OrganizationSeriesModule, ZoomModule]);
+ModuleRegistry.registerModules([OrganizationSeriesModule]);
 
 type Scale = 100 | 1_000 | 10_000 | 100_000;
 
@@ -84,22 +78,10 @@ async function loadScale(scale: Scale): Promise<void> {
     updateStatus(`${SCALE_LABELS[scale]} nodes loaded`);
 }
 
-function onScale100(): void {
-    void loadScale(100);
-}
-
-function onScale1K(): void {
-    void loadScale(1_000);
-}
-
-function onScale10K(): void {
-    void loadScale(10_000);
-}
-
-function onScale100K(): void {
-    void loadScale(100_000);
-}
-
 // Initialise the active button state on page load.
 setActiveButton(activeScale);
 updateStatus('100 nodes loaded');
+
+SCALES.forEach((scale) => {
+    document.getElementById(`scale-btn-${scale}`)?.addEventListener('click', () => void loadScale(scale));
+});

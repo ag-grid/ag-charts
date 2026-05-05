@@ -829,10 +829,7 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            deproxy(chart).ctx.zoomManager?.updateZoom(
-                { source: 'state-change', sourceDetail: 'unspecified' },
-                { x: { min: 0.25, max: 0.75 }, y: { min: 0.25, max: 0.75 } }
-            );
+            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
             await waitForChartStability(chart);
 
             await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
