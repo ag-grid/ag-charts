@@ -113,16 +113,20 @@ export abstract class AbstractNetworkSeries<
         this.graph = this.createNetworkGraph();
         this.layout = this.createNetworkLayout();
 
-        ctx.eventsHub.on('layout:complete', (event) => {
-            this.seriesRect = event.series.rect;
-        });
+        this.cleanup.register(
+            ctx.eventsHub.on('layout:complete', (event) => {
+                this.seriesRect = event.series.rect;
+            })
+        );
 
-        ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
-            if (!collapsed) return;
-            if (this.graph.getVertexCount() === 0) {
-                this.pendingCollapsedIds = collapsed;
-            }
-        });
+        this.cleanup.register(
+            ctx.eventsHub.on('collapsed:restore', ({ collapsed }) => {
+                if (!collapsed) return;
+                if (this.graph.getVertexCount() === 0) {
+                    this.pendingCollapsedIds = collapsed;
+                }
+            })
+        );
 
         // `active:load-memento` only fires for state-restore / programmatic setState (not hover).
         this.cleanup.register(
@@ -133,34 +137,39 @@ export abstract class AbstractNetworkSeries<
         );
 
         // Runs on every activeItem change incl. hover — opens collapsed ancestors.
-        ctx.chartState.observe((get) => {
-            const activeItem = get('activeItem');
-            if (activeItem?.seriesId === this.id) {
-                this.expandNetworkToItem(activeItem.itemId);
-            }
-        });
-
-        // Zoom is a transform-only update — no re-layout.
         this.cleanup.register(
             ctx.chartState.observe((get) => {
-                get('zoom');
+                const activeItem = get('activeItem');
+                if (activeItem?.seriesId === this.id) {
+                    this.expandNetworkToItem(activeItem.itemId);
+                }
+            })
+        );
+
+        // Zoom is a transform-only update — no re-layout. We don't read the zoom value here
+        // (applyViewportTransform pulls it from chartState), so the event is sufficient and
+        // avoids ReactiveState's initial-fire on subscribe.
+        this.cleanup.register(
+            ctx.eventsHub.on('zoom:change-complete', () => {
                 this.applyViewportTransform();
                 ctx.eventsHub.emit('chart:request-update', { type: ChartUpdateType.SCENE_RENDER });
             })
         );
 
-        ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
-            if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
-            const point = {
-                x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
-                y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
-            };
-            if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
-                this.expandItem(clickedNode.itemId, point);
-            } else {
-                this.collapseItem(clickedNode.itemId, point);
-            }
-        });
+        this.cleanup.register(
+            ctx.eventsHub.on('series-area:click', ({ type, clickedNode, sourceEvent }) => {
+                if (type !== 'click' || clickedNode?.series !== this || clickedNode.itemId == null) return;
+                const point = {
+                    x: 'layerX' in sourceEvent ? sourceEvent.layerX : Number.NaN,
+                    y: 'layerY' in sourceEvent ? sourceEvent.layerY : Number.NaN,
+                };
+                if (this.ctx.collapsedManager.isCollapsed(clickedNode.itemId)) {
+                    this.expandItem(clickedNode.itemId, point);
+                } else {
+                    this.collapseItem(clickedNode.itemId, point);
+                }
+            })
+        );
     }
 
     abstract createNetworkGraph(): TGraph;
