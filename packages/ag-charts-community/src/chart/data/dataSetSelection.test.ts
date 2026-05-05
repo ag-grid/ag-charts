@@ -180,8 +180,8 @@ describe('DataSetSelection', () => {
             ds.commitPendingTransactions();
 
             // After: [id1, id2]
-            expect(sel1.getSelectedCount()).toBe(0);
-            expect(sel2.getSelectedIndices()).toEqual([1]); // id2 shifted from idx 2 to idx 1
+            expect(getSelectedCount(sel1)).toBe(0);
+            expect(getSelectedCount(sel2)).toEqual([1]); // id2 shifted from idx 2 to idx 1
         });
     });
 });
@@ -198,7 +198,7 @@ describe('DataSet selection transfer', () => {
 
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
-            expect(nextSel!.getSelectedIndices()).toEqual([1]); // C is at index 1 in new data
+            expect(getSelectedCount(nextSel!)).toEqual([1]); // C is at index 1 in new data
         });
 
         it('should drop stale keys', () => {
@@ -209,7 +209,7 @@ describe('DataSet selection transfer', () => {
 
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
-            expect(nextSel!.getSelectedCount()).toBe(0); // A not in new data
+            expect(getSelectedCount(nextSel!)).toBe(0); // A not in new data
         });
 
         it('should clear selections without dataIdKey', () => {
@@ -227,8 +227,8 @@ describe('DataSet selection transfer', () => {
 
             const next = DataSet.replaceWith(old, [{ k: 'A' }, { k: 'C' }], 'k');
 
-            expect(next.selections.get('line-1')!.getSelectedIndices()).toEqual([0]); // A at idx 0
-            expect(next.selections.get('bar-1')!.getSelectedIndices()).toEqual([1]); // C at idx 1
+            expect(getSelectedIndices(next.selections.get('line-1')!)).toEqual([0]); // A at idx 0
+            expect(getSelectedIndices(next.selections.get('bar-1')!)).toEqual([1]); // C at idx 1
         });
 
         it('should handle no predecessor', () => {
@@ -251,7 +251,7 @@ describe('DataSet selection transfer', () => {
             const clone = ds.deepClone();
             const cloneSel = clone.selections.get('s1');
             expect(cloneSel).toBeDefined();
-            expect(cloneSel!.getSelectedIndices()).toEqual([1]);
+            expect(getSelectedIndices(cloneSel!)).toEqual([1]);
         });
     });
 
@@ -292,7 +292,7 @@ describe('DataSet selection transfer', () => {
             const next = DataSet.replaceWith(ds, [{ k: 'A' }, { k: 'D' }], 'k');
             const sel = next.selections.get('s1');
             expect(sel).toBeDefined();
-            expect(sel!.getSelectedIndices()).toEqual([0]); // A is at index 0
+            expect(getSelectedIndices(sel!)).toEqual([0]); // A is at index 0
         });
 
         it('should refresh idArrayCache for in-place ID updates via pendingReplacements', () => {
@@ -354,7 +354,7 @@ describe('DataSet selection transfer', () => {
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
             // Only A should transfer; the missing-ID datum must not collide with ''
-            expect(nextSel!.getSelectedIndices()).toEqual([0]);
+            expect(getSelectedIndices(nextSel!)).toEqual([0]);
         });
     });
 
