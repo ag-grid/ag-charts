@@ -929,6 +929,65 @@ describe('OrganizationSeries', () => {
                 await compare();
             });
 
+            it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
+                // AG-17246 regression. Sparse `reign` tier (some rows have no value) combined
+                // with a collapse that reduces the visible set forces `Selection` to reuse a
+                // scene node whose previous datum had labels for a node whose new datum does
+                // not. Without trimming trailing labelNodes the previous tier text persists.
+                const options: AgChartOptions = {
+                    data: [
+                        { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
+                        { id: 'henry8', name: 'Henry VIII', reign: 'King 1509 - 1547', parentId: 'henry7' },
+                        { id: 'margaret', name: 'Margaret Tudor', reign: 'Queen of Scots', parentId: 'henry7' },
+                        { id: 'mary1', name: 'Mary I', reign: 'Queen 1553 - 1558', parentId: 'henry8' },
+                        { id: 'elizabeth1', name: 'Elizabeth I', reign: 'Queen 1558 - 1603', parentId: 'henry8' },
+                        { id: 'frances', name: 'Frances Brandon', parentId: 'margaret' },
+                        { id: 'jane', name: 'Lady Jane Grey', parentId: 'frances' },
+                    ],
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                labels: [{ key: 'reign' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
+                await waitForChartStability(chart);
+
+                // Walk the rendered nodes and assert each one's labels match its source datum.
+                // The bug surfaced as label text from a previous datum lingering on a reused
+                // OrganizationNode — a programmatic check is more pointed than a snapshot
+                // because it locates the exact node-vs-data mismatch.
+                const series = deproxy(chart).series[0] as any;
+                const expectedReign: Record<string, string | undefined> = {
+                    henry7: 'King 1485 - 1509',
+                    henry8: 'King 1509 - 1547',
+                    margaret: 'Queen of Scots',
+                    frances: undefined,
+                    jane: undefined,
+                };
+                series.datumSelection.each((node: any, datum: any) => {
+                    const renderedTexts: string[] = (node.labelNodes ?? [])
+                        .filter((n: any) => n != null)
+                        .map((n: any) => n.text);
+                    const expected = expectedReign[datum.itemId];
+                    if (expected === undefined) {
+                        expect(renderedTexts).toEqual([]);
+                    } else {
+                        expect(renderedTexts).toEqual([expected]);
+                    }
+                });
+            });
+
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
                 // The styler flips fill on `isCollapsed`; snapshotting after each toggle
                 // catches a stale-cache regression where `isCollapsed` is omitted from the key.

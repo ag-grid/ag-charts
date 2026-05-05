@@ -259,6 +259,14 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
             index++;
         }
+
+        // Trim trailing label nodes when a reused scene node previously rendered more tiers
+        // than the current datum. Without this, `Selection` reuse causes labels to leak from
+        // a previously-bound datum after expand/collapse changes the visible set.
+        for (let i = labels.length; i < this.labelNodes.length; i++) {
+            this.labelNodes[i]?.remove();
+        }
+        this.labelNodes.length = labels.length;
     }
 
     private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
