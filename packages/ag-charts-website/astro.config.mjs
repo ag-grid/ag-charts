@@ -11,6 +11,7 @@ import svgr from 'vite-plugin-svgr';
 import agCacheSitemap from '../../external/ag-website-shared/plugins/agCacheSitemap';
 import agLinkChecker from '../../external/ag-website-shared/plugins/agLinkChecker';
 import agMkcertPreview from '../../external/ag-website-shared/plugins/agMkcertPreview';
+import agSourcemapCors from '../../external/ag-website-shared/plugins/agSourcemapCors';
 import { SITEMAP_CACHE_DIR } from '../../external/ag-website-shared/src/constants';
 import agAutoRedirect from './plugins/agAutoRedirect';
 import agCssAsString from './plugins/agCssAsString';
@@ -72,6 +73,7 @@ console.log(
 );
 
 const plugins = [
+    agSourcemapCors(),
     svgr(),
     agCssAsString(),
     agHotModuleReload(),
