@@ -2,7 +2,7 @@ import {
     AgChartOptions,
     AgCharts,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
     ScatterSeriesModule,
@@ -10,7 +10,7 @@ import {
 
 import { chromosomes, getData } from './data';
 
-ModuleRegistry.registerModules([ScatterSeriesModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, CrossLinesModule, NumberAxisModule, ScatterSeriesModule]);
 const data = getData();
 const options: AgChartOptions = {
     title: {

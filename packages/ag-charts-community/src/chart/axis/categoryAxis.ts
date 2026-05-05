@@ -1,5 +1,11 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { ActionOnSet, ChartUpdateType, Property, ProxyPropertyOnWrite, isFiniteNumber } from 'ag-charts-core';
+import type {
+    AxisID,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedBaseCategoryStyleAxisOptions,
+    NormalisedCategoryAxisOptions,
+} from 'ag-charts-core';
+import { ChartUpdateType, isFiniteNumber } from 'ag-charts-core';
 import type { AgTimeInterval, AgTimeIntervalUnit, DateFormatterStyle, FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -11,9 +17,19 @@ import type { AxisTickFormatParams } from './axis';
 import type { AxisFillDatum, AxisLineDatum, TickDatum } from './axisUtil';
 import { CartesianAxis, type GridLineStyleTickDatum } from './cartesianAxis';
 
+/**
+ * The `TLabel` parameter on `NormalisedBaseCategoryStyleAxisOptions` is intentionally
+ * relaxed to `any` here. The structural cause is `Styler<P, R>`'s contravariance in
+ * `P`: `GroupedCategoryAxis`'s label styler requires a `depth: number` field on its
+ * params, so its label type is not assignable to the cartesian-axis-label base. Either
+ * threading `TLabel` through this constraint (Plan v2 Option A) or parameterising
+ * `itemStyler` in `ag-charts-types` (Plan v2 Option B) failed to resolve the variance
+ * at the constraint level. `<any>` is the documented Option C fallback.
+ */
 export class CategoryAxis<
     S extends CategoryScale<string | object> | UnitTimeScale | OrdinalTimeScale = CategoryScale<string | object>,
-> extends CartesianAxis<S> {
+    TOptions extends NormalisedBaseCategoryStyleAxisOptions<any> = NormalisedCategoryAxisOptions,
+> extends CartesianAxis<S, any, TOptions> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
     }
@@ -21,41 +37,36 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'unit-time' | 'ordinal-time' = 'category';
 
-    @Property
-    groupPaddingInner: number = 0.1;
+    override get layoutConstraints(): import('../chartAxis').ChartAxis['layoutConstraints'] {
+        const align = this.options.bandAlignment;
+        if (align == null) return this._layoutConstraints;
+        return { ...this._layoutConstraints, align };
+    }
 
-    @Property
-    paddingInner?: number;
+    override set requiredRange(value: number | undefined) {
+        this._requiredRange = value;
+        if (value == null || value <= 0) {
+            this._layoutConstraints.width = 100;
+            this._layoutConstraints.unit = 'percent';
+        } else {
+            this._layoutConstraints.width = value;
+            this._layoutConstraints.unit = 'px';
+            this.animationManager.skipCurrentBatch();
+        }
+    }
 
-    @Property
-    paddingOuter?: number;
-
-    @ProxyPropertyOnWrite('layoutConstraints', 'align')
-    bandAlignment?: 'justify' | 'start' | 'center' | 'end';
-
-    @Property
-    skipNullBars?: boolean;
-
-    @ActionOnSet<CategoryAxis>({
-        newValue(value?: number) {
-            if (value == null || value <= 0) {
-                this.layoutConstraints.width = 100;
-                this.layoutConstraints.unit = 'percent';
-            } else {
-                this.layoutConstraints.width = value;
-                this.layoutConstraints.unit = 'px';
-                this.animationManager.skipCurrentBatch();
-            }
-        },
-    })
-    override requiredRange?: number;
+    override get requiredRange(): number | undefined {
+        return this._requiredRange;
+    }
 
     constructor(
         moduleCtx: DynamicContext<ChartRegistry>,
-        scale = new CategoryScale<string | object>() as S,
+        id: AxisID,
+        scale: S = new CategoryScale<string | object>() as S,
+        options: TOptions,
         includeInvisibleDomains: boolean = true
     ) {
-        super(moduleCtx, scale);
+        super(moduleCtx, id, scale, options);
 
         this.includeInvisibleDomains = includeInvisibleDomains;
         // Has no effect and can speed up tick generation
@@ -75,7 +86,8 @@ export class CategoryAxis<
     }
 
     override getUpdateTypeOnResize(): ChartUpdateType {
-        if (this.bandAlignment == null || this.bandAlignment === 'justify') {
+        const { bandAlignment } = this.options;
+        if (bandAlignment == null || bandAlignment === 'justify') {
             return super.getUpdateTypeOnResize();
         }
         return ChartUpdateType.PROCESS_DOMAIN;
@@ -84,7 +96,7 @@ export class CategoryAxis<
     protected override updateScale() {
         super.updateScale();
 
-        let { paddingInner, paddingOuter } = this;
+        let { paddingInner, paddingOuter } = this.options;
         if (!isFiniteNumber(paddingInner) || !isFiniteNumber(paddingOuter)) {
             const padding = this.reduceBandScalePadding();
             paddingInner ??= padding.inner;
@@ -97,7 +109,7 @@ export class CategoryAxis<
     protected override calculateGridLines(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisLineDatum[] {
         const gridLines = super.calculateGridLines(ticks, p1, p2);
 
-        if (this.interval.placement === 'between' && ticks.length > 0) {
+        if (this.options.interval?.placement === 'between' && ticks.length > 0) {
             gridLines.push(
                 super.calculateGridLine(
                     {
@@ -123,9 +135,10 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal, interval, scale } = this;
+        const { horizontal, scale } = this;
+        const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridLine({ index: tickIndex, tickId, translation }, index, p1, p2, ticks);
         }
 
@@ -143,7 +156,7 @@ export class CategoryAxis<
     protected override calculateGridFills(ticks: GridLineStyleTickDatum[], p1: number, p2: number): AxisFillDatum[] {
         const { horizontal, range, scale } = this;
 
-        if (this.interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFills(ticks, p1, p2);
         }
 
@@ -179,9 +192,10 @@ export class CategoryAxis<
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, interval, scale } = this;
+        const { horizontal, scale } = this;
+        const gridLine = this.options.gridLine;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateGridFill({ tickId, translation }, index, gridFillIndex, p1, p2, ticks);
         }
 
@@ -203,7 +217,7 @@ export class CategoryAxis<
     ): AxisLineDatum[] {
         const tickLines = super.calculateTickLines(ticks, direction, scrollbarThickness);
 
-        if (this.interval.placement === 'between' && ticks.length > 0) {
+        if (this.options.interval?.placement === 'between' && ticks.length > 0) {
             tickLines.push(
                 super.calculateTickLine(
                     { isPrimary: false, tickId: `after:${ticks.at(-1)?.tickId}`, translation: this.range[1] },
@@ -225,9 +239,10 @@ export class CategoryAxis<
         ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, interval, primaryTick, scale, tick } = this;
+        const { horizontal, primaryTick, scale } = this;
+        const tick = this.options.tick;
 
-        if (interval.placement !== 'between') {
+        if (this.options.interval?.placement !== 'between') {
             return super.calculateTickLine(
                 { isPrimary, tickId, translation },
                 index,

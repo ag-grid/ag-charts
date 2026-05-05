@@ -11,6 +11,7 @@ import {
     type Chart,
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     expectWarningMessages,
@@ -118,7 +119,7 @@ describe('MapLineSeries', () => {
     });
 
     describe('Missing color values', () => {
-        it('omits lines without color values and avoids tooltip errors', async () => {
+        it('renders lines without color values with default styling and keeps tooltips', async () => {
             const missingRoads = new Set(['M3', 'M5']);
             const data = ukRoadData.map((datum) => (missingRoads.has(datum.name) ? { name: datum.name } : datum));
             const options: AgChartOptions = {
@@ -137,15 +138,16 @@ describe('MapLineSeries', () => {
             chart = deproxy(AgCharts.create(options));
             await waitForChartStability(chart);
 
+            // Tier-2 behaviour: the line geometry still exists, so the line renders with the
+            // default series stroke and stays queryable for tooltips (with the colour row
+            // omitted). See AG-16046 pt3 — David's QA classification.
             const seriesImpl = chart.series[0] as MapLineSeries;
-            const nodeIds = seriesImpl?.['contextNodeData']?.nodeData?.map((datum) => datum.idValue) ?? [];
-
-            expect(nodeIds).not.toContain('M3');
-            expect(nodeIds).not.toContain('M5');
-            expect(nodeIds).toHaveLength(data.length - missingRoads.size);
-
-            const missingIndex = data.findIndex((datum) => datum.name === 'M3');
-            expect(seriesImpl.getTooltipContent(missingIndex)).toBeUndefined();
+            assertTooltipPresentForAll(
+                seriesImpl,
+                data,
+                (datum) => missingRoads.has(datum.name),
+                (i) => i
+            );
 
             await compare();
         });
@@ -275,6 +277,16 @@ describe('MapLineSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+
+            // With `missingDataFill` configured, the line is rendered, so the tooltip stays
+            // queryable for the missing-colour datum (with the colour row omitted).
+            const seriesImpl = chart.series[0] as MapLineSeries;
+            assertTooltipPresentForAll(
+                seriesImpl,
+                dataWithMissing,
+                (d: any) => d.dailyVehicles == null,
+                (i) => i
+            );
         });
     });
 

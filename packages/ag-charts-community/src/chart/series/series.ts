@@ -77,7 +77,7 @@ import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, SelectionState, toHighlightString, toSelectionString } from './seriesProperties';
+import { HighlightState, SelectionState, isSelected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
@@ -1271,6 +1271,7 @@ export abstract class Series<
             checkForHighlight?: boolean;
             resolveMarkerSubPath?: string[];
             resolveStyler?: boolean;
+            hideWithSize0?: boolean;
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1282,9 +1283,14 @@ export abstract class Series<
             checkForHighlight = true,
             resolveMarkerSubPath = ['marker'],
             resolveStyler = false,
+            hideWithSize0 = false,
         } = opts ?? {};
         const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
         const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
+
+        if (hideWithSize0 && isSelected(selectionState)) {
+            return { size: 0 } satisfies AgSeriesMarkerStyle;
+        }
 
         if (resolveStyler) {
             const resolveOpt = { permissivePath: true };

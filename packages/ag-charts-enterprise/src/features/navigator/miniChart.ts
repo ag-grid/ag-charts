@@ -70,9 +70,9 @@ export class MiniChart extends AbstractModuleInstance {
                 axisNode: this.axisGroup,
                 gridNode: this.axisGridGroup,
                 labelNode: this.axisLabelGroup,
-                crossLineLineNode: this.axisCrosslineLineGroup,
-                crossLineRangeNode: this.axisCrosslineRangeGroup,
-                crossLineLabelNode: this.axisCrosslineLabelGroup,
+                overlayLowNode: this.axisCrosslineRangeGroup,
+                overlayMidNode: this.axisCrosslineLineGroup,
+                overlayHighNode: this.axisCrosslineLabelGroup,
             };
 
             for (const axis of oldValue) {
@@ -230,16 +230,19 @@ export class MiniChart extends AbstractModuleInstance {
             return padding;
         }
 
-        for (const { position, thickness, line, label } of this.axes) {
+        for (const axis of this.axes) {
+            if (!(axis instanceof _ModuleSupport.CartesianAxis)) continue;
+            const { position } = axis;
             if (position == null) continue;
 
+            const { thickness, label, line } = axis.options;
             let size: number;
             if (thickness) {
                 size = thickness;
             } else {
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? calcLineHeight(label.fontSize ?? 0) + label.spacing : 0);
+                    (label.enabled ? calcLineHeight(label.fontSize) + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);
@@ -290,11 +293,12 @@ export class MiniChart extends AbstractModuleInstance {
                 axis.resetAnimation('initial');
             }
 
-            if (axis.crossLines) {
-                for (const crossLine of axis.crossLines) {
+            const crossLines = _ModuleSupport.getCrossLinesPlugin(axis)?.getInstances();
+            if (crossLines) {
+                for (const crossLine of crossLines) {
                     if (crossLine instanceof _ModuleSupport.CartesianCrossLine) {
                         crossLine.position = axis.position ?? 'top';
-                        crossLine.label.parallel ??= axis.label?.parallel;
+                        crossLine.label.parallel ??= axis.parallel;
                     }
                 }
             }

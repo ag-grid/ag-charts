@@ -2,7 +2,7 @@ import {
     AgChartOptions,
     AgCharts,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
     RangeBarSeriesModule,
@@ -10,7 +10,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, NumberAxisModule, RangeBarSeriesModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, CrossLinesModule, NumberAxisModule, RangeBarSeriesModule]);
 const subjects = ['Math', 'English', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
 
 const options: AgChartOptions = {

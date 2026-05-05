@@ -956,6 +956,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
                 if (colorScaleValid && datum.colorValue != null) {
                     stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                } else if (
+                    colorKey != null &&
+                    datum.colorValue == null &&
+                    this.properties.colorScale.missingDataFill != null
+                ) {
+                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
                 }
 
                 datum.style = this.getMarkerStyle(

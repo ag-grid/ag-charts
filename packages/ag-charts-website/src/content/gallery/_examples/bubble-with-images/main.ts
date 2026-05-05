@@ -2,14 +2,14 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     BubbleSeriesModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([BubbleSeriesModule, CrossLinesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

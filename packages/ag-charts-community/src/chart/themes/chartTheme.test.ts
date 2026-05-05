@@ -567,14 +567,14 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.line.stroke).toBe('#b4b6b6');
-            expect(axisY.label.fontSize).toBe(12);
+            expect(axisY.options.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
-            expect(axisX.label.fontSize).toBe(18);
+            expect(axisX.options.line.stroke).toBe('blue');
+            expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
         test('Specialized chart type themed bottom category, unthemed left number', async () => {
@@ -617,14 +617,14 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('left');
-            expect(axisY.line.stroke).toBe('#b4b6b6');
-            expect(axisY.label.fontSize).toBe(12);
+            expect(axisY.options.line.stroke).toBe('#b4b6b6');
+            expect(axisY.options?.label?.fontSize).toBe(12);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
-            expect(axisX.label.fontSize).toBe(18);
+            expect(axisX.options.line.stroke).toBe('blue');
+            expect(axisX.options?.label?.fontSize).toBe(18);
         });
 
         test('Themed right number, unthemed top category', async () => {
@@ -677,14 +677,14 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
-            expect(axisY.line.stroke).toBe('blue');
-            expect(axisY.label.fontSize).toBe(18);
+            expect(axisY.options.line.stroke).toBe('blue');
+            expect(axisY.options?.label?.fontSize).toBe(18);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('top');
-            expect(axisX.line.stroke).toBe('red');
-            expect(axisX.label.fontSize).toBe(12);
+            expect(axisX.options.line.stroke).toBe('red');
+            expect(axisX.options?.label?.fontSize).toBe(12);
         });
 
         test('Partially themed axes', async () => {
@@ -754,29 +754,29 @@ describe('ChartTheme', () => {
             const axisY = chart.axes.y as any;
             expect(axisY.type).toBe('number');
             expect(axisY.position).toBe('right');
-            expect(axisY.line.stroke).toBe('red');
-            expect(axisY.label.fontSize).toBe(18);
-            expect(axisY.label.fontStyle).toBe('italic');
-            expect(axisY.label.fontFamily).toBe('Tahoma');
-            expect(axisY.label.fontWeight).toBe(400);
-            expect(axisY.label.padding).toBe(5);
-            expect(axisY.label.rotation).toBe(undefined);
+            expect(axisY.options.line.stroke).toBe('red');
+            expect(axisY.options?.label?.fontSize).toBe(18);
+            expect(axisY.options?.label?.fontStyle).toBe('italic');
+            expect(axisY.options?.label?.fontFamily).toBe('Tahoma');
+            expect(axisY.options?.label?.fontWeight).toBe(400);
+            expect(axisY.options?.label?.padding).toBe(5);
+            expect(axisY.options?.label?.rotation).toBe(undefined);
 
             const axisX = chart.axes.x as any;
             expect(axisX.type).toBe('category');
             expect(axisX.position).toBe('bottom');
-            expect(axisX.line.stroke).toBe('blue');
-            expect(axisX.line.width).toBe(5);
-            expect(axisX.label.fontSize).toBe(18);
-            expect(axisX.label.fontStyle).toBe(undefined);
-            expect(axisX.label.fontFamily).toBe('Verdana, sans-serif');
+            expect(axisX.options.line.stroke).toBe('blue');
+            expect(axisX.options.line.width).toBe(5);
+            expect(axisX.options?.label?.fontSize).toBe(18);
+            expect(axisX.options?.label?.fontStyle).toBe(undefined);
+            expect(axisX.options?.label?.fontFamily).toBe('Verdana, sans-serif');
 
-            expect(axisX.label.fontWeight).toBe('bold');
-            expect(axisX.label.rotation).toBe(45);
-            expect(axisX.title?.text).toBe('Test');
+            expect(axisX.options?.label?.fontWeight).toBe('bold');
+            expect(axisX.options?.label?.rotation).toBe(45);
+            expect(axisX.options.title?.text).toBe('Test');
             // Since config is provided, the `enabled` should be auto-set to `true`,
             // even though theme's default is `false`.
-            expect(axisX.title?.enabled).toBe(true);
+            expect(axisX.options.title?.enabled).toBe(true);
         });
     });
 

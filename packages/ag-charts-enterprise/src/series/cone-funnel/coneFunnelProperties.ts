@@ -10,7 +10,7 @@ import { Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
-const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel } = _ModuleSupport;
+const { Label, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } = _ModuleSupport;
 class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams> {
     @Property
     placement: string | undefined;
@@ -19,7 +19,7 @@ class ConeFunnelSeriesLabel extends Label<AgConeFunnelSeriesLabelFormatterParams
     spacing: number = 0;
 }
 
-class ConeFunnelSeriesStageLabel extends AxisLabel {
+class ConeFunnelSeriesStageLabel extends SeriesLabelProperties {
     @Property
     placement?: string;
 }

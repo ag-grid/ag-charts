@@ -275,19 +275,13 @@ interface StandaloneTestCase extends ChartTestCase {
 }
 
 function createExpanderHeightExample(height: number): any {
+    const series = SIMPLE_ORG_CHART.series![0];
     return {
         ...SIMPLE_ORG_CHART,
         series: [
             {
-                type: 'organization',
-                idKey: 'id',
-                parentIdKey: 'parentId',
+                ...series,
                 expander: { height },
-                node: {
-                    title: { key: 'name' },
-                    subtitle: { key: 'job' },
-                    labels: [{ key: 'location' }],
-                },
             },
         ],
     };
@@ -471,6 +465,58 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                                 strokeWidth: 1,
                                 cornerRadius: 2,
                                 padding: 2,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
+        // Regression for AG-17193 pt2: with sizable padding (>>0) the text-box layout
+        // must reserve the full padded bounds so siblings don't overlap each other or
+        // the card edges. Mirrors the QA repro at plnkr.co/edit/64pDpFemUqydBOhJ.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            fill: 'dodgerblue',
+                            fillOpacity: 0.15,
+                            stroke: 'dodgerblue',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.8,
+                            cornerRadius: 6,
+                            padding: 20,
+                            fontWeight: 'bold',
+                        },
+                        subtitle: {
+                            key: 'job',
+                            fill: 'seagreen',
+                            fillOpacity: 0.12,
+                            stroke: 'seagreen',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.6,
+                            cornerRadius: 4,
+                            padding: 20,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                fill: 'tomato',
+                                fillOpacity: 0.18,
+                                stroke: 'tomato',
+                                strokeWidth: 1,
+                                strokeOpacity: 0.7,
+                                cornerRadius: 8,
+                                padding: 30,
+                                fontSize: 11,
                             },
                         ],
                     },

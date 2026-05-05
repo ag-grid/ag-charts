@@ -1,9 +1,14 @@
 import { type AgAngleCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedAngleCategoryAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { AngleCategoryAxis } from './angleCategoryAxis';
 
-export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions> = {
+export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOptions, AngleCategoryAxis> = {
     type: 'axis',
     name: 'angle-category',
     chartType: 'polar',
@@ -11,11 +16,18 @@ export const AngleCategoryAxisModule: AxisModuleDefinition<AgAngleCategoryAxisOp
     version: VERSION,
 
     options: _ModuleSupport.angleCategoryAxisOptionsDefs,
-    themeTemplate: {
-        label: { spacing: 5 },
-        gridLine: { enabled: false },
-        shape: { $findFirstSiblingNotOperation: undefined },
-    },
+    themeTemplate: mergeDefaults(
+        {
+            startAngle: 0,
+            groupPaddingInner: 0,
+            paddingInner: 0,
+            label: { spacing: 5 },
+            gridLine: { enabled: false },
+            shape: { $findFirstSiblingNotOperation: ['polygon'] },
+        },
+        _ModuleSupport.commonAxisThemeTemplate
+    ),
 
-    create: (ctx) => new AngleCategoryAxis(ctx),
+    create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
+        new AngleCategoryAxis(ctx, id, options as NormalisedAngleCategoryAxisOptions),
 };

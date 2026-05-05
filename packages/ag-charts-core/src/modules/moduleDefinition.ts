@@ -2,6 +2,8 @@ import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxi
 
 import type { DynamicContext } from '../module/dynamicContext';
 import type { OptionsDefs, ValidationResult } from '../state/validation';
+import type { AxisID } from '../types/idBranding';
+import type { Normalised } from '../types/normalised-options/normalise';
 import type { ScaleType } from '../types/scales';
 import type { Point } from '../types/scene';
 
@@ -52,6 +54,20 @@ export interface PropertyDefinitionOpts {
     yScaleType?: ScaleType;
 }
 
+export interface AxisPluginModuleInstance extends ModuleInstance {
+    applyOptions(this: void, options: any): void;
+    /**
+     * Generic axis-lifecycle hooks. Each is optional and called from the corresponding axis phase;
+     * plugins read whatever live state they need from {@link AxisContext} when invoked. The names
+     * are prefixed `onAxis*` so that plugins implementing them are not forced to give up unrelated
+     * private `update` / `layout` helpers (e.g. chart-level `layout:complete` listeners).
+     */
+    onAxisUpdate?(this: void): void;
+    onAxisLayout?(this: void): void;
+    onScaleChange?(this: void): void;
+    onGridChange?(this: void): void;
+}
+
 export interface SeriesPluginModuleInstance extends ModuleInstance {
     pickNodeExact(point: Point): PickNodeDatumResult;
     pickNodeNearest(point: Point): PickNodeDatumResult;
@@ -100,11 +116,17 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<Modul
     processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
 }
 
-export interface AxisModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.Axis, TOptions> {
+export interface AxisModuleDefinition<TOptions, TInstance extends ModuleInstance = ModuleInstance>
+    extends ModuleDefinition<ModuleType.Axis, TOptions, TInstance> {
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
+
+    create(this: void, ctx: DynamicContext<any>, id: AxisID, options: AxisCreateOptions<TOptions>): TInstance;
 }
+
+/** The post-theme-merge options shape passed to {@link AxisModuleDefinition.create}. */
+export type AxisCreateOptions<TOptions> = Normalised<TOptions>;
 
 export interface SeriesModuleDefinition<TOptions>
     extends ModuleDefinition<ModuleType.Series, TOptions, SeriesModuleInstance> {
@@ -135,7 +157,8 @@ export interface PluginModuleDefinition<TOptions, TRegistry = unknown>
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
 
-export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<ModuleType.AxisPlugin, TOptions> {
+export interface AxisPluginModuleDefinition<TOptions>
+    extends ModuleDefinition<ModuleType.AxisPlugin, TOptions, AxisPluginModuleInstance> {
     readonly chartType?: string;
     readonly axisTypes?: string[];
 }

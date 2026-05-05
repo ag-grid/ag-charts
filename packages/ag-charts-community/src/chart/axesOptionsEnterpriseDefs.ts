@@ -61,6 +61,12 @@ export const angleNumberAxisOptionsDefs: OptionsDefs<AgAngleNumberAxisOptions> =
     },
 };
 
+// Theme template pins `axis.options.shape = 'circle'` for angle-number axes; the
+// runtime override returns `'circle'` regardless. The validator must accept the
+// theme-emitted value even though `shape` is absent from `AgAngleNumberAxisOptions`.
+// @ts-expect-error theme-emitted, not user-facing
+angleNumberAxisOptionsDefs.shape = union('polygon', 'circle');
+
 export const angleCategoryAxisOptionsDefs: OptionsDefs<AgAngleCategoryAxisOptions> = {
     ...commonAxisOptionsDefs,
     type: constant('angle-category'),
@@ -124,3 +130,9 @@ export const radiusCategoryAxisOptionsDefs: OptionsDefs<AgRadiusCategoryAxisOpti
         'cross-line options'
     ),
 };
+
+// Theme template pins `axis.options.shape = 'circle'` for radius-category axes; the
+// runtime override returns `'circle'` regardless. The validator must accept the
+// theme-emitted value even though `shape` is absent from `AgRadiusCategoryAxisOptions`.
+// @ts-expect-error theme-emitted, not user-facing
+radiusCategoryAxisOptionsDefs.shape = union('polygon', 'circle');

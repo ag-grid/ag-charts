@@ -1,6 +1,6 @@
 import { type FormatterParams, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusNumberAxisOptions } from 'ag-charts-core';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
@@ -12,31 +12,29 @@ interface TickDatum {
     translation: number;
 }
 
-export class RadiusNumberAxis extends RadiusAxis {
+export class RadiusNumberAxis extends RadiusAxis<
+    _ModuleSupport.LinearScale,
+    number,
+    NormalisedRadiusNumberAxisOptions
+> {
     static readonly className = 'RadiusNumberAxis';
     static readonly type = 'radius-number' as const;
 
-    override shape: 'polygon' | 'circle' = 'polygon';
-
-    @Property
-    min?: number;
-
-    @Property
-    max?: number;
-
-    @Property
-    preferredMin?: number;
-
-    @Property
-    preferredMax?: number;
-
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super(moduleCtx, new LinearScale());
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedRadiusNumberAxisOptions
+    ) {
+        super(moduleCtx, id, new LinearScale(), options);
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
+    }
+
+    protected override getLabelFormat() {
+        return this.options.label.format;
     }
 
     protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
@@ -55,7 +53,7 @@ export class RadiusNumberAxis extends RadiusAxis {
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,
@@ -70,7 +68,7 @@ export class RadiusNumberAxis extends RadiusAxis {
     }
 
     override getDomainExtentsNice(): [boolean, boolean] {
-        return [this.min == null && this.nice, this.max == null && this.nice];
+        return [this.options.min == null && this.nice, this.options.max == null && this.nice];
     }
 
     override tickFormatParams(

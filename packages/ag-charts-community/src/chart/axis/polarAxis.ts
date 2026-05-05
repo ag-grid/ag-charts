@@ -1,9 +1,7 @@
-import type { Scale } from 'ag-charts-core';
-import { ChartAxisDirection, Property } from 'ag-charts-core';
+import type { NormalisedBasePolarAxisOptions, Scale } from 'ag-charts-core';
 
+import type { AxisContext, PolarAxisLayout } from '../../module/axisContext';
 import type { BBox } from '../../scene/bbox';
-import type { ChartAxisLabelFlipFlag } from '../chartAxis';
-import type { PolarCrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
 import { resetAxisLabelSelectionFn } from './axisUtil';
@@ -21,15 +19,30 @@ export interface PolarAxisPathPoint {
 export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
-> extends Axis<S, D> {
+    TOptions extends NormalisedBasePolarAxisOptions = NormalisedBasePolarAxisOptions,
+> extends Axis<S, D, any, TOptions> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
-    @Property
-    shape: 'polygon' | 'circle' = 'polygon';
+    get shape(): 'polygon' | 'circle' {
+        return this.options.shape;
+    }
 
-    @Property
-    innerRadiusRatio: number = 0;
+    /**
+     * `innerRadiusRatio` is user-facing on radius axes only. The polar chart
+     * copies the radius axis's value onto the angle axis at layout time
+     * (`polarChart.updateAxes`), so we keep an instance-level setter; reads
+     * fall back to `options.innerRadiusRatio` if no override has been written.
+     */
+    private _innerRadiusRatio?: number;
+
+    get innerRadiusRatio(): number {
+        return this._innerRadiusRatio ?? this.options.innerRadiusRatio ?? 0;
+    }
+
+    set innerRadiusRatio(value: number) {
+        this._innerRadiusRatio = value;
+    }
 
     override defaultTickMinSpacing = 20;
 
@@ -38,23 +51,23 @@ export abstract class PolarAxis<
     override update() {
         super.update();
 
-        this.tickLineGroup.visible = this.tick.enabled;
-        this.tickLabelGroup.visible = this.label.enabled;
+        this.tickLineGroup.visible = this.options.tick.enabled;
+        this.tickLabelGroup.visible = this.options.label.enabled;
     }
 
-    layoutCrossLines() {
-        const sideFlag = this.label.getSideFlag();
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-
-        for (const crossLine of this.crossLines as PolarCrossLine[]) {
-            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
-            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.Angle : ChartAxisDirection.Radius;
-            crossLine.parallelFlipRotation = parallelFlipRotation;
-            crossLine.regularFlipRotation = regularFlipRotation;
-            crossLine.calculateLayout?.(crosslinesVisible, this.reverse);
-        }
+    override createAxisContext(): AxisContext {
+        const ctx = super.createAxisContext();
+        ctx.getPolarLayout = () => this.computePolarLayout();
+        return ctx;
     }
+
+    /**
+     * Builds the polar-layout snapshot exposed via {@link AxisContext.getPolarLayout}. Each
+     * concrete polar-axis subclass projects its own outer/inner radius (the angle axis derives
+     * radii from `gridLength`; the radius axis from `range`) and supplies the per-axis-type
+     * extras (`ticks` for angle axes, `gridAngles` for radius axes).
+     */
+    protected abstract computePolarLayout(): PolarAxisLayout;
 
     override updatePosition(): void {
         super.updatePosition();
@@ -67,15 +80,6 @@ export abstract class PolarAxis<
 
         this.tickLabelGroup.translationX = translationX;
         this.tickLabelGroup.translationY = translationY;
-
-        this.crossLineRangeGroup.translationX = translationX;
-        this.crossLineRangeGroup.translationY = translationY;
-
-        this.crossLineLineGroup.translationX = translationX;
-        this.crossLineLineGroup.translationY = translationY;
-
-        this.crossLineLabelGroup.translationX = translationX;
-        this.crossLineLabelGroup.translationY = translationY;
 
         this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn());
     }

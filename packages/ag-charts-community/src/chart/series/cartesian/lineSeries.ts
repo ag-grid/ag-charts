@@ -71,9 +71,9 @@ import {
     prepareLinePathAnimation,
 } from './lineUtil';
 import {
+    cartesianMarkerDrawMode,
     computeMarkerFocusBounds,
     getMarkerStyles,
-    markerEnabled,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     resetMarkerFn,
@@ -107,6 +107,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     override properties = new LineSeriesProperties();
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
+    private hideWithSize0 = false;
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -404,7 +405,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             yCumulativeValues: dataModel.resolveColumnById(this, this.yCumulativeKey(processedData), processedData),
             selectionValues: this.properties.selectedKey
                 ? dataModel.resolveColumnById(this, 'selectedRaw', processedData)
-                : this.data?.selections?.get(this.id)?.getSelection(),
+                : undefined,
             xScale,
             yScale,
             xOffset: (xScale.bandwidth ?? 0) / 2,
@@ -663,11 +664,9 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker } = properties;
 
-        const markersEnabled =
-            contextNodeData?.crossFiltering === true ||
-            markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, marker);
-
-        nodeData = markersEnabled ? nodeData : [];
+        const markerDrawMode = cartesianMarkerDrawMode(properties, contextNodeData, processedData!, axes, marker);
+        this.hideWithSize0 = markerDrawMode.hideWithSize0;
+        nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
         if (marker.isDirty()) {
             datumSelection.clear();
@@ -685,6 +684,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
     }) {
+        const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
 
@@ -705,7 +705,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     marker,
                     datum,
                     params,
-                    { isHighlight, highlightState },
+                    { isHighlight, highlightState, hideWithSize0 },
                     stylerStyle.marker,
                     {
                         stroke,

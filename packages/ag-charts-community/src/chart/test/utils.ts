@@ -187,6 +187,86 @@ export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
 
+/**
+ * Get the tooltip DOM element rendered for `chart`, or `null` if the tooltip has not been
+ * attached. Scoped to the chart's container so concurrent charts in the same test environment
+ * don't interfere.
+ */
+export function getTooltipElement(chart: Chart): Element | null {
+    return chart.container?.querySelector('.ag-charts-tooltip') ?? null;
+}
+
+/**
+ * Returns whether the tooltip is currently presented (visible). Checks the DOM
+ * attribute the tooltip layer toggles, rather than reaching into chart internals.
+ */
+export function isTooltipVisible(chart: Chart): boolean {
+    return getTooltipElement(chart)?.hasAttribute('data-presented-as-popover') ?? false;
+}
+
+/**
+ * Assert that `series.getTooltipContent` returns `undefined` for every datum the predicate flags
+ * as missing, and a defined result for at least one non-missing datum. Consolidates the recurring
+ * `data.map(...).filter(i => i >= 0)` + per-index `expect` block used across colour-scale series
+ * tests.
+ *
+ * `indexFor` adapts the datum index to the series-specific shape: a plain number for cartesian /
+ * heatmap / map-marker, a path tuple for hierarchy series.
+ */
+export function assertTooltipSuppressedForMissing<T, K>(
+    series: { getTooltipContent(index: K): unknown },
+    data: readonly T[],
+    missingPredicate: (datum: T) => boolean,
+    indexFor: (i: number, datum: T) => K
+): void {
+    const missing: K[] = [];
+    let presentIndex = -1;
+    for (let i = 0; i < data.length; i++) {
+        const datum = data[i];
+        if (missingPredicate(datum)) {
+            missing.push(indexFor(i, datum));
+        } else if (presentIndex === -1) {
+            presentIndex = i;
+        }
+    }
+    expect(missing.length).toBeGreaterThan(0);
+    expect(presentIndex).toBeGreaterThanOrEqual(0);
+    for (const k of missing) {
+        expect(series.getTooltipContent(k)).toBeUndefined();
+    }
+    expect(series.getTooltipContent(indexFor(presentIndex, data[presentIndex]))).toBeDefined();
+}
+
+/**
+ * Tier-2 colour-scale series (treemap leaves, sunburst, map-line, map-marker, scatter, bubble)
+ * keep the tooltip on missing-colour datums — the shape, label and geometry exist independently
+ * of colour, so the mark stays queryable. Asserts defined tooltips for both missing and present
+ * datums.
+ */
+export function assertTooltipPresentForAll<T, K>(
+    series: { getTooltipContent(index: K): unknown },
+    data: readonly T[],
+    missingPredicate: (datum: T) => boolean,
+    indexFor: (i: number, datum: T) => K
+): void {
+    const missing: K[] = [];
+    let presentIndex = -1;
+    for (let i = 0; i < data.length; i++) {
+        const datum = data[i];
+        if (missingPredicate(datum)) {
+            missing.push(indexFor(i, datum));
+        } else if (presentIndex === -1) {
+            presentIndex = i;
+        }
+    }
+    expect(missing.length).toBeGreaterThan(0);
+    expect(presentIndex).toBeGreaterThanOrEqual(0);
+    for (const k of missing) {
+        expect(series.getTooltipContent(k)).toBeDefined();
+    }
+    expect(series.getTooltipContent(indexFor(presentIndex, data[presentIndex]))).toBeDefined();
+}
+
 export function range(start: number, end: number, step = 1): number[] {
     const result = new Array(Math.floor((end - start) / step));
 

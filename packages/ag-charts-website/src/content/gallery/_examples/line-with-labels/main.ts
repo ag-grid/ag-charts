@@ -3,7 +3,7 @@ import {
     AgCharts,
     BandHighlightModule,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -11,7 +11,13 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, BandHighlightModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    CategoryAxisModule,
+    CrossLinesModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {

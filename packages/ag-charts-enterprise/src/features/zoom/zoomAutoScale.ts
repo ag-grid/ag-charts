@@ -197,11 +197,11 @@ export class ZoomAutoScaler {
         }
 
         // We could avoid the loop if both these are set, but it's not worth the complexity
-        if (isFiniteNumber(yAxis.min)) {
+        if (isFiniteNumber(yAxis.options?.min)) {
             min = 0;
         }
 
-        if (isFiniteNumber(yAxis.max)) {
+        if (isFiniteNumber(yAxis.options?.max)) {
             max = 1;
         }
 

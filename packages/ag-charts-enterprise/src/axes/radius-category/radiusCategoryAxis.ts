@@ -1,29 +1,36 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { Property, ProxyPropertyOnWrite } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedRadiusCategoryAxisOptions } from 'ag-charts-core';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
 const { CategoryScale } = _ModuleSupport;
-export class RadiusCategoryAxis extends RadiusAxis {
+export class RadiusCategoryAxis extends RadiusAxis<
+    _ModuleSupport.BandScale<string | object>,
+    string | object,
+    NormalisedRadiusCategoryAxisOptions
+> {
     static readonly className = 'RadiusCategoryAxis';
     static readonly type = 'radius-category' as const;
 
-    override shape = 'circle' as const;
+    override get shape(): 'circle' {
+        return 'circle';
+    }
 
-    @Property
-    groupPaddingInner: number = 0;
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedRadiusCategoryAxisOptions
+    ) {
+        super(moduleCtx, id, new CategoryScale(), options);
+    }
 
-    @ProxyPropertyOnWrite('scale', 'paddingInner')
-    @Property
-    paddingInner: number = 0;
-
-    @ProxyPropertyOnWrite('scale', 'paddingOuter')
-    @Property
-    paddingOuter: number = 0;
-
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super(moduleCtx, new CategoryScale());
+    protected override updateScale(): void {
+        super.updateScale();
+        // Propagate padding options to the underlying band scale.
+        if (CategoryScale.is(this.scale)) {
+            this.scale.paddingInner = this.options.paddingInner;
+            this.scale.paddingOuter = this.options.paddingOuter;
+        }
     }
 
     override hasDefinedDomain(): boolean {

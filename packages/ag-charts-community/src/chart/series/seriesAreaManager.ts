@@ -718,7 +718,7 @@ export class SeriesAreaManager extends BaseManager {
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.chart.hasPgUpPgDownSupport()) return;
         if (!this.onNav(widgetEvent)) return;
-        const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
+        const reverse: boolean = this.focus.series?.axes.x?.options.reverse === true;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
     }
 
@@ -1266,7 +1266,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private showTooltip(datum: PickedNode, canvasX: number, canvasY: number, pagination?: TooltipPaginationState) {
         const tooltipContent = this.getTooltipContent(datum, 'tooltip');
-        const shouldUpdateTooltip = tooltipContent != null;
+        const shouldUpdateTooltip = tooltipContent != null && tooltipContent.length > 0;
         if (shouldUpdateTooltip) {
             const { series } = datum;
             const meta = TooltipManager.makeTooltipMeta(

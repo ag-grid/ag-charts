@@ -13,6 +13,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     TREEMAP_SERIES_LABELS,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     extractImageData,
@@ -555,14 +556,15 @@ describe('TreemapSeries', () => {
         });
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const data = [
+                { name: 'A', valuation: 100, change: 3 },
+                { name: 'B', valuation: 80, change: null },
+                { name: 'C', valuation: 60 },
+                { name: 'D', valuation: 40, change: -4 },
+            ];
             const options: AgChartOptions = {
                 ...TREEMAP_BASE,
-                data: [
-                    { name: 'A', valuation: 100, change: 3 },
-                    { name: 'B', valuation: 80, change: null },
-                    { name: 'C', valuation: 60 },
-                    { name: 'D', valuation: 40, change: -4 },
-                ],
+                data,
                 series: [
                     {
                         type: 'treemap',
@@ -580,6 +582,14 @@ describe('TreemapSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+
+            const seriesImpl = chart.series[0] as TreemapSeries;
+            assertTooltipPresentForAll(
+                seriesImpl,
+                data,
+                (d) => d.change == null,
+                (i) => [i]
+            );
         });
 
         it('should render with discrete named stops colorScale', async () => {

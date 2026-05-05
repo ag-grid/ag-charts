@@ -14,6 +14,7 @@ import {
     getPresetModule,
     getSeriesModule,
     hasModule,
+    ifRegistryChanged,
     isEnterprise,
     isIntegrated,
     isModuleType,
@@ -219,6 +220,51 @@ describe('moduleRegistry', () => {
             expect(isModuleType(ModuleType.Series, series)).toBe(true);
             expect(isModuleType(ModuleType.Series, axis)).toBe(false);
             expect(isModuleType(ModuleType.Series, undefined)).toBe(false);
+        });
+    });
+
+    describe('ifRegistryChanged', () => {
+        test('runs the callback the first time and returns the current revision', () => {
+            const callback = jest.fn();
+            const revision = ifRegistryChanged(-1, callback);
+
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(typeof revision).toBe('number');
+        });
+
+        test('skips the callback when the revision is unchanged', () => {
+            const initialRevision = ifRegistryChanged(-1, () => {});
+
+            const callback = jest.fn();
+            const revision = ifRegistryChanged(initialRevision, callback);
+
+            expect(callback).not.toHaveBeenCalled();
+            expect(revision).toBe(initialRevision);
+        });
+
+        test('invalidates after a module is registered', () => {
+            const initialRevision = ifRegistryChanged(-1, () => {});
+
+            register(createSeriesModule('after-cache-module'));
+
+            const callback = jest.fn();
+            const newRevision = ifRegistryChanged(initialRevision, callback);
+
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(newRevision).not.toBe(initialRevision);
+        });
+
+        test('invalidates after reset()', () => {
+            register(createSeriesModule('module-before-reset'));
+            const revisionBeforeReset = ifRegistryChanged(-1, () => {});
+
+            reset();
+
+            const callback = jest.fn();
+            const revisionAfterReset = ifRegistryChanged(revisionBeforeReset, callback);
+
+            expect(callback).toHaveBeenCalledTimes(1);
+            expect(revisionAfterReset).not.toBe(revisionBeforeReset);
         });
     });
 });

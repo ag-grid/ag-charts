@@ -266,8 +266,8 @@ export abstract class RadialColumnSeriesBase<
         let groupPaddingInner = 0;
         let groupPaddingOuter = 0;
         if (angleAxis instanceof AngleCategoryAxis) {
-            groupPaddingInner = angleAxis.groupPaddingInner;
-            groupPaddingOuter = angleAxis.paddingInner;
+            groupPaddingInner = angleAxis.options.groupPaddingInner;
+            groupPaddingOuter = angleAxis.options.paddingInner;
         }
 
         const groupAngleStep = angleScale.bandwidth ?? 0;

@@ -1,7 +1,6 @@
 import { type FormatterParams, _ModuleSupport } from 'ag-charts-community';
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedAngleNumberAxisOptions } from 'ag-charts-core';
 import {
-    Property,
     type ScaleTickParams,
     angleBetween,
     findMinMax,
@@ -11,41 +10,35 @@ import {
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
-import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
+export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale, NormalisedAngleNumberAxisOptions> {
     static readonly className = 'AngleNumberAxis';
     static readonly type = 'angle-number' as const;
 
-    override shape = 'circle' as const;
+    override get shape(): 'circle' {
+        return 'circle';
+    }
 
-    @Property
-    min?: number;
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedAngleNumberAxisOptions
+    ) {
+        super(moduleCtx, id, new LinearAngleScale(), options);
+    }
 
-    @Property
-    max?: number;
-
-    @Property
-    preferredMin?: number;
-
-    @Property
-    preferredMax?: number;
-
-    @Property
-    override interval = new AngleAxisInterval();
-
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
-        super(moduleCtx, new LinearAngleScale());
+    protected override getLabelFormat() {
+        return this.options.label.format;
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,
@@ -60,7 +53,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     override getDomainExtentsNice(): [boolean, boolean] {
-        return [this.min == null && this.nice, this.max == null && this.nice];
+        return [this.options.min == null && this.nice, this.options.max == null && this.nice];
     }
 
     override updateScale(): void {
@@ -81,7 +74,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
 
     protected generateAngleTicks(domain: number[]) {
         const { scale, range: requestedRange, nice } = this;
-        const { values, step, minSpacing, maxSpacing } = this.interval;
+        const { values, step, minSpacing, maxSpacing } = this.options.interval ?? {};
 
         let rawTicks: number[];
         if (values == null) {
@@ -108,7 +101,7 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {
-        const { minSpacing } = this.label;
+        const minSpacing = this.options.label.minSpacing;
 
         const labelsCollide = (prev: AngleAxisLabelDatum, next: AngleAxisLabelDatum) => {
             if (prev.hidden || next.hidden) {

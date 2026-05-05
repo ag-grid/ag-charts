@@ -75,7 +75,7 @@ const {
     Marker,
     BBox,
     processedDataIsAnimatable,
-    markerEnabled,
+    cartesianMarkerDrawMode,
     getMarkerStyles,
     calculateSegments,
     toHighlightString,
@@ -197,6 +197,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
     private readonly aggregationManager = new AggregationManager<RangeAreaSeriesDataAggregationFilter>();
+    private hideWithSize0 = false;
 
     constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super({
@@ -899,9 +900,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const rules: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
         const { low, high } = rules;
 
-        const markersEnabled = markerEnabled(processedData!.input.count, axes[ChartAxisDirection.X]!.scale, {
+        const markerDrawMode = cartesianMarkerDrawMode(properties, undefined, processedData!, axes, {
             enabled: low.marker.enabled || high.marker.enabled,
         });
+        this.hideWithSize0 = markerDrawMode.hideWithSize0;
 
         if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {
             datumSelection.clear();
@@ -909,8 +911,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
 
         let resolvedNodeData: typeof nodeData;
-        if (markersEnabled) {
-            if (low.marker.enabled && high.marker.enabled) {
+        if (markerDrawMode.needsNodeData) {
+            if (markerDrawMode.hideWithSize0 || (low.marker.enabled && high.marker.enabled)) {
                 // All marker enables
                 resolvedNodeData = nodeData;
             } else {
@@ -944,6 +946,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         datumSelection: _ModuleSupport.Selection<RangeAreaMarkerDatum, _ModuleSupport.Marker<RangeAreaMarkerDatum>>;
         isHighlight: boolean;
     }) {
+        const { hideWithSize0 } = this;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
@@ -957,7 +960,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 marker,
                 datum,
                 params,
-                { isHighlight, highlightState, resolveMarkerSubPath: ['item', datum.itemType, 'marker'] },
+                {
+                    isHighlight,
+                    highlightState,
+                    resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
+                    hideWithSize0,
+                },
                 stylerStyle.item[datum.itemType].marker,
                 {
                     fill,
