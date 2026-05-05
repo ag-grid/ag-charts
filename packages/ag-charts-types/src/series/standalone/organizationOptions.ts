@@ -126,6 +126,9 @@ export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
     height?: number;
     width?: number;
     position?: AgOrganizationSeriesOptionsNodeImagePosition;
+    /**
+     * Default: `'circle'`
+     */
     shape?: AgOrganizationSeriesOptionsNodeImageShape;
     spacing?: number;
 }
