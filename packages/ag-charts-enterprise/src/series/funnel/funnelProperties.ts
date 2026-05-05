@@ -13,10 +13,10 @@ import { BaseProperties, Property } from 'ag-charts-core';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const { Label, DropShadow, AbstractBarSeriesProperties, makeSeriesTooltip, AxisLabel } = _ModuleSupport;
+const { Label, DropShadow, AbstractBarSeriesProperties, makeSeriesTooltip, SeriesLabelProperties } = _ModuleSupport;
 class FunnelSeriesLabel extends Label<AgFunnelSeriesLabelFormatterParams> {}
 
-class FunnelSeriesStageLabel extends AxisLabel {
+class FunnelSeriesStageLabel extends SeriesLabelProperties {
     @Property
     placement?: string;
 }

@@ -5,14 +5,20 @@ import {
     BandHighlightModule,
     BarSeriesModule,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { DataType, getData } from './data';
 
-ModuleRegistry.registerModules([BandHighlightModule, BarSeriesModule, CategoryAxisModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    BandHighlightModule,
+    BarSeriesModule,
+    CategoryAxisModule,
+    CrossLinesModule,
+    NumberAxisModule,
+]);
 const data: any[] = getData();
 
 const options: AgChartOptions<DataType> = {

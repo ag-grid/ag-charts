@@ -1,9 +1,14 @@
 import { type AgRadiusNumberAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
-import type { AxisModuleDefinition } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedRadiusNumberAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 
 import { RadiusNumberAxis } from './radiusNumberAxis';
 
-export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOptions> = {
+export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOptions, RadiusNumberAxis> = {
     type: 'axis',
     name: 'radius-number',
     chartType: 'polar',
@@ -11,12 +16,18 @@ export const RadiusNumberAxisModule: AxisModuleDefinition<AgRadiusNumberAxisOpti
     version: VERSION,
 
     options: _ModuleSupport.radiusNumberAxisOptionsDefs,
-    themeTemplate: {
-        positionAngle: 0,
-        line: { enabled: false },
-        shape: { $findFirstSiblingNotOperation: undefined },
-        label: { minSpacing: 5 },
-    },
+    themeTemplate: mergeDefaults(
+        {
+            positionAngle: 0,
+            line: { enabled: false },
+            shape: { $findFirstSiblingNotOperation: ['polygon'] },
+            label: { minSpacing: 5 },
+            title: { spacing: 10 },
+        },
+        _ModuleSupport.titleAxisThemeTemplate,
+        _ModuleSupport.commonAxisThemeTemplate
+    ),
 
-    create: (ctx) => new RadiusNumberAxis(ctx),
+    create: (ctx: DynamicContext<_ModuleSupport.ChartRegistry>, id, options) =>
+        new RadiusNumberAxis(ctx, id, options as NormalisedRadiusNumberAxisOptions),
 };

@@ -44,14 +44,22 @@ import { UnitTimeScale } from '../../scale/unitTimeScale';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { expandLabelPadding } from '../label';
-import type { AxisInterval } from './axisInterval';
 import type { TickInterval } from './axisTick';
 import { NiceMode, type TickDatum } from './axisUtil';
 
 export type AnyTimeInterval = AgTimeInterval | AgTimeIntervalUnit;
 
+export interface AxisIntervalOptions<S> {
+    step?: TickInterval<S>;
+    values?: any[];
+    minSpacing?: number;
+    maxSpacing?: number;
+}
+
 export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum> {
     label: ChartAxisLabel;
+    /** Whether labels render parallel to the axis line. Internal axis state — see I2. */
+    parallel?: boolean;
     scale: TScale;
     domain: TDatum[];
     range: [number, number];
@@ -64,7 +72,7 @@ export interface GenerateTicksOptions<TScale extends Scale<TDatum, number, TickI
     labelOffset: number;
     sideFlag: ChartAxisLabelFlipFlag;
     primaryLabel?: ChartAxisLabel;
-    interval: AxisInterval<TScale>;
+    interval: AxisIntervalOptions<TScale> | undefined;
     minimumTimeGranularity?: AgTimeIntervalUnit;
     sizeLimit?: number;
     isVertical?: boolean;
@@ -221,7 +229,7 @@ export function formatTicks<S extends Scale<D, number, TickInterval<S>>, D>(
             maxWidth,
             maxHeight,
             overflow: label.truncate ? 'ellipsis' : 'hide',
-            textWrap: label.wrapping,
+            textWrap: label.wrapping ?? 'never',
         };
 
         for (let i = 0; i < rawTicks.length; i++) {
@@ -582,7 +590,7 @@ function labelSpecifier(
     if (typeof format === 'string') {
         return format;
     } else if (isPlainObject(format) && timeInterval != null) {
-        return format[intervalUnit(timeInterval)];
+        return (format as Record<string, string>)[intervalUnit(timeInterval)];
     }
 }
 

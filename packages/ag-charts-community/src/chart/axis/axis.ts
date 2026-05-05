@@ -1,20 +1,22 @@
 import type {
     AxisID,
+    AxisPluginModuleInstance,
     Callback,
     CallbackParam,
     ChartAnimationPhase,
     DomainWithMetadata,
     DynamicContext,
+    Normalised,
+    NormalisedAxisTickOptions,
+    NormalisedBaseAxisLabelOptions,
+    NormalisedBaseAxisOptions,
     Point,
-    RequireOptional,
     Scale,
 } from 'ag-charts-core';
 import {
     ChartAxisDirection,
     ChartUpdateType,
     CleanupRegistry,
-    ObserveChanges,
-    Property,
     WeakCache,
     ZIndexMap,
     callWithContext,
@@ -28,6 +30,7 @@ import {
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
+    AgTimeAxisFormattableLabelUnitFormat,
     AgTimeInterval,
     AgTimeIntervalUnit,
     AnyFormatterSource,
@@ -53,17 +56,13 @@ import { type TextBoxingProperties, type TextSizeProperties, TransformableText }
 import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
+import { Caption } from '../caption';
 import type { AxisGroups, ChartAxis, ChartLayout, FormatDatumParams } from '../chartAxis';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import { FormatManager } from '../formatter/formatManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
-import { AxisGridLine } from './axisGridLine';
-import { AxisInterval } from './axisInterval';
-import { AxisLabel } from './axisLabel';
-import { AxisLine } from './axisLine';
-import { AxisTick, type TickInterval } from './axisTick';
-import { AxisTitle } from './axisTitle';
+import { type AxisLabelFormatterCache, createAxisLabelFormatterCache, formatAxisLabelValue } from './axisLabelUtil';
+import type { TickInterval } from './axisTick';
 import { type AxisGroupDatumTranslation, NiceMode } from './axisUtil';
 import type { AnyTimeInterval } from './generateTicksUtils';
 
@@ -84,7 +83,6 @@ export interface LabelNodeDatum extends TextSizeProperties, TextBoxingProperties
 
 export enum AxisGroupZIndexMap {
     TickLines,
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     AxisLine,
     TickLabels,
 }
@@ -176,58 +174,61 @@ export abstract class Axis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
     TickLayoutMeta = any,
-> implements ChartAxis
+    TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions,
+> implements ChartAxis<TOptions>
 {
     static readonly defaultTickMinSpacing = 50;
 
-    protected static CrossLineConstructor: new () => CrossLine<any> = CartesianCrossLine;
+    readonly id: AxisID = 'unknown' as AxisID;
 
-    id: AxisID = 'unknown' as AxisID;
+    /**
+     * User pass-through option for callback resolution. Declared via `declare`
+     * (not initialised) so the property is absent on instances that did not
+     * receive a `context` option — `callbackCache.maybeSetContext` relies on
+     * the `'context' in axis` check to decide whether to fall back to the
+     * chartService's context.
+     */
+    declare context?: unknown;
 
-    private _crossLines: CrossLine[] = [];
-    set crossLines(value: CrossLine[]) {
-        const { CrossLineConstructor } = this.constructor as typeof Axis;
-        for (const crossLine of this._crossLines) {
-            this.detachCrossLine(crossLine);
-        }
-        this._crossLines = value.map((crossLine) => {
-            const instance = new CrossLineConstructor();
-            instance.set(crossLine);
-            return instance;
-        });
-        for (const crossLine of this._crossLines) {
-            this.attachCrossLine(crossLine);
-            this.initCrossLine(crossLine);
-        }
-    }
-    get crossLines() {
-        return this._crossLines;
-    }
-
-    // user pass-through option: no validation required.
-    context?: unknown;
-
-    @Property
+    /**
+     * `nice` is user-facing only on continuous axis types (`AgContinuousAxisOptions`),
+     * but every axis subclass reads it (e.g. via `getDomainExtentsNice`). Treated as
+     * an internal axis-instance field initialised from `options.nice` in the base
+     * constructor; mini-chart and `CategoryAxis` mutate it directly.
+     */
     nice: boolean = true;
 
-    /** Reverse the axis scale domain. */
-    @Property
-    reverse: boolean = false;
+    options: TOptions;
 
-    @Property
-    readonly interval = new AxisInterval();
+    /**
+     * Internal axis state derived from `position` (cartesian) or layout direction
+     * (gradient-legend). Not user-facing — absent from `ag-charts-types`. See I2.
+     */
+    mirrored: boolean = false;
+    parallel: boolean = false;
 
     dataDomain: { domain: D[]; clipped: boolean } = { domain: [], clipped: false };
     private allowNull = false;
 
-    @Property
-    readonly title = new AxisTitle();
+    readonly caption = new Caption();
 
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
+     * Use {@link setGridLength} to update so the grid-visibility callback fires.
      */
-    @ObserveChanges<Axis>((target, value, oldValue) => target.onGridLengthChange(value, oldValue))
-    gridLength: number = 0;
+    private _gridLength: number = 0;
+
+    get gridLength(): number {
+        return this._gridLength;
+    }
+
+    set gridLength(value: number) {
+        const previous = this._gridLength;
+        this._gridLength = value;
+        if (previous !== value) {
+            this.onGridLengthChange(value, previous);
+        }
+    }
 
     /**
      * The distance between the grid ticks and the axis ticks.
@@ -245,14 +246,37 @@ export abstract class Axis<
 
     abstract get direction(): ChartAxisDirection;
 
-    layoutConstraints: ChartAxis['layoutConstraints'] = {
+    /**
+     * Backing field for {@link layoutConstraints}. Mutated in-place by the
+     * `requiredRange` setter on {@link CategoryAxis}. Subclasses (notably
+     * `CategoryAxis`) may override the getter to project `bandAlignment` onto
+     * `align` without changing the stored object.
+     */
+    protected _layoutConstraints: ChartAxis['layoutConstraints'] = {
         stacked: true,
         align: 'justify',
         width: 100,
         unit: 'percent',
     };
 
-    requiredRange?: number;
+    get layoutConstraints(): ChartAxis['layoutConstraints'] {
+        return this._layoutConstraints;
+    }
+
+    /**
+     * Backing field for the `requiredRange` accessor. Subclasses (notably
+     * `CategoryAxis`) override the setter to react to changes; the base
+     * implementation just stores the value.
+     */
+    protected _requiredRange?: number;
+
+    get requiredRange(): number | undefined {
+        return this._requiredRange;
+    }
+
+    set requiredRange(value: number | undefined) {
+        this._requiredRange = value;
+    }
 
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[] = [];
     includeInvisibleDomains: boolean = false;
@@ -283,16 +307,23 @@ export abstract class Axis<
     protected readonly gridFillGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridFills` }));
     protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
 
-    protected readonly crossLineRangeGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Range`,
+    /**
+     * Three z-index-ordered overlay container groups attached to the chart-level overlay zones
+     * via {@link attachAxis}. Plugins (currently only the cross-lines plugin) anchor their per-axis
+     * scene-graph contributions into these groups via {@link AxisContext.attachAxisOverlay}, which
+     * keeps overlay rendering scoped to the axis's host chart (main chart vs navigator mini-chart)
+     * without the axis itself knowing what gets drawn.
+     */
+    private readonly overlayLowGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-Low`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
     });
-    protected readonly crossLineLineGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Line`,
+    private readonly overlayMidGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-Mid`,
         zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
     });
-    protected readonly crossLineLabelGroup = new TransformableGroup<never>({
-        name: `${this.id}-CrossLines-Label`,
+    private readonly overlayHighGroup = new TransformableGroup<never>({
+        name: `${this.id}-Overlay-High`,
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
@@ -302,16 +333,36 @@ export abstract class Axis<
         false
     );
 
-    readonly line = new AxisLine();
-    readonly tick = new AxisTick();
-    readonly gridLine = new AxisGridLine();
-    readonly label = this.createLabel();
+    protected readonly formatterCache: AxisLabelFormatterCache = createAxisLabelFormatterCache();
 
-    protected get primaryLabel(): AxisLabel | undefined {
+    protected get primaryLabel():
+        | (NormalisedBaseAxisLabelOptions & {
+              format?: string | Record<string, string> | AgTimeAxisFormattableLabelUnitFormat;
+          })
+        | undefined {
         return undefined;
     }
 
-    protected get primaryTick(): AxisTick | undefined {
+    protected get primaryTick(): NormalisedAxisTickOptions | undefined {
+        return undefined;
+    }
+
+    /**
+     * Returns the user-supplied label `format` specifier, or `undefined` if the axis's
+     * label type does not carry one. Only formattable label subtypes (numeric, time,
+     * formattable angle) declare `format` in `ag-charts-types`; per invariant I2 it is
+     * not part of the base label type. Subclasses with format-bearing labels override
+     * this hook; the base default is `undefined`.
+     */
+    protected getLabelFormat(): string | Record<string, string> | undefined {
+        return undefined;
+    }
+
+    /**
+     * Sibling of {@link getLabelFormat} for {@link primaryLabel}, used by axes with a
+     * parent-level label tier (time-like axes). Default is `undefined`.
+     */
+    protected getPrimaryLabelFormat(): string | Record<string, string> | undefined {
         return undefined;
     }
 
@@ -326,8 +377,8 @@ export abstract class Axis<
     protected readonly layout: Pick<AxisLayout, 'label'> & Partial<Pick<AxisLayout, 'labelThickness' | 'scrollbar'>> = {
         label: {
             fractionDigits: 0,
-            spacing: this.label.spacing,
-            format: this.label.format,
+            spacing: 5,
+            format: undefined,
         },
         labelThickness: 0,
     };
@@ -339,16 +390,47 @@ export abstract class Axis<
 
     constructor(
         protected readonly moduleCtx: DynamicContext<ChartRegistry>,
-        readonly scale: S
+        id: AxisID,
+        readonly scale: S,
+        options: TOptions
     ) {
-        this.range = this.scale.range.slice() as [number, number];
-        for (const crossLine of this.crossLines) {
-            this.initCrossLine(crossLine);
+        this.id = id;
+        this.options = options;
+        // Only assign `context` when the user supplied one — a missing key
+        // must leave the property absent so `'context' in axis` returns
+        // `false` and chart-level context can fall through. See the field
+        // declaration above.
+        const userContext = (options as { context?: unknown }).context;
+        if (userContext !== undefined) {
+            this.context = userContext;
         }
+        this.syncOptionDerivedState(options);
+        this.range = this.scale.range.slice() as [number, number];
         this.cleanup.register(
             this.moduleCtx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             this.moduleCtx.widgets.containerWidget.addListener('mouseleave', () => this.endHovering())
         );
+    }
+
+    /**
+     * Replace the axis options reference and re-derive any constructor-time
+     * fields that depend on options. Called by `Chart.applyAxes` on the
+     * matching-types update path so reactive `chart.update()` invocations
+     * pick up changes to fields like `nice` and `layoutConstraints` instead
+     * of using values frozen at axis construction.
+     */
+    applyOptions(options: TOptions): void {
+        this.options = options;
+        this.syncOptionDerivedState(options);
+    }
+
+    private syncOptionDerivedState(options: TOptions): void {
+        this.nice = (options as { nice?: boolean }).nice ?? true;
+        const userLayoutConstraints = (options as { layoutConstraints?: Partial<ChartAxis['layoutConstraints']> })
+            .layoutConstraints;
+        if (userLayoutConstraints) {
+            this._layoutConstraints = { ...this._layoutConstraints, ...userLayoutConstraints };
+        }
     }
 
     resetAnimation(_phase: ChartAnimationPhase) {
@@ -384,18 +466,6 @@ export abstract class Axis<
         }
     }
 
-    private attachCrossLine(crossLine: CrossLine) {
-        this.crossLineRangeGroup.appendChild(crossLine.rangeGroup);
-        this.crossLineLineGroup.appendChild(crossLine.lineGroup);
-        this.crossLineLabelGroup.appendChild(crossLine.labelGroup);
-    }
-
-    private detachCrossLine(crossLine: CrossLine) {
-        crossLine.rangeGroup.remove();
-        crossLine.lineGroup.remove();
-        crossLine.labelGroup.remove();
-    }
-
     destroy() {
         this.moduleMap.destroy();
         this.moduleContext?.destroy();
@@ -412,38 +482,26 @@ export abstract class Axis<
     }
 
     protected updateScale() {
-        const {
-            range: [r0, r1],
-        } = this;
-
         this.setScaleRange(this.visibleRange);
-        for (const crossLine of this.crossLines) {
-            crossLine.clippedRange = [r0, r1];
-        }
-    }
-
-    setCrossLinesVisible(visible: boolean) {
-        this.crossLineRangeGroup.visible = visible;
-        this.crossLineLineGroup.visible = visible;
-        this.crossLineLabelGroup.visible = visible;
+        this.notifyAxisPlugins('onScaleChange');
     }
 
     attachAxis(groups: AxisGroups) {
         groups.gridNode.appendChild(this.gridGroup);
         groups.axisNode.appendChild(this.axisGroup);
         groups.labelNode.appendChild(this.labelGroup);
-        groups.crossLineRangeNode.appendChild(this.crossLineRangeGroup);
-        groups.crossLineLineNode.appendChild(this.crossLineLineGroup);
-        groups.crossLineLabelNode.appendChild(this.crossLineLabelGroup);
+        groups.overlayLowNode.appendChild(this.overlayLowGroup);
+        groups.overlayMidNode.appendChild(this.overlayMidGroup);
+        groups.overlayHighNode.appendChild(this.overlayHighGroup);
     }
 
     detachAxis() {
         this.gridGroup.remove();
         this.axisGroup.remove();
         this.labelGroup.remove();
-        this.crossLineRangeGroup.remove();
-        this.crossLineLineGroup.remove();
-        this.crossLineLabelGroup.remove();
+        this.overlayLowGroup.remove();
+        this.overlayMidGroup.remove();
+        this.overlayHighGroup.remove();
     }
 
     attachLabel(axisLabelNode: Node) {
@@ -483,16 +541,10 @@ export abstract class Axis<
         if (prevValue ^ value) {
             this.onGridVisibilityChange();
         }
-        for (const crossLine of this.crossLines) {
-            this.initCrossLine(crossLine);
-        }
+        this.notifyAxisPlugins('onGridChange');
     }
 
     protected onGridVisibilityChange() {}
-
-    protected createLabel() {
-        return new AxisLabel();
-    }
 
     /**
      * Creates/removes/updates the scene graph nodes that constitute the axis.
@@ -503,16 +555,16 @@ export abstract class Axis<
         this.updatePosition();
         this.updateSelections();
 
-        this.gridLineGroup.visible = this.gridLine.enabled;
+        this.gridLineGroup.visible = this.options.gridLine.enabled;
 
         this.updateLabels();
-        this.updateCrossLines();
+        this.notifyAxisPlugins('onAxisUpdate');
     }
 
     protected getLabelStyles(
         params: { value: number; formattedValue: TextOrSegments | undefined; depth?: number },
         additionalStyles?: AgBaseAxisLabelStyleOptions,
-        label: AxisLabel = this.label
+        label: NormalisedBaseAxisLabelOptions = this.options.label
     ) {
         const defaultStyle = {
             border: label.border,
@@ -526,7 +578,7 @@ export abstract class Axis<
             fontWeight: label.fontWeight,
             padding: label.padding,
             spacing: label.spacing,
-        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
+        } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
             stylerOutput = this.cachedCallWithContext(label.itemStyler, {
@@ -547,14 +599,14 @@ export abstract class Axis<
             fontWeight: merged.fontWeight,
             padding: merged.padding,
             spacing: merged.spacing,
-        } satisfies RequireOptional<AgBaseAxisLabelStyleOptions>;
+        } satisfies Normalised<AgBaseAxisLabelStyleOptions, 'fontSize' | 'fontFamily' | 'spacing'>;
     }
 
-    protected getTickSize(tick: AxisTick = this.tick) {
+    protected getTickSize(tick: { enabled: boolean; size: number } = this.options.tick) {
         return tick.enabled ? tick.size : 0;
     }
 
-    protected getTickSpacing(tick: AxisTick = this.tick) {
+    protected getTickSpacing(tick: { enabled: boolean } = this.options.tick) {
         if (!tick.enabled) return 0;
 
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
@@ -598,7 +650,7 @@ export abstract class Axis<
             return v == null;
         });
 
-        if (this.reverse) {
+        if (this.options.reverse) {
             this.dataDomain = { ...this.dataDomain, domain: this.dataDomain.domain.toReversed() };
         }
 
@@ -730,11 +782,11 @@ export abstract class Axis<
         this.tickLayout = tickLayout.layout;
         this.layout.label = {
             fractionDigits: fractionDigits,
-            spacing: this.label.spacing,
-            format: this.label.format,
+            spacing: this.options.label.spacing,
+            format: this.getLabelFormat(),
         };
 
-        this.layoutCrossLines();
+        this.notifyAxisPlugins('onAxisLayout');
 
         return { primaryTickCount, bbox };
     }
@@ -750,8 +802,6 @@ export abstract class Axis<
         if (!scrollbar?.enabled) return 'none';
         return `${scrollbar.placement}:${scrollbar.spacing}:${scrollbar.thickness}:${scrollbar.tickSpacing}`;
     }
-
-    abstract layoutCrossLines(): void;
 
     abstract calculateTickLayout(
         domain: D[],
@@ -770,23 +820,31 @@ export abstract class Axis<
 
     abstract hasDefinedDomain(): boolean;
 
-    protected updateCrossLines() {
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        for (const crossLine of this.crossLines) {
-            crossLine.gridPadding = this.gridPadding;
-            crossLine.update(crosslinesVisible);
-        }
-    }
-
     protected updatePosition() {
-        const { crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup, gridGroup, translation } = this;
+        const { gridGroup, overlayLowGroup, overlayMidGroup, overlayHighGroup, translation } = this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
         gridGroup.setProperties({ translationX, translationY });
-        crossLineRangeGroup.setProperties({ translationX, translationY });
-        crossLineLineGroup.setProperties({ translationX, translationY });
-        crossLineLabelGroup.setProperties({ translationX, translationY });
+        overlayLowGroup.setProperties({ translationX, translationY });
+        overlayMidGroup.setProperties({ translationX, translationY });
+        overlayHighGroup.setProperties({ translationX, translationY });
+    }
+
+    private getOverlayGroup(slot: 'low' | 'mid' | 'high'): TransformableGroup<never> {
+        if (slot === 'low') return this.overlayLowGroup;
+        if (slot === 'mid') return this.overlayMidGroup;
+        return this.overlayHighGroup;
+    }
+
+    /**
+     * Generic dispatch that fans an axis-lifecycle phase out to every {@link AxisPluginModuleInstance}
+     * registered in the module map. Plugins read whatever live state they need from {@link AxisContext}.
+     */
+    protected notifyAxisPlugins(method: 'onAxisUpdate' | 'onAxisLayout' | 'onScaleChange' | 'onGridChange') {
+        for (const module of this.moduleMap.modules()) {
+            (module as Partial<AxisPluginModuleInstance>)[method]?.();
+        }
     }
 
     protected abstract updateSelections(): void;
@@ -817,7 +875,8 @@ export abstract class Axis<
         inputTimeInterval?: AgTimeInterval | AgTimeIntervalUnit,
         dateStyle: DateFormatterStyle = 'long'
     ): (value: any, index: number) => TextOrSegments {
-        const { moduleCtx, label } = this;
+        const { moduleCtx } = this;
+        const label = this.options.label;
         const { formatManager } = moduleCtx;
         const primaryLabel = primary ? this.primaryLabel : undefined;
 
@@ -850,24 +909,30 @@ export abstract class Axis<
         };
 
         const currentLabel = primaryLabel ?? label;
-        const specifier = primary ? label.format : undefined;
+        const labelFormat = this.getLabelFormat();
+        const specifier = primary ? labelFormat : undefined;
 
         // Allow null formatting if the domain contains null values (implies allowNullKeys was set on a series)
         const { allowNull } = this;
 
         const options = {
-            specifier: FormatManager.mergeSpecifiers(primaryLabel?.format, label.format),
+            specifier: FormatManager.mergeSpecifiers(this.getPrimaryLabelFormat(), labelFormat),
             truncateDate,
             allowNull,
         };
 
+        const formatterCache = this.formatterCache;
         return (value: any, index: number): TextOrSegments => {
             const formatParams = this.datumFormatParams(value, params, fractionDigits, timeInterval, dateStyle);
             // For time axis, the datum is aligned. However, for ticks, we don't want to align the datum.
             formatParams.value = value;
 
             return (
-                currentLabel.formatValue(f, formatParams, index, { specifier, dateStyle, truncateDate }) ??
+                formatAxisLabelValue(currentLabel, formatterCache, f, formatParams, index, {
+                    specifier,
+                    dateStyle,
+                    truncateDate,
+                }) ??
                 formatManager.format(f, formatParams, options) ??
                 formatManager.defaultFormat(formatParams, options)
             );
@@ -969,7 +1034,7 @@ export abstract class Axis<
         const result =
             label?.formatValue(f, type, value, params ?? formatParams) ??
             formatManager.format(f, formatParams, { allowNull }) ??
-            this.label.formatValue(f, formatParams, Number.NaN) ??
+            formatAxisLabelValue(this.options.label, this.formatterCache, f, formatParams, Number.NaN) ??
             formatManager.defaultFormat(formatParams);
 
         return isArray(result) ? result : String(result);
@@ -979,13 +1044,7 @@ export abstract class Axis<
         return this.axisGroup.getBBox();
     }
 
-    private initCrossLine(crossLine: CrossLine) {
-        crossLine.scale = this.scale;
-        crossLine.gridLength = this.gridLength;
-        crossLine.gridPadding = this.gridPadding;
-    }
-
-    protected hasVisibleSeries() {
+    hasVisibleSeries() {
         return this.boundSeries.some((s) => s.isEnabled());
     }
 
@@ -1019,7 +1078,8 @@ export abstract class Axis<
     protected getTitleFormatterParams(domain: D[]) {
         const { direction } = this;
         const boundSeries = this.formatterBoundSeries.get();
-        return { domain, direction, boundSeries, defaultValue: this.title?.text };
+        const title = (this.options as { title?: { text?: string } }).title;
+        return { domain, direction, boundSeries, defaultValue: title?.text };
     }
 
     protected normaliseDataDomain(d: DomainWithMetadata<D>): { domain: D[]; clipped: boolean } {
@@ -1057,17 +1117,41 @@ export abstract class Axis<
 
     createModuleContext(): DynamicContext<ChartAxisRegistry<AxisContext>> {
         this.axisContext ??= this.createAxisContext();
-        this.moduleContext ??= this.moduleCtx.child<{ parent: AxisContext }>().constant('parent', this.axisContext);
+        // `crossLine` is declared on the typed registry but not registered here — it's installed
+        // later by `CrossLinesModule.register` (community-cartesian or enterprise-polar variant)
+        // before the cross-lines plugin's first read. The type just reserves the slot.
+        this.moduleContext ??= this.moduleCtx
+            .child<{ parent: AxisContext; crossLine: CrossLine }>()
+            .constant('parent', this.axisContext);
         return this.moduleContext;
     }
 
     createAxisContext(): AxisContext {
+        const axis = this;
         const { scale } = this;
         return {
             axisId: this.id,
+            axisType: this.type,
             scale: this.scale,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || DiscreteTimeScale.is(scale),
+            get mirrored() {
+                return axis.mirrored;
+            },
+            get reverse() {
+                return axis.options.reverse;
+            },
+            get gridLength() {
+                return axis.gridLength;
+            },
+            get gridPadding() {
+                return axis.gridPadding;
+            },
+            get range() {
+                return axis.range;
+            },
+            hasDefinedDomain: () => this.hasDefinedDomain(),
+            hasVisibleSeries: () => this.hasVisibleSeries(),
             getCanvasBounds: () => {
                 return Transformable.toCanvas(this.axisGroup);
             },
@@ -1099,6 +1183,7 @@ export abstract class Axis<
                 );
             },
             attachLabel: (node: Node) => this.attachLabel(node),
+            attachAxisOverlay: (group, slot) => this.getOverlayGroup(slot).appendChild(group),
             inRange: (value, tolerance) => this.inRange(value, tolerance),
             getRangeOverflow: (value) => this.getRangeOverflow(value),
             pickBand: (point) => this.pickBand(point),
@@ -1132,7 +1217,7 @@ export abstract class Axis<
     }
 
     isReversed() {
-        return this.reverse;
+        return this.options.reverse;
     }
 
     protected cachedCallWithContext<F extends Callback>(fn: F, params: CallbackParam<F>): ReturnType<F> | undefined {

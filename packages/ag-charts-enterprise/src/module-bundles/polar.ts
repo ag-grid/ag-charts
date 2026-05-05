@@ -3,6 +3,7 @@ import type { ModuleDefinition } from 'ag-charts-core';
 
 import { AngleCategoryAxisModule } from '../axes/angle-category/angleCategoryAxisModule';
 import { AngleNumberAxisModule } from '../axes/angle-number/angleNumberAxisModule';
+import { CrossLinesModule } from '../axes/polar-crosslines/crossLinesModule';
 import { RadiusCategoryAxisModule } from '../axes/radius-category/radiusCategoryAxisModule';
 import { RadiusNumberAxisModule } from '../axes/radius-number/radiusNumberAxisModule';
 import { AnimationModule } from '../features/animation/animationModule';
@@ -23,6 +24,7 @@ export const AllPolarModule: ModuleDefinition[] = [
     AngleCategoryAxisModule,
     RadiusNumberAxisModule,
     RadiusCategoryAxisModule,
+    CrossLinesModule,
 
     NightingaleSeriesModule,
     RadarAreaSeriesModule,

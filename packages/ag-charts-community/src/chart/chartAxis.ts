@@ -5,6 +5,7 @@ import type {
     ChartUpdateType,
     DomainWithMetadata,
     DynamicContext,
+    NormalisedBaseAxisOptions,
     Padding,
     Scale,
 } from 'ag-charts-core';
@@ -14,6 +15,7 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgCartesianAxisPosition,
     Padding as AgPadding,
+    AgTimeAxisFormattableLabelUnitFormat,
     AgTimeIntervalUnit,
     FormatterParams,
     RichFormatter,
@@ -29,21 +31,10 @@ import type { ModuleMap } from '../module/moduleMap';
 import type { BBox } from '../scene/bbox';
 import type { Group } from '../scene/group';
 import type { AxisPrimaryTickCount } from '../util/secondaryAxisTicks';
-import type { AxisGridLine } from './axis/axisGridLine';
-import type { AxisLine } from './axis/axisLine';
-import type { AxisTick, TickInterval } from './axis/axisTick';
-import type { CrossLine } from './crossline/crossLine';
 import type { ScrollbarLayoutMap } from './layout/layoutManager';
 import type { DatumIndexType, ISeries, ISeriesProperties } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
-
-interface AxisInterval {
-    step?: number | TickInterval<any>;
-    values?: any[];
-    minSpacing?: number;
-    maxSpacing?: number;
-}
 
 interface AxisLayoutConstraints {
     stacked: boolean;
@@ -55,10 +46,17 @@ interface AxisLayoutConstraints {
 export interface AxisGroups {
     axisNode: Group;
     gridNode: Group;
-    crossLineRangeNode: Group;
-    crossLineLineNode: Group;
-    crossLineLabelNode: Group;
     labelNode: Group;
+    /**
+     * Three z-index-ordered overlay slots that follow the axis transform. Used by axis plugins
+     * (currently {@link CrossLinesPlugin}) to render content scoped to the axis area without
+     * the axis itself needing to know what the plugin draws. Slot order, low to high, matches
+     * the previous `crossLine{Range,Line,Label}Node` zones — kept stable so existing z-index
+     * relationships (cross-lines below series labels, etc.) are preserved.
+     */
+    overlayLowNode: Group;
+    overlayMidNode: Group;
+    overlayHighNode: Group;
 }
 
 export type FormatDatumParams = Omit<FormatterParams<any>, 'type' | 'value'>;
@@ -69,7 +67,7 @@ export interface ChartLayout {
     scrollbars?: ScrollbarLayoutMap;
 }
 
-export interface ChartAxis {
+export interface ChartAxis<TOptions extends NormalisedBaseAxisOptions = NormalisedBaseAxisOptions> {
     attachAxis(opts: AxisGroups): void;
     calculateLayout(
         primaryTickCount?: AxisPrimaryTickCount,
@@ -127,36 +125,29 @@ export interface ChartAxis {
     inRange(x: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
-    setCrossLinesVisible(visible: boolean): void;
     processData(): void;
     update(animated?: boolean): void;
+    applyOptions(options: TOptions): void;
     setDomains(...domains: DomainWithMetadata<unknown>[]): void;
     isCategoryLike(): boolean;
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties>[];
-    crossLines?: CrossLine[];
     dataDomain: { domain: any[]; clipped: boolean };
     direction: ChartAxisDirection;
     gridLength: number;
-    gridLine: AxisGridLine;
     gridPadding: number;
     id: AxisID;
     interactionEnabled: boolean;
-    interval: AxisInterval;
-    label: ChartAxisLabel;
     layoutConstraints: AxisLayoutConstraints;
-    line: AxisLine;
     nice: boolean;
+    options: TOptions;
+    mirrored: boolean;
+    parallel: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
     requiredRange?: number;
-    reverse: boolean;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
-    skipNullBars?: boolean;
-    thickness?: number;
-    maxThicknessRatio?: number;
     minimumTimeGranularity?: AgTimeIntervalUnit;
-    tick: AxisTick;
     translation: { x: number; y: number };
     type: string;
     visibleRange: [number, number];
@@ -164,21 +155,17 @@ export interface ChartAxis {
 
 export interface ChartAxisLabel extends TextOptions {
     fontSize: number; // This is required
-    getSideFlag(): ChartAxisLabelFlipFlag;
-    set(props: object): void;
     autoRotate?: boolean;
     autoRotateAngle?: number;
     avoidCollisions: boolean;
-    border: { enabled: boolean; stroke?: string };
+    border?: { enabled?: boolean; stroke?: string };
     enabled: boolean;
-    format?: string | Record<string, string>;
+    format?: string | Record<string, string> | AgTimeAxisFormattableLabelUnitFormat;
     formatter?: RichFormatter<AgAxisLabelFormatterParams>;
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing?: number;
-    mirrored: boolean;
     spacing: number;
     padding?: AgPadding;
-    parallel: boolean;
     rotation?: number;
     truncate?: boolean;
     wrapping?: TextWrap;

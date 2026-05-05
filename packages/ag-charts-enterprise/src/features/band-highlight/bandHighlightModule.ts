@@ -13,9 +13,13 @@ export const BandHighlightModule: AxisPluginModuleDefinition<AgBandHighlightOpti
 
     themeTemplate: {
         enabled: false,
+        stroke: 'rgb(195, 195, 195)',
         strokeWidth: 0,
+        strokeOpacity: 1,
         lineDash: [],
+        lineDashOffset: 0,
         fill: { $foregroundBackgroundMix: 0.05 },
+        fillOpacity: 1,
     },
 
     create: (ctx) => new BandHighlight(ctx),

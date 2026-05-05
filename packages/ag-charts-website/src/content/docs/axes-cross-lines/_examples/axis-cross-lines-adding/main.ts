@@ -1,9 +1,23 @@
-import { AgChartOptions, AgCharts, LegendModule } from 'ag-charts-community';
-import { CategoryAxisModule, LineSeriesModule, ModuleRegistry, NumberAxisModule } from 'ag-charts-community';
+import {
+    AgChartOptions,
+    AgCharts,
+    CategoryAxisModule,
+    CrossLinesModule,
+    LegendModule,
+    LineSeriesModule,
+    ModuleRegistry,
+    NumberAxisModule,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, LegendModule, LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([
+    CategoryAxisModule,
+    CrossLinesModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+]);
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),

@@ -3,7 +3,7 @@ import {
     AgCharts,
     AngleCategoryAxisModule,
     AnimationModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
@@ -14,6 +14,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AngleCategoryAxisModule,
     AnimationModule,
+    CrossLinesModule,
     NightingaleSeriesModule,
     RadiusNumberAxisModule,
 ]);

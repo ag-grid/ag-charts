@@ -718,7 +718,7 @@ export class SeriesAreaManager extends BaseManager {
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.chart.hasPgUpPgDownSupport()) return;
         if (!this.onNav(widgetEvent)) return;
-        const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
+        const reverse: boolean = this.focus.series?.axes.x?.options.reverse === true;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
     }
 

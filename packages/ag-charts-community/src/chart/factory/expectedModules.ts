@@ -453,6 +453,11 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
 
             {
                 type: 'axis:plugin',
+                name: 'crossLines',
+                moduleId: 'CrossLinesModule',
+            },
+            {
+                type: 'axis:plugin',
                 name: 'crosshair',
                 chartType: 'cartesian',
                 enterprise: true,

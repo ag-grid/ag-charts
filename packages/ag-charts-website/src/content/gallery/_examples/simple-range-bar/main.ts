@@ -3,7 +3,7 @@ import {
     AgCharts,
     AnimationModule,
     BandHighlightModule,
-    ContextMenuModule,
+    CrossLinesModule,
     ModuleRegistry,
     NumberAxisModule,
     OrdinalTimeAxisModule,
@@ -15,6 +15,7 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     AnimationModule,
     BandHighlightModule,
+    CrossLinesModule,
     NumberAxisModule,
     OrdinalTimeAxisModule,
     RangeBarSeriesModule,

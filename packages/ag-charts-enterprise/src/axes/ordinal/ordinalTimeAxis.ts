@@ -6,8 +6,9 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
+    type AxisID,
     type DynamicContext,
-    Property,
+    type NormalisedOrdinalTimeAxisOptions,
     dateTruncationForDomain,
     intervalEpoch,
     intervalMilliseconds,
@@ -17,35 +18,46 @@ import {
     lowestGranularityUnitForValue,
 } from 'ag-charts-core';
 
-const {
-    OrdinalTimeScale,
-    ApproximateOrdinalTimeScale,
-    APPROXIMATE_THRESHOLD,
-    TimeAxisParentLevel,
-    minimumTimeAxisDatumGranularity,
-} = _ModuleSupport;
+const { OrdinalTimeScale, ApproximateOrdinalTimeScale, APPROXIMATE_THRESHOLD, minimumTimeAxisDatumGranularity } =
+    _ModuleSupport;
 
-export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<_ModuleSupport.OrdinalTimeScale> {
+export class OrdinalTimeAxis extends _ModuleSupport.DiscreteTimeAxis<
+    _ModuleSupport.OrdinalTimeScale,
+    NormalisedOrdinalTimeAxisOptions
+> {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
-
-    @Property
-    readonly parentLevel = new TimeAxisParentLevel();
 
     private readonly accurateScale: _ModuleSupport.OrdinalTimeScale;
     private readonly approximateScale: _ModuleSupport.ApproximateOrdinalTimeScale;
 
-    override get primaryLabel(): _ModuleSupport.AxisLabel | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    override get primaryLabel() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.label : undefined;
     }
 
-    override get primaryTick(): _ModuleSupport.AxisTick | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    override get primaryTick() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.tick : undefined;
     }
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+    protected override getLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.options.label.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    protected override getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.primaryLabel?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    constructor(
+        moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>,
+        id: AxisID,
+        options: NormalisedOrdinalTimeAxisOptions
+    ) {
         const accurateScale = new OrdinalTimeScale();
-        super(moduleCtx, accurateScale);
+        super(moduleCtx, id, accurateScale, options);
         this.accurateScale = accurateScale;
         this.approximateScale = new ApproximateOrdinalTimeScale();
 

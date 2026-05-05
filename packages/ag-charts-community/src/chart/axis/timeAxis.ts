@@ -1,9 +1,11 @@
-import type { ChartAxisDirection, DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type {
+    AxisID,
+    ChartAxisDirection,
+    DomainWithMetadata,
+    DynamicContext,
+    NormalisedTimeAxisOptions,
+} from 'ag-charts-core';
 import {
-    BaseProperties,
-    Logger,
-    Property,
-    ProxyPropertyOnWrite,
     dateTruncationForDomain,
     intervalEpoch,
     intervalFloor,
@@ -22,58 +24,24 @@ import { TimeScale } from '../../scale/timeScale';
 import type { FormatDatumParams } from '../chartAxis';
 import type { DatumIndexType, ISeries, ISeriesProperties } from '../series/seriesTypes';
 import type { AxisTickFormatParams } from './axis';
-import { AxisLabel } from './axisLabel';
-import { AxisTick } from './axisTick';
 import { CartesianAxis } from './cartesianAxis';
 
-export class TimeAxisParentLevel extends BaseProperties {
-    @Property
-    enabled = false;
+type TimeBound = Date | number | undefined;
 
-    @Property
-    readonly label = new AxisLabel();
-
-    @Property
-    readonly tick = new AxisTick();
-}
-
-export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
+export class TimeAxis<TOptions extends NormalisedTimeAxisOptions = NormalisedTimeAxisOptions> extends CartesianAxis<
+    TimeScale,
+    number | Date,
+    TOptions
+> {
     static readonly className = 'TimeAxis';
     static readonly type = 'time' as const;
 
-    @Property
-    readonly parentLevel = new TimeAxisParentLevel();
-
-    @Property
-    min?: Date | number = undefined;
-
-    @Property
-    max?: Date | number = undefined;
-
-    @Property
-    preferredMin?: Date | number = undefined;
-
-    @Property
-    preferredMax?: Date | number = undefined;
-
-    // eslint-disable-next-line sonarjs/use-type-alias
-    get _unit(): AgTimeInterval | AgTimeIntervalUnit | undefined {
-        return undefined;
-    }
-    set _unit(_unit: AgTimeInterval | AgTimeIntervalUnit | undefined) {
-        Logger.warnOnce(`To use 'unit', use an axis with type 'unit-time' instead of 'time'.`);
-    }
-
-    @Property
-    @ProxyPropertyOnWrite('_unit')
-    unit: AgTimeInterval | AgTimeIntervalUnit | undefined;
-
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new TimeScale());
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: TOptions) {
+        super(moduleCtx, id, new TimeScale(), options);
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
@@ -81,29 +49,40 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         return false;
     }
 
-    override get primaryLabel(): AxisLabel | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.label : undefined;
+    override get primaryLabel() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.label : undefined;
     }
 
-    override get primaryTick(): AxisTick | undefined {
-        return this.parentLevel.enabled ? this.parentLevel.tick : undefined;
+    protected override getLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.options.label.format;
+        // `AgTimeAxisFormattableLabelUnitFormat` is structurally a partial record of
+        // unit → format-string. Coerce here for compatibility with `AxisLayout` and
+        // `FormatManager` which both type the value as `Record<string, string>`.
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    protected override getPrimaryLabelFormat(): string | Record<string, string> | undefined {
+        const format = this.primaryLabel?.format;
+        return typeof format === 'object' ? (format as Record<string, string>) : format;
+    }
+
+    override get primaryTick() {
+        const parentLevel = this.options.parentLevel;
+        return parentLevel?.enabled ? parentLevel.tick : undefined;
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<Date>) {
-        const { extent, clipped } = normalisedTimeExtentWithMetadata(
-            d,
-            this.min,
-            this.max,
-            this.preferredMin,
-            this.preferredMax
-        );
+        const { min, max, preferredMin, preferredMax } = this.options;
+        const { extent, clipped } = normalisedTimeExtentWithMetadata(d, min, max, preferredMin, preferredMax);
         return { domain: extent, clipped };
     }
 
     override processData(): void {
         super.processData();
 
-        const { boundSeries, direction, min, max } = this;
+        const { boundSeries, direction } = this;
+        const { min, max } = this.options;
         this.minimumTimeGranularity = minimumTimeAxisDatumGranularity(boundSeries, direction, min, max);
     }
 
@@ -171,9 +150,8 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
 export function minimumTimeAxisDatumGranularity(
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
-    // eslint-disable-next-line sonarjs/use-type-alias
-    min: Date | number | undefined,
-    max: Date | number | undefined
+    min: TimeBound,
+    max: TimeBound
 ) {
     const minTimeInterval = boundSeries.reduce((t, series) => {
         return Math.min(series.minTimeInterval() ?? Infinity, t);
@@ -189,8 +167,8 @@ export function minimumTimeAxisDatumGranularity(
 export function calculateDefaultUnit(
     boundSeries: ISeries<DatumIndexType, unknown, ISeriesProperties, unknown>[],
     direction: ChartAxisDirection,
-    min: Date | number | undefined,
-    max: Date | number | undefined
+    min: TimeBound,
+    max: TimeBound
 ): AgTimeInterval | undefined {
     let start = Infinity;
     let end = -Infinity;

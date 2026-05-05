@@ -1,7 +1,7 @@
 import {
     AgChartOptions,
     AgCharts,
-    ContextMenuModule,
+    CrossLinesModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -12,7 +12,7 @@ import { getData } from './data';
 
 // Notable countries to label
 
-ModuleRegistry.registerModules([ScatterSeriesModule, LegendModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CrossLinesModule, LegendModule, NumberAxisModule, ScatterSeriesModule]);
 const notableCountries = [
     'Singapore',
     'Luxembourg',
