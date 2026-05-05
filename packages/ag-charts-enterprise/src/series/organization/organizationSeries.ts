@@ -20,6 +20,7 @@ import {
     type DynamicContext,
     type Point,
     Vertex,
+    clamp,
     mergeDefaults,
     strictObjectKeys,
 } from 'ag-charts-core';
@@ -321,23 +322,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
 
-            const title = this.formatText(
-                datum.datum.title,
-                this.properties.node.title.formatter,
-                datumIndex,
-                isCollapsed
-            );
+            const fields = this.resolveVertexFields(datum.vertex);
+            const title = this.formatText(fields.title, this.properties.node.title.formatter, datumIndex, isCollapsed);
             const subtitle = this.formatText(
-                datum.datum.subtitle,
+                fields.subtitle,
                 this.properties.node.subtitle.formatter,
                 datumIndex,
                 isCollapsed
             );
-            const labels = datum.datum.labels?.map((label, index) =>
+            const labels = fields.labels?.map((label, index) =>
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
-            node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
+            node.update({ image: fields.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
         });
     }
 
@@ -413,14 +410,143 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         //     return;
         // }
 
-        this.ctx.collapsedManager.expand([id]);
+        if (this.ctx.collapsedManager.expand([id])) {
+            this.markNodeDataDirty();
+        }
     }
 
     collapseItem(itemIdOrIndex: string | number, _point: Point) {
         const id = this.getItemId(itemIdOrIndex);
         if (id == null) return;
 
-        this.ctx.collapsedManager.collapseAppend([id]);
+        if (this.ctx.collapsedManager.collapseAppend([id])) {
+            this.markNodeDataDirty();
+        }
+    }
+
+    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const nodeData = this.contextNodeData?.nodeData;
+        if (!nodeData?.length) return;
+
+        const currentNodeIdx = clamp(0, opts.datumIndex - opts.datumIndexDelta, nodeData.length - 1);
+        const currentVertex = nodeData[currentNodeIdx]?.vertex;
+        if (!currentVertex) return;
+
+        const next = this.resolveFocusVertex(currentVertex, opts.datumIndexDelta, opts.otherIndexDelta);
+        if (!next) return;
+
+        const nextDatumIdx = this.vertexDatumIndex[next.value as string];
+        if (nextDatumIdx == null) return;
+
+        const node = this.datumSelection.at(nextDatumIdx);
+        if (!node) return;
+
+        // Card rect, not the node group's bbox — the group includes the expander pill below.
+        const cardBBox = node.getCardBBox();
+        if (!cardBBox) return;
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
+        if (!bounds?.isFinite()) return;
+
+        const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
+
+        const datum = node.datum;
+        if (!datum) return;
+
+        return {
+            datum,
+            datumIndex: nextDatumIdx,
+            otherIndex: depth,
+            bounds,
+            clipFocusBox: true,
+        };
+    }
+
+    getDatumAriaText(datum: OrganizationDatum, description: string): string | undefined {
+        const { vertex } = datum;
+        const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
+
+        const siblings = this.getSiblings(vertex);
+        const posInSet = siblings.indexOf(vertex) + 1;
+        const setSize = siblings.length;
+
+        const childCount = this.getChildren(vertex).length;
+
+        // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
+        if (childCount === 0) {
+            return this.ctx.localeManager.t('ariaAnnounceOrgChartLeaf', {
+                description,
+                level: depth,
+                posInSet,
+                setSize,
+            });
+        }
+
+        const itemId = vertex.value as string;
+        const collapsedState = this.ctx.localeManager.t(
+            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
+        );
+        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+            description,
+            level: depth,
+            posInSet,
+            setSize,
+            collapsedState,
+        });
+    }
+
+    // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
+    // at the top tier, ArrowDown into a leaf or collapsed node) so focus stays put.
+    private resolveFocusVertex(
+        current: Vertex<OrganizationVertex, OrganizationEdge>,
+        siblingDelta: number,
+        depthDelta: number
+    ): Vertex<OrganizationVertex, OrganizationEdge> | undefined {
+        if (depthDelta > 0) {
+            const itemId = current.value as string;
+            if (this.ctx.collapsedManager.isCollapsed(itemId)) return;
+            return this.getChildren(current)[0];
+        }
+        if (depthDelta < 0) {
+            const parent = this.graph.findNeighbour(current, 'parent') as
+                | Vertex<OrganizationVertex, OrganizationEdge>
+                | undefined;
+            if (!parent) return;
+            // The synthetic root carries no datumIndex — clamp at the top tier.
+            const parentDatumIdx = this.graph.findNeighbourValue(parent, 'datumIndex');
+            if (parentDatumIdx == null) return;
+            return parent;
+        }
+        if (siblingDelta !== 0) {
+            const siblings = this.getSiblings(current);
+            const idx = siblings.indexOf(current);
+            if (idx === -1) return;
+            const next = clamp(0, idx + siblingDelta, siblings.length - 1);
+            return siblings[next];
+        }
+        return current;
+    }
+
+    private getSiblings(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+    ): Vertex<OrganizationVertex, OrganizationEdge>[] {
+        const parent = this.graph.findNeighbour(vertex, 'parent') as
+            | Vertex<OrganizationVertex, OrganizationEdge>
+            | undefined;
+        // Top-tier nodes' parent is the synthetic root; falling back to `getRootVertices()` keeps
+        // the sibling set consistent for ArrowLeft/ArrowRight at the top of the tree.
+        if (parent === this.rootVertex || parent == null) {
+            return this.getRootVertices();
+        }
+        return this.getChildren(parent);
+    }
+
+    private getChildren(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+    ): Vertex<OrganizationVertex, OrganizationEdge>[] {
+        return (
+            (this.graph.neighboursWithEdgeValue(vertex, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
+            []
+        );
     }
 
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): OrganizationDatum | undefined {
@@ -443,7 +569,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return this.formatTooltipWithContext(
             this.properties.tooltip,
-            { heading: nodeDatum.datum.title },
+            { heading: this.resolveVertexFields(nodeDatum.vertex).title },
             {
                 seriesId: this.id,
                 datum: datum,
@@ -551,17 +677,23 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         );
     }
 
+    private resolveVertexFields(vertex: Vertex<OrganizationVertex, OrganizationEdge>) {
+        return {
+            image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
+            title: this.graph.findNeighbourValue(vertex, 'title') as TextOrSegments | undefined,
+            subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as TextOrSegments | undefined,
+            labels: this.graph.findNeighbourValue(vertex, 'labels') as (TextOrSegments | undefined)[] | undefined,
+        };
+    }
+
     private createNodeDatumFromVertex(vertex: Vertex<OrganizationVertex, OrganizationEdge>): OrganizationDatum {
+        const datumIndex = this.graph.findNeighbourValue(vertex, 'datumIndex') as number;
+        const userDatum = this.processedData?.dataSources.get(this.id)?.data?.[datumIndex];
         return {
             series: this,
-            datum: {
-                image: this.graph.findNeighbourValue(vertex, 'image') as string | undefined,
-                title: this.graph.findNeighbourValue(vertex, 'title') as string | undefined,
-                subtitle: this.graph.findNeighbourValue(vertex, 'subtitle') as string | undefined,
-                labels: this.graph.findNeighbourValue(vertex, 'labels') as string[] | undefined,
-            },
+            datum: userDatum,
             itemId: vertex.value as string,
-            datumIndex: this.graph.findNeighbourValue(vertex, 'datumIndex') as number,
+            datumIndex,
             vertex,
         };
     }

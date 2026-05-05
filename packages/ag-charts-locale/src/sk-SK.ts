@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     ariaAnnounceChart: 'graf, ${seriesCount}[number] sérií',
     ariaAnnounceFlowProportionLink: 'odkaz ${index} z ${count}, od ${from} do ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'uzol ${index} z ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, úroveň ${level}[number], ${posInSet}[number] z ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'zbalený',
+    ariaOrgChartExpanded: 'rozbalený',
     ariaAnnounceGaugeChart: 'stupnicový graf, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchický graf, ${caption}',
     ariaAnnounceHierarchyDatum: 'úroveň ${level}[number], ${count}[number] detí, ${description}',

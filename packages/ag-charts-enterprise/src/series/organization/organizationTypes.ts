@@ -8,6 +8,13 @@ import type {
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
 
+export interface OrganizationNodeFields {
+    image?: string;
+    title?: TextOrSegments;
+    subtitle?: TextOrSegments;
+    labels?: (TextOrSegments | undefined)[];
+}
+
 export type OrganizationVertex = string | string[] | number | boolean;
 
 export type OrganizationEdge =
@@ -22,12 +29,9 @@ export type OrganizationEdge =
     | 'labels';
 
 export interface OrganizationDatum extends NetworkDatum<OrganizationVertex, OrganizationEdge> {
-    datum: {
-        image?: string;
-        title?: TextOrSegments;
-        subtitle?: TextOrSegments;
-        labels?: (TextOrSegments | undefined)[];
-    };
+    // The user's source data row — stable across renders so reference-equality
+    // (e.g. HighlightManager) works correctly.
+    datum: unknown;
 }
 
 export type OrganizationLinkDatum = NetworkLinkDatum<OrganizationVertex, OrganizationEdge>;

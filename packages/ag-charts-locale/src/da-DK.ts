@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] serier',
     ariaAnnounceFlowProportionLink: 'link ${index} af ${count}, fra ${from} til ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'node ${index} af ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, niveau ${level}[number], ${posInSet}[number] af ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, niveau ${level}[number], ${posInSet}[number] af ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'skjult',
+    ariaOrgChartExpanded: 'udvidet',
     ariaAnnounceGaugeChart: 'målerdiagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkisk diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'niveau ${level}[number], ${count}[number] børn, ${description}',

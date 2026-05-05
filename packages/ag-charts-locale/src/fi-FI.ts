@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceChart: 'kaavio, ${seriesCount}[number] sarjaa',
     ariaAnnounceFlowProportionLink: 'linkki ${index} / ${count}, lähtien ${from} päättyen ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'solmu ${index} ${count} näkyvissä, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'suljettu',
+    ariaOrgChartExpanded: 'avattu',
     ariaAnnounceGaugeChart: 'mittarikaavio, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkkinen kaavio, ${caption}',
     ariaAnnounceHierarchyDatum: 'taso ${level}[number], ${count}[number] lasta, ${description}',
