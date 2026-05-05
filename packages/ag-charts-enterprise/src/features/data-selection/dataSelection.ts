@@ -258,12 +258,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             let changed = false;
             for (const datum of series.pickNodesInBBox(bbox)) {
-                const datumIndex: unknown = datum.datumIndex;
-                if (typeof datumIndex === 'number') {
-                    changed = true;
-                    setSelected(changes, series, data, datumIndex);
-                } else {
-                    Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                for (const datumIndex of series.iterateAllDatumIndicesForSample(datum.datumIndex)) {
+                    if (typeof datumIndex === 'number') {
+                        changed = true;
+                        setSelected(changes, series, data, datumIndex);
+                    } else {
+                        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                    }
                 }
             }
 

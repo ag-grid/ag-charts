@@ -1035,6 +1035,11 @@ export abstract class Series<
         });
     }
 
+    public iterateAllDatumIndicesForSample(sampleDatumIndex: TDatumIndex): Iterable<TDatumIndex> {
+        // Override point for subclasses with aggregation
+        return [sampleDatumIndex];
+    }
+
     isPointInArea?(x: number, y: number): boolean;
 
     public getLabelData(): (TLabel & PointLabelDatum)[] {
