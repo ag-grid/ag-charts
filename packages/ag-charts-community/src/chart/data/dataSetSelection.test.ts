@@ -181,7 +181,7 @@ describe('DataSetSelection', () => {
 
             // After: [id1, id2]
             expect(getSelectedCount(sel1)).toBe(0);
-            expect(getSelectedCount(sel2)).toEqual([1]); // id2 shifted from idx 2 to idx 1
+            expect(getSelectedIndices(sel2)).toEqual([1]); // id2 shifted from idx 2 to idx 1
         });
     });
 });
@@ -198,7 +198,7 @@ describe('DataSet selection transfer', () => {
 
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
-            expect(getSelectedCount(nextSel!)).toEqual([1]); // C is at index 1 in new data
+            expect(getSelectedIndices(nextSel!)).toEqual([1]); // C is at index 1 in new data
         });
 
         it('should drop stale keys', () => {
