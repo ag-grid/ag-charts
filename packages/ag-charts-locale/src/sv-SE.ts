@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_SV_SE: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'länk ${index} av ${count}, från ${from} till ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nod ${index} av ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, nivå ${level}[number], ${posInSet}[number] av ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'komprimerad',
+    ariaOrgChartExpanded: 'expanderad',
     ariaAnnounceGaugeChart: 'mätargraf, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarkidiagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivå ${level}[number], ${count}[number] barn, ${description}',

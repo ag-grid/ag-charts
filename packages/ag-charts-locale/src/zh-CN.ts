@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaAnnounceFlowProportionLink: '链接 ${index} 总共 ${count}，从 ${from} 到 ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '节点 ${index} 之 ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, 级别 ${level}[number], ${posInSet}[number] 的 ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, 级别 ${level}[number], ${posInSet}[number] 的 ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: '已折叠',
+    ariaOrgChartExpanded: '已展开',
     ariaAnnounceGaugeChart: '仪表盘图表, ${caption}',
     ariaAnnounceHierarchyChart: '层次图表, ${caption}',
     ariaAnnounceHierarchyDatum: '级别 ${level}[number], ${count}[number] 子项, ${description}',

@@ -469,12 +469,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const posInSet = siblings.indexOf(vertex) + 1;
         const setSize = siblings.length;
 
-        const childCount =
-            (
-                this.graph.neighboursWithEdgeValue(vertex, 'child') as
-                    | Vertex<OrganizationVertex, OrganizationEdge>[]
-                    | undefined
-            )?.length ?? 0;
+        const childCount = this.graph.neighboursWithEdgeValue(vertex, 'child')?.length ?? 0;
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
@@ -487,7 +482,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
 
         const itemId = vertex.value as string;
-        const collapsedState = this.ctx.collapsedManager.isCollapsed(itemId) ? 'collapsed' : 'expanded';
+        const collapsedState = this.ctx.localeManager.t(
+            this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
+        );
         return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
             description,
             level: depth,

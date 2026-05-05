@@ -2,15 +2,8 @@ import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-c
 import type { Point } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
-import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
+import type { OrganizationDatum, OrganizationNodeFields, RequiredOrganizationNodeStyle } from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
-
-export interface OrganizationNodeFields {
-    image?: string;
-    title?: TextOrSegments;
-    subtitle?: TextOrSegments;
-    labels?: (TextOrSegments | undefined)[];
-}
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;

@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'σύνδεσμος ${index} από ${count}, από ${from} προς ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'κόμβος ${index} από ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, επίπεδο ${level}[number], ${posInSet}[number] από ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, επίπεδο ${level}[number], ${posInSet}[number] από ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'συμπτυγμένο',
+    ariaOrgChartExpanded: 'αναπτυγμένο',
     ariaAnnounceGaugeChart: 'διάγραμμα δείκτη, ${caption}',
     ariaAnnounceHierarchyChart: 'διάγραμμα ιεραρχίας, ${caption}',
     ariaAnnounceHierarchyDatum: 'επίπεδο ${level}[number], ${count}[number] παιδιά, ${description}',

@@ -22,6 +22,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
         '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'collapsed',
+    ariaOrgChartExpanded: 'expanded',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
     // Screen reader for the '+' horizontal line button on the Y-axis

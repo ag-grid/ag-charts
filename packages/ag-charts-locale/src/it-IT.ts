@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'collegamento ${index} di ${count}, da ${from} a ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodo ${index} di ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, livello ${level}[number], ${posInSet}[number] di ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, livello ${level}[number], ${posInSet}[number] di ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'compresso',
+    ariaOrgChartExpanded: 'espanso',
     ariaAnnounceGaugeChart: 'grafico a tachimetro, ${caption}',
     ariaAnnounceHierarchyChart: 'grafico gerarchico, ${caption}',
     ariaAnnounceHierarchyDatum: 'livello ${level}[number], ${count}[number] figli, ${description}',

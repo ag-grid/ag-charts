@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'посилання ${index} з ${count}, від ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'вузол ${index} з ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'згорнуто',
+    ariaOrgChartExpanded: 'розгорнуто',
     ariaAnnounceGaugeChart: 'діаграма циферблата, ${caption}',
     ariaAnnounceHierarchyChart: 'ієрархічна діаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'рівень ${level}[number], ${count}[number] дочірні, ${description}',

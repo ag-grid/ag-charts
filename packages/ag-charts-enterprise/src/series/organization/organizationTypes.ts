@@ -1,7 +1,19 @@
 import type { DeepRequired } from 'ag-charts-core';
-import type { AgOrganizationSeriesNodeStyle, AgOrganizationSeriesNodeTextStyle, CssColor } from 'ag-charts-types';
+import type {
+    AgOrganizationSeriesNodeStyle,
+    AgOrganizationSeriesNodeTextStyle,
+    CssColor,
+    TextOrSegments,
+} from 'ag-charts-types';
 
 import type { NetworkDatum, NetworkLinkDatum } from '../network/networkSeries';
+
+export interface OrganizationNodeFields {
+    image?: string;
+    title?: TextOrSegments;
+    subtitle?: TextOrSegments;
+    labels?: (TextOrSegments | undefined)[];
+}
 
 export type OrganizationVertex = string | string[] | number | boolean;
 

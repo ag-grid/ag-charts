@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'liên kết ${index} của ${count}, từ ${from} đến ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nút ${index} của ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, cấp độ ${level}[number], ${posInSet}[number] trong ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, cấp độ ${level}[number], ${posInSet}[number] trong ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'đã thu gọn',
+    ariaOrgChartExpanded: 'đã mở rộng',
     ariaAnnounceGaugeChart: 'biểu đồ đồng hồ đo, ${caption}',
     ariaAnnounceHierarchyChart: 'biểu đồ phân cấp, ${caption}',
     ariaAnnounceHierarchyDatum: 'cấp độ ${level}[number], ${count}[number] con, ${description}',

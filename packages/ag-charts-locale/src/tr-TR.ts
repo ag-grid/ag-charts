@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'bağlantı ${index} / ${count}, ${from} - ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'düğüm ${index} / ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'daraltılmış',
+    ariaOrgChartExpanded: 'genişletilmiş',
     ariaAnnounceGaugeChart: 'gösterge grafik, ${caption}',
     ariaAnnounceHierarchyChart: 'hiyerarşi grafiği, ${caption}',
     ariaAnnounceHierarchyDatum: 'seviye ${level}[number], ${count}[number] çocuk, ${description}',

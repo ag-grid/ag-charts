@@ -13,10 +13,12 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     ariaAnnounceFlowProportionLink: 'رابط ${index} من ${count}، من ${from} إلى ${to}، ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'العقدة ${index} من ${count}, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, المستوى ${level}[number], ${posInSet}[number] من ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'مطوي',
+    ariaOrgChartExpanded: 'موسع',
     ariaAnnounceGaugeChart: 'مخطط المقياس، ${caption}',
     ariaAnnounceHierarchyChart: 'مخطط هرمي، ${caption}',
     ariaAnnounceHierarchyDatum: 'المستوى ${level}[number]، ${count}[number] أطفال، ${description}',

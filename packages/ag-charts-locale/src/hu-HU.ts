@@ -14,10 +14,12 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
         'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
     // Screen reader announcement when focusing a leaf node in an Organization chart
-    ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
+    ariaAnnounceOrgChartLeaf: '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, szint ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'összezárt',
+    ariaOrgChartExpanded: 'kinyitott',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchia diagram, ${caption}',
     ariaAnnounceHierarchyDatum: 'szint ${level}[number], ${count}[number] gyermek, ${description}',
