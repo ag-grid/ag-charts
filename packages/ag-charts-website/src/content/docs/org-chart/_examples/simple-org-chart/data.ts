@@ -6,7 +6,7 @@ export function getData() {
             name: 'Ashley Rivers',
             job: 'CEO',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/19.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/19.webp',
         },
         {
             id: 'Deborah Love',
@@ -14,7 +14,7 @@ export function getData() {
             name: 'Deborah Love',
             job: 'CTO',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/23.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/23.webp',
         },
         {
             id: 'Michael Allen',
@@ -22,7 +22,7 @@ export function getData() {
             name: 'Michael Allen',
             job: 'Legal',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/17.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/17.webp',
         },
         {
             id: 'Peggy Williams',
@@ -30,7 +30,7 @@ export function getData() {
             name: 'Peggy Williams',
             job: 'Legal',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/28.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/28.webp',
         },
         {
             id: 'Kristy Zuniga',
@@ -38,7 +38,7 @@ export function getData() {
             name: 'Kristy Zuniga',
             job: 'Legal',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/11.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/11.webp',
         },
         {
             id: 'Lori West',
@@ -46,7 +46,7 @@ export function getData() {
             name: 'Lori West',
             job: 'Legal',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/8.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/8.webp',
         },
         {
             id: 'Evelyn Jones',
@@ -54,7 +54,7 @@ export function getData() {
             name: 'Evelyn Jones',
             job: 'Legal',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/12.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/12.webp',
         },
         {
             id: 'Dawn Smith',
@@ -62,7 +62,7 @@ export function getData() {
             name: 'Dawn Smith',
             job: 'Legal',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/15.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/15.webp',
         },
         {
             id: 'Jeffery Moore',
@@ -70,7 +70,7 @@ export function getData() {
             name: 'Jeffery Moore',
             job: 'Exec. Vice President',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/13.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/13.webp',
         },
         {
             id: 'Christopher Carter',
@@ -78,7 +78,7 @@ export function getData() {
             name: 'Christopher Carter',
             job: 'Legal',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/5.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
             id: 'Jamie Stafford',
@@ -86,7 +86,7 @@ export function getData() {
             name: 'Jamie Stafford',
             job: 'Legal',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/18.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
         },
         {
             id: 'Joseph Howe',
@@ -94,7 +94,7 @@ export function getData() {
             name: 'Joseph Howe',
             job: 'CTO',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/20.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
         },
         {
             id: 'Mr. Jeffrey Brown',
@@ -102,7 +102,7 @@ export function getData() {
             name: 'Mr. Jeffrey Brown',
             job: 'Design',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/22.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/22.webp',
         },
         {
             id: 'Melissa Vazquez',
@@ -110,7 +110,7 @@ export function getData() {
             name: 'Melissa Vazquez',
             job: 'Design',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/2.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/2.webp',
         },
         {
             id: 'John Thomas',
@@ -118,7 +118,7 @@ export function getData() {
             name: 'John Thomas',
             job: 'Design',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/5.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
             id: 'Nicole Jones',
@@ -126,7 +126,7 @@ export function getData() {
             name: 'Nicole Jones',
             job: 'Exec. Vice President',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/29.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/29.webp',
         },
         {
             id: 'James Long',
@@ -134,7 +134,7 @@ export function getData() {
             name: 'James Long',
             job: 'Design',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/25.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/25.webp',
         },
         {
             id: 'Susan Hernandez',
@@ -142,7 +142,7 @@ export function getData() {
             name: 'Susan Hernandez',
             job: 'Design',
             location: 'Ireland',
-            avatar: 'https://ag-grid.com/example/hr/7.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/7.webp',
         },
         {
             id: 'Justin Contreras',
@@ -150,7 +150,7 @@ export function getData() {
             name: 'Justin Contreras',
             job: 'Design',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/10.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/10.webp',
         },
         {
             id: 'Rachel Ibarra',
@@ -158,7 +158,7 @@ export function getData() {
             name: 'Rachel Ibarra',
             job: 'Design',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/2.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/2.webp',
         },
         {
             id: 'John Gomez',
@@ -166,7 +166,7 @@ export function getData() {
             name: 'John Gomez',
             job: 'Design',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/17.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/17.webp',
         },
         {
             id: 'Gary Garcia',
@@ -174,7 +174,7 @@ export function getData() {
             name: 'Gary Garcia',
             job: 'Head of Department',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/18.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
         },
         {
             id: 'Lawrence Martinez',
@@ -182,7 +182,7 @@ export function getData() {
             name: 'Lawrence Martinez',
             job: 'Design',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/33.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
         },
         {
             id: 'Devin Pittman',
@@ -190,7 +190,7 @@ export function getData() {
             name: 'Devin Pittman',
             job: 'Design',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/18.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/18.webp',
         },
         {
             id: 'Emily Barajas',
@@ -198,7 +198,7 @@ export function getData() {
             name: 'Emily Barajas',
             job: 'Design',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/28.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/28.webp',
         },
         {
             id: 'Breanna Ward',
@@ -206,7 +206,7 @@ export function getData() {
             name: 'Breanna Ward',
             job: 'Exec. Vice President',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/14.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/14.webp',
         },
         {
             id: 'Ronald Wright',
@@ -214,7 +214,7 @@ export function getData() {
             name: 'Ronald Wright',
             job: 'Design',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/9.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/9.webp',
         },
         {
             id: 'Kristin Thomas',
@@ -222,7 +222,7 @@ export function getData() {
             name: 'Kristin Thomas',
             job: 'Design',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/19.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/19.webp',
         },
         {
             id: 'Eric Jensen',
@@ -230,7 +230,7 @@ export function getData() {
             name: 'Eric Jensen',
             job: 'Design',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/35.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/35.webp',
         },
         {
             id: 'Michael Morris',
@@ -238,7 +238,7 @@ export function getData() {
             name: 'Michael Morris',
             job: 'Design',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/10.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/10.webp',
         },
         {
             id: 'Jodi Miller',
@@ -246,7 +246,7 @@ export function getData() {
             name: 'Jodi Miller',
             job: 'Design',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/30.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/30.webp',
         },
         {
             id: 'Adrian Conner',
@@ -254,7 +254,7 @@ export function getData() {
             name: 'Adrian Conner',
             job: 'COO',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/17.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/17.webp',
         },
         {
             id: 'Steven Mann',
@@ -262,7 +262,7 @@ export function getData() {
             name: 'Steven Mann',
             job: 'Head of Department',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/5.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
             id: 'Melinda Harrington',
@@ -270,7 +270,7 @@ export function getData() {
             name: 'Melinda Harrington',
             job: 'Exec. Vice President',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/20.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
         },
         {
             id: 'Misty Graves',
@@ -278,7 +278,7 @@ export function getData() {
             name: 'Misty Graves',
             job: 'Product',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/4.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/4.webp',
         },
         {
             id: 'Jill Sullivan',
@@ -286,7 +286,7 @@ export function getData() {
             name: 'Jill Sullivan',
             job: 'Product',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/4.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/4.webp',
         },
         {
             id: 'Rebecca Butler',
@@ -294,7 +294,7 @@ export function getData() {
             name: 'Rebecca Butler',
             job: 'Product',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/7.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/7.webp',
         },
         {
             id: 'Jennifer Jones',
@@ -302,7 +302,7 @@ export function getData() {
             name: 'Jennifer Jones',
             job: 'Product',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/11.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/11.webp',
         },
         {
             id: 'Alan Archer',
@@ -310,7 +310,7 @@ export function getData() {
             name: 'Alan Archer',
             job: 'Product',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/29.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/29.webp',
         },
         {
             id: 'Barbara Alexander',
@@ -318,7 +318,7 @@ export function getData() {
             name: 'Barbara Alexander',
             job: 'Exec. Vice President',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/20.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
         },
         {
             id: 'Andrew Sullivan',
@@ -326,7 +326,7 @@ export function getData() {
             name: 'Andrew Sullivan',
             job: 'Product',
             location: 'Ireland',
-            avatar: 'https://ag-grid.com/example/hr/26.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/26.webp',
         },
         {
             id: 'Christian Klein',
@@ -334,7 +334,7 @@ export function getData() {
             name: 'Christian Klein',
             job: 'Product',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/28.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/28.webp',
         },
         {
             id: 'Cheryl Browning',
@@ -342,7 +342,7 @@ export function getData() {
             name: 'Cheryl Browning',
             job: 'CTO',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/1.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/1.webp',
         },
         {
             id: 'Deborah Morales',
@@ -350,7 +350,7 @@ export function getData() {
             name: 'Deborah Morales',
             job: 'Customer Support',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/24.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/24.webp',
         },
         {
             id: 'Ian Kramer',
@@ -358,7 +358,7 @@ export function getData() {
             name: 'Ian Kramer',
             job: 'Customer Support',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/33.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
         },
         {
             id: 'Amy Rojas',
@@ -366,7 +366,7 @@ export function getData() {
             name: 'Amy Rojas',
             job: 'Customer Support',
             location: 'Netherlands',
-            avatar: 'https://ag-grid.com/example/hr/20.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/20.webp',
         },
         {
             id: 'Shawn Hendrix',
@@ -374,7 +374,7 @@ export function getData() {
             name: 'Shawn Hendrix',
             job: 'Exec. Vice President',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/35.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/35.webp',
         },
         {
             id: 'Aaron Hull',
@@ -382,7 +382,7 @@ export function getData() {
             name: 'Aaron Hull',
             job: 'Customer Support',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/22.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/22.webp',
         },
         {
             id: 'Dr. Janice Rice',
@@ -390,7 +390,7 @@ export function getData() {
             name: 'Dr. Janice Rice',
             job: 'Customer Support',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/24.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/24.webp',
         },
         {
             id: 'Bryan Hawkins',
@@ -398,7 +398,7 @@ export function getData() {
             name: 'Bryan Hawkins',
             job: 'Customer Support',
             location: 'Ireland',
-            avatar: 'https://ag-grid.com/example/hr/26.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/26.webp',
         },
         {
             id: 'Gregory Walker',
@@ -406,7 +406,7 @@ export function getData() {
             name: 'Gregory Walker',
             job: 'Customer Support',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/22.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/22.webp',
         },
         {
             id: 'Chris Bruce',
@@ -414,7 +414,7 @@ export function getData() {
             name: 'Chris Bruce',
             job: 'Customer Support',
             location: 'France',
-            avatar: 'https://ag-grid.com/example/hr/5.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
             id: 'Clayton Conway',
@@ -422,7 +422,7 @@ export function getData() {
             name: 'Clayton Conway',
             job: 'Head of Department',
             location: 'Spain',
-            avatar: 'https://ag-grid.com/example/hr/33.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
         },
         {
             id: 'Shelby Jenkins',
@@ -430,7 +430,7 @@ export function getData() {
             name: 'Shelby Jenkins',
             job: 'Customer Support',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/27.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/27.webp',
         },
         {
             id: 'Vincent Martin',
@@ -438,7 +438,7 @@ export function getData() {
             name: 'Vincent Martin',
             job: 'Customer Support',
             location: 'United Kingdom',
-            avatar: 'https://ag-grid.com/example/hr/5.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/5.webp',
         },
         {
             id: 'Devon Bradley',
@@ -446,7 +446,7 @@ export function getData() {
             name: 'Devon Bradley',
             job: 'Customer Support',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/29.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/29.webp',
         },
         {
             id: 'Andrew Ford',
@@ -454,7 +454,7 @@ export function getData() {
             name: 'Andrew Ford',
             job: 'Customer Support',
             location: 'Ireland',
-            avatar: 'https://ag-grid.com/example/hr/25.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/25.webp',
         },
         {
             id: 'Bradley Johnson',
@@ -462,7 +462,7 @@ export function getData() {
             name: 'Bradley Johnson',
             job: 'Customer Support',
             location: 'United States',
-            avatar: 'https://ag-grid.com/example/hr/9.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/9.webp',
         },
         {
             id: 'Matthew Jones',
@@ -470,7 +470,7 @@ export function getData() {
             name: 'Matthew Jones',
             job: 'Customer Support',
             location: 'Portugal',
-            avatar: 'https://ag-grid.com/example/hr/33.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/33.webp',
         },
         {
             id: 'Jonathan Green',
@@ -478,7 +478,7 @@ export function getData() {
             name: 'Jonathan Green',
             job: 'Customer Support',
             location: 'Italy',
-            avatar: 'https://ag-grid.com/example/hr/35.webp',
+            avatar: '${baseWWWUrl}/example-assets/docs-images/hr/35.webp',
         },
     ];
 }
