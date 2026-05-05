@@ -988,6 +988,40 @@ describe('OrganizationSeries', () => {
                 });
             });
 
+            it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
+                // Regression: prior to AG-17243 the optionsGraph auto-enable pass
+                // overwrote a styler's `enabled: false` back to `true`, so collapse-driven
+                // hiding of a text tier was silently ignored.
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: { collapsed: ['cto'] },
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                subtitle: {
+                                    key: 'job',
+                                    itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                        isCollapsed ? { enabled: false } : undefined,
+                                },
+                                labels: [
+                                    {
+                                        key: 'location',
+                                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                            isCollapsed ? { enabled: false } : undefined,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
                 // The styler flips fill on `isCollapsed`; snapshotting after each toggle
                 // catches a stale-cache regression where `isCollapsed` is omitted from the key.
