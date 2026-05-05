@@ -469,7 +469,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const posInSet = siblings.indexOf(vertex) + 1;
         const setSize = siblings.length;
 
-        const childCount = this.graph.neighboursWithEdgeValue(vertex, 'child')?.length ?? 0;
+        const childCount = this.getChildren(vertex).length;
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
@@ -504,10 +504,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (depthDelta > 0) {
             const itemId = current.value as string;
             if (this.ctx.collapsedManager.isCollapsed(itemId)) return;
-            const children = this.graph.neighboursWithEdgeValue(current, 'child') as
-                | Vertex<OrganizationVertex, OrganizationEdge>[]
-                | undefined;
-            return children?.[0];
+            return this.getChildren(current)[0];
         }
         if (depthDelta < 0) {
             const parent = this.graph.findNeighbour(current, 'parent') as
@@ -540,8 +537,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (parent === this.rootVertex || parent == null) {
             return this.getRootVertices();
         }
+        return this.getChildren(parent);
+    }
+
+    private getChildren(
+        vertex: Vertex<OrganizationVertex, OrganizationEdge>
+    ): Vertex<OrganizationVertex, OrganizationEdge>[] {
         return (
-            (this.graph.neighboursWithEdgeValue(parent, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
+            (this.graph.neighboursWithEdgeValue(vertex, 'child') as Vertex<OrganizationVertex, OrganizationEdge>[]) ??
             []
         );
     }
