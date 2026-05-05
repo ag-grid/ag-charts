@@ -108,10 +108,20 @@ export function setSelected(changes: Changes, series: Series, data: DataSet, dat
     selections.select(datumIndex);
 }
 
-export function setSelectedRange(changes: Changes, series: Series, data: DataSet, start: number, end: number): void {
+export function setSelectedRange(
+    changes: Changes,
+    series: Series,
+    data: DataSet,
+    assumeZeroInitialised: boolean,
+    start: number,
+    end: number
+): void {
     const selection = data.enableSelection(series.id);
+    changes.countDelta += end - start;
+    if (!assumeZeroInitialised) {
+        changes.countDelta -= selection.countRange(start, end);
+    }
     selection.selectRange(start, end);
-    changes.countDelta += end - start; // TODO: incorrect - need to substract the current count within this range
 }
 
 export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {

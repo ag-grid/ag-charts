@@ -284,7 +284,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
 
             for (const interval of intervalSet.values()) {
-                setSelectedRange(changes, series, data, interval.start, interval.end);
+                setSelectedRange(changes, series, data, shouldClearSelections, interval.start, interval.end);
             }
 
             if (changed) {
