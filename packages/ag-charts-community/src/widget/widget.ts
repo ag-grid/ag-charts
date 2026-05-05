@@ -160,6 +160,17 @@ export abstract class Widget<
         setElementStyle(this.elem, 'pointer-events', pointerEvents);
     }
 
+    setTouchAction(touchAction: BaseStyleTypeMap['touch-action'] | undefined) {
+        // jsdom's CSSOM does not recognise `touch-action`, so `style.setProperty('touch-action', …)`
+        // is silently dropped — assigning the camelCase property covers both production browsers
+        // and the test environment.
+        if (touchAction == null) {
+            this.elem.style.touchAction = '';
+        } else {
+            this.elem.style.touchAction = touchAction;
+        }
+    }
+
     setCSSVariable(key: `--${string}`, value: string | null) {
         this.elem.style.setProperty(key, value);
     }
