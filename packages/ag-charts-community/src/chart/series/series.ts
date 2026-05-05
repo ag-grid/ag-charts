@@ -1035,7 +1035,7 @@ export abstract class Series<
         });
     }
 
-    public getRangeOfAggregateIndex(sampleDatumIndex: TDatumIndex): undefined | [TDatumIndex, TDatumIndex] {
+    public getRangeOfAggregateIndex(_sampleDatumIndex: TDatumIndex): undefined | [TDatumIndex, TDatumIndex] {
         // Override point for subclasses with aggregation
         return undefined;
     }
