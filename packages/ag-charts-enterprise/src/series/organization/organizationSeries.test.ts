@@ -561,6 +561,41 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         } as any,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
+        // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
+        // verifies the param reaches the formatter callback for all three text tiers.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} (collapsed)` : value,
+                        },
+                        subtitle: {
+                            key: 'job',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} +` : value,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                    isCollapsed ? `${value} *` : value,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     EXPANDER_HEIGHT_SHORT: {
         // Layout reserves and renders the pill at exactly the configured height; verifies all
         // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink

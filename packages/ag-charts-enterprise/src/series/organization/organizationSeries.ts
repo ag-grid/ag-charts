@@ -195,10 +195,20 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 descendantsCount > 0 && datum.itemId != null && this.ctx.collapsedManager.isCollapsed(datum.itemId);
             const styles = this.getNodeStyle(datumIndex, depth, isHighlight, highlightState, isCollapsed);
 
-            const title = this.formatText(datum.datum.title, this.properties.node.title.formatter, datumIndex);
-            const subtitle = this.formatText(datum.datum.subtitle, this.properties.node.subtitle.formatter, datumIndex);
+            const title = this.formatText(
+                datum.datum.title,
+                this.properties.node.title.formatter,
+                datumIndex,
+                isCollapsed
+            );
+            const subtitle = this.formatText(
+                datum.datum.subtitle,
+                this.properties.node.subtitle.formatter,
+                datumIndex,
+                isCollapsed
+            );
             const labels = datum.datum.labels?.map((label, index) =>
-                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex)
+                this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
             node.update({ image: datum.datum.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
@@ -401,7 +411,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     private formatText(
         text: TextOrSegments | undefined,
         formatter: Formatter<AgOrganizationNodeTextFormatterParams> | undefined,
-        datumIndex: number | undefined
+        datumIndex: number | undefined,
+        isCollapsed: boolean
     ) {
         const { dataModel, processedData } = this;
         if (!formatter || !dataModel || !processedData || datumIndex == null) return text;
@@ -409,7 +420,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         return (
             this.callWithContext(
                 formatter,
-                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, text)
+                this.makeNodeTextFormatterParams(dataModel, processedData, datumIndex, isCollapsed, text)
             ) ?? text
         );
     }
@@ -740,6 +751,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         _dataModel: NonNullable<typeof this.dataModel>,
         processedData: NonNullable<typeof this.processedData>,
         datumIndex: number,
+        isCollapsed: boolean,
         value: any
     ): AgOrganizationNodeTextFormatterParams<unknown, unknown> {
         const { id: seriesId } = this;
@@ -748,6 +760,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         return {
             datum,
+            isCollapsed,
             seriesId,
             value,
         } satisfies CallbackParamRules<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
