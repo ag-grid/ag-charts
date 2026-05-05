@@ -22,6 +22,12 @@ const options: AgChartOptions = {
             idKey: 'id',
             parentIdKey: 'parentId',
             node: {
+                image: {
+                    key: 'avatar',
+                    height: 50,
+                    width: 50,
+                    position: 'left',
+                },
                 title: {
                     key: 'name',
                 },
