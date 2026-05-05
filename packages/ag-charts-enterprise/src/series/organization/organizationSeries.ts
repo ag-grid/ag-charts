@@ -12,7 +12,17 @@ import {
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { type CallbackParamRules, type DeepRequired, type Point, Vertex, mergeDefaults } from 'ag-charts-core';
+import {
+    type AxisID,
+    type CallbackParamRules,
+    ChartAxisDirection,
+    type DeepRequired,
+    type DynamicContext,
+    type Point,
+    Vertex,
+    mergeDefaults,
+    strictObjectKeys,
+} from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
 import { AbstractNetworkSeries, type NetworkSeriesDatumIndex } from '../network/networkSeries';
@@ -32,6 +42,16 @@ import type {
 
 const { keyProperty, valueProperty } = _ModuleSupport;
 
+const ISOTROPY_EPSILON = 1e-6;
+
+// Keeps `[mid - range/2, mid + range/2]` inside `[0, 1]`.
+function clampMid(mid: number, range: number): number {
+    const half = range / 2;
+    if (mid - half < 0) return half;
+    if (mid + half > 1) return 1 - half;
+    return mid;
+}
+
 export class OrganizationSeries extends AbstractNetworkSeries<
     OrganizationVertex,
     OrganizationEdge,
@@ -47,6 +67,11 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     override properties = new OrganizationSeriesProperties();
 
     private rootVertex?: Vertex<OrganizationVertex, OrganizationEdge>;
+
+    constructor(ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
+        super(ctx);
+        this.cleanup.register(ctx.eventsHub.on('zoom:change-request', (event) => this.onZoomChangeRequest(event)));
+    }
 
     createNetworkGraph() {
         return new OrganizationGraph();
@@ -84,6 +109,107 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         this.linkGroup.translationX = offset.x;
         this.linkGroup.translationY = offset.y;
+    }
+
+    // Order matters: `applyNativePixelFloor` reads the post-clamp window mutated in-place by
+    // `applyPanBoundaryClamp`.
+    private onZoomChangeRequest(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        if (event.isReset) return;
+        this.applyPanBoundaryClamp(event);
+        this.applyNativePixelFloor(event);
+    }
+
+    // AG-17204: keep some of the zoom window inside `[0, 1]` so content stays visible.
+    private applyPanBoundaryClamp(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const clamped: _ModuleSupport.CoreZoomState = {};
+        let didClamp = false;
+
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+
+            const { min, max, direction } = entry;
+            const size = max - min;
+
+            let clampedMin = min;
+            let clampedMax = max;
+
+            if (min >= 1) {
+                clampedMax = 1;
+                clampedMin = 1 - size;
+                didClamp = true;
+            } else if (max <= 0) {
+                clampedMin = 0;
+                clampedMax = size;
+                didClamp = true;
+            }
+
+            // CoreZoomState wants the enum, not 'x'/'y' literals (runtime-equivalent).
+            const coreDirection = direction === 'x' ? ChartAxisDirection.X : ChartAxisDirection.Y;
+            clamped[id] = { min: clampedMin, max: clampedMax, direction: coreDirection };
+        }
+
+        if (didClamp) {
+            event.constrainChanges(clamped);
+        }
+    }
+
+    // Caps scale at native pixels (`s ≤ 1`) and projects off-isotropic states onto the
+    // isotropic line `xRange/fitX = yRange/fitY` — less-zoomed axis wins, preserving content.
+    private applyNativePixelFloor(event: _ModuleSupport.ZoomChangeRequestEvent) {
+        const sMax = 1;
+        const { seriesRect } = this;
+        const contentBBox = this.layout.contentBBox;
+        if (!seriesRect || !contentBBox || contentBBox.width <= 0 || contentBBox.height <= 0) return;
+
+        const fitX = seriesRect.width / contentBBox.width;
+        const fitY = seriesRect.height / contentBBox.height;
+
+        let xId: AxisID | undefined;
+        let yId: AxisID | undefined;
+        for (const id of strictObjectKeys(event.state)) {
+            const entry = event.state[id];
+            if (entry == null) continue;
+            if (entry.direction === 'x') xId = id;
+            else yId = id;
+        }
+        if (!xId || !yId) return;
+
+        const xEntry = event.state[xId]!;
+        const yEntry = event.state[yId]!;
+        const xRange = xEntry.max - xEntry.min;
+        const yRange = yEntry.max - yEntry.min;
+        if (xRange <= 0 || yRange <= 0) return;
+
+        // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
+        const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
+        const targetXRange = Math.min(1, targetT * fitX);
+        const targetYRange = Math.min(1, targetT * fitY);
+
+        const xMid = clampMid((xEntry.min + xEntry.max) / 2, targetXRange);
+        const yMid = clampMid((yEntry.min + yEntry.max) / 2, targetYRange);
+
+        const xChanged =
+            Math.abs(xMid - targetXRange / 2 - xEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(xMid + targetXRange / 2 - xEntry.max) > ISOTROPY_EPSILON;
+        const yChanged =
+            Math.abs(yMid - targetYRange / 2 - yEntry.min) > ISOTROPY_EPSILON ||
+            Math.abs(yMid + targetYRange / 2 - yEntry.max) > ISOTROPY_EPSILON;
+
+        if (xChanged || yChanged) {
+            const constrained: _ModuleSupport.CoreZoomState = {};
+            constrained[xId] = {
+                min: xMid - targetXRange / 2,
+                max: xMid + targetXRange / 2,
+                direction: ChartAxisDirection.X,
+            };
+            constrained[yId] = {
+                min: yMid - targetYRange / 2,
+                max: yMid + targetYRange / 2,
+                direction: ChartAxisDirection.Y,
+            };
+            event.constrainChanges(constrained);
+        }
     }
 
     async processData(dataController: _ModuleSupport.DataController) {

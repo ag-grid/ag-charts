@@ -2,6 +2,23 @@ import type { ExtensibleTheme } from 'ag-charts-community';
 import { BASE_FONT_SIZE, FONT_SIZE_RATIO } from 'ag-charts-core';
 
 export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
+    zoom: {
+        enabled: true,
+        enableAxisDragging: false,
+        enableAxisScrolling: false,
+        enablePanning: true,
+        enableScrolling: true,
+        enableTwoFingerZoom: true,
+        enableDoubleClickToReset: true,
+        axes: 'xy',
+        keepAspectRatio: true,
+        anchorPointX: 'pointer',
+        anchorPointY: 'pointer',
+        autoScaling: { enabled: false },
+        onDataChange: { strategy: 'preserveRatios' },
+        minVisibleItems: 1,
+        buttons: { enabled: false },
+    },
     series: {
         innerSpacing: 20,
         outerSpacing: 40,

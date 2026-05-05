@@ -177,13 +177,32 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         }
         return result;
     }
+
     private set state(value: CoreZoomStateSafeRetrieval) {
+        const realAxisIds = new Set<string>();
         for (const axis of this.axes) {
             const entry = value[axis.id];
+            realAxisIds.add(axis.id);
             if (!entry) continue;
             axis.setZoom({ min: entry.min, max: entry.max });
         }
+
+        const syntheticIds = this.allAxes.filter((a) => !realAxisIds.has(a.id));
+        if (syntheticIds.length === 0) return;
+
+        const syntheticState: CoreZoomState = {};
+        for (const axis of syntheticIds) {
+            const entry = value[axis.id];
+            if (entry) {
+                syntheticState[axis.id] = entry;
+            }
+        }
+        const nextZoom = toZoomState(syntheticState);
+        if (nextZoom != null) {
+            this.ctx.chartState.setValue('zoom', nextZoom);
+        }
     }
+
     private readonly axes: CartesianAxisLike[] = [];
     private readonly allAxes: SimpleAxis[] = [];
     private didLayoutAxes = false;

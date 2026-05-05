@@ -7,6 +7,14 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
+interface ContentBoundsAccumulator {
+    count: number;
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
 export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkLayoutUpdateOptions<TVertex, TEdge> {
     nodeHeight?: number;
     nodeWidth?: number;
@@ -25,11 +33,41 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
+    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
+    private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
+        count: 0,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    };
+
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
+        const acc = this.contentBoundsAccumulator;
+        acc.count = 0;
         const { containerBBox } = this.updateNodes(options);
+        this._contentBBox =
+            acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
         this.updateOffset(options, containerBBox);
+    }
+
+    private accumulateContentBounds(bbox: TBBox) {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) {
+            acc.left = bbox.x;
+            acc.top = bbox.y;
+            acc.right = bbox.x + bbox.width;
+            acc.bottom = bbox.y + bbox.height;
+            acc.count = 1;
+            return;
+        }
+        if (bbox.x < acc.left) acc.left = bbox.x;
+        if (bbox.y < acc.top) acc.top = bbox.y;
+        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
+        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
+        acc.count++;
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -109,6 +147,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             const layoutBBox = new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
+            this.accumulateContentBounds(layoutBBox);
 
             // Request the series to layout the node per the calculated bbox.
             layoutDatumNode(vertex, layoutBBox, this.regularBBox);
@@ -226,10 +265,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        offset = Vec2.add(offset, options.offset);
-
-        // TODO: clamp the offset so that any one node is always visible
-
+        // Auto-centre only — Zoom feature owns pan/clamp.
         options.updateOffset(offset);
     }
 }
