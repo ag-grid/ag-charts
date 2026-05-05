@@ -129,6 +129,102 @@ const OVERFLOWING_ORG_CHART: AgChartOptions = {
     ],
 };
 
+// Tall + narrow layout: contentBBox fits the canvas horizontally but overflows vertically.
+// Used by the series-area clipping test so y-only zoom + vertical pan produces an unmistakable
+// "card cut off at the title boundary" demonstration with readable cards.
+const TALL_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const branches = 3;
+        const chainDepth = 12;
+        for (let i = 0; i < branches; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            let parent: string = vp;
+            for (let k = 0; k < chainDepth; k++) {
+                const id = `chain-${i}-${k}`;
+                data.push({
+                    id,
+                    name: `Lead ${i}.${k}`,
+                    job: 'Senior Developer',
+                    location: 'London',
+                    parentId: parent,
+                });
+                parent = id;
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
+// Square-aspect overflow: contentBBox aspect ratio matches the 800×600 canvas so fitX ≈ fitY,
+// AND content is densely distributed across both axes (not just one corner). Each leaf has its
+// own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
+// nodes — without that, zoom-centred snapshots land in blank whitespace.
+//
+// `applyNativePixelFloor`'s isotropic projection sets `t = max(xRange/fitX, yRange/fitY)` and
+// applies it to both axes; if one axis overflows much more than the other (as in
+// OVERFLOWING_ORG_CHART, which is very wide but only modestly tall), the smaller-fit axis
+// dominates and the requested zoom on the other axis gets snapped back to {0, 1}. Tests that
+// assert symmetric x/y zoom behaviour need fits that are comparable on both axes.
+const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const vpCount = 4;
+        const leavesPerVp = 4;
+        const chainDepth = 20;
+        for (let i = 0; i < vpCount; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            for (let j = 0; j < leavesPerVp; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+                let parent: string = leaf;
+                for (let k = 0; k < chainDepth; k++) {
+                    const id = `chain-${i}-${j}-${k}`;
+                    data.push({
+                        id,
+                        name: `${i}.${j}.${k}`,
+                        job: 'Senior Developer',
+                        location: 'London',
+                        parentId: parent,
+                    });
+                    parent = id;
+                }
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
 const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
     ...SIMPLE_ORG_CHART,
     theme: {
@@ -855,18 +951,20 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            // Root card centre on the 800x600 mock canvas.
-            await hoverAction(400, 65)(chart);
+            // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
+            await hoverAction(440, 155)(chart);
             await compare();
         });
     });
 
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
-            // AG-17233 regression. The Zoom feature skips panning at {0, 1}, so the test
-            // zooms in first; the assertion is the clip-rect, not the pan mechanism.
+            // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
+            // vertically, so y-only zoom + a downward drag pans content upward and lands an
+            // upper card directly on the series-area top boundary. The clip-rect must cut the
+            // card off at that boundary instead of letting it bleed into the title above.
             const options: AgChartOptions = {
-                ...SIMPLE_ORG_CHART,
+                ...TALL_ORG_CHART,
                 title: { text: 'Organisation Chart', fontSize: 18 },
                 subtitle: { text: 'Reporting structure' },
             };
@@ -875,10 +973,13 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            setZoom(chart, 0, 1, 0.3, 0.7);
             await waitForChartStability(chart);
 
-            await dragAction({ x: 400, y: 500 }, { x: 400, y: 100 })(chart);
+            // Drag content up far enough that an upper card straddles the title boundary —
+            // the clip-rect must cut it at the series-area top instead of letting it bleed
+            // into the title. AG-17233's bug was a missing clip-rect during pan.
+            await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
 
             await compare();
         });
@@ -954,7 +1055,11 @@ describe('OrganizationSeries', () => {
 
     describe('viewportGroup zoom transform', () => {
         it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the
+            // requested xRange and yRange both pass through `applyNativePixelFloor`'s
+            // isotropic projection. SIMPLE_ORG_CHART would snap zoom back to {0, 1}, and
+            // the wide-only OVERFLOWING_ORG_CHART would force yRange to 1.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
@@ -966,7 +1071,8 @@ describe('OrganizationSeries', () => {
 
         it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
             // Y is cartesian (y-up): yStart=0.5, yEnd=1 ⇒ top half of content visible.
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            // SQUARE_OVERFLOW_ORG_CHART is required for the same reason as the centred test above.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
