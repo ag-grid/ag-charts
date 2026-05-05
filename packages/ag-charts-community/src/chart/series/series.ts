@@ -83,6 +83,7 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
     DatumIndexType,
+    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -1035,7 +1036,7 @@ export abstract class Series<
         });
     }
 
-    public getRangeOfAggregateIndex(_sampleDatumIndex: TDatumIndex): undefined | [TDatumIndex, TDatumIndex] {
+    public getAggregateRangeReader(): DatumRangeReader | undefined {
         // Override point for subclasses with aggregation
         return undefined;
     }

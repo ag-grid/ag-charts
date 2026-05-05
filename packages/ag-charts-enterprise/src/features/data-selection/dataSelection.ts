@@ -262,14 +262,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             let changed = false;
             intervalSet.clear();
+
+            const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+
             for (const datum of series.pickNodesInBBox(bbox)) {
                 if (asNumericDatumIndex(datum.datumIndex)) {
-                    if (intervalSet.has(datum.datumIndex)) {
-                        continue; // skip - getRangeOfAggregateIndex is expensive.
-                    }
-
-                    const range = series.getRangeOfAggregateIndex(datum.datumIndex);
-                    if (range !== undefined) {
+                    if (getRangeOfAggregateIndex !== undefined) {
+                        const range = getRangeOfAggregateIndex(datum.datumIndex);
                         if (!intervalSet.has(datum.datumIndex)) {
                             const [start, end] = range;
                             if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {

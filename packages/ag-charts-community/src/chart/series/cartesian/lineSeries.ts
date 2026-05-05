@@ -56,6 +56,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
+import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import {
     CartesianSeries,
@@ -374,7 +375,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    public override getRangeOfAggregateIndex(sampleDatumIndex: number): undefined | [number, number] {
+    public override getAggregateRangeReader(): DatumRangeReader | undefined {
         const xAxis = this.axes[ChartAxisDirection.X];
         const { dataModel, processedData } = this;
         if (!xAxis || !dataModel || !processedData) return undefined;
@@ -389,14 +390,16 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const filter = this.aggregationManager.getFilterForRange(range);
         if (!filter) return undefined;
 
-        const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
-            xValuesLength: xValues.length,
-        });
+        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] {
+            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
+                xValuesLength: xValues.length,
+            });
 
-        const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
-        const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
+            const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
+            const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
 
-        return [xMin, xMax];
+            return [xMin, xMax];
+        };
     }
 
     private estimateTargetRange(): number {
