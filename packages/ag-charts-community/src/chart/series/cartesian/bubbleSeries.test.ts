@@ -772,6 +772,39 @@ describe('BubbleSeries', () => {
                 await compare();
             });
         });
+        describe('itemStyler size', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgBubbleSeriesItemStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    if (params.highlightState === 'highlighted-item') {
+                        return { size: 120, fill: 'lime' };
+                    }
+                    return { size: params.datum.weight > 75 ? 80 : 10 };
+                };
+                const opts: AgCartesianChartOptions<D, C> = {
+                    series: [
+                        {
+                            type: 'bubble',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            sizeKey: 'age',
+                            size: 20,
+                            maxSize: 50,
+                            itemStyler,
+                        },
+                    ],
+                };
+                chart = AgCharts.create(prepareTestOptions(opts));
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+            test('highlight', async () => {
+                await hoverAction(200, 165)(chart);
+                await compare();
+            });
+        });
     });
 
     describe('cutout drawing mode', () => {
