@@ -267,7 +267,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             for (const datum of series.pickNodesInBBox(bbox)) {
                 if (asNumericDatumIndex(datum.datumIndex)) {
-                    if (getRangeOfAggregateIndex !== undefined) {
+                    if (getRangeOfAggregateIndex) {
                         const range = getRangeOfAggregateIndex(datum.datumIndex);
                         if (!intervalSet.has(datum.datumIndex)) {
                             const [start, end] = range;

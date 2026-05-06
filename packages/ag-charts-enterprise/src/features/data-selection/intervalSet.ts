@@ -13,7 +13,7 @@ type Interval = { start: number; end: number };
  * `start` and `end` are both inclusive.
  */
 export class IntervalSet {
-    private intervals: Interval[] = [];
+    private readonly intervals: Interval[] = [];
 
     add(start: number, end: number) {
         if (start > end) return;
@@ -27,7 +27,7 @@ export class IntervalSet {
         }
 
         // FAST PATH: extend / merge last interval (most common case)
-        const last = intervals[intervals.length - 1];
+        const last = intervals.at(intervals.length - 1)!;
 
         if (end + 1 < last.start) {
             // New interval is completely after last → append
