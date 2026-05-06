@@ -365,9 +365,14 @@ export abstract class AbstractNetworkSeries<
         const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        const node = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
+        const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
+        return this.measureDatumNode(node);
+    }
+
+    /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
+    protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
         return node.getBBox();
     }
 

@@ -227,9 +227,7 @@ export class Zoom extends AbstractModuleInstance {
                     this.onEnabledChange(opts.enabled);
                 }
 
-                // Suppress browser-native touch gestures (page scroll, pinch-zoom) on the
-                // series-area when this chart consumes touch drags for panning or two-finger
-                // zoom — preventDefault on touchmove alone is not sufficient on iOS Safari.
+                // preventDefault on touchmove alone is not sufficient on iOS Safari.
                 const touchPan = Boolean(opts.enabled) && Boolean(opts.enablePanning || opts.enableTwoFingerZoom);
                 if (prevTouchPan !== touchPan) {
                     prevTouchPan = touchPan;

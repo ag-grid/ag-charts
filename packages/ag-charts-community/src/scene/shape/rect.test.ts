@@ -373,4 +373,25 @@ describe('Rect', () => {
             expect(imageData).toMatchImageSnapshot();
         });
     });
+
+    describe('bbox cache invalidation', () => {
+        it('AG-17249 should invalidate cached bbox on every property change, not just the first', () => {
+            const rect = new Rect();
+            rect.width = 50;
+            rect.height = 50;
+
+            // First change → populates cache.
+            rect.x = 8;
+            rect.y = 8;
+            const initial = rect.getBBox();
+            expect(initial.x).toBe(8);
+            expect(initial.y).toBe(8);
+
+            // Second change while `_dirtyPath` is already true — the old guard skipped
+            // `super.onChangeDetection`, leaving the cached bbox at x=8.
+            rect.x = 55.95;
+            const updated = rect.getBBox();
+            expect(updated.x).toBe(55.95);
+        });
+    });
 });
