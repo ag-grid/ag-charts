@@ -1246,6 +1246,101 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        // AG-17253 regression suite: long titles must wrap or truncate within card bounds
+        // when the user has not configured an explicit `node.maxWidth`. The theme default
+        // (200px) is the safety net that engages wrapping on tightly packed graphs.
+        const LONG_LABEL_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alexandra Winterbottom-Richardson',
+                job: 'Chief Technology Officer of Global Operations',
+                location: 'San Francisco, California',
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bartholomew Fitzpatrick',
+                job: 'Senior Vice President of Strategic Initiatives',
+                location: 'New York, New York',
+                parentId: 'ceo',
+            },
+            {
+                id: 'coo',
+                name: 'Charlotte Featherington-Smythe',
+                job: 'Operations Manager for International Markets',
+                location: 'London, United Kingdom',
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 should wrap long labels at the default narrow card width without explicit maxWidth', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 should wrap long labels with explicit narrow maxWidth and wrapping: always', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'always' },
+                            subtitle: { key: 'job', wrapping: 'always' },
+                            labels: [{ key: 'location', wrapping: 'always' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 should truncate long labels with explicit narrow maxWidth and overflowStrategy: ellipsis', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            subtitle: { key: 'job', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            labels: [{ key: 'location', wrapping: 'never', overflowStrategy: 'ellipsis' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('viewportGroup zoom transform', () => {
