@@ -12,6 +12,10 @@ export const REDIRECTS_FILE = 'packages/ag-charts-website/src/utils/htaccess/red
 export const IGNORE_PAGES = [];
 
 export const SITE_301_REDIRECTS: Redirect[] = [
+    { from: '/javascript/', to: '/javascript/quick-start/' },
+    { from: '/react/', to: '/react/quick-start/' },
+    { from: '/vue/', to: '/vue/quick-start/' },
+    { from: '/angular/', to: '/angular/quick-start/' },
     { from: '/javascript/bullet-series', to: '/javascript/linear-gauge/#bullet-series' },
     { from: '/angular/bullet-series', to: '/angular/linear-gauge/#bullet-series' },
     { from: '/react/bullet-series', to: '/react/linear-gauge/#bullet-series' },
