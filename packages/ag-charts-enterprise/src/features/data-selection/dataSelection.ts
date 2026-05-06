@@ -50,6 +50,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         );
     }
 
+    private supportsSelectionDrag(): boolean {
+        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+    }
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -201,7 +205,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         if (!enabled || !enableDrag) return;
@@ -215,7 +219,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -236,7 +240,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
