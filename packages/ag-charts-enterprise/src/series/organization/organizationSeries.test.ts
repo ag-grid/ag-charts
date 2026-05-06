@@ -1179,6 +1179,44 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        it('should wrap text within card bounds when node.maxWidth is set', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        id: 'root',
+                        name: 'Alexandra Winterbottom-Richardson',
+                        job: 'Senior Vice President of Global Operations and Strategic Initiatives',
+                        location: 'San Francisco, California',
+                        parentId: null,
+                    },
+                    {
+                        id: 'child',
+                        name: 'Bartholomew Fitzpatrick',
+                        job: 'Regional Director of Business Development',
+                        location: 'New York',
+                        parentId: 'root',
+                    },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 180,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('viewportGroup zoom transform', () => {
