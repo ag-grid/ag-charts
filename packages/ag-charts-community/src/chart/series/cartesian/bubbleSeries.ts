@@ -1322,6 +1322,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 if (binLabel != null) {
                     data.at(-1)!.value = binLabel;
                 }
+            } else if (properties.colorScale.missingDataFill != null) {
+                resolvedColorFill = properties.colorScale.missingDataFill;
             }
         }
 
