@@ -1,5 +1,7 @@
 import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
 import {
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
     ChartAxisDirection,
     DebugMetrics,
     aggregationBucketForDatum,
@@ -54,6 +56,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
+import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import {
     CartesianSeries,
@@ -372,10 +375,10 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    public override iterateAllDatumIndicesForSample(sampleDatumIndex: number): Iterable<number> {
+    public override getAggregateRangeReader(): DatumRangeReader | undefined {
         const xAxis = this.axes[ChartAxisDirection.X];
         const { dataModel, processedData } = this;
-        if (!xAxis || !dataModel || !processedData) return super.iterateAllDatumIndicesForSample(sampleDatumIndex);
+        if (!xAxis || !dataModel || !processedData) return undefined;
 
         const domainInput = dataModel.getDomain(this, 'xValue', 'value', processedData);
         const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
@@ -385,18 +388,18 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const range = Math.abs(r1 - r0);
         const filter = this.aggregationManager.getFilterForRange(range);
-        if (!filter) return super.iterateAllDatumIndicesForSample(sampleDatumIndex);
+        if (!filter) return undefined;
 
-        const getBucketForDatum = function getBucketForDatum(datumIndex: number, maxRange: number) {
-            return aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xValuesLength: xValues.length });
+        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] {
+            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
+                xValuesLength: xValues.length,
+            });
+
+            const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
+            const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
+
+            return [xMin, xMax];
         };
-
-        return this.aggregationManager.iterateAllDatumIndicesForSample(
-            sampleDatumIndex,
-            filter,
-            getBucketForDatum,
-            xValues.length
-        );
     }
 
     private estimateTargetRange(): number {

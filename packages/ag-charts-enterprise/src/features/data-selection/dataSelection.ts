@@ -18,6 +18,7 @@ import {
 } from './dataSelectionConstants';
 import {
     type SelectionChanges,
+    asNumericDatumIndex,
     clearAllSelections,
     getAllDataSets,
     hasAddToSelectionModifier,
@@ -25,9 +26,11 @@ import {
     isUnknownIterable,
     rollbackChanges,
     setSelected,
+    setSelectedRange,
     toBBox,
     toggleSelection,
 } from './dataSelectionUtil';
+import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
@@ -249,6 +252,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const changedSeries: Series[] = [];
+        const intervalSet = new IntervalSet();
 
         for (const series of this.ctx.chartService.series) {
             if (!series.properties.selection.enabled) continue;
@@ -257,15 +261,30 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             if (data === undefined) continue;
 
             let changed = false;
+            intervalSet.clear();
+
+            const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+
             for (const datum of series.pickNodesInBBox(bbox)) {
-                for (const datumIndex of series.iterateAllDatumIndicesForSample(datum.datumIndex)) {
-                    if (typeof datumIndex === 'number') {
-                        changed = true;
-                        setSelected(changes, series, data, datumIndex);
+                if (asNumericDatumIndex(datum.datumIndex)) {
+                    if (getRangeOfAggregateIndex) {
+                        const range = getRangeOfAggregateIndex(datum.datumIndex);
+                        if (!intervalSet.has(datum.datumIndex)) {
+                            const [start, end] = range;
+                            if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
+                                changed = true;
+                                intervalSet.add(start, end);
+                            }
+                        }
                     } else {
-                        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                        changed = true;
+                        setSelected(changes, series, data, datum.datumIndex);
                     }
                 }
+            }
+
+            for (const interval of intervalSet.values()) {
+                setSelectedRange(changes, series, data, interval.start, interval.end);
             }
 
             if (changed) {

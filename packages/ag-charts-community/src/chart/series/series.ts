@@ -83,6 +83,7 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
     DatumIndexType,
+    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -1035,9 +1036,9 @@ export abstract class Series<
         });
     }
 
-    public iterateAllDatumIndicesForSample(sampleDatumIndex: TDatumIndex): Iterable<TDatumIndex> {
+    public getAggregateRangeReader(): DatumRangeReader | undefined {
         // Override point for subclasses with aggregation
-        return [sampleDatumIndex];
+        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;
