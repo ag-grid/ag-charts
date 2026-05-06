@@ -1,5 +1,6 @@
 import type { LabelBoxOptions, TextOrSegments } from '../series/cartesian/commonOptions';
 import type { RichFormatter, Styler } from './callbackOptions';
+import type { FormatterParams } from './formatterOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -176,6 +177,7 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
 }
 
 export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
+    readonly type: FormatterParams<unknown, TContext>['type'];
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;
