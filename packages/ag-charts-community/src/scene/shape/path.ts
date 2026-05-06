@@ -73,10 +73,14 @@ export class Path<D = unknown> extends Shape<D> implements DistantObject {
     }
 
     override onChangeDetection(property: string): void {
-        if (!this._dirtyPath) {
-            this._dirtyPath = true;
-            super.onChangeDetection(property);
-        }
+        // Path has its own `_dirtyPath` flag so the path geometry is rebuilt at most once per
+        // dirty cycle. The cached bbox, however, must be invalidated on every property change:
+        // a late position update (e.g. realign() running after the layout pass populated the
+        // bbox cache) would otherwise return stale bbox values to consumers like image-fill
+        // pattern transforms, while `updatePath` still rebuilds the path from current backing
+        // fields — leaving fill and rect path drawn at different locations.
+        this._dirtyPath = true;
+        super.onChangeDetection(property);
     }
 
     protected override computeBBox(): BBox | undefined {
