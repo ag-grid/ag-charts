@@ -11,8 +11,8 @@ import type {
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
 
 function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
-    const cardWidth = !Number.isNaN(styles.width) ? styles.width : styles.maxWidth;
-    if (!isFinite(cardWidth)) return Infinity;
+    const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
+    if (!Number.isFinite(cardWidth)) return Infinity;
 
     const imageHorizontalSpace =
         styles.image.enabled && (styles.image.position === 'left' || styles.image.position === 'right')
@@ -28,7 +28,7 @@ function wrapTextTier(
     maxWidth: number
 ): TextOrSegments {
     const tierWidth = maxWidth - 2 * tierStyles.padding;
-    if (!isFinite(tierWidth) || tierWidth <= 0) return text;
+    if (!Number.isFinite(tierWidth) || tierWidth <= 0) return text;
 
     return wrapTextOrSegments(text, {
         font: tierStyles,

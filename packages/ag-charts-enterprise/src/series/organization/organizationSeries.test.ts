@@ -1022,6 +1022,7 @@ describe('OrganizationSeries', () => {
                 chart = AgCharts.create(options);
                 await compare();
             });
+
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
                 // The styler flips fill on `isCollapsed`; snapshotting after each toggle
                 // catches a stale-cache regression where `isCollapsed` is omitted from the key.
