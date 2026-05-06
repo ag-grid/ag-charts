@@ -473,7 +473,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return (value: number, index: number): TextOrSegments => {
             let r: TextOrSegments | undefined = undefined;
             if (formatter) {
-                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
+                r ??= formatWithContext(this.ctx, formatter, {
+                    type: 'number',
+                    value,
+                    index,
+                    domain,
+                    boundSeries: undefined!,
+                });
             }
             r ??= tickFormatter?.(value);
             return r ?? this.formatLabel(value);
