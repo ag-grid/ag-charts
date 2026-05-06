@@ -1,5 +1,13 @@
 import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import {
+    ChartAxisDirection,
+    DebugMetrics,
+    aggregationBucketForDatum,
+    aggregationDomain,
+    extent,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -362,6 +370,33 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 filters.map((f) => f.maxRange)
             );
         }
+    }
+
+    public override iterateAllDatumIndicesForSample(sampleDatumIndex: number): Iterable<number> {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const { dataModel, processedData } = this;
+        if (!xAxis || !dataModel || !processedData) return super.iterateAllDatumIndicesForSample(sampleDatumIndex);
+
+        const domainInput = dataModel.getDomain(this, 'xValue', 'value', processedData);
+        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
+
+        const [r0, r1] = xAxis.range;
+        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
+
+        const range = Math.abs(r1 - r0);
+        const filter = this.aggregationManager.getFilterForRange(range);
+        if (!filter) return super.iterateAllDatumIndicesForSample(sampleDatumIndex);
+
+        const getBucketForDatum = function getBucketForDatum(datumIndex: number, maxRange: number) {
+            return aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, { xValuesLength: xValues.length });
+        };
+
+        return this.aggregationManager.iterateAllDatumIndicesForSample(
+            sampleDatumIndex,
+            filter,
+            getBucketForDatum,
+            xValues.length
+        );
     }
 
     private estimateTargetRange(): number {
