@@ -264,6 +264,9 @@ export abstract class DataModelSeries<
         const selectionState = this.ctx.chartState.getValue('selectionState');
         if (selectionState === undefined) return undefined;
 
+        const options = this.ctx.chartState.getValue('options');
+        if (!options?.selection.enabled) return undefined;
+
         if (selectionState.selectedCount === 0) return SelectionState.None;
 
         const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
