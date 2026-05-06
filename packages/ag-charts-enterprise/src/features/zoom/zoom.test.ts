@@ -363,7 +363,7 @@ describe('Zoom', () => {
             expect(seriesEl).not.toBeNull();
             expect(seriesEl.style.touchAction).toBe('none');
 
-            await chart.update({ ...(EXAMPLE_OPTIONS as AgCartesianChartOptions), zoom: { enabled: false } });
+            await chart.update({ ...EXAMPLE_OPTIONS, zoom: { enabled: false } });
             await waitForChartStability(chart);
             expect(seriesEl.style.touchAction).toBe('');
         });
