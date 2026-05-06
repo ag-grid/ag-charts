@@ -16,6 +16,9 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
+    aggregationBucketForDatum,
+    aggregationDatumMatchesIndex,
+    aggregationDomain,
     areScalingEqual,
     isFiniteNumber,
     mergeDefaults,
@@ -67,7 +70,7 @@ import { AggregationManager } from '../aggregationManager';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { DatumRangeReader, ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -493,6 +496,47 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     ): number {
         const yKey = this.yCumulativeKey(this.dataModel!);
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
+    }
+
+    public override getAggregateRangeReader(): DatumRangeReader | undefined {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        const { dataModel, processedData } = this;
+        if (!xAxis || !dataModel || !processedData) return undefined;
+
+        const domainInput = dataModel.getDomain(this, 'xValue', 'key', processedData);
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+
+        const [r0, r1] = xAxis.scale.range;
+        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
+
+        const range = Math.abs(r1 - r0);
+        const filter = this.aggregationManager.getFilterForRange(range);
+        if (!filter) return undefined;
+
+        const offsets = [
+            AGGREGATION_INDEX_X_MIN,
+            AGGREGATION_INDEX_X_MAX,
+            AGGREGATION_INDEX_Y_MIN,
+            AGGREGATION_INDEX_Y_MAX,
+        ];
+
+        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] | undefined {
+            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
+                xValuesLength: xValues.length,
+            });
+
+            // Bar aggregation splits buckets by sign — positives and negatives
+            // are stacked separately, so the picked datum lives in exactly one side.
+            let data: Uint32Array | undefined;
+            if (aggregationDatumMatchesIndex(filter.positiveIndexData, bucket, sampleDatumIndex, offsets)) {
+                data = filter.positiveIndexData;
+            } else if (aggregationDatumMatchesIndex(filter.negativeIndexData, bucket, sampleDatumIndex, offsets)) {
+                data = filter.negativeIndexData;
+            }
+            if (!data) return undefined;
+
+            return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
+        };
     }
 
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
