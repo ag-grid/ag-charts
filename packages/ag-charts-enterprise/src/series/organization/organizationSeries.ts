@@ -244,13 +244,18 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         let index = 0;
         for (const label of labels) {
-            props.push(
-                valueProperty(label.key, undefined, {
-                    id: `labelValue-${index}`,
-                    allowNullKey: true,
-                    missingValue: undefined,
-                })
-            );
+            // Skip disabled tiers — without a `key` they would crash `dataModel` with "no
+            // properties specified". The slot is preserved downstream as `undefined` in
+            // `createGraphData` so `properties.node.labels[i]` indexing stays aligned.
+            if (label.enabled) {
+                props.push(
+                    valueProperty(label.key, undefined, {
+                        id: `labelValue-${index}`,
+                        allowNullKey: true,
+                        missingValue: undefined,
+                    })
+                );
+            }
             index++;
         }
 
@@ -606,9 +611,15 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
 
-        const labelsValues = [];
+        const labelsValues: (string[] | undefined)[] = [];
         for (let i = 0; i < this.properties.node.labels.length; i++) {
-            labelsValues.push(dataModel.resolveColumnById(this, `labelValue-${i}`, processedData));
+            // Disabled tiers have no value-property in `processData`; preserve the slot as
+            // `undefined` so per-tier styles indexing stays aligned with the tier index.
+            labelsValues.push(
+                this.properties.node.labels[i].enabled
+                    ? dataModel.resolveColumnById(this, `labelValue-${i}`, processedData)
+                    : undefined
+            );
         }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.

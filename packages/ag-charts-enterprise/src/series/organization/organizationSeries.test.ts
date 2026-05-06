@@ -1086,6 +1086,34 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('node labels', () => {
+        it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
+            // Regression: a labels-array item with `enabled: false` previously crashed
+            // `processData` because the disabled entry still produced a value definition
+            // with no `key`, tripping `dataModel.ts` "no properties specified". The
+            // disabled tier should be omitted silently and the chart should render normally.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location', enabled: false }, { key: 'tenure' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+            expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
     describe('series-area clipping', () => {
         it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
             // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
