@@ -450,6 +450,12 @@ export const ExpectedModules = new Map<string, ModulePlaceholder>(
                 enterprise: true,
                 moduleId: 'ScrollbarModule',
             },
+            {
+                type: 'plugin',
+                name: 'selection',
+                enterprise: true,
+                moduleId: 'SelectionModule',
+            },
 
             {
                 type: 'axis:plugin',
