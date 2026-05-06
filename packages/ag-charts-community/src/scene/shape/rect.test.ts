@@ -387,12 +387,8 @@ describe('Rect', () => {
             expect(initial.x).toBe(8);
             expect(initial.y).toBe(8);
 
-            // Second change to the same property — `Path._dirtyPath` is now true, so the
-            // pre-fix `Path.onChangeDetection` would skip `super` and leave the cached bbox at
-            // x=8 even though `__x` is now 55.95. Realign() in the org chart triggers exactly
-            // this sequence and previously left the image-fill pattern transform anchored to
-            // the stale bbox while the rect path was drawn at the new x — yielding invisible
-            // images for top/bottom image positions.
+            // Second change while `_dirtyPath` is already true — the old guard skipped
+            // `super.onChangeDetection`, leaving the cached bbox at x=8.
             rect.x = 55.95;
             const updated = rect.getBBox();
             expect(updated.x).toBe(55.95);

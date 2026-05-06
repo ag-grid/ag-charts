@@ -244,9 +244,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         let index = 0;
         for (const label of labels) {
-            // Skip disabled tiers — without a `key` they would crash `dataModel` with "no
-            // properties specified". The slot is preserved downstream as `undefined` in
-            // `createGraphData` so `properties.node.labels[i]` indexing stays aligned.
+            // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
+            // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
             if (label.enabled) {
                 props.push(
                     valueProperty(label.key, undefined, {
@@ -365,9 +364,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
-    // The expander pill hangs below the card by half its height; measuring the full group
-    // bbox would feed that overhang back into `regularBBox` on each layout pass and grow
-    // the card by exactly `expander.height / 2` per toggle. Measure the card only.
+    // Exclude the expander pill from measurements — its overhang would compound into
+    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
     protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox | undefined {
         return node.getCardBBox() ?? node.getBBox();
     }
@@ -620,8 +618,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         const labelsValues: (string[] | undefined)[] = [];
         for (let i = 0; i < this.properties.node.labels.length; i++) {
-            // Disabled tiers have no value-property in `processData`; preserve the slot as
-            // `undefined` so per-tier styles indexing stays aligned with the tier index.
+            // Disabled tiers have no value-property; preserve slot so tier indexing stays aligned.
             labelsValues.push(
                 this.properties.node.labels[i].enabled
                     ? dataModel.resolveColumnById(this, `labelValue-${i}`, processedData)

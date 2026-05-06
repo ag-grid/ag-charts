@@ -930,10 +930,8 @@ describe('OrganizationSeries', () => {
             });
 
             it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
-                // AG-17246 regression. Sparse `reign` tier (some rows have no value) combined
-                // with a collapse that reduces the visible set forces `Selection` to reuse a
-                // scene node whose previous datum had labels for a node whose new datum does
-                // not. Without trimming trailing labelNodes the previous tier text persists.
+                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
+                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
                 const options: AgChartOptions = {
                     data: [
                         { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
@@ -963,10 +961,8 @@ describe('OrganizationSeries', () => {
                 await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
                 await waitForChartStability(chart);
 
-                // Walk the rendered nodes and assert each one's labels match its source datum.
-                // The bug surfaced as label text from a previous datum lingering on a reused
-                // OrganizationNode — a programmatic check is more pointed than a snapshot
-                // because it locates the exact node-vs-data mismatch.
+                // Assert rendered labels match each node's source datum (pinpoints the mismatch
+                // more precisely than a snapshot).
                 const series = deproxy(chart).series[0] as any;
                 const expectedReign: Record<string, string | undefined> = {
                     henry7: 'King 1485 - 1509',
@@ -989,10 +985,7 @@ describe('OrganizationSeries', () => {
             });
 
             it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
-                // Repro for AG-17250: clicking Toggle on a node grows the rendered card height
-                // each click. This drives the same code path via setState; assert the rendered
-                // bbox of every OrganizationNode is byte-equal across expand → collapse → expand
-                // cycles.
+                // Card height must not grow on each expand/collapse cycle.
                 const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
                 prepareEnterpriseTestOptions(options);
 
@@ -1025,9 +1018,7 @@ describe('OrganizationSeries', () => {
             });
 
             it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
-                // Regression: prior to AG-17243 the optionsGraph auto-enable pass
-                // overwrote a styler's `enabled: false` back to `true`, so collapse-driven
-                // hiding of a text tier was silently ignored.
+                // Auto-enable must not overwrite a styler's `enabled: false`.
                 const options: AgChartOptions = {
                     ...SIMPLE_ORG_CHART,
                     initialState: { collapsed: ['cto'] },
@@ -1124,10 +1115,7 @@ describe('OrganizationSeries', () => {
 
     describe('node labels', () => {
         it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
-            // Regression: a labels-array item with `enabled: false` previously crashed
-            // `processData` because the disabled entry still produced a value definition
-            // with no `key`, tripping `dataModel.ts` "no properties specified". The
-            // disabled tier should be omitted silently and the chart should render normally.
+            // A disabled label entry must be skipped silently, not crash `dataModel`.
             const options: AgChartOptions = {
                 ...SIMPLE_ORG_CHART,
                 series: [
@@ -1283,9 +1271,7 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        // AG-17253 regression suite: long titles must wrap or truncate within card bounds
-        // when the user has not configured an explicit `node.maxWidth`. The theme default
-        // (200px) is the safety net that engages wrapping on tightly packed graphs.
+        // AG-17253: long titles must wrap/truncate within the theme-default maxWidth (200px).
         const LONG_LABEL_DATA = [
             {
                 id: 'ceo',

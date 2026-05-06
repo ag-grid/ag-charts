@@ -50,10 +50,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         node: {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
-            // Caps the card width so long titles wrap onto multiple lines instead of
-            // pushing the card horizontally and overlapping siblings on tightly packed
-            // graphs. The intrinsic width is preserved for shorter content because the
-            // card still sizes to the wrapped content's bbox.
+            // Caps card width so long titles wrap instead of overlapping siblings.
             maxWidth: 200,
             padding: 8,
             stroke: { $foregroundBackgroundMix: 0.2 },

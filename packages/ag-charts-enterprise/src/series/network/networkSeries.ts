@@ -371,13 +371,7 @@ export abstract class AbstractNetworkSeries<
         return this.measureDatumNode(node);
     }
 
-    /**
-     * Returns the bbox to use for layout-sizing measurements (regular dimensions, focus
-     * positioning, etc.). Defaults to the full group bbox; subclasses can override to
-     * exclude scene-graph elements that hang outside the card (e.g. the expander pill on
-     * an org-chart node) so previous-cycle overhang doesn't compound into next-cycle
-     * regular dimensions.
-     */
+    /** Bbox used for layout-sizing; subclasses can override to exclude decorations. */
     protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
         return node.getBBox();
     }

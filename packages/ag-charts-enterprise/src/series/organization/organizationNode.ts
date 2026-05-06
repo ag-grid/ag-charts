@@ -303,9 +303,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             index++;
         }
 
-        // Trim trailing label nodes when a reused scene node previously rendered more tiers
-        // than the current datum. Without this, `Selection` reuse causes labels to leak from
-        // a previously-bound datum after expand/collapse changes the visible set.
+        // Trim trailing nodes so labels from a previously-bound datum don't leak after reuse.
         for (let i = labels.length; i < this.labelNodes.length; i++) {
             this.labelNodes[i]?.remove();
         }
@@ -400,8 +398,4 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         path.stroke = 'none';
         path.opacity = CHEVRON_OPACITY;
     }
-
-    // override containsPoint(x: number, y: number) {
-    //     return this.shapeNode?.containsPoint(x, y) ?? false;
-    // }
 }
