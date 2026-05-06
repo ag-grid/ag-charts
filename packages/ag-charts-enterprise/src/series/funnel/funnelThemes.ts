@@ -6,7 +6,6 @@ import {
     FILL_IMAGE_DEFAULTS,
     FILL_PATTERN_SINGLE_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
-    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -110,7 +109,6 @@ export const FUNNEL_SERIES_THEME: ExtensibleTheme<'funnel'> = {
                 opacity: 0.6,
             },
         },
-        selection: SERIES_SELECTION_THEME,
     },
     axes: {
         [CARTESIAN_AXIS_TYPE.NUMBER]: {

@@ -38,7 +38,7 @@ export interface AgPyramidSeriesTooltipRendererParams<TDatum = DatumDefault, TCo
         AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */
     fills?: AgColorType[];
@@ -80,7 +80,7 @@ export interface AgPyramidSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgPyramidSeriesOptionsKeys<TDatum>,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum, TContext> {

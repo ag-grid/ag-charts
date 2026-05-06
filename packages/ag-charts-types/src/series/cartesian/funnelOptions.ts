@@ -37,7 +37,7 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
 }
 
 export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend' | 'showInMiniChart'>,
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend' | 'showInMiniChart' | 'selection'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: AgColorType[];
@@ -79,7 +79,7 @@ export interface AgFunnelSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'selection'>,
         AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum, TContext> {
