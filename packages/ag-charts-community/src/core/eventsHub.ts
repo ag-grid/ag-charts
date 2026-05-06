@@ -77,6 +77,7 @@ export interface SeriesAreaClickEvent {
     readonly consumed: boolean;
     readonly sourceEvent: MouseEvent | TouchEvent | KeyboardEvent;
     readonly clickedNode: SeriesNodeDatum<DatumIndexType> | undefined;
+    readonly distance: number;
 }
 
 export interface DataModelSeriesDiff {
