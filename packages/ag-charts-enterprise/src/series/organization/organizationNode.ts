@@ -27,8 +27,8 @@ function wrapTextTier(
     tierStyles: RequiredOrganizationNodeTextStyle,
     maxWidth: number
 ): TextOrSegments {
-    const tierWidth = maxWidth - 2 * tierStyles.padding;
-    if (!Number.isFinite(tierWidth) || tierWidth <= 0) return text;
+    const tierWidth = Math.max(maxWidth - 2 * tierStyles.padding, 1);
+    if (!Number.isFinite(tierWidth)) return text;
 
     return wrapTextOrSegments(text, {
         font: tierStyles,
