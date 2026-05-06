@@ -26,11 +26,9 @@ function seedRandom(seed = 1337): () => number {
     return sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, realSeed);
 }
 
-const referenceDate = new Date(2024, 0, 1, 0).getTime();
 export function getData(hours: number) {
     let currentPrice = startPrice;
     const random = seedRandom();
-    const period = 60 * 60 * 1000;
     const startDate = new Date(2024, 0, 1, -hours);
     return Array.from({ length: hours }, () => {
         // Note time is reversed
