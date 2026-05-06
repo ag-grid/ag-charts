@@ -42,6 +42,14 @@ export class DataSetSelection {
         this.selection.fill(0, startIndex, endIndex);
     }
 
+    countRange(startIndex: number, endIndex: number): number {
+        let count = 0;
+        for (let i = startIndex; i < endIndex; i++) {
+            count += this.selection[i];
+        }
+        return count;
+    }
+
     // --- Bulk ---
 
     clear(): void {
