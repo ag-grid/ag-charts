@@ -1,8 +1,8 @@
-import { getIsArchive, getIsProduction, getIsStaging } from '@utils/env';
+import { getIsStaging } from '@utils/env';
 
 const disallowAllRobotsTxt = () => 'User-agent: *\nDisallow: /';
 
-export async function GET() {
+export function GET() {
     // Only generate robots.txt in staging environments
     if (!getIsStaging()) {
         return new Response('Not Found', { status: 404 });
