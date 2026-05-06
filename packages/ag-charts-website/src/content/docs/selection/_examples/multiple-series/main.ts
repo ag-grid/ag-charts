@@ -48,6 +48,15 @@ ModuleRegistry.registerModules([
     ZoomModule,
 ]);
 
+type SupportedSeries<D, C> =
+    | AgAreaSeriesOptions<D, C>
+    | AgBarSeriesOptions<D, C>
+    | AgLineSeriesOptions<D, C>
+    | AgRangeAreaSeriesOptions<D, C>
+    | AgRangeBarSeriesOptions<D, C>;
+
+type Options<D, C> = Omit<AgCartesianChartOptions<D, C>, 'series'> & { series: SupportedSeries<D, C>[] };
+
 let savedSelection: AgSelectionItemIds[] = [];
 
 const fullData = getData();
@@ -84,7 +93,8 @@ const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeries
         return { stroke: 'black', strokeWidth: 2, size: 15 };
     }
 };
-const options: AgCartesianChartOptions<unknown> = {
+
+const options: Options<unknown, unknown> = {
     container: document.getElementById('myChart'),
     tooltip: {
         enabled: false,

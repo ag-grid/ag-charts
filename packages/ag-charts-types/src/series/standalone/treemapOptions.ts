@@ -123,7 +123,7 @@ export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
 }
 
 export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend'> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
@@ -146,7 +146,7 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
 }
 
 export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum, TContext> {
