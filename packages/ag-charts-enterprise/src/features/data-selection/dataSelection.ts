@@ -69,8 +69,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
+        ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
-            ctx.scene.attachNode(this.dragRect),
+            () => ctx.chartService.selectionRoot.removeChild(this.dragRect),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
