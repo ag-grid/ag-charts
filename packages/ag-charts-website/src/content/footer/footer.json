@@ -25,7 +25,7 @@
         "links": [
             {
                 "name": "Blog",
-                "url": "https://blog.ag-grid.com"
+                "url": "https://blog.ag-grid.com/"
             },
             {
                 "name": "Stack Overflow",
@@ -34,7 +34,7 @@
             },
             {
                 "name": "License & Pricing",
-                "url": "/license-pricing"
+                "url": "/license-pricing/"
             },
             {
                 "name": "Support via Zendesk",
@@ -43,7 +43,7 @@
             },
             {
                 "name": "Security",
-                "url": "/r/security"
+                "url": "/r/security/"
             }
         ]
     },
@@ -56,7 +56,7 @@
             },
             {
                 "name": "AG Studio",
-                "url": "https://www.ag-grid.com/studio"
+                "url": "https://www.ag-grid.com/studio/"
             },
             {
                 "name": "About",
@@ -64,23 +64,23 @@
             },
             {
                 "name": "Contact Us",
-                "url": "https://www.ag-grid.com/about#contact-section"
+                "url": "https://www.ag-grid.com/about#contact-section/"
             },
             {
                 "name": "Privacy Policy",
-                "url": "https://www.ag-grid.com/privacy"
+                "url": "https://www.ag-grid.com/privacy/"
             },
             {
                 "name": "Cookies Policy",
-                "url": "https://www.ag-grid.com/cookies"
+                "url": "https://www.ag-grid.com/cookies/"
             },
             {
                 "name": "Modern Slavery",
-                "url": "https://www.ag-grid.com/modern-slavery"
+                "url": "https://www.ag-grid.com/modern-slavery/"
             },
             {
                 "name": "Sitemap",
-                "url": "/sitemap"
+                "url": "/sitemap/"
             }
         ]
     },
