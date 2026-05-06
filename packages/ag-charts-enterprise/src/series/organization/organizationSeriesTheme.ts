@@ -50,8 +50,6 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         node: {
             cornerRadius: 4,
             fill: { $foregroundBackgroundMix: 0.02 },
-            // Caps card width so long titles wrap instead of overlapping siblings.
-            maxWidth: 200,
             padding: 8,
             stroke: { $foregroundBackgroundMix: 0.2 },
             strokeOpacity: 1,

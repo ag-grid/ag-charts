@@ -111,9 +111,7 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
      * Maximum width of the card in pixels. When set, long text content wraps onto
      * multiple lines (subject to each text tier's `wrapping` and `overflowStrategy`)
      * instead of pushing the card wider, so cards do not overlap on tightly packed
-     * graphs. Set to `Infinity` to disable wrapping by width.
-     *
-     * Default: `200`
+     * graphs.
      */
     maxWidth?: PixelSize;
     padding?: PixelSize;

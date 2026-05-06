@@ -1271,7 +1271,6 @@ describe('OrganizationSeries', () => {
             await compare();
         });
 
-        // AG-17253: long titles must wrap/truncate within the theme-default maxWidth (200px).
         const LONG_LABEL_DATA = [
             {
                 id: 'ceo',
@@ -1295,28 +1294,6 @@ describe('OrganizationSeries', () => {
                 parentId: 'ceo',
             },
         ];
-
-        it('AG-17253 should wrap long labels at the default narrow card width without explicit maxWidth', async () => {
-            const options: AgChartOptions = {
-                data: LONG_LABEL_DATA,
-                series: [
-                    {
-                        type: 'organization',
-                        idKey: 'id',
-                        parentIdKey: 'parentId',
-                        node: {
-                            title: { key: 'name' },
-                            subtitle: { key: 'job' },
-                            labels: [{ key: 'location' }],
-                        },
-                    },
-                ],
-            };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
 
         it('AG-17253 should wrap long labels with explicit narrow maxWidth and wrapping: always', async () => {
             const options: AgChartOptions = {
