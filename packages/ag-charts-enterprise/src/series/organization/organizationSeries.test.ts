@@ -988,6 +988,42 @@ describe('OrganizationSeries', () => {
                 });
             });
 
+            it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
+                // Repro for AG-17250: clicking Toggle on a node grows the rendered card height
+                // each click. This drives the same code path via setState; assert the rendered
+                // bbox of every OrganizationNode is byte-equal across expand → collapse → expand
+                // cycles.
+                const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const series = deproxy(chart).series[0] as any;
+                const captureBBoxes = () => {
+                    const bboxes: { itemId: string; width: number; height: number }[] = [];
+                    series.datumSelection.each((node: any, datum: any) => {
+                        const card = node.getCardBBox();
+                        if (card) {
+                            bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
+                        }
+                    });
+                    return bboxes;
+                };
+
+                const initial = captureBBoxes();
+                expect(initial.length).toBeGreaterThan(0);
+
+                for (let i = 0; i < 3; i++) {
+                    await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                    await waitForChartStability(chart);
+                    await chart.setState({ version: '13.3.0', collapsed: [] });
+                    await waitForChartStability(chart);
+                }
+
+                expect(captureBBoxes()).toEqual(initial);
+            });
+
             it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
                 // Regression: prior to AG-17243 the optionsGraph auto-enable pass
                 // overwrote a styler's `enabled: false` back to `true`, so collapse-driven

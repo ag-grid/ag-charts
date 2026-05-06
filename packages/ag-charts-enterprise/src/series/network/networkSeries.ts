@@ -365,9 +365,20 @@ export abstract class AbstractNetworkSeries<
         const nodeDatumIndex = this.vertexDatumIndex[vertex.value as string];
         if (typeof nodeDatumIndex !== 'number') return;
 
-        const node = this.datumSelection.at(nodeDatumIndex) as _ModuleSupport.Group | undefined;
+        const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
+        return this.measureDatumNode(node);
+    }
+
+    /**
+     * Returns the bbox to use for layout-sizing measurements (regular dimensions, focus
+     * positioning, etc.). Defaults to the full group bbox; subclasses can override to
+     * exclude scene-graph elements that hang outside the card (e.g. the expander pill on
+     * an org-chart node) so previous-cycle overhang doesn't compound into next-cycle
+     * regular dimensions.
+     */
+    protected measureDatumNode(node: TNode): _ModuleSupport.BBox | undefined {
         return node.getBBox();
     }
 

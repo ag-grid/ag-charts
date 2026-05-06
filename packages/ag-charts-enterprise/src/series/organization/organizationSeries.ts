@@ -365,6 +365,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         }
     }
 
+    // The expander pill hangs below the card by half its height; measuring the full group
+    // bbox would feed that overhang back into `regularBBox` on each layout pass and grow
+    // the card by exactly `expander.height / 2` per toggle. Measure the card only.
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox | undefined {
+        return node.getCardBBox() ?? node.getBBox();
+    }
+
     getLinkInterpolation(
         from: Vertex<OrganizationVertex, OrganizationEdge>,
         to: Vertex<OrganizationVertex, OrganizationEdge>
