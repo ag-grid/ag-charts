@@ -71,7 +71,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
-            () => ctx.chartService.selectionRoot.removeChild(this.dragRect),
+            () => this.dragRect.remove(),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
