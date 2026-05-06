@@ -59,7 +59,7 @@ export type AgWaterfallSeriesLabelPlacement =
     | 'outside-end';
 
 export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'> {
     /**
      * Bar rendering direction.
      *
@@ -93,7 +93,7 @@ export interface AgWaterfallSeriesOptionsNames {
 }
 
 export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgBaseCartesianSeriesAxisOptions,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,
