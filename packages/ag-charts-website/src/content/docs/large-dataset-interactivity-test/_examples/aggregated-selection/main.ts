@@ -1,7 +1,6 @@
 import {
     AgCartesianAxisOptions,
     AgCartesianChartOptions,
-    AgCartesianSeriesOptions,
     AgCharts,
     AnimationModule,
     AreaSeriesModule,
@@ -115,7 +114,6 @@ const chart = AgCharts.create(options);
 
 function setSeries(type: string, label: string) {
     seriesType = label;
-    let series: AgCartesianSeriesOptions[] = [];
     switch (type) {
         case 'bar':
         case 'area':
