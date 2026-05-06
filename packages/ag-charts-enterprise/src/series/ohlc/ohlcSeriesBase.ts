@@ -22,8 +22,6 @@ import {
     type Mutable,
     type Point,
     type Scale,
-    aggregationBucketForDatum,
-    aggregationDomain,
     mergeDefaults,
 } from 'ag-charts-core';
 
@@ -335,34 +333,19 @@ export abstract class OhlcSeriesBase<
         return Math.abs(r1 - r0);
     }
 
+    // Picked OHLC datums use `midpointIndices[i]`, which is rarely one of the four
+    // extrema stored at OPEN/HIGH/LOW/CLOSE. The helper re-derives the bucket from
+    // the midpoint's xValue (guaranteed to lie within the bucket's x-range) rather
+    // than trusting the index itself.
     public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const { dataModel, processedData } = this;
-        if (!xAxis || !dataModel || !processedData) return undefined;
-
-        const domainInput = dataModel.getDomain(this, 'xValue', 'key', processedData);
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-
-        const [r0, r1] = xAxis.scale.range;
-        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
-
-        const range = Math.abs(r1 - r0);
-        const filter = this.aggregationManager.getFilterForRange(range);
-        if (!filter) return undefined;
-
-        // Picked OHLC datums use `midpointIndices[i]`, which is rarely one of the four extrema
-        // stored at OPEN/HIGH/LOW/CLOSE. We re-derive the bucket from the midpoint's xValue
-        // (guaranteed to lie within the bucket's x-range) rather than trusting the index itself.
-        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] {
-            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
-                xValuesLength: xValues.length,
-            });
-
-            const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
-            const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
-
-            return [xMin, xMax];
-        };
+        return _ModuleSupport.makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
     }
 
     override getSeriesDomain(direction: ChartAxisDirection) {

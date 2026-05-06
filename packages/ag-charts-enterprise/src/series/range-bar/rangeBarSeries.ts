@@ -21,8 +21,6 @@ import {
     type Mutable,
     type Point,
     type RequireOptional,
-    aggregationBucketForDatum,
-    aggregationDomain,
     areScalingEqual,
     findMinMax,
     mergeDefaults,
@@ -317,33 +315,17 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         }
     }
 
+    // Picked datumIndex is the bucket's midpoint (not an extrema); the helper re-derives
+    // the bucket from its xValue, which still falls within the bucket's x-range.
     public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const { dataModel, processedData } = this;
-        if (!xAxis || !dataModel || !processedData) return undefined;
-
-        const domainInput = dataModel.getDomain(this, 'xValue', 'key', processedData);
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-
-        const [r0, r1] = xAxis.scale.range;
-        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
-
-        const range = Math.abs(r1 - r0);
-        const filter = this.aggregationManager.getFilterForRange(range);
-        if (!filter) return undefined;
-
-        // Picked datumIndex is the bucket's midpoint (not an extrema); aggregationBucketForDatum
-        // re-derives the bucket from its xValue, which still falls within the bucket's x-range.
-        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] {
-            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
-                xValuesLength: xValues.length,
-            });
-
-            const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
-            const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
-
-            return [xMin, xMax];
-        };
+        return _ModuleSupport.makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
     }
 
     private estimateTargetRange(): number {

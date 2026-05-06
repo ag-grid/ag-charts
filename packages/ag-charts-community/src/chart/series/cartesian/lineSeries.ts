@@ -1,15 +1,5 @@
 import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
-import {
-    AGGREGATION_INDEX_X_MAX,
-    AGGREGATION_INDEX_X_MIN,
-    ChartAxisDirection,
-    DebugMetrics,
-    aggregationBucketForDatum,
-    aggregationDomain,
-    extent,
-    isDefined,
-    mergeDefaults,
-} from 'ag-charts-core';
+import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -53,6 +43,7 @@ import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
+import { makeAggregateRangeReader } from '../aggregationRangeReader';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -376,30 +367,14 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     }
 
     public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const { dataModel, processedData } = this;
-        if (!xAxis || !dataModel || !processedData) return undefined;
-
-        const domainInput = dataModel.getDomain(this, 'xValue', 'value', processedData);
-        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
-
-        const [r0, r1] = xAxis.scale.range;
-        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
-
-        const range = Math.abs(r1 - r0);
-        const filter = this.aggregationManager.getFilterForRange(range);
-        if (!filter) return undefined;
-
-        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] {
-            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
-                xValuesLength: xValues.length,
-            });
-
-            const xMin = filter.indexData[bucket + AGGREGATION_INDEX_X_MIN];
-            const xMax = filter.indexData[bucket + AGGREGATION_INDEX_X_MAX];
-
-            return [xMin, xMax];
-        };
+        return makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'value',
+        });
     }
 
     private estimateTargetRange(): number {

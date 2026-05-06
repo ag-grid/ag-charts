@@ -18,7 +18,6 @@ import {
     DebugMetrics,
     aggregationBucketForDatum,
     aggregationDatumMatchesIndex,
-    aggregationDomain,
     areScalingEqual,
     isFiniteNumber,
     mergeDefaults,
@@ -67,6 +66,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
+import { prepareAggregateBucketContext } from '../aggregationRangeReader';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -499,20 +499,17 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     }
 
     public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const { dataModel, processedData } = this;
-        if (!xAxis || !dataModel || !processedData) return undefined;
+        const ctx = prepareAggregateBucketContext({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
+        if (!ctx) return undefined;
 
-        const domainInput = dataModel.getDomain(this, 'xValue', 'key', processedData);
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-
-        const [r0, r1] = xAxis.scale.range;
-        const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
-
-        const range = Math.abs(r1 - r0);
-        const filter = this.aggregationManager.getFilterForRange(range);
-        if (!filter) return undefined;
-
+        const { xValues, d0, d1, filter } = ctx;
         const offsets = [
             AGGREGATION_INDEX_X_MIN,
             AGGREGATION_INDEX_X_MAX,
