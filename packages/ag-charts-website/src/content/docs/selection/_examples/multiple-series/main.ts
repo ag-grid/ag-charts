@@ -20,11 +20,14 @@ import {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
     AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgHistogramSeriesOptions,
     AgLineSeriesOptions,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
     AgSelectionItemIds,
     AgSeriesMarkerStyle,
+    AgWaterfallSeriesOptions,
     SelectionState,
     StrokeOptions,
 } from 'ag-charts-types';
@@ -47,6 +50,12 @@ ModuleRegistry.registerModules([
     SelectionModule,
     ZoomModule,
 ]);
+
+type SupportedSeries<D, C> = Exclude<
+    AgCartesianSeriesOptions<D, C>,
+    AgHistogramSeriesOptions<D, C> | AgWaterfallSeriesOptions<D, C>
+>;
+type Options<D, C> = Omit<AgCartesianChartOptions<D, C>, 'series'> & { series: SupportedSeries<D, C>[] };
 
 let savedSelection: AgSelectionItemIds[] = [];
 
@@ -84,7 +93,8 @@ const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeries
         return { stroke: 'black', strokeWidth: 2, size: 15 };
     }
 };
-const options: AgCartesianChartOptions<unknown> = {
+
+const options: Options<unknown, unknown> = {
     container: document.getElementById('myChart'),
     tooltip: {
         enabled: false,
