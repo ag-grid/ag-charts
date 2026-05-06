@@ -131,7 +131,9 @@ export function clearAllSelections(changes: Changes, state: State, allSeries: Se
             for (const [seriesId, selection] of data.selections) {
                 const n = selection.getLength();
                 for (let datumIndex = 0; datumIndex < n; datumIndex++) {
-                    changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
+                    if (selection.isSelected(datumIndex)) {
+                        changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
+                    }
                 }
             }
         }
