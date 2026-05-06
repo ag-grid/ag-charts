@@ -1,5 +1,5 @@
 import { SITE_URL } from '@constants';
-import { getIsArchive, getIsProduction, getIsStaging } from '@utils/env';
+import { getIsArchive, getIsProduction } from '@utils/env';
 import { pathJoin } from '@utils/pathJoin';
 import { getSitemapIgnorePaths } from '@utils/sitemapPages';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
