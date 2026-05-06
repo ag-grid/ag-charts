@@ -383,7 +383,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const domainInput = dataModel.getDomain(this, 'xValue', 'value', processedData);
         const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
 
-        const [r0, r1] = xAxis.range;
+        const [r0, r1] = xAxis.scale.range;
         const [d0, d1] = aggregationDomain(xAxis.scale.type, domainInput);
 
         const range = Math.abs(r1 - r0);
