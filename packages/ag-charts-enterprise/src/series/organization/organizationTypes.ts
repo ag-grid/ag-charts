@@ -15,7 +15,7 @@ export interface OrganizationNodeFields {
     labels?: (TextOrSegments | undefined)[];
 }
 
-export type OrganizationVertex = string | string[] | number | boolean;
+export type OrganizationVertex = string | (string | undefined)[] | number | boolean;
 
 export type OrganizationEdge =
     | 'datumIndex' // The index of the datum within the series' data array.
