@@ -35,7 +35,7 @@ export type SeriesNodeEventTypes =
     | 'seriesNodeClick'
     | 'seriesNodeDoubleClick';
 
-export type DatumRangeReader = (sampledDatumIndex: number) => [number, number];
+export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;

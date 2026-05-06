@@ -295,6 +295,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
+    public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
+        return _ModuleSupport.makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
+    }
+
     private estimateTargetRange(): number {
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis?.scale?.range) {

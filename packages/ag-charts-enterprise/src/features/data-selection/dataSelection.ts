@@ -271,7 +271,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 if (asNumericDatumIndex(datum.datumIndex)) {
                     if (getRangeOfAggregateIndex) {
                         const range = getRangeOfAggregateIndex(datum.datumIndex);
-                        if (!intervalSet.has(datum.datumIndex)) {
+                        if (range && !intervalSet.has(datum.datumIndex)) {
                             const [start, end] = range;
                             if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
                                 changed = true;
