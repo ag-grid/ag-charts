@@ -270,6 +270,6 @@ export abstract class DataModelSeries<
         if (selectionState.selectedCount === 0) return SelectionState.None;
 
         const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
-        return isSelected ? SelectionState.Selected : SelectionState.Unselected;
+        return isSelected ? SelectionState.Item : SelectionState.OtherItem;
     }
 }
