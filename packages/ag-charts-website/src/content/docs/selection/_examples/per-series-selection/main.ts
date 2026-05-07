@@ -1,10 +1,10 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgSelectionContainment,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
+    LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     SelectionModule,
@@ -12,15 +12,21 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, SelectionModule]);
+ModuleRegistry.registerModules([
+    BarSeriesModule,
+    CategoryAxisModule,
+    LegendModule,
+    LineSeriesModule,
+    NumberAxisModule,
+    SelectionModule,
+]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Revenue (selectable) vs Forecast (not selectable)' },
     selection: {
         enabled: true,
         enableDrag: true,
-        containment: 'any',
     },
     data: getData(),
     series: [
@@ -28,7 +34,15 @@ const options: AgCartesianChartOptions = {
             type: 'bar',
             xKey: 'quarter',
             yKey: 'revenue',
-            yName: 'Revenue ($m)',
+            yName: 'Revenue',
+            selection: { enabled: true },
+        },
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'forecast',
+            yName: 'Forecast',
+            selection: { enabled: false },
         },
     ],
     axes: {
@@ -37,9 +51,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
-
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
-    chart.update(options);
-}
+AgCharts.create(options);

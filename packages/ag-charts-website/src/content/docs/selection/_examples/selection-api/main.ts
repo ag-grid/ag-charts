@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgSelectionContainment,
+    AgSelectionItemIds,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
@@ -14,13 +14,14 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, SelectionModule]);
 
+let savedSelection: AgSelectionItemIds[] = [];
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Click bars, then use the buttons above' },
     selection: {
         enabled: true,
         enableDrag: true,
-        containment: 'any',
     },
     data: getData(),
     series: [
@@ -39,7 +40,19 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
-    chart.update(options);
+function logSelection() {
+    console.log(Array.from(chart.getSelection()));
+}
+
+function saveSelection() {
+    savedSelection = Array.from(chart.getSelection()).map(({ seriesId, itemId }) => ({ seriesId, itemId }));
+    console.log('saved', savedSelection.length, 'item(s)');
+}
+
+function restoreSelection() {
+    chart.setSelection(savedSelection);
+}
+
+function clearSelection() {
+    chart.clearSelection();
 }

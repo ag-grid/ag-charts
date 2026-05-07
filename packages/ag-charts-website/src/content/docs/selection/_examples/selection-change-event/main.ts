@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgSelectionContainment,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
@@ -10,17 +9,16 @@ import {
     SelectionModule,
 } from 'ag-charts-enterprise';
 
-import { getData } from './data';
+import { QuarterDatum, getData } from './data';
 
 ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, SelectionModule]);
 
-const options: AgCartesianChartOptions = {
+const options: AgCartesianChartOptions<QuarterDatum> = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Open the console to see selection changes' },
     selection: {
         enabled: true,
         enableDrag: true,
-        containment: 'any',
     },
     data: getData(),
     series: [
@@ -35,11 +33,15 @@ const options: AgCartesianChartOptions = {
         x: { type: 'category' },
         y: { type: 'number' },
     },
+    listeners: {
+        selectionChange: (event) => {
+            console.log('selectionChange', {
+                source: event.source,
+                added: event.added.map((item) => item.datum?.quarter),
+                removed: event.removed.map((item) => item.datum?.quarter),
+            });
+        },
+    },
 };
 
-const chart = AgCharts.create(options);
-
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
-    chart.update(options);
-}
+AgCharts.create(options);

@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgSelectionContainment,
+    AgSelectionClickMode,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
@@ -16,11 +16,11 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModul
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Quarterly Revenue' },
     selection: {
         enabled: true,
-        enableDrag: true,
-        containment: 'any',
+        clickMode: 'single',
+        enableClickAwayToClear: true,
     },
     data: getData(),
     series: [
@@ -39,7 +39,12 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
+function setClickMode(value: AgSelectionClickMode) {
+    options.selection = { ...options.selection, clickMode: value };
+    chart.update(options);
+}
+
+function setClickAway(value: boolean) {
+    options.selection = { ...options.selection, enableClickAwayToClear: value };
     chart.update(options);
 }
