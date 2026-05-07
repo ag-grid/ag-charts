@@ -163,14 +163,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
-        const { type, clickedNode, distance } = event;
+        const { type, clickedNode } = event;
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss =
-            clickedNode === undefined ||
-            distance !== 0 ||
-            !(clickedNode.series.properties.selection.enabled satisfies boolean);
+            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
