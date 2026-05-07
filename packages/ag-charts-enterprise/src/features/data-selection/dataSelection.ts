@@ -202,7 +202,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
