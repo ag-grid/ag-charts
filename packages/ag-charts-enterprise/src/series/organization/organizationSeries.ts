@@ -182,9 +182,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
 
-        // AG-17239: when the chart is already at the 1:1 floor and the request would zoom in
-        // further, treat it as a no-op. Without this, the anchor-translated input mid leaks
-        // through `clampMid` after the range is restored to floor — the user sees a pan.
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
         const oldX = event.oldState[xId];
         const oldY = event.oldState[yId];
         const wantsFurtherZoomIn = xRange / fitX < 1 - ISOTROPY_EPSILON && yRange / fitY < 1 - ISOTROPY_EPSILON;

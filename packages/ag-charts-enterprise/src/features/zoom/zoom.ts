@@ -228,17 +228,13 @@ export class Zoom extends AbstractModuleInstance {
 
                 this.refreshTouchAction();
             }),
-            // Re-evaluate when the zoom range changes — at fully-zoomed-out [0,1] we
-            // pass single-finger pans through to the parent page (matches wheel scroll).
             ctx.eventsHub.on('zoom:change-complete', () => this.refreshTouchAction()),
             () => ctx.widgets.seriesWidget.setTouchAction(undefined)
         );
     }
 
-    // preventDefault on touchmove alone is not sufficient on iOS Safari, so we hint the
-    // browser via touch-action. At [0,1] (fully zoomed out) the chart has nothing to pan,
-    // so we let single-finger pans bubble to the page (same as the wheel scroller does).
-    // Pinch is not in `pan-y`, so two-finger touch events still reach the chart.
+    // iOS Safari ignores late preventDefault on touchmove, so suppress browser scroll via
+    // touch-action. `pan-y` at [0,1] lets single-finger pans bubble; pinch still reaches us.
     private prevTouchAction: 'auto' | 'none' | 'pan-y' | undefined;
     private refreshTouchAction() {
         const { enabled, enablePanning, enableTwoFingerZoom } = this.opts;
