@@ -366,8 +366,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
-    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox | undefined {
-        return node.getCardBBox() ?? node.getBBox();
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+        return node.getCardBBox();
     }
 
     getLinkInterpolation(
@@ -453,7 +453,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         // Card rect, not the node group's bbox — the group includes the expander pill below.
         const cardBBox = node.getCardBBox();
-        if (!cardBBox) return;
         const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
         if (!bounds?.isFinite()) return;
 
