@@ -20,9 +20,9 @@ import { testLegendItemName } from '../../test/legendItemName';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     PATTERN_SNAPSHOT_DEFAULTS,
-    deproxy,
     expectWarningsCalls,
     extractImageData,
+    getSeriesAggregationInternals,
     hoverAction,
     prepareTestOptions,
     repeat,
@@ -1020,7 +1020,7 @@ describe('BubbleSeries', () => {
 ]
 `);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
         });
 
@@ -1034,7 +1034,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
         });
 
@@ -1051,7 +1051,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
         });
     });
@@ -1155,7 +1155,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
             expect(series.getAggregateIndexSetReader()).not.toBeUndefined();
         });
@@ -1170,7 +1170,7 @@ describe('BubbleSeries', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
             expect(series.getAggregateIndexSetReader()).toBeUndefined();
         });

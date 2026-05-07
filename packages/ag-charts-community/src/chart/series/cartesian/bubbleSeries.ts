@@ -406,7 +406,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     public override getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
         const map = this.aggregateIndexSet;
         if (map === undefined) return undefined;
-        return (sampledDatumIndex) => map.get(sampledDatumIndex);
+        return (sampledDatumIndex) => map.get(sampledDatumIndex) ?? [];
     }
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {

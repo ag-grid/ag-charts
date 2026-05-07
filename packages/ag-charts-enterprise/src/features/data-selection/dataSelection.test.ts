@@ -6,6 +6,7 @@ import {
     deproxy,
     dragAction,
     extractImageData,
+    getSeriesAggregationInternals,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -192,27 +193,26 @@ describe('DataSelection', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
 
             const reader = series.getAggregateIndexSetReader();
             expect(reader).toBeDefined();
 
-            const aggregateIndexSet: Map<number, number[]> = series.aggregateIndexSet;
+            const aggregateIndexSet = series.aggregateIndexSet;
             expect(aggregateIndexSet).toBeDefined();
 
             const seriesId = series.id;
             const dataSet = series.data!;
 
-            const multiBucketPrimaries = [...aggregateIndexSet.entries()].filter(([, indices]) => indices.length > 1);
+            const multiBucketPrimaries = [...aggregateIndexSet!.entries()].filter(([, indices]) => indices.length > 1);
             expect(multiBucketPrimaries.length).toBeGreaterThan(0);
 
             const [primaryDatumIndex, expectedIndices] = multiBucketPrimaries[0];
 
             const expandedIndices = reader!(primaryDatumIndex);
-            expect(expandedIndices).toBeDefined();
-            expect([...expandedIndices!]).toEqual(expect.arrayContaining(expectedIndices));
-            expect([...expandedIndices!]).toHaveLength(expectedIndices.length);
+            expect([...expandedIndices]).toEqual(expect.arrayContaining(expectedIndices));
+            expect([...expandedIndices]).toHaveLength(expectedIndices.length);
 
             const itemsToSelect = expectedIndices.map((idx) => ({
                 seriesId,
@@ -294,10 +294,10 @@ describe('DataSelection', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
 
-            const aggregateIndexSet: Map<number, number[]> = series.aggregateIndexSet;
+            const aggregateIndexSet = series.aggregateIndexSet;
             expect(aggregateIndexSet).toBeDefined();
             const renderedMarkerCount = series.contextNodeData?.nodeData?.length ?? 0;
             expect(renderedMarkerCount).toBeGreaterThan(0);
@@ -380,7 +380,7 @@ describe('DataSelection', () => {
             chart = AgCharts.create(options);
             await waitForChartStability(chart);
 
-            const series = deproxy(chart).series[0] as any;
+            const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
             expect(series.getAggregateIndexSetReader()).toBeUndefined();
         });
