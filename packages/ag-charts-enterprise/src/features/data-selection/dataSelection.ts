@@ -207,8 +207,6 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 toggleSelection(changes, series, data, datumIndex);
                 internalRefreshTargets = [series];
             } else {
-                // Single-click clears every series — all of them need their
-                // bucket-lookup roll-up refreshed, not just the clicked series.
                 clickMode satisfies 'single';
                 clearAllSelections(changes, this.state, this.ctx.chartService.series);
                 setSelected(changes, series, data, datumIndex);
@@ -301,25 +299,23 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
             for (const datum of series.pickNodesInBBox(bbox)) {
-                if (asNumericDatumIndex(datum.datumIndex)) {
-                    if (getRangeOfAggregateIndex) {
-                        const range = getRangeOfAggregateIndex(datum.datumIndex);
-                        if (range && !intervalSet.has(datum.datumIndex)) {
-                            const [start, end] = range;
-                            changed = true;
-                            intervalSet.add(start, end);
-                        }
-                    } else {
-                        const indexSet = bucketLookup?.getIndexSet(datum.datumIndex);
-                        if (indexSet === undefined) {
-                            changed = true;
-                            setSelected(changes, series, data, datum.datumIndex);
-                        } else {
-                            for (const idx of indexSet) {
-                                changed = true;
-                                setSelected(changes, series, data, idx);
-                            }
-                        }
+                if (!asNumericDatumIndex(datum.datumIndex)) continue;
+
+                const indexSet = bucketLookup?.getIndexSet(datum.datumIndex);
+                if (getRangeOfAggregateIndex) {
+                    const range = getRangeOfAggregateIndex(datum.datumIndex);
+                    if (range && !intervalSet.has(datum.datumIndex)) {
+                        const [start, end] = range;
+                        changed = true;
+                        intervalSet.add(start, end);
+                    }
+                } else if (indexSet === undefined) {
+                    changed = true;
+                    setSelected(changes, series, data, datum.datumIndex);
+                } else {
+                    for (const idx of indexSet) {
+                        changed = true;
+                        setSelected(changes, series, data, idx);
                     }
                 }
             }
