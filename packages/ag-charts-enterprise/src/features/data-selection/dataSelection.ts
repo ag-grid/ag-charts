@@ -46,7 +46,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private supportsSelection(): boolean {
         return (
             this.ctx.chartService.getChartType() !== 'standalone' &&
-            this.ctx.chartService.series.at(0)?.type !== 'histogram'
+            this.ctx.chartService.series.at(0)?.type !== 'histogram' &&
+            this.ctx.chartService.series.at(0)?.type !== 'waterfall'
         );
     }
 
