@@ -107,6 +107,7 @@ export class DataSetSelection {
 
     applyDataChange(desc: DataChangeDescription): void {
         this.selection = desc.applyToTypedArray(this.selection);
+        this.count = this.countRange(0, this.selection.length);
     }
 
     // --- Query ---
