@@ -124,13 +124,21 @@ export function setSelectedRange(
     selection.selectRange(start, end);
 }
 
+function* iterateSelections(dataSets: ReturnType<typeof getAllDataSets>) {
+    for (const data of dataSets) {
+        for (const [seriesId, selection] of data.selections) {
+            yield { data, seriesId, selection };
+        }
+    }
+}
+
 export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
     if (changes.removed !== undefined) {
-        for (const data of dataSets) {
-            for (const [seriesId, selection] of data.selections) {
-                const n = selection.getLength();
-                for (let datumIndex = 0; datumIndex < n; datumIndex++) {
+        for (const { data, seriesId, selection } of iterateSelections(dataSets)) {
+            const n = selection.getLength();
+            for (let datumIndex = 0; datumIndex < n; datumIndex++) {
+                if (selection.isSelected(datumIndex)) {
                     changes.removed.push(makeChangeItem(seriesId, data, datumIndex));
                 }
             }

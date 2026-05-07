@@ -34,6 +34,8 @@ import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
+const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
@@ -44,10 +46,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelection(): boolean {
-        return (
-            this.ctx.chartService.getChartType() !== 'standalone' &&
-            this.ctx.chartService.series.at(0)?.type !== 'histogram'
-        );
+        if (this.ctx.chartService.getChartType() === 'standalone') return false;
+
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
+
+        return true;
     }
 
     private supportsSelectionDrag(): boolean {
@@ -202,7 +206,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -217,6 +221,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = 0;
         this.dragRect.height = 0;
         this.dragRect.visible = true;
+        dragStartEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
@@ -238,6 +243,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
         this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
+        dragMoveEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {

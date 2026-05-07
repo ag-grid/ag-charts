@@ -190,7 +190,7 @@ function setSeries(type: string, label: string) {
                         selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
                     },
                     itemStyler: (params: { selectionState?: string }) =>
-                        params.selectionState === 'selected' ? { size: 12 } : {},
+                        params.selectionState === 'selected-item' ? { size: 12 } : {},
                 },
             ];
             break;
@@ -208,7 +208,7 @@ function setSeries(type: string, label: string) {
                         selectedItem: { fill: '#ff3b30', stroke: '#990000', strokeWidth: 2 },
                     },
                     itemStyler: (params: { size: number; selectionState?: string }) =>
-                        params.selectionState === 'selected' ? { size: params.size * 1.6 } : {},
+                        params.selectionState === 'selected-item' ? { size: params.size * 1.6 } : {},
                 },
             ];
             break;

@@ -35,8 +35,8 @@ The `clickMode` option controls how new clicks combine with the existing selecti
 }
 ```
 
--   `'single'` (default) replaces the current selection with the clicked datum. Holding {% kbd "Ctrl" /%} or {% kbd "Cmd" /%} during the click temporarily promotes the click to `'multiple'`.
--   `'multiple'` toggles the clicked datum in or out of the existing selection.
+- `'single'` (default) replaces the current selection with the clicked datum. Holding {% kbd "Ctrl" /%} or {% kbd "Cmd" /%} during the click temporarily promotes the click to `'multiple'`.
+- `'multiple'` toggles the clicked datum in or out of the existing selection.
 
 Set `enableClickAwayToClear` to `false` to keep the selection in place when the user clicks an empty area of the chart.
 
@@ -58,8 +58,8 @@ Set `enableDrag` to `true` to let the user draw a rectangle across the chart and
 
 The `containment` option controls which datums the drag rectangle picks up:
 
--   `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
--   `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
+- `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
+- `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
 
 ## Styling Selected and Unselected Items
 
@@ -89,7 +89,7 @@ When data selection is active, the chart applies a default visual treatment that
 }
 ```
 
-For dynamic per-datum styling, use the series item-styler — `params.selectionState` is set to `'none'`, `'selected'`, or `'unselected'` whenever the data selection module is enabled. See [Stylers](./stylers) for the full styler API.
+For dynamic per-datum styling, use the series item-styler — `params.selectionState` is set to `'none'`, `'selected-item'`, or `'unselected-item'` whenever the data selection module is enabled. See [Stylers](./stylers) for the full styler API.
 
 ## Per-Series Configuration
 
@@ -140,9 +140,9 @@ Listen for `selectionChange` to react when the selection is updated by either us
 
 The event payload contains:
 
--   `source` — `'user-interaction'` or `'api-call'`.
--   `added` — datums added to the selection by this change.
--   `removed` — datums removed from the selection by this change.
+- `source` — `'user-interaction'` or `'api-call'`.
+- `added` — datums added to the selection by this change.
+- `removed` — datums removed from the selection by this change.
 
 Call `event.preventDefault()` from inside the listener to veto the change.
 
@@ -161,9 +161,9 @@ The chart instance exposes three methods for reading and writing the current sel
 }
 ```
 
--   `chart.getSelection()` returns an iterable of every currently selected item, each with `seriesId`, `itemId`, and `datum`.
--   `chart.setSelection(items)` replaces the current selection with the supplied items.
--   `chart.clearSelection()` removes every selected item across all series.
+- `chart.getSelection()` returns an iterable of every currently selected item, each with `seriesId`, `itemId`, and `datum`.
+- `chart.setSelection(items)` replaces the current selection with the supplied items.
+- `chart.clearSelection()` removes every selected item across all series.
 
 ## Compatibility
 

@@ -46,7 +46,8 @@
   "devDependencies": {
     "@types/jsdom": "^20.0.0",
     "ag-charts-community": "13.2.1-beta.20260503",
-    "ag-charts-enterprise": "13.2.1-beta.20260503"
+    "ag-charts-enterprise": "13.2.1-beta.20260503",
+    "jest-image-snapshot": "^6.0.0"
   },
   "engines": {
     "node": ">=20.0.0"
