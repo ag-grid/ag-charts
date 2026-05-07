@@ -968,7 +968,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
 
@@ -992,7 +992,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
@@ -1016,7 +1016,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 

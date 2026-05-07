@@ -83,13 +83,13 @@ function getDataD() {
 }
 
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
-    if (params.selectionState === 'selected') {
+    if (params.selectionState === 'selected-item') {
         return { stroke: 'black', strokeWidth: 2 };
     }
 };
 
 const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle | undefined => {
-    if (params.selectionState === 'selected') {
+    if (params.selectionState === 'selected-item') {
         return { stroke: 'black', strokeWidth: 2, size: 15 };
     }
 };
