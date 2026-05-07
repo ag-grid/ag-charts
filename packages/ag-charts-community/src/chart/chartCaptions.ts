@@ -60,30 +60,40 @@ export class ChartCaptions {
     }
 
     private positionCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox, maxHeight: number) {
+        // Position the node even when text is empty so its bbox reserves a line of space —
+        // an `enabled: true` caption with `text: ''` should still occupy layout (AG-16511).
+        caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
+        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
+        caption.node.textBaseline = vAlign;
         if (!caption.text) return;
         const { lineMetrics } = isArray(caption.text)
             ? measureTextSegments(caption.text, caption)
             : cachedTextMeasurer(caption).measureLines(toTextString(caption.text));
         const containerHeight = Math.max(lineMetrics[0].height, maxHeight);
-        caption.node.x = this.computeX(caption.textAlign, layoutBox) + caption.padding;
-        caption.node.y = layoutBox.y + (vAlign === 'top' ? 0 : layoutBox.height) + caption.padding;
-        caption.node.textBaseline = vAlign;
         caption.computeTextWrap(layoutBox.width, containerHeight);
     }
 
     private shrinkLayoutByCaption(vAlign: 'top' | 'bottom', caption: Caption, layoutBox: BBox) {
-        if (caption.layoutStyle === 'block') {
-            const bbox = caption.node.getBBox().clone();
-            const { spacing = 0 } = caption;
-            if (vAlign === 'bottom' && isArray(caption.text)) {
-                bbox.y -= bbox.height;
-            }
-            layoutBox.shrink(
-                vAlign === 'top'
-                    ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing)
-                    : Math.ceil(layoutBox.y + layoutBox.height - bbox.y + spacing),
-                vAlign
-            );
+        if (caption.layoutStyle !== 'block') return;
+
+        const bbox = caption.node.getBBox().clone();
+        const { spacing = 0 } = caption;
+
+        // Empty text yields a zero-height bbox from the Text node; reserve one line of font
+        // height so an enabled caption with `text: ''` still occupies layout space (AG-16511).
+        if (bbox.height === 0) {
+            bbox.height = cachedTextMeasurer(caption).lineHeight();
+            if (vAlign === 'bottom') bbox.y -= bbox.height;
         }
+
+        if (vAlign === 'bottom' && isArray(caption.text)) {
+            bbox.y -= bbox.height;
+        }
+        layoutBox.shrink(
+            vAlign === 'top'
+                ? Math.ceil(bbox.y - layoutBox.y + bbox.height + spacing)
+                : Math.ceil(layoutBox.y + layoutBox.height - bbox.y + spacing),
+            vAlign
+        );
     }
 }
