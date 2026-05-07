@@ -719,4 +719,27 @@ describe('Ordinal Time Axis Examples', () => {
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     });
+
+    // AG-17065: deeply zoomed large ordinal-time dataset must not hang in tick generation.
+    // Jest's default timeout catches a regression — the fix ensures the overlap loop exits
+    // in O(log n) iterations instead of ~1000 linear iterations.
+    it('should not hang when deeply zoomed with a large dataset', async () => {
+        const largeData = Array.from({ length: 5000 }, (_, i) => ({
+            date: new Date(2023, 0, 1, 0, i),
+            open: 100 + Math.sin(i / 100) * 50,
+        }));
+
+        chart = await createEnterpriseChart({
+            width: 300,
+            height: 200,
+            data: largeData,
+            axes: { x: { type: 'ordinal-time' }, y: { type: 'number' } },
+            series: [{ type: 'line', xKey: 'date', yKey: 'open' }],
+            zoom: {},
+            initialState: { zoom: { ratioX: { start: 0.499, end: 0.501 } } },
+        });
+
+        await waitForChartStability(chart);
+        expect(chart).toBeDefined();
+    });
 });

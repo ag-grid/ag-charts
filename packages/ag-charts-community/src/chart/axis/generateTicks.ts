@@ -127,7 +127,7 @@ function getTickGenerationType<TScale extends Scale<TDatum, number, TickInterval
     return TickGenerationType.CREATE;
 }
 
-function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>({
+export function estimateScaleTickCount<TScale extends Scale<TDatum, number, TickInterval<TScale>>, TDatum>({
     scale,
     domain,
     range,
