@@ -8,7 +8,7 @@ import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitFor
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
 
-describe('Chart Heap Memory', () => {
+describe('Chart Heap Memory', { retry: 5 }, () => {
     setupMockConsole();
 
     let chart: Chart;

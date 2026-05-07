@@ -185,7 +185,9 @@ export class Caption extends BaseProperties implements CaptionLike {
         // Only update bounds if they changed
         const { lastProxyBBox } = this;
         if (
-            bbox.x !== lastProxyBBox?.x ||
+            // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+            lastProxyBBox == null ||
+            bbox.x !== lastProxyBBox.x ||
             bbox.y !== lastProxyBBox.y ||
             bbox.width !== lastProxyBBox.width ||
             bbox.height !== lastProxyBBox.height

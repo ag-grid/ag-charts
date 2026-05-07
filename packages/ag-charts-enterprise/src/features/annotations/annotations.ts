@@ -706,7 +706,8 @@ export class Annotations extends AbstractModuleInstance {
             this.annotationData.length === annotations.length &&
             annotations.every((annotation, index) => {
                 const current = this.annotationData.at(index);
-                return current?.type === annotation.type as AnnotationType;
+                // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+                return current != null && current.type === (annotation.type as AnnotationType);
             });
 
         if (canPatchInPlace) {

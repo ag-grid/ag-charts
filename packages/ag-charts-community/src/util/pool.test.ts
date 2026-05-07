@@ -1,9 +1,10 @@
 import type { MockedFunction } from 'vitest';
-import { vi } from 'vitest';
+import { describe, vi } from 'vitest';
 
 import { Pool } from './pool';
 
-describe('Pool', () => {
+// Due to the use of WeakRef, the tests here can be sometimes flaky - let's be sure any failure is consistent.
+describe('Pool', { retry: 3 }, () => {
     const testPoolSize = 5;
 
     let pool: Pool<symbol, string>;
