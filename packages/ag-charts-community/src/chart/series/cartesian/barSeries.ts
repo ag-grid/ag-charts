@@ -67,6 +67,7 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
 import { prepareAggregateBucketContext } from '../aggregationRangeReader';
+import { type BucketSelectionFeature, SplitBucketSelectionManager } from '../bucketSelectionFeature';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -536,6 +537,19 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         };
     }
 
+    protected override createBucketSelectionFeature(): BucketSelectionFeature {
+        return new SplitBucketSelectionManager({
+            series: this,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            getYColumnId: (dataModel) => this.yCumulativeKey(dataModel),
+        });
+    }
+
     private aggregateData(dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) {
         this.aggregationManager.markStale(processedData.input.count);
 
@@ -559,6 +573,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             computeFull: (existingFilters) =>
                 aggregateBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
+            onChange: () => this.bucketSelection?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

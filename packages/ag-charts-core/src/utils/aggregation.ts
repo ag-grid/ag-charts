@@ -669,6 +669,68 @@ export function computeBucketSelection(
 }
 
 /**
+ * Populate per-bucket selection flags for split (positive/negative) bucket
+ * arrays at the finest aggregation level. Each datum is routed to one arm
+ * based on the sign of its y-end value, mirroring the bucket-assignment math
+ * used by the split-mode aggregation builder.
+ *
+ * Buckets in either arm with no selected datums end up with `0`; buckets
+ * containing one or more selected datums end up with `1`. Coarser levels can
+ * then be propagated cheaply via {@link propagateBucketSelection} on each arm
+ * independently.
+ */
+export function computeBucketSelectionSplit(
+    selection: Uint8Array,
+    positiveIndexData: Uint32Array,
+    negativeIndexData: Uint32Array,
+    bucketCount: number,
+    xValues: any[],
+    yEndValues: any[],
+    d0: number,
+    d1: number,
+    xNeedsValueOf: boolean,
+    yNeedsValueOf: boolean
+): void {
+    for (let i = 0; i < bucketCount; i++) {
+        const aggIndex = i * AGGREGATION_SPAN;
+        positiveIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+        negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 0;
+    }
+
+    const continuous = Number.isFinite(d0) && Number.isFinite(d1);
+    const xValuesLength = xValues.length;
+    const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
+    const selectionLength = selection.length;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        if (datumIndex >= selectionLength || selection[datumIndex] === 0) continue;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) continue;
+
+        const yEnd = yEndValues[datumIndex];
+        if (yEnd == null) continue;
+        const yMax = yNeedsValueOf ? yEnd.valueOf() : yEnd;
+        if (yMax !== yMax) continue; // NaN
+
+        let scaledX: number;
+        if (continuous) {
+            scaledX = xNeedsValueOf ? (xValue.valueOf() - d0) * scaleFactor : ((xValue as number) - d0) * scaleFactor;
+        } else {
+            scaledX = datumIndex * scaleFactor;
+        }
+
+        const bucketIndex = Math.floor(scaledX);
+        const aggIndex = (bucketIndex < bucketCount ? bucketIndex : bucketCount - 1) * AGGREGATION_SPAN;
+        if (yMax >= 0) {
+            positiveIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+        } else {
+            negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+        }
+    }
+}
+
+/**
  * Propagate selection flags from a finer aggregation level into a coarser one
  * by OR-ing each coarser bucket's two child buckets. Mirrors the SELECTED-slot
  * write performed by {@link aggregateFromFiner}, but only touches that one

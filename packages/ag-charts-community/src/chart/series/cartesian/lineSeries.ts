@@ -43,12 +43,8 @@ import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import {
-    type BucketSelectionReaderCache,
-    getCachedBucketSelectionReader,
-    makeAggregateRangeReader,
-    refreshAggregationBucketSelection,
-} from '../aggregationRangeReader';
+import { makeAggregateRangeReader } from '../aggregationRangeReader';
+import { type BucketSelectionFeature, BucketSelectionManager } from '../bucketSelectionFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -114,7 +110,6 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     override properties = new LineSeriesProperties();
 
     private readonly aggregationManager = new AggregationManager<LineSeriesDataAggregationFilter>();
-    private readonly bucketSelectionReaderCache: BucketSelectionReaderCache<LineSeriesDataAggregationFilter> = {};
     private hideWithSize0 = false;
 
     override get pickModeAxis() {
@@ -361,7 +356,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     existingFilters
                 ),
             targetRange,
-            onChange: () => this.refreshAggregationSelection(),
+            onChange: () => this.bucketSelection?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
@@ -384,27 +379,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         });
     }
 
-    protected override isAggregateBucketSelected(datumIndex: number): boolean | undefined {
-        const reader = getCachedBucketSelectionReader(this.bucketSelectionReaderCache, {
+    protected override createBucketSelectionFeature(): BucketSelectionFeature {
+        return new BucketSelectionManager({
             series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
             domainKey: 'value',
-        });
-        return reader?.(datumIndex);
-    }
-
-    protected override refreshAggregationSelection(): void {
-        refreshAggregationBucketSelection({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            domainKey: 'value',
-            filters: this.aggregationManager.filters,
-            selection: this.data?.selections.get(this.id)?.getSelection(),
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
         });
     }
 

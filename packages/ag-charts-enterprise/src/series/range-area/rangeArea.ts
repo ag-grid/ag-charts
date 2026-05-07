@@ -286,7 +286,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             computeFull: (existingFilters) =>
                 aggregateRangeAreaDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.refreshAggregationSelection(),
+            onChange: () => this.bucketSelection?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
@@ -309,30 +309,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         });
     }
 
-    private readonly bucketSelectionReaderCache: _ModuleSupport.BucketSelectionReaderCache<RangeAreaSeriesDataAggregationFilter> =
-        {};
-
-    protected override isAggregateBucketSelected(datumIndex: number): boolean | undefined {
-        const reader = _ModuleSupport.getCachedBucketSelectionReader(this.bucketSelectionReaderCache, {
+    protected override createBucketSelectionFeature(): _ModuleSupport.BucketSelectionFeature {
+        return new _ModuleSupport.BucketSelectionManager({
             series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
             domainKey: 'key',
-        });
-        return reader?.(datumIndex);
-    }
-
-    protected override refreshAggregationSelection(): void {
-        _ModuleSupport.refreshAggregationBucketSelection({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            domainKey: 'key',
-            filters: this.aggregationManager.filters,
-            selection: this.data?.selections.get(this.id)?.getSelection(),
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
         });
     }
 

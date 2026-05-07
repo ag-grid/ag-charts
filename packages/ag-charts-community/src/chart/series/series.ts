@@ -75,6 +75,7 @@ import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
+import type { BucketSelectionFeature } from './bucketSelectionFeature';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, SelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
@@ -478,7 +479,7 @@ export abstract class Series<
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
-                this.refreshAggregationSelection();
+                this.bucketSelection?.refresh();
             })
         );
     }
@@ -792,23 +793,40 @@ export abstract class Series<
     }
 
     /**
-     * For aggregating series: query whether the bucket containing `datumIndex`
-     * at the current zoom level contains any selected datums. Returns
-     * `undefined` when no aggregation level is active for the current view —
-     * callers fall back to the per-datum selection bitset.
+     * Per-series bucket-selection roll-up. Optional — populated lazily when
+     * the data-selection feature is in play and the series has aggregation
+     * support. `DataModelSeries.getDataSelectionState` consults this for
+     * marker styling; `data-selection-change` and aggregation rebuilds keep
+     * the roll-up in sync.
      */
-    protected isAggregateBucketSelected(_datumIndex: number): boolean | undefined {
+    protected bucketSelection?: BucketSelectionFeature;
+
+    /**
+     * Construct the series-specific {@link BucketSelectionFeature}. Default
+     * `undefined` for non-aggregating series. Aggregating series override to
+     * return either {@link BucketSelectionManager} (single `indexData`) or
+     * {@link SplitBucketSelectionManager} (split positive/negative).
+     */
+    protected createBucketSelectionFeature(): BucketSelectionFeature | undefined {
         return undefined;
     }
 
     /**
-     * For aggregating series: refresh the per-bucket selection roll-up after
-     * the per-datum selection bitset has changed. Default no-op; series with an
-     * `AggregationManager` override to populate the SELECTED slot in their
-     * filters.
+     * Lazy-init `bucketSelection` on first access; called from the render
+     * path. The just-created feature is refreshed once so it reflects the
+     * current selection bitset and aggregation filters — without this any
+     * earlier `aggregate({ onChange })` callbacks would have been no-ops
+     * (the field was still undefined when they fired).
      */
-    protected refreshAggregationSelection(): void {
-        // For override by aggregating series.
+    protected ensureBucketSelectionFeature(): BucketSelectionFeature | undefined {
+        if (this.bucketSelection === undefined) {
+            const feature = this.createBucketSelectionFeature();
+            if (feature) {
+                this.bucketSelection = feature;
+                feature.refresh();
+            }
+        }
+        return this.bucketSelection;
     }
 
     public getHighlightStateString(
