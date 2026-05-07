@@ -258,10 +258,18 @@ describe('RangeAreaSeries', () => {
     });
 
     it(`AG-17099 should render a gap in aggregated mode with a single null row`, async () => {
+        const highValue = (i: number) => {
+            if (i === 2000) return null;
+            return i < 2000 ? 30 : 60;
+        };
+        const lowValue = (i: number) => {
+            if (i === 2000) return null;
+            return i < 2000 ? 10 : 40;
+        };
         const data = Array.from({ length: 5000 }, (_, i) => ({
             x: i,
-            high: i === 2000 ? null : i < 2000 ? 30 : 60,
-            low: i === 2000 ? null : i < 2000 ? 10 : 40,
+            high: highValue(i),
+            low: lowValue(i),
         }));
         const options: AgCartesianChartOptions = {
             data,
