@@ -223,6 +223,74 @@ describe('RangeAreaSeries', () => {
 `);
     });
 
+    it(`AG-17099 should render gaps in aggregated mode with a large null block`, async () => {
+        const data = Array.from({ length: 2100 }, (_, i) => ({
+            x: i,
+            high: i < 200 || i >= 1900 ? Math.sin(i / 20) * 10 + 25 : null,
+            low: i < 200 || i >= 1900 ? Math.sin(i / 20) * 10 + 10 : null,
+        }));
+        const options: AgCartesianChartOptions = {
+            data,
+            series: [{ type: 'range-area', xKey: 'x', yHighKey: 'high', yLowKey: 'low' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            width: 400,
+            height: 300,
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await compare();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yLowValue] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yHighValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+    });
+
+    it(`AG-17099 should render a gap in aggregated mode with a single null row`, async () => {
+        const data = Array.from({ length: 5000 }, (_, i) => ({
+            x: i,
+            high: i === 2000 ? null : i < 2000 ? 30 : 60,
+            low: i === 2000 ? null : i < 2000 ? 10 : 40,
+        }));
+        const options: AgCartesianChartOptions = {
+            data,
+            series: [{ type: 'range-area', xKey: 'x', yHighKey: 'high', yLowKey: 'low' }],
+            axes: {
+                x: { type: 'number', position: 'bottom' },
+                y: { type: 'number', position: 'left' },
+            },
+            width: 400,
+            height: 300,
+        };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.create(options);
+        await compare();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yLowValue] ignored:",
+    "[null]",
+  ],
+  [
+    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yHighValue] ignored:",
+    "[null]",
+  ],
+]
+`);
+    });
+
     it(`should render a range-area chart with reversed axes`, async () => {
         const options: AgChartOptions = {
             ...RANGE_AREA_OPTIONS,

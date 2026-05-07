@@ -11,6 +11,7 @@ import {
 } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_UNSET,
+    AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_Y_MAX,
     AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
@@ -43,6 +44,7 @@ import {
 } from './rangeAreaUtil';
 
 // Semantic constants for Range Area data access
+const X_MAX = AGGREGATION_INDEX_X_MAX;
 const HIGH = AGGREGATION_INDEX_Y_MAX;
 const LOW = AGGREGATION_INDEX_Y_MIN;
 const SPAN = AGGREGATION_SPAN;
@@ -482,6 +484,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
+    private pushGapMarker(ctx: RangeAreaSeriesNodeDatumContext): void {
+        const currentSpanPoints = ctx.spanPoints.at(-1);
+        if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+            ctx.spanPoints.push({ skip: 0 });
+        } else {
+            currentSpanPoints.skip += 1;
+        }
+    }
+
+    private hasInvalidDatumsInRange(
+        yHighValues: any[],
+        yLowValues: any[],
+        startIndex: number,
+        endIndex: number
+    ): boolean {
+        for (let i = startIndex; i <= endIndex; i++) {
+            if (!Number.isFinite(yHighValues[i]) || !Number.isFinite(yLowValues[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Creates or updates marker datum for a single boundary (high or low).
      * Supports incremental updates by reusing existing marker data objects when possible.
@@ -595,16 +620,33 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 return [xPosition(midDatumIndex), xPosition(midDatumIndex)];
             });
 
+            let prevEndDatumIndex = -1;
+
             for (let bucketIndex = start; bucketIndex < end; bucketIndex += 1) {
                 const midIndex = midpointIndices[bucketIndex];
                 if (midIndex === AGGREGATION_INDEX_UNSET) continue; // Empty bucket
 
                 const aggIndex = bucketIndex * SPAN;
+                const xMaxDatumIndex = indexData[aggIndex + X_MAX];
                 const yHighDatumIndex = indexData[aggIndex + HIGH];
                 const yLowDatumIndex = indexData[aggIndex + LOW];
 
-                // Use high index for position (x coordinate), but get extreme values from respective datums
-                // In aggregated mode, the yHigh and yLow extrema may come from DIFFERENT data points in the bucket
+                if (yHighDatumIndex === AGGREGATION_INDEX_UNSET) {
+                    // Bucket has valid x-values but all-null y-values
+                    if (!ctx.connectMissingData) {
+                        this.pushGapMarker(ctx);
+                    }
+                    prevEndDatumIndex = xMaxDatumIndex;
+                    continue;
+                }
+
+                if (
+                    !ctx.connectMissingData &&
+                    this.hasInvalidDatumsInRange(ctx.yHighValues, ctx.yLowValues, prevEndDatumIndex + 1, xMaxDatumIndex)
+                ) {
+                    this.pushGapMarker(ctx);
+                }
+
                 this.handleDatumPoint(
                     ctx,
                     scratch,
@@ -612,6 +654,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                     ctx.yHighValues[yHighDatumIndex],
                     ctx.yLowValues[yLowDatumIndex]
                 );
+
+                prevEndDatumIndex = xMaxDatumIndex;
             }
         }
     }
