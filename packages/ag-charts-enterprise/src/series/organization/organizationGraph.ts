@@ -47,7 +47,8 @@ export class OrganizationGraph extends NetworkGraph<OrganizationVertex, Organiza
             if (subtitleValues[index] != null) {
                 this.addEdge(vertex, this.addVertex(subtitleValues[index] as string), 'subtitle');
             }
-            const labels = labelsValues.map((ls) => ls?.[index]).filter(Boolean) as string[];
+            // Keep undefined slots — filtering shifts values out of sync with `labels[i]` styles.
+            const labels = labelsValues.map((ls) => ls?.[index]);
             this.addEdge(vertex, this.addVertex(labels), 'labels');
             this.addEdge(vertex, this.addVertex(index), 'datumIndex');
 

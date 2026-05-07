@@ -35,6 +35,8 @@ export type SeriesNodeEventTypes =
     | 'seriesNodeClick'
     | 'seriesNodeDoubleClick';
 
+export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
+
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
     // Note: this is typically a MouseEvent, but it can be a TouchEvent or KeyboardEvent too.
@@ -118,6 +120,7 @@ export interface ISeries<
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
+    getAggregateRangeReader(): DatumRangeReader | undefined;
 }
 
 type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;

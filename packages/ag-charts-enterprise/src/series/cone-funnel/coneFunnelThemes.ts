@@ -5,7 +5,6 @@ import {
     FILL_PATTERN_SINGLE_DEFAULTS,
     LABEL_BOXING_DEFAULTS,
     SAFE_FILLS_OPERATION,
-    SERIES_SELECTION_THEME,
 } from 'ag-charts-core';
 import type { ExtensibleTheme } from 'ag-charts-types';
 
@@ -66,7 +65,6 @@ export const CONE_FUNNEL_SERIES_THEME: ExtensibleTheme<'cone-funnel'> = {
                 strokeWidth: 2,
             },
         },
-        selection: SERIES_SELECTION_THEME,
     },
     seriesArea: {
         padding: {

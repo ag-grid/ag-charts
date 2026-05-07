@@ -208,6 +208,7 @@ export class Zoom extends AbstractModuleInstance {
         // Observe option changes. The callback runs immediately during registration
         // (chartState is populated before module creation), handling initial setup too.
         let prevEnabled: boolean | undefined;
+        let prevTouchPan: boolean | undefined;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'zoom');
@@ -225,8 +226,16 @@ export class Zoom extends AbstractModuleInstance {
                     prevEnabled = opts.enabled;
                     this.onEnabledChange(opts.enabled);
                 }
+
+                // preventDefault on touchmove alone is not sufficient on iOS Safari.
+                const touchPan = Boolean(opts.enabled) && Boolean(opts.enablePanning || opts.enableTwoFingerZoom);
+                if (prevTouchPan !== touchPan) {
+                    prevTouchPan = touchPan;
+                    ctx.widgets.seriesWidget.setTouchAction(touchPan ? 'none' : undefined);
+                }
             })
         );
+        this.cleanup.register(() => ctx.widgets.seriesWidget.setTouchAction(undefined));
     }
 
     private teardown() {

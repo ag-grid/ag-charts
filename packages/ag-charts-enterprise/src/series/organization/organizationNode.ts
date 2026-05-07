@@ -1,9 +1,42 @@
 import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import { type Point, wrapTextOrSegments } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
-import type { OrganizationDatum, OrganizationNodeFields, RequiredOrganizationNodeStyle } from './organizationTypes';
+import type {
+    OrganizationDatum,
+    OrganizationNodeFields,
+    RequiredOrganizationNodeStyle,
+    RequiredOrganizationNodeTextStyle,
+} from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
+
+function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
+    const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
+    if (!Number.isFinite(cardWidth)) return Infinity;
+
+    const imageHorizontalSpace =
+        styles.image.enabled && (styles.image.position === 'left' || styles.image.position === 'right')
+            ? styles.image.width + styles.image.spacing
+            : 0;
+
+    return cardWidth - 2 * styles.padding - imageHorizontalSpace;
+}
+
+function wrapTextTier(
+    text: TextOrSegments,
+    tierStyles: RequiredOrganizationNodeTextStyle,
+    maxWidth: number
+): TextOrSegments {
+    const tierWidth = Math.max(maxWidth - 2 * tierStyles.padding, 1);
+    if (!Number.isFinite(tierWidth)) return text;
+
+    return wrapTextOrSegments(text, {
+        font: tierStyles,
+        maxWidth: tierWidth,
+        textWrap: tierStyles.wrapping,
+        overflow: tierStyles.overflowStrategy,
+    });
+}
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;
@@ -23,11 +56,12 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         isCollapsed: boolean
     ) {
         this.appliedStyles = styles;
+        const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
         this.updateImageNode(fields.image, styles);
-        this.updateTitleNode(fields.title, styles);
-        this.updateSubtitleNode(fields.subtitle, styles);
-        this.updateLabelNodes(fields.labels, styles);
+        this.updateTitleNode(fields.title, styles, textMaxWidth);
+        this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
+        this.updateLabelNodes(fields.labels, styles, textMaxWidth);
         this.updateExpanderNode(descendantsCount, isCollapsed, styles);
 
         let rowScenes = [];
@@ -211,7 +245,11 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             styles.image.shape === 'circle' ? Math.min(styles.image.width, styles.image.height) / 2 : 0;
     }
 
-    private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateTitleNode(
+        text: TextOrSegments | undefined,
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
+    ) {
         if (text == null || !styles.title.enabled) {
             this.titleNode?.remove();
             this.titleNode = undefined;
@@ -219,12 +257,16 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
-        this.titleNode.text = text;
+        this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
         applyTextBoxingStyles(this.titleNode, styles.title);
     }
 
-    private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateSubtitleNode(
+        text: TextOrSegments | undefined,
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
+    ) {
         if (text == null || !styles.subtitle.enabled) {
             this.subtitleNode?.remove();
             this.subtitleNode = undefined;
@@ -232,14 +274,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
-        this.subtitleNode.text = text;
+        this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
         applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
     }
 
     private updateLabelNodes(
         labels: (TextOrSegments | undefined)[] | undefined,
-        styles: RequiredOrganizationNodeStyle
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
     ) {
         if (labels == null) return;
 
@@ -254,11 +297,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 continue;
             }
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
-            this.labelNodes[index]!.text = labelText;
+            this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
             index++;
         }
+
+        // Trim trailing nodes so labels from a previously-bound datum don't leak after reuse.
+        for (let i = labels.length; i < this.labelNodes.length; i++) {
+            this.labelNodes[i]?.remove();
+        }
+        this.labelNodes.length = labels.length;
     }
 
     private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
@@ -349,8 +398,4 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         path.stroke = 'none';
         path.opacity = CHEVRON_OPACITY;
     }
-
-    // override containsPoint(x: number, y: number) {
-    //     return this.shapeNode?.containsPoint(x, y) ?? false;
-    // }
 }

@@ -38,7 +38,7 @@ export interface AgSunburstSeriesHighlightOptions {
 }
 
 export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend'> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'> {
     /** Options for the label in a sector. */
     label?: AgChartAutoSizedLabelOptions<TDatum, AgSunburstSeriesLabelFormatterParams<TDatum>, TContext>;
     /** Options for a secondary, smaller label in a sector - displayed under the primary label. */
@@ -79,7 +79,7 @@ export interface AgSunburstSeriesThemeableOptions<TDatum = DatumDefault, TContex
 }
 
 export interface AgSunburstSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
         AgSunburstSeriesOptionsKeys,
         AgSunburstSeriesOptionsNames,
         AgSunburstSeriesThemeableOptions<TDatum, TContext> {

@@ -39,7 +39,7 @@ export interface AgHistogramSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgHistogramSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'>,
         AgHistogramSeriesStyle {
     /** Configuration for the shadow used behind the chart series. */
     shadow?: AgDropShadowOptions;
@@ -82,7 +82,7 @@ export interface AgHistogramSeriesOptionsNames {
 }
 
 export interface AgHistogramSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'>,
         AgBaseCartesianSeriesAxisOptions,
         AgHistogramSeriesOptionsKeys<TDatum>,
         AgHistogramSeriesOptionsNames,

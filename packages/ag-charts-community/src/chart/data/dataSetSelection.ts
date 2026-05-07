@@ -42,6 +42,14 @@ export class DataSetSelection {
         this.selection.fill(0, startIndex, endIndex);
     }
 
+    countRange(startIndex: number, endIndex: number): number {
+        let count = 0;
+        for (let i = startIndex; i < endIndex; i++) {
+            count += this.selection[i];
+        }
+        return count;
+    }
+
     // --- Bulk ---
 
     clear(): void {
@@ -63,23 +71,5 @@ export class DataSetSelection {
     /** Direct access for the render loop. */
     getSelection(): Uint8Array {
         return this.selection;
-    }
-
-    getSelectedCount(): number {
-        let count = 0;
-        for (let i = 0; i < this.selection.length; i++) {
-            count += this.selection[i];
-        }
-        return count;
-    }
-
-    getSelectedIndices(): number[] {
-        const indices: number[] = [];
-        for (let i = 0; i < this.selection.length; i++) {
-            if (this.selection[i] === 1) {
-                indices.push(i);
-            }
-        }
-        return indices;
     }
 }

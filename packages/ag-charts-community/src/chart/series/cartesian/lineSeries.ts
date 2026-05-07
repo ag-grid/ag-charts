@@ -43,9 +43,11 @@ import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
+import { makeAggregateRangeReader } from '../aggregationRangeReader';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
+import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import {
     CartesianSeries,
@@ -362,6 +364,17 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 filters.map((f) => f.maxRange)
             );
         }
+    }
+
+    public override getAggregateRangeReader(): DatumRangeReader | undefined {
+        return makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'value',
+        });
     }
 
     private estimateTargetRange(): number {

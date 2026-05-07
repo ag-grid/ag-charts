@@ -83,6 +83,7 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
     DatumIndexType,
+    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -1001,7 +1002,10 @@ export abstract class Series<
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
         function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
-                if (child.datum !== undefined) {
+                // Note: Some series-type include `datum` values in the scene-graph that not assignable to `TDatum`.
+                // For example: line-series `SegmentedPath` include segmentation data in `datum`). So add some basic
+                // check for `datumIndex` to filter out datums that definitely not assignable to `TDatum`.
+                if (child.datum != null && typeof child.datum === 'object' && 'datumIndex' in child.datum) {
                     const result = callback(child);
                     if (result !== undefined) {
                         yield result;
@@ -1033,6 +1037,11 @@ export abstract class Series<
             }
             return undefined;
         });
+    }
+
+    public getAggregateRangeReader(): DatumRangeReader | undefined {
+        // Override point for subclasses with aggregation
+        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;

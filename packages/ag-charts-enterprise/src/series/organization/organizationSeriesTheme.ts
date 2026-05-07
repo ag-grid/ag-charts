@@ -65,7 +65,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             title: {
                 color: { $ref: 'foregroundColor' },
                 fontFamily: { $ref: 'fontFamily' },
-                fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+                fontSize: { $rem: FONT_SIZE_RATIO.LARGE },
                 fontStyle: 'normal',
                 fontWeight: 'bold',
                 key: 'title',
@@ -75,7 +75,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
                 wrapping: 'on-space',
             },
             subtitle: {
-                color: { $ref: 'foregroundColor' },
+                color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },
                 fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
                 fontStyle: 'normal',
@@ -88,7 +88,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             },
             labels: {
                 $apply: {
-                    color: { $ref: 'foregroundColor' },
+                    color: { $ref: 'subtleTextColor' },
                     fontFamily: { $ref: 'fontFamily' },
                     fontSize: { $rem: 11 / BASE_FONT_SIZE },
                     fontStyle: 'normal',

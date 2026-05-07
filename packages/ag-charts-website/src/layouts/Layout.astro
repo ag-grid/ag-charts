@@ -106,7 +106,7 @@ const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.repl
         {(!isProduction || isArchive || noIndex) && <meta name="robots" content="noindex" />}
         <meta name="generator" content={Astro.generator} />
         <title>{title}</title>
-        <link rel="canonical" href={canonicalUrl}>
+        {!isStaging && <link rel="canonical" href={canonicalUrl} />}
         <link rel="sitemap" type="application/xml" title="Sitemap" href={urlWithBaseUrl("/sitemap-index.xml")} />
 
         <!-- Import all global design system CSS -->

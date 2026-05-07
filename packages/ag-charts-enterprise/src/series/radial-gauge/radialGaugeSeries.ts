@@ -360,6 +360,7 @@ export class RadialGaugeSeries
             let text: TextOrSegments | undefined;
             if (label.formatter) {
                 text = formatWithContext(this.ctx, label.formatter, {
+                    type: 'number',
                     value,
                     index,
                     domain: scale.domain,

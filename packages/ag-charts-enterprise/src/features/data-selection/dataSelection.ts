@@ -18,6 +18,7 @@ import {
 } from './dataSelectionConstants';
 import {
     type SelectionChanges,
+    asNumericDatumIndex,
     clearAllSelections,
     getAllDataSets,
     hasAddToSelectionModifier,
@@ -25,9 +26,11 @@ import {
     isUnknownIterable,
     rollbackChanges,
     setSelected,
+    setSelectedRange,
     toBBox,
     toggleSelection,
 } from './dataSelectionUtil';
+import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
@@ -47,6 +50,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         );
     }
 
+    private supportsSelectionDrag(): boolean {
+        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+    }
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
 
@@ -62,8 +69,9 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
+        ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
-            ctx.scene.attachNode(this.dragRect),
+            () => this.dragRect.remove(),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
@@ -155,12 +163,14 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
-        const { type, clickedNode } = event;
+        const { type, clickedNode, distance } = event;
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss =
-            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
+            clickedNode === undefined ||
+            distance !== 0 ||
+            !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
@@ -196,7 +206,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         if (!enabled || !enableDrag) return;
@@ -210,7 +220,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -231,7 +241,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -249,6 +259,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
         const changedSeries: Series[] = [];
+        const intervalSet = new IntervalSet();
 
         for (const series of this.ctx.chartService.series) {
             if (!series.properties.selection.enabled) continue;
@@ -257,14 +268,31 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             if (data === undefined) continue;
 
             let changed = false;
+            intervalSet.clear();
+
+            const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+
             for (const datum of series.pickNodesInBBox(bbox)) {
-                const datumIndex: unknown = datum.datumIndex;
-                if (typeof datumIndex === 'number') {
-                    changed = true;
-                    setSelected(changes, series, data, datumIndex);
-                } else {
-                    Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                if (asNumericDatumIndex(datum.datumIndex)) {
+                    if (getRangeOfAggregateIndex) {
+                        const range = getRangeOfAggregateIndex(datum.datumIndex);
+                        if (range && !intervalSet.has(datum.datumIndex)) {
+                            const [start, end] = range;
+                            if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
+                                changed = true;
+                                intervalSet.add(start, end);
+                            }
+                        }
+                    } else {
+                        changed = true;
+                        setSelected(changes, series, data, datum.datumIndex);
+                    }
                 }
+            }
+
+            for (const interval of intervalSet.values()) {
+                // NOTE: `end` is inclusive in IntervalSet but exclusive in DataSetSelection
+                setSelectedRange(changes, series, data, shouldClearSelections, interval.start, interval.end + 1);
             }
 
             if (changed) {

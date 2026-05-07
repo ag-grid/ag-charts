@@ -1,6 +1,6 @@
 import type { AgSelectionChangeEvent, AgSelectionItem, AgSelectionItemIds } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { type AreExact, type RequireOptional } from 'ag-charts-core';
+import { type AreExact, Logger, type RequireOptional } from 'ag-charts-core';
 
 type ChangeItem = AgSelectionItem<unknown>;
 type SelectionChangesWithItems = { countDelta: number; added: ChangeItem[]; removed: ChangeItem[] };
@@ -108,6 +108,22 @@ export function setSelected(changes: Changes, series: Series, data: DataSet, dat
     selections.select(datumIndex);
 }
 
+export function setSelectedRange(
+    changes: Changes,
+    series: Series,
+    data: DataSet,
+    assumeZeroInitialised: boolean,
+    start: number,
+    end: number
+): void {
+    const selection = data.enableSelection(series.id);
+    changes.countDelta += end - start;
+    if (!assumeZeroInitialised) {
+        changes.countDelta -= selection.countRange(start, end);
+    }
+    selection.selectRange(start, end);
+}
+
 export function clearAllSelections(changes: Changes, state: State, allSeries: Series[]): void {
     const dataSets = getAllDataSets(allSeries);
     if (changes.removed !== undefined) {
@@ -150,4 +166,13 @@ export function isAgSelectionItem(item: unknown): item is AgSelectionItemIds {
         return true satisfies AreExact<VerifiedType, AgSelectionItemIds>;
     }
     return false;
+}
+
+export function asNumericDatumIndex(datumIndex: _ModuleSupport.DatumIndexType): datumIndex is number {
+    if (typeof datumIndex === 'number') {
+        return true;
+    } else {
+        Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+        return false;
+    }
 }

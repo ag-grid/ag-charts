@@ -60,9 +60,11 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
+import { makeAggregateRangeReader } from '../aggregationRangeReader';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
+import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,
@@ -442,6 +444,17 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             yVisibleRange,
             minVisibleItems
         );
+    }
+
+    public override getAggregateRangeReader(): DatumRangeReader | undefined {
+        return makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
     }
 
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {

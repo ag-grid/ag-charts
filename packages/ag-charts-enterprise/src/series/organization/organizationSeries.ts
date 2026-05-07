@@ -244,13 +244,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         let index = 0;
         for (const label of labels) {
-            props.push(
-                valueProperty(label.key, undefined, {
-                    id: `labelValue-${index}`,
-                    allowNullKey: true,
-                    missingValue: undefined,
-                })
-            );
+            // Skip disabled tiers — without a `key` they crash `dataModel`. The slot is
+            // preserved as `undefined` in `createGraphData` so tier indexing stays aligned.
+            if (label.enabled) {
+                props.push(
+                    valueProperty(label.key, undefined, {
+                        id: `labelValue-${index}`,
+                        allowNullKey: true,
+                        missingValue: undefined,
+                    })
+                );
+            }
             index++;
         }
 
@@ -358,6 +362,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.updateBBox(regularBBox);
             node.realign(regularBBox);
         }
+    }
+
+    // Exclude the expander pill from measurements — its overhang would compound into
+    // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox | undefined {
+        return node.getCardBBox() ?? node.getBBox();
     }
 
     getLinkInterpolation(
@@ -606,9 +616,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const titleValues = dataModel.resolveColumnById(this, 'titleValue', processedData);
         const subtitleValues = dataModel.resolveColumnById(this, 'subtitleValue', processedData);
 
-        const labelsValues = [];
+        const labelsValues: (string[] | undefined)[] = [];
         for (let i = 0; i < this.properties.node.labels.length; i++) {
-            labelsValues.push(dataModel.resolveColumnById(this, `labelValue-${i}`, processedData));
+            // Disabled tiers have no value-property; preserve slot so tier indexing stays aligned.
+            labelsValues.push(
+                this.properties.node.labels[i].enabled
+                    ? dataModel.resolveColumnById(this, `labelValue-${i}`, processedData)
+                    : undefined
+            );
         }
 
         // TODO: This is passing `any[]` in as the values, and the build fn then constrains the types without any safety.

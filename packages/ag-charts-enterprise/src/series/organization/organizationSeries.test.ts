@@ -929,6 +929,127 @@ describe('OrganizationSeries', () => {
                 await compare();
             });
 
+            it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
+                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
+                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
+                const options: AgChartOptions = {
+                    data: [
+                        { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
+                        { id: 'henry8', name: 'Henry VIII', reign: 'King 1509 - 1547', parentId: 'henry7' },
+                        { id: 'margaret', name: 'Margaret Tudor', reign: 'Queen of Scots', parentId: 'henry7' },
+                        { id: 'mary1', name: 'Mary I', reign: 'Queen 1553 - 1558', parentId: 'henry8' },
+                        { id: 'elizabeth1', name: 'Elizabeth I', reign: 'Queen 1558 - 1603', parentId: 'henry8' },
+                        { id: 'frances', name: 'Frances Brandon', parentId: 'margaret' },
+                        { id: 'jane', name: 'Lady Jane Grey', parentId: 'frances' },
+                    ],
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                labels: [{ key: 'reign' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
+                await waitForChartStability(chart);
+
+                // Assert rendered labels match each node's source datum (pinpoints the mismatch
+                // more precisely than a snapshot).
+                const series = deproxy(chart).series[0] as any;
+                const expectedReign: Record<string, string | undefined> = {
+                    henry7: 'King 1485 - 1509',
+                    henry8: 'King 1509 - 1547',
+                    margaret: 'Queen of Scots',
+                    frances: undefined,
+                    jane: undefined,
+                };
+                series.datumSelection.each((node: any, datum: any) => {
+                    const renderedTexts: string[] = (node.labelNodes ?? [])
+                        .filter((n: any) => n != null)
+                        .map((n: any) => n.text);
+                    const expected = expectedReign[datum.itemId];
+                    if (expected === undefined) {
+                        expect(renderedTexts).toEqual([]);
+                    } else {
+                        expect(renderedTexts).toEqual([expected]);
+                    }
+                });
+            });
+
+            it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
+                // Card height must not grow on each expand/collapse cycle.
+                const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const series = deproxy(chart).series[0] as any;
+                const captureBBoxes = () => {
+                    const bboxes: { itemId: string; width: number; height: number }[] = [];
+                    series.datumSelection.each((node: any, datum: any) => {
+                        const card = node.getCardBBox();
+                        if (card) {
+                            bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
+                        }
+                    });
+                    return bboxes;
+                };
+
+                const initial = captureBBoxes();
+                expect(initial.length).toBeGreaterThan(0);
+
+                for (let i = 0; i < 3; i++) {
+                    await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                    await waitForChartStability(chart);
+                    await chart.setState({ version: '13.3.0', collapsed: [] });
+                    await waitForChartStability(chart);
+                }
+
+                expect(captureBBoxes()).toEqual(initial);
+            });
+
+            it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
+                // Auto-enable must not overwrite a styler's `enabled: false`.
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: { collapsed: ['cto'] },
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                subtitle: {
+                                    key: 'job',
+                                    itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                        isCollapsed ? { enabled: false } : undefined,
+                                },
+                                labels: [
+                                    {
+                                        key: 'location',
+                                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                            isCollapsed ? { enabled: false } : undefined,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
+
             it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
                 // The styler flips fill on `isCollapsed`; snapshotting after each toggle
                 // catches a stale-cache regression where `isCollapsed` is omitted from the key.
@@ -989,6 +1110,31 @@ describe('OrganizationSeries', () => {
             // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
             await hoverAction(440, 155)(chart);
             await compare();
+        });
+    });
+
+    describe('node labels', () => {
+        it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
+            // A disabled label entry must be skipped silently, not crash `dataModel`.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location', enabled: false }, { key: 'tenure' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+            expect(console.error).not.toHaveBeenCalled();
         });
     });
 
@@ -1081,6 +1227,114 @@ describe('OrganizationSeries', () => {
             // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
             // leaf cards share the same bottom padding — no extra space reserved.
             const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should wrap text within card bounds when node.maxWidth is set', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        id: 'root',
+                        name: 'Alexandra Winterbottom-Richardson',
+                        job: 'Senior Vice President of Global Operations and Strategic Initiatives',
+                        location: 'San Francisco, California',
+                        parentId: null,
+                    },
+                    {
+                        id: 'child',
+                        name: 'Bartholomew Fitzpatrick',
+                        job: 'Regional Director of Business Development',
+                        location: 'New York',
+                        parentId: 'root',
+                    },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 180,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        const LONG_LABEL_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alexandra Winterbottom-Richardson',
+                job: 'Chief Technology Officer of Global Operations',
+                location: 'San Francisco, California',
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bartholomew Fitzpatrick',
+                job: 'Senior Vice President of Strategic Initiatives',
+                location: 'New York, New York',
+                parentId: 'ceo',
+            },
+            {
+                id: 'coo',
+                name: 'Charlotte Featherington-Smythe',
+                job: 'Operations Manager for International Markets',
+                location: 'London, United Kingdom',
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 should wrap long labels with explicit narrow maxWidth and wrapping: always', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'always' },
+                            subtitle: { key: 'job', wrapping: 'always' },
+                            labels: [{ key: 'location', wrapping: 'always' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 should truncate long labels with explicit narrow maxWidth and overflowStrategy: ellipsis', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            subtitle: { key: 'job', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            labels: [{ key: 'location', wrapping: 'never', overflowStrategy: 'ellipsis' }],
+                        },
+                    },
+                ],
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);
