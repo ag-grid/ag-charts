@@ -121,9 +121,9 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
     const unreachable = (a: never): never => a;
     switch (state) {
         case SelectionState.Selected:
-            return 'selected';
+            return 'selected-item';
         case SelectionState.Unselected:
-            return 'unselected';
+            return 'unselected-item';
         case SelectionState.None:
             return 'none';
         default:
