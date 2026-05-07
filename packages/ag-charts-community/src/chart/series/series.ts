@@ -478,6 +478,7 @@ export abstract class Series<
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
+                this.refreshAggregationSelection();
             })
         );
     }
@@ -788,6 +789,26 @@ export abstract class Series<
     protected getDataSelectionState(_datumIndex: TDatumIndex | undefined): SelectionState | undefined {
         // For override by subclasses.
         return undefined;
+    }
+
+    /**
+     * For aggregating series: query whether the bucket containing `datumIndex`
+     * at the current zoom level contains any selected datums. Returns
+     * `undefined` when no aggregation level is active for the current view —
+     * callers fall back to the per-datum selection bitset.
+     */
+    protected isAggregateBucketSelected(_datumIndex: number): boolean | undefined {
+        return undefined;
+    }
+
+    /**
+     * For aggregating series: refresh the per-bucket selection roll-up after
+     * the per-datum selection bitset has changed. Default no-op; series with an
+     * `AggregationManager` override to populate the SELECTED slot in their
+     * filters.
+     */
+    protected refreshAggregationSelection(): void {
+        // For override by aggregating series.
     }
 
     public getHighlightStateString(

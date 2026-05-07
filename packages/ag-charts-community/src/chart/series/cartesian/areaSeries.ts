@@ -60,7 +60,12 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { makeAggregateRangeReader } from '../aggregationRangeReader';
+import {
+    type BucketSelectionReaderCache,
+    getCachedBucketSelectionReader,
+    makeAggregateRangeReader,
+    refreshAggregationBucketSelection,
+} from '../aggregationRangeReader';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
@@ -189,6 +194,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     override connectsToYAxis = true;
 
     private readonly aggregationManager = new AggregationManager<AreaSeriesDataAggregationFilter>();
+    private readonly bucketSelectionReaderCache: BucketSelectionReaderCache<AreaSeriesDataAggregationFilter> = {};
     private hideWithSize0 = false;
 
     readonly backgroundGroup = new Group({
@@ -457,6 +463,30 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         });
     }
 
+    protected override isAggregateBucketSelected(datumIndex: number): boolean | undefined {
+        const reader = getCachedBucketSelectionReader(this.bucketSelectionReaderCache, {
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
+        return reader?.(datumIndex);
+    }
+
+    protected override refreshAggregationSelection(): void {
+        refreshAggregationBucketSelection({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            domainKey: 'key',
+            filters: this.aggregationManager.filters,
+            selection: this.data?.selections.get(this.id)?.getSelection(),
+        });
+    }
+
     private aggregateData(dataModel: DataModel<any, any>, processedData: ProcessedData<any>): void {
         this.aggregationManager.markStale(processedData.input.count);
 
@@ -488,6 +518,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     existingFilters
                 ),
             targetRange,
+            onChange: () => this.refreshAggregationSelection(),
         });
 
         const filters = this.aggregationManager.filters;

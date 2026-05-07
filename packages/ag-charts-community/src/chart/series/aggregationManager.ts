@@ -56,8 +56,12 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         computePartial?: (existingFilters: TFilter[] | undefined) => PartialAggregationResult<TFilter> | undefined;
         computeFull: (existingFilters: TFilter[] | undefined) => TFilter[] | undefined;
         targetRange: number;
+        /** Invoked after the filter set has been replaced or extended (including deferred coarser levels). */
+        onChange?: () => void;
     }): TFilter[] | undefined {
         this.executor.cancel();
+
+        const { onChange } = options;
 
         if (options.targetRange > 1 && options.computePartial) {
             const partialResult = options.computePartial(this._filters);
@@ -67,15 +71,18 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
                 if (computeRemaining) {
                     this.executor.schedule(computeRemaining, (remaining) => {
                         this.mergeFilters(remaining);
+                        onChange?.();
                     });
                 }
 
                 this._filters = immediate;
+                onChange?.();
                 return immediate;
             }
         }
 
         this._filters = options.computeFull(this._filters);
+        onChange?.();
         return this._filters;
     }
 

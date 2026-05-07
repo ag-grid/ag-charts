@@ -619,23 +619,73 @@ export function compactAggregationIndices(
 }
 
 /**
- * Pre-compute per-bucket selection flags in `indexData`.
+ * Populate per-bucket selection flags at the finest aggregation level by
+ * scanning every datum and OR-ing its selection bit into the bucket it falls
+ * into. Buckets with no selected datums end up with `0`; buckets containing
+ * one or more selected datums end up with `1`.
  *
- * For each bucket, reads the extrema indices (slots 0..AGGREGATION_INDEX_SELECTED-1)
- * and ORs their selection values into the `AGGREGATION_INDEX_SELECTED` slot.
- * This avoids reading the full selection array during aggregation pyramid traversal.
+ * This must mirror the bucket-assignment math used by the aggregation builder
+ * (see {@link aggregateData}) so that a datum lands in the same bucket here as
+ * it did during aggregation.
+ *
+ * Coarser levels can then be propagated cheaply via
+ * {@link propagateBucketSelection} without rescanning the full datum array.
  */
-export function computeBucketSelection(selection: Uint8Array, indexData: Uint32Array, bucketCount: number): void {
+export function computeBucketSelection(
+    selection: Uint8Array,
+    indexData: Uint32Array,
+    bucketCount: number,
+    xValues: any[],
+    d0: number,
+    d1: number,
+    xNeedsValueOf: boolean
+): void {
     for (let i = 0; i < bucketCount; i++) {
-        const base = i * AGGREGATION_SPAN;
-        let selected = 0;
-        for (let j = 0; j < AGGREGATION_INDEX_SELECTED; j++) {
-            const idx = indexData[base + j];
-            if (idx < selection.length) {
-                selected |= selection[idx];
-            }
+        indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
+    }
+
+    const continuous = Number.isFinite(d0) && Number.isFinite(d1);
+    const xValuesLength = xValues.length;
+    const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
+    const selectionLength = selection.length;
+
+    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
+        if (datumIndex >= selectionLength || selection[datumIndex] === 0) continue;
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) continue;
+
+        let scaledX: number;
+        if (continuous) {
+            scaledX = xNeedsValueOf ? (xValue.valueOf() - d0) * scaleFactor : ((xValue as number) - d0) * scaleFactor;
+        } else {
+            scaledX = datumIndex * scaleFactor;
         }
-        indexData[base + AGGREGATION_INDEX_SELECTED] = selected;
+
+        const bucketIndex = Math.floor(scaledX);
+        const aggIndex = (bucketIndex < bucketCount ? bucketIndex : bucketCount - 1) * AGGREGATION_SPAN;
+        indexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
+    }
+}
+
+/**
+ * Propagate selection flags from a finer aggregation level into a coarser one
+ * by OR-ing each coarser bucket's two child buckets. Mirrors the SELECTED-slot
+ * write performed by {@link aggregateFromFiner}, but only touches that one
+ * slot — it must be called when a finer level's SELECTED flags have been
+ * recomputed (e.g. after a selection change) without a full re-aggregation.
+ */
+export function propagateBucketSelection(
+    coarserIndexData: Uint32Array,
+    finerIndexData: Uint32Array,
+    coarserBucketCount: number
+): void {
+    for (let i = 0; i < coarserBucketCount; i++) {
+        const aggIndex = i * AGGREGATION_SPAN;
+        const child0 = aggIndex * 2;
+        const child1 = child0 + AGGREGATION_SPAN;
+        coarserIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] =
+            finerIndexData[child0 + AGGREGATION_INDEX_SELECTED] | finerIndexData[child1 + AGGREGATION_INDEX_SELECTED];
     }
 }
 
