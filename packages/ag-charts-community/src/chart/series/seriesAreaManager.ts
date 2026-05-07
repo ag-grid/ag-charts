@@ -88,7 +88,6 @@ type HandleFocusInputs = FocusIndices | FocusDeltas;
 type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
 type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
-type SeriesNodeClickResult = { clickedNode: PickedNode; distance: number };
 
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
@@ -267,6 +266,13 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('update:pre-scene-render', () => this.preSceneRender()),
             chart.ctx.eventsHub.on('update:complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
+            chart.ctx.eventsHub.on('collapsed:change', () => {
+                // Re-announce the focused node after a toggle. Gated so background changes
+                // (memento restore, off-screen series) don't trigger spurious announcements.
+                if (this.focusIndicator?.isFocusVisible()) {
+                    this.announceMode = 'always';
+                }
+            }),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
             chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
@@ -552,6 +558,7 @@ export class SeriesAreaManager extends BaseManager {
             const matches = pick?.matches;
             const found = matches?.[0];
             if (
+                found?.series.properties.selection.enabled ||
                 found?.series.hasEventListener('seriesNodeClick') ||
                 found?.series.hasEventListener('seriesNodeDoubleClick') ||
                 (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
@@ -612,9 +619,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
-            const clickResult: SeriesNodeClickResult | undefined = this.checkSeriesNodeClick(event);
-            if (clickResult) {
-                this.emitSeriesAreaClickEvent(event, true, clickResult);
+            const clickedNode: PickedNode | undefined = this.checkSeriesNodeClick(event);
+            if (clickedNode) {
+                this.emitSeriesAreaClickEvent(event, true, clickedNode);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
                 return;
@@ -638,11 +645,10 @@ export class SeriesAreaManager extends BaseManager {
     private emitSeriesAreaClickEvent(
         event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
         consumed: boolean,
-        clickResult?: SeriesNodeClickResult
+        clickedNode?: PickedNode
     ): void {
         const { type, sourceEvent } = event;
-        const { clickedNode, distance = 0 } = clickResult ?? {};
-        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode, distance };
+        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
@@ -772,7 +778,7 @@ export class SeriesAreaManager extends BaseManager {
                     device: 'keyboard',
                     sourceEvent,
                 };
-                this.emitSeriesAreaClickEvent(syntheticEvent, true, { clickedNode: datum, distance: 0 });
+                this.emitSeriesAreaClickEvent(syntheticEvent, true, datum);
                 this.update(ChartUpdateType.SERIES_UPDATE);
             }
         } else {
@@ -783,9 +789,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkSeriesNodeClick(
-        event: ClickLikeEvent & { preventZoomDblClick?: boolean }
-    ): SeriesNodeClickResult | undefined {
+    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): PickedNode | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return undefined;
@@ -808,7 +812,7 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return { clickedNode: updated.active, distance };
+            return updated.active;
         }
 
         if (event.type === 'dblclick') {
@@ -823,7 +827,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
-            return { clickedNode: updated.active, distance };
+            return updated.active;
         }
 
         return undefined;
@@ -983,7 +987,8 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, focusBBox);
+                const panTarget = focus.series.mapFocusBBoxToPanTarget(hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, panTarget);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

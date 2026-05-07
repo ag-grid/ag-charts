@@ -34,6 +34,8 @@ import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
+const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
@@ -44,10 +46,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelection(): boolean {
-        return (
-            this.ctx.chartService.getChartType() !== 'standalone' &&
-            this.ctx.chartService.series.at(0)?.type !== 'histogram'
-        );
+        if (this.ctx.chartService.getChartType() === 'standalone') return false;
+
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
+
+        return true;
     }
 
     private supportsSelectionDrag(): boolean {
@@ -163,14 +167,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
-        const { type, clickedNode, distance } = event;
+        const { type, clickedNode } = event;
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss =
-            clickedNode === undefined ||
-            distance !== 0 ||
-            !(clickedNode.series.properties.selection.enabled satisfies boolean);
+            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
@@ -202,7 +204,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
-        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
+        this.redraw(ChartUpdateType.FULL);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
@@ -217,6 +219,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = 0;
         this.dragRect.height = 0;
         this.dragRect.visible = true;
+        dragStartEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
@@ -238,6 +241,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
         this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
+        dragMoveEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
@@ -271,6 +275,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             intervalSet.clear();
 
             const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+            const getIndexSetForAggregate = series.getAggregateIndexSetReader();
 
             for (const datum of series.pickNodesInBBox(bbox)) {
                 if (asNumericDatumIndex(datum.datumIndex)) {
@@ -278,10 +283,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                         const range = getRangeOfAggregateIndex(datum.datumIndex);
                         if (range && !intervalSet.has(datum.datumIndex)) {
                             const [start, end] = range;
-                            if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
-                                changed = true;
-                                intervalSet.add(start, end);
-                            }
+                            changed = true;
+                            intervalSet.add(start, end);
+                        }
+                    } else if (getIndexSetForAggregate) {
+                        for (const idx of getIndexSetForAggregate(datum.datumIndex)) {
+                            changed = true;
+                            setSelected(changes, series, data, idx);
                         }
                     } else {
                         changed = true;

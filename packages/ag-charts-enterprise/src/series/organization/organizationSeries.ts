@@ -23,6 +23,7 @@ import {
     clamp,
     mergeDefaults,
     strictObjectKeys,
+    toPlainText,
 } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
@@ -181,6 +182,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const xRange = xEntry.max - xEntry.min;
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
+
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
+        const oldX = event.oldState[xId];
+        const oldY = event.oldState[yId];
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
+                const restored: _ModuleSupport.CoreZoomState = {};
+                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
+                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
+                event.constrainChanges(restored);
+                return;
+            }
+        }
 
         // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
         const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
@@ -451,9 +471,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card rect, not the node group's bbox — the group includes the expander pill below.
-        const cardBBox = node.getCardBBox();
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
+        // Card + expander pill so the focus ring shows what `Enter` will toggle.
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -470,7 +489,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    getDatumAriaText(datum: OrganizationDatum, description: string): string | undefined {
+    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
         const { vertex } = datum;
         const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
 
@@ -479,6 +498,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const setSize = siblings.length;
 
         const childCount = this.getChildren(vertex).length;
+
+        // Tooltip-derived description carries only the heading; build a fuller one for SR.
+        const description = this.composeDatumDescription(vertex);
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
@@ -494,13 +516,30 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const collapsedState = this.ctx.localeManager.t(
             this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
         );
-        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return this.ctx.localeManager.t(key, {
             description,
             level: depth,
             posInSet,
             setSize,
+            childCount,
             collapsedState,
         });
+    }
+
+    private composeDatumDescription(vertex: Vertex<OrganizationVertex, OrganizationEdge>): string {
+        const fields = this.resolveVertexFields(vertex);
+        const parts: string[] = [];
+        const title = toPlainText(fields.title).trim();
+        const subtitle = toPlainText(fields.subtitle).trim();
+        if (title) parts.push(title);
+        if (subtitle) parts.push(subtitle);
+        for (const label of fields.labels ?? []) {
+            const labelText = toPlainText(label).trim();
+            if (labelText) parts.push(labelText);
+        }
+        return parts.join(', ');
     }
 
     // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp
@@ -967,7 +1006,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fromDatum,
             toDatum,
             seriesId,
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesLinkItemStylerParams<unknown, unknown>>;
     }
 
@@ -991,7 +1030,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
     }
 
@@ -1015,7 +1054,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             isCollapsed,
             seriesId,
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
-            selectionState: 'unselected',
+            selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeTextStylerParams<unknown, unknown>>;
     }
 

@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+        '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, ${childCount}[number] çocuk, değiştirmek için Boşluk veya Enter tuşuna basın',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, seviye ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, 1 çocuk, değiştirmek için Boşluk veya Enter tuşuna basın',
     ariaOrgChartCollapsed: 'daraltılmış',
     ariaOrgChartExpanded: 'genişletilmiş',
     ariaAnnounceGaugeChart: 'gösterge grafik, ${caption}',

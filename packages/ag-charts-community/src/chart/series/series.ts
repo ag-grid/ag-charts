@@ -82,6 +82,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
+    DatumIndexSetReader,
     DatumIndexType,
     DatumRangeReader,
     INodeEvent,
@@ -280,6 +281,7 @@ export abstract class Series<
     readonly supportsStandaloneZoom: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
+    protected hasChangesOnSelection: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -473,7 +475,10 @@ export abstract class Series<
 
         this.cleanup.register(
             this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
-            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
+            this.events.on('data-selection-change', () => {
+                this.hasChangesOnSelection = true;
+            })
         );
     }
 
@@ -1044,6 +1049,11 @@ export abstract class Series<
         return undefined;
     }
 
+    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
+        // Override point for subclasses with non-contiguous index-set aggregation
+        return undefined;
+    }
+
     isPointInArea?(x: number, y: number): boolean;
 
     public getLabelData(): (TLabel & PointLabelDatum)[] {
@@ -1424,6 +1434,12 @@ export abstract class Series<
 
     public pickViewportFocus(_opts: PickViewportFocusInputs): PickFocusOutputs | undefined {
         return undefined;
+    }
+
+    // Override in y-up series (network/org) to mirror y so `calcPanToBBoxRatios` (y-down) pans
+    // the right direction. Default identity.
+    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
+        return focusBBox;
     }
 
     public resetDatumCallbackCache() {

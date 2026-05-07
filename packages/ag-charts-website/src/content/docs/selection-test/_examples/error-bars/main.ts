@@ -18,7 +18,7 @@ const selection = {
 
 const itemStyler = (param: AgErrorBarItemStylerParams<DataType>) => {
     const errorBarStyle: { stroke?: string; strokeWidth?: number } = { stroke: undefined, strokeWidth: 1 };
-    if (param.selectionState == 'selected') {
+    if (param.selectionState == 'selected-item') {
         errorBarStyle.strokeWidth = 3;
         errorBarStyle.stroke = 'steelblue';
     }

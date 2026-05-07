@@ -46,13 +46,13 @@ ModuleRegistry.registerModules([
 ]);
 
 const barItemStyler = (params: { selectionState?: SelectionState }): StrokeOptions | undefined => {
-    if (params.selectionState === 'selected') {
+    if (params.selectionState === 'selected-item') {
         return { stroke: 'red' };
     }
 };
 
 const markerItemStyler = (params: { selectionState?: SelectionState }): AgSeriesMarkerStyle | undefined => {
-    if (params.selectionState === 'selected') {
+    if (params.selectionState === 'selected-item') {
         return { size: 15 };
     }
 };

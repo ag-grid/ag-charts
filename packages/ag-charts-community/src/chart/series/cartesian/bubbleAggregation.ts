@@ -371,6 +371,7 @@ export interface GroupedAggregation {
     count: number;
     area: number;
     dilation: number;
+    indices: number[];
 }
 
 function computeBubbleAggregationCountIndices(
@@ -427,6 +428,7 @@ function computeBubbleAggregationCountIndices(
                     count: item.indices.length,
                     area: (item.x1 - item.x0) * (item.y1 - item.y0),
                     dilation: clamp(1, item.scale / baseMinScale, dilation),
+                    indices: item.indices,
                 });
             } else if (item.children == null) {
                 const { indices } = item;

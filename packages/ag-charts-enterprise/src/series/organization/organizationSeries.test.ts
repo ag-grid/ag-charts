@@ -1692,7 +1692,9 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+            );
         });
 
         it('omits collapsed-state from a leaf announcement', async () => {
@@ -1703,11 +1705,23 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             const announcement = readLiveAnnouncement();
-            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            expect(announcement).toBe('Dave Jones, Developer, New York, level 3, 1 of 2');
             // Guard against the empty-collapsedState stutter VoiceOver caught before the
             // leaf/parent locale-key split.
             expect(announcement).not.toContain(',,');
             expect(announcement).not.toContain(', ,');
+        });
+
+        it('uses the singular template when a parent has exactly one child', async () => {
+            await setupChart();
+            // ceo → cto → ArrowRight → cfo (Carol Wu, parent of acc — exactly one child).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowRight');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe(
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+            );
         });
 
         it('reports collapsed parents in the live announcement', async () => {
@@ -1717,7 +1731,50 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+            );
+        });
+    });
+
+    describe('AG-17239 native pixel floor', () => {
+        it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Land at the 1:1 floor (both axes saturate at fitX/fitY).
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(flooredState).toBeDefined();
+
+            // Further zoom-in with an off-centre mid must not translate the window.
+            setZoom(chart, 0.3, 0.4, 0.3, 0.4);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+
+        it('should not pan when only one axis requests further zoom-in past the floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+
+            // Shrink x only, leave y at the floored range. Off-isotropic input would otherwise
+            // land at floor (t = 1) with the new x mid, leaking through `clampMid`.
+            setZoom(chart, 0.3, 0.35, flooredState.y.min, flooredState.y.max);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
         });
     });
 

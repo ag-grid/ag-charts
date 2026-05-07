@@ -60,7 +60,7 @@ const options: AgCartesianChartOptions<DataType> = {
             yKey: 'spending',
             marker: {
                 itemStyler: (params) => {
-                    if (params.selectionState === 'selected') {
+                    if (params.selectionState === 'selected-item') {
                         return { size: 15 };
                     }
                 },

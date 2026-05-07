@@ -778,7 +778,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             this.updateDatumStyles({ datumSelection, isHighlight: false });
         }
 
-        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
+        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight || this.hasChangesOnSelection;
+        this.hasChangesOnSelection = false;
 
         if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });

@@ -212,11 +212,19 @@ describe('DataSet selection transfer', () => {
             expect(getSelectedCount(nextSel!)).toBe(0); // A not in new data
         });
 
-        it('should clear selections without dataIdKey', () => {
+        it('should not clear selections without dataIdKey (same lengths)', () => {
             const old = new DataSet([{ v: 1 }, { v: 2 }]);
             old.enableSelection('s1').select(0);
 
             const next = DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }]);
+            expect(next.selections.size).toBe(1);
+        });
+
+        it('should clear selections without dataIdKey (different lengths)', () => {
+            const old = new DataSet([{ v: 1 }, { v: 2 }]);
+            old.enableSelection('s1').select(0);
+
+            const next = DataSet.replaceWith(old, [{ v: 3 }, { v: 4 }, { v: 5 }]);
             expect(next.selections.size).toBe(0);
         });
 

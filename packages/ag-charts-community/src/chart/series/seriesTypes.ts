@@ -36,6 +36,7 @@ export type SeriesNodeEventTypes =
     | 'seriesNodeDoubleClick';
 
 export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
+export type DatumIndexSetReader = (sampledDatumIndex: number) => Iterable<number>;
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {
     readonly type: TEvent;
@@ -121,6 +122,7 @@ export interface ISeries<
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
     getAggregateRangeReader(): DatumRangeReader | undefined;
+    getAggregateIndexSetReader(): DatumIndexSetReader | undefined;
 }
 
 type SeriesNodeDatumSeries<I extends DatumIndexType> = ISeries<I, SeriesNodeDatum<I>, ISeriesProperties, unknown>;
