@@ -196,8 +196,8 @@ describe('DataSelection', () => {
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
 
-            const reader = series.getAggregateIndexSetReader();
-            expect(reader).toBeDefined();
+            const bucketLookup = series.ensureBucketLookupFeature();
+            expect(bucketLookup).toBeDefined();
 
             const aggregateIndexSet = series.aggregateIndexSet;
             expect(aggregateIndexSet).toBeDefined();
@@ -210,9 +210,10 @@ describe('DataSelection', () => {
 
             const [primaryDatumIndex, expectedIndices] = multiBucketPrimaries[0];
 
-            const expandedIndices = reader!(primaryDatumIndex);
-            expect([...expandedIndices]).toEqual(expect.arrayContaining(expectedIndices));
-            expect([...expandedIndices]).toHaveLength(expectedIndices.length);
+            const expandedIndices = bucketLookup!.getIndexSet(primaryDatumIndex);
+            expect(expandedIndices).toBeDefined();
+            expect([...expandedIndices!]).toEqual(expect.arrayContaining(expectedIndices));
+            expect([...expandedIndices!]).toHaveLength(expectedIndices.length);
 
             const itemsToSelect = expectedIndices.map((idx) => ({
                 seriesId,
@@ -362,7 +363,7 @@ describe('DataSelection', () => {
             expect(selected).toHaveLength(2);
         });
 
-        it('should return undefined from getAggregateIndexSetReader on scatter when no aggregation is active', async () => {
+        it('should return an undefined index set on scatter when no aggregation is active', async () => {
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: 1, y: 1 },
@@ -382,7 +383,7 @@ describe('DataSelection', () => {
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
-            expect(series.getAggregateIndexSetReader()).toBeUndefined();
+            expect(series.ensureBucketLookupFeature()?.getIndexSet(0)).toBeUndefined();
         });
     });
 });

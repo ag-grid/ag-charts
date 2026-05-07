@@ -126,6 +126,10 @@ export class BucketLookupManager<TFilter extends ExtremesFilter> implements Buck
         return this.ensureReaders()?.rangeReader;
     }
 
+    getIndexSet(_datumIndex: number): Iterable<number> | undefined {
+        return undefined;
+    }
+
     refresh(): void {
         const filters = this.opts.aggregationManager.filters;
         if (!filters || filters.length === 0) {
@@ -257,6 +261,10 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter> implements Bu
         return this.ensureReaders()?.rangeReader;
     }
 
+    getIndexSet(_datumIndex: number): Iterable<number> | undefined {
+        return undefined;
+    }
+
     refresh(): void {
         const filters = this.opts.aggregationManager.filters;
         if (!filters || filters.length === 0) {
@@ -384,5 +392,55 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter> implements Bu
 
         this.cache.set(processedData, filter, selectedReader, rangeReader);
         return this.cache;
+    }
+}
+
+interface IndexSetBucketLookupManagerOpts {
+    /** Cluster-keyed map of representative datum index to underlying datum indices. */
+    getIndexSetMap: () => Map<number, number[]> | undefined;
+    getSelection: () => Uint8Array | undefined;
+}
+
+/**
+ * Bucket lookup roll-up for cluster-based aggregation (bubble/scatter). Each
+ * rendered marker stands in for an arbitrary group of datums whose underlying
+ * indices are non-contiguous, so neither the extremes-based range reader nor
+ * the per-bucket SELECTED slot model from {@link BucketLookupManager} apply
+ * here — the selection bit per cluster is read by walking the cluster's
+ * index list against the per-series selection bitset.
+ *
+ * No precomputed roll-up: clusters are typically small (a few datums each)
+ * and each marker render performs at most one lookup per cluster, so an
+ * O(cluster-size) scan beats maintaining a parallel cache that has to be
+ * invalidated on every selection change.
+ */
+export class IndexSetBucketLookupManager implements BucketLookupFeature {
+    constructor(private readonly opts: IndexSetBucketLookupManagerOpts) {}
+
+    isBucketSelected(datumIndex: number): boolean | undefined {
+        const map = this.opts.getIndexSetMap();
+        if (map === undefined) return undefined;
+        const indices = map.get(datumIndex);
+        if (indices === undefined) return undefined;
+        const selection = this.opts.getSelection();
+        if (selection === undefined) return false;
+        for (let i = 0; i < indices.length; i++) {
+            if (selection[indices[i]] === 1) return true;
+        }
+        return false;
+    }
+
+    getRangeReader(): DatumRangeReader | undefined {
+        return undefined;
+    }
+
+    getIndexSet(datumIndex: number): Iterable<number> | undefined {
+        return this.opts.getIndexSetMap()?.get(datumIndex);
+    }
+
+    refresh(): void {
+        // No-op: cluster lookups are computed lazily against the live
+        // selection bitset, so there's no cache to invalidate when selections
+        // change.
     }
 }

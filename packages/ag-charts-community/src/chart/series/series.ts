@@ -83,7 +83,6 @@ import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
     BucketLookupFeature,
-    DatumIndexSetReader,
     DatumIndexType,
     INodeEvent,
     ISeries,
@@ -1081,11 +1080,6 @@ export abstract class Series<
             }
             return undefined;
         });
-    }
-
-    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
-        // Override point for subclasses with non-contiguous index-set aggregation (bubble/scatter).
-        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;

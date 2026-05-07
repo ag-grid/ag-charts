@@ -195,7 +195,6 @@ export {
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
-    DatumIndexSetReader,
     DatumIndexType,
     DatumRangeReader,
     ErrorBoundSeriesNodeDatum,
@@ -303,7 +302,11 @@ export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
 export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
-export { BucketLookupManager, SplitBucketLookupManager } from './chart/series/bucketLookupFeature';
+export {
+    BucketLookupManager,
+    IndexSetBucketLookupManager,
+    SplitBucketLookupManager,
+} from './chart/series/bucketLookupFeature';
 export type { BucketLookupFeature } from './chart/series/seriesTypes';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';

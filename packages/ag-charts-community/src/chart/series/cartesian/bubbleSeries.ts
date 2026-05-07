@@ -68,6 +68,7 @@ import {
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow, isTooltipValueMissing } from '../../tooltip/tooltip';
+import { IndexSetBucketLookupManager } from '../bucketLookupFeature';
 import {
     type PickFocusInputs,
     type SeriesNodePickMatch,
@@ -76,7 +77,7 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { DatumIndexSetReader, ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { BucketLookupFeature, ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
@@ -403,10 +404,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return computeBubbleAggregationCount(0, dataAggregation, aggregationOptions);
     }
 
-    public override getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
-        const map = this.aggregateIndexSet;
-        if (map === undefined) return undefined;
-        return (sampledDatumIndex) => map.get(sampledDatumIndex) ?? [];
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new IndexSetBucketLookupManager({
+            getIndexSetMap: () => this.aggregateIndexSet,
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+        });
     }
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {

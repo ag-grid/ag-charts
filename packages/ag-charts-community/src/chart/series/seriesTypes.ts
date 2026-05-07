@@ -36,7 +36,6 @@ export type SeriesNodeEventTypes =
     | 'seriesNodeDoubleClick';
 
 export type DatumRangeReader = (sampledDatumIndex: number) => [number, number] | undefined;
-export type DatumIndexSetReader = (sampledDatumIndex: number) => Iterable<number>;
 
 /**
  * Aggregation-aware bucket lookup surface every aggregating series exposes
@@ -56,6 +55,17 @@ export interface BucketLookupFeature {
     isBucketSelected(datumIndex: number): boolean | undefined;
     /** Build a {@link DatumRangeReader} for the active aggregation level. */
     getRangeReader(): DatumRangeReader | undefined;
+    /**
+     * Underlying datum indices for the cluster represented by `datumIndex`,
+     * or `undefined` when the active aggregation model doesn't expose an
+     * index set (extremes/split managers) or no clustering is active for
+     * the current view.
+     *
+     * Bubble/scatter use cluster-based aggregation: each rendered marker
+     * stands in for an arbitrary group of datums whose underlying indices
+     * are non-contiguous. Drag-select fans out to these underlying indices.
+     */
+    getIndexSet(datumIndex: number): Iterable<number> | undefined;
     /** Recompute the per-bucket SELECTED slot across every cached aggregation level. */
     refresh(): void;
 }
@@ -143,7 +153,6 @@ export interface ISeries<
     findNodeDatum(itemIdOrIndex: AgActiveItemState['itemId']): SeriesNodeDatum<DatumIndexType> | undefined;
     readonly data?: DataSet<any>;
     pickNodesInBBox(bbox: BoxBounds): Iterable<TDatum>;
-    getAggregateIndexSetReader(): DatumIndexSetReader | undefined;
     ensureBucketLookupFeature(): BucketLookupFeature | undefined;
 }
 

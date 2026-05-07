@@ -297,8 +297,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             let changed = false;
             intervalSet.clear();
 
-            const getRangeOfAggregateIndex = series.ensureBucketLookupFeature()?.getRangeReader();
-            const getIndexSetForAggregate = series.getAggregateIndexSetReader();
+            const bucketLookup = series.ensureBucketLookupFeature();
+            const getRangeOfAggregateIndex = bucketLookup?.getRangeReader();
 
             for (const datum of series.pickNodesInBBox(bbox)) {
                 if (asNumericDatumIndex(datum.datumIndex)) {
@@ -309,14 +309,17 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                             changed = true;
                             intervalSet.add(start, end);
                         }
-                    } else if (getIndexSetForAggregate) {
-                        for (const idx of getIndexSetForAggregate(datum.datumIndex)) {
-                            changed = true;
-                            setSelected(changes, series, data, idx);
-                        }
                     } else {
-                        changed = true;
-                        setSelected(changes, series, data, datum.datumIndex);
+                        const indexSet = bucketLookup?.getIndexSet(datum.datumIndex);
+                        if (indexSet === undefined) {
+                            changed = true;
+                            setSelected(changes, series, data, datum.datumIndex);
+                        } else {
+                            for (const idx of indexSet) {
+                                changed = true;
+                                setSelected(changes, series, data, idx);
+                            }
+                        }
                     }
                 }
             }

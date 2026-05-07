@@ -194,8 +194,13 @@ export interface SeriesAggregationInternals {
     dataAggregation: object | undefined;
     aggregateIndexSet?: Map<number, number[]>;
     contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
-    getAggregateIndexSetReader(): ((sampledDatumIndex: number) => Iterable<number>) | undefined;
-    getAggregateRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
+    ensureBucketLookupFeature():
+        | {
+              isBucketSelected(datumIndex: number): boolean | undefined;
+              getRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
+              getIndexSet(datumIndex: number): Iterable<number> | undefined;
+          }
+        | undefined;
 }
 
 export function getSeriesAggregationInternals(
