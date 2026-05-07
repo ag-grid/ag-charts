@@ -16,7 +16,7 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}',
+        '${description}, niveau ${level}[number], ${posInSet}[number] de ${setSize}[number], ${collapsedState}, ${childCount}[number] enfants, appuyez sur Entrée ou Espace pour basculer',
     ariaOrgChartCollapsed: 'réduit',
     ariaOrgChartExpanded: 'développé',
     ariaAnnounceGaugeChart: 'graphique en jauge, ${caption}',

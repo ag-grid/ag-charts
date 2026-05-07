@@ -16,7 +16,7 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, 레벨 ${level}[number], ${posInSet}[number]/${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, 레벨 ${level}[number], ${posInSet}[number]/${setSize}[number], ${collapsedState}',
+        '${description}, 레벨 ${level}[number], ${posInSet}[number]/${setSize}[number], ${collapsedState}, 자식 ${childCount}[number]개, 엔터 또는 스페이스바를 눌러 전환하세요',
     ariaOrgChartCollapsed: '축소됨',
     ariaOrgChartExpanded: '확장됨',
     ariaAnnounceGaugeChart: '게이지 차트, ${caption}',

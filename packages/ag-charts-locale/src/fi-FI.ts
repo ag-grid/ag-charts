@@ -16,7 +16,7 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}',
+        '${description}, taso ${level}[number], ${posInSet}[number] / ${setSize}[number], ${collapsedState}, ${childCount}[number] alikohdetta, paina Enteriä tai välilyöntiä vaihtaaksesi',
     ariaOrgChartCollapsed: 'suljettu',
     ariaOrgChartExpanded: 'avattu',
     ariaAnnounceGaugeChart: 'mittarikaavio, ${caption}',

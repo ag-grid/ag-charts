@@ -16,7 +16,7 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, 级别 ${level}[number], ${posInSet}[number] 的 ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, 级别 ${level}[number], ${posInSet}[number] 的 ${setSize}[number], ${collapsedState}',
+        '${description}, 级别 ${level}[number], ${posInSet}[number] 的 ${setSize}[number], ${collapsedState}, ${childCount}[number] 个子项, 按回车键或空格键切换',
     ariaOrgChartCollapsed: '已折叠',
     ariaOrgChartExpanded: '已展开',
     ariaAnnounceGaugeChart: '仪表盘图表, ${caption}',

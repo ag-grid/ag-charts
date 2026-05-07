@@ -211,6 +211,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
+    // Focus bbox in node-local coords; covers the card plus the expander pill that hangs
+    // below it, so the keyboard focus indicator surrounds both affordances.
+    getFocusBBox(): _ModuleSupport.BBox | undefined {
+        const cardBBox = this.getCardBBox();
+        if (!cardBBox) return;
+        if (!this.expanderNode) return cardBBox;
+        // expanderNode is a TranslatableGroup — its getBBox() returns coords already in
+        // OrganizationNode-local space, so a direct merge is correct.
+        return _ModuleSupport.BBox.merge([cardBBox, this.expanderNode.getBBox()]);
+    }
+
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
         this.shapeNode.cornerRadius = styles.cornerRadius;

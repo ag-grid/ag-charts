@@ -267,6 +267,11 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('update:pre-scene-render', () => this.preSceneRender()),
             chart.ctx.eventsHub.on('update:complete', () => this.updateComplete()),
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
+            chart.ctx.eventsHub.on('collapsed:change', () => {
+                // Force the next updateComplete announcement so SR users get feedback when a
+                // focused tree node toggles between expanded and collapsed.
+                this.announceMode = 'always';
+            }),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
             chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))
         );
@@ -983,7 +988,8 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
 
             if (!hoverRect.containsPoint(x, y)) {
-                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, focusBBox);
+                const panTarget = focus.series.mapFocusBBoxToPanTarget(hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager?.panToBBox(hoverRect, panTarget);
                 if (panSuccess) {
                     // Wait for an update to ensure that we show the tooltip/highlight correctly.
                     return PickedFocusStatus.PAN_REQUIRED;

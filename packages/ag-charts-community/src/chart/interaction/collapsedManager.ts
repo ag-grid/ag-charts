@@ -34,7 +34,17 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             changed ||= !this.collapsedIds[id];
             after[id] = true;
         }
+        // Also fire `change` if the previous map had ids that aren't in `after` — those got expanded.
+        if (!changed) {
+            for (const prevId of Object.keys(this.collapsedIds)) {
+                if (!after[prevId]) {
+                    changed = true;
+                    break;
+                }
+            }
+        }
         this.collapsedIds = after;
+        if (changed) this.eventsHub.emit('collapsed:change', null);
         return changed;
     }
 
@@ -44,6 +54,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             changed ||= !this.collapsedIds[id];
             this.collapsedIds[id] = true;
         }
+        if (changed) this.eventsHub.emit('collapsed:change', null);
         return changed;
     }
 
@@ -53,6 +64,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             changed ||= Boolean(this.collapsedIds[id]);
             delete this.collapsedIds[id];
         }
+        if (changed) this.eventsHub.emit('collapsed:change', null);
         return changed;
     }
 

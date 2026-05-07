@@ -21,7 +21,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}',
+        '${description}, level ${level}[number], ${posInSet}[number] of ${setSize}[number], ${collapsedState}, ${childCount}[number] children, press Enter or Space to toggle',
     ariaOrgChartCollapsed: 'collapsed',
     ariaOrgChartExpanded: 'expanded',
     // Screen reader description for legend items

@@ -1555,7 +1555,9 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+            );
         });
 
         it('omits collapsed-state from a leaf announcement', async () => {
@@ -1566,7 +1568,7 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             const announcement = readLiveAnnouncement();
-            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            expect(announcement).toBe('Dave Jones, Developer, New York, level 3, 1 of 2');
             // Guard against the empty-collapsedState stutter VoiceOver caught before the
             // leaf/parent locale-key split.
             expect(announcement).not.toContain(',,');
@@ -1580,7 +1582,9 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+            );
         });
     });
 

@@ -1426,6 +1426,14 @@ export abstract class Series<
         return undefined;
     }
 
+    // Maps a focus bbox (canvas-space, y-down) into a panToBBox target. Series whose internal
+    // zoom semantics differ from canvas y-down (e.g. network/org charts that render y-up via a
+    // viewport transform) override this to mirror y so `calcPanToBBoxRatios` pans in the correct
+    // direction. Default is identity.
+    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
+        return focusBBox;
+    }
+
     public resetDatumCallbackCache() {
         this.datumCallbackCache.clear();
     }
