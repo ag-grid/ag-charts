@@ -619,20 +619,42 @@ export function compactAggregationIndices(
 }
 
 /**
- * Populate per-bucket selection flags at the finest aggregation level by
- * scanning every datum and OR-ing its selection bit into the bucket it falls
- * into. Buckets with no selected datums end up with `0`; buckets containing
- * one or more selected datums end up with `1`.
+ * Build a sparse list of selected datum indices from a Uint8Array selection
+ * bitset. Used by {@link populateBucketSelectedFromSparse} (and its split
+ * variant) to amortise selection-driven roll-up across multiple aggregation
+ * levels — typical user selections have Hamming weight ≪ N, so the sparse
+ * representation lets per-level population be `O(|selection|)` instead of
+ * `O(N)`.
+ */
+export function collectSparseSelection(selection: Uint8Array): Uint32Array {
+    let count = 0;
+    for (let i = 0; i < selection.length; i++) {
+        if (selection[i] === 1) count++;
+    }
+    const indices = new Uint32Array(count);
+    let pos = 0;
+    for (let i = 0; i < selection.length; i++) {
+        if (selection[i] === 1) indices[pos++] = i;
+    }
+    return indices;
+}
+
+/**
+ * Populate per-bucket SELECTED flags at the given aggregation level by mapping
+ * each pre-collected selected datum index to its bucket and setting that
+ * bucket's SELECTED slot to `1`. Buckets with no selected datums are cleared
+ * to `0` first.
  *
- * This must mirror the bucket-assignment math used by the aggregation builder
- * (see {@link aggregateData}) so that a datum lands in the same bucket here as
+ * Bucket-assignment math mirrors the aggregation builder (see
+ * {@link aggregateData}) so that a datum lands in the same bucket here as
  * it did during aggregation.
  *
- * Coarser levels can then be propagated cheaply via
- * {@link propagateBucketSelection} without rescanning the full datum array.
+ * Cost is `O(bucketCount + |sparseSelection|)`, dominated by the clear pass
+ * for buckets and a single bucket-index computation per selected datum. No
+ * propagation between levels is needed — each level is populated directly.
  */
-export function computeBucketSelection(
-    selection: Uint8Array,
+export function populateBucketSelectedFromSparse(
+    sparseSelection: Uint32Array,
     indexData: Uint32Array,
     bucketCount: number,
     xValues: any[],
@@ -644,13 +666,15 @@ export function computeBucketSelection(
         indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
     }
 
+    if (sparseSelection.length === 0) return;
+
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const xValuesLength = xValues.length;
     const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
-    const selectionLength = selection.length;
 
-    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
-        if (datumIndex >= selectionLength || selection[datumIndex] === 0) continue;
+    for (let i = 0; i < sparseSelection.length; i++) {
+        const datumIndex = sparseSelection[i];
+        if (datumIndex >= xValuesLength) continue;
 
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
@@ -669,18 +693,12 @@ export function computeBucketSelection(
 }
 
 /**
- * Populate per-bucket selection flags for split (positive/negative) bucket
- * arrays at the finest aggregation level. Each datum is routed to one arm
- * based on the sign of its y-end value, mirroring the bucket-assignment math
- * used by the split-mode aggregation builder.
- *
- * Buckets in either arm with no selected datums end up with `0`; buckets
- * containing one or more selected datums end up with `1`. Coarser levels can
- * then be propagated cheaply via {@link propagateBucketSelection} on each arm
- * independently.
+ * Split-arm variant of {@link populateBucketSelectedFromSparse}. Each selected
+ * datum is routed to one arm based on the sign of its y-end value, mirroring
+ * the bucket-assignment math used by the split-mode aggregation builder.
  */
-export function computeBucketSelectionSplit(
-    selection: Uint8Array,
+export function populateBucketSelectedFromSparseSplit(
+    sparseSelection: Uint32Array,
     positiveIndexData: Uint32Array,
     negativeIndexData: Uint32Array,
     bucketCount: number,
@@ -697,13 +715,15 @@ export function computeBucketSelectionSplit(
         negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 0;
     }
 
+    if (sparseSelection.length === 0) return;
+
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const xValuesLength = xValues.length;
     const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
-    const selectionLength = selection.length;
 
-    for (let datumIndex = 0; datumIndex < xValuesLength; datumIndex++) {
-        if (datumIndex >= selectionLength || selection[datumIndex] === 0) continue;
+    for (let i = 0; i < sparseSelection.length; i++) {
+        const datumIndex = sparseSelection[i];
+        if (datumIndex >= xValuesLength) continue;
 
         const xValue = xValues[datumIndex];
         if (xValue == null) continue;
@@ -727,27 +747,6 @@ export function computeBucketSelectionSplit(
         } else {
             negativeIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] = 1;
         }
-    }
-}
-
-/**
- * Propagate selection flags from a finer aggregation level into a coarser one
- * by OR-ing each coarser bucket's two child buckets. Mirrors the SELECTED-slot
- * write performed by {@link aggregateFromFiner}, but only touches that one
- * slot — it must be called when a finer level's SELECTED flags have been
- * recomputed (e.g. after a selection change) without a full re-aggregation.
- */
-export function propagateBucketSelection(
-    coarserIndexData: Uint32Array,
-    finerIndexData: Uint32Array,
-    coarserBucketCount: number
-): void {
-    for (let i = 0; i < coarserBucketCount; i++) {
-        const aggIndex = i * AGGREGATION_SPAN;
-        const child0 = aggIndex * 2;
-        const child1 = child0 + AGGREGATION_SPAN;
-        coarserIndexData[aggIndex + AGGREGATION_INDEX_SELECTED] =
-            finerIndexData[child0 + AGGREGATION_INDEX_SELECTED] | finerIndexData[child1 + AGGREGATION_INDEX_SELECTED];
     }
 }
 

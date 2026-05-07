@@ -8,9 +8,9 @@ import {
     aggregationBucketForDatum,
     aggregationDatumMatchesIndex,
     aggregationDomain,
-    computeBucketSelection,
-    computeBucketSelectionSplit,
-    propagateBucketSelection,
+    collectSparseSelection,
+    populateBucketSelectedFromSparse,
+    populateBucketSelectedFromSparseSplit,
 } from 'ag-charts-core';
 
 import type { ChartAxis } from '../chartAxis';
@@ -104,18 +104,82 @@ function resolveBucketingInputs(
 }
 
 /**
- * Bucket lookup roll-up for series whose aggregation filter exposes a single
- * `indexData` array (line, area, OHLC/candlestick, range-bar, range-area).
+ * Per-filter epoch tracking: filters are populated for a given selection
+ * epoch exactly once, and skipped on subsequent visits unless their epoch
+ * tag is stale. Combined with WeakMap-keyed identity, this lets us
+ * distinguish "selection changed, repopulate every level" from "filter set
+ * grew (zoom demand), only populate the new entries" without an explicit
+ * callback split on `AggregationManager`.
  *
- * Both readers (bucket-selected and range) are built once per active filter
- * and share the prepared bucketing context — `getDataSelectionState` won't
- * recompute the aggregation domain on every marker.
+ * The sparse selection list is rebuilt once per selection-change and reused
+ * across every level whose epoch tag is behind. Cost per level is
+ * `O(|selection|)` — typical user selections have Hamming weight ≪ N, so
+ * pan/zoom adding a finer aggregation level is cheap regardless of dataset
+ * size.
  */
-export class BucketLookupManager<TFilter extends ExtremesFilter> implements BucketLookupFeature {
-    private readonly cache = new LookupCache<TFilter>();
+abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase> {
+    private selectionEpoch = 0;
+    private sparseSelection?: Uint32Array;
+    private readonly populatedEpochs = new WeakMap<TFilter, number>();
 
-    constructor(private readonly opts: BucketLookupManagerOpts<TFilter>) {
-        opts.aggregationManager.setOnFiltersChanged(() => this.refresh());
+    constructor(protected readonly opts: BucketLookupManagerOpts<TFilter>) {
+        opts.aggregationManager.setOnFiltersChanged(() => this.populateStaleFilters());
+    }
+
+    /**
+     * Selection-change entrypoint (called from `Series` on
+     * `data-selection-change`). Bumps the epoch so every existing filter
+     * becomes stale, rebuilds the sparse selection list from the live
+     * bitset, then walks the filter list populating any whose epoch tag
+     * doesn't match the new value.
+     */
+    refresh(): void {
+        this.selectionEpoch += 1;
+        const selection = this.opts.getSelection();
+        this.sparseSelection = selection ? collectSparseSelection(selection) : undefined;
+        this.populateStaleFilters();
+    }
+
+    /**
+     * Filter-set-mutation entrypoint (subscribed via
+     * `aggregationManager.setOnFiltersChanged`). Doesn't bump the epoch —
+     * existing filters' SELECTED slots are still valid for the current
+     * selection — but newly-added filter objects aren't yet in
+     * `populatedEpochs`, so they get populated on this pass.
+     */
+    private populateStaleFilters(): void {
+        const filters = this.opts.aggregationManager.filters;
+        if (!filters || filters.length === 0) {
+            this.invalidateCache();
+            return;
+        }
+
+        const xAxis = this.opts.getXAxis();
+        const dataModel = this.opts.getDataModel();
+        const processedData = this.opts.getProcessedData();
+        if (!xAxis || !dataModel || !processedData) return;
+
+        const sparse = this.sparseSelection;
+        if (sparse === undefined) {
+            // Selection cleared / never set: just zero out the SELECTED slot
+            // on stale filters.
+            for (const f of filters) {
+                if (this.populatedEpochs.get(f) === this.selectionEpoch) continue;
+                this.clearSelectedSlot(f);
+                this.populatedEpochs.set(f, this.selectionEpoch);
+            }
+            return;
+        }
+
+        // Resolve bucketing context once — `xValues`, `d0`, `d1` don't vary
+        // with the filter's `maxRange`.
+        const inputs = resolveBucketingInputs(this.opts.series, xAxis, dataModel, processedData, this.opts.domainKey);
+
+        for (const f of filters) {
+            if (this.populatedEpochs.get(f) === this.selectionEpoch) continue;
+            this.populateFilter(f, sparse, inputs);
+            this.populatedEpochs.set(f, this.selectionEpoch);
+        }
     }
 
     isBucketSelected(datumIndex: number): boolean | undefined {
@@ -130,49 +194,51 @@ export class BucketLookupManager<TFilter extends ExtremesFilter> implements Buck
         return undefined;
     }
 
-    refresh(): void {
-        const filters = this.opts.aggregationManager.filters;
-        if (!filters || filters.length === 0) {
-            // Filters dropped (e.g. by markStale on a >=2x data resize). Drop
-            // the cached readers too — they close over the old indexData
-            // TypedArrays which can be sizeable on large datasets.
-            this.cache.clear();
-            return;
-        }
+    /**
+     * Hot path — called by `dataModelSeries.getDataSelectionState` per marker
+     * during render. The returned cache survives until either `processedData`
+     * or the resolved filter changes (a different zoom level becomes active).
+     */
+    protected abstract ensureReaders(): LookupCache<TFilter> | undefined;
+    protected abstract clearSelectedSlot(filter: TFilter): void;
+    protected abstract populateFilter(filter: TFilter, sparse: Uint32Array, inputs: BucketingInputs): void;
+    protected abstract invalidateCache(): void;
+}
 
-        const xAxis = this.opts.getXAxis();
-        const dataModel = this.opts.getDataModel();
-        const processedData = this.opts.getProcessedData();
-        if (!xAxis || !dataModel || !processedData) return;
+/**
+ * Bucket lookup roll-up for series whose aggregation filter exposes a single
+ * `indexData` array (line, area, OHLC/candlestick, range-bar, range-area).
+ */
+export class BucketLookupManager<TFilter extends ExtremesFilter>
+    extends AbstractBucketLookupManager<TFilter>
+    implements BucketLookupFeature
+{
+    private readonly cache = new LookupCache<TFilter>();
 
-        const selection = this.opts.getSelection();
-        if (selection === undefined) {
-            for (const f of filters) {
-                for (let i = 0; i < f.maxRange; i++) {
-                    f.indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
-                }
-            }
-            return;
-        }
-
-        const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
-            this.opts.series,
-            xAxis,
-            dataModel,
-            processedData,
-            this.opts.domainKey
-        );
-
-        // Filters are sorted ascending by maxRange — the last entry is the finest level.
-        const finest = filters.at(-1)!;
-        computeBucketSelection(selection, finest.indexData, finest.maxRange, xValues, d0, d1, xNeedsValueOf);
-
-        for (let i = filters.length - 2; i >= 0; i--) {
-            propagateBucketSelection(filters[i].indexData, filters[i + 1].indexData, filters[i].maxRange);
+    protected override clearSelectedSlot(filter: TFilter): void {
+        const { indexData, maxRange } = filter;
+        for (let i = 0; i < maxRange; i++) {
+            indexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
         }
     }
 
-    private ensureReaders(): LookupCache<TFilter> | undefined {
+    protected override populateFilter(filter: TFilter, sparse: Uint32Array, inputs: BucketingInputs): void {
+        populateBucketSelectedFromSparse(
+            sparse,
+            filter.indexData,
+            filter.maxRange,
+            inputs.xValues,
+            inputs.d0,
+            inputs.d1,
+            inputs.xNeedsValueOf
+        );
+    }
+
+    protected override invalidateCache(): void {
+        this.cache.clear();
+    }
+
+    protected override ensureReaders(): LookupCache<TFilter> | undefined {
         const xAxis = this.opts.getXAxis();
         const processedData = this.opts.getProcessedData();
         const dataModel = this.opts.getDataModel();
@@ -237,107 +303,63 @@ const SPLIT_RANGE_OFFSETS = [
 
 /**
  * Bucket lookup roll-up for bar-style series whose aggregation filter splits
- * each bucket into positive and negative arms (`positiveIndexData` /
- * `negativeIndexData`).
- *
- * Each datum lives in exactly one arm based on its y-end value sign; the
- * rendered bar at a given x-position similarly belongs to one arm. Selection
- * lookup is sign-aware (reads only the matching arm) and the range reader
- * matches the picked representative against the extrema indices in either
- * arm to determine which bucket bounds to return.
+ * each bucket into positive and negative arms. Selection lookup is sign-aware
+ * (reads only the matching arm) and the range reader matches the picked
+ * representative against the extrema indices in either arm to determine which
+ * bucket bounds to return.
  */
-export class SplitBucketLookupManager<TFilter extends SplitFilter> implements BucketLookupFeature {
+export class SplitBucketLookupManager<TFilter extends SplitFilter>
+    extends AbstractBucketLookupManager<TFilter>
+    implements BucketLookupFeature
+{
     private readonly cache = new LookupCache<TFilter>();
 
-    constructor(private readonly opts: SplitBucketLookupManagerOpts<TFilter>) {
-        opts.aggregationManager.setOnFiltersChanged(() => this.refresh());
+    constructor(private readonly splitOpts: SplitBucketLookupManagerOpts<TFilter>) {
+        super(splitOpts);
     }
 
-    isBucketSelected(datumIndex: number): boolean | undefined {
-        return this.ensureReaders()?.selectedReader?.(datumIndex);
-    }
-
-    getRangeReader(): DatumRangeReader | undefined {
-        return this.ensureReaders()?.rangeReader;
-    }
-
-    getIndexSet(_datumIndex: number): Iterable<number> | undefined {
-        return undefined;
-    }
-
-    refresh(): void {
-        const filters = this.opts.aggregationManager.filters;
-        if (!filters || filters.length === 0) {
-            // Filters dropped (e.g. by markStale on a >=2x data resize). Drop
-            // the cached readers too — they close over the old indexData
-            // TypedArrays which can be sizeable on large datasets.
-            this.cache.clear();
-            return;
+    protected override clearSelectedSlot(filter: TFilter): void {
+        const { positiveIndexData, negativeIndexData, maxRange } = filter;
+        for (let i = 0; i < maxRange; i++) {
+            const aggIndex = i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED;
+            positiveIndexData[aggIndex] = 0;
+            negativeIndexData[aggIndex] = 0;
         }
+    }
 
-        const xAxis = this.opts.getXAxis();
-        const dataModel = this.opts.getDataModel();
-        const processedData = this.opts.getProcessedData();
-        if (!xAxis || !dataModel || !processedData) return;
+    protected override populateFilter(filter: TFilter, sparse: Uint32Array, inputs: BucketingInputs): void {
+        const dataModel = this.splitOpts.getDataModel()!;
+        const processedData = this.splitOpts.getProcessedData()!;
+        const yColumnId = this.splitOpts.getYColumnId(dataModel, processedData);
+        const yEndValues = dataModel.resolveColumnById(this.splitOpts.series, yColumnId, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.splitOpts.series, yColumnId, processedData);
 
-        const selection = this.opts.getSelection();
-        if (selection === undefined) {
-            for (const f of filters) {
-                for (let i = 0; i < f.maxRange; i++) {
-                    f.positiveIndexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
-                    f.negativeIndexData[i * AGGREGATION_SPAN + AGGREGATION_INDEX_SELECTED] = 0;
-                }
-            }
-            return;
-        }
-
-        const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
-            this.opts.series,
-            xAxis,
-            dataModel,
-            processedData,
-            this.opts.domainKey
-        );
-        const yColumnId = this.opts.getYColumnId(dataModel, processedData);
-        const yEndValues = dataModel.resolveColumnById(this.opts.series, yColumnId, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.opts.series, yColumnId, processedData);
-
-        const finest = filters.at(-1)!;
-        computeBucketSelectionSplit(
-            selection,
-            finest.positiveIndexData,
-            finest.negativeIndexData,
-            finest.maxRange,
-            xValues,
+        populateBucketSelectedFromSparseSplit(
+            sparse,
+            filter.positiveIndexData,
+            filter.negativeIndexData,
+            filter.maxRange,
+            inputs.xValues,
             yEndValues,
-            d0,
-            d1,
-            xNeedsValueOf,
+            inputs.d0,
+            inputs.d1,
+            inputs.xNeedsValueOf,
             yNeedsValueOf
         );
-
-        for (let i = filters.length - 2; i >= 0; i--) {
-            propagateBucketSelection(
-                filters[i].positiveIndexData,
-                filters[i + 1].positiveIndexData,
-                filters[i].maxRange
-            );
-            propagateBucketSelection(
-                filters[i].negativeIndexData,
-                filters[i + 1].negativeIndexData,
-                filters[i].maxRange
-            );
-        }
     }
 
-    private ensureReaders(): LookupCache<TFilter> | undefined {
-        const xAxis = this.opts.getXAxis();
-        const processedData = this.opts.getProcessedData();
-        const dataModel = this.opts.getDataModel();
+    protected override invalidateCache(): void {
+        this.cache.clear();
+    }
+
+    protected override ensureReaders(): LookupCache<TFilter> | undefined {
+        const xAxis = this.splitOpts.getXAxis();
+        const processedData = this.splitOpts.getProcessedData();
+        const dataModel = this.splitOpts.getDataModel();
         if (!xAxis || !processedData || !dataModel) return undefined;
 
         const [r0, r1] = xAxis.scale.range;
-        const filter = this.opts.aggregationManager.getFilterForRange(Math.abs(r1 - r0));
+        const filter = this.splitOpts.aggregationManager.getFilterForRange(Math.abs(r1 - r0));
         if (!filter) {
             this.cache.clear();
             return undefined;
@@ -346,15 +368,15 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter> implements Bu
         if (this.cache.has(processedData, filter)) return this.cache;
 
         const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
-            this.opts.series,
+            this.splitOpts.series,
             xAxis,
             dataModel,
             processedData,
-            this.opts.domainKey
+            this.splitOpts.domainKey
         );
-        const yColumnId = this.opts.getYColumnId(dataModel, processedData);
-        const yEndValues = dataModel.resolveColumnById(this.opts.series, yColumnId, processedData);
-        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.opts.series, yColumnId, processedData);
+        const yColumnId = this.splitOpts.getYColumnId(dataModel, processedData);
+        const yEndValues = dataModel.resolveColumnById(this.splitOpts.series, yColumnId, processedData);
+        const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.splitOpts.series, yColumnId, processedData);
         const xValuesLength = xValues.length;
         const { positiveIndexData, negativeIndexData, maxRange } = filter;
 
