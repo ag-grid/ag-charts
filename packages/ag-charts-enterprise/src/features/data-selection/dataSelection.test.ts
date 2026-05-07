@@ -59,8 +59,8 @@ describe('DataSelection', () => {
                         maxSize: 30,
                         selection: {
                             enabled: true,
-                            selectedItem: { fill: 'lime', stroke: 'darkgreen', strokeWidth: 3 },
-                            unselectedItem: { fillOpacity: 0.15 },
+                            selectedItem: { fill: '#ff0000', stroke: '#990000', strokeWidth: 4 },
+                            unselectedItem: { fillOpacity: 0.08, strokeOpacity: 0.15 },
                         },
                     },
                 ],
@@ -239,8 +239,8 @@ describe('DataSelection', () => {
                         maxRenderedItems: 8,
                         selection: {
                             enabled: true,
-                            selectedItem: { fill: 'deepskyblue', strokeWidth: 3 },
-                            unselectedItem: { fillOpacity: 0.2 },
+                            selectedItem: { fill: '#0066ff', stroke: '#003399', strokeWidth: 4 },
+                            unselectedItem: { fillOpacity: 0.08, strokeOpacity: 0.15 },
                         },
                     },
                 ],

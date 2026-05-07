@@ -281,6 +281,7 @@ export abstract class Series<
     readonly supportsStandaloneZoom: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
+    protected hasChangesOnSelection: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -474,7 +475,10 @@ export abstract class Series<
 
         this.cleanup.register(
             this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
-            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
+            this.events.on('data-selection-change', () => {
+                this.hasChangesOnSelection = true;
+            })
         );
     }
 
