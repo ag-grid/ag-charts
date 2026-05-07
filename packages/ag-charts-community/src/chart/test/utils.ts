@@ -176,7 +176,7 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
 }
 
 function isChartInstance(chartOrProxy: ChartOrProxy): chartOrProxy is Chart {
-    return (chartOrProxy.constructor as any).className != null;
+    return !chartOrProxy.constructor.name.endsWith('AgChartInstanceProxy') || (chartOrProxy as Chart).className != null;
 }
 
 export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
@@ -352,7 +352,7 @@ export function cartesianChartAssertions(params?: {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('CartesianChart');
+        expect(chart?.constructor?.name).toContain('CartesianChart');
         expect(chart.axes).toHaveLength(Object.keys(axisTypes).length);
         expect(fromPairs(chart.axes.map((a) => [a.id, a.type]))).toEqual(axisTypes);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
@@ -364,7 +364,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('PolarChart');
+        expect(chart?.constructor?.name).toContain('PolarChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -375,7 +375,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -386,7 +386,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('TopologyChart');
+        expect(chart?.constructor?.name).toContain('TopologyChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -397,7 +397,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -408,7 +408,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 
     return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
         expect(chart.series.map((s) => s.type)).toEqual(seriesTypes);
     };
@@ -417,7 +417,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 export function gaugeAssertions() {
     return (chartOrProxy: ChartOrProxy<AgGaugeOptions>) => {
         const chart = deproxy(chartOrProxy);
-        expect((chart.constructor as any).className).toEqual('StandaloneChart');
+        expect(chart?.constructor?.name).toContain('StandaloneChart');
     };
 }
 

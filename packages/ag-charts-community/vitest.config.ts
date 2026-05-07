@@ -16,6 +16,7 @@ function rawTextPlugin(): Plugin {
 export default defineConfig({
     plugins: [rawTextPlugin()],
     esbuild: {
+        keepNames: true,
         tsconfigRaw: {
             compilerOptions: {
                 experimentalDecorators: true,
