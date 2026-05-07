@@ -1555,7 +1555,9 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+            );
         });
 
         it('omits collapsed-state from a leaf announcement', async () => {
@@ -1566,11 +1568,23 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             const announcement = readLiveAnnouncement();
-            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            expect(announcement).toBe('Dave Jones, Developer, New York, level 3, 1 of 2');
             // Guard against the empty-collapsedState stutter VoiceOver caught before the
             // leaf/parent locale-key split.
             expect(announcement).not.toContain(',,');
             expect(announcement).not.toContain(', ,');
+        });
+
+        it('uses the singular template when a parent has exactly one child', async () => {
+            await setupChart();
+            // ceo → cto → ArrowRight → cfo (Carol Wu, parent of acc — exactly one child).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowRight');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe(
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+            );
         });
 
         it('reports collapsed parents in the live announcement', async () => {
@@ -1580,7 +1594,9 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+            );
         });
     });
 

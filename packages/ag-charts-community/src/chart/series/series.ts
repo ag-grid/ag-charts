@@ -1436,6 +1436,12 @@ export abstract class Series<
         return undefined;
     }
 
+    // Override in y-up series (network/org) to mirror y so `calcPanToBBoxRatios` (y-down) pans
+    // the right direction. Default identity.
+    public mapFocusBBoxToPanTarget(_seriesRect: BoxBounds, focusBBox: Readonly<BBox>): BoxBounds {
+        return focusBBox;
+    }
+
     public resetDatumCallbackCache() {
         this.datumCallbackCache.clear();
     }

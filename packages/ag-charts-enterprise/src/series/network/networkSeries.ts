@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type BoxBounds,
     type ChartAnimationPhase,
     type ChartAxisDirection,
     ChartUpdateType,
@@ -282,20 +283,24 @@ export abstract class AbstractNetworkSeries<
         const { zoomManager } = this.ctx;
         if (!zoomManager) return;
 
-        // FIXME(AG-17179 follow-up): mirror y around the viewport midline because
-        // `calcPanToBBoxRatios` is y-down internally and we render y-up. Remove once the
-        // helper is direction-aware.
-        const flippedTarget = {
-            x: canvasBBox.x,
-            y: 2 * seriesRect.y + seriesRect.height - canvasBBox.y - canvasBBox.height,
-            width: canvasBBox.width,
-            height: canvasBBox.height,
-        };
-
-        const panSuccess = zoomManager.panToBBox(seriesRect, flippedTarget);
+        const panSuccess = zoomManager.panToBBox(seriesRect, this.mapFocusBBoxToPanTarget(seriesRect, canvasBBox));
         if (!panSuccess) {
             Logger.warnOnce(`${this.id}: panToBBox failed — chart may be too small.`);
         }
+    }
+
+    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
+    // render y-up. Remove once the helper is direction-aware.
+    public override mapFocusBBoxToPanTarget(
+        seriesRect: BoxBounds,
+        focusBBox: Readonly<_ModuleSupport.BBox>
+    ): BoxBounds {
+        return {
+            x: focusBBox.x,
+            y: 2 * seriesRect.y + seriesRect.height - focusBBox.y - focusBBox.height,
+            width: focusBBox.width,
+            height: focusBBox.height,
+        };
     }
 
     processPendingCollapse() {

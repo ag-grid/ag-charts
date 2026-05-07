@@ -23,6 +23,7 @@ import {
     clamp,
     mergeDefaults,
     strictObjectKeys,
+    toPlainText,
 } from 'ag-charts-core';
 
 import { NetworkLinkNode } from '../network/networkLinkNode';
@@ -451,10 +452,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card rect, not the node group's bbox — the group includes the expander pill below.
-        const cardBBox = node.getCardBBox();
-        if (!cardBBox) return;
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, cardBBox);
+        // Card + expander pill so the focus ring shows what `Enter` will toggle.
+        const focusBBox = node.getFocusBBox();
+        if (!focusBBox) return;
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, focusBBox);
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
@@ -471,7 +472,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
-    getDatumAriaText(datum: OrganizationDatum, description: string): string | undefined {
+    getDatumAriaText(datum: OrganizationDatum, _description: string): string | undefined {
         const { vertex } = datum;
         const depth = (this.graph.findNeighbourValue(vertex, 'depth') as number | undefined) ?? 1;
 
@@ -480,6 +481,9 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const setSize = siblings.length;
 
         const childCount = this.getChildren(vertex).length;
+
+        // Tooltip-derived description carries only the heading; build a fuller one for SR.
+        const description = this.composeDatumDescription(vertex);
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
         if (childCount === 0) {
@@ -495,13 +499,30 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const collapsedState = this.ctx.localeManager.t(
             this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
         );
-        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return this.ctx.localeManager.t(key, {
             description,
             level: depth,
             posInSet,
             setSize,
+            childCount,
             collapsedState,
         });
+    }
+
+    private composeDatumDescription(vertex: Vertex<OrganizationVertex, OrganizationEdge>): string {
+        const fields = this.resolveVertexFields(vertex);
+        const parts: string[] = [];
+        const title = toPlainText(fields.title).trim();
+        const subtitle = toPlainText(fields.subtitle).trim();
+        if (title) parts.push(title);
+        if (subtitle) parts.push(subtitle);
+        for (const label of fields.labels ?? []) {
+            const labelText = toPlainText(label).trim();
+            if (labelText) parts.push(labelText);
+        }
+        return parts.join(', ');
     }
 
     // Returns the next focus vertex per the spatial model, or `undefined` for a no-op (ArrowUp

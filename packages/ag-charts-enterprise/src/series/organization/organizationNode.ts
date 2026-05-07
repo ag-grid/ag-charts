@@ -211,6 +211,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
+    // Card + expander pill in node-local coords; used by the keyboard focus ring.
+    getFocusBBox(): _ModuleSupport.BBox | undefined {
+        const cardBBox = this.getCardBBox();
+        if (!cardBBox) return;
+        if (!this.expanderNode) return cardBBox;
+        // expanderNode.getBBox() is already in OrganizationNode-local coords (TranslatableGroup).
+        return _ModuleSupport.BBox.merge([cardBBox, this.expanderNode.getBBox()]);
+    }
+
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
         this.shapeNode.cornerRadius = styles.cornerRadius;
