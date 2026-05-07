@@ -1,7 +1,12 @@
 import {
     AGGREGATION_INDEX_SELECTED,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+    AGGREGATION_INDEX_Y_MIN,
     AGGREGATION_SPAN,
     aggregationBucketForDatum,
+    aggregationDatumMatchesIndex,
     aggregationDomain,
     computeBucketSelection,
     computeBucketSelectionSplit,
@@ -12,33 +17,9 @@ import type { ChartAxis } from '../chartAxis';
 import type { DataModel } from '../data/dataModel';
 import type { ProcessedData, ScopeProvider } from '../data/dataModelTypes';
 import { type AggregationFilterBase, type AggregationManager } from './aggregationManager';
+import type { BucketLookupFeature, DatumRangeReader } from './seriesTypes';
 
-/**
- * Common interface every aggregating series exposes to the series base.
- *
- * `Series` owns an optional `bucketSelection` field of this type. The base
- * uses it to resolve the per-bucket SELECTED roll-up for marker styling and
- * to refresh that roll-up after a selection change. Concrete implementations
- * are constructed lazily by series-specific `createBucketSelectionFeature()`
- * overrides only when the data-selection feature is in play.
- */
-export interface BucketSelectionFeature {
-    /**
-     * Whether the bucket containing `datumIndex` at the active zoom level
-     * contains any selected datums. Returns `undefined` when no aggregation
-     * level is active for the current view — caller falls back to the
-     * per-datum bitset.
-     */
-    isBucketSelected(datumIndex: number): boolean | undefined;
-
-    /**
-     * Recompute the per-bucket SELECTED slot across every cached aggregation
-     * level. Invoked from `data-selection-change` (selection bitset mutated)
-     * and after `AggregationManager.aggregate({ onChange })` (filter set
-     * rebuilt or extended).
-     */
-    refresh(): void;
-}
+export type { BucketLookupFeature } from './seriesTypes';
 
 interface ExtremesFilter extends AggregationFilterBase {
     indexData: Uint32Array;
@@ -49,7 +30,7 @@ interface SplitFilter extends AggregationFilterBase {
     negativeIndexData: Uint32Array;
 }
 
-interface BucketSelectionManagerOpts<TFilter extends AggregationFilterBase> {
+interface BucketLookupManagerOpts<TFilter extends AggregationFilterBase> {
     series: ScopeProvider;
     /** Resolved at lookup time — accessor pattern lets the series mutate axis/data references freely. */
     getXAxis: () => ChartAxis | undefined;
@@ -68,26 +49,39 @@ interface BucketingInputs {
     xNeedsValueOf: boolean;
 }
 
-/** Per-render-frame reader cache shared by both extremes and split managers. */
-class ReaderCache<TFilter, TReader> {
+/**
+ * Per-render-frame reader cache shared by both extremes and split managers.
+ * Holds both the bucket-selected hot-path reader and the range reader keyed
+ * on (`processedData`, filter) — both are invalidated together because both
+ * close over the same resolved bucketing context.
+ */
+class LookupCache<TFilter> {
     processedData?: ProcessedData<any>;
     filter?: TFilter;
-    reader?: TReader;
+    selectedReader?: (datumIndex: number) => boolean;
+    rangeReader?: DatumRangeReader;
 
     has(processedData: ProcessedData<any>, filter: TFilter): boolean {
-        return this.processedData === processedData && this.filter === filter && this.reader !== undefined;
+        return this.processedData === processedData && this.filter === filter && this.selectedReader !== undefined;
     }
 
-    set(processedData: ProcessedData<any>, filter: TFilter, reader: TReader): void {
+    set(
+        processedData: ProcessedData<any>,
+        filter: TFilter,
+        selectedReader: (datumIndex: number) => boolean,
+        rangeReader: DatumRangeReader
+    ): void {
         this.processedData = processedData;
         this.filter = filter;
-        this.reader = reader;
+        this.selectedReader = selectedReader;
+        this.rangeReader = rangeReader;
     }
 
     clear(): void {
         this.processedData = undefined;
         this.filter = undefined;
-        this.reader = undefined;
+        this.selectedReader = undefined;
+        this.rangeReader = undefined;
     }
 }
 
@@ -110,27 +104,35 @@ function resolveBucketingInputs(
 }
 
 /**
- * Bucket-selection roll-up for series whose aggregation filter exposes a
- * single `indexData` array (line, area, OHLC/candlestick, range-bar,
- * range-area).
+ * Bucket lookup roll-up for series whose aggregation filter exposes a single
+ * `indexData` array (line, area, OHLC/candlestick, range-bar, range-area).
  *
- * Caches the per-marker reader closure per (`processedData`, filter) pair so
- * `getDataSelectionState` doesn't recompute the aggregation domain on every
- * marker on the render hot path.
+ * Both readers (bucket-selected and range) are built once per active filter
+ * and share the prepared bucketing context — `getDataSelectionState` won't
+ * recompute the aggregation domain on every marker.
  */
-export class BucketSelectionManager<TFilter extends ExtremesFilter> implements BucketSelectionFeature {
-    private readonly cache = new ReaderCache<TFilter, (datumIndex: number) => boolean>();
+export class BucketLookupManager<TFilter extends ExtremesFilter> implements BucketLookupFeature {
+    private readonly cache = new LookupCache<TFilter>();
 
-    constructor(private readonly opts: BucketSelectionManagerOpts<TFilter>) {}
+    constructor(private readonly opts: BucketLookupManagerOpts<TFilter>) {}
 
     isBucketSelected(datumIndex: number): boolean | undefined {
-        const reader = this.getReader();
-        return reader?.(datumIndex);
+        return this.ensureReaders()?.selectedReader?.(datumIndex);
+    }
+
+    getRangeReader(): DatumRangeReader | undefined {
+        return this.ensureReaders()?.rangeReader;
     }
 
     refresh(): void {
         const filters = this.opts.aggregationManager.filters;
-        if (!filters || filters.length === 0) return;
+        if (!filters || filters.length === 0) {
+            // Filters dropped (e.g. by markStale on a >=2x data resize). Drop
+            // the cached readers too — they close over the old indexData
+            // TypedArrays which can be sizeable on large datasets.
+            this.cache.clear();
+            return;
+        }
 
         const xAxis = this.opts.getXAxis();
         const dataModel = this.opts.getDataModel();
@@ -164,7 +166,7 @@ export class BucketSelectionManager<TFilter extends ExtremesFilter> implements B
         }
     }
 
-    private getReader(): ((datumIndex: number) => boolean) | undefined {
+    private ensureReaders(): LookupCache<TFilter> | undefined {
         const xAxis = this.opts.getXAxis();
         const processedData = this.opts.getProcessedData();
         const dataModel = this.opts.getDataModel();
@@ -177,7 +179,7 @@ export class BucketSelectionManager<TFilter extends ExtremesFilter> implements B
             return undefined;
         }
 
-        if (this.cache.has(processedData, filter)) return this.cache.reader;
+        if (this.cache.has(processedData, filter)) return this.cache;
 
         const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
             this.opts.series,
@@ -189,7 +191,7 @@ export class BucketSelectionManager<TFilter extends ExtremesFilter> implements B
         const xValuesLength = xValues.length;
         const { indexData, maxRange } = filter;
 
-        const reader = (datumIndex: number): boolean => {
+        const selectedReader = (datumIndex: number): boolean => {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
@@ -197,12 +199,21 @@ export class BucketSelectionManager<TFilter extends ExtremesFilter> implements B
             return bucket >= 0 && indexData[bucket + AGGREGATION_INDEX_SELECTED] === 1;
         };
 
-        this.cache.set(processedData, filter, reader);
-        return reader;
+        const rangeReader: DatumRangeReader = (sampleDatumIndex: number) => {
+            const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, sampleDatumIndex, {
+                xNeedsValueOf,
+                xValuesLength,
+            });
+            if (bucket < 0) return undefined;
+            return [indexData[bucket + AGGREGATION_INDEX_X_MIN], indexData[bucket + AGGREGATION_INDEX_X_MAX]];
+        };
+
+        this.cache.set(processedData, filter, selectedReader, rangeReader);
+        return this.cache;
     }
 }
 
-interface SplitBucketSelectionManagerOpts<TFilter extends SplitFilter> extends BucketSelectionManagerOpts<TFilter> {
+interface SplitBucketLookupManagerOpts<TFilter extends SplitFilter> extends BucketLookupManagerOpts<TFilter> {
     /**
      * Returns the data-model column id resolving to the y-end values used to
      * discriminate positive/negative arms. Bar's column varies (`yValue-end`
@@ -211,27 +222,46 @@ interface SplitBucketSelectionManagerOpts<TFilter extends SplitFilter> extends B
     getYColumnId: (dataModel: DataModel<any, any, any>, processedData: ProcessedData<any>) => string;
 }
 
-/**
- * Bucket-selection roll-up for bar-style series whose aggregation filter
- * splits each bucket into positive and negative arms (`positiveIndexData` /
- * `negativeIndexData`). Each datum lives in exactly one arm based on its
- * y-end value sign — the rendered bar at a given x-position similarly
- * belongs to one arm, so the SELECTED lookup is sign-aware rather than
- * OR-ing both sides.
- */
-export class SplitBucketSelectionManager<TFilter extends SplitFilter> implements BucketSelectionFeature {
-    private readonly cache = new ReaderCache<TFilter, (datumIndex: number) => boolean>();
+const SPLIT_RANGE_OFFSETS = [
+    AGGREGATION_INDEX_X_MIN,
+    AGGREGATION_INDEX_X_MAX,
+    AGGREGATION_INDEX_Y_MIN,
+    AGGREGATION_INDEX_Y_MAX,
+];
 
-    constructor(private readonly opts: SplitBucketSelectionManagerOpts<TFilter>) {}
+/**
+ * Bucket lookup roll-up for bar-style series whose aggregation filter splits
+ * each bucket into positive and negative arms (`positiveIndexData` /
+ * `negativeIndexData`).
+ *
+ * Each datum lives in exactly one arm based on its y-end value sign; the
+ * rendered bar at a given x-position similarly belongs to one arm. Selection
+ * lookup is sign-aware (reads only the matching arm) and the range reader
+ * matches the picked representative against the extrema indices in either
+ * arm to determine which bucket bounds to return.
+ */
+export class SplitBucketLookupManager<TFilter extends SplitFilter> implements BucketLookupFeature {
+    private readonly cache = new LookupCache<TFilter>();
+
+    constructor(private readonly opts: SplitBucketLookupManagerOpts<TFilter>) {}
 
     isBucketSelected(datumIndex: number): boolean | undefined {
-        const reader = this.getReader();
-        return reader?.(datumIndex);
+        return this.ensureReaders()?.selectedReader?.(datumIndex);
+    }
+
+    getRangeReader(): DatumRangeReader | undefined {
+        return this.ensureReaders()?.rangeReader;
     }
 
     refresh(): void {
         const filters = this.opts.aggregationManager.filters;
-        if (!filters || filters.length === 0) return;
+        if (!filters || filters.length === 0) {
+            // Filters dropped (e.g. by markStale on a >=2x data resize). Drop
+            // the cached readers too — they close over the old indexData
+            // TypedArrays which can be sizeable on large datasets.
+            this.cache.clear();
+            return;
+        }
 
         const xAxis = this.opts.getXAxis();
         const dataModel = this.opts.getDataModel();
@@ -288,7 +318,7 @@ export class SplitBucketSelectionManager<TFilter extends SplitFilter> implements
         }
     }
 
-    private getReader(): ((datumIndex: number) => boolean) | undefined {
+    private ensureReaders(): LookupCache<TFilter> | undefined {
         const xAxis = this.opts.getXAxis();
         const processedData = this.opts.getProcessedData();
         const dataModel = this.opts.getDataModel();
@@ -301,7 +331,7 @@ export class SplitBucketSelectionManager<TFilter extends SplitFilter> implements
             return undefined;
         }
 
-        if (this.cache.has(processedData, filter)) return this.cache.reader;
+        if (this.cache.has(processedData, filter)) return this.cache;
 
         const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
             this.opts.series,
@@ -316,7 +346,7 @@ export class SplitBucketSelectionManager<TFilter extends SplitFilter> implements
         const xValuesLength = xValues.length;
         const { positiveIndexData, negativeIndexData, maxRange } = filter;
 
-        const reader = (datumIndex: number): boolean => {
+        const selectedReader = (datumIndex: number): boolean => {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
@@ -330,7 +360,25 @@ export class SplitBucketSelectionManager<TFilter extends SplitFilter> implements
             return arm[bucket + AGGREGATION_INDEX_SELECTED] === 1;
         };
 
-        this.cache.set(processedData, filter, reader);
-        return reader;
+        const rangeReader: DatumRangeReader = (sampleDatumIndex: number) => {
+            const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, sampleDatumIndex, {
+                xNeedsValueOf,
+                xValuesLength,
+            });
+            if (bucket < 0) return undefined;
+
+            // Bar splits buckets by sign — match the picked datum against extrema indices on either arm.
+            let data: Uint32Array | undefined;
+            if (aggregationDatumMatchesIndex(positiveIndexData, bucket, sampleDatumIndex, SPLIT_RANGE_OFFSETS)) {
+                data = positiveIndexData;
+            } else if (aggregationDatumMatchesIndex(negativeIndexData, bucket, sampleDatumIndex, SPLIT_RANGE_OFFSETS)) {
+                data = negativeIndexData;
+            }
+            if (!data) return undefined;
+            return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
+        };
+
+        this.cache.set(processedData, filter, selectedReader, rangeReader);
+        return this.cache;
     }
 }

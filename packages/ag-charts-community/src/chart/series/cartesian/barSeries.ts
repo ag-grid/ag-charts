@@ -16,8 +16,6 @@ import {
     AGGREGATION_SPAN,
     ChartAxisDirection,
     DebugMetrics,
-    aggregationBucketForDatum,
-    aggregationDatumMatchesIndex,
     areScalingEqual,
     isFiniteNumber,
     mergeDefaults,
@@ -66,12 +64,11 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { prepareAggregateBucketContext } from '../aggregationRangeReader';
-import { type BucketSelectionFeature, SplitBucketSelectionManager } from '../bucketSelectionFeature';
+import { type BucketLookupFeature, SplitBucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { DatumRangeReader, ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -499,46 +496,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
-    public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        const ctx = prepareAggregateBucketContext({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            aggregationManager: this.aggregationManager,
-            domainKey: 'key',
-        });
-        if (!ctx) return undefined;
-
-        const { xValues, d0, d1, filter } = ctx;
-        const offsets = [
-            AGGREGATION_INDEX_X_MIN,
-            AGGREGATION_INDEX_X_MAX,
-            AGGREGATION_INDEX_Y_MIN,
-            AGGREGATION_INDEX_Y_MAX,
-        ];
-
-        return function getRangeOfAggregateIndex(sampleDatumIndex: number): [number, number] | undefined {
-            const bucket = aggregationBucketForDatum(xValues, d0, d1, filter.maxRange, sampleDatumIndex, {
-                xValuesLength: xValues.length,
-            });
-
-            // Bar aggregation splits buckets by sign — positives and negatives
-            // are stacked separately, so the picked datum lives in exactly one side.
-            let data: Uint32Array | undefined;
-            if (aggregationDatumMatchesIndex(filter.positiveIndexData, bucket, sampleDatumIndex, offsets)) {
-                data = filter.positiveIndexData;
-            } else if (aggregationDatumMatchesIndex(filter.negativeIndexData, bucket, sampleDatumIndex, offsets)) {
-                data = filter.negativeIndexData;
-            }
-            if (!data) return undefined;
-
-            return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
-        };
-    }
-
-    protected override createBucketSelectionFeature(): BucketSelectionFeature {
-        return new SplitBucketSelectionManager({
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new SplitBucketLookupManager({
             series: this,
             getXAxis: () => this.axes[ChartAxisDirection.X],
             getDataModel: () => this.dataModel,
@@ -573,7 +532,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             computeFull: (existingFilters) =>
                 aggregateBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketSelection?.refresh(),
+            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

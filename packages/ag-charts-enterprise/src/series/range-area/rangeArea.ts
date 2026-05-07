@@ -286,7 +286,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             computeFull: (existingFilters) =>
                 aggregateRangeAreaDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketSelection?.refresh(),
+            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
@@ -298,19 +298,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         }
     }
 
-    public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
-        return _ModuleSupport.makeAggregateRangeReader({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            aggregationManager: this.aggregationManager,
-            domainKey: 'key',
-        });
-    }
-
-    protected override createBucketSelectionFeature(): _ModuleSupport.BucketSelectionFeature {
-        return new _ModuleSupport.BucketSelectionManager({
+    protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
+        return new _ModuleSupport.BucketLookupManager({
             series: this,
             getXAxis: () => this.axes[ChartAxisDirection.X],
             getDataModel: () => this.dataModel,

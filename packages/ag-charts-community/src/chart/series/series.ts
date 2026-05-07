@@ -75,7 +75,7 @@ import { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
-import type { BucketSelectionFeature } from './bucketSelectionFeature';
+import type { BucketLookupFeature } from './bucketLookupFeature';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
 import { HighlightState, SelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
@@ -85,7 +85,6 @@ import type { SeriesTooltip } from './seriesTooltip';
 import type {
     DatumIndexSetReader,
     DatumIndexType,
-    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -479,7 +478,7 @@ export abstract class Series<
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
-                this.bucketSelection?.refresh();
+                this.bucketLookup?.refresh();
             })
         );
     }
@@ -793,40 +792,41 @@ export abstract class Series<
     }
 
     /**
-     * Per-series bucket-selection roll-up. Optional — populated lazily when
-     * the data-selection feature is in play and the series has aggregation
-     * support. `DataModelSeries.getDataSelectionState` consults this for
-     * marker styling; `data-selection-change` and aggregation rebuilds keep
-     * the roll-up in sync.
+     * Per-series aggregation-aware bucket lookup. Optional — populated
+     * lazily for aggregating series only. Owns both the per-bucket SELECTED
+     * roll-up and the bucket→datum-range mapping used by the data-selection
+     * drag handler. `DataModelSeries.getDataSelectionState` consults this
+     * for marker styling; `data-selection-change` and aggregation rebuilds
+     * keep the roll-up in sync.
      */
-    protected bucketSelection?: BucketSelectionFeature;
+    public bucketLookup?: BucketLookupFeature;
 
     /**
-     * Construct the series-specific {@link BucketSelectionFeature}. Default
+     * Construct the series-specific {@link BucketLookupFeature}. Default
      * `undefined` for non-aggregating series. Aggregating series override to
-     * return either {@link BucketSelectionManager} (single `indexData`) or
-     * {@link SplitBucketSelectionManager} (split positive/negative).
+     * return either {@link BucketLookupManager} (single `indexData`) or
+     * {@link SplitBucketLookupManager} (split positive/negative).
      */
-    protected createBucketSelectionFeature(): BucketSelectionFeature | undefined {
+    protected createBucketLookupFeature(): BucketLookupFeature | undefined {
         return undefined;
     }
 
     /**
-     * Lazy-init `bucketSelection` on first access; called from the render
-     * path. The just-created feature is refreshed once so it reflects the
-     * current selection bitset and aggregation filters — without this any
-     * earlier `aggregate({ onChange })` callbacks would have been no-ops
-     * (the field was still undefined when they fired).
+     * Lazy-init `bucketLookup` on first access. The just-created feature is
+     * refreshed once so it reflects the current selection bitset and
+     * aggregation filters — without this any earlier
+     * `aggregate({ onChange })` callbacks would have been no-ops (the field
+     * was still undefined when they fired).
      */
-    protected ensureBucketSelectionFeature(): BucketSelectionFeature | undefined {
-        if (this.bucketSelection === undefined) {
-            const feature = this.createBucketSelectionFeature();
+    public ensureBucketLookupFeature(): BucketLookupFeature | undefined {
+        if (this.bucketLookup === undefined) {
+            const feature = this.createBucketLookupFeature();
             if (feature) {
-                this.bucketSelection = feature;
+                this.bucketLookup = feature;
                 feature.refresh();
             }
         }
-        return this.bucketSelection;
+        return this.bucketLookup;
     }
 
     public getHighlightStateString(
@@ -1083,13 +1083,8 @@ export abstract class Series<
         });
     }
 
-    public getAggregateRangeReader(): DatumRangeReader | undefined {
-        // Override point for subclasses with aggregation
-        return undefined;
-    }
-
     public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
-        // Override point for subclasses with non-contiguous index-set aggregation
+        // Override point for subclasses with non-contiguous index-set aggregation (bubble/scatter).
         return undefined;
     }
 

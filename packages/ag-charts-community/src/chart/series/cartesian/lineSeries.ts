@@ -43,12 +43,10 @@ import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { makeAggregateRangeReader } from '../aggregationRangeReader';
-import { type BucketSelectionFeature, BucketSelectionManager } from '../bucketSelectionFeature';
+import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties } from '../util';
 import {
     CartesianSeries,
@@ -356,7 +354,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     existingFilters
                 ),
             targetRange,
-            onChange: () => this.bucketSelection?.refresh(),
+            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
@@ -368,19 +366,8 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         }
     }
 
-    public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        return makeAggregateRangeReader({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            aggregationManager: this.aggregationManager,
-            domainKey: 'value',
-        });
-    }
-
-    protected override createBucketSelectionFeature(): BucketSelectionFeature {
-        return new BucketSelectionManager({
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new BucketLookupManager({
             series: this,
             getXAxis: () => this.axes[ChartAxisDirection.X],
             getDataModel: () => this.dataModel,

@@ -315,7 +315,7 @@ export abstract class OhlcSeriesBase<
             computeFull: (existingFilters) =>
                 aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketSelection?.refresh(),
+            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
@@ -338,19 +338,8 @@ export abstract class OhlcSeriesBase<
     // extrema stored at OPEN/HIGH/LOW/CLOSE. The helper re-derives the bucket from
     // the midpoint's xValue (guaranteed to lie within the bucket's x-range) rather
     // than trusting the index itself.
-    public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
-        return _ModuleSupport.makeAggregateRangeReader({
-            series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
-            aggregationManager: this.aggregationManager,
-            domainKey: 'key',
-        });
-    }
-
-    protected override createBucketSelectionFeature(): _ModuleSupport.BucketSelectionFeature {
-        return new _ModuleSupport.BucketSelectionManager({
+    protected override createBucketLookupFeature(): _ModuleSupport.BucketLookupFeature {
+        return new _ModuleSupport.BucketLookupManager({
             series: this,
             getXAxis: () => this.axes[ChartAxisDirection.X],
             getDataModel: () => this.dataModel,

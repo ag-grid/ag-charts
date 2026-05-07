@@ -304,10 +304,10 @@ export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
 export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
 export {
-    type BucketSelectionFeature,
-    BucketSelectionManager,
-    SplitBucketSelectionManager,
-} from './chart/series/bucketSelectionFeature';
+    type BucketLookupFeature,
+    BucketLookupManager,
+    SplitBucketLookupManager,
+} from './chart/series/bucketLookupFeature';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
