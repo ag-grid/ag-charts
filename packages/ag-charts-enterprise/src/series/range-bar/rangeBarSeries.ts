@@ -304,7 +304,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             computeFull: (existingFilters) =>
                 aggregateRangeBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

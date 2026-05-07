@@ -488,7 +488,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                     existingFilters
                 ),
             targetRange,
-            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

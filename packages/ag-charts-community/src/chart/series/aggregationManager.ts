@@ -38,9 +38,21 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     private _filters: TFilter[] | undefined;
     private _dataLength: number = 0;
     private readonly executor = new DeferredExecutor<TFilter[]>();
+    private onFiltersChanged?: () => void;
 
     get filters(): TFilter[] | undefined {
         return this._filters;
+    }
+
+    /**
+     * Subscribe a single callback to every filter-set mutation: aggregation
+     * rebuilds (immediate + deferred coarser levels), staleness-driven
+     * discards (`markStale`), and on-demand level merges
+     * (`ensureLevelForRange`). Used by `BucketLookupFeature` to keep the
+     * per-bucket SELECTED roll-up cache in sync with the active filter list.
+     */
+    setOnFiltersChanged(cb: (() => void) | undefined): void {
+        this.onFiltersChanged = cb;
     }
 
     /**
@@ -56,12 +68,8 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         computePartial?: (existingFilters: TFilter[] | undefined) => PartialAggregationResult<TFilter> | undefined;
         computeFull: (existingFilters: TFilter[] | undefined) => TFilter[] | undefined;
         targetRange: number;
-        /** Invoked after the filter set has been replaced or extended (including deferred coarser levels). */
-        onChange?: () => void;
     }): TFilter[] | undefined {
         this.executor.cancel();
-
-        const { onChange } = options;
 
         if (options.targetRange > 1 && options.computePartial) {
             const partialResult = options.computePartial(this._filters);
@@ -71,18 +79,18 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
                 if (computeRemaining) {
                     this.executor.schedule(computeRemaining, (remaining) => {
                         this.mergeFilters(remaining);
-                        onChange?.();
+                        this.onFiltersChanged?.();
                     });
                 }
 
                 this._filters = immediate;
-                onChange?.();
+                this.onFiltersChanged?.();
                 return immediate;
             }
         }
 
         this._filters = options.computeFull(this._filters);
-        onChange?.();
+        this.onFiltersChanged?.();
         return this._filters;
     }
 
@@ -94,10 +102,11 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
         const hasLevel = this._filters?.some((f) => f.maxRange > range);
 
         if (!hasLevel && this.executor.isPending()) {
-            const remaining = this.executor.demand();
-            if (remaining) {
-                this.mergeFilters(remaining);
-            }
+            // demand() runs the executor's onComplete (which already called
+            // mergeFilters and onFiltersChanged). No additional work needed —
+            // the historical second mergeFilters call here was a double-merge
+            // bug.
+            this.executor.demand();
         }
     }
 
@@ -122,7 +131,8 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
      */
     markStale(dataLength: number): void {
         const ratio = this._dataLength > 0 ? dataLength / this._dataLength : 0;
-        if (ratio >= 2 || ratio <= 0.5 || this._dataLength === 0) {
+        const filtersDiscarded = ratio >= 2 || ratio <= 0.5 || this._dataLength === 0;
+        if (filtersDiscarded) {
             this._filters = undefined;
         } else if (this._filters) {
             for (const f of this._filters) {
@@ -132,6 +142,14 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
 
         this._dataLength = dataLength;
         this.executor.cancel();
+
+        if (filtersDiscarded) {
+            // Filters were dropped — notify subscribers so they can release
+            // closures over the now-orphaned `indexData` TypedArrays. (The
+            // `stale: true` branch keeps the filter objects alive, so cached
+            // readers stay valid.)
+            this.onFiltersChanged?.();
+        }
     }
 
     private mergeFilters(deferredFilters: TFilter[]): void {

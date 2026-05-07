@@ -150,8 +150,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             setSelected(changes, series, data, datumIndex);
         }
 
-        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
@@ -164,8 +164,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const changes = this.allocSelectionChanges();
         clearAllSelections(changes, this.state, chartService.series);
 
-        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.dispatchExternalSelectionChange('api-call', changes);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
         this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
@@ -189,9 +189,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         }
 
         const changes = this.allocSelectionChanges();
+        let internalRefreshTargets: Iterable<Series>;
         if (clickMiss) {
             clearAllSelections(changes, this.state, this.ctx.chartService.series);
-            this.dispatchInternalSelectionChange(this.ctx.chartService.series, changes);
+            internalRefreshTargets = this.ctx.chartService.series;
         } else {
             const { data } = clickedNode.series;
             if (data === undefined) return;
@@ -204,14 +205,18 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             if (clickMode === 'multiple' || modifierPressed) {
                 toggleSelection(changes, series, data, datumIndex);
+                internalRefreshTargets = [series];
             } else {
+                // Single-click clears every series — all of them need their
+                // bucket-lookup roll-up refreshed, not just the clicked series.
                 clickMode satisfies 'single';
                 clearAllSelections(changes, this.state, this.ctx.chartService.series);
                 setSelected(changes, series, data, datumIndex);
+                internalRefreshTargets = this.ctx.chartService.series;
             }
-            this.dispatchInternalSelectionChange([series], changes);
         }
         this.dispatchExternalSelectionChange('user-interaction', changes);
+        this.dispatchInternalSelectionChange(internalRefreshTargets, changes);
         this.redraw(ChartUpdateType.FULL);
     }
 
@@ -265,12 +270,22 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
+        const changedSeries = new Set<Series>();
         if (shouldClearSelections) {
+            // Every series with prior selections has its bitset cleared; their
+            // bucketLookup caches need refreshing even if the drag bbox doesn't
+            // pick any new datums on them.
+            for (const series of this.ctx.chartService.series) {
+                if (!series.properties.selection.enabled) continue;
+                const sel = series.data?.selections.get(series.id);
+                if (sel !== undefined && sel.getLength() > 0) {
+                    changedSeries.add(series);
+                }
+            }
             clearAllSelections(changes, this.state, this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
-        const changedSeries: Series[] = [];
         const intervalSet = new IntervalSet();
 
         for (const series of this.ctx.chartService.series) {
@@ -312,12 +327,14 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
 
             if (changed) {
-                changedSeries.push(series);
+                changedSeries.add(series);
             }
         }
 
-        this.dispatchInternalSelectionChange(changedSeries, changes);
+        // External listener fires first so any rollback completes before we
+        // refresh per-series bucket caches against the final bitset state.
         this.dispatchExternalSelectionChange('user-interaction', changes);
+        this.dispatchInternalSelectionChange(changedSeries, changes);
         this.endDrag();
     }
 
@@ -337,7 +354,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.ctx.eventsHub.emit('chart:request-update', { type, opts: { skipAnimations: true } });
     }
 
-    private dispatchInternalSelectionChange(changedSeries: Series[], changes: SelectionChanges): void {
+    private dispatchInternalSelectionChange(changedSeries: Iterable<Series>, changes: SelectionChanges): void {
         this.state.selectedCount += changes.countDelta;
         for (const series of changedSeries) {
             series.events.emit('data-selection-change', null);

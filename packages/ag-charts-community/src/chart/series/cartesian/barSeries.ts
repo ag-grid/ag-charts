@@ -532,7 +532,6 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             computeFull: (existingFilters) =>
                 aggregateBarDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

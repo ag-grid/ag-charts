@@ -303,11 +303,8 @@ export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
 export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
-export {
-    type BucketLookupFeature,
-    BucketLookupManager,
-    SplitBucketLookupManager,
-} from './chart/series/bucketLookupFeature';
+export { BucketLookupManager, SplitBucketLookupManager } from './chart/series/bucketLookupFeature';
+export type { BucketLookupFeature } from './chart/series/seriesTypes';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
 export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';

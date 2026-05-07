@@ -114,7 +114,9 @@ function resolveBucketingInputs(
 export class BucketLookupManager<TFilter extends ExtremesFilter> implements BucketLookupFeature {
     private readonly cache = new LookupCache<TFilter>();
 
-    constructor(private readonly opts: BucketLookupManagerOpts<TFilter>) {}
+    constructor(private readonly opts: BucketLookupManagerOpts<TFilter>) {
+        opts.aggregationManager.setOnFiltersChanged(() => this.refresh());
+    }
 
     isBucketSelected(datumIndex: number): boolean | undefined {
         return this.ensureReaders()?.selectedReader?.(datumIndex);
@@ -243,7 +245,9 @@ const SPLIT_RANGE_OFFSETS = [
 export class SplitBucketLookupManager<TFilter extends SplitFilter> implements BucketLookupFeature {
     private readonly cache = new LookupCache<TFilter>();
 
-    constructor(private readonly opts: SplitBucketLookupManagerOpts<TFilter>) {}
+    constructor(private readonly opts: SplitBucketLookupManagerOpts<TFilter>) {
+        opts.aggregationManager.setOnFiltersChanged(() => this.refresh());
+    }
 
     isBucketSelected(datumIndex: number): boolean | undefined {
         return this.ensureReaders()?.selectedReader?.(datumIndex);

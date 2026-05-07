@@ -315,7 +315,6 @@ export abstract class OhlcSeriesBase<
             computeFull: (existingFilters) =>
                 aggregateOhlcDataFromDataModel(xAxis.scale.type, dataModel, processedData, this, existingFilters),
             targetRange,
-            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;

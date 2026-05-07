@@ -354,7 +354,6 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                     existingFilters
                 ),
             targetRange,
-            onChange: () => this.bucketLookup?.refresh(),
         });
 
         const filters = this.aggregationManager.filters;
