@@ -115,6 +115,10 @@ export class DataSetSelection {
         return this.selection.length;
     }
 
+    getSelectedCount(): number {
+        return this.count;
+    }
+
     /** Direct access for the render loop. */
     getSelection(): Uint8Array {
         return this.selection;
