@@ -271,6 +271,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             intervalSet.clear();
 
             const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+            const getIndexSetForAggregate = series.getAggregateIndexSetReader();
 
             for (const datum of series.pickNodesInBBox(bbox)) {
                 if (asNumericDatumIndex(datum.datumIndex)) {
@@ -281,6 +282,17 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                             if (asNumericDatumIndex(start) && asNumericDatumIndex(end)) {
                                 changed = true;
                                 intervalSet.add(start, end);
+                            }
+                        }
+                    } else if (getIndexSetForAggregate) {
+                        const indices = getIndexSetForAggregate(datum.datumIndex);
+                        if (indices === undefined) {
+                            changed = true;
+                            setSelected(changes, series, data, datum.datumIndex);
+                        } else {
+                            for (const idx of indices) {
+                                changed = true;
+                                setSelected(changes, series, data, idx);
                             }
                         }
                     } else {

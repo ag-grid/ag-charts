@@ -1074,4 +1074,105 @@ describe('BubbleSeries', () => {
             },
         });
     });
+
+    describe('AG-17005 data-selection', () => {
+        const markerData = [
+            { x: 10, y: 20, size: 5 },
+            { x: 20, y: 10, size: 8 },
+            { x: 30, y: 40, size: 3 },
+            { x: 40, y: 30, size: 6 },
+            { x: 50, y: 50, size: 10 },
+            { x: 60, y: 15, size: 4 },
+            { x: 70, y: 35, size: 7 },
+            { x: 80, y: 25, size: 9 },
+            { x: 90, y: 45, size: 2 },
+            { x: 15, y: 55, size: 11 },
+        ];
+
+        it('should render bubble series with selection option enabled without errors', async () => {
+            const options: AgCartesianChartOptions = {
+                data: markerData,
+                series: [
+                    {
+                        type: 'bubble',
+                        xKey: 'x',
+                        yKey: 'y',
+                        sizeKey: 'size',
+                        size: 6,
+                        maxSize: 30,
+                        selection: {
+                            enabled: true,
+                            selectedItem: { fill: 'lime', stroke: 'darkgreen', strokeWidth: 3 },
+                            unselectedItem: { fillOpacity: 0.2 },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render scatter series with selection option enabled without errors', async () => {
+            const options: AgCartesianChartOptions = {
+                data: markerData,
+                series: [
+                    {
+                        type: 'scatter',
+                        xKey: 'x',
+                        yKey: 'y',
+                        size: 20,
+                        selection: {
+                            enabled: true,
+                            selectedItem: { fill: 'orange', stroke: 'darkorange', strokeWidth: 2 },
+                            unselectedItem: { fillOpacity: 0.15 },
+                        },
+                    },
+                ],
+                axes: {
+                    x: { type: 'number', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should expose a non-undefined getAggregateIndexSetReader when bubble series aggregation is active', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i % 5, s: 1 + (i % 3) })),
+                series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 10 }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeDefined();
+            expect(series.getAggregateIndexSetReader()).not.toBeUndefined();
+        });
+
+        it('should return undefined from getAggregateIndexSetReader on scatter when aggregation is not active', async () => {
+            const options: AgCartesianChartOptions = {
+                data: Array.from({ length: 5 }, (_, i) => ({ x: i, y: i })),
+                series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
+                legend: { enabled: false },
+            };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const series = deproxy(chart).series[0] as any;
+            expect(series.dataAggregation).toBeUndefined();
+            expect(series.getAggregateIndexSetReader()).toBeUndefined();
+        });
+    });
 });

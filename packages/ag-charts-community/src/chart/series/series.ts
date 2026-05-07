@@ -82,6 +82,7 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
+    DatumIndexSetReader,
     DatumIndexType,
     DatumRangeReader,
     INodeEvent,
@@ -1041,6 +1042,11 @@ export abstract class Series<
 
     public getAggregateRangeReader(): DatumRangeReader | undefined {
         // Override point for subclasses with aggregation
+        return undefined;
+    }
+
+    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
+        // Override point for subclasses with non-contiguous index-set aggregation
         return undefined;
     }
 
