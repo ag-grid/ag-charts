@@ -67,6 +67,9 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         this.appliedStyles = styles;
         const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
+        // Append after `shapeNode` so card stroke renders below content; expander pill is
+        // appended later so it stays visually on top.
+        this.contentGroup ??= this.appendChild(new _ModuleSupport.Group());
         this.updateImageNode(fields.image, styles);
         this.updateTitleNode(fields.title, styles, textMaxWidth);
         this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
@@ -242,13 +245,6 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         applyStrokeStyles(this.shapeNode, styles);
     }
 
-    // Sits between `shapeNode` and `expanderNode` in z-order: children render on top of
-    // the shape rect, and the expander pill is appended later so it stays visually last.
-    private ensureContentGroup(): _ModuleSupport.Group {
-        this.contentGroup ??= this.appendChild(new _ModuleSupport.Group());
-        return this.contentGroup;
-    }
-
     private updateImageNode(url: string | undefined, styles: RequiredOrganizationNodeStyle) {
         if (url == null || !styles.image.enabled) {
             this.imageNode?.remove();
@@ -256,7 +252,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.imageNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Rect());
+        this.imageNode ??= this.contentGroup!.appendChild(new _ModuleSupport.Rect());
 
         this.imageNode.fill = {
             type: 'image',
@@ -287,7 +283,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.titleNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
+        this.titleNode ??= this.contentGroup!.appendChild(new _ModuleSupport.Text());
         this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
         applyTextBoxingStyles(this.titleNode, styles.title);
@@ -304,7 +300,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.subtitleNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
+        this.subtitleNode ??= this.contentGroup!.appendChild(new _ModuleSupport.Text());
         this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
         applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
@@ -327,7 +323,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 index++;
                 continue;
             }
-            this.labelNodes[index] ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
+            this.labelNodes[index] ??= this.contentGroup!.appendChild(new _ModuleSupport.Text());
             this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
