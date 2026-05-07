@@ -242,9 +242,8 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         applyStrokeStyles(this.shapeNode, styles);
     }
 
-    // Lazy-init: only required once the first content child needs to be appended.
-    // Sits between `shapeNode` and `expanderNode` in z-order (children appended after the
-    // shape rect render on top of it, the expander gets appended last).
+    // Sits between `shapeNode` and `expanderNode` in z-order: children render on top of
+    // the shape rect, and the expander pill is appended later so it stays visually last.
     private ensureContentGroup(): _ModuleSupport.Group {
         this.contentGroup ??= this.appendChild(new _ModuleSupport.Group());
         return this.contentGroup;
