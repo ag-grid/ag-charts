@@ -208,7 +208,6 @@ export class Zoom extends AbstractModuleInstance {
         // Observe option changes. The callback runs immediately during registration
         // (chartState is populated before module creation), handling initial setup too.
         let prevEnabled: boolean | undefined;
-        let prevTouchPan: boolean | undefined;
         this.cleanup.register(
             ctx.chartState.observe((get) => {
                 const opts = get('options', 'zoom');
@@ -227,15 +226,29 @@ export class Zoom extends AbstractModuleInstance {
                     this.onEnabledChange(opts.enabled);
                 }
 
-                // preventDefault on touchmove alone is not sufficient on iOS Safari.
-                const touchPan = Boolean(opts.enabled) && Boolean(opts.enablePanning || opts.enableTwoFingerZoom);
-                if (prevTouchPan !== touchPan) {
-                    prevTouchPan = touchPan;
-                    ctx.widgets.seriesWidget.setTouchAction(touchPan ? 'none' : undefined);
-                }
-            })
+                this.refreshTouchAction();
+            }),
+            // Re-evaluate when the zoom range changes — at fully-zoomed-out [0,1] we
+            // pass single-finger pans through to the parent page (matches wheel scroll).
+            ctx.eventsHub.on('zoom:change-complete', () => this.refreshTouchAction()),
+            () => ctx.widgets.seriesWidget.setTouchAction(undefined)
         );
-        this.cleanup.register(() => ctx.widgets.seriesWidget.setTouchAction(undefined));
+    }
+
+    // preventDefault on touchmove alone is not sufficient on iOS Safari, so we hint the
+    // browser via touch-action. At [0,1] (fully zoomed out) the chart has nothing to pan,
+    // so we let single-finger pans bubble to the page (same as the wheel scroller does).
+    // Pinch is not in `pan-y`, so two-finger touch events still reach the chart.
+    private prevTouchAction: 'auto' | 'none' | 'pan-y' | undefined;
+    private refreshTouchAction() {
+        const { enabled, enablePanning, enableTwoFingerZoom } = this.opts;
+        let next: 'none' | 'pan-y' | undefined;
+        if (enabled && (enablePanning || enableTwoFingerZoom)) {
+            next = isMaxZoom(this.getZoom()) ? 'pan-y' : 'none';
+        }
+        if (this.prevTouchAction === next) return;
+        this.prevTouchAction = next;
+        this.ctx.widgets.seriesWidget.setTouchAction(next);
     }
 
     private teardown() {

@@ -1584,6 +1584,30 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('AG-17239 native pixel floor', () => {
+        it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Land at the 1:1 floor — both axes saturate at fitX/fitY (input ranges below fit).
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(flooredState).toBeDefined();
+
+            // Now request a further-zoomed-in window with a different mid. Without the floor's
+            // no-op short-circuit, the input mid would leak through `clampMid` and translate
+            // the visible window — i.e. the user would see a pan instead of "nothing happens".
+            setZoom(chart, 0.3, 0.4, 0.3, 0.4);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+    });
+
     describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };

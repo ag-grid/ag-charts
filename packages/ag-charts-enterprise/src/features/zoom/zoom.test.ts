@@ -357,10 +357,15 @@ describe('Zoom', () => {
             await compare();
         });
 
-        it('AG-17205 should set touch-action: none on the series-area while panning is enabled so touch-drag pans the chart instead of scrolling the page', async () => {
+        it('AG-17205 should toggle series-area touch-action so touch pans the chart only when zoomed in, otherwise pass to the page', async () => {
             await prepareChart();
             const seriesEl = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
             expect(seriesEl).not.toBeNull();
+            // Fully zoomed out — single-finger pan passes to the page; pinch still reaches the chart.
+            expect(seriesEl.style.touchAction).toBe('pan-y');
+
+            await scrollAction(cx, cy, -1)(chart);
+            await waitForChartStability(chart);
             expect(seriesEl.style.touchAction).toBe('none');
 
             await chart.update({ ...EXAMPLE_OPTIONS, zoom: { enabled: false } });
