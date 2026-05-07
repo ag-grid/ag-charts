@@ -1340,6 +1340,143 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        // AG-17253 pt2 follow-up (David Glickman QA) — clamping the card via `maxWidth`/
+        // `maxHeight` left children drawing outside the card. Mirrors three plunker repros:
+        //   plnkr.co/edit/0maSWVkHxeSLQ5Fb  (narrow width + theme-default top image)
+        //   plnkr.co/edit/jxPaPCmKEyWoTi3b  (narrow height, text-only)
+        //   plnkr.co/edit/oq0FP2LDZkapxUO4  (narrow height + image left)
+        //   plnkr.co/edit/qA05jRd478qdnhDe  (narrow width + height)
+        const OVERFLOW_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alice Chen',
+                job: 'Chief Executive Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bob Smith',
+                job: 'Chief Technology Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+            {
+                id: 'cfo',
+                name: 'Carol Wu',
+                job: 'Chief Financial Officer',
+                location: 'New York',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 pt2 should clip image overflow when card narrower than image width', async () => {
+            // maxWidth (30) is well under image.width (50); image must not poke out the card sides.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 30,
+                            image: { key: 'avatar', position: 'top' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow when card shorter than content (text-only)', async () => {
+            // maxHeight (50) cannot fit title + subtitle + label; trailing tiers must be cut at
+            // the card edge instead of bleeding onto the link/child rows below.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow with image-left layout', async () => {
+            // image-left forces the card to be at least image.height tall (50); maxHeight=50 then
+            // leaves zero room for text. Text must be clipped at the card edge.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'left' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip overflow when both maxWidth and maxHeight are narrow', async () => {
+            // 50x50 card with theme-default top image (50x50): image fills the card and text has
+            // no space; both image bleed (rounded corners clipping) and text overflow must be
+            // contained.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 50,
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'top' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('viewportGroup zoom transform', () => {

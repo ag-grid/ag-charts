@@ -386,8 +386,8 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
     // Exclude the expander pill from measurements — its overhang would compound into
     // `regularBBox` on each layout pass, growing the card by `expander.height / 2` per toggle.
-    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox | undefined {
-        return node.getCardBBox() ?? node.getBBox();
+    protected override measureDatumNode(node: OrganizationNode): _ModuleSupport.BBox {
+        return node.getCardBBox();
     }
 
     getLinkInterpolation(
@@ -472,9 +472,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         if (!node) return;
 
         // Card + expander pill so the focus ring shows what `Enter` will toggle.
-        const focusBBox = node.getFocusBBox();
-        if (!focusBBox) return;
-        const bounds = _ModuleSupport.Transformable.toCanvas(node, focusBBox);
+        const bounds = _ModuleSupport.Transformable.toCanvas(node, node.getFocusBBox());
         if (!bounds?.isFinite()) return;
 
         const depth = this.graph.findNeighbourValue(next, 'depth') as number | undefined;
