@@ -186,10 +186,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
         const oldX = event.oldState[xId];
         const oldY = event.oldState[yId];
-        const wantsFurtherZoomIn = xRange / fitX < 1 - ISOTROPY_EPSILON && yRange / fitY < 1 - ISOTROPY_EPSILON;
-        if (wantsFurtherZoomIn && oldX && oldY) {
-            const oldT = Math.max((oldX.max - oldX.min) / fitX, (oldY.max - oldY.min) / fitY);
-            if (oldT <= 1 + ISOTROPY_EPSILON) {
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
                 const restored: _ModuleSupport.CoreZoomState = {};
                 restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
                 restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
