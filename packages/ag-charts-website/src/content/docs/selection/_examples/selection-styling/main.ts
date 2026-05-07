@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    AgSelectionContainment,
     BarSeriesModule,
     CategoryAxisModule,
     LegendModule,
@@ -16,11 +15,9 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModul
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Quarterly Revenue' },
     selection: {
         enabled: true,
-        enableDrag: true,
-        containment: 'any',
     },
     data: getData(),
     series: [
@@ -29,6 +26,16 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'revenue',
             yName: 'Revenue ($m)',
+            selection: {
+                selectedItem: {
+                    fill: '#0b8043',
+                    stroke: '#054d27',
+                    strokeWidth: 2,
+                },
+                unselectedItem: {
+                    fillOpacity: 0.25,
+                },
+            },
         },
     ],
     axes: {
@@ -37,9 +44,4 @@ const options: AgCartesianChartOptions = {
     },
 };
 
-const chart = AgCharts.create(options);
-
-function setContainment(value: AgSelectionContainment) {
-    options.selection = { ...options.selection, containment: value };
-    chart.update(options);
-}
+AgCharts.create(options);

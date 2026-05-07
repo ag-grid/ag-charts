@@ -1,32 +1,188 @@
 ---
 title: 'Data Selection'
-description: 'placeholder description'
+description: 'Enable click-to-select and drag-to-select on $framework charts so users can pick out individual datums or a region of points.'
 enterprise: true
 ---
 
-Placeholder
+Data Selection lets users click or drag on the chart to mark individual datums as selected. Selected datums receive a distinct visual treatment and can be read back, set, or cleared programmatically.
 
-# Click-To-Select
+{% chartExampleRunner title="Data Selection" name="selection-basic" type="generated" /%}
 
-{% chartExampleRunner title="Click-To-Select" name="click-to-select" type="generated" /%}
+To enable this feature, set `selection.enabled` to `true`.
 
-# Drag Selection
+```js format="snippet"
+{
+    selection: {
+        enabled: true,
+    },
+}
+```
+
+In the example above, click any bar to toggle its selection. Click an empty area of the chart to clear the selection.
+
+## Click Modes
+
+The `clickMode` option controls how new clicks combine with the existing selection.
+
+{% chartExampleRunner title="Click Modes" name="click-modes" type="generated" /%}
+
+```js format="snippet"
+{
+    selection: {
+        enabled: true,
+        clickMode: 'single',
+    },
+}
+```
+
+-   `'single'` (default) replaces the current selection with the clicked datum. Holding {% kbd "Ctrl" /%} or {% kbd "Cmd" /%} during the click temporarily promotes the click to `'multiple'`.
+-   `'multiple'` toggles the clicked datum in or out of the existing selection.
+
+Set `enableClickAwayToClear` to `false` to keep the selection in place when the user clicks an empty area of the chart.
+
+## Drag-to-Select
+
+Set `enableDrag` to `true` to let the user draw a rectangle across the chart and select every datum the rectangle covers.
 
 {% chartExampleRunner title="Drag Selection" name="drag-selection" type="generated" /%}
 
-# Multiple Series Selection
+```js format="snippet"
+{
+    selection: {
+        enabled: true,
+        enableDrag: true,
+        containment: 'any',
+    },
+}
+```
 
-{% chartExampleRunner
-    title="Multiple Series"
-    name="multiple-series"
-    type="generated"
-    options={ "exampleHeight": 1000 }
-/%}
+The `containment` option controls which datums the drag rectangle picks up:
 
-# Error Bars
+-   `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
+-   `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
 
-{% chartExampleRunner title="Error Bars" name="error-bars" type="generated" /%}
+## Styling Selected and Unselected Items
 
-# Pie Selection
+When data selection is active, the chart applies a default visual treatment that distinguishes selected datums from unselected ones. Override the styling per series with `series.selection.selectedItem` and `series.selection.unselectedItem`.
 
-{% chartExampleRunner title="Pie Selection" name="pie-selection" type="generated" /%}
+{% chartExampleRunner title="Selection Styling" name="selection-styling" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'revenue',
+            selection: {
+                selectedItem: {
+                    fill: '#0b8043',
+                    stroke: '#054d27',
+                    strokeWidth: 2,
+                },
+                unselectedItem: {
+                    fillOpacity: 0.25,
+                },
+            },
+        },
+    ],
+}
+```
+
+For dynamic per-datum styling, use the series item-styler — `params.selectionState` is set to `'none'`, `'selected'`, or `'unselected'` whenever the data selection module is enabled. See [Stylers](./stylers) for the full styler API.
+
+## Per-Series Configuration
+
+Use `series.selection.enabled` to opt individual series in or out, and `series.selection.containment` to override the chart-level drag rule for one series.
+
+{% chartExampleRunner title="Per-Series Selection" name="per-series-selection" type="generated" /%}
+
+```js format="snippet"
+{
+    selection: {
+        enabled: true,
+        enableDrag: true,
+    },
+    series: [
+        {
+            type: 'bar',
+            xKey: 'quarter',
+            yKey: 'revenue',
+            selection: { enabled: true },
+        },
+        {
+            type: 'line',
+            xKey: 'quarter',
+            yKey: 'forecast',
+            selection: { enabled: false },
+        },
+    ],
+}
+```
+
+Pie series omit the per-series `selection` field, but pie sectors still respond to chart-level click and drag selection.
+
+## Reacting to Selection Changes
+
+Listen for `selectionChange` to react when the selection is updated by either user interaction or an API call.
+
+{% chartExampleRunner title="Selection Change Event" name="selection-change-event" type="generated" /%}
+
+```js format="snippet"
+{
+    listeners: {
+        selectionChange: (event) => {
+            console.log(event.source, event.added, event.removed);
+        },
+    },
+}
+```
+
+The event payload contains:
+
+-   `source` — `'user-interaction'` or `'api-call'`.
+-   `added` — datums added to the selection by this change.
+-   `removed` — datums removed from the selection by this change.
+
+Call `event.preventDefault()` from inside the listener to veto the change.
+
+## Programmatic Control
+
+The chart instance exposes three methods for reading and writing the current selection state.
+
+{% chartExampleRunner title="Selection API" name="selection-api" type="generated" /%}
+
+```js format="snippet"
+{
+    // chart instance methods
+    // chart.getSelection(): Iterable<AgSelectionItem>
+    // chart.setSelection(items: Iterable<AgSelectionItemIds>): void
+    // chart.clearSelection(): void
+}
+```
+
+-   `chart.getSelection()` returns an iterable of every currently selected item, each with `seriesId`, `itemId`, and `datum`.
+-   `chart.setSelection(items)` replaces the current selection with the supplied items.
+-   `chart.clearSelection()` removes every selected item across all series.
+
+## Compatibility
+
+Data Selection is an enterprise feature and requires `SelectionModule` to be registered. It is not supported on histogram series or on standalone charts.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgChartSelectionOptions" label="Selection" %}
+{% apiReference id="AgChartSelectionOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSelectionOptions" label="Series Selection" %}
+{% apiReference id="AgSelectionOptions" /%}
+{% /tabItem %}
+
+{% tabItem id="AgSelectionChangeEvent" label="Selection Change Event" %}
+{% apiReference id="AgSelectionChangeEvent" /%}
+{% /tabItem %}
+
+{% /tabs %}
