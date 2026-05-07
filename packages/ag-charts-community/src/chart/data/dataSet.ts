@@ -196,7 +196,19 @@ export class DataSet<T = unknown> {
         if (predecessor.selections.size === 0) return;
 
         const oldIds = predecessor.getIdArray();
-        if (!oldIds || !this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) return;
+        if (!oldIds || !this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) {
+            if (predecessor.data.length === this.data.length) {
+                // There's no dataId, but lengths are the same so assume the indices match to the same datums. This
+                // assumption is not guaranteed, but is likely in most use cases. In the use cases where it isn't, it's
+                // up the user to decide whether to call `chart.clearSelection()` or to integrate `dataIdKey`.
+                //
+                // Just copy the previous selection state:
+                for (const [seriesId, oldSelObj] of predecessor.selections) {
+                    this.selections.set(seriesId, oldSelObj);
+                }
+            }
+            return;
+        }
 
         const newIdMap = this.getIdToIndexMap();
         for (const [seriesId, oldSelObj] of predecessor.selections) {
