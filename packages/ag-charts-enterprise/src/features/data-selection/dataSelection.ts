@@ -34,6 +34,8 @@ import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
+const UNSUPPORTED_CARTESIANS = ['histogram', 'waterfall', 'funnel', 'cone-funnel'];
+
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
@@ -44,11 +46,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelection(): boolean {
-        return (
-            this.ctx.chartService.getChartType() !== 'standalone' &&
-            this.ctx.chartService.series.at(0)?.type !== 'histogram' &&
-            this.ctx.chartService.series.at(0)?.type !== 'waterfall'
-        );
+        if (this.ctx.chartService.getChartType() === 'standalone') return false;
+
+        const type0 = this.ctx.chartService.series.at(0)?.type;
+        if (type0 && UNSUPPORTED_CARTESIANS.includes(type0)) return false;
+
+        return true;
     }
 
     private supportsSelectionDrag(): boolean {
