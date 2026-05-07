@@ -139,7 +139,7 @@ export const RANGE_AREA_SERIES_THEME: WithThemeParams<
             size: 6,
             strokeWidth: 2,
         },
-        nodeClickRange: 'nearest',
+        nodeClickRange: { $if: [{ $path: '/selection/enabled' }, 10, 'nearest'] },
         item: {
             low: RANGE_AREA_ITEM,
             high: RANGE_AREA_ITEM,
