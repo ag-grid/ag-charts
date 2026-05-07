@@ -1,5 +1,24 @@
 [
     {
+        "version": "13.3.0",
+        "date": "May 13th, 2026",
+        "highlights": [
+            {
+                "text": "Colour Scale",
+                "path": "./colour-scale/"
+            },
+            {
+                "text": "Organisation Chart",
+                "path": "./org-chart/"
+            },
+            {
+                "text": "Data Selection",
+                "path": "./selection/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-13-3"
+    },
+    {
         "version": "13.2.1",
         "date": "April 7th, 2026"
     },
