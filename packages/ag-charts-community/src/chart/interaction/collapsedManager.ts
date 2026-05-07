@@ -34,7 +34,7 @@ export class CollapsedManager implements MementoOriginator<CollapsedMemento> {
             changed ||= !this.collapsedIds[id];
             after[id] = true;
         }
-        // Also fire `change` if the previous map had ids that aren't in `after` — those got expanded.
+        // Detect implicit expansions: previous map ids missing from `after` are now expanded.
         if (!changed) {
             for (const prevId of Object.keys(this.collapsedIds)) {
                 if (!after[prevId]) {

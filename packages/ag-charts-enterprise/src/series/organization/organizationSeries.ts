@@ -452,8 +452,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const node = this.datumSelection.at(nextDatumIdx);
         if (!node) return;
 
-        // Card + expander pill — the focus ring surrounds both affordances so the user
-        // can see what `Enter` will toggle. Excludes any descendant nodes that hang below.
+        // Card + expander pill so the focus ring shows what `Enter` will toggle.
         const focusBBox = node.getFocusBBox();
         if (!focusBBox) return;
         const bounds = _ModuleSupport.Transformable.toCanvas(node, focusBBox);
@@ -483,8 +482,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
 
         const childCount = this.getChildren(vertex).length;
 
-        // Description from the tooltip carries only the heading (title); compose the SR description
-        // from all visible card fields so subtitle and labels are also read out.
+        // Tooltip-derived description carries only the heading; build a fuller one for SR.
         const description = this.composeDatumDescription(vertex);
 
         // Leaf vs. parent — a single key with empty `${collapsedState}` would stutter (",,").
@@ -501,8 +499,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const collapsedState = this.ctx.localeManager.t(
             this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
         );
-        // Singular vs. plural template — locale tooling has no `[plural]` annotation, so we split
-        // the key by child count (the same pattern already used to split leaf vs. parent).
+        // Locale tooling has no `[plural]` annotation, so split the key by child count.
         const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
         return this.ctx.localeManager.t(key, {
             description,

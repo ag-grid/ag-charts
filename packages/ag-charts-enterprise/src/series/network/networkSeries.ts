@@ -289,9 +289,8 @@ export abstract class AbstractNetworkSeries<
         }
     }
 
-    // FIXME(AG-17179 follow-up): mirror y around the viewport midline because
-    // `calcPanToBBoxRatios` is y-down internally and we render y-up. Remove once the helper
-    // is direction-aware.
+    // FIXME(AG-17179 follow-up): mirror y because `calcPanToBBoxRatios` is y-down and we
+    // render y-up. Remove once the helper is direction-aware.
     public override mapFocusBBoxToPanTarget(
         seriesRect: BoxBounds,
         focusBBox: Readonly<_ModuleSupport.BBox>
