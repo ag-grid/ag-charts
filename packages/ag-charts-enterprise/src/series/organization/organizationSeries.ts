@@ -183,6 +183,25 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const yRange = yEntry.max - yEntry.min;
         if (xRange <= 0 || yRange <= 0) return;
 
+        // AG-17239: at the 1:1 floor, further zoom-in is a no-op — otherwise the
+        // cursor-anchored input mid leaks through `clampMid` and reads as a pan.
+        const oldX = event.oldState[xId];
+        const oldY = event.oldState[yId];
+        if (oldX && oldY) {
+            const oldXRange = oldX.max - oldX.min;
+            const oldYRange = oldY.max - oldY.min;
+            const inputT = Math.max(xRange / fitX, yRange / fitY);
+            const oldT = Math.max(oldXRange / fitX, oldYRange / fitY);
+            const wantsShrink = xRange < oldXRange - ISOTROPY_EPSILON || yRange < oldYRange - ISOTROPY_EPSILON;
+            if (wantsShrink && inputT <= 1 + ISOTROPY_EPSILON && oldT <= 1 + ISOTROPY_EPSILON) {
+                const restored: _ModuleSupport.CoreZoomState = {};
+                restored[xId] = { min: oldX.min, max: oldX.max, direction: ChartAxisDirection.X };
+                restored[yId] = { min: oldY.min, max: oldY.max, direction: ChartAxisDirection.Y };
+                event.constrainChanges(restored);
+                return;
+            }
+        }
+
         // Project to the isotropic line, then floor at sMax (t ≥ 1/sMax).
         const targetT = Math.max(xRange / fitX, yRange / fitY, 1 / sMax);
         const targetXRange = Math.min(1, targetT * fitX);

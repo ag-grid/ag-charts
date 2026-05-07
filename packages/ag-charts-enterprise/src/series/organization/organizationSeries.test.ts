@@ -1600,6 +1600,47 @@ describe('OrganizationSeries', () => {
         });
     });
 
+    describe('AG-17239 native pixel floor', () => {
+        it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Land at the 1:1 floor (both axes saturate at fitX/fitY).
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(flooredState).toBeDefined();
+
+            // Further zoom-in with an off-centre mid must not translate the window.
+            setZoom(chart, 0.3, 0.4, 0.3, 0.4);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+
+        it('should not pan when only one axis requests further zoom-in past the floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+
+            // Shrink x only, leave y at the floored range. Off-isotropic input would otherwise
+            // land at floor (t = 1) with the new x mid, leaking through `clampMid`.
+            setZoom(chart, 0.3, 0.35, flooredState.y.min, flooredState.y.max);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+    });
+
     describe('aspect-ratio guard', () => {
         it('should project off-isotropic zoom state onto the isotropic line', async () => {
             const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
