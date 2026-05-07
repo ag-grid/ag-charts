@@ -631,7 +631,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                 const yHighDatumIndex = indexData[aggIndex + HIGH];
                 const yLowDatumIndex = indexData[aggIndex + LOW];
 
-                if (yHighDatumIndex === AGGREGATION_INDEX_UNSET) {
+                if (yHighDatumIndex === AGGREGATION_INDEX_UNSET || yLowDatumIndex === AGGREGATION_INDEX_UNSET) {
                     // Bucket has valid x-values but all-null y-values
                     if (!ctx.connectMissingData) {
                         this.pushGapMarker(ctx);
