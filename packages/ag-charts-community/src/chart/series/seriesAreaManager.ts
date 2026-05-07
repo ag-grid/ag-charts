@@ -551,6 +551,7 @@ export class SeriesAreaManager extends BaseManager {
             const matches = pick?.matches;
             const found = matches?.[0];
             if (
+                found?.series.properties.selection.enabled ||
                 found?.series.hasEventListener('seriesNodeClick') ||
                 found?.series.hasEventListener('seriesNodeDoubleClick') ||
                 (matches != null && matches.length > 1 && this.chart.tooltip.pagination)
