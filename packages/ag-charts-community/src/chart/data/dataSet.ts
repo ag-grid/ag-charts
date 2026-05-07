@@ -196,7 +196,7 @@ export class DataSet<T = unknown> {
         if (predecessor.selections.size === 0) return;
 
         const oldIds = predecessor.getIdArray();
-        if (!oldIds || !this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) {
+        if (!oldIds) {
             if (predecessor.data.length === this.data.length) {
                 // There's no dataId, but lengths are the same so assume the indices match to the same datums. This
                 // assumption is not guaranteed, but is likely in most use cases. In the use cases where it isn't, it's
@@ -207,6 +207,10 @@ export class DataSet<T = unknown> {
                     this.selections.set(seriesId, oldSelObj);
                 }
             }
+            return;
+        }
+
+        if (!this.dataIdKey || this.dataIdKey !== predecessor.dataIdKey) {
             return;
         }
 
