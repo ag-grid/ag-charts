@@ -183,6 +183,28 @@ export function deproxy(chartOrProxy: ChartOrProxy<any>): Chart {
     return isChartInstance(chartOrProxy) ? chartOrProxy : ((chartOrProxy as any).chart as Chart);
 }
 
+/**
+ * Typed accessor for series internals used by aggregation/data-selection tests.
+ * Centralises the shape so renames in the production code don't require sweeping
+ * the test suite.
+ */
+export interface SeriesAggregationInternals {
+    id: string;
+    data: { getItemIdFromIndex(datumIndex: number): string | number } | undefined;
+    dataAggregation: object | undefined;
+    aggregateIndexSet?: Map<number, number[]>;
+    contextNodeData?: { nodeData?: ReadonlyArray<unknown> };
+    getAggregateIndexSetReader(): ((sampledDatumIndex: number) => Iterable<number>) | undefined;
+    getAggregateRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
+}
+
+export function getSeriesAggregationInternals(
+    chartOrProxy: ChartOrProxy<any>,
+    seriesIndex = 0
+): SeriesAggregationInternals {
+    return deproxy(chartOrProxy).series[seriesIndex] as unknown as SeriesAggregationInternals;
+}
+
 export function repeat<T>(value: T, count: number): T[] {
     return new Array(count).fill(value);
 }
