@@ -23,6 +23,7 @@ import { Chart } from './chart';
 import { CartesianChartAxes } from './chartAxes';
 import type { ChartAxis } from './chartAxis';
 import { CartesianCrossLine } from './crossline/cartesianCrossLine';
+import { getCrossLinesPlugin } from './crossline/getCrossLinesPlugin';
 import type { LayoutContext, ScrollbarLayoutMap } from './layout/layoutManager';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { UnknownSeries } from './series/series';
@@ -199,7 +200,7 @@ export class CartesianChart extends Chart {
 
         for (const axis of this.axes) {
             axis.update();
-            axis.setCrossLinesVisible(!overflows);
+            getCrossLinesPlugin(axis)?.setVisible(!overflows);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
@@ -217,7 +218,7 @@ export class CartesianChart extends Chart {
         const maxIterations = 10;
 
         // Axes that have `crossAt` configured
-        const crossAtAxes = this.axes.filter((axis) => axis.crossAt?.value != null);
+        const crossAtAxes = this.axes.filter((axis) => axis.options.crossAt?.value != null);
 
         do {
             // Start with a good approximation from the last update.
@@ -293,15 +294,16 @@ export class CartesianChart extends Chart {
 
             this.sizeAxis(axis, seriesRect, position);
 
-            if (axis.thickness == null) {
+            const { thickness, maxThicknessRatio } = axis.options;
+            if (thickness == null) {
                 const availableSize = getSize(isVertical, scene);
-                axisWidth = availableSize * (axis.maxThicknessRatio ?? 1);
+                axisWidth = availableSize * maxThicknessRatio;
             } else {
-                axisWidth = axis.thickness;
+                axisWidth = thickness;
             }
 
             const chartLayout = {
-                sizeLimit: axisWidth - axis.label.spacing,
+                sizeLimit: axisWidth - axis.options.label.spacing,
                 padding: this.padding,
                 scrollbars,
             };
@@ -314,7 +316,7 @@ export class CartesianChart extends Chart {
             primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            if (axis.thickness == null) {
+            if (axis.options.thickness == null) {
                 axisWidth = Math.min(getSize(isVertical, bbox) ?? 0, axisWidth);
             }
             axisWidths.set(axis.id, Math.ceil(axisWidth));
@@ -401,11 +403,12 @@ export class CartesianChart extends Chart {
         } = perpendicularAxis;
         const halfBandwidth = (bandwidth ?? 0) / 2;
 
-        const crossPosition = perpendicularAxis.scale.convert(axis.crossAt?.value, { clamp: false }) + halfBandwidth;
+        const { crossAt } = axis.options;
+        const crossPosition = perpendicularAxis.scale.convert(crossAt?.value, { clamp: false }) + halfBandwidth;
 
         if (perpendicularAxis.inRange(crossPosition)) return { crossPosition, visible: true };
 
-        if (axis.crossAt?.sticky === false) {
+        if (crossAt?.sticky === false) {
             return { crossPosition: undefined, visible: false };
         }
 
@@ -484,16 +487,16 @@ export class CartesianChart extends Chart {
         const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0 };
 
         for (const axis of this.axes) {
-            const { position, label } = axis;
-            if (axis.crossLines) {
-                for (const crossLine of axis.crossLines) {
-                    if (crossLine instanceof CartesianCrossLine) {
-                        crossLine.position = position ?? 'top';
-                        crossLine.label.parallel ??= label.parallel;
-                    }
-
-                    crossLine.calculatePadding?.(crossLinePadding);
+            const { position } = axis;
+            const crossLines = getCrossLinesPlugin(axis)?.getInstances();
+            if (!crossLines) continue;
+            for (const crossLine of crossLines) {
+                if (crossLine instanceof CartesianCrossLine) {
+                    crossLine.position = position ?? 'top';
+                    crossLine.label.parallel ??= axis.parallel;
                 }
+
+                crossLine.calculatePadding?.(crossLinePadding);
             }
         }
         // Reduce cross-line padding to account for overlap with axes.
@@ -664,8 +667,8 @@ export class CartesianChart extends Chart {
     }
 
     private clipAxis(axis: CartesianAxis, seriesRect: BBox, layoutBBox: BBox) {
-        const gridLinePadding = Math.ceil(axis.gridLine?.width ?? 0);
-        const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
+        const gridLinePadding = Math.ceil(axis.options.gridLine.width);
+        const axisLinePadding = Math.ceil(axis.options.line.width);
 
         let { width, height } = seriesRect;
 

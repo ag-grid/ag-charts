@@ -337,6 +337,14 @@ describe('AgChartsServerSide', () => {
     });
 });
 
+// REGRESSION COVERAGE:
+// The ordering of these describe blocks is load-bearing — the first block renders charts WITHOUT
+// enterprise modules registered, seeding the per-process ChartTheme cache from a community-only
+// registry snapshot. The enterprise block below then registers enterprise modules in beforeAll
+// and renders enterprise charts (waterfall, heatmap, gauges); without `ModuleRegistry.ifRegistryChanged`
+// invalidating the theme cache, those charts reuse a stale `theme.config` missing their axis defaults
+// and throw `Cannot read properties of undefined (reading 'enabled')` during axis layout. The
+// `afterEach` console assertions on every block fail loudly if that regression returns.
 describe('AgChartsServerSide enterprise licensing', () => {
     setupMockConsole();
 

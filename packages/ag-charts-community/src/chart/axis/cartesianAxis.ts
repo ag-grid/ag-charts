@@ -1,7 +1,13 @@
-import type { ChartAnimationPhase, DynamicContext, Scale, ZoomMinMax } from 'ag-charts-core';
+import type {
+    AxisID,
+    ChartAnimationPhase,
+    DynamicContext,
+    NormalisedBaseCartesianAxisOptions,
+    Scale,
+    ZoomMinMax,
+} from 'ag-charts-core';
 import {
     ChartAxisDirection,
-    Property,
     StateMachine,
     arraysEqual,
     calcLineHeight,
@@ -32,6 +38,7 @@ import type { AnimationManager } from '../interaction/animationManager';
 import { expandLabelPadding } from '../label';
 import type { ScrollbarLayout } from '../layout/layoutManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum } from './axis';
+import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type {
     AxisFillDatum,
     AxisGroupDatumTranslation,
@@ -49,7 +56,6 @@ import {
     resetAxisLabelSelectionFn,
     resetAxisLineSelectionFn,
 } from './axisUtil';
-import { CartesianAxisLabel } from './cartesianAxisLabel';
 import { generateTicks } from './generateTicks';
 
 type AxisAnimationState = 'empty' | 'ready';
@@ -66,26 +72,18 @@ interface GeneratedTicks {
 
 export type GridLineStyleTickDatum = Pick<TickDatum, 'index' | 'tickId' | 'translation'>;
 
-export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any, number, any>, D = any> extends Axis<
-    S,
-    D,
-    GeneratedTicks
-> {
+export abstract class CartesianAxis<
+    S extends Scale<D, number, any> = Scale<any, number, any>,
+    D = any,
+    TOptions extends NormalisedBaseCartesianAxisOptions = NormalisedBaseCartesianAxisOptions,
+> extends Axis<S, D, GeneratedTicks, TOptions> {
     static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
     }
 
-    @Property
-    thickness?: number;
-
-    @Property
-    maxThicknessRatio: number = 0.3;
-
-    @Property
-    position!: AgCartesianAxisPosition;
-
-    @Property
-    crossAt?: { value: D; sticky?: boolean };
+    get position(): AgCartesianAxisPosition {
+        return this.options.position!;
+    }
 
     readonly crossAxisTranslation: { x: number; y: number } = { x: 0, y: 0 };
 
@@ -131,8 +129,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return this.position === 'top' || this.position === 'bottom';
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale: S) {
-        super(moduleCtx, scale);
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, scale: S, options: TOptions) {
+        super(moduleCtx, id, scale, options);
 
         this.animationManager = moduleCtx.animationManager;
 
@@ -151,7 +149,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             },
         });
 
-        this.headingLabelGroup.appendChild(this.title.caption.node);
+        this.headingLabelGroup.appendChild(this.caption.node);
 
         let previousSize: readonly [number, number] | undefined = undefined;
         this.cleanup.register(
@@ -163,7 +161,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
                 }
                 previousSize = size;
             }),
-            this.title.caption.registerInteraction(this.moduleCtx, 'afterend')
+            this.caption.registerInteraction(this.moduleCtx, 'afterend')
         );
     }
 
@@ -182,30 +180,30 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     override createAxisContext(): AxisContext {
-        return { ...super.createAxisContext(), position: this.position };
-    }
-
-    protected override createLabel() {
-        return new CartesianAxisLabel();
+        // Mutate rather than spread so the live getters defined on the base context
+        // (`range`, `gridLength`, `mirrored`, etc.) are preserved.
+        const ctx = super.createAxisContext();
+        ctx.position = this.position;
+        return ctx;
     }
 
     protected updateDirection() {
         switch (this.position) {
             case 'top':
-                this.label.mirrored = true;
-                this.label.parallel = true;
+                this.mirrored = true;
+                this.parallel = true;
                 break;
             case 'right':
-                this.label.mirrored = true;
-                this.label.parallel = false;
+                this.mirrored = true;
+                this.parallel = false;
                 break;
             case 'bottom':
-                this.label.mirrored = false;
-                this.label.parallel = true;
+                this.mirrored = false;
+                this.parallel = true;
                 break;
             case 'left':
-                this.label.mirrored = false;
-                this.label.parallel = false;
+                this.mirrored = false;
+                this.parallel = false;
                 break;
         }
 
@@ -218,13 +216,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     override calculateLayout(primaryTickCount?: AxisPrimaryTickCount, chartLayout?: ChartLayout) {
         this.updateDirection();
         return super.calculateLayout(primaryTickCount, chartLayout);
-    }
-
-    layoutCrossLines(): void {
-        const crosslinesVisible = this.hasDefinedDomain() || this.hasVisibleSeries();
-        for (const crossLine of this.crossLines) {
-            crossLine.calculateLayout?.(crosslinesVisible);
-        }
     }
 
     override calculateTickLayout(
@@ -242,18 +233,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         bbox: BBox;
         layout: GeneratedTicks;
     } {
-        const sideFlag = this.label.getSideFlag();
-        const labelX =
-            sideFlag * (this.getTickSize() + this.getTickSpacing() + this.label.spacing + this.seriesAreaPadding);
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
+        const label = this.options.label;
+        const labelX = sideFlag * (this.getTickSize() + this.getTickSpacing() + label.spacing + this.seriesAreaPadding);
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
 
         if (
             niceMode[0] === NiceMode.Off &&
             niceMode[1] === NiceMode.Off &&
-            this.label.enabled === false &&
-            this.tick.enabled === false &&
-            this.gridLine.enabled === false
+            !label.enabled &&
+            this.options.tick.enabled === false &&
+            this.options.gridLine.enabled === false
         ) {
             const { bbox, spacing } = this.measureAxisLayout(domain, [], [], scrollbar, scrollbarThickness);
             // Performance optimization: if ticks have no effect, don't generate them
@@ -277,11 +268,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             };
         }
 
-        const { label, primaryLabel, scale, range, interval, reverse, defaultTickMinSpacing, minimumTimeGranularity } =
-            this;
+        const { primaryLabel, scale, range, defaultTickMinSpacing, minimumTimeGranularity } = this;
+        const { interval, reverse } = this.options;
 
         const tickGenerationResult = generateTicks({
             label,
+            parallel: this.parallel,
             scale,
             interval,
             primaryLabel,
@@ -304,7 +296,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const { tickData } = tickGenerationResult;
         const removeOverflowLabels =
-            this.label.avoidCollisions &&
+            (label?.avoidCollisions ?? true) &&
             this.horizontal &&
             tickData.ticks.length > 2 &&
             (ContinuousScale.is(this.scale) || DiscreteTimeScale.is(this.scale));
@@ -352,7 +344,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         p2: number,
         _ticks: GridLineStyleTickDatum[]
     ): AxisLineDatum {
-        const { gridLine, horizontal } = this;
+        const { horizontal } = this;
+        const gridLine = this.options.gridLine;
 
         const [x1, y1, x2, y2] = horizontal ? [offset, p1, offset, p2] : [p1, offset, p2, offset];
         const { style } = gridLine;
@@ -396,7 +389,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         p2: number,
         ticks: GridLineStyleTickDatum[]
     ): AxisFillDatum {
-        const { gridLine, horizontal, range } = this;
+        const { horizontal, range } = this;
+        const gridLine = this.options.gridLine;
 
         const nextTick = ticks[index + 1];
         const startOffset = translation;
@@ -425,7 +419,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         _ticks: TickDatum[],
         scrollbarThickness: number = 0
     ): AxisLineDatum {
-        const { horizontal, tick, primaryTick } = this;
+        const { horizontal, primaryTick } = this;
+        const tick = this.options.tick;
 
         const datumTick = isPrimary && primaryTick ? primaryTick : tick;
         const tickSize = this.getTickSize(datumTick);
@@ -467,7 +462,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             }
         }
 
-        const { enabled, stroke, width } = this.line;
+        const { enabled, stroke, width } = this.options.line;
         // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
@@ -504,8 +499,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     setAxisVisible(visible: boolean) {
-        this.tickLineGroup.visible = visible && (this.tick.enabled || (this.primaryTick?.enabled ?? false));
-        this.tickLabelGroup.visible = visible && (this.label.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLineGroup.visible = visible && (this.options.tick.enabled || (this.primaryTick?.enabled ?? false));
+        this.tickLabelGroup.visible = visible && (this.options.label.enabled || (this.primaryTick?.enabled ?? false));
         this.lineNodeGroup.visible = visible;
         this.headingLabelGroup.visible = visible;
     }
@@ -525,7 +520,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             tickSize = Math.max(tickSize, this.getTickSize(primaryTick));
         }
         const direction = position === 'bottom' || position === 'right' ? -1 : 1;
-        const tickSpacing = this.getTickSpacing(this.tick);
+        const tickSpacing = this.getTickSpacing(this.options.tick);
         const tickOffset = -direction * (scrollbarThickness + tickSpacing);
         const start = tickOffset;
         const end = tickOffset - direction * (tickSize + tickSpacing);
@@ -563,7 +558,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const { tempCaption } = this;
         const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
         tempCaption.node.setProperties(this.titleProps(tempCaption, domain, spacing));
-        tempCaption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+        tempCaption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
         return tempCaption.node.getBBox();
     }
 
@@ -624,7 +619,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         scrollbar: ScrollbarLayout | undefined,
         scrollbarThickness: number
     ) {
-        const { tick, primaryTick, label, primaryLabel, title, position, horizontal, seriesAreaPadding } = this;
+        const { primaryTick, primaryLabel, position, horizontal, seriesAreaPadding } = this;
+        const tick = this.options.tick;
+        const label = this.options.label;
+        const title = this.options.title;
         const boxes: BBox[] = [];
 
         boxes.push(this.lineNodeBBox());
@@ -695,7 +693,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected titleProps(caption: Caption, domain: D[], spacing: number) {
-        const { title } = this;
+        const title = this.options.title;
 
         if (!title.enabled) {
             caption.enabled = false;
@@ -781,11 +779,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     ): LabelNodeDatum {
         const { horizontal, primaryLabel, primaryTick, seriesAreaPadding, scale } = this;
         const { tickId, tickLabel: text = '', translation, isPrimary, textUntruncated } = datum;
-        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.label;
-        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.tick;
+        const label = isPrimary && primaryLabel?.enabled ? primaryLabel : this.options.label;
+        const tick = isPrimary && primaryTick?.enabled ? primaryTick : this.options.tick;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const { range } = scale;
-        const sideFlag = this.label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const borderOffset = expandLabelPadding(label)[this.position];
         let labelOffset =
             sideFlag * (this.getTickSize(tick) + this.getTickSpacing(tick) + label.spacing + seriesAreaPadding) -
@@ -825,8 +823,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         const getDatumId = (datum: AxisLabelDatum | AxisLineDatum | AxisFillDatum) => datum.tickId;
 
         this.lineNode.datum = lineData;
-        this.gridLineGroupSelection.update(this.gridLine.enabled ? gridLines : [], undefined, getDatumId);
-        this.gridFillGroupSelection.update(this.gridLine.enabled ? gridFills : [], undefined, getDatumId);
+        this.gridLineGroupSelection.update(this.options.gridLine.enabled ? gridLines : [], undefined, getDatumId);
+        this.gridFillGroupSelection.update(this.options.gridLine.enabled ? gridFills : [], undefined, getDatumId);
         this.tickLineGroupSelection.update(tickLines, undefined, getDatumId);
         this.tickLabelGroupSelection.update(labels, undefined, getDatumId);
     }
@@ -855,7 +853,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     protected updateTitle(domain: D[], spacing: number): void {
-        const { caption } = this.title;
+        const { caption } = this;
         const titleProps = this.titleProps(caption, domain, spacing);
         caption.node.visible = titleProps.visible;
         caption.node.text = titleProps.text;
@@ -864,12 +862,12 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         if (titleProps.visible) {
             const axisLength = Math.abs(this.range[1] - this.range[0]) || Infinity;
-            caption.computeTextWrap(axisLength, this.thickness ?? Infinity);
+            caption.computeTextWrap(axisLength, this.options.thickness ?? Infinity);
         }
     }
 
     protected updateLabels() {
-        if (!this.label.enabled) return;
+        if (!this.options.label.enabled) return;
 
         // Apply label option values
         this.tickLabelGroupSelection.each((node, datum) => {
@@ -918,7 +916,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
             this.id,
             'title',
             animationManager,
-            [this.title.caption.node],
+            [this.caption.node],
             fns.label,
             (node) => node.unsafeDatum.tickId,
             diff
@@ -933,7 +931,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         resetMotion([this.gridLineGroupSelection, this.tickLineGroupSelection], resetAxisLineSelectionFn());
         resetMotion([this.gridFillGroupSelection], resetAxisFillSelectionFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
-        resetMotion([this.title.caption.node], resetAxisLabelSelectionFn());
+        resetMotion([this.caption.node], resetAxisLabelSelectionFn());
         resetMotion([this.lineNode], resetAxisLineSelectionFn());
     }
 }

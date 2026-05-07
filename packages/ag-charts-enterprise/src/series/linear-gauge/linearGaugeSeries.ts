@@ -473,7 +473,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         return (value: number, index: number): TextOrSegments => {
             let r: TextOrSegments | undefined = undefined;
             if (formatter) {
-                r ??= formatWithContext(this.ctx, formatter, { value, index, domain, boundSeries: undefined! });
+                r ??= formatWithContext(this.ctx, formatter, {
+                    type: 'number',
+                    value,
+                    index,
+                    domain,
+                    boundSeries: undefined!,
+                });
             }
             r ??= tickFormatter?.(value);
             return r ?? this.formatLabel(value);
@@ -548,12 +554,13 @@ export class LinearGaugeSeries extends _ModuleSupport.Series<
         scale.domain = [scaleProps.min, scaleProps.max];
         scale.range = horizontal ? [x0, x1] : [y0, y1];
 
-        const scaleLabel = mergeDefaults({ parallel: horizontal }, scaleProps.label, defaultScale.label);
+        const scaleLabel = mergeDefaults(scaleProps.label, defaultScale.label);
         const {
             tickData: { ticks: tickData },
         } = generateTicks({
             scale,
             label: scaleLabel,
+            parallel: horizontal,
             interval: scaleProps.interval,
             tickFormatter: (domain: number[], ticks: number[]) => this.tickFormatter(domain, ticks),
             domain: scale.domain,

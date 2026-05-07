@@ -26,7 +26,7 @@ import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const { getColorStops } = _ModuleSupport;
-const { makeSeriesTooltip, SeriesProperties, AxisLabel, Label } = _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, SeriesLabelProperties, Label } = _ModuleSupport;
 export enum NodeDataType {
     Node,
     Target,
@@ -252,7 +252,7 @@ class RadialGaugeScaleIntervalProperties extends BaseProperties {
     maxSpacing: number = 1000;
 }
 
-class RadialGaugeScaleLabelProperties extends AxisLabel {}
+class RadialGaugeScaleLabelProperties extends SeriesLabelProperties {}
 
 class RadialGaugeScaleProperties extends BaseProperties {
     @Property

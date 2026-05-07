@@ -1,4 +1,4 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
 import { Logger, normalisedExtentWithMetadata } from 'ag-charts-core';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -36,7 +36,7 @@ export class LogAxis extends NumberAxis {
     }
 
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,
@@ -62,14 +62,28 @@ export class LogAxis extends NumberAxis {
         return { domain: extent, clipped };
     }
 
-    set base(value: number) {
-        (this.scale as LogScale).base = value;
-    }
     get base(): number {
-        return (this.scale as LogScale).base;
+        return this.optionsBase ?? (this.scale as LogScale).base;
     }
 
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new LogScale());
+    private get optionsBase(): number | undefined {
+        return (this.options as { base?: number }).base;
+    }
+
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedNumberAxisOptions) {
+        super(moduleCtx, id, new LogScale(), options);
+        this.syncScaleBase();
+    }
+
+    private syncScaleBase(): void {
+        const base = this.optionsBase;
+        if (base != null) {
+            (this.scale as LogScale).base = base;
+        }
+    }
+
+    protected override updateScale(): void {
+        this.syncScaleBase();
+        super.updateScale();
     }
 }

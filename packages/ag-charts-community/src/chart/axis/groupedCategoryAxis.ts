@@ -1,8 +1,5 @@
-import type { DynamicContext } from 'ag-charts-core';
+import type { AxisID, DynamicContext, NormalisedGroupedCategoryAxisOptions } from 'ag-charts-core';
 import {
-    BaseProperties,
-    PropertiesArray,
-    Property,
     type ScaleTickParams,
     type WrapOptions,
     angularPadding,
@@ -20,20 +17,18 @@ import {
     toPlainText,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-import type { FontStyle, FontWeight, Padding, TextWrap } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
 import { GroupedCategoryScale } from '../../scale/groupedCategoryScale';
 import { BBox } from '../../scene/bbox';
 import { PointerEvents } from '../../scene/node';
-import type { ShapeColor } from '../../scene/shape/shape';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import type { AxisPrimaryTickCount } from '../../util/secondaryAxisTicks';
 import type { ChartLayout } from '../chartAxis';
 import { createDatumId } from '../data/processors';
-import { LabelBorder } from '../label';
 import type { LabelNodeDatum } from './axis';
+import { getAxisLabelSideFlag } from './axisLabelUtil';
 import type { GridLineStyleTickDatum } from './cartesianAxis';
 import { CategoryAxis } from './categoryAxis';
 import { type GroupedCategoryKey, type TreeLayout, treeLayout } from './tree';
@@ -54,73 +49,10 @@ interface ComputedGroupAxisLayout {
     spacing: number;
 }
 
-class DepthLabelProperties extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    avoidCollisions?: boolean;
-
-    @Property
-    border = new LabelBorder();
-
-    @Property
-    color?: string;
-
-    @Property
-    cornerRadius?: number;
-
-    @Property
-    spacing?: number;
-
-    @Property
-    rotation?: number;
-
-    @Property
-    wrapping?: TextWrap;
-
-    @Property
-    truncate?: boolean;
-
-    @Property
-    fill?: ShapeColor;
-
-    @Property
-    fontStyle?: FontStyle;
-
-    @Property
-    fontWeight?: FontWeight;
-
-    @Property
-    fontSize?: number;
-
-    @Property
-    fontFamily?: string;
-
-    @Property
-    padding?: Padding;
-}
-
-class DepthTickProperties extends BaseProperties {
-    @Property
-    enabled = true;
-
-    @Property
-    width?: number;
-
-    @Property
-    stroke?: string;
-}
-
-class DepthProperties extends BaseProperties {
-    @Property
-    label = new DepthLabelProperties();
-
-    @Property
-    tick = new DepthTickProperties();
-}
-
-export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<GroupedCategoryKey>> {
+export class GroupedCategoryAxis extends CategoryAxis<
+    GroupedCategoryScale<GroupedCategoryKey>,
+    NormalisedGroupedCategoryAxisOptions
+> {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
 
@@ -150,11 +82,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private ftdByDepth: { positions: number[]; ticks: GroupedCategoryKey[] }[] = [];
     private readonly ftdStack: TreeNode[] = [];
 
-    @Property
-    depthOptions = new PropertiesArray(DepthProperties);
-
-    constructor(moduleCtx: DynamicContext<ChartRegistry>) {
-        super(moduleCtx, new GroupedCategoryScale<GroupedCategoryKey>());
+    constructor(moduleCtx: DynamicContext<ChartRegistry>, id: AxisID, options: NormalisedGroupedCategoryAxisOptions) {
+        super(moduleCtx, id, new GroupedCategoryScale<GroupedCategoryKey>(), options);
 
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
@@ -163,18 +92,20 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
     private getDepthOptionsMap(maxDepth: number) {
         const optionsMap = [];
-        const { depthOptions, label } = this;
+        const depthOptions = this.options.depthOptions ?? [];
+        const label = this.options.label;
         const defaultNonLeafRotation = this.horizontal ? 0 : -90;
         for (let i = 0; i < maxDepth; i++) {
+            const depthLabel = depthOptions[i]?.label;
             optionsMap.push(
-                depthOptions[i]?.label.enabled ?? label.enabled
+                depthLabel?.enabled ?? label?.enabled ?? true
                     ? {
                           enabled: true,
-                          spacing: depthOptions[i]?.label.spacing ?? label.spacing,
-                          wrapping: depthOptions[i]?.label.wrapping ?? label.wrapping,
-                          truncate: depthOptions[i]?.label.truncate ?? label.truncate,
-                          rotation: depthOptions[i]?.label.rotation ?? (i ? defaultNonLeafRotation : label.rotation), // Default top-level label rotation only applies to label leaves
-                          avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
+                          spacing: depthLabel?.spacing ?? label?.spacing ?? 5,
+                          wrapping: depthLabel?.wrapping ?? label?.wrapping,
+                          truncate: depthLabel?.truncate ?? label?.truncate,
+                          rotation: depthLabel?.rotation ?? (i ? defaultNonLeafRotation : label?.rotation), // Default top-level label rotation only applies to label leaves
+                          avoidCollisions: depthLabel?.avoidCollisions ?? label?.avoidCollisions ?? true,
                       }
                     : { enabled: false, spacing: 0, rotation: 0, avoidCollisions: false }
             );
@@ -198,9 +129,10 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
     private updateAxisLine() {
         if (!this.computedLayout) return;
 
-        this.lineNode.visible = this.line.enabled;
-        this.lineNode.stroke = this.line.stroke;
-        this.lineNode.strokeWidth = this.line.width;
+        const { line } = this.options;
+        this.lineNode.visible = line.enabled;
+        this.lineNode.stroke = line.stroke;
+        this.lineNode.strokeWidth = line.width;
     }
 
     private computeLayout() {
@@ -208,7 +140,11 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateScale();
 
         const { step } = this.scale;
-        const { title, label, range, depthOptions, horizontal, line } = this;
+        const { range, horizontal } = this;
+        const depthOptions = this.options.depthOptions ?? [];
+        const line = this.options.line;
+        const label = this.options.label;
+        const title = this.options.title;
         const scrollbar = this.chartLayout?.scrollbars?.[this.id];
         const scrollbarThickness = this.getScrollbarThickness(scrollbar);
         const tickSpacing = this.getTickSpacing();
@@ -225,7 +161,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         }
 
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
-        const sideFlag = horizontal ? -label.getSideFlag() : label.getSideFlag();
+        const labelSideFlag = getAxisLabelSideFlag(this.mirrored);
+        const sideFlag = horizontal ? -labelSideFlag : labelSideFlag;
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
@@ -258,9 +195,9 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                 depthOptions[depth]?.label
             );
 
-            if (label.avoidCollisions) {
+            if (label?.avoidCollisions ?? true) {
                 const rotation = optionsMap[depth].rotation;
-                let maxHeight = this.thickness;
+                let maxHeight = this.options.thickness;
                 if (rotation != null) {
                     const innerRect = getMaxInnerRectSize(rotation, maxWidth, maxHeight);
                     maxWidth = innerRect.width;
@@ -284,7 +221,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
             tempText.fill = labelStyles.color;
             tempText.text = text;
             tempText.textAlign = 'center';
-            tempText.textBaseline = label.parallel ? 'top' : 'bottom';
+            tempText.textBaseline = this.parallel ? 'top' : 'bottom';
             tempText.setFont(labelStyles);
             tempText.setBoxing(labelStyles);
 
@@ -355,7 +292,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                     depthPadding * sideFlag +
                     angularPadding(
                         (optionsMap[depth].spacing * sideFlag + w) / 2,
-                        label.mirrored ? w : 0,
+                        this.mirrored ? w : 0,
                         labelRotation
                     ) -
                     w / 2;
@@ -423,7 +360,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
 
         const mergedBBox = BBox.merge(bboxes);
 
-        this.layoutCrossLines();
+        this.notifyAxisPlugins('onAxisLayout');
 
         return { bbox: mergedBBox, spacing, tickSizeAtDepth, tickLabelLayout };
     }
@@ -691,7 +628,8 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
             this.moduleCtx.animationManager.skipCurrentBatch();
         }
 
-        const { tickScale, tick, gridLine, gridLength, visibleRange, tickTreeLayout } = this;
+        const { tickScale, gridLength, visibleRange, tickTreeLayout } = this;
+        const { tick, gridLine } = this.options;
         if (!tickTreeLayout) return;
 
         const { tickSizeAtDepth, spacing } = this.computedLayout;
@@ -740,7 +678,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
                       const { tickId, translation: offset } = gridLineData[index];
                       const depth = tickDepth(tickLabel);
 
-                      const tickOptions = this.depthOptions[depth]?.tick;
+                      const tickOptions = (this.options.depthOptions ?? [])[depth]?.tick;
                       const tickSize = tickSizeAtDepth[depth] ?? 0;
 
                       const stroke = tickOptions?.stroke ?? tick.stroke;
@@ -763,7 +701,7 @@ export class GroupedCategoryAxis extends CategoryAxis<GroupedCategoryScale<Group
         this.updateGridFills();
         this.updateTickLines();
         this.updateTitle(this.scale.domain, spacing);
-        this.updateCrossLines();
+        this.notifyAxisPlugins('onAxisUpdate');
         this.resetSelectionNodes();
     }
 

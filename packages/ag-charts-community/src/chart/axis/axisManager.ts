@@ -9,10 +9,10 @@ import { Node } from '../../scene/node';
 interface AxisNodes {
     axisNode: Node;
     gridNode: Node;
-    crossLineRangeNode: Node;
-    crossLineLineNode: Node;
-    crossLineLabelNode: Node;
     labelNode: Node;
+    overlayLowNode: Node;
+    overlayMidNode: Node;
+    overlayHighNode: Node;
 }
 
 interface Axis {
@@ -29,16 +29,16 @@ export class AxisManager {
     readonly axisGridGroup = new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
     readonly axisGroup = new Group({ name: 'Axes', zIndex: ZIndexMap.AXIS });
     readonly axisLabelGroup = new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL });
-    readonly axisCrosslineRangeGroup = new Group({
-        name: 'Axes-Crosslines-Range',
+    readonly axisOverlayLowGroup = new Group({
+        name: 'Axes-Overlay-Low',
         zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
     });
-    readonly axisCrosslineLineGroup = new Group({
-        name: 'Axes-Crosslines-Line',
+    readonly axisOverlayMidGroup = new Group({
+        name: 'Axes-Overlay-Mid',
         zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
     });
-    readonly axisCrosslineLabelGroup = new Group({
-        name: 'Axes-Crosslines-Label',
+    readonly axisOverlayHighGroup = new Group({
+        name: 'Axes-Overlay-High',
         zIndex: ZIndexMap.SERIES_LABEL,
     });
 
@@ -49,9 +49,9 @@ export class AxisManager {
         this.sceneRoot.appendChild(this.axisGroup);
         this.sceneRoot.appendChild(this.axisGridGroup);
         this.sceneRoot.appendChild(this.axisLabelGroup);
-        this.sceneRoot.appendChild(this.axisCrosslineRangeGroup);
-        this.sceneRoot.appendChild(this.axisCrosslineLineGroup);
-        this.sceneRoot.appendChild(this.axisCrosslineLabelGroup);
+        this.sceneRoot.appendChild(this.axisOverlayLowGroup);
+        this.sceneRoot.appendChild(this.axisOverlayMidGroup);
+        this.sceneRoot.appendChild(this.axisOverlayHighGroup);
     }
 
     updateAxes(oldAxes: Axis[], newAxes: Axis[]) {
@@ -59,9 +59,9 @@ export class AxisManager {
             axisNode: this.axisGroup,
             gridNode: this.axisGridGroup,
             labelNode: this.axisLabelGroup,
-            crossLineRangeNode: this.axisCrosslineRangeGroup,
-            crossLineLineNode: this.axisCrosslineLineGroup,
-            crossLineLabelNode: this.axisCrosslineLabelGroup,
+            overlayLowNode: this.axisOverlayLowGroup,
+            overlayMidNode: this.axisOverlayMidGroup,
+            overlayHighNode: this.axisOverlayHighGroup,
         };
 
         for (const axis of oldAxes) {

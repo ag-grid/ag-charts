@@ -19,7 +19,7 @@ import type {
 import { GaugeSegmentationProperties } from '../gauge-util/segmentation';
 import { AutoSizedLabel } from '../util/autoSizedLabel';
 
-const { makeSeriesTooltip, SeriesProperties, Label, AxisLabel, getColorStops } = _ModuleSupport;
+const { makeSeriesTooltip, SeriesProperties, Label, SeriesLabelProperties, getColorStops } = _ModuleSupport;
 
 export enum NodeDataType {
     Node,
@@ -239,7 +239,7 @@ class LinearGaugeScaleIntervalProperties extends BaseProperties {
     maxSpacing: number = 1000;
 }
 
-class LinearGaugeScaleLabelProperties extends AxisLabel {
+class LinearGaugeScaleLabelProperties extends SeriesLabelProperties {
     @Property
     placement?: 'before' | 'after' = undefined;
 }

@@ -14,6 +14,7 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     MIN_TOOLTIP_HIDE_DELAY,
     SUNBURST_SERIES_LABELS,
+    assertTooltipPresentForAll,
     clickAction,
     deproxy,
     extractImageData,
@@ -671,25 +672,26 @@ describe('SunburstSeries', () => {
         });
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
+            const data = [
+                {
+                    name: 'Americas',
+                    children: [
+                        { name: 'United States', gdp: 26.9, change: 6 },
+                        { name: 'Canada', gdp: 2.1, change: null },
+                        { name: 'Brazil', gdp: 2.1 },
+                    ],
+                },
+                {
+                    name: 'Asia',
+                    children: [
+                        { name: 'China', gdp: 17.7, change: 0 },
+                        { name: 'Japan', gdp: 4.2, change: -1 },
+                        { name: 'India', gdp: 4, change: 20 },
+                    ],
+                },
+            ];
             const options: AgChartOptions = {
-                data: [
-                    {
-                        name: 'Americas',
-                        children: [
-                            { name: 'United States', gdp: 26.9, change: 6 },
-                            { name: 'Canada', gdp: 2.1, change: null },
-                            { name: 'Brazil', gdp: 2.1 },
-                        ],
-                    },
-                    {
-                        name: 'Asia',
-                        children: [
-                            { name: 'China', gdp: 17.7, change: 0 },
-                            { name: 'Japan', gdp: 4.2, change: -1 },
-                            { name: 'India', gdp: 4, change: 20 },
-                        ],
-                    },
-                ],
+                data,
                 series: [
                     {
                         type: 'sunburst',
@@ -707,6 +709,15 @@ describe('SunburstSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+
+            const seriesImpl = chart.series[0] as SunburstSeries;
+            const americas = data.findIndex((d) => d.name === 'Americas');
+            assertTooltipPresentForAll(
+                seriesImpl,
+                data[americas].children,
+                (c: { change?: number | null }) => c.change == null,
+                (i) => [americas, i]
+            );
         });
     });
 

@@ -136,7 +136,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
 
         // TODO: this should come from the theme
         const defaultPadding = this.getBandScalePadding();
-        const { paddingInner = defaultPadding.inner, paddingOuter = defaultPadding.outer, groupPaddingInner } = axis;
+        const {
+            paddingInner = defaultPadding.inner,
+            paddingOuter = defaultPadding.outer,
+            groupPaddingInner,
+        } = axis.options;
 
         // The width of each band is the sum of the max of each stack.
         const width = ranges.reduce((sum, range) => sum + range, 0);
@@ -295,10 +299,11 @@ export abstract class AbstractBarSeries<TTypes extends AbstractBarSeriesTypes> e
      * left or right to reduce the space occupied by nullish bars before or after it, respectively.
      */
     protected getDatumOffset(datumIndex: number) {
+        const categoryAxis = this.getCategoryAxis();
         if (
             !this.processedData?.invalidData ||
             !this.processedData?.missingData ||
-            !this.getCategoryAxis()?.skipNullBars
+            !(categoryAxis instanceof CategoryAxis && categoryAxis.options.skipNullBars)
         ) {
             return 0;
         }

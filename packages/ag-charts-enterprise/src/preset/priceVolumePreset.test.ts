@@ -24,6 +24,12 @@ const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     'step-line': { chartType: 'step-line', data: getStockData().slice(0, 40) },
     hlc: { chartType: 'hlc', data: getStockData().slice(0, 40) },
     'high-low': { chartType: 'high-low', data: getStockData().slice(0, 40) },
+    'with-formatter': {
+        chartType: 'candlestick',
+        data: getStockData().slice(0, 40),
+        formatter: (params: { value: unknown }) =>
+            typeof params.value === 'number' ? `$${params.value.toFixed(0)}` : undefined,
+    },
 };
 
 setupEnterpriseModules();

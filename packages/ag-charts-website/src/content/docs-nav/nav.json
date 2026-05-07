@@ -279,6 +279,12 @@
                         },
                         {
                             "type": "item",
+                            "title": "Data Selection",
+                            "path": "selection",
+                            "isEnterprise": true
+                        },
+                        {
+                            "type": "item",
                             "title": "Flash On Update",
                             "path": "flash-on-update",
                             "isEnterprise": true
@@ -338,11 +344,6 @@
                             "type": "item",
                             "title": "Layout",
                             "path": "layout"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Titles",
-                            "path": "titles"
                         },
                         {
                             "type": "item",

@@ -1,9 +1,42 @@
 import { type TextAlign, type TextOrSegments, _ModuleSupport } from 'ag-charts-community';
-import type { Point } from 'ag-charts-core';
+import { type Point, wrapTextOrSegments } from 'ag-charts-core';
 
 import { layoutScenesColumn, layoutScenesRow } from '../../utils/sceneLayout';
-import type { OrganizationDatum, RequiredOrganizationNodeStyle } from './organizationTypes';
-import { applyFillStyles, applyStrokeStyles, applyTextStyles } from './organizationUtils';
+import type {
+    OrganizationDatum,
+    OrganizationNodeFields,
+    RequiredOrganizationNodeStyle,
+    RequiredOrganizationNodeTextStyle,
+} from './organizationTypes';
+import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
+
+function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
+    const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
+    if (!Number.isFinite(cardWidth)) return Infinity;
+
+    const imageHorizontalSpace =
+        styles.image.enabled && (styles.image.position === 'left' || styles.image.position === 'right')
+            ? styles.image.width + styles.image.spacing
+            : 0;
+
+    return cardWidth - 2 * styles.padding - imageHorizontalSpace;
+}
+
+function wrapTextTier(
+    text: TextOrSegments,
+    tierStyles: RequiredOrganizationNodeTextStyle,
+    maxWidth: number
+): TextOrSegments {
+    const tierWidth = Math.max(maxWidth - 2 * tierStyles.padding, 1);
+    if (!Number.isFinite(tierWidth)) return text;
+
+    return wrapTextOrSegments(text, {
+        font: tierStyles,
+        maxWidth: tierWidth,
+        textWrap: tierStyles.wrapping,
+        overflow: tierStyles.overflowStrategy,
+    });
+}
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;
@@ -14,13 +47,22 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
     private expanderNode?: OrganizationExpanderNode;
 
-    update(datum: OrganizationDatum['datum'], descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    private appliedStyles?: RequiredOrganizationNodeStyle;
+
+    update(
+        fields: OrganizationNodeFields,
+        descendantsCount: number,
+        styles: RequiredOrganizationNodeStyle,
+        isCollapsed: boolean
+    ) {
+        this.appliedStyles = styles;
+        const textMaxWidth = computeTextMaxWidth(styles);
         this.updateShapeNode(styles);
-        this.updateImageNode(datum.image, styles);
-        this.updateTitleNode(datum.title, styles);
-        this.updateSubtitleNode(datum.subtitle, styles);
-        this.updateLabelNodes(datum.labels, styles);
-        this.updateExpanderNode(descendantsCount, styles);
+        this.updateImageNode(fields.image, styles);
+        this.updateTitleNode(fields.title, styles, textMaxWidth);
+        this.updateSubtitleNode(fields.subtitle, styles, textMaxWidth);
+        this.updateLabelNodes(fields.labels, styles, textMaxWidth);
+        this.updateExpanderNode(descendantsCount, isCollapsed, styles);
 
         let rowScenes = [];
         let rowGaps: number[] = [];
@@ -76,7 +118,19 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         layoutScenesColumn(columnScenes, styles.padding, columnGaps);
         layoutScenesRow(rowScenes, styles.padding, rowGaps);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow(styles.padding); // TODO: add stroke width by side
+        // For parent nodes the pill intrudes up into the card by half its height, so the
+        // effective bottom content padding must be at least `height/2 + spacing` to keep
+        // the last label clear of the pill.  Leaf nodes use plain `padding` on all sides.
+        const bottomPadding =
+            descendantsCount > 0
+                ? Math.max(styles.padding, styles.expander.height / 2 + styles.expander.spacing)
+                : styles.padding;
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow({
+            top: styles.padding,
+            right: styles.padding,
+            bottom: bottomPadding,
+            left: styles.padding,
+        }); // TODO: add stroke width by side
 
         if (this.shapeNode) {
             this.shapeNode.x = 0;
@@ -99,23 +153,13 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
     }
 
-    realign(
-        styles: {
-            image: {
-                position: 'top' | 'right' | 'bottom' | 'left';
-                spacing: number;
-            };
-            padding: number;
-            title: { textAlign: TextAlign };
-            subtitle: { textAlign: TextAlign };
-            labels: { textAlign: TextAlign }[];
-        },
-        bbox: _ModuleSupport.BBox
-    ) {
+    realign(bbox: _ModuleSupport.BBox) {
+        const styles = this.appliedStyles;
+        if (!styles) return;
+
         const { imageNode, titleNode, subtitleNode, labelNodes } = this;
 
         let imageOffset = 0;
-        const imageSide = styles.image.position === 'left' ? 1 : -1;
 
         if (imageNode) {
             if (styles.image.position === 'top' || styles.image.position === 'bottom') {
@@ -129,42 +173,42 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             }
         }
 
-        if (titleNode) {
-            if (styles.title.textAlign === 'right') {
-                titleNode.x += bbox.width - styles.padding * 2 - imageOffset;
-            } else if (styles.title.textAlign === 'center') {
-                titleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
-            }
-            titleNode.textAlign = styles.title.textAlign;
-        }
+        const textAreaLeft = styles.image.position === 'left' ? styles.padding + imageOffset : styles.padding;
+        const textAreaRight =
+            styles.image.position === 'right' ? bbox.width - styles.padding - imageOffset : bbox.width - styles.padding;
 
-        if (subtitleNode) {
-            if (styles.subtitle.textAlign === 'right') {
-                subtitleNode.x += bbox.width - styles.padding * 2 - imageOffset;
-            } else if (styles.subtitle.textAlign === 'center') {
-                subtitleNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
+        const alignTextNode = (node: _ModuleSupport.Text, textAlign: TextAlign) => {
+            switch (textAlign) {
+                case 'right':
+                    node.x = textAreaRight;
+                    break;
+                case 'center':
+                    node.x = (textAreaLeft + textAreaRight) / 2;
+                    break;
+                default:
+                    node.x = textAreaLeft;
             }
-            subtitleNode.textAlign = styles.subtitle.textAlign;
-        }
+            node.textAlign = textAlign;
+        };
 
-        let index = 0;
-        for (const labelStyles of styles.labels) {
-            const labelNode = labelNodes?.[index];
-            if (labelNode) {
-                if (labelStyles.textAlign === 'right') {
-                    labelNode.x += bbox.width - styles.padding * 2 - imageOffset;
-                } else if (labelStyles.textAlign === 'center') {
-                    labelNode.x = bbox.width / 2 + (imageOffset * imageSide) / 2;
-                }
-                labelNode.textAlign = labelStyles.textAlign;
-            }
-            index++;
+        if (titleNode) alignTextNode(titleNode, styles.title.textAlign);
+        if (subtitleNode) alignTextNode(subtitleNode, styles.subtitle.textAlign);
+
+        for (const [i, labelStyles] of styles.labels.entries()) {
+            const labelNode = labelNodes?.[i];
+            if (labelNode) alignTextNode(labelNode, labelStyles.textAlign);
         }
     }
 
     expanderContainsPoint(point: Point) {
         if (!this.expanderNode) return false;
         return this.expanderNode.containsPoint(point.x, point.y);
+    }
+
+    // Card-only bbox in node-local coords; excludes the expander pill that hangs below.
+    getCardBBox(): _ModuleSupport.BBox | undefined {
+        if (!this.shapeNode) return;
+        return new _ModuleSupport.BBox(0, 0, this.shapeNode.width, this.shapeNode.height);
     }
 
     private updateShapeNode(styles: RequiredOrganizationNodeStyle) {
@@ -194,9 +238,18 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
 
         this.imageNode.width = styles.image.width;
         this.imageNode.height = styles.image.height;
+        // `'circle'` shape produces a true circle when width === height; if the image
+        // dimensions differ it degrades gracefully to a stadium (rounded ends, flat sides),
+        // since `Rect.cornerRadius` is a single scalar applied to all four corners.
+        this.imageNode.cornerRadius =
+            styles.image.shape === 'circle' ? Math.min(styles.image.width, styles.image.height) / 2 : 0;
     }
 
-    private updateTitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateTitleNode(
+        text: TextOrSegments | undefined,
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
+    ) {
         if (text == null || !styles.title.enabled) {
             this.titleNode?.remove();
             this.titleNode = undefined;
@@ -204,11 +257,16 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
-        this.titleNode.text = text;
+        this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
+        applyTextBoxingStyles(this.titleNode, styles.title);
     }
 
-    private updateSubtitleNode(text: TextOrSegments | undefined, styles: RequiredOrganizationNodeStyle) {
+    private updateSubtitleNode(
+        text: TextOrSegments | undefined,
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
+    ) {
         if (text == null || !styles.subtitle.enabled) {
             this.subtitleNode?.remove();
             this.subtitleNode = undefined;
@@ -216,13 +274,15 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
-        this.subtitleNode.text = text;
+        this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
+        applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
     }
 
     private updateLabelNodes(
         labels: (TextOrSegments | undefined)[] | undefined,
-        styles: RequiredOrganizationNodeStyle
+        styles: RequiredOrganizationNodeStyle,
+        textMaxWidth: number
     ) {
         if (labels == null) return;
 
@@ -237,13 +297,20 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 continue;
             }
             this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
-            this.labelNodes[index]!.text = labelText;
+            this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
+            applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
             index++;
         }
+
+        // Trim trailing nodes so labels from a previously-bound datum don't leak after reuse.
+        for (let i = labels.length; i < this.labelNodes.length; i++) {
+            this.labelNodes[i]?.remove();
+        }
+        this.labelNodes.length = labels.length;
     }
 
-    private updateExpanderNode(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         if (descendantsCount === 0) {
             this.expanderNode?.remove();
             this.expanderNode = undefined;
@@ -251,39 +318,84 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         }
 
         this.expanderNode ??= this.appendChild(new OrganizationExpanderNode());
-        this.expanderNode.update(descendantsCount, styles);
+        this.expanderNode.update(descendantsCount, isCollapsed, styles);
     }
 }
+
+// Chevron geometry constants (all in px).
+const CHEVRON_WIDTH = 8;
+const CHEVRON_HEIGHT = 5;
+const CHEVRON_GAP = 5; // gap between count text right edge and chevron left edge
+// Inset the pill content by the same amount on both sides so the count text and the
+// chevron are visually balanced within the pill.
+const PILL_HORIZONTAL_PADDING = 12;
+// Render the chevron slightly muted versus the count digit so the number reads as the
+// primary affordance and the directional cue stays a secondary glyph.
+const CHEVRON_OPACITY = 0.7;
 
 class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     override name = 'organization-node-expander';
 
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
+    private chevronNode?: _ModuleSupport.Path;
 
-    update(descendantsCount: number, styles: RequiredOrganizationNodeStyle) {
+    update(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
         this.countNode.text = `${descendantsCount}`;
         this.countNode.textAlign = 'left';
         applyTextStyles(this.countNode, styles.subtitle);
-        this.countNode.x = 12;
-        this.countNode.y = 4;
+        this.countNode.x = PILL_HORIZONTAL_PADDING;
 
-        const bbox = this.countNode.getBBox().clone().grow({ top: 4, right: 8, bottom: 4, left: 8 });
+        const rawBBox = this.countNode.getBBox();
+        // Render the pill at exactly `expander.height` so the layout reservation in
+        // `networkTreeLayout` matches the rendered pill — diverging here would let link
+        // elbows or child rows overlap the expander when `height` is under-specified.
+        // The public type contract documents that `height` must accommodate the count text.
+        const pillHeight = styles.expander.height;
+        this.countNode.y = (pillHeight - rawBBox.height) / 2;
 
+        const chevronLeft = this.countNode.x + rawBBox.width + CHEVRON_GAP;
+        const chevronMidY = pillHeight / 2;
+
+        this.chevronNode ??= this.appendChild(new _ModuleSupport.Path());
+        this.updateChevron(this.chevronNode, chevronLeft, chevronMidY, isCollapsed);
+
+        // Pill width: leading padding + count text + gap + chevron + trailing padding.
+        const pillContentWidth = chevronLeft + CHEVRON_WIDTH + PILL_HORIZONTAL_PADDING;
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, bbox.width);
-        this.shapeNode.height = Math.max(24, bbox.height);
+        this.shapeNode.width = Math.max(48, pillContentWidth);
+        this.shapeNode.height = pillHeight;
 
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
         this.shapeNode.cornerRadius = styles.cornerRadius;
     }
 
-    // override containsPoint(x: number, y: number) {
-    //     return this.shapeNode?.containsPoint(x, y) ?? false;
-    // }
+    private updateChevron(path: _ModuleSupport.Path, left: number, midY: number, isCollapsed: boolean) {
+        // Point-down chevron (expanded state) — apex at bottom centre, base at top.
+        // Flip vertically for collapsed state (point up, apex at top centre).
+        const halfW = CHEVRON_WIDTH / 2;
+        const halfH = CHEVRON_HEIGHT / 2;
+
+        const apexY = isCollapsed ? midY - halfH : midY + halfH;
+        const baseY = isCollapsed ? midY + halfH : midY - halfH;
+
+        path.path.clear();
+        path.path.moveTo(left, baseY);
+        path.path.lineTo(left + CHEVRON_WIDTH, baseY);
+        path.path.lineTo(left + halfW, apexY);
+        path.path.closePath();
+
+        // Match the count digit's colour so the chevron and number read as a single
+        // affordance inside the pill. countNode.fill is set immediately before this
+        // is called via `applyTextStyles`; it is always a string at runtime.
+        const countFill = this.countNode?.fill;
+        path.fill = typeof countFill === 'string' ? countFill : '#000';
+        path.stroke = 'none';
+        path.opacity = CHEVRON_OPACITY;
+    }
 }

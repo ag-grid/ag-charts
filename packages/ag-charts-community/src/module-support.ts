@@ -35,6 +35,11 @@ export {
     annotationTextStylesDef,
 } from './chart/themes/annotationOptionsDef';
 export {
+    commonAxisThemeTemplate,
+    parentLevelAxisThemeTemplate,
+    titleAxisThemeTemplate,
+} from './chart/themes/axisThemeTemplate';
+export {
     boxPlotSeriesThemeableOptionsDef,
     candlestickSeriesThemeableOptionsDef,
     chordSeriesThemeableOptionsDef,
@@ -105,9 +110,9 @@ export type {
     ZoomSaveMementoEvent,
 } from './core/eventsHub';
 export { ChartOptions } from './module/optionsModule';
-export type { AxisBandDatum, AxisContext, AxisFormattableLabel } from './module/axisContext';
+export type { AxisBandDatum, AxisContext, AxisFormattableLabel, PolarAxisLayout } from './module/axisContext';
 export type { ChartRegistry, ChartAxisRegistry, ChartSeriesRegistry } from './module/moduleContext';
-export { type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
+export { type AxisID, type DynamicContext, type DynamicContextApi, createDynamicContext } from 'ag-charts-core';
 export type { SelectionModuleFns } from './chart/modulesManager';
 export { Background } from './chart/background/background';
 export { ChartAxes } from './chart/chartAxes';
@@ -126,6 +131,7 @@ export type {
     UngroupedData,
 } from './chart/data/dataModel';
 export { DataSet, DataSetSelection, type TransactionCollectionState } from './chart/data/dataSet';
+export type { DataSelectionState } from './chart/data/dataSelectionState';
 export {
     accumulativeValueProperty,
     animationValidation,
@@ -189,7 +195,9 @@ export {
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
 export type {
+    DatumIndexSetReader,
     DatumIndexType,
+    DatumRangeReader,
     ErrorBoundSeriesNodeDatum,
     ISeries,
     ISeriesProperties,
@@ -256,7 +264,7 @@ export { calculateDataDiff } from './chart/series/cartesian/diffUtil';
 export {
     computeMarkerFocusBounds,
     getMarkerStyles,
-    markerEnabled,
+    cartesianMarkerDrawMode,
     markerFadeInAnimation,
     markerSwipeScaleInAnimation,
     resetMarkerFn,
@@ -294,20 +302,22 @@ export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
+export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
 export { Axis, AxisGroupZIndexMap } from './chart/axis/axis';
 export type { AxisTickFormatParams, LabelNodeDatum } from './chart/axis/axis';
-export { AxisInterval } from './chart/axis/axisInterval';
-export { AxisLabel } from './chart/axis/axisLabel';
-export { AxisTick } from './chart/axis/axisTick';
+export { createAxisLabelFormatterCache, formatAxisLabelValue, getAxisLabelSideFlag } from './chart/axis/axisLabelUtil';
+export type { AxisLabelFormatterCache } from './chart/axis/axisLabelUtil';
+export { SeriesLabelProperties } from './chart/series/seriesLabelProperties';
 export type { TickInterval } from './chart/axis/axisTick';
 export { PolarAxis } from './chart/axis/polarAxis';
 export { CategoryAxis } from './chart/axis/categoryAxis';
 export { CartesianAxis } from './chart/axis/cartesianAxis';
 export { DiscreteTimeAxis } from './chart/axis/discreteTimeAxis';
-export { TimeAxisParentLevel, minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
+export { minimumTimeAxisDatumGranularity } from './chart/axis/timeAxis';
 export type { ChartAxis, FormatDatumParams } from './chart/chartAxis';
 export { getCrossLineValue, validateCrossLineValue } from './chart/crossline/crossLine';
 export type { CrossLine, CrossLineType, PolarCrossLine } from './chart/crossline/crossLine';
+export { getCrossLinesPlugin } from './chart/crossline/getCrossLinesPlugin';
 export { calculateLabelTranslation } from './chart/crossline/crossLineLabelPosition';
 export {
     buildColorCategoryLegendData,

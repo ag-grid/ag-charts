@@ -7,6 +7,7 @@ import type {
     AgTimeIntervalUnit,
 } from 'ag-charts-types';
 
+import type { PolarAxisLayout } from '../../module/axisContext';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { DiscreteTimeScale } from '../../scale/discreteTimeScale';
 import type { Group } from '../../scene/group';
@@ -79,4 +80,9 @@ export interface PolarCrossLine<LabelType = AgBaseCrossLineLabelOptions> extends
     parallelFlipRotation: number;
     regularFlipRotation: number;
     sideFlag: 1 | -1;
+    /**
+     * Applies polar-axis layout state (radius/inner-radius/shape/ticks/gridAngles) to the
+     * cross-line. The plugin calls this once per update phase on polar axes.
+     */
+    applyPolarLayout(layout: PolarAxisLayout): void;
 }

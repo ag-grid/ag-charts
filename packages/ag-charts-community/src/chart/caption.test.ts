@@ -122,6 +122,92 @@ describe('Caption', () => {
         });
     });
 
+    // AG-16511: An enabled caption with empty `text` should still reserve a line of
+    // layout space — only `enabled: false` reclaims the space.
+    describe('AG-16511 empty caption text reserves layout space', () => {
+        const seriesOptions = {
+            data: [
+                { x: 'A', y: 3 },
+                { x: 'B', y: 5 },
+                { x: 'C', y: 2 },
+                { x: 'D', y: 4 },
+            ],
+            series: [{ type: 'bar' as const, xKey: 'x', yKey: 'y' }],
+            legend: { enabled: false },
+        };
+        const baseOptions = { ...seriesOptions, title: { text: 'Title' } };
+
+        describe('visual snapshots', () => {
+            test('filled subtitle (reference)', async () => {
+                chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+                await compare();
+            });
+
+            test('empty subtitle reserves the same space as filled', async () => {
+                chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+                await compare();
+            });
+
+            test('disabled subtitle reclaims the space', async () => {
+                chart = await createChart({ ...baseOptions, subtitle: { enabled: false } });
+                await compare();
+            });
+
+            test('filled footnote (reference)', async () => {
+                chart = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
+                await compare();
+            });
+
+            test('empty footnote reserves the same space as filled', async () => {
+                chart = await createChart({ ...baseOptions, footnote: { text: '' } });
+                await compare();
+            });
+        });
+
+        test('empty subtitle and filled subtitle yield the same series-area y', async () => {
+            chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            const filledSeriesY = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+            const emptySeriesY = chart.seriesAreaBoundingBox.y;
+
+            expect(emptySeriesY).toBeCloseTo(filledSeriesY, 0);
+            // Title sits above the series area, not inside it.
+            const titleBBox = Transformable.toCanvas(chart.title.node);
+            expect(titleBBox.y + titleBBox.height).toBeLessThanOrEqual(emptySeriesY);
+        });
+
+        test('disabled subtitle reclaims the space', async () => {
+            chart = await createChart({ ...baseOptions, subtitle: { text: '' } });
+            const enabledEmptySeriesY = chart.seriesAreaBoundingBox.y;
+
+            chart = await createChart({ ...baseOptions, subtitle: { enabled: false } });
+            const disabledSeriesY = chart.seriesAreaBoundingBox.y;
+
+            expect(disabledSeriesY).toBeLessThan(enabledEmptySeriesY);
+        });
+
+        test('updating non-empty subtitle to empty preserves layout', async () => {
+            chart = await createChart({ ...baseOptions, subtitle: { text: 'Subtitle' } });
+            const beforeSeriesY = chart.seriesAreaBoundingBox.y;
+
+            await (chart as any).update({ ...baseOptions, subtitle: { text: '' } });
+            await waitForChartStability(chart);
+
+            expect(chart.seriesAreaBoundingBox.y).toBeCloseTo(beforeSeriesY, 0);
+        });
+
+        test('empty footnote and filled footnote yield the same series-area bottom', async () => {
+            chart = await createChart({ ...baseOptions, footnote: { text: 'Footnote' } });
+            const filledSeriesBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            chart = await createChart({ ...baseOptions, footnote: { text: '' } });
+            const emptySeriesBottom = chart.seriesAreaBoundingBox.y + chart.seriesAreaBoundingBox.height;
+
+            expect(emptySeriesBottom).toBeCloseTo(filledSeriesBottom, 0);
+        });
+    });
+
     // CRT-1041: Footnote caption with multi-line rich text should have correct bounding box
     // for the accessibility proxy element.
     describe('CRT-1041 footnote caption bounds', () => {

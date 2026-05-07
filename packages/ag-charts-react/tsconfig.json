@@ -13,6 +13,9 @@
       "path": "./tsconfig.lib.json"
     },
     {
+      "path": "./tsconfig.lint.json"
+    },
+    {
       "path": "./tsconfig.spec.json"
     }
   ],

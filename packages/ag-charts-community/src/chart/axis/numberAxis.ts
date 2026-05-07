@@ -1,5 +1,5 @@
-import type { DomainWithMetadata, DynamicContext } from 'ag-charts-core';
-import { Property, normalisedExtentWithMetadata } from 'ag-charts-core';
+import type { AxisID, DomainWithMetadata, DynamicContext, NormalisedNumberAxisOptions } from 'ag-charts-core';
+import { normalisedExtentWithMetadata } from 'ag-charts-core';
 import type { FormatterParams } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../module/moduleContext';
@@ -9,33 +9,32 @@ import type { FormatDatumParams } from '../chartAxis';
 import type { AxisTickFormatParams } from './axis';
 import { CartesianAxis } from './cartesianAxis';
 
-export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
+export class NumberAxis<
+    TOptions extends NormalisedNumberAxisOptions = NormalisedNumberAxisOptions,
+> extends CartesianAxis<LinearScale | LogScale, number, TOptions> {
     static readonly className: string = 'NumberAxis';
     static readonly type: string = 'number';
 
-    @Property
-    min?: number;
-
-    @Property
-    max?: number;
-
-    @Property
-    preferredMin?: number;
-
-    @Property
-    preferredMax?: number;
-
-    constructor(moduleCtx: DynamicContext<ChartRegistry>, scale = new LinearScale() as LinearScale | LogScale) {
-        super(moduleCtx, scale);
+    constructor(
+        moduleCtx: DynamicContext<ChartRegistry>,
+        id: AxisID,
+        scale: LinearScale | LogScale = new LinearScale(),
+        options: TOptions
+    ) {
+        super(moduleCtx, id, scale, options);
     }
 
     override hasDefinedDomain(): boolean {
-        const { min, max } = this;
+        const { min, max } = this.options;
         return min != null && max != null && min < max;
     }
 
+    protected override getLabelFormat() {
+        return this.options.label.format;
+    }
+
     override normaliseDataDomain(d: DomainWithMetadata<number>) {
-        const { min, max, preferredMin, preferredMax } = this;
+        const { min, max, preferredMin, preferredMax } = this.options;
         const { extent, clipped } = normalisedExtentWithMetadata(
             d.domain,
             min,
@@ -50,7 +49,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     }
 
     override getDomainExtentsNice(): [boolean, boolean] {
-        return [this.min == null && this.nice, this.max == null && this.nice];
+        return [this.options.min == null && this.nice, this.options.max == null && this.nice];
     }
 
     protected getVisibleDomain(domain: number[]): [number, number] {

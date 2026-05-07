@@ -799,6 +799,30 @@ describe('ScatterSeries', () => {
                 await compare();
             });
         });
+        describe('itemStyler size', () => {
+            beforeEach(async () => {
+                const itemStyler = (params: AgScatterSeriesItemStylerParams<D, C>): AgSeriesMarkerStyle => {
+                    return { size: params.datum.weight > 75 ? 60 : 10 };
+                };
+                const opts: AgCartesianChartOptions<D, C> = {
+                    series: [
+                        {
+                            type: 'scatter',
+                            data: maleHeightWeight,
+                            xKey: 'height',
+                            yKey: 'weight',
+                            size: 20,
+                            itemStyler,
+                        },
+                    ],
+                };
+                chart = AgCharts.create(prepareTestOptions(opts));
+                await waitForChartStability(chart);
+            });
+            test('snapshot', async () => {
+                await compare();
+            });
+        });
     });
 
     describe('showInLegend', () => {

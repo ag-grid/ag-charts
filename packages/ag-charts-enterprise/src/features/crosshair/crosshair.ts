@@ -1,9 +1,17 @@
-import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
+import {
+    type AgCrosshairLabelFormatterParams,
+    type AgCrosshairLabelRendererResult,
+    type ContextDefault,
+    type FormatterParams,
+    type TextValue,
+    _ModuleSupport,
+    _Widget,
+} from 'ag-charts-community';
 import {
     AbstractModuleInstance,
     ChartAxisDirection,
     ChartUpdateType,
-    Property,
+    type NormalisedCrosshairOptions,
     ZIndexMap,
     coerceTextValue,
     createId,
@@ -11,41 +19,39 @@ import {
 } from 'ag-charts-core';
 
 import { readDatum } from '../../utils/datum';
-import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
+import { CrosshairLabel } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox, InteractionState } = _ModuleSupport;
+const { Group, TranslatableGroup, Line, BBox, FormatManager, InteractionState } = _ModuleSupport;
 type HoverLikeEvent =
     | _Widget.DragWidgetEvent
     | _Widget.MouseWidgetEvent<'mousemove'>
     | _ModuleSupport.DragInterpreterClickEvent;
 
-export class Crosshair extends AbstractModuleInstance {
+interface FormatterCache {
+    type: string;
+    format: string;
+    formatter: ((value: any, fractionDigits?: number) => string) | undefined;
+}
+
+export class Crosshair
+    extends AbstractModuleInstance
+    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams<ContextDefault>, FormatterParams>
+{
     static readonly className = 'Crosshair';
     readonly id = createId(this);
 
-    @Property
-    enabled = false;
+    private options: NormalisedCrosshairOptions | undefined;
 
-    @Property
-    stroke?: string = 'rgb(195, 195, 195)';
-
-    @Property
-    lineDash?: number[] = [6, 3];
-
-    @Property
-    lineDashOffset: number = 0;
-
-    @Property
-    strokeWidth: number = 1;
-
-    @Property
-    strokeOpacity: number = 1;
-
-    @Property
-    snap: boolean = true;
-
-    @Property
-    readonly label = new CrosshairLabelProperties();
+    /**
+     * Read by `CartesianChart.adjustAxisWidth` to skip axis-bleeding-width
+     * adjustment when a crosshair is active (so the axis-label space the
+     * crosshair would otherwise occupy is not reclaimed by the layout).
+     * Pre-Phase-5 this was the `@Property enabled` field; after the
+     * options-reference migration it lives inside `options.enabled`.
+     */
+    get enabled(): boolean {
+        return this.options?.enabled ?? false;
+    }
 
     private readonly labels: { [key: string]: CrosshairLabel };
 
@@ -53,6 +59,8 @@ export class Crosshair extends AbstractModuleInstance {
     private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
+
+    private cachedFormatter: FormatterCache | undefined;
 
     private readonly crosshairGroup = new TranslatableGroup({
         name: 'crosshairs',
@@ -110,12 +118,57 @@ export class Crosshair extends AbstractModuleInstance {
         }
     }
 
+    applyOptions(options: NormalisedCrosshairOptions) {
+        this.options = options;
+    }
+
+    formatValue(
+        callWithContext: (
+            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => TextValue | undefined,
+            params: AgCrosshairLabelFormatterParams<ContextDefault>
+        ) => TextValue | undefined,
+        type: 'number' | 'date' | 'category',
+        value: any,
+        params: FormatterParams<any>
+    ) {
+        const label = this.options?.label;
+        if (!label) return undefined;
+
+        const { formatter, format } = label;
+        const { domain, boundSeries } = params;
+
+        let result: TextValue | undefined;
+        if (formatter != null) {
+            const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
+            const unit = params.type === 'date' ? params.unit : undefined;
+            const step = params.type === 'date' ? params.step : undefined;
+            result = callWithContext(formatter, { value, domain, fractionDigits, unit, step, boundSeries });
+        }
+
+        if (format != null) {
+            let cachedFormatter = this.cachedFormatter;
+            if (cachedFormatter?.type !== type || cachedFormatter?.format !== format) {
+                cachedFormatter = {
+                    type,
+                    format,
+                    formatter: FormatManager.getFormatter(type, format),
+                };
+                this.cachedFormatter = cachedFormatter;
+            }
+
+            result ??= cachedFormatter.formatter?.(value);
+        }
+
+        return result == null ? undefined : String(result);
+    }
+
     private checkInteractionState(): boolean {
         return this.ctx.interactionManager.isState(InteractionState.Frozen);
     }
 
     private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        if (!visible || !axes || !this.enabled) return;
+        const options = this.options;
+        if (!visible || !axes || !options?.enabled) return;
 
         this.seriesRect = rect;
 
@@ -135,7 +188,7 @@ export class Crosshair extends AbstractModuleInstance {
         const crosshairKeys = ['pointer', ...this.axisCtx.seriesKeyProperties()];
         this.updateSelections(crosshairKeys);
 
-        if (!this.snap && this.activeHighlight) {
+        if (!options.snap && this.activeHighlight) {
             // AG-16861 TC9. If we're hovering over a candlestick and click it, then this fires a layout:complete
             // event. But we don't need to refresh the positioning of the Y-axis (non-snapping); the non-snap
             // positioning can stay as-is to stay in sync with the mouse position.
@@ -145,7 +198,7 @@ export class Crosshair extends AbstractModuleInstance {
         this.updateLines();
         this.updateLabels(crosshairKeys);
 
-        if (this.snap && !this.activeHighlightInViewport) {
+        if (options.snap && !this.activeHighlightInViewport) {
             // Do not redraw the crosshair labels when the highlight is outside the viewport.
             return;
         }
@@ -159,9 +212,10 @@ export class Crosshair extends AbstractModuleInstance {
 
     private updateLabels(keys: string[]) {
         const { labels, ctx } = this;
+        const labelOpts = this.options?.label;
         for (const key of keys) {
             // Lazy creation of labels if enabled.
-            if (this.label.enabled) {
+            if (labelOpts?.enabled) {
                 labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
             }
 
@@ -172,20 +226,19 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private updateLabel(label: CrosshairLabel) {
-        const { enabled, xOffset, yOffset, format, renderer } = this.label;
-        label.enabled = enabled;
-        label.xOffset = xOffset;
-        label.yOffset = yOffset;
-        label.format = format;
-        label.renderer = renderer;
+        const labelOpts = this.options?.label;
+        if (!labelOpts) return;
+        label.xOffset = labelOpts.xOffset;
+        label.yOffset = labelOpts.yOffset;
     }
 
     private updateLines() {
-        const { lineGroupSelection, bounds, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, axisLayout } =
-            this;
+        const options = this.options;
+        const { lineGroupSelection, bounds, axisLayout } = this;
 
-        if (!axisLayout) return;
+        if (!axisLayout || !options) return;
 
+        const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = options;
         const isVertical = this.isVertical();
 
         lineGroupSelection.each((line) => {
@@ -214,8 +267,8 @@ export class Crosshair extends AbstractModuleInstance {
         );
     }
 
-    private formatValue(value: unknown): string {
-        return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this.label));
+    private formatScaleText(value: unknown): string {
+        return toPlainText(this.axisCtx.formatScaleValue(value, 'crosshair', this));
     }
 
     private onClick(event: _ModuleSupport.DragInterpreterClickEvent) {
@@ -225,7 +278,8 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private onMouseHoverLike(event: HoverLikeEvent) {
-        if (!this.enabled || this.snap) return;
+        const options = this.options;
+        if (!options?.enabled || options.snap) return;
 
         const requiredState = this.isHover(event)
             ? InteractionState.Hoverable | InteractionState.Frozen
@@ -240,7 +294,8 @@ export class Crosshair extends AbstractModuleInstance {
 
     private onMouseOut() {
         // AG-16861 TC9: non-snap crosshairs respond to mouse movements on frozen charts and snap crosshairs don't
-        const mask: _ModuleSupport.InteractionState = this.snap
+        const snap = this.options?.snap ?? true;
+        const mask: _ModuleSupport.InteractionState = snap
             ? InteractionState.Hoverable
             : InteractionState.Hoverable | InteractionState.Frozen;
         if (!this.ctx.interactionManager.isState(mask)) return;
@@ -249,13 +304,15 @@ export class Crosshair extends AbstractModuleInstance {
     }
 
     private onKeyPress() {
-        if (this.enabled && !this.snap && this.ctx.interactionManager.isState(InteractionState.Default)) {
+        const options = this.options;
+        if (options?.enabled && !options.snap && this.ctx.interactionManager.isState(InteractionState.Default)) {
             this.hideCrosshairs();
         }
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        if (!this.enabled) return;
+        const options = this.options;
+        if (!options?.enabled) return;
 
         const { crosshairGroup, axisCtx } = this;
         const { datum, series } = event.currentHighlight ?? {};
@@ -266,7 +323,7 @@ export class Crosshair extends AbstractModuleInstance {
 
         if (!this.activeHighlight) {
             this.hideCrosshairs();
-        } else if (this.snap) {
+        } else if (options.snap) {
             if (event.highlightInViewport) {
                 const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
@@ -293,6 +350,7 @@ export class Crosshair extends AbstractModuleInstance {
 
     private updatePositions(data: { [key: string]: { value: any; position: number } }) {
         const { seriesRect, lineGroupSelection } = this;
+        const labelEnabled = this.options?.label.enabled ?? false;
         lineGroupSelection.each((line, key) => {
             const lineData = data[key];
             if (!lineData) {
@@ -313,7 +371,7 @@ export class Crosshair extends AbstractModuleInstance {
                 line.y = Math.round(y);
             }
 
-            if (this.label.enabled) {
+            if (labelEnabled) {
                 this.showLabel(x + seriesRect.x, y + seriesRect.y, value, key);
             } else {
                 this.hideLabel(key);
@@ -396,11 +454,11 @@ export class Crosshair extends AbstractModuleInstance {
 
     private getLabelHtml(value: any, label: CrosshairLabel) {
         const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
-        const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
+        const defaults: AgCrosshairLabelRendererResult = { text: this.formatScaleText(value) };
         // Returning `undefined` (or `null`, defensively) from the renderer falls through to the
         // default formatted value, matching the documented Renderer<P, R> contract. Empty strings
         // still render an empty label.
-        const rendered = this.label.renderer?.({ value, fractionDigits });
+        const rendered = this.options?.label.renderer?.({ value, fractionDigits });
         if (rendered == null) {
             return label.toLabelHtml(defaults);
         }

@@ -2,7 +2,7 @@ import {
     AgChartOptions,
     AgCharts,
     AngleNumberAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     LegendModule,
     ModuleRegistry,
     RadarLineSeriesModule,
@@ -11,7 +11,13 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([AngleNumberAxisModule, LegendModule, RadarLineSeriesModule, RadiusNumberAxisModule]);
+ModuleRegistry.registerModules([
+    AngleNumberAxisModule,
+    CrossLinesModule,
+    LegendModule,
+    RadarLineSeriesModule,
+    RadiusNumberAxisModule,
+]);
 const { socialCircle, domains } = getData();
 
 const options: AgChartOptions = {

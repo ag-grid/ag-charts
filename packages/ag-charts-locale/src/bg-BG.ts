@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceChart: 'диаграма, ${seriesCount}[number] серии',
     ariaAnnounceFlowProportionLink: 'връзка ${index} от ${count}, от ${from} до ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'възел ${index} от ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'свито',
+    ariaOrgChartExpanded: 'разгънато',
     ariaAnnounceGaugeChart: 'графика тип манометър, ${caption}',
     ariaAnnounceHierarchyChart: 'йерархична диаграма, ${caption}',
     ariaAnnounceHierarchyDatum: 'ниво ${level}[number], ${count}[number] деца, ${description}',

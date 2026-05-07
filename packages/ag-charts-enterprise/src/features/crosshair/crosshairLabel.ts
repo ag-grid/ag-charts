@@ -1,99 +1,22 @@
-import type {
-    AgCrosshairLabelFormatterParams,
-    AgCrosshairLabelRendererParams,
-    AgCrosshairLabelRendererResult,
-    ContextDefault,
-    Formatter,
-    FormatterParams,
-    Renderer,
-    TextValue,
-} from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
-import { BaseProperties, type Point, Property, createId } from 'ag-charts-core';
+import { type AgCrosshairLabelRendererResult, type _ModuleSupport } from 'ag-charts-community';
+import { type Point, createId } from 'ag-charts-core';
 
-const { FormatManager } = _ModuleSupport;
 const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 type StyleValue = string | number | undefined;
 
-interface FormatterCache {
-    type: string;
-    format: string;
-    formatter: ((value: any, fractionDigits?: number) => string) | undefined;
-}
-
-export class CrosshairLabelProperties
-    extends BaseProperties
-    implements _ModuleSupport.AxisFormattableLabel<AgCrosshairLabelFormatterParams<ContextDefault>, FormatterParams>
-{
-    @Property
-    enabled: boolean = true;
-
-    @Property
-    xOffset: number = 0;
-
-    @Property
-    yOffset: number = 0;
-
-    @Property
-    formatter?: Formatter<AgCrosshairLabelFormatterParams<ContextDefault>>;
-
-    @Property
-    format?: string = undefined;
-
-    @Property
-    renderer?: Renderer<AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult> = undefined;
-
-    private _cachedFormatter: FormatterCache | undefined = undefined;
-    formatValue(
-        callWithContext: (
-            formatter: (params: AgCrosshairLabelFormatterParams<ContextDefault>) => TextValue | undefined,
-            params: AgCrosshairLabelFormatterParams<ContextDefault>
-        ) => TextValue | undefined,
-        type: 'number' | 'date' | 'category',
-        value: any,
-        params: FormatterParams<any>
-    ) {
-        const { formatter, format } = this;
-        const { domain, boundSeries } = params;
-
-        let result: TextValue | undefined;
-        if (formatter != null) {
-            const fractionDigits = params.type === 'number' ? params.fractionDigits : undefined;
-            const unit = params.type === 'date' ? params.unit : undefined;
-            const step = params.type === 'date' ? params.step : undefined;
-            result = callWithContext(formatter, { value, domain, fractionDigits, unit, step, boundSeries });
-        }
-
-        if (format != null) {
-            let cachedFormatter = this._cachedFormatter;
-            if (cachedFormatter?.type !== type || cachedFormatter?.format !== format) {
-                cachedFormatter = {
-                    type,
-                    format,
-                    formatter: FormatManager.getFormatter(type, format),
-                };
-                this._cachedFormatter = cachedFormatter;
-            }
-
-            result ??= cachedFormatter.formatter?.(value);
-        }
-
-        return result == null ? undefined : String(result);
-    }
-}
-
-export class CrosshairLabel extends CrosshairLabelProperties {
+export class CrosshairLabel {
     static readonly className = 'CrosshairLabel';
     private readonly id = createId(this);
     private readonly elementProxy: _ModuleSupport.DOMElementProxy;
+
+    xOffset: number = 0;
+    yOffset: number = 0;
 
     constructor(
         private readonly domManager: _ModuleSupport.DOMManager,
         key: string,
         axisId: string
     ) {
-        super();
-
         this.elementProxy = domManager.addDeferredProxyChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.elementProxy.toggleClass(DEFAULT_LABEL_CLASS, true);
         this.elementProxy.setAttr('aria-hidden', 'true');

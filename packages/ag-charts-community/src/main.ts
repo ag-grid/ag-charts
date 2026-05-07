@@ -16,6 +16,7 @@ export { SparklinePresetModule } from './api/preset/presetModules';
 export { CartesianChartModule } from './chart/cartesianChartModule';
 export { PolarChartModule } from './chart/polarChartModule';
 
+export { CrossLinesModule } from './chart/crossline/crossLinesModule';
 export { LegendModule } from './chart/legend/legendModule';
 export { AreaSeriesModule } from './chart/series/cartesian/areaSeriesModule';
 export { BarSeriesModule } from './chart/series/cartesian/barSeriesModule';

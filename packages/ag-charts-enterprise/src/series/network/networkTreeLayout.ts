@@ -7,6 +7,14 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 type TBBox = _ModuleSupport.BBox;
 const { BBox } = _ModuleSupport;
 
+interface ContentBoundsAccumulator {
+    count: number;
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+}
+
 export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkLayoutUpdateOptions<TVertex, TEdge> {
     nodeHeight?: number;
     nodeWidth?: number;
@@ -25,11 +33,41 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
  * tree.
  */
 export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TEdge> {
+    // Avoids `containerBBox`, whose recursive sibling-merge over-accumulates height to O(N).
+    private readonly contentBoundsAccumulator: ContentBoundsAccumulator = {
+        count: 0,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+    };
+
     update(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         this.calculateRegularDimensions(options);
 
+        const acc = this.contentBoundsAccumulator;
+        acc.count = 0;
         const { containerBBox } = this.updateNodes(options);
+        this._contentBBox =
+            acc.count > 0 ? new BBox(acc.left, acc.top, acc.right - acc.left, acc.bottom - acc.top) : containerBBox;
         this.updateOffset(options, containerBBox);
+    }
+
+    private accumulateContentBounds(bbox: TBBox) {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) {
+            acc.left = bbox.x;
+            acc.top = bbox.y;
+            acc.right = bbox.x + bbox.width;
+            acc.bottom = bbox.y + bbox.height;
+            acc.count = 1;
+            return;
+        }
+        if (bbox.x < acc.left) acc.left = bbox.x;
+        if (bbox.y < acc.top) acc.top = bbox.y;
+        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
+        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
+        acc.count++;
     }
 
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
@@ -76,18 +114,30 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             nodeBBox = this.regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
-            // TODO: Fix outer padding, see `org-chart-tudor` example for issue.
-            if (prevHasChildren) {
-                groupBBox.width += options.outerSpacing;
+            // Pre-check whether this vertex has children. The structural graph check is
+            // used (rather than post-layout visibility) so that gaps between siblings stay
+            // stable across collapse/expand toggles, and so the decision can be made
+            // before laying out descendants.
+            const currentHasChildren =
+                (options.graph.neighboursWithEdgeValue(vertex, 'child' as TEdge)?.length ?? 0) > 0;
+
+            // Apply spacing between this vertex and the previous one. outerSpacing
+            // protects subtree boundaries when either side roots a subtree (cousin gap);
+            // innerSpacing is the tighter gap reserved for two leaf siblings sharing a
+            // parent.
+            if (index > 0) {
+                groupBBox.width += prevHasChildren || currentHasChildren ? options.outerSpacing : options.innerSpacing;
             }
 
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
-                this.updateChildren(options, vertex, groupBBox, nodeBBox);
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
+                options,
+                vertex,
+                groupBBox,
+                nodeBBox
+            );
 
-            const hasVisibleChildren =
-                childrenCount > 0 && descendentsContainerBBox != null && descendentsContainerBBox.width > 0;
-            prevHasChildren = hasVisibleChildren;
+            prevHasChildren = currentHasChildren;
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -97,6 +147,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
             const layoutBBox = new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
             layoutBBoxes.push({ vertex, bbox: layoutBBox });
+            this.accumulateContentBounds(layoutBBox);
 
             // Request the series to layout the node per the calculated bbox.
             layoutDatumNode(vertex, layoutBBox, this.regularBBox);
@@ -106,12 +157,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 groupBBox = BBox.merge([groupBBox, descendentsContainerBBox, layoutBBox]);
             } else {
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
-            }
-
-            // Add inner padding to childless siblings in the group except for the last node.
-            // TODO: Fix outerSpacing and add `!hasVisibleChildren` condition here
-            if (index < vertices.length - 1) {
-                groupBBox.width += options.innerSpacing;
             }
 
             // Request the series to layout the links between children and their parents.
@@ -124,9 +169,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 }
             }
         }
-
-        // Add outer padding between this set of siblings and their cousins.
-        // groupBBox.width += this.outerPadding;
 
         return { containerBBox: groupBBox, childrenBBoxes: layoutBBoxes };
     }
@@ -223,10 +265,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             }
         }
 
-        offset = Vec2.add(offset, options.offset);
-
-        // TODO: clamp the offset so that any one node is always visible
-
+        // Auto-centre only — Zoom feature owns pan/clamp.
         options.updateOffset(offset);
     }
 }

@@ -176,6 +176,7 @@ export interface AgBaseAxisLabelStyleOptions extends LabelBoxOptions {
 }
 
 export interface AgAxisLabelFormatterParams<TContext = ContextDefault> {
+    readonly type: 'number' | 'date' | 'category';
     readonly value: any;
     readonly index: number;
     readonly fractionDigits?: number;

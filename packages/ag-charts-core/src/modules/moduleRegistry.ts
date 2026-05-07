@@ -16,14 +16,32 @@ export { RegistryMode, isEnterprise, isIntegrated, isUmd, setRegistryMode } from
 
 const registeredModules: Map<string, ModuleDefinition> = new Map();
 
+let registryRevision = 0;
+
 function registerModuleDefinition(def: ModuleDefinition): void {
     registeredModules.set(def.name, def);
+    registryRevision++;
 
     if (def.dependencies) {
         for (const dependency of def.dependencies) {
             register(dependency);
         }
     }
+}
+
+/**
+ * Invokes `callback` if the registry has changed since the caller's `lastSeen` revision.
+ * Returns the current revision so the caller can store it for the next call.
+ *
+ * Allows downstream caches that derive state from the registry contents (e.g. `ChartTheme`
+ * defaults built from `listModulesByType`) to invalidate without subscribing to events or
+ * re-scanning the module map on every read.
+ */
+export function ifRegistryChanged(lastSeen: number, callback: () => void): number {
+    if (registryRevision !== lastSeen) {
+        callback();
+    }
+    return registryRevision;
 }
 
 export function register(
@@ -77,6 +95,7 @@ export function registerModules(definitions: Array<ModuleDefinition | ModuleDefi
 export function reset(): void {
     clearRegistryModes();
     registeredModules.clear();
+    registryRevision++;
 }
 
 export function hasModule(moduleName: string): boolean {

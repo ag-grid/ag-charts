@@ -124,10 +124,10 @@ export class SeriesStateManager {
 
         if (axis.type === 'grouped-category') {
             // TODO: `instanceof GroupedCategoryAxis` circular dependency
-            groupScale.paddingInner = axis.groupPaddingInner;
+            groupScale.paddingInner = (axis.options as { groupPaddingInner: number }).groupPaddingInner;
         } else if (axis.type === 'category' || axis.type === 'unit-time') {
             // TODO: `instanceof CategoryAxis` circular dependency
-            groupScale.paddingInner = axis.groupPaddingInner;
+            groupScale.paddingInner = (axis.options as { groupPaddingInner: number }).groupPaddingInner;
             // To get exactly `0` padding we need to turn off rounding
             groupScale.round = groupScale.padding !== 0; // TODO: can this just be `groupScale.round = true;` since padding is never set?
         } else {

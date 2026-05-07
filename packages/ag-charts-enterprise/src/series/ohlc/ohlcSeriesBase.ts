@@ -333,6 +333,21 @@ export abstract class OhlcSeriesBase<
         return Math.abs(r1 - r0);
     }
 
+    // Picked OHLC datums use `midpointIndices[i]`, which is rarely one of the four
+    // extrema stored at OPEN/HIGH/LOW/CLOSE. The helper re-derives the bucket from
+    // the midpoint's xValue (guaranteed to lie within the bucket's x-range) rather
+    // than trusting the index itself.
+    public override getAggregateRangeReader(): _ModuleSupport.DatumRangeReader | undefined {
+        return _ModuleSupport.makeAggregateRangeReader({
+            series: this,
+            xAxis: this.axes[ChartAxisDirection.X],
+            dataModel: this.dataModel,
+            processedData: this.processedData,
+            aggregationManager: this.aggregationManager,
+            domainKey: 'key',
+        });
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection) {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return { domain: [] };

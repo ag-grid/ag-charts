@@ -356,6 +356,17 @@ describe('Zoom', () => {
             await dragAction({ x: cx / 2, y: cy / 2 }, { x: cx + cx / 2, y: cy + cy / 2 })(chart);
             await compare();
         });
+
+        it('AG-17205 should set touch-action: none on the series-area while panning is enabled so touch-drag pans the chart instead of scrolling the page', async () => {
+            await prepareChart();
+            const seriesEl = document.querySelector<HTMLElement>('.ag-charts-series-area')!;
+            expect(seriesEl).not.toBeNull();
+            expect(seriesEl.style.touchAction).toBe('none');
+
+            await chart.update({ ...EXAMPLE_OPTIONS, zoom: { enabled: false } });
+            await waitForChartStability(chart);
+            expect(seriesEl.style.touchAction).toBe('');
+        });
     });
 
     describe('select', () => {

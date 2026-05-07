@@ -76,7 +76,7 @@ import {
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import type { DatumIndexSetReader, ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
@@ -236,6 +236,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     override properties = new BubbleSeriesProperties();
 
     private dataAggregation: BubbleAggregation | undefined = undefined;
+    private aggregateIndexSet: Map<number, number[]> | undefined = undefined;
 
     private readonly sizeScale = new LinearScale();
     readonly colorScale = new ColorScale();
@@ -400,6 +401,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
         const aggregationOptions = this.aggregationOptions(xAxis, yAxis, xVisibleRange, yVisibleRange ?? [0, 1]);
         return computeBubbleAggregationCount(0, dataAggregation, aggregationOptions);
+    }
+
+    public override getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
+        const map = this.aggregateIndexSet;
+        if (map === undefined) return undefined;
+        return (sampledDatumIndex) => map.get(sampledDatumIndex) ?? [];
     }
 
     private aggregateData(dataModel: DataModel<any, any, true>, processedData: ProcessedData<any>) {
@@ -611,6 +618,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             area: 0,
         };
 
+        this.aggregateIndexSet = undefined;
+
         // Strategy selection - delegate to specialized methods
         const { dataAggregation } = this;
         if (dataAggregation == null) {
@@ -701,12 +710,16 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             aggregationOptions
         );
 
-        for (const { datumIndex, count, dilation, area } of groupedAggregation) {
+        const aggregateIndexSet = new Map<number, number[]>();
+        for (const { datumIndex, count, dilation, area, indices } of groupedAggregation) {
             scratch.count = count;
             scratch.dilation = dilation;
             scratch.area = area;
+            aggregateIndexSet.set(datumIndex, indices);
             this.upsertBubbleNodeDatum(ctx, scratch, datumIndex);
         }
+        this.aggregateIndexSet = aggregateIndexSet.size > 0 ? aggregateIndexSet : undefined;
+
         for (const datumIndex of singleDatumIndices) {
             scratch.count = 1;
             scratch.dilation = 1;
@@ -956,6 +969,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
 
                 if (colorScaleValid && datum.colorValue != null) {
                     stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                } else if (
+                    colorKey != null &&
+                    datum.colorValue == null &&
+                    this.properties.colorScale.missingDataFill != null
+                ) {
+                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
                 }
 
                 datum.style = this.getMarkerStyle(
@@ -967,7 +986,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                         highlightState,
                         resolveMarkerSubPath: [],
                     },
-                    stylerStyle
+                    { ...stylerStyle, size: datum.point.size }
                 );
             }
         });
@@ -997,8 +1016,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 dilation,
             } = datum;
             const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = { ...(datum.style ?? contextNodeData.styles[state]) };
-            style.size = size;
+            const style = datum.style == null ? { ...contextNodeData.styles[state], size } : { ...datum.style };
 
             if (dilation > 1) {
                 const fillOpacity = style.fillOpacity ?? 0;
@@ -1317,6 +1335,8 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 if (binLabel != null) {
                     data.at(-1)!.value = binLabel;
                 }
+            } else if (properties.colorScale.missingDataFill != null) {
+                resolvedColorFill = properties.colorScale.missingDataFill;
             }
         }
 

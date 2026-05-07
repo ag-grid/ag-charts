@@ -6,7 +6,7 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
@@ -32,7 +32,7 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDe
 }
 
 export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */

@@ -1,4 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { AxisID } from 'ag-charts-core';
+import { ChartAxisDirection, createId } from 'ag-charts-core';
 
 import { HierarchyDataSet } from './hierarchyDataSet';
 
@@ -8,8 +10,39 @@ export class StandaloneChart extends Chart {
     static override readonly className = 'StandaloneChart';
     static readonly type = 'standalone' as const;
 
+    private readonly xAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.X } as const;
+    private readonly yAxis = { id: createId<AxisID>(_ModuleSupport.Axis), direction: ChartAxisDirection.Y } as const;
+    private standaloneZoomRegistered = false;
+
+    constructor(options: _ModuleSupport.ChartOptions, resources?: _ModuleSupport.TransferableResources) {
+        super(options, resources);
+
+        if (this.ctx.zoomManager) {
+            this.ctx.zoomManager.panToBBoxScalingMode =
+                _ModuleSupport.PanToBBoxScalingModeEnum.WhenViewportTooSmallScaleXYProportionally;
+        }
+    }
+
     override getChartType() {
         return 'standalone' as const;
+    }
+
+    override updateData() {
+        super.updateData();
+        this.refreshStandaloneZoomRegistration();
+    }
+
+    // Lazy because `this.series` is empty at construction; the flag tracks state across
+    // hot-swaps so axes register when an opt-in series joins and unregister when it leaves.
+    private refreshStandaloneZoomRegistration() {
+        const { zoomManager } = this.ctx;
+        if (!zoomManager) return;
+
+        const wantsZoom = this.series.some((s) => s.supportsStandaloneZoom);
+        if (wantsZoom === this.standaloneZoomRegistered) return;
+
+        zoomManager.setAxes(wantsZoom ? [this.xAxis, this.yAxis] : []);
+        this.standaloneZoomRegistered = wantsZoom;
     }
 
     protected override createDataSet(data: unknown[]): _ModuleSupport.DataSet {
@@ -34,6 +67,11 @@ export class StandaloneChart extends Chart {
             group.translationX = Math.floor(seriesRect.x);
             group.translationY = Math.floor(seriesRect.y);
         }
+
+        // Matches cartesian: clip panned content out of title/subtitle/footnote.
+        const clipRect = this.series.some((s) => s.alwaysClip) ? ctx.layoutBox : undefined;
+        seriesRoot.setClipRect(clipRect);
+        annotationRoot.setClipRect(clipRect);
 
         seriesRoot.visible = this.series[0].visible;
 

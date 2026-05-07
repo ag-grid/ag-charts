@@ -41,10 +41,21 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
     verticalSpacing?: number;
 
     @Property
+    expander = new OrganizationSeriesExpanderProperties();
+
+    @Property
     link = new OrganizationSeriesLinkProperties();
 
     @Property
     node = new OrganizationSeriesNodeProperties();
+}
+
+class OrganizationSeriesExpanderProperties extends BaseProperties {
+    @Property
+    height: number = 24;
+
+    @Property
+    spacing: number = 4;
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {
@@ -196,4 +207,25 @@ export class OrganizationSeriesNodeTextProperties extends BaseProperties {
 
     @Property
     overflowStrategy: OverflowStrategy = 'ellipsis';
+
+    @Property
+    fill?: CssColor;
+
+    @Property
+    fillOpacity: number = 1;
+
+    @Property
+    stroke?: CssColor;
+
+    @Property
+    strokeWidth: number = 0;
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    cornerRadius: number = 0;
+
+    @Property
+    padding: number = 0;
 }

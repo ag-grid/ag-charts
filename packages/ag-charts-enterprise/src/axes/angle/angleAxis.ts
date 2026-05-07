@@ -1,9 +1,11 @@
 import type { AgAngleAxisLabelOrientation, TextOrSegments } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type AxisID,
     ChartAxisDirection,
     type DynamicContext,
-    Property,
+    type NormalisedAngleAxisLabelOptions,
+    type NormalisedBaseAngleAxisOptions,
     type Scale,
     type ScaleTickParams,
     type WrapOptions,
@@ -14,8 +16,6 @@ import {
     toRadians,
     wrapTextOrSegments,
 } from 'ag-charts-core';
-
-import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
 const { Path, RotatableText, Transformable, BBox, Selection, Line } = _ModuleSupport;
 export interface AngleAxisLabelDatum {
@@ -34,20 +34,12 @@ interface AngleAxisTickDatum<TDatum> {
     visible: boolean;
 }
 
-class AngleAxisLabel extends _ModuleSupport.AxisLabel {
-    @Property
-    orientation: AgAngleAxisLabelOrientation = 'fixed';
-}
-
-export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> extends _ModuleSupport.PolarAxis<TScale> {
-    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
-
-    @Property
-    startAngle: number = 0;
-
-    @Property
-    endAngle: number | undefined = undefined;
-
+export abstract class AngleAxis<
+    TDomain,
+    TScale extends Scale<TDomain, any>,
+    TOptions extends
+        NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
+> extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,
         Line,
@@ -65,8 +57,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     protected radiusLineGroup = this.axisGroup.appendChild(new _ModuleSupport.TransformableGroup());
     protected radiusLine: _ModuleSupport.Path = this.radiusLineGroup.appendChild(new Path());
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, scale: TScale) {
-        super(moduleCtx, scale);
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, id: AxisID, scale: TScale, options: TOptions) {
+        super(moduleCtx, id, scale, options);
         this.includeInvisibleDomains = true;
     }
 
@@ -74,12 +66,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         return ChartAxisDirection.Angle;
     }
 
-    protected override createLabel() {
-        return new AngleAxisLabel();
-    }
-
     calculateRotations() {
-        const rotation = toRadians(this.startAngle);
+        const rotation = toRadians(this.options.startAngle);
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -144,13 +132,12 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     private normalizedAngles(): [number, number] {
-        const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
+        const { startAngle, endAngle } = this.options;
+        const start = normalizeAngle360(-Math.PI / 2 + toRadians(startAngle));
         const sweep =
-            this.endAngle == null
-                ? 2 * Math.PI
-                : normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle));
-        const endAngle = startAngle + sweep;
-        return [startAngle, endAngle];
+            endAngle == null ? 2 * Math.PI : normalizeAngle360Inclusive(toRadians(endAngle) - toRadians(startAngle));
+        const end = start + sweep;
+        return [start, end];
     }
 
     override computeRange() {
@@ -162,9 +149,9 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     protected updateSelections() {
         const data = this.tickData;
 
-        this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
-        this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
-        this.tickLabelGroupSelection.update(this.label.enabled ? (data as any) : []);
+        this.gridLineGroupSelection.update(this.gridLength && this.options.gridLine.enabled ? data : []);
+        this.tickLineGroupSelection.update(this.options.tick.enabled ? data : []);
+        this.tickLabelGroupSelection.update(this.options.label.enabled ? (data as any) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLineGroupSelection.cleanup();
@@ -203,9 +190,10 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
             path.closePath();
         }
 
-        node.visible = this.line.enabled;
-        node.stroke = this.line.stroke;
-        node.strokeWidth = this.line.width;
+        const { line } = this.options;
+        node.visible = line.enabled;
+        node.stroke = line.stroke;
+        node.strokeWidth = line.width;
         node.fill = undefined;
     }
 
@@ -272,12 +260,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     private updateGridLines() {
-        const {
-            scale,
-            gridLength: radius,
-            gridLine: { style, width },
-            innerRadiusRatio,
-        } = this;
+        const { scale, gridLength: radius, innerRadiusRatio } = this;
+        const { style, width } = this.options.gridLine;
         if (!(style && radius > 0)) {
             return;
         }
@@ -301,7 +285,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     protected override updateLabels() {
-        const { label, tickLabelGroupSelection } = this;
+        const label = this.options.label;
+        const { tickLabelGroupSelection } = this;
 
         tickLabelGroupSelection.each((node, _, index) => {
             const labelDatum = this.labelData[index];
@@ -329,7 +314,8 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     private updateTickLines() {
-        const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
+        const { scale, gridLength: radius, tickLineGroupSelection } = this;
+        const tick = this.options.tick;
 
         tickLineGroupSelection.each((line, datum) => {
             const { value } = datum;
@@ -350,7 +336,9 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         options: { hideWhenNecessary: boolean },
         seriesRect: _ModuleSupport.BBox
     ): AngleAxisLabelDatum[] {
-        const { label, gridLength: radius, scale, tick } = this;
+        const label = this.options.label;
+        const { gridLength: radius, scale } = this;
+        const tick = this.options.tick;
         if (!label.enabled) {
             return [];
         }
@@ -435,7 +423,7 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
 
-        if (!this.label.enabled || textBoxes.length === 0) {
+        if (!this.options.label.enabled || textBoxes.length === 0) {
             return null;
         }
 
@@ -443,12 +431,11 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
     }
 
     protected getLabelOrientation(): AgAngleAxisLabelOrientation {
-        const { label } = this;
-        return label instanceof AngleAxisLabel ? label.orientation : 'fixed';
+        return this.options.label.orientation;
     }
 
     protected getLabelRotation(tickAngle: number) {
-        let rotation = toRadians(this.label.rotation ?? 0);
+        let rotation = toRadians(this.options.label.rotation ?? 0);
         tickAngle = normalizeAngle360(tickAngle);
 
         const orientation = this.getLabelOrientation();
@@ -509,16 +496,14 @@ export abstract class AngleAxis<TDomain, TScale extends Scale<TDomain, any>> ext
         return { textAlign, textBaseline };
     }
 
-    protected override updateCrossLines() {
-        const { shape, gridLength: radius, innerRadiusRatio } = this;
-        for (const crossLine of this.crossLines) {
-            if (crossLine instanceof AngleCrossLine) {
-                crossLine.ticks = this.tickData.map((t) => t.value);
-                crossLine.shape = shape;
-                crossLine.axisOuterRadius = radius;
-                crossLine.axisInnerRadius = radius * innerRadiusRatio;
-            }
-        }
-        super.updateCrossLines();
+    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+        const radius = this.gridLength;
+        return {
+            ...this.calculateRotations(),
+            shape: this.shape,
+            axisOuterRadius: radius,
+            axisInnerRadius: radius * this.innerRadiusRatio,
+            ticks: this.tickData.map((t) => t.value),
+        };
     }
 }

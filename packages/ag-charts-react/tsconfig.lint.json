@@ -4,7 +4,10 @@
     "types": ["node"],
     "paths": {
       "ag-charts-community": ["packages/ag-charts-community/src/main.ts"],
-      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"]
+      "ag-charts-enterprise": ["packages/ag-charts-enterprise/src/main.ts"],
+      "ag-charts-types": ["packages/ag-charts-types/src/main.ts"],
+      "ag-charts-locale": ["packages/ag-charts-locale/src/main.ts"],
+      "ag-charts-core": ["packages/ag-charts-core/src/main.ts"]
     }
   },
   "include": ["*.ts", "src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]

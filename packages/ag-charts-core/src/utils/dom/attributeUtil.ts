@@ -100,6 +100,7 @@ export type BaseStyleTypeMap = {
     display: 'none';
     position: 'absolute';
     'pointer-events': 'auto' | 'none';
+    'touch-action': 'auto' | 'none';
     width: '100%';
     height: '100%';
 };

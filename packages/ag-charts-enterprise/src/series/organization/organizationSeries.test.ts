@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type {
     AgChartOptions,
@@ -10,7 +10,10 @@ import { AgCharts } from 'ag-charts-community';
 import {
     ChartTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
+    deproxy,
+    dragAction,
     extractImageData,
+    hoverAction,
     setupMockCanvas,
     setupMockConsole,
     standaloneChartAssertions,
@@ -86,6 +89,140 @@ const SIMPLE_ORG_CHART_THEMED: AgChartOptions = {
             },
         },
     },
+};
+
+// Wide + tall layout that overflows the 800x600 mock canvas on both axes. Required for tests
+// that exercise non-fit zoom behaviour — the `s ≤ 1` native-pixel cap snaps content that fits
+// back to fit, so SIMPLE_ORG_CHART can't drive pan-to-active or off-isotropic projection.
+const OVERFLOWING_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        for (let i = 0; i < 8; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            for (let j = 0; j < 8; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+            }
+        }
+        let parent = 'leaf-0-0';
+        for (let k = 0; k < 6; k++) {
+            const id = `chain-${k}`;
+            data.push({ id, name: `Chain ${k}`, job: 'Senior Developer', location: 'London', parentId: parent });
+            parent = id;
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
+// Tall + narrow layout: contentBBox fits the canvas horizontally but overflows vertically.
+// Used by the series-area clipping test so y-only zoom + vertical pan produces an unmistakable
+// "card cut off at the title boundary" demonstration with readable cards.
+const TALL_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const branches = 3;
+        const chainDepth = 12;
+        for (let i = 0; i < branches; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            let parent: string = vp;
+            for (let k = 0; k < chainDepth; k++) {
+                const id = `chain-${i}-${k}`;
+                data.push({
+                    id,
+                    name: `Lead ${i}.${k}`,
+                    job: 'Senior Developer',
+                    location: 'London',
+                    parentId: parent,
+                });
+                parent = id;
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
+};
+
+// Square-aspect overflow: contentBBox aspect ratio matches the 800×600 canvas so fitX ≈ fitY,
+// AND content is densely distributed across both axes (not just one corner). Each leaf has its
+// own chain hanging below, so the middle-x/middle-y region of contentBBox actually contains
+// nodes — without that, zoom-centred snapshots land in blank whitespace.
+//
+// `applyNativePixelFloor`'s isotropic projection sets `t = max(xRange/fitX, yRange/fitY)` and
+// applies it to both axes; if one axis overflows much more than the other (as in
+// OVERFLOWING_ORG_CHART, which is very wide but only modestly tall), the smaller-fit axis
+// dominates and the requested zoom on the other axis gets snapped back to {0, 1}. Tests that
+// assert symmetric x/y zoom behaviour need fits that are comparable on both axes.
+const SQUARE_OVERFLOW_ORG_CHART: AgChartOptions = {
+    data: (() => {
+        const data: { id: string; name: string; job: string; location: string; parentId: string | null }[] = [
+            { id: 'ceo', name: 'Alice Chen', job: 'Chief Executive Officer', location: 'London', parentId: null },
+        ];
+        const vpCount = 4;
+        const leavesPerVp = 4;
+        const chainDepth = 20;
+        for (let i = 0; i < vpCount; i++) {
+            const vp = `vp-${i}`;
+            data.push({ id: vp, name: `VP ${i}`, job: 'Vice President', location: 'London', parentId: 'ceo' });
+            for (let j = 0; j < leavesPerVp; j++) {
+                const leaf = `leaf-${i}-${j}`;
+                data.push({ id: leaf, name: `Lead ${i}.${j}`, job: 'Team Lead', location: 'London', parentId: vp });
+                let parent: string = leaf;
+                for (let k = 0; k < chainDepth; k++) {
+                    const id = `chain-${i}-${j}-${k}`;
+                    data.push({
+                        id,
+                        name: `${i}.${j}.${k}`,
+                        job: 'Senior Developer',
+                        location: 'London',
+                        parentId: parent,
+                    });
+                    parent = id;
+                }
+            }
+        }
+        return data;
+    })(),
+    series: [
+        {
+            type: 'organization',
+            idKey: 'id',
+            parentIdKey: 'parentId',
+            node: {
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
+            },
+        },
+    ],
 };
 
 const LINKS_ROUNDED_INTERPOLATION: AgChartOptions = {
@@ -202,13 +339,73 @@ const FORMATTERS: AgChartOptions = {
     ],
 };
 
+const segmentTitleFormatter = ({ value }: { value: any }) => {
+    const parts = String(value).split(' ');
+    return [
+        { text: parts[0] + ' ', color: 'red' },
+        { text: parts.slice(1).join(' '), color: 'blue' },
+    ];
+};
+
+function createSegmentAlignmentExample(textAlign: TextAlign, mode: 'property' | 'itemStyler'): any {
+    const align = mode === 'property' ? { textAlign } : { itemStyler: () => ({ textAlign }) };
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                node: {
+                    title: { key: 'name', formatter: segmentTitleFormatter, ...align },
+                    subtitle: { key: 'job', ...align },
+                    labels: [{ key: 'location', ...align }],
+                },
+            },
+        ],
+    };
+}
+
 interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
 
+function createExpanderHeightExample(height: number): any {
+    const series = SIMPLE_ORG_CHART.series![0];
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                ...series,
+                expander: { height },
+            },
+        ],
+    };
+}
+
+function createExpanderSpacingExample(expanderHeight: number, expanderSpacing: number): any {
+    return {
+        ...SIMPLE_ORG_CHART,
+        series: [
+            {
+                type: 'organization',
+                idKey: 'id',
+                parentIdKey: 'parentId',
+                expander: { height: expanderHeight, spacing: expanderSpacing },
+                node: {
+                    title: { key: 'name' },
+                    subtitle: { key: 'job' },
+                    labels: [{ key: 'location' }],
+                },
+            },
+        ],
+    };
+}
+
 function createTextImageExample(
     textAlign: TextAlign,
-    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition
+    imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
+    imageShape?: 'circle' | 'square'
 ): any {
     return {
         ...SIMPLE_ORG_CHART,
@@ -218,7 +415,11 @@ function createTextImageExample(
                 idKey: 'id',
                 parentIdKey: 'parentId',
                 node: {
-                    image: { position: imagePosition, key: 'avatar' },
+                    image: {
+                        position: imagePosition,
+                        key: 'avatar',
+                        ...(imageShape == null ? {} : { shape: imageShape }),
+                    },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
                     labels: [{ key: 'location', textAlign }],
@@ -261,14 +462,325 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: createTextImageExample('center', 'right'),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    IMAGE_CIRCLE_TOP: {
+        // Verifies `shape: 'circle'` clips the image to a circle (width === height) when the
+        // image sits above the text tiers.
+        options: createTextImageExample('center', 'top', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_BOTTOM: {
+        options: createTextImageExample('left', 'bottom', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_LEFT: {
+        options: createTextImageExample('left', 'left', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    IMAGE_CIRCLE_RIGHT: {
+        options: createTextImageExample('right', 'right', 'circle'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED: {
+        options: createSegmentAlignmentExample('left', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED: {
+        options: createSegmentAlignmentExample('right', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED: {
+        options: createSegmentAlignmentExample('center', 'property'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_LEFT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('left', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_CENTER_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('center', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_PER_DATUM_ALIGNMENT_VIA_ITEM_STYLER: {
+        // Confirms cached per-datum styles aren't shared between OrganizationNodes:
+        // each row gets a different alignment based on its job.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ datum }: { datum: any }) => {
+                                if (datum.job === 'Chief Executive Officer') return { textAlign: 'left' };
+                                if (datum.job === 'Chief Technology Officer') return { textAlign: 'center' };
+                                return { textAlign: 'right' };
+                            },
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    SEGMENT_TITLE_RIGHT_ALIGNED_VIA_ITEM_STYLER: {
+        options: createSegmentAlignmentExample('right', 'itemStyler'),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            fill: '#fff1e5',
+                            stroke: '#006f9b',
+                            strokeWidth: 1,
+                            cornerRadius: 4,
+                            padding: 4,
+                        },
+                        subtitle: {
+                            key: 'job',
+                            fill: '#e0e8ff',
+                            cornerRadius: 8,
+                            padding: 6,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                stroke: '#999',
+                                strokeWidth: 1,
+                                cornerRadius: 2,
+                                padding: 2,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_LARGE_PADDING: {
+        // Regression for AG-17193 pt2: with sizable padding (>>0) the text-box layout
+        // must reserve the full padded bounds so siblings don't overlap each other or
+        // the card edges. Mirrors the QA repro at plnkr.co/edit/64pDpFemUqydBOhJ.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            fill: 'dodgerblue',
+                            fillOpacity: 0.15,
+                            stroke: 'dodgerblue',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.8,
+                            cornerRadius: 6,
+                            padding: 20,
+                            fontWeight: 'bold',
+                        },
+                        subtitle: {
+                            key: 'job',
+                            fill: 'seagreen',
+                            fillOpacity: 0.12,
+                            stroke: 'seagreen',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.6,
+                            cornerRadius: 4,
+                            padding: 20,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                fill: 'tomato',
+                                fillOpacity: 0.18,
+                                stroke: 'tomato',
+                                strokeWidth: 1,
+                                strokeOpacity: 0.7,
+                                cornerRadius: 8,
+                                padding: 30,
+                                fontSize: 11,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_VIA_ITEM_STYLER: {
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ datum }: { datum: any }) =>
+                                datum.job === 'Chief Executive Officer'
+                                    ? { fill: '#ffd700', cornerRadius: 12, padding: 6 }
+                                    : { fill: '#e0e8ff', cornerRadius: 4, padding: 4 },
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    NODE_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // 'cto' is collapsed via initialState; node.itemStyler returns a distinct fill/stroke
+        // when isCollapsed is true. Verifies the param is plumbed through and reflects the
+        // current collapsed state per node.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                            isCollapsed
+                                ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2, lineDash: [4, 2] }
+                                : undefined,
+                        title: { key: 'name' },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_ITEM_STYLER_USES_IS_COLLAPSED: {
+        // Same setup but the styler lives on the title tier — confirms isCollapsed reaches
+        // text-tier itemStyler params, not just node-level.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                isCollapsed ? { color: '#ff7faa', fontStyle: 'italic' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    NODE_TEXT_FORMATTER_USES_IS_COLLAPSED: {
+        // Title/subtitle/label formatters receive `isCollapsed` and can append a marker —
+        // verifies the param reaches the formatter callback for all three text tiers.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            initialState: { collapsed: ['cto'] },
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} (collapsed)` : value,
+                        },
+                        subtitle: {
+                            key: 'job',
+                            formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                isCollapsed ? `${value} +` : value,
+                        },
+                        labels: [
+                            {
+                                key: 'location',
+                                formatter: ({ isCollapsed, value }: { isCollapsed: boolean; value: string }) =>
+                                    isCollapsed ? `${value} *` : value,
+                            },
+                        ],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_HEIGHT_SHORT: {
+        // Layout reserves and renders the pill at exactly the configured height; verifies all
+        // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink
+        // in step so children sit closer to the parent without elbow misalignment.
+        options: createExpanderHeightExample(16),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    EXPANDER_HEIGHT_TALL: {
+        // Inverse of EXPANDER_HEIGHT_SHORT: a taller pill expands the parent–child gap and the
+        // count text remains vertically centred against the rendered pill height (not a constant).
+        options: createExpanderHeightExample(32),
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
+    TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
+        // property-level supplies stroke + cornerRadius + padding; itemStyler adds fill conditionally.
+        // Verifies merge: defaults + property + itemStyler accumulate correctly per datum.
+        options: {
+            ...SIMPLE_ORG_CHART,
+            series: [
+                {
+                    type: 'organization',
+                    idKey: 'id',
+                    parentIdKey: 'parentId',
+                    node: {
+                        title: {
+                            key: 'name',
+                            stroke: '#006f9b',
+                            strokeWidth: 1,
+                            cornerRadius: 4,
+                            padding: 4,
+                            itemStyler: ({ datum }: { datum: any }) =>
+                                datum.job === 'Chief Executive Officer' ? { fill: '#ffd700' } : undefined,
+                        },
+                        subtitle: { key: 'job' },
+                        labels: [{ key: 'location' }],
+                    },
+                },
+            ],
+        } as any,
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
 };
 
 describe('OrganizationSeries', () => {
     setupMockConsole();
     let chart: any;
 
-    afterEach(() => {
+    afterEach(async () => {
         if (chart) {
+            await waitForChartStability(chart);
             chart.destroy();
             (chart as unknown) = undefined;
         }
@@ -282,6 +794,22 @@ describe('OrganizationSeries', () => {
         const imageData = extractImageData(ctx);
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
+
+    function getZoomRatios(c: any) {
+        return c.getState()?.zoom as
+            | { ratioX?: { start?: number; end?: number }; ratioY?: { start?: number; end?: number } }
+            | undefined;
+    }
+
+    // Drives ZoomManager directly to bypass the memento path's theme-template projection
+    // (`keepAspectRatio`, `autoScaling`) — tests below assert exact zoom states. Use
+    // `chart.setState({zoom: ...})` to exercise the full state-restore pipeline.
+    function setZoom(c: any, xMin: number, xMax: number, yMin: number, yMax: number) {
+        deproxy(c).ctx.zoomManager?.updateZoom(
+            { source: 'state-change', sourceDetail: 'unspecified' },
+            { x: { min: xMin, max: xMax }, y: { min: yMin, max: yMax } }
+        );
+    }
 
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
@@ -323,6 +851,25 @@ describe('OrganizationSeries', () => {
                 }
             }
         );
+    });
+
+    describe('expander chevron', () => {
+        it('should render a point-down chevron when a node is expanded', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should render a point-up chevron when a node is collapsed', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+            await compare();
+        });
     });
 
     describe('expand collapse', () => {
@@ -382,6 +929,241 @@ describe('OrganizationSeries', () => {
 
                 await compare();
             });
+
+            it('should not leak labels onto sparse-tier nodes after collapse reuses scene nodes', async () => {
+                // AG-17246 regression: collapsing nodes forces Selection reuse; a scene node
+                // whose previous datum had labels retains that text unless trailing nodes are trimmed.
+                const options: AgChartOptions = {
+                    data: [
+                        { id: 'henry7', name: 'Henry VII', reign: 'King 1485 - 1509', parentId: null },
+                        { id: 'henry8', name: 'Henry VIII', reign: 'King 1509 - 1547', parentId: 'henry7' },
+                        { id: 'margaret', name: 'Margaret Tudor', reign: 'Queen of Scots', parentId: 'henry7' },
+                        { id: 'mary1', name: 'Mary I', reign: 'Queen 1553 - 1558', parentId: 'henry8' },
+                        { id: 'elizabeth1', name: 'Elizabeth I', reign: 'Queen 1558 - 1603', parentId: 'henry8' },
+                        { id: 'frances', name: 'Frances Brandon', parentId: 'margaret' },
+                        { id: 'jane', name: 'Lady Jane Grey', parentId: 'frances' },
+                    ],
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                labels: [{ key: 'reign' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+                await chart.setState({ version: '13.3.0', collapsed: ['henry8'] });
+                await waitForChartStability(chart);
+
+                // Assert rendered labels match each node's source datum (pinpoints the mismatch
+                // more precisely than a snapshot).
+                const series = deproxy(chart).series[0] as any;
+                const expectedReign: Record<string, string | undefined> = {
+                    henry7: 'King 1485 - 1509',
+                    henry8: 'King 1509 - 1547',
+                    margaret: 'Queen of Scots',
+                    frances: undefined,
+                    jane: undefined,
+                };
+                series.datumSelection.each((node: any, datum: any) => {
+                    const renderedTexts: string[] = (node.labelNodes ?? [])
+                        .filter((n: any) => n != null)
+                        .map((n: any) => n.text);
+                    const expected = expectedReign[datum.itemId];
+                    if (expected === undefined) {
+                        expect(renderedTexts).toEqual([]);
+                    } else {
+                        expect(renderedTexts).toEqual([expected]);
+                    }
+                });
+            });
+
+            it('AG-17250 should keep node bbox stable across repeated programmatic toggles', async () => {
+                // Card height must not grow on each expand/collapse cycle.
+                const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await waitForChartStability(chart);
+
+                const series = deproxy(chart).series[0] as any;
+                const captureBBoxes = () => {
+                    const bboxes: { itemId: string; width: number; height: number }[] = [];
+                    series.datumSelection.each((node: any, datum: any) => {
+                        const card = node.getCardBBox();
+                        if (card) {
+                            bboxes.push({ itemId: datum.itemId, width: card.width, height: card.height });
+                        }
+                    });
+                    return bboxes;
+                };
+
+                const initial = captureBBoxes();
+                expect(initial.length).toBeGreaterThan(0);
+
+                for (let i = 0; i < 3; i++) {
+                    await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                    await waitForChartStability(chart);
+                    await chart.setState({ version: '13.3.0', collapsed: [] });
+                    await waitForChartStability(chart);
+                }
+
+                expect(captureBBoxes()).toEqual(initial);
+            });
+
+            it('should respect text-tier itemStyler `enabled: false` (AG-17243)', async () => {
+                // Auto-enable must not overwrite a styler's `enabled: false`.
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    initialState: { collapsed: ['cto'] },
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                title: { key: 'name' },
+                                subtitle: {
+                                    key: 'job',
+                                    itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                        isCollapsed ? { enabled: false } : undefined,
+                                },
+                                labels: [
+                                    {
+                                        key: 'location',
+                                        itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                            isCollapsed ? { enabled: false } : undefined,
+                                    },
+                                ],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+                chart = AgCharts.create(options);
+                await compare();
+            });
+
+            it('should re-evaluate isCollapsed-aware itemStylers across collapse/expand toggles', async () => {
+                // The styler flips fill on `isCollapsed`; snapshotting after each toggle
+                // catches a stale-cache regression where `isCollapsed` is omitted from the key.
+                const options: AgChartOptions = {
+                    ...SIMPLE_ORG_CHART,
+                    series: [
+                        {
+                            type: 'organization',
+                            idKey: 'id',
+                            parentIdKey: 'parentId',
+                            node: {
+                                itemStyler: ({ isCollapsed }: { isCollapsed: boolean }) =>
+                                    isCollapsed ? { fill: '#fff1e5', stroke: '#ff7faa', strokeWidth: 2 } : undefined,
+                                title: { key: 'name' },
+                                subtitle: { key: 'job' },
+                                labels: [{ key: 'location' }],
+                            },
+                        },
+                    ],
+                };
+                prepareEnterpriseTestOptions(options);
+
+                chart = AgCharts.create(options);
+                await chart.setState({ version: '13.3.0', collapsed: ['cto'] });
+                await compare();
+                await chart.setState({ version: '13.3.0', collapsed: [] });
+                await compare();
+            });
+        });
+    });
+
+    describe('theme defaults', () => {
+        it('should apply Figma-aligned theme defaults', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should apply default highlight stroke when a node is hovered', async () => {
+            // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
+            // .claude/rules/testing.md); without the theme stroke default the hovered node
+            // would render identical to its neighbours.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                theme: {
+                    overrides: {
+                        organization: { series: { node: { cornerRadius: 0 } } },
+                    },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Root card centre on the 800x600 mock canvas (card spans ~x=357-523, ~y=112-202).
+            await hoverAction(440, 155)(chart);
+            await compare();
+        });
+    });
+
+    describe('node labels', () => {
+        it('should render when a labels-array entry has `enabled: false` (AG-17252)', async () => {
+            // A disabled label entry must be skipped silently, not crash `dataModel`.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location', enabled: false }, { key: 'tenure' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await compare();
+            expect(console.error).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('series-area clipping', () => {
+        it('should clip dragged content to the series area so nodes do not bleed into the title', async () => {
+            // AG-17233 regression. TALL_ORG_CHART fits the canvas horizontally but overflows
+            // vertically, so y-only zoom + a downward drag pans content upward and lands an
+            // upper card directly on the series-area top boundary. The clip-rect must cut the
+            // card off at that boundary instead of letting it bleed into the title above.
+            const options: AgChartOptions = {
+                ...TALL_ORG_CHART,
+                title: { text: 'Organisation Chart', fontSize: 18 },
+                subtitle: { text: 'Reporting structure' },
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0, 1, 0.3, 0.7);
+            await waitForChartStability(chart);
+
+            // Drag content up far enough that an upper card straddles the title boundary —
+            // the clip-rect must cut it at the series-area top instead of letting it bleed
+            // into the title. AG-17233's bug was a missing clip-rect during pan.
+            await dragAction({ x: 400, y: 580 }, { x: 400, y: 50 })(chart);
+
+            await compare();
         });
     });
 
@@ -400,6 +1182,423 @@ describe('OrganizationSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+
+        it('should use outerSpacing for cousin gaps and innerSpacing for sibling gaps', async () => {
+            // innerSpacing=20, outerSpacing=40: cousin gap (D↔E) must exceed sibling gaps.
+            const options: AgChartOptions = {
+                ...SIMPLE_ORG_CHART,
+                data: [
+                    { id: 'root', name: 'Root', job: 'Root', parentId: null },
+                    { id: 'a', name: 'Parent A', job: 'Manager', parentId: 'root' },
+                    { id: 'b', name: 'Parent B', job: 'Manager', parentId: 'root' },
+                    { id: 'c', name: 'Child C', job: 'Report', parentId: 'a' },
+                    { id: 'd', name: 'Child D', job: 'Report', parentId: 'a' },
+                    { id: 'e', name: 'Child E', job: 'Report', parentId: 'b' },
+                    { id: 'f', name: 'Child F', job: 'Report', parentId: 'b' },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        innerSpacing: 20,
+                        outerSpacing: 40,
+                        node: { title: { key: 'name' }, subtitle: { key: 'job' } },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should not overlap last label with expander pill at default spacing', async () => {
+            // Regression for the overlap caused by node.padding shrinking 16→8: the bottom
+            // padding becomes max(padding, expanderHeight/2 + spacing).
+            const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should leave card layout unchanged when expander is short enough', async () => {
+            // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
+            // leaf cards share the same bottom padding — no extra space reserved.
+            const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('should wrap text within card bounds when node.maxWidth is set', async () => {
+            const options: AgChartOptions = {
+                data: [
+                    {
+                        id: 'root',
+                        name: 'Alexandra Winterbottom-Richardson',
+                        job: 'Senior Vice President of Global Operations and Strategic Initiatives',
+                        location: 'San Francisco, California',
+                        parentId: null,
+                    },
+                    {
+                        id: 'child',
+                        name: 'Bartholomew Fitzpatrick',
+                        job: 'Regional Director of Business Development',
+                        location: 'New York',
+                        parentId: 'root',
+                    },
+                ],
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 180,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        const LONG_LABEL_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alexandra Winterbottom-Richardson',
+                job: 'Chief Technology Officer of Global Operations',
+                location: 'San Francisco, California',
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bartholomew Fitzpatrick',
+                job: 'Senior Vice President of Strategic Initiatives',
+                location: 'New York, New York',
+                parentId: 'ceo',
+            },
+            {
+                id: 'coo',
+                name: 'Charlotte Featherington-Smythe',
+                job: 'Operations Manager for International Markets',
+                location: 'London, United Kingdom',
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 should wrap long labels with explicit narrow maxWidth and wrapping: always', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'always' },
+                            subtitle: { key: 'job', wrapping: 'always' },
+                            labels: [{ key: 'location', wrapping: 'always' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 should truncate long labels with explicit narrow maxWidth and overflowStrategy: ellipsis', async () => {
+            const options: AgChartOptions = {
+                data: LONG_LABEL_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 140,
+                            title: { key: 'name', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            subtitle: { key: 'job', wrapping: 'never', overflowStrategy: 'ellipsis' },
+                            labels: [{ key: 'location', wrapping: 'never', overflowStrategy: 'ellipsis' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+    });
+
+    describe('viewportGroup zoom transform', () => {
+        it('should render 2× zoomed-in centred (x: 0.25–0.75, y: 0.25–0.75)', async () => {
+            // SQUARE_OVERFLOW_ORG_CHART is required: with comparable fitX and fitY the
+            // requested xRange and yRange both pass through `applyNativePixelFloor`'s
+            // isotropic projection. SIMPLE_ORG_CHART would snap zoom back to {0, 1}, and
+            // the wide-only OVERFLOWING_ORG_CHART would force yRange to 1.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.25, 0.75, 0.25, 0.75);
+            await compare();
+        });
+
+        it('should render 2× zoomed-in top-right quadrant (x: 0.5–1.0, y: 0.5–1.0)', async () => {
+            // Y is cartesian (y-up): yStart=0.5, yEnd=1 ⇒ top half of content visible.
+            // SQUARE_OVERFLOW_ORG_CHART is required for the same reason as the centred test above.
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.5, 1, 0.5, 1);
+            await compare();
+        });
+    });
+
+    // OVERFLOWING_ORG_CHART throughout: the `s ≤ 1` cap snaps fitting content back to fit, so
+    // `panToBBox` is never invoked on SIMPLE_ORG_CHART.
+    describe('pan-to-active', () => {
+        it('should pan to active item after setState when the node is outside the zoom window', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0, end: 0.2 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-7' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            await compare();
+        });
+
+        it('should NOT pan when the active node is already within the zoom window', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
+
+            const seriesId = deproxy(chart).series[0].id;
+            await chart.setState({
+                version: '13.3.0',
+                zoom: { ratioX: { start: 0.8, end: 1 }, ratioY: { start: 0, end: 1 } },
+                active: { activeItem: { type: 'series-node', seriesId, itemId: 'leaf-7-4' } },
+            });
+            await waitForChartStability(chart);
+
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+        });
+
+        it('should NOT pan when active item changes via hover (user-interaction source)', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            setZoom(chart, 0.8, 1, 0, 1);
+            await waitForChartStability(chart);
+
+            // Spy after the initial zoom so only hover-induced pans count.
+            const zoomManager = deproxy(chart).ctx.zoomManager;
+            const panSpy = zoomManager ? vi.spyOn(zoomManager, 'panToBBox') : undefined;
+            const ratiosBefore = getZoomRatios(chart);
+
+            // `activeManager.update` is the canonical hover simulation — JSDOM canvas
+            // hit-testing is stubbed so DOM events can't drive picking (testing.md).
+            const seriesId = deproxy(chart).series[0].id;
+            deproxy(chart).ctx.activeManager.update({ type: 'series-node', seriesId, itemId: 'leaf-7-4' }, undefined);
+            await waitForChartStability(chart);
+
+            expect(panSpy).not.toHaveBeenCalled();
+            panSpy?.mockRestore();
+
+            const ratiosAfter = getZoomRatios(chart);
+            expect(ratiosAfter?.ratioX?.start).toBeCloseTo(ratiosBefore?.ratioX?.start ?? 0.8, 6);
+            expect(ratiosAfter?.ratioX?.end).toBeCloseTo(ratiosBefore?.ratioX?.end ?? 1, 6);
+            expect(ratiosAfter?.ratioY?.start).toBeCloseTo(ratiosBefore?.ratioY?.start ?? 0, 6);
+            expect(ratiosAfter?.ratioY?.end).toBeCloseTo(ratiosBefore?.ratioY?.end ?? 1, 6);
+        });
+    });
+
+    describe('keyboard navigation', () => {
+        // Same `(otherIndexDelta, datumIndexDelta)` deltas the seriesAreaManager dispatches for
+        // arrow keys.
+        const ARROW_UP = { datumIndexDelta: 0, otherIndexDelta: -1 };
+        const ARROW_DOWN = { datumIndexDelta: 0, otherIndexDelta: 1 };
+        const ARROW_LEFT = { datumIndexDelta: -1, otherIndexDelta: 0 };
+        const ARROW_RIGHT = { datumIndexDelta: 1, otherIndexDelta: 0 };
+
+        async function setupChart() {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            return deproxy(chart).series[0] as any;
+        }
+
+        function press(series: any, key: typeof ARROW_DOWN, datumIndex: number, otherIndex = 0) {
+            return series.pickFocus({
+                datumIndex: datumIndex + key.datumIndexDelta,
+                datumIndexDelta: key.datumIndexDelta,
+                otherIndex: otherIndex + key.otherIndexDelta,
+                otherIndexDelta: key.otherIndexDelta,
+            });
+        }
+
+        it('ArrowDown moves from the root to its first child', async () => {
+            const series = await setupChart();
+            const pick = press(series, ARROW_DOWN, 0, 0);
+            expect(pick?.datum.itemId).toBe('cto');
+            expect(pick?.otherIndex).toBe(2);
+        });
+
+        it('ArrowDown into a leaf is a no-op', async () => {
+            const series = await setupChart();
+            // dev is at nodeData[2], depth 3, leaf.
+            expect(press(series, ARROW_DOWN, 2, 3)).toBeUndefined();
+        });
+
+        it('ArrowUp moves from a child to its parent', async () => {
+            const series = await setupChart();
+            // cfo (datumIndex 4, depth 2) → ceo (datumIndex 0, depth 1).
+            const pick = press(series, ARROW_UP, 4, 2);
+            expect(pick?.datum.itemId).toBe('ceo');
+            expect(pick?.otherIndex).toBe(1);
+        });
+
+        it('ArrowUp at the top tier is a no-op', async () => {
+            const series = await setupChart();
+            expect(press(series, ARROW_UP, 0, 1)).toBeUndefined();
+        });
+
+        it('ArrowRight moves to the next sibling', async () => {
+            const series = await setupChart();
+            // cto (datumIndex 1) → cfo (datumIndex 4).
+            const pick = press(series, ARROW_RIGHT, 1, 2);
+            expect(pick?.datum.itemId).toBe('cfo');
+        });
+
+        it('ArrowLeft moves to the previous sibling', async () => {
+            const series = await setupChart();
+            // qa (datumIndex 3) → dev (datumIndex 2).
+            const pick = press(series, ARROW_LEFT, 3, 3);
+            expect(pick?.datum.itemId).toBe('dev');
+        });
+
+        it('ArrowRight at the last sibling clamps (no wrap)', async () => {
+            const series = await setupChart();
+            // qa is the last sibling under cto; ArrowRight should stay on qa.
+            const pick = press(series, ARROW_RIGHT, 3, 3);
+            expect(pick?.datum.itemId).toBe('qa');
+        });
+
+        it('ArrowDown into a collapsed node is a no-op', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            const series = deproxy(chart).series[0] as any;
+            // With cto collapsed, nodeData is [ceo, cto, cfo, acc]; cto sits at index 1, depth 2.
+            expect(press(series, ARROW_DOWN, 1, 2)).toBeUndefined();
+        });
+
+        // Follows the same DOM chain a screen reader would: the visible swap-chain announcer
+        // (`aria-hidden="false"`) labelled by a hidden `<div>` carrying the message.
+        function readLiveAnnouncement(): string {
+            const announcer = document.querySelector<HTMLElement>('.ag-charts-swapchain[aria-hidden="false"]');
+            const labelId = announcer?.getAttribute('aria-labelledby');
+            const label = labelId ? document.getElementById(labelId) : null;
+            return label?.textContent ?? '';
+        }
+
+        function pressArrowOnSeriesArea(key: 'ArrowUp' | 'ArrowDown' | 'ArrowLeft' | 'ArrowRight') {
+            const seriesArea = document.querySelector<HTMLElement>('.ag-charts-series-area');
+            if (!seriesArea) throw new Error('series-area element not found');
+            seriesArea.dispatchEvent(new KeyboardEvent('keydown', { key, code: key, bubbles: true }));
+        }
+
+        it('announces a parent node identity-first with level, position, and expanded state', async () => {
+            await setupChart();
+            // Default focus sits on the root (ceo); ArrowDown moves to its first child (cto).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+        });
+
+        it('omits collapsed-state from a leaf announcement', async () => {
+            await setupChart();
+            // ArrowDown twice: ceo → cto → dev (a leaf at depth 3).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            const announcement = readLiveAnnouncement();
+            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            // Guard against the empty-collapsedState stutter VoiceOver caught before the
+            // leaf/parent locale-key split.
+            expect(announcement).not.toContain(',,');
+            expect(announcement).not.toContain(', ,');
+        });
+
+        it('reports collapsed parents in the live announcement', async () => {
+            const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
+            prepareEnterpriseTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+        });
+    });
+
+    describe('aspect-ratio guard', () => {
+        it('should project off-isotropic zoom state onto the isotropic line', async () => {
+            const options: AgChartOptions = { ...OVERFLOWING_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Off-isotropic request (x=0.6 wide, y=0.2 wide) centred at 0.5,0.5.
+            setZoom(chart, 0.2, 0.8, 0.4, 0.6);
+            await waitForChartStability(chart);
+
+            const imageData = extractImageData(ctx);
+            expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     });
 });

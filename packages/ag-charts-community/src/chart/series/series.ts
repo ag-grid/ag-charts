@@ -77,12 +77,14 @@ import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, SelectionState, toHighlightString, toSelectionString } from './seriesProperties';
+import { HighlightState, SelectionState, isSelected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
+    DatumIndexSetReader,
     DatumIndexType,
+    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -218,6 +220,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     canHaveAxes?: boolean;
     usesPlacedLabels?: boolean;
     alwaysClip?: boolean;
+    supportsStandaloneZoom?: boolean;
 };
 
 function propertyAxisDirection(property: 'x' | 'y' | 'angle' | 'radius'): ChartAxisDirection;
@@ -274,8 +277,11 @@ export abstract class Series<
     pickModes: SeriesNodePickMode[];
     usesPlacedLabels: boolean = false;
     readonly alwaysClip: boolean = false;
+    /** Opts into StandaloneChart zoom (axis registration + scale/translate viewport). */
+    readonly supportsStandaloneZoom: boolean = false;
 
     protected hasChangesOnHighlight: boolean = false;
+    protected hasChangesOnSelection: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -454,6 +460,7 @@ export abstract class Series<
             canHaveAxes = false,
             usesPlacedLabels = false,
             alwaysClip = false,
+            supportsStandaloneZoom = false,
         } = seriesOpts;
 
         this.ctx = moduleCtx;
@@ -463,11 +470,15 @@ export abstract class Series<
         this.usesPlacedLabels = usesPlacedLabels;
         this.pickModes = pickModes;
         this.alwaysClip = alwaysClip;
+        this.supportsStandaloneZoom = supportsStandaloneZoom;
         this.highlightLabelGroup.pointerEvents = PointerEvents.None;
 
         this.cleanup.register(
             this.ctx.eventsHub.on('data:update', (data) => this.setChartData(data)),
-            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event))
+            this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
+            this.events.on('data-selection-change', () => {
+                this.hasChangesOnSelection = true;
+            })
         );
     }
 
@@ -994,7 +1005,10 @@ export abstract class Series<
     public *pickNodesInBBox(selectionBox: BoxBounds): Iterable<TDatum> {
         function* walkNodes(node: Group, callback: (node: Node) => TDatum | undefined): Iterable<TDatum> {
             for (const child of node.children()) {
-                if (child.datum !== undefined) {
+                // Note: Some series-type include `datum` values in the scene-graph that not assignable to `TDatum`.
+                // For example: line-series `SegmentedPath` include segmentation data in `datum`). So add some basic
+                // check for `datumIndex` to filter out datums that definitely not assignable to `TDatum`.
+                if (child.datum != null && typeof child.datum === 'object' && 'datumIndex' in child.datum) {
                     const result = callback(child);
                     if (result !== undefined) {
                         yield result;
@@ -1025,6 +1039,16 @@ export abstract class Series<
             }
             return undefined;
         });
+    }
+
+    public getAggregateRangeReader(): DatumRangeReader | undefined {
+        // Override point for subclasses with aggregation
+        return undefined;
+    }
+
+    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
+        // Override point for subclasses with non-contiguous index-set aggregation
+        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;
@@ -1263,6 +1287,7 @@ export abstract class Series<
             checkForHighlight?: boolean;
             resolveMarkerSubPath?: string[];
             resolveStyler?: boolean;
+            hideWithSize0?: boolean;
         },
         defaultOverrideStyle: AgSeriesMarkerStyle & { size: number } = { size: point?.size ?? marker.size ?? 0 },
         inheritedStyle?: AgSeriesMarkerStyle
@@ -1274,9 +1299,14 @@ export abstract class Series<
             checkForHighlight = true,
             resolveMarkerSubPath = ['marker'],
             resolveStyler = false,
+            hideWithSize0 = false,
         } = opts ?? {};
         const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
         const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
+
+        if (hideWithSize0 && isSelected(selectionState)) {
+            return { size: 0 } satisfies AgSeriesMarkerStyle;
+        }
 
         if (resolveStyler) {
             const resolveOpt = { permissivePath: true };

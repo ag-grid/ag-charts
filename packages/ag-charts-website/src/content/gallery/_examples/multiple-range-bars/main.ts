@@ -3,6 +3,7 @@ import {
     AgCharts,
     BandHighlightModule,
     ContextMenuModule,
+    CrossLinesModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -15,10 +16,11 @@ import { getData } from './data';
 ModuleRegistry.registerModules([
     BandHighlightModule,
     ContextMenuModule,
+    CrossLinesModule,
     LegendModule,
+    NumberAxisModule,
     RangeBarSeriesModule,
     UnitTimeAxisModule,
-    NumberAxisModule,
 ]);
 const data = getData();
 

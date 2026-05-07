@@ -2,12 +2,32 @@ import { describe, expect, it } from 'vitest';
 
 import { DataSet, DataSetSelection } from './dataSet';
 
+function getSelectedCount(sel: DataSetSelection): number {
+    const arr = sel.getSelection();
+    let count = 0;
+    for (let i = 0; i < arr.length; i++) {
+        count += arr[i];
+    }
+    return count;
+}
+
+function getSelectedIndices(sel: DataSetSelection): number[] {
+    const arr = sel.getSelection();
+    const indices: number[] = [];
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i] === 1) {
+            indices.push(i);
+        }
+    }
+    return indices;
+}
+
 describe('DataSetSelection', () => {
     describe('basic operations', () => {
         it('should initialise with all zeros', () => {
             const sel = new DataSetSelection(5);
-            expect(sel.getSelectedCount()).toBe(0);
-            expect(sel.getSelectedIndices()).toEqual([]);
+            expect(getSelectedCount(sel)).toBe(0);
+            expect(getSelectedIndices(sel)).toEqual([]);
             for (let i = 0; i < 5; i++) {
                 expect(sel.isSelected(i)).toBe(false);
             }
@@ -17,12 +37,12 @@ describe('DataSetSelection', () => {
             const sel = new DataSetSelection(5);
             sel.select(2);
             expect(sel.isSelected(2)).toBe(true);
-            expect(sel.getSelectedCount()).toBe(1);
-            expect(sel.getSelectedIndices()).toEqual([2]);
+            expect(getSelectedCount(sel)).toBe(1);
+            expect(getSelectedIndices(sel)).toEqual([2]);
 
             sel.deselect(2);
             expect(sel.isSelected(2)).toBe(false);
-            expect(sel.getSelectedCount()).toBe(0);
+            expect(getSelectedCount(sel)).toBe(0);
         });
 
         it('should toggle selection', () => {
@@ -38,8 +58,8 @@ describe('DataSetSelection', () => {
             sel.select(0);
             sel.select(5);
             sel.select(9);
-            expect(sel.getSelectedCount()).toBe(3);
-            expect(sel.getSelectedIndices()).toEqual([0, 5, 9]);
+            expect(getSelectedCount(sel)).toBe(3);
+            expect(getSelectedIndices(sel)).toEqual([0, 5, 9]);
         });
     });
 
@@ -47,21 +67,21 @@ describe('DataSetSelection', () => {
         it('should select a range', () => {
             const sel = new DataSetSelection(10);
             sel.selectRange(2, 6);
-            expect(sel.getSelectedIndices()).toEqual([2, 3, 4, 5]);
-            expect(sel.getSelectedCount()).toBe(4);
+            expect(getSelectedIndices(sel)).toEqual([2, 3, 4, 5]);
+            expect(getSelectedCount(sel)).toBe(4);
         });
 
         it('should deselect a range', () => {
             const sel = new DataSetSelection(10);
             sel.selectRange(0, 10);
             sel.deselectRange(3, 7);
-            expect(sel.getSelectedIndices()).toEqual([0, 1, 2, 7, 8, 9]);
+            expect(getSelectedIndices(sel)).toEqual([0, 1, 2, 7, 8, 9]);
         });
 
         it('should handle range at boundaries', () => {
             const sel = new DataSetSelection(5);
             sel.selectRange(0, 5);
-            expect(sel.getSelectedCount()).toBe(5);
+            expect(getSelectedCount(sel)).toBe(5);
         });
     });
 
@@ -70,8 +90,8 @@ describe('DataSetSelection', () => {
             const sel = new DataSetSelection(5);
             sel.selectRange(0, 5);
             sel.clear();
-            expect(sel.getSelectedCount()).toBe(0);
-            expect(sel.getSelectedIndices()).toEqual([]);
+            expect(getSelectedCount(sel)).toBe(0);
+            expect(getSelectedIndices(sel)).toEqual([]);
         });
     });
 
@@ -101,7 +121,7 @@ describe('DataSetSelection', () => {
 
             // After: [id2, id3, id4, id5, id6]
             // Selection should shift: old idx 1 (removed), old idx 3 -> new idx 1
-            expect(sel.getSelectedIndices()).toEqual([1]);
+            expect(getSelectedIndices(sel)).toEqual([1]);
         });
 
         it('should handle append-only', () => {
@@ -115,7 +135,7 @@ describe('DataSetSelection', () => {
             ds.addTransaction({ append: [{ id: 2 }] });
             ds.commitPendingTransactions();
 
-            expect(sel.getSelectedIndices()).toEqual([0, 1]);
+            expect(getSelectedIndices(sel)).toEqual([0, 1]);
             expect(sel.isSelected(2)).toBe(false);
         });
 
@@ -130,7 +150,7 @@ describe('DataSetSelection', () => {
             ds.commitPendingTransactions();
 
             // After: [id-1, id0, id1] — old idx 1 -> new idx 2
-            expect(sel.getSelectedIndices()).toEqual([2]);
+            expect(getSelectedIndices(sel)).toEqual([2]);
         });
 
         it('should handle full removal', () => {
@@ -143,7 +163,7 @@ describe('DataSetSelection', () => {
             ds.addTransaction({ remove: [data[0], data[1], data[2]] });
             ds.commitPendingTransactions();
 
-            expect(sel.getSelectedCount()).toBe(0);
+            expect(getSelectedCount(sel)).toBe(0);
         });
 
         it('should apply to multiple series selections', () => {
@@ -160,8 +180,8 @@ describe('DataSetSelection', () => {
             ds.commitPendingTransactions();
 
             // After: [id1, id2]
-            expect(sel1.getSelectedCount()).toBe(0);
-            expect(sel2.getSelectedIndices()).toEqual([1]); // id2 shifted from idx 2 to idx 1
+            expect(getSelectedCount(sel1)).toBe(0);
+            expect(getSelectedIndices(sel2)).toEqual([1]); // id2 shifted from idx 2 to idx 1
         });
     });
 });
@@ -178,7 +198,7 @@ describe('DataSet selection transfer', () => {
 
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
-            expect(nextSel!.getSelectedIndices()).toEqual([1]); // C is at index 1 in new data
+            expect(getSelectedIndices(nextSel!)).toEqual([1]); // C is at index 1 in new data
         });
 
         it('should drop stale keys', () => {
@@ -189,7 +209,7 @@ describe('DataSet selection transfer', () => {
 
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
-            expect(nextSel!.getSelectedCount()).toBe(0); // A not in new data
+            expect(getSelectedCount(nextSel!)).toBe(0); // A not in new data
         });
 
         it('should clear selections without dataIdKey', () => {
@@ -207,8 +227,8 @@ describe('DataSet selection transfer', () => {
 
             const next = DataSet.replaceWith(old, [{ k: 'A' }, { k: 'C' }], 'k');
 
-            expect(next.selections.get('line-1')!.getSelectedIndices()).toEqual([0]); // A at idx 0
-            expect(next.selections.get('bar-1')!.getSelectedIndices()).toEqual([1]); // C at idx 1
+            expect(getSelectedIndices(next.selections.get('line-1')!)).toEqual([0]); // A at idx 0
+            expect(getSelectedIndices(next.selections.get('bar-1')!)).toEqual([1]); // C at idx 1
         });
 
         it('should handle no predecessor', () => {
@@ -231,7 +251,7 @@ describe('DataSet selection transfer', () => {
             const clone = ds.deepClone();
             const cloneSel = clone.selections.get('s1');
             expect(cloneSel).toBeDefined();
-            expect(cloneSel!.getSelectedIndices()).toEqual([1]);
+            expect(getSelectedIndices(cloneSel!)).toEqual([1]);
         });
     });
 
@@ -272,7 +292,7 @@ describe('DataSet selection transfer', () => {
             const next = DataSet.replaceWith(ds, [{ k: 'A' }, { k: 'D' }], 'k');
             const sel = next.selections.get('s1');
             expect(sel).toBeDefined();
-            expect(sel!.getSelectedIndices()).toEqual([0]); // A is at index 0
+            expect(getSelectedIndices(sel!)).toEqual([0]); // A is at index 0
         });
 
         it('should refresh idArrayCache for in-place ID updates via pendingReplacements', () => {
@@ -334,7 +354,7 @@ describe('DataSet selection transfer', () => {
             const nextSel = next.selections.get('s1');
             expect(nextSel).toBeDefined();
             // Only A should transfer; the missing-ID datum must not collide with ''
-            expect(nextSel!.getSelectedIndices()).toEqual([0]);
+            expect(getSelectedIndices(nextSel!)).toEqual([0]);
         });
     });
 

@@ -17,25 +17,27 @@ import {
     SELECTION_STROKEWIDTH,
 } from './dataSelectionConstants';
 import {
-    type BufferMap,
+    type SelectionChanges,
+    asNumericDatumIndex,
     clearAllSelections,
-    copySelectionBuffers,
-    diffSelectionBuffers,
     getAllDataSets,
     hasAddToSelectionModifier,
     isAgSelectionItem,
     isUnknownIterable,
-    restoreSelectionBuffers,
+    rollbackChanges,
     setSelected,
+    setSelectedRange,
     toBBox,
     toggleSelection,
 } from './dataSelectionUtil';
+import { IntervalSet } from './intervalSet';
 
 type Series = NonNullable<NonNullable<_ModuleSupport.SeriesAreaClickEvent['clickedNode']>['series']>;
 
 export class DataSelection extends AbstractModuleInstance implements _ModuleSupport.SelectionModuleFns {
     private dragStartEvent?: _Widget.DragWidgetEvent<'drag-start'>;
     private readonly dragRect: _ModuleSupport.Rect;
+    private readonly state: _ModuleSupport.DataSelectionState;
 
     private get opts(): NormalisedSelectionOptions {
         return this.ctx.chartState.getValue('options', 'selection');
@@ -48,8 +50,15 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         );
     }
 
+    private supportsSelectionDrag(): boolean {
+        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+    }
+
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
         super();
+
+        this.state = { selectedCount: 0 };
+        ctx.chartState.setValue('selectionState', this.state);
 
         this.dragRect = new _ModuleSupport.Rect();
         this.dragRect.fill = SELECTION_FILL_VALID;
@@ -60,13 +69,15 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.lineDash = SELECTION_LINEDASH;
         this.dragRect.visible = false;
 
+        ctx.chartService.selectionRoot.appendChild(this.dragRect);
         this.cleanup.register(
-            ctx.scene.attachNode(this.dragRect),
+            () => this.dragRect.remove(),
             ctx.eventsHub.on('series-area:click', (ev) => this.onSeriesAreaClick(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-start', (ev) => this.onSeriesAreaDragStart(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-move', (ev) => this.onSeriesAreaDragMove(ev)),
             ctx.widgets.seriesDragInterpreter?.events.on('drag-end', (ev) => this.onSeriesAreaDragEnd(ev)),
-            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev))
+            ctx.widgets.seriesWidget.addListener('keydown', (ev) => this.onKeyDown(ev)),
+            () => ctx.chartState.setValue('selectionState', undefined)
         );
     }
 
@@ -93,8 +104,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const { chartService } = this.ctx;
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(chartService);
-        clearAllSelections(chartService.series);
+        const changes = this.allocSelectionChanges();
+        clearAllSelections(changes, this.state, chartService.series);
 
         if (!isUnknownIterable(items)) {
             Logger.warn('Selection items is not iterable');
@@ -125,13 +136,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
                 continue;
             }
 
-            const selection = data.enableSelection(item.seriesId);
-            selection.select(datumIndex);
+            setSelected(changes, series, data, datumIndex);
         }
 
-        this.dispatchInternalSelectionChange(chartService.series);
-        this.dispatchExternalSelectionChange('api-call', bufferMap);
-        this.redraw(ChartUpdateType.FULL);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
+        this.dispatchExternalSelectionChange('api-call', changes);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     clearSelection(): void {
@@ -139,12 +149,12 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const { chartService } = this.ctx;
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
-        clearAllSelections(chartService.series);
+        const changes = this.allocSelectionChanges();
+        clearAllSelections(changes, this.state, chartService.series);
 
-        this.dispatchInternalSelectionChange(chartService.series);
-        this.dispatchExternalSelectionChange('api-call', bufferMap);
-        this.redraw(ChartUpdateType.FULL);
+        this.dispatchInternalSelectionChange(chartService.series, changes);
+        this.dispatchExternalSelectionChange('api-call', changes);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private onSeriesAreaClick(event: _ModuleSupport.SeriesAreaClickEvent): void {
@@ -153,12 +163,14 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         const { enabled, enableClick, enableClickAwayToClear, clickMode } = this.opts;
         if (!enabled || !enableClick) return;
 
-        const { type, clickedNode } = event;
+        const { type, clickedNode, distance } = event;
         if (type !== 'click') return;
 
         const modifierPressed = hasAddToSelectionModifier(event);
         const clickMiss =
-            clickedNode === undefined || !(clickedNode.series.properties.selection.enabled satisfies boolean);
+            clickedNode === undefined ||
+            distance !== 0 ||
+            !(clickedNode.series.properties.selection.enabled satisfies boolean);
 
         if (clickMiss && (modifierPressed || !enableClickAwayToClear)) {
             // Ctrl+Click only toggles selection; it shouldn't clear the selection.
@@ -166,10 +178,10 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
+        const changes = this.allocSelectionChanges();
         if (clickMiss) {
-            clearAllSelections(this.ctx.chartService.series);
-            this.dispatchInternalSelectionChange(this.ctx.chartService.series);
+            clearAllSelections(changes, this.state, this.ctx.chartService.series);
+            this.dispatchInternalSelectionChange(this.ctx.chartService.series, changes);
         } else {
             const { data } = clickedNode.series;
             if (data === undefined) return;
@@ -181,20 +193,20 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
 
             if (clickMode === 'multiple' || modifierPressed) {
-                toggleSelection(series, data, datumIndex);
+                toggleSelection(changes, series, data, datumIndex);
             } else {
                 clickMode satisfies 'single';
-                clearAllSelections(this.ctx.chartService.series);
-                setSelected(series, data, datumIndex);
+                clearAllSelections(changes, this.state, this.ctx.chartService.series);
+                setSelected(changes, series, data, datumIndex);
             }
-            this.dispatchInternalSelectionChange([series]);
+            this.dispatchInternalSelectionChange([series], changes);
         }
-        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
-        this.redraw(ChartUpdateType.FULL);
+        this.dispatchExternalSelectionChange('user-interaction', changes);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private onSeriesAreaDragStart(dragStartEvent: _Widget.DragWidgetEvent<'drag-start'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         if (!enabled || !enableDrag) return;
@@ -208,7 +220,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -229,7 +241,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
-        if (!this.supportsSelection()) return;
+        if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
         const { dragStartEvent } = this;
@@ -239,14 +251,15 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             return;
         }
 
+        const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
         if (shouldClearSelections) {
-            clearAllSelections(this.ctx.chartService.series);
+            clearAllSelections(changes, this.state, this.ctx.chartService.series);
         }
 
         const bbox = toBBox(dragStartEvent, dragEndEvent);
-        const bufferMap: BufferMap | undefined = copySelectionBuffers(this.ctx.chartService);
         const changedSeries: Series[] = [];
+        const intervalSet = new IntervalSet();
 
         for (const series of this.ctx.chartService.series) {
             if (!series.properties.selection.enabled) continue;
@@ -255,14 +268,35 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             if (data === undefined) continue;
 
             let changed = false;
+            intervalSet.clear();
+
+            const getRangeOfAggregateIndex = series.getAggregateRangeReader();
+            const getIndexSetForAggregate = series.getAggregateIndexSetReader();
+
             for (const datum of series.pickNodesInBBox(bbox)) {
-                const datumIndex: unknown = datum.datumIndex;
-                if (typeof datumIndex === 'number') {
-                    changed = true;
-                    setSelected(series, data, datumIndex);
-                } else {
-                    Logger.errorOnce(`unsupported datumIndex type: ${typeof datumIndex}`);
+                if (asNumericDatumIndex(datum.datumIndex)) {
+                    if (getRangeOfAggregateIndex) {
+                        const range = getRangeOfAggregateIndex(datum.datumIndex);
+                        if (range && !intervalSet.has(datum.datumIndex)) {
+                            const [start, end] = range;
+                            changed = true;
+                            intervalSet.add(start, end);
+                        }
+                    } else if (getIndexSetForAggregate) {
+                        for (const idx of getIndexSetForAggregate(datum.datumIndex)) {
+                            changed = true;
+                            setSelected(changes, series, data, idx);
+                        }
+                    } else {
+                        changed = true;
+                        setSelected(changes, series, data, datum.datumIndex);
+                    }
                 }
+            }
+
+            for (const interval of intervalSet.values()) {
+                // NOTE: `end` is inclusive in IntervalSet but exclusive in DataSetSelection
+                setSelectedRange(changes, series, data, shouldClearSelections, interval.start, interval.end + 1);
             }
 
             if (changed) {
@@ -270,8 +304,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
             }
         }
 
-        this.dispatchInternalSelectionChange(changedSeries);
-        this.dispatchExternalSelectionChange('user-interaction', bufferMap);
+        this.dispatchInternalSelectionChange(changedSeries, changes);
+        this.dispatchExternalSelectionChange('user-interaction', changes);
         this.endDrag();
     }
 
@@ -284,27 +318,24 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private endDrag(): void {
         this.dragStartEvent = undefined;
         this.dragRect.visible = false;
-        this.redraw(ChartUpdateType.FULL);
+        this.redraw(ChartUpdateType.PERFORM_LAYOUT);
     }
 
     private redraw(type: ChartUpdateType): void {
         this.ctx.eventsHub.emit('chart:request-update', { type, opts: { skipAnimations: true } });
     }
 
-    private dispatchInternalSelectionChange(changedSeries: Series[]): void {
+    private dispatchInternalSelectionChange(changedSeries: Series[], changes: SelectionChanges): void {
+        this.state.selectedCount += changes.countDelta;
         for (const series of changedSeries) {
             series.events.emit('data-selection-change', null);
         }
     }
 
-    private dispatchExternalSelectionChange(
-        source: AgSelectionChangeEventSource,
-        bufferMap: BufferMap | undefined
-    ): void {
-        if (bufferMap === undefined) return;
+    private dispatchExternalSelectionChange(source: AgSelectionChangeEventSource, changes: SelectionChanges): void {
+        if (changes.added === undefined) return;
 
-        const { chartService } = this.ctx;
-        const { added, removed } = diffSelectionBuffers(chartService, bufferMap);
+        const { added, removed } = changes;
 
         if (added.length === 0 && removed.length === 0) {
             // No selection changes to emit.
@@ -325,7 +356,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         });
 
         if (defaultPrevented) {
-            restoreSelectionBuffers(chartService, bufferMap);
+            rollbackChanges(changes, this.ctx.chartService.series);
+            this.state.selectedCount -= changes.countDelta;
         }
+    }
+
+    private allocSelectionChanges(): SelectionChanges {
+        if (!this.ctx.chartService.hasListener('selectionChange')) return { countDelta: 0 };
+        return { countDelta: 0, added: [], removed: [] };
     }
 }

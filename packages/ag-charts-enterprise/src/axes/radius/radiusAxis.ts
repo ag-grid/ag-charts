@@ -1,9 +1,10 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 import {
+    type AxisID,
     ChartAxisDirection,
     type DynamicContext,
-    Property,
+    type NormalisedBaseRadiusAxisOptions,
     type Scale,
     ZIndexMap,
     isNumberEqual,
@@ -11,32 +12,19 @@ import {
     toRadians,
 } from 'ag-charts-core';
 
-import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
-
-const { Group, TransformableGroup, Path, Line, Selection, generateTicks, AxisGroupZIndexMap } = _ModuleSupport;
+const { Group, TransformableGroup, Path, Line, Selection, generateTicks, getAxisLabelSideFlag, AxisGroupZIndexMap } =
+    _ModuleSupport;
 
 interface GeneratedTicks {
     ticks: _ModuleSupport.TickDatum[];
     labels: _ModuleSupport.LabelNodeDatum[];
 }
 
-class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
-    @Property
-    autoRotate?: boolean;
-
-    @Property
-    autoRotateAngle: number = 335;
-}
-
 export abstract class RadiusAxis<
     S extends Scale<D, number, _ModuleSupport.TickInterval<S>> = Scale<any, number, any>,
     D = unknown,
-> extends _ModuleSupport.PolarAxis<S, D> {
-    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
-
-    @Property
-    positionAngle: number = 0;
-
+    TOptions extends NormalisedBaseRadiusAxisOptions = NormalisedBaseRadiusAxisOptions,
+> extends _ModuleSupport.PolarAxis<S, D, TOptions> {
     protected gridLineGroupSelection = Selection.select<_ModuleSupport.Line<_ModuleSupport.TickDatum>>(
         this.gridLineGroup,
         Line,
@@ -71,19 +59,19 @@ export abstract class RadiusAxis<
         return ChartAxisDirection.Radius;
     }
 
-    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, scale: S) {
-        super(moduleCtx, scale);
+    constructor(moduleCtx: DynamicContext<_ModuleSupport.ChartRegistry>, id: AxisID, scale: S, options: TOptions) {
+        super(moduleCtx, id, scale, options);
 
-        this.headingLabelGroup.appendChild(this.title.caption.node);
+        this.headingLabelGroup.appendChild(this.caption.node);
 
-        this.cleanup.register(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
+        this.cleanup.register(this.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
 
     private getAxisTransform() {
         const maxRadius = this.scale.range[0];
-        const { translation, positionAngle, innerRadiusRatio } = this;
+        const { translation, innerRadiusRatio } = this;
         const innerRadius = maxRadius * innerRadiusRatio;
-        const rotation = toRadians(positionAngle);
+        const rotation = toRadians(this.options.positionAngle);
         return {
             translationX: translation.x,
             translationY: translation.y - maxRadius - innerRadius,
@@ -99,7 +87,7 @@ export abstract class RadiusAxis<
         this.updateTitle();
         this.updateGridLines();
 
-        const { enabled, stroke, width } = this.line;
+        const { enabled, stroke, width } = this.options.line;
         this.lineNode.setProperties({
             stroke,
             strokeWidth: enabled ? width : 0,
@@ -149,14 +137,16 @@ export abstract class RadiusAxis<
         timeInterval: undefined;
     } {
         const visibleRange: [number, number] = [0, 1];
-        const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
+        const labelSpacing = this.options.label.spacing;
+        const labelX = sideFlag * (this.getTickSize() + labelSpacing + this.seriesAreaPadding);
 
-        const { range, reverse, defaultTickMinSpacing } = this;
+        const { range, defaultTickMinSpacing } = this;
+        const { reverse } = this.options;
         const tickGenerationResult = generateTicks({
             scale: this.scale,
-            label: this.label,
-            interval: this.interval,
+            label: this.options.label,
+            interval: this.options.interval,
             tickFormatter: (...args) => this.tickFormatter(...args),
             domain,
             range,
@@ -192,7 +182,7 @@ export abstract class RadiusAxis<
 
         this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
         this.tickLabelGroupSelection.update(labels);
-        this.gridPathSelection.update(this.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
+        this.gridPathSelection.update(this.options.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
 
         this.gridLineGroupSelection.cleanup();
         this.tickLabelGroupSelection.cleanup();
@@ -201,7 +191,7 @@ export abstract class RadiusAxis<
 
     // TODO - abstract out
     protected override updateLabels() {
-        if (!this.label.enabled) return;
+        if (!this.options.label.enabled) return;
 
         const axisLabelPositionFn = _ModuleSupport.resetAxisLabelSelectionFn();
 
@@ -218,11 +208,8 @@ export abstract class RadiusAxis<
     }
 
     private updateGridLines(): void {
-        const {
-            gridLine: { style, width },
-            shape,
-            generatedTicks,
-        } = this;
+        const { shape, generatedTicks } = this;
+        const { style, width } = this.options.gridLine;
         if (!style || !generatedTicks) {
             return;
         }
@@ -296,22 +283,23 @@ export abstract class RadiusAxis<
 
     private updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
-        const { title, range: requestedRange } = this;
-        const { formatter = identityFormatter } = this.title;
+        const { caption, range: requestedRange } = this;
+        const title = this.options.title;
+        const { formatter = identityFormatter } = title;
 
-        title.caption.enabled = title.enabled;
-        title.caption.fontFamily = title.fontFamily;
-        title.caption.fontSize = title.fontSize;
-        title.caption.fontStyle = title.fontStyle;
-        title.caption.fontWeight = title.fontWeight;
-        title.caption.color = title.color;
-        title.caption.wrapping = title.wrapping;
-        title.caption.truncate = title.truncate;
-        title.caption.maxWidth = title.maxWidth;
-        title.caption.maxHeight = title.maxHeight;
+        caption.enabled = title.enabled;
+        caption.fontFamily = title.fontFamily;
+        caption.fontSize = title.fontSize;
+        caption.fontStyle = title.fontStyle;
+        caption.fontWeight = title.fontWeight;
+        caption.color = title.color;
+        caption.wrapping = title.wrapping;
+        caption.truncate = title.truncate;
+        caption.maxWidth = title.maxWidth;
+        caption.maxHeight = title.maxHeight;
 
         let titleVisible = false;
-        const titleNode = title.caption.node;
+        const titleNode = caption.node;
         if (title.enabled) {
             const axisLength = Math.abs(requestedRange[1] - requestedRange[0]);
 
@@ -324,29 +312,22 @@ export abstract class RadiusAxis<
             titleNode.textBaseline = 'bottom';
 
             titleNode.text = this.cachedCallWithContext(formatter, this.getTitleFormatterParams(this.scale.domain));
-            title.caption.text = titleNode.text;
-            title.caption.computeTextWrap(axisLength, Infinity);
+            caption.text = titleNode.text;
+            caption.computeTextWrap(axisLength, Infinity);
         }
 
         titleNode.visible = titleVisible;
     }
 
-    protected override updateCrossLines() {
-        for (const crossLine of this.crossLines) {
-            if (crossLine instanceof RadiusCrossLine) {
-                const { shape, gridAngles, range, innerRadiusRatio } = this;
-                const radius = range[0];
-                crossLine.shape = shape;
-                crossLine.gridAngles = gridAngles;
-                crossLine.axisOuterRadius = radius;
-                crossLine.axisInnerRadius = radius * innerRadiusRatio;
-            }
-        }
-        super.updateCrossLines();
-    }
-
-    protected override createLabel() {
-        return new RadiusAxisLabel();
+    protected override computePolarLayout(): _ModuleSupport.PolarAxisLayout {
+        const radius = this.range[0];
+        return {
+            ...this.calculateRotations(),
+            shape: this.shape,
+            axisOuterRadius: radius,
+            axisInnerRadius: radius * this.innerRadiusRatio,
+            gridAngles: this.gridAngles,
+        };
     }
 
     // TODO - abstract out (shared with cartesian axis)
@@ -354,11 +335,11 @@ export abstract class RadiusAxis<
         datum: _ModuleSupport.TickDatum,
         tickGenerationResult: { rotation: number; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
     ): _ModuleSupport.LabelNodeDatum {
-        const { label } = this;
+        const label = this.options.label;
         const { rotation, textBaseline, textAlign } = tickGenerationResult;
         const range = this.scale.range;
         const text = datum.tickLabel ?? '';
-        const sideFlag = label.getSideFlag();
+        const sideFlag = getAxisLabelSideFlag(this.mirrored);
         const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '';
 

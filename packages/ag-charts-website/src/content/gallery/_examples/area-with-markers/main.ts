@@ -4,7 +4,7 @@ import {
     AreaSeriesModule,
     BandHighlightModule,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     LegendModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -16,6 +16,7 @@ ModuleRegistry.registerModules([
     AreaSeriesModule,
     BandHighlightModule,
     CategoryAxisModule,
+    CrossLinesModule,
     LegendModule,
     NumberAxisModule,
 ]);

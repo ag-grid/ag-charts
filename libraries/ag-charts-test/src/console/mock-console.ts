@@ -1,4 +1,6 @@
-import type { Mock } from 'vitest';
+import type { Mock, vi as Vi } from 'vitest';
+
+declare const vi: typeof Vi;
 
 const ERROR_METHODS: (keyof typeof console)[] = ['warn', 'error'];
 const NORMAL_METHODS: (keyof typeof console)[] = ['trace', 'debug', 'info', 'log'];

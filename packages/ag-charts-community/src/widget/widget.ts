@@ -160,6 +160,15 @@ export abstract class Widget<
         setElementStyle(this.elem, 'pointer-events', pointerEvents);
     }
 
+    setTouchAction(touchAction: BaseStyleTypeMap['touch-action'] | undefined) {
+        // Assign via camelCase — jsdom silently drops `style.setProperty('touch-action', …)`.
+        if (touchAction == null) {
+            this.elem.style.touchAction = '';
+        } else {
+            this.elem.style.touchAction = touchAction;
+        }
+    }
+
     setCSSVariable(key: `--${string}`, value: string | null) {
         this.elem.style.setProperty(key, value);
     }

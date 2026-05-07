@@ -88,6 +88,7 @@ type HandleFocusInputs = FocusIndices | FocusDeltas;
 type UpdatePickedFocusInputs = FocusIndices & FocusDeltas & FocusOldIndices;
 
 type FindPickedNodesResult = PickedNodes | 'series-hidden' | undefined;
+type SeriesNodeClickResult = { clickedNode: PickedNode; distance: number };
 
 export interface SeriesAreaChartDependencies {
     hasViewportSupport(): boolean;
@@ -611,9 +612,9 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (isSeriesWidget) {
-            const clickedNode: PickedNode | undefined = this.checkSeriesNodeClick(event);
-            if (clickedNode) {
-                this.emitSeriesAreaClickEvent(event, true, clickedNode);
+            const clickResult: SeriesNodeClickResult | undefined = this.checkSeriesNodeClick(event);
+            if (clickResult) {
+                this.emitSeriesAreaClickEvent(event, true, clickResult);
                 this.update(ChartUpdateType.SERIES_UPDATE);
                 event.sourceEvent.preventDefault();
                 return;
@@ -637,10 +638,11 @@ export class SeriesAreaManager extends BaseManager {
     private emitSeriesAreaClickEvent(
         event: ClickLikeEvent | KeyboardSyntheticMouseWidgetEvent,
         consumed: boolean,
-        clickedNode?: PickedNode
+        clickResult?: SeriesNodeClickResult
     ): void {
         const { type, sourceEvent } = event;
-        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode };
+        const { clickedNode, distance = 0 } = clickResult ?? {};
+        const payload: SeriesAreaClickEvent = { type, consumed, sourceEvent, clickedNode, distance };
         this.chart.ctx.eventsHub.emit('series-area:click', payload);
     }
 
@@ -718,7 +720,7 @@ export class SeriesAreaManager extends BaseManager {
     private onPage(delta: SeriesKeyNavPanXEvent['delta'], widgetEvent: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.chart.hasPgUpPgDownSupport()) return;
         if (!this.onNav(widgetEvent)) return;
-        const reverse: boolean = this.focus.series?.axes.x?.reverse ?? false;
+        const reverse: boolean = this.focus.series?.axes.x?.options.reverse === true;
         this.chart.ctx.eventsHub.emit('series:keynav-panx', { delta, reverse, widgetEvent });
     }
 
@@ -770,7 +772,7 @@ export class SeriesAreaManager extends BaseManager {
                     device: 'keyboard',
                     sourceEvent,
                 };
-                this.emitSeriesAreaClickEvent(syntheticEvent, true, datum);
+                this.emitSeriesAreaClickEvent(syntheticEvent, true, { clickedNode: datum, distance: 0 });
                 this.update(ChartUpdateType.SERIES_UPDATE);
             }
         } else {
@@ -781,7 +783,9 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private checkSeriesNodeClick(event: ClickLikeEvent & { preventZoomDblClick?: boolean }): PickedNode | undefined {
+    private checkSeriesNodeClick(
+        event: ClickLikeEvent & { preventZoomDblClick?: boolean }
+    ): SeriesNodeClickResult | undefined {
         const pickedNodes = this.pickNodes({ x: event.currentX, y: event.currentY }, 'event');
         const updated = this.pickManager.onPickedNodesTooltip(pickedNodes);
         if (pickedNodes === undefined || updated.active === undefined) return undefined;
@@ -804,7 +808,7 @@ export class SeriesAreaManager extends BaseManager {
                     });
                 }
             }
-            return updated.active;
+            return { clickedNode: updated.active, distance };
         }
 
         if (event.type === 'dblclick') {
@@ -819,7 +823,7 @@ export class SeriesAreaManager extends BaseManager {
             event.preventZoomDblClick = distance === 0;
 
             updated.active.series.fireNodeDoubleClickEvent(event.sourceEvent, updated.active);
-            return updated.active;
+            return { clickedNode: updated.active, distance };
         }
 
         return undefined;
@@ -1266,7 +1270,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private showTooltip(datum: PickedNode, canvasX: number, canvasY: number, pagination?: TooltipPaginationState) {
         const tooltipContent = this.getTooltipContent(datum, 'tooltip');
-        const shouldUpdateTooltip = tooltipContent != null;
+        const shouldUpdateTooltip = tooltipContent != null && tooltipContent.length > 0;
         if (shouldUpdateTooltip) {
             const { series } = datum;
             const meta = TooltipManager.makeTooltipMeta(

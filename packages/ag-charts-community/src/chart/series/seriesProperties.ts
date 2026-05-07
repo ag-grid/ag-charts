@@ -1,4 +1,5 @@
 import type {
+    AreExact,
     ColorSpace,
     InternalAgColorType,
     RequiredInternalAgGradientColor,
@@ -36,6 +37,7 @@ export enum HighlightState {
 }
 
 export enum SelectionState {
+    None,
     Selected,
     Unselected,
 }
@@ -77,6 +79,8 @@ export function getSelectionStyleOptionKeys(selectionState: SelectionState): Sel
             return ['selectedItem'];
         case SelectionState.Unselected:
             return ['unselectedItem'];
+        case SelectionState.None:
+            return [];
         default: {
             const unreachable = (a: never): never => a;
             return unreachable(selectionState);
@@ -120,9 +124,21 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
             return 'selected';
         case SelectionState.Unselected:
             return 'unselected';
+        case SelectionState.None:
+            return 'none';
         default:
             return unreachable(state);
     }
+}
+
+export function isSelected(state: SelectionState | undefined): boolean {
+    if (state === SelectionState.None || state === SelectionState.Unselected) {
+        // Compile-time check for SelectionState exhaustiveness:
+        type ActualComplement = Exclude<SelectionState, typeof state>;
+        type ExpectedComplement = SelectionState.Selected;
+        return true satisfies AreExact<ActualComplement, ExpectedComplement>;
+    }
+    return false;
 }
 
 type HighlightOptions<TOpts extends object> = Partial<TOpts & StyleMixins>;

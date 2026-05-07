@@ -1,7 +1,7 @@
 import {
     AgCartesianChartOptions,
     AgCharts,
-    ContextMenuModule,
+    CrossLinesModule,
     LineSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -9,7 +9,7 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([LineSeriesModule, NumberAxisModule]);
+ModuleRegistry.registerModules([CrossLinesModule, LineSeriesModule, NumberAxisModule]);
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {

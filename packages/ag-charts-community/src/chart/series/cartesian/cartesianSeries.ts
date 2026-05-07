@@ -778,7 +778,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
             this.updateDatumStyles({ datumSelection, isHighlight: false });
         }
 
-        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight;
+        const redrawAll = this.strokewidthChange() || this.hasChangesOnHighlight || this.hasChangesOnSelection;
+        this.hasChangesOnSelection = false;
 
         if (nodeRefresh || redrawAll) {
             this.updateDatumNodes({ datumSelection, isHighlight: false, drawingMode: 'overlay' });
@@ -879,7 +880,7 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         let left: number = 0;
         let mid: number;
         let right: number = this.contextNodeData.nodeData.length - 1;
-        const reverse: boolean = this.axes.x?.reverse ?? false;
+        const reverse: boolean = this.axes.x?.options.reverse === true;
 
         function isRightEdgeInViewport(focusBBox: Readonly<BBox>): boolean {
             const viewportRight = hoverRect.x + hoverRect.width;
@@ -1719,7 +1720,7 @@ function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined
     let max: number | Date | undefined;
 
     if (axis instanceof NumberAxis || axis instanceof TimeAxis) {
-        ({ min, max } = axis);
+        ({ min, max } = axis.options);
     }
 
     if (min == null && max == null) return;

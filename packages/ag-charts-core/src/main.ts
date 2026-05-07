@@ -1,6 +1,8 @@
 // Types
 export * from './types/global';
 export * from './types/normalised-options/normalise';
+export * from './types/normalised-options/normalisedAxisOptions';
+export * from './types/normalised-options/normalisedGradientLegendOptions';
 export * from './types/normalised-options/normalisedLegendOptions';
 export * from './types/normalised-options/normalisedSelectionOptions';
 export * from './types/normalised-options/normalisedZoomOptions';

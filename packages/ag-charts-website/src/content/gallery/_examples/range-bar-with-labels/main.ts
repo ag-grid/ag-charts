@@ -3,7 +3,7 @@ import {
     AgCharts,
     BandHighlightModule,
     CategoryAxisModule,
-    ContextMenuModule,
+    CrossLinesModule,
     CrosshairModule,
     ModuleRegistry,
     NumberAxisModule,
@@ -16,6 +16,7 @@ ModuleRegistry.registerModules([
     BandHighlightModule,
     CategoryAxisModule,
     CrosshairModule,
+    CrossLinesModule,
     NumberAxisModule,
     RangeBarSeriesModule,
 ]);

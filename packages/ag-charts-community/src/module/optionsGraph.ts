@@ -1082,6 +1082,9 @@ export class OptionsGraph extends Graph<unknown, string> implements OptionsGraph
             ? undefined
             : (this.findNeighbourValue(autoEnableValueVertex, USER_PARTIAL_OPTIONS_EDGE) as PlainObject | undefined);
 
+        // An explicit `enabled: false` from a user-partial must override auto-enable.
+        if (userPartialOptionsEnabled?.enabled === false) return;
+
         const isUserEnabled =
             (userOptionsEnabled != null && userOptionsEnabled.enabled == null) ||
             (userPartialOptionsEnabled != null && userPartialOptionsEnabled.enabled == null);

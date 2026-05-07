@@ -61,6 +61,7 @@ import {
     type AgNightingaleSeriesThemeableOptions,
     type AgOhlcSeriesItemOptions,
     type AgOhlcSeriesThemeableOptions,
+    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesThemeableOptions,
     type AgPyramidSeriesStyle,
     type AgPyramidSeriesThemeableOptions,
@@ -393,8 +394,12 @@ export const nightingaleSeriesThemeableOptionsDef: OptionsDefs<AgNightingaleSeri
 export const organizationSeriesThemeableOptionsDef: OptionsDefs<AgOrganizationSeriesThemeableOptions> = {
     ...commonSeriesThemeableOptionsDefs,
     innerSpacing: defined,
-    // outerSpacing: defined,
+    outerSpacing: defined,
     verticalSpacing: defined,
+    expander: {
+        height: positiveNumberNonZero,
+        spacing: positiveNumber,
+    } satisfies OptionsDefs<AgOrganizationSeriesOptionsExpander>,
     link: defined,
     node: defined,
     tooltip: tooltipOptionsDefs,

@@ -1,12 +1,19 @@
-import { type AxisModuleDefinition } from 'ag-charts-core';
+import {
+    type AxisModuleDefinition,
+    type DynamicContext,
+    type NormalisedNumberAxisOptions,
+    mergeDefaults,
+} from 'ag-charts-core';
 import type { AgLogAxisOptions } from 'ag-charts-types';
 
 import { logAxisOptionsDefs } from '../../chart/axesOptionsDefs';
 import { LogAxis } from '../../chart/axis/logAxis';
 import { CartesianChartModule } from '../../chart/cartesianChartModule';
+import { commonAxisThemeTemplate, titleAxisThemeTemplate } from '../../chart/themes/axisThemeTemplate';
 import { VERSION } from '../../version';
+import type { ChartRegistry } from '../moduleContext';
 
-export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
+export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions, LogAxis> = {
     type: 'axis',
     name: 'log',
     chartType: 'cartesian',
@@ -14,10 +21,16 @@ export const LogAxisModule: AxisModuleDefinition<AgLogAxisOptions> = {
     dependencies: [CartesianChartModule],
 
     options: logAxisOptionsDefs,
-    themeTemplate: {
-        base: 10,
-        line: { enabled: false },
-    },
+    themeTemplate: mergeDefaults(
+        {
+            base: 10,
+            maxThicknessRatio: 0.3,
+            line: { enabled: false },
+        },
+        titleAxisThemeTemplate,
+        commonAxisThemeTemplate
+    ),
 
-    create: (ctx) => new LogAxis(ctx),
+    create: (ctx: DynamicContext<ChartRegistry>, id, options) =>
+        new LogAxis(ctx, id, options as NormalisedNumberAxisOptions),
 };

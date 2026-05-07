@@ -15,7 +15,14 @@ import type {
     TextAlign,
     TextWrap,
 } from '../../chart/types';
-import type { FillOptions, FontOptions, LineDashOptions, StrokeOptions, Toggleable } from '../cartesian/commonOptions';
+import type {
+    FillCssOptions,
+    FillOptions,
+    FontOptions,
+    LineDashOptions,
+    StrokeOptions,
+    Toggleable,
+} from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
@@ -31,14 +38,45 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
     extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
     innerSpacing?: PixelSize;
-    // outerSpacing?: PixelSize;
+    /**
+     * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
+     * uses `outerSpacing` for these cross-subtree gaps and `innerSpacing` for gaps between nodes
+     * that share the same parent.
+     *
+     * Default: `40`
+     */
+    outerSpacing?: PixelSize;
     verticalSpacing?: PixelSize;
+
+    expander?: AgOrganizationSeriesOptionsExpander;
 
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
 
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
+}
+
+export interface AgOrganizationSeriesOptionsExpander {
+    /**
+     * Outer height of the expander pill, in pixels. Increasing this value reserves additional
+     * vertical space between a parent node and its children to fit a larger pill; decreasing it
+     * pulls children closer. Set this to at least the rendered subtitle's line height plus its
+     * top and bottom padding so the descendant-count text fits without overflow — the pill is
+     * rendered at exactly this value so layout reservations and rendered geometry stay aligned.
+     *
+     * Default: `24`
+     */
+    height?: PixelSize;
+    /**
+     * Vertical gap in pixels between the bottom of the last text element in a parent card
+     * and the top of the expander pill. The card's effective bottom padding is the maximum
+     * of `node.padding` and `expander.height / 2 + expander.spacing`, so a short pill has
+     * no effect on layout while a tall pill increases the reserved content space.
+     *
+     * Default: `4`
+     */
+    spacing?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
@@ -69,6 +107,12 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
     height?: PixelSize;
     image?: AgOrganizationSeriesOptionsNodeImage;
     maxHeight?: PixelSize;
+    /**
+     * Maximum width of the card in pixels. When set, long text content wraps onto
+     * multiple lines (subject to each text tier's `wrapping` and `overflowStrategy`)
+     * instead of pushing the card wider, so cards do not overlap on tightly packed
+     * graphs.
+     */
     maxWidth?: PixelSize;
     padding?: PixelSize;
     width?: PixelSize;
@@ -88,6 +132,9 @@ export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
     height?: number;
     width?: number;
     position?: AgOrganizationSeriesOptionsNodeImagePosition;
+    /**
+     * Default: `'circle'`
+     */
     shape?: AgOrganizationSeriesOptionsNodeImageShape;
     spacing?: number;
 }
@@ -123,12 +170,16 @@ export interface AgOrganizationSeriesOptionsNodeLabel<TDatum = DatumDefault, TCo
     key: string;
 }
 
-export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, Toggleable {
+export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssOptions, StrokeOptions, Toggleable {
     color?: CssColor;
     overflowStrategy?: OverflowStrategy;
     spacing?: number;
     textAlign?: TextAlign;
     wrapping?: TextWrap;
+    /** Corner radius of the backing box. Has no effect unless `fill` or `stroke` is set. */
+    cornerRadius?: PixelSize;
+    /** Padding between the text and the backing box edge. Has no effect unless `fill` or `stroke` is set. */
+    padding?: PixelSize;
 }
 
 export interface AgOrganizationSeriesOptionsKeys {
@@ -143,12 +194,14 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     seriesId: string;
     /** Context for this callback. */
     context?: TContext;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
     /** The default label value that would have been used without a formatter. */
     value: any;
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum'>,
+    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
     /** The data point from which the link starts. */
@@ -163,6 +216,8 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeStyle {
     /** The depth of the data point within the organization. */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
@@ -171,6 +226,8 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
         AgOrganizationSeriesNodeTextStyle {
     /** The depth of the data */
     depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>

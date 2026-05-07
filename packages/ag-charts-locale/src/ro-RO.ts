@@ -12,6 +12,13 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     ariaAnnounceChart: 'diagramă, ${seriesCount}[number] serii',
     ariaAnnounceFlowProportionLink: 'legătură ${index} din ${count}, de la ${from} la ${to}, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: 'nodul ${index} din ${count}, ${description}',
+    // Screen reader announcement when focusing a leaf node in an Organization chart
+    ariaAnnounceOrgChartLeaf: '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number]',
+    // Screen reader announcement when focusing a parent node in an Organization chart
+    ariaAnnounceOrgChartParent:
+        '${description}, nivel ${level}[number], ${posInSet}[number] din ${setSize}[number], ${collapsedState}',
+    ariaOrgChartCollapsed: 'restrâns',
+    ariaOrgChartExpanded: 'extins',
     ariaAnnounceGaugeChart: 'grafic indicator, ${caption}',
     ariaAnnounceHierarchyChart: 'diagramă ierarhică, ${caption}',
     ariaAnnounceHierarchyDatum: 'nivel ${level}[number], ${count}[number] copii, ${description}',
