@@ -10,6 +10,9 @@ import type {
 } from './organizationTypes';
 import { applyFillStyles, applyStrokeStyles, applyTextBoxingStyles, applyTextStyles } from './organizationUtils';
 
+// Sub-pixel slack on the overflow check; pure float-comparison guard, not user-tunable.
+const CLIP_EPSILON = 0.5;
+
 function computeTextMaxWidth(styles: RequiredOrganizationNodeStyle): number {
     const cardWidth = Number.isNaN(styles.width) ? styles.maxWidth : styles.width;
     if (!Number.isFinite(cardWidth)) return Infinity;
@@ -40,6 +43,11 @@ function wrapTextTier(
 
 export class OrganizationNode extends _ModuleSupport.TranslatableGroup<OrganizationDatum> {
     private shapeNode?: _ModuleSupport.Rect;
+    // Inner group for image + text tiers so we can clip just the content when the card
+    // is clamped under its intrinsic size (`maxWidth`/`maxHeight`). The shape rect's stroke
+    // and the expander pill (which renders below the card by design) sit outside this group
+    // and are unaffected.
+    private contentGroup?: _ModuleSupport.Group;
     private imageNode?: _ModuleSupport.Rect;
     private titleNode?: _ModuleSupport.Text;
     private subtitleNode?: _ModuleSupport.Text;
@@ -48,6 +56,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     private expanderNode?: OrganizationExpanderNode;
 
     private appliedStyles?: RequiredOrganizationNodeStyle;
+    private intrinsicCardSize?: { width: number; height: number };
 
     update(
         fields: OrganizationNodeFields,
@@ -138,6 +147,10 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.shapeNode.width = bbox.width;
             this.shapeNode.height = bbox.height;
         }
+
+        // Capture the intrinsic content size before `updateBBox` clamps the card to
+        // `regularBBox`; `updateBBox` consults this to decide whether a clip is needed.
+        this.intrinsicCardSize = { width: bbox.width, height: bbox.height };
     }
 
     updateBBox(bbox: _ModuleSupport.BBox) {
@@ -151,6 +164,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             this.expanderNode.translationX = bbox.width / 2 - expanderBBox.width / 2;
             this.expanderNode.translationY = bbox.height - expanderBBox.height / 2;
         }
+
+        // Conditional clip: only when `regularBBox` clamped the card under its intrinsic
+        // size (i.e. `maxWidth`/`maxHeight` kicked in). With no overflow we leave the
+        // contentGroup unclipped so the per-frame `ctx.save/clip/restore` cost is zero.
+        const intrinsic = this.intrinsicCardSize;
+        const overflows =
+            intrinsic != null &&
+            (intrinsic.width > bbox.width + CLIP_EPSILON || intrinsic.height > bbox.height + CLIP_EPSILON);
+        this.contentGroup?.setClipRectCanvasSpace(
+            overflows ? new _ModuleSupport.BBox(0, 0, bbox.width, bbox.height) : undefined
+        );
     }
 
     realign(bbox: _ModuleSupport.BBox) {
@@ -218,6 +242,14 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         applyStrokeStyles(this.shapeNode, styles);
     }
 
+    // Lazy-init: only required once the first content child needs to be appended.
+    // Sits between `shapeNode` and `expanderNode` in z-order (children appended after the
+    // shape rect render on top of it, the expander gets appended last).
+    private ensureContentGroup(): _ModuleSupport.Group {
+        this.contentGroup ??= this.appendChild(new _ModuleSupport.Group());
+        return this.contentGroup;
+    }
+
     private updateImageNode(url: string | undefined, styles: RequiredOrganizationNodeStyle) {
         if (url == null || !styles.image.enabled) {
             this.imageNode?.remove();
@@ -225,7 +257,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.imageNode ??= this.appendChild(new _ModuleSupport.Rect());
+        this.imageNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Rect());
 
         this.imageNode.fill = {
             type: 'image',
@@ -256,7 +288,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.titleNode ??= this.appendChild(new _ModuleSupport.Text());
+        this.titleNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
         this.titleNode.text = wrapTextTier(text, styles.title, textMaxWidth);
         applyTextStyles(this.titleNode, { ...styles.title, textAlign: 'left' });
         applyTextBoxingStyles(this.titleNode, styles.title);
@@ -273,7 +305,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
             return;
         }
 
-        this.subtitleNode ??= this.appendChild(new _ModuleSupport.Text());
+        this.subtitleNode ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
         this.subtitleNode.text = wrapTextTier(text, styles.subtitle, textMaxWidth);
         applyTextStyles(this.subtitleNode, { ...styles.subtitle, textAlign: 'left' });
         applyTextBoxingStyles(this.subtitleNode, styles.subtitle);
@@ -296,7 +328,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
                 index++;
                 continue;
             }
-            this.labelNodes[index] ??= this.appendChild(new _ModuleSupport.Text());
+            this.labelNodes[index] ??= this.ensureContentGroup().appendChild(new _ModuleSupport.Text());
             this.labelNodes[index]!.text = wrapTextTier(labelText, styles.labels[index], textMaxWidth);
             applyTextStyles(this.labelNodes[index]!, { ...styles.labels[index], textAlign: 'left' });
             applyTextBoxingStyles(this.labelNodes[index]!, styles.labels[index]);
