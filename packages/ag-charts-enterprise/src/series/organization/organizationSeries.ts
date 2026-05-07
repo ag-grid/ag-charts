@@ -501,7 +501,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const collapsedState = this.ctx.localeManager.t(
             this.ctx.collapsedManager.isCollapsed(itemId) ? 'ariaOrgChartCollapsed' : 'ariaOrgChartExpanded'
         );
-        return this.ctx.localeManager.t('ariaAnnounceOrgChartParent', {
+        // Singular vs. plural template — locale tooling has no `[plural]` annotation, so we split
+        // the key by child count (the same pattern already used to split leaf vs. parent).
+        const key = childCount === 1 ? 'ariaAnnounceOrgChartParentSingular' : 'ariaAnnounceOrgChartParent';
+        return this.ctx.localeManager.t(key, {
             description,
             level: depth,
             posInSet,

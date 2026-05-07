@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_IT_IT: Record<string, string> = {
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
         '${description}, livello ${level}[number], ${posInSet}[number] di ${setSize}[number], ${collapsedState}, ${childCount}[number] figli, premi Invio o Spazio per attivare/disattivare',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, livello ${level}[number], ${posInSet}[number] di ${setSize}[number], ${collapsedState}, 1 figlio, premi Invio o Spazio per attivare/disattivare',
     ariaOrgChartCollapsed: 'compresso',
     ariaOrgChartExpanded: 'espanso',
     ariaAnnounceGaugeChart: 'grafico a tachimetro, ${caption}',

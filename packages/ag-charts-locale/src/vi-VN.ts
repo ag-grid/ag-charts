@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
         '${description}, cấp độ ${level}[number], ${posInSet}[number] trong ${setSize}[number], ${collapsedState}, ${childCount}[number] con, nhấn Enter hoặc Phím Cách để chuyển đổi',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, cấp độ ${level}[number], ${posInSet}[number] trong ${setSize}[number], ${collapsedState}, 1 con, nhấn Enter hoặc Phím Cách để chuyển đổi',
     ariaOrgChartCollapsed: 'đã thu gọn',
     ariaOrgChartExpanded: 'đã mở rộng',
     ariaAnnounceGaugeChart: 'biểu đồ đồng hồ đo, ${caption}',

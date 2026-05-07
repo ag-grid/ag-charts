@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
         '${description}, razina ${level}[number], ${posInSet}[number] od ${setSize}[number], ${collapsedState}, ${childCount}[number] djece, pritisnite razmaknicu ili Enter za uključivanje/isključivanje',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, razina ${level}[number], ${posInSet}[number] od ${setSize}[number], ${collapsedState}, 1 dijete, pritisnite razmaknicu ili Enter za uključivanje/isključivanje',
     ariaOrgChartCollapsed: 'sažeto',
     ariaOrgChartExpanded: 'prošireno',
     ariaAnnounceGaugeChart: 'mjerna ljestvica, ${caption}',

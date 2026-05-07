@@ -1575,6 +1575,18 @@ describe('OrganizationSeries', () => {
             expect(announcement).not.toContain(', ,');
         });
 
+        it('uses the singular template when a parent has exactly one child', async () => {
+            await setupChart();
+            // ceo → cto → ArrowRight → cfo (Carol Wu, parent of acc — exactly one child).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowRight');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe(
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+            );
+        });
+
         it('reports collapsed parents in the live announcement', async () => {
             const options: AgChartOptions = { ...SIMPLE_ORG_CHART, initialState: { collapsed: ['cto'] } };
             prepareEnterpriseTestOptions(options);

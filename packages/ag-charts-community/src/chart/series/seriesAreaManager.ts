@@ -269,8 +269,12 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.eventsHub.on('zoom:change-complete', (event) => this.onZoomChangeComplete(event)),
             chart.ctx.eventsHub.on('collapsed:change', () => {
                 // Force the next updateComplete announcement so SR users get feedback when a
-                // focused tree node toggles between expanded and collapsed.
-                this.announceMode = 'always';
+                // focused tree node toggles between expanded and collapsed. Gated on focus
+                // visibility so background collapse changes (memento restore, programmatic
+                // updates on un-focused series) don't trigger a spurious re-announce.
+                if (this.focusIndicator?.isFocusVisible()) {
+                    this.announceMode = 'always';
+                }
             }),
             chart.ctx.eventsHub.on('zoom:pan-start', () => this.clearAll()),
             chart.ctx.eventsHub.on('legend:item-hover', (event) => this.onLegendHover(event))

@@ -17,6 +17,8 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
         '${description}, سطح ${level}[number], ${posInSet}[number] کا ${setSize}[number], ${collapsedState}, ${childCount}[number] بچے, ٹوگل کرنے کے لیے اسپیس یا انٹر دبائیں',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, سطح ${level}[number], ${posInSet}[number] کا ${setSize}[number], ${collapsedState}, 1 بچہ, ٹوگل کرنے کے لیے اسپیس یا انٹر دبائیں',
     ariaOrgChartCollapsed: 'سمٹا ہوا',
     ariaOrgChartExpanded: 'پھیلا ہوا',
     ariaAnnounceGaugeChart: 'گیج چارٹ, ${caption}',
