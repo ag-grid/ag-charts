@@ -7,6 +7,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import {
+    AGGREGATION_INDEX_Y_MAX,
     ChartAxisDirection,
     DebugMetrics,
     SeriesContentZIndexMap,
@@ -454,6 +455,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             aggregationManager: this.aggregationManager,
             domainKey: 'key',
             getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
 

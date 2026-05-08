@@ -1,5 +1,12 @@
 import type { CallbackParamRules, DomainWithMetadata, DynamicContext, RequireOptional } from 'ag-charts-core';
-import { ChartAxisDirection, DebugMetrics, extent, isDefined, mergeDefaults } from 'ag-charts-core';
+import {
+    AGGREGATION_INDEX_Y_MAX,
+    ChartAxisDirection,
+    DebugMetrics,
+    extent,
+    isDefined,
+    mergeDefaults,
+} from 'ag-charts-core';
 import {
     type AgDrawingMode,
     type AgErrorBoundSeriesTooltipRendererParams,
@@ -374,6 +381,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             aggregationManager: this.aggregationManager,
             domainKey: 'value',
             getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
 

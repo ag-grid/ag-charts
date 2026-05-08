@@ -506,6 +506,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             domainKey: 'key',
             getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
             getYColumnId: (dataModel) => this.yCumulativeKey(dataModel),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
 

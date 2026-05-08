@@ -40,6 +40,17 @@ interface BucketLookupManagerOpts<TFilter extends AggregationFilterBase> {
     /** `'value'` for series whose xValue column is the X coordinate (line); `'key'` for keyed series (bar/area/ohlc/range-*). */
     domainKey: 'value' | 'key';
     getSelection: () => Uint8Array | undefined;
+    /**
+     * AGGREGATION_INDEX_* slots whose stored datum index is treated as the
+     * canonical "selected" representative for its bucket. When set, the
+     * selection predicate additionally requires `datumIndex` to match one of
+     * the configured slots — preventing the visual multiplication where a
+     * single selected datum surfaces as up to four styled extrema markers per
+     * bucket. When undefined, falls back to any-membership semantics
+     * (composite-node series like OHLC/range-bar that already render one node
+     * per bucket).
+     */
+    canonicalExtremaSlots?: readonly number[];
 }
 
 interface BucketingInputs {
@@ -262,23 +273,32 @@ export class BucketLookupManager<TFilter extends ExtremesFilter>
         );
         const xValuesLength = xValues.length;
         const { indexData, maxRange } = filter;
+        const canonicalSlots = this.opts.canonicalExtremaSlots;
 
-        const selectedReader = (datumIndex: number): boolean => {
+        function readSelectedExtremes(datumIndex: number): boolean {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
             });
-            return bucket >= 0 && indexData[bucket + AGGREGATION_INDEX_SELECTED] === 1;
-        };
+            if (bucket < 0 || indexData[bucket + AGGREGATION_INDEX_SELECTED] !== 1) return false;
+            if (canonicalSlots === undefined) return true;
+            for (let i = 0; i < canonicalSlots.length; i++) {
+                if (indexData[bucket + canonicalSlots[i]] === datumIndex) return true;
+            }
+            return false;
+        }
 
-        const rangeReader: DatumRangeReader = (sampleDatumIndex: number) => {
+        function readRangeExtremes(sampleDatumIndex: number): [number, number] | undefined {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, sampleDatumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
             });
             if (bucket < 0) return undefined;
             return [indexData[bucket + AGGREGATION_INDEX_X_MIN], indexData[bucket + AGGREGATION_INDEX_X_MAX]];
-        };
+        }
+
+        const selectedReader = readSelectedExtremes;
+        const rangeReader: DatumRangeReader = readRangeExtremes;
 
         this.cache.set(processedData, filter, selectedReader, rangeReader);
         return this.cache;
@@ -379,8 +399,9 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
         const yNeedsValueOf = dataModel.resolveColumnNeedsValueOf(this.splitOpts.series, yColumnId, processedData);
         const xValuesLength = xValues.length;
         const { positiveIndexData, negativeIndexData, maxRange } = filter;
+        const canonicalSlots = this.splitOpts.canonicalExtremaSlots;
 
-        const selectedReader = (datumIndex: number): boolean => {
+        function readSelectedSplit(datumIndex: number): boolean {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, datumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
@@ -391,10 +412,15 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
             if (yEnd == null) return false;
             const yMax = yNeedsValueOf ? yEnd.valueOf() : yEnd;
             const arm = yMax >= 0 ? positiveIndexData : negativeIndexData;
-            return arm[bucket + AGGREGATION_INDEX_SELECTED] === 1;
-        };
+            if (arm[bucket + AGGREGATION_INDEX_SELECTED] !== 1) return false;
+            if (canonicalSlots === undefined) return true;
+            for (let i = 0; i < canonicalSlots.length; i++) {
+                if (arm[bucket + canonicalSlots[i]] === datumIndex) return true;
+            }
+            return false;
+        }
 
-        const rangeReader: DatumRangeReader = (sampleDatumIndex: number) => {
+        function readRangeSplit(sampleDatumIndex: number): [number, number] | undefined {
             const bucket = aggregationBucketForDatum(xValues, d0, d1, maxRange, sampleDatumIndex, {
                 xNeedsValueOf,
                 xValuesLength,
@@ -410,7 +436,10 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
             }
             if (!data) return undefined;
             return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
-        };
+        }
+
+        const selectedReader = readSelectedSplit;
+        const rangeReader: DatumRangeReader = readRangeSplit;
 
         this.cache.set(processedData, filter, selectedReader, rangeReader);
         return this.cache;
