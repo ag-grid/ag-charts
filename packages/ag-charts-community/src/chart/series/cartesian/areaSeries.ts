@@ -7,6 +7,7 @@ import type {
     RequireOptional,
 } from 'ag-charts-core';
 import {
+    AGGREGATION_INDEX_Y_MAX,
     ChartAxisDirection,
     DebugMetrics,
     SeriesContentZIndexMap,
@@ -60,11 +61,10 @@ import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Marker } from '../../marker/marker';
 import { type TooltipContent, isTooltipValueMissing } from '../../tooltip/tooltip';
 import { AggregationManager } from '../aggregationManager';
-import { makeAggregateRangeReader } from '../aggregationRangeReader';
+import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { DatumRangeReader } from '../seriesTypes';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,
@@ -446,14 +446,16 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         );
     }
 
-    public override getAggregateRangeReader(): DatumRangeReader | undefined {
-        return makeAggregateRangeReader({
+    protected override createBucketLookupFeature(): BucketLookupFeature {
+        return new BucketLookupManager({
             series: this,
-            xAxis: this.axes[ChartAxisDirection.X],
-            dataModel: this.dataModel,
-            processedData: this.processedData,
+            getXAxis: () => this.axes[ChartAxisDirection.X],
+            getDataModel: () => this.dataModel,
+            getProcessedData: () => this.processedData,
             aggregationManager: this.aggregationManager,
             domainKey: 'key',
+            getSelection: () => this.data?.selections.get(this.id)?.getSelection(),
+            canonicalExtremaSlots: [AGGREGATION_INDEX_Y_MAX],
         });
     }
 

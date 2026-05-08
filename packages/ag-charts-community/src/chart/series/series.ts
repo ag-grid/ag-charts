@@ -82,9 +82,8 @@ import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
 import type {
-    DatumIndexSetReader,
+    BucketLookupFeature,
     DatumIndexType,
-    DatumRangeReader,
     INodeEvent,
     ISeries,
     ISeriesProperties,
@@ -478,6 +477,7 @@ export abstract class Series<
             this.ctx.eventsHub.on('highlight:change', (event) => this.onChangeHighlight(event)),
             this.events.on('data-selection-change', () => {
                 this.hasChangesOnSelection = true;
+                this.bucketLookup?.refresh();
             })
         );
     }
@@ -790,6 +790,43 @@ export abstract class Series<
         return undefined;
     }
 
+    /**
+     * Per-series aggregation-aware bucket lookup. Optional — populated
+     * lazily for aggregating series only. Owns both the per-bucket SELECTED
+     * roll-up and the bucket→datum-range mapping used by the data-selection
+     * drag handler. `DataModelSeries.getDataSelectionState` consults this
+     * for marker styling; `data-selection-change` and aggregation rebuilds
+     * keep the roll-up in sync.
+     */
+    protected bucketLookup?: BucketLookupFeature;
+
+    /**
+     * Construct the series-specific {@link BucketLookupFeature}. Default
+     * `undefined` for non-aggregating series. Aggregating series override to
+     * return either {@link BucketLookupManager} (single `indexData`) or
+     * {@link SplitBucketLookupManager} (split positive/negative).
+     */
+    protected createBucketLookupFeature(): BucketLookupFeature | undefined {
+        return undefined;
+    }
+
+    /**
+     * Lazy-init `bucketLookup` on first access. The just-created feature is
+     * refreshed once so it reflects the current selection bitset and
+     * aggregation filters — without this any `filtersChanged` events emitted
+     * before the lazy-init would have been missed.
+     */
+    public ensureBucketLookupFeature(): BucketLookupFeature | undefined {
+        if (this.bucketLookup === undefined) {
+            const feature = this.createBucketLookupFeature();
+            if (feature) {
+                this.bucketLookup = feature;
+                feature.refresh();
+            }
+        }
+        return this.bucketLookup;
+    }
+
     public getHighlightStateString(
         datum: HighlightNodeDatum | undefined,
         isHighlight?: boolean,
@@ -1042,16 +1079,6 @@ export abstract class Series<
             }
             return undefined;
         });
-    }
-
-    public getAggregateRangeReader(): DatumRangeReader | undefined {
-        // Override point for subclasses with aggregation
-        return undefined;
-    }
-
-    public getAggregateIndexSetReader(): DatumIndexSetReader | undefined {
-        // Override point for subclasses with non-contiguous index-set aggregation
-        return undefined;
     }
 
     isPointInArea?(x: number, y: number): boolean;

@@ -272,16 +272,17 @@ export abstract class DataModelSeries<
             return SelectionState.None;
         }
 
+        // When aggregation is active, a rendered marker stands in for an
+        // entire bucket. The bucket is considered selected if any of its
+        // underlying datums is selected, regardless of which one happens to
+        // be the bucket's representative index. Fall back to the per-datum
+        // bitset when no aggregation level applies.
         const selectionBuffer = this.data?.selections.get(this.id);
-        if (selectionBuffer?.isSelected(datumIndex)) {
-            return SelectionState.Item;
-        }
+        const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
+        const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
+        if (isItem) return SelectionState.Item;
 
         const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-        if (selectionCount === 0) {
-            return SelectionState.OtherSeries;
-        } else {
-            return SelectionState.OtherItem;
-        }
+        return selectionCount === 0 ? SelectionState.OtherSeries : SelectionState.OtherItem;
     }
 }

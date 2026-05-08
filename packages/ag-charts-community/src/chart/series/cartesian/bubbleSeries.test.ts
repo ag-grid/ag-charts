@@ -1145,7 +1145,7 @@ describe('BubbleSeries', () => {
             await compare();
         });
 
-        it('should expose a non-undefined getAggregateIndexSetReader when bubble series aggregation is active', async () => {
+        it('should expose a bucket-lookup index set when bubble series aggregation is active', async () => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 20 }, (_, i) => ({ x: i, y: i % 5, s: 1 + (i % 3) })),
                 series: [{ type: 'bubble', xKey: 'x', yKey: 'y', sizeKey: 's', maxRenderedItems: 10 }],
@@ -1157,10 +1157,15 @@ describe('BubbleSeries', () => {
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
-            expect(series.getAggregateIndexSetReader()).not.toBeUndefined();
+
+            const bucketLookup = series.ensureBucketLookupFeature();
+            expect(bucketLookup).toBeDefined();
+            const aggregateIndexSet = series.aggregateIndexSet!;
+            const [primaryDatumIndex] = [...aggregateIndexSet.entries()].find(([, idx]) => idx.length > 1)!;
+            expect(bucketLookup!.getIndexSet(primaryDatumIndex)).toBeDefined();
         });
 
-        it('should return undefined from getAggregateIndexSetReader on scatter when aggregation is not active', async () => {
+        it('should return an undefined index set on scatter when aggregation is not active', async () => {
             const options: AgCartesianChartOptions = {
                 data: Array.from({ length: 5 }, (_, i) => ({ x: i, y: i })),
                 series: [{ type: 'scatter', xKey: 'x', yKey: 'y' }],
@@ -1172,7 +1177,7 @@ describe('BubbleSeries', () => {
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
-            expect(series.getAggregateIndexSetReader()).toBeUndefined();
+            expect(series.ensureBucketLookupFeature()?.getIndexSet(0)).toBeUndefined();
         });
     });
 });

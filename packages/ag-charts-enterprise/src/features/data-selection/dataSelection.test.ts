@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import { type AgCartesianChartOptions, type AgChartInstance, type AgChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    type AgCartesianChartOptions,
+    type AgChartInstance,
+    type AgChartOptions,
+    AgCharts,
+    type AgErrorBarItemStylerParams,
+} from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
@@ -196,8 +202,8 @@ describe('DataSelection', () => {
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeDefined();
 
-            const reader = series.getAggregateIndexSetReader();
-            expect(reader).toBeDefined();
+            const bucketLookup = series.ensureBucketLookupFeature();
+            expect(bucketLookup).toBeDefined();
 
             const aggregateIndexSet = series.aggregateIndexSet;
             expect(aggregateIndexSet).toBeDefined();
@@ -210,9 +216,10 @@ describe('DataSelection', () => {
 
             const [primaryDatumIndex, expectedIndices] = multiBucketPrimaries[0];
 
-            const expandedIndices = reader!(primaryDatumIndex);
-            expect([...expandedIndices]).toEqual(expect.arrayContaining(expectedIndices));
-            expect([...expandedIndices]).toHaveLength(expectedIndices.length);
+            const expandedIndices = bucketLookup!.getIndexSet(primaryDatumIndex);
+            expect(expandedIndices).toBeDefined();
+            expect([...expandedIndices!]).toEqual(expect.arrayContaining(expectedIndices));
+            expect([...expandedIndices!]).toHaveLength(expectedIndices.length);
 
             const itemsToSelect = expectedIndices.map((idx) => ({
                 seriesId,
@@ -362,7 +369,7 @@ describe('DataSelection', () => {
             expect(selected).toHaveLength(2);
         });
 
-        it('should return undefined from getAggregateIndexSetReader on scatter when no aggregation is active', async () => {
+        it('should return an undefined index set on scatter when no aggregation is active', async () => {
             const options: AgCartesianChartOptions = {
                 data: [
                     { x: 1, y: 1 },
@@ -382,7 +389,112 @@ describe('DataSelection', () => {
 
             const series = getSeriesAggregationInternals(chart);
             expect(series.dataAggregation).toBeUndefined();
-            expect(series.getAggregateIndexSetReader()).toBeUndefined();
+            expect(series.ensureBucketLookupFeature()?.getIndexSet(0)).toBeUndefined();
+        });
+    });
+
+    describe('error-bar selection styling', () => {
+        const monthsData = [
+            { month: 'Jan', t: 12.5, lo: 10, hi: 15 },
+            { month: 'Feb', t: 13, lo: 11.5, hi: 15.5 },
+            { month: 'Mar', t: 15.5, lo: 13, hi: 18 },
+            { month: 'Apr', t: 18, lo: 16.5, hi: 19.5 },
+            { month: 'May', t: 21.5, lo: 19, hi: 24 },
+            { month: 'Jun', t: 24, lo: 22.5, hi: 26 },
+        ];
+        const colderData = monthsData.map((d) => ({ ...d, t: d.t - 5, lo: d.lo - 5, hi: d.hi - 5 }));
+
+        const errorBarStyler = (param: AgErrorBarItemStylerParams<unknown>) => {
+            return param.selectionState === 'selected-item'
+                ? { stroke: 'steelblue', strokeWidth: 4, lineDash: [2, 1] }
+                : {};
+        };
+
+        const buildOptions = (
+            series: NonNullable<AgCartesianChartOptions['series']>,
+            listeners?: AgCartesianChartOptions['listeners']
+        ): AgCartesianChartOptions => {
+            const options: AgCartesianChartOptions = {
+                series,
+                selection: { enabled: true },
+                listeners,
+                axes: {
+                    x: { type: 'category', position: 'bottom' },
+                    y: { type: 'number', position: 'left' },
+                },
+            };
+            prepareEnterpriseTestOptions(options);
+            return options;
+        };
+
+        const lineSeries = (
+            data: any[],
+            yName: string,
+            selectionStyle: any
+        ): NonNullable<AgCartesianChartOptions['series']>[number] => ({
+            type: 'line',
+            data,
+            xKey: 'month',
+            yKey: 't',
+            yName,
+            errorBar: { yLowerKey: 'lo', yUpperKey: 'hi', itemStyler: errorBarStyler },
+            selection: { enabled: true, selectedItem: selectionStyle },
+        });
+
+        it('renders error-bar selection styling on the selected datum', async () => {
+            chart = AgCharts.create(
+                buildOptions([lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 3 })])
+            );
+            await waitForChartStability(chart);
+
+            const seriesId = deproxy(chart).series[0].id;
+            const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
+            chart.setSelection([{ seriesId, itemId }]);
+            await compare();
+        });
+
+        it('rolls back error-bar selection styling when selectionChange listener calls preventDefault', async () => {
+            chart = AgCharts.create(
+                buildOptions([lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 3 })], {
+                    selectionChange: (event) => event.preventDefault(),
+                })
+            );
+            await waitForChartStability(chart);
+
+            const seriesId = deproxy(chart).series[0].id;
+            const itemId = deproxy(chart).series[0].data!.getItemIdFromIndex(2);
+            chart.setSelection([{ seriesId, itemId }]);
+            await waitForChartStability(chart);
+
+            // No items selected — preventDefault rolled back the change.
+            expect([...chart.getSelection()]).toHaveLength(0);
+            await compare();
+        });
+
+        it('clears error-bar styling on series A when single-selecting on series B', async () => {
+            chart = AgCharts.create(
+                buildOptions([
+                    lineSeries(monthsData, 'A', { stroke: 'steelblue', strokeWidth: 4 }),
+                    lineSeries(colderData, 'B', { stroke: 'crimson', strokeWidth: 4 }),
+                ])
+            );
+            await waitForChartStability(chart);
+
+            const seriesA = deproxy(chart).series[0];
+            const seriesB = deproxy(chart).series[1];
+
+            chart.setSelection([{ seriesId: seriesA.id, itemId: seriesA.data!.getItemIdFromIndex(2) }]);
+            await waitForChartStability(chart);
+
+            // Series B's selection replaces series A's — A's error-bar styling
+            // must clear, B's must apply.
+            chart.setSelection([{ seriesId: seriesB.id, itemId: seriesB.data!.getItemIdFromIndex(4) }]);
+            await waitForChartStability(chart);
+
+            const selected = [...chart.getSelection()];
+            expect(selected).toHaveLength(1);
+            expect(selected[0].seriesId).toBe(seriesB.id);
+            await compare();
         });
     });
 });
