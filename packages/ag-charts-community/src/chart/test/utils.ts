@@ -163,7 +163,7 @@ export function prepareTestOptions<T extends AgChartOptions<any, any> | AgGaugeO
             ...options.theme,
             baseTheme: options.theme.baseTheme ?? baseTestTheme.baseTheme,
             palette: options.theme.palette ?? baseTestTheme.palette,
-            params: baseThemeString === 'ag-default-dark' ? undefined : (options.theme.params ?? baseTestTheme.params),
+            params: baseThemeString === 'ag-default-dark' ? undefined : options.theme.params ?? baseTestTheme.params,
         };
     } else if (typeof options?.theme === 'string') {
         // Override colours.
@@ -199,6 +199,7 @@ export interface SeriesAggregationInternals {
               isBucketSelected(datumIndex: number): boolean | undefined;
               getRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
               getIndexSet(datumIndex: number): Iterable<number> | undefined;
+              setActiveFilter(processedData: unknown, filter: unknown): void;
           }
         | undefined;
 }

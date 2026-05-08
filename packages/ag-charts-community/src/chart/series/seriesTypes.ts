@@ -13,9 +13,11 @@ import type { AgActiveItemState, SelectionState as PublicSelectionState } from '
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
+import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
+import type { AggregationFilterBase } from './aggregationManager';
 
 export enum HighlightState {
     None,
@@ -83,6 +85,14 @@ export interface BucketLookupFeature {
     getIndexSet(datumIndex: number): Iterable<number> | undefined;
     /** Recompute the per-bucket SELECTED slot across every cached aggregation level. */
     refresh(): void;
+    /**
+     * Render-pass entrypoint — series resolves `dataAggregationFilter` once
+     * via `aggregationManager.getFilterForRange(range)` in
+     * `createNodeDatumContext` and pushes it here. Lets the manager skip the
+     * per-datum `xAxis.scale.range` / `getFilterForRange` resolution that the
+     * lazy fallback path requires.
+     */
+    setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void;
 }
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {

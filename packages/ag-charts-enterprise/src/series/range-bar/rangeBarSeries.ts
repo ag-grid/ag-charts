@@ -197,10 +197,8 @@ class RangeBarSeriesNodeEvent<
     }
 }
 
-interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
-    RangeBarNodeDatum,
-    RangeBarNodeLabelDatum
-> {
+interface RangeBarSeriesNodeDataContext
+    extends _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum> {
     itemId: RangeBarItemId;
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
 }
@@ -407,6 +405,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const canIncrementallyUpdate =

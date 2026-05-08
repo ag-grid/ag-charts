@@ -579,6 +579,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const filteredValueExceedUnfiltered = processedData.reduced?.filteredValueExceedUnfiltered ?? false;
         const isStacked = dataModel.hasColumnById(this, 'yValue-start');
         const { label } = this.properties;
@@ -631,7 +632,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             animationEnabled: !this.ctx.animationManager.isSkipped(),
             dataAggregationFilter,
             canIncrementallyUpdate,
-            phantomNodes: canIncrementallyUpdate ? (this.contextNodeData!.phantomNodeData ?? []) : [],
+            phantomNodes: canIncrementallyUpdate ? this.contextNodeData!.phantomNodeData ?? [] : [],
             nodes: canIncrementallyUpdate ? this.contextNodeData!.nodeData : [],
             labels: canIncrementallyUpdate ? this.contextNodeData!.labelData : [],
             nodeIndex: 0,
@@ -818,8 +819,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         // Update main node properties
         const phantom = node.phantom;
         const prevY = params.yStart;
-        const yValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? prepared.yRawValue);
-        const cumulativeValue = phantom ? prepared.yFilterValue! : (prepared.yFilterValue ?? params.yEnd);
+        const yValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? prepared.yRawValue;
+        const cumulativeValue = phantom ? prepared.yFilterValue! : prepared.yFilterValue ?? params.yEnd;
         const nodeLabelText = phantom ? undefined : prepared.labelText;
 
         let currY: number;
@@ -1285,7 +1286,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         const item = seriesHighlighted && highlightedDatum?.datum ? highlightedDatum : undefined;
 
         this.phantomHighlightSelection = this.updateDatumSelection({
-            nodeData: item ? (this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? []) : [],
+            nodeData: item ? this.getHighlightData(this.contextNodeData?.phantomNodeData ?? [], item) ?? [] : [],
             datumSelection: this.phantomHighlightSelection,
         });
 

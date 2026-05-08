@@ -416,6 +416,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const canIncrementallyUpdate = this.canIncrementallyUpdateNodes(dataAggregationFilter != null);
 
         return {

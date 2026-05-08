@@ -350,6 +350,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
         const existingNodes = this.contextNodeData?.nodeData;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const canIncrementallyUpdate =
