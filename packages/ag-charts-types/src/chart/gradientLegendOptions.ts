@@ -19,7 +19,7 @@ export interface AgGradientLegendLabelOptions<TContext = ContextDefault> {
     minSpacing?: PixelSize;
     /** Format string used when rendering labels. */
     format?: string;
-    /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, a interval step of `0.0005` would have `fractionDigits` set to `4`. */
+    /** Function used to render scale labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between intervals; for example, an interval step of `0.0005` would have `fractionDigits` set to `4`. */
     formatter?: Formatter<AgAxisLabelFormatterParams<TContext>>;
 }
 
@@ -35,7 +35,7 @@ export interface AgGradientLegendScaleOptions<TContext = ContextDefault> {
 export interface AgGradientLegendOptions<TContext = ContextDefault> extends FillOptions {
     /** Whether to show the gradient legend. By default, the chart displays a gradient legend for series using a `colorKey`. */
     enabled?: boolean;
-    /** Positioning options for legend.
+    /** Position of the gradient legend.
      *
      * Default: `'bottom'`
      */

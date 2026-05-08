@@ -5,39 +5,45 @@ import {
     CategoryAxisModule,
     GradientLegendModule,
     HeatmapSeriesModule,
+    LegendModule,
     ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule, LegendModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Monthly Mean Temperature',
+        text: 'Service Quality Ratings',
+    },
+    subtitle: {
+        text: 'NPS Score (0–10)',
     },
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            xName: 'Month',
-            yKey: 'year',
-            yName: 'Year',
-            colorKey: 'temperature',
-            colorName: 'Temperature',
+            xKey: 'segment',
+            xName: 'Segment',
+            yKey: 'service',
+            yName: 'Service',
+            colorKey: 'score',
+            colorName: 'Score',
             colorScale: {
                 mode: 'discrete',
-                fills: [
-                    { color: 'steelblue', stop: 5 },
-                    { color: 'lightblue', stop: 10 },
-                    { color: 'lightyellow', stop: 15 },
-                    { color: 'coral' },
-                ],
+                domain: [0, 10],
+                fills: [{ color: 'tomato', stop: 7 }, { color: 'gold', stop: 9 }, { color: 'seagreen' }],
             },
         },
     ],
+    legend: {
+        enabled: true,
+    },
+    gradientLegend: {
+        enabled: false,
+    },
 };
 
 const chart = AgCharts.create(options);
@@ -45,6 +51,9 @@ const chart = AgCharts.create(options);
 function toggleMode() {
     const series = options.series![0] as AgHeatmapSeriesOptions;
     const current = series.colorScale?.mode;
-    series.colorScale = { ...series.colorScale, mode: current === 'discrete' ? 'continuous' : 'discrete' };
+    const discrete = current !== 'discrete';
+    series.colorScale = { ...series.colorScale, mode: discrete ? 'discrete' : 'continuous' };
+    options.legend = { enabled: discrete };
+    options.gradientLegend = { enabled: !discrete };
     chart.update(options);
 }

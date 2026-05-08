@@ -1,32 +1,15 @@
 import {
     AgChartOptions,
     AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
     GradientLegendModule,
+    LegendModule,
     ModuleRegistry,
     SunburstSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    GradientLegendModule,
-    SunburstSeriesModule,
-    ContextMenuModule,
-]);
-const gdpFormatter = new Intl.NumberFormat('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-});
-
-const percentageFormatter = new Intl.NumberFormat('en-US', {
-    style: 'percent',
-    signDisplay: 'always',
-});
+ModuleRegistry.registerModules([GradientLegendModule, LegendModule, SunburstSeriesModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -37,16 +20,27 @@ const options: AgChartOptions = {
             labelKey: 'name',
             colorKey: 'gdpChange',
             colorName: 'Change',
+            colorScale: {
+                mode: 'discrete',
+                fills: [
+                    { color: 'tomato', stop: -0.01, name: 'Decline' },
+                    { color: 'gold', stop: 0.01, name: 'Flat' },
+                    { color: 'seagreen', name: 'Growth' },
+                ],
+            },
         },
     ],
-    gradientLegend: {
+    legend: {
         enabled: true,
     },
+    gradientLegend: {
+        enabled: false,
+    },
     title: {
-        text: 'Top 10 countries by GDP',
+        text: 'Top Economies by GDP',
     },
     subtitle: {
-        text: '2023',
+        text: '2023 — Year-on-year change',
     },
 };
 
