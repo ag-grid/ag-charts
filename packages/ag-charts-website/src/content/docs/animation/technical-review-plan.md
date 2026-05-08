@@ -4,19 +4,19 @@
 
 ### Features Covered
 
--   Animation is an **enterprise feature** for AG Charts
--   Initial load animations for different series types
--   Data update animations with three sequential phases (remove, update, add)
--   Animation duration configuration
--   Legend toggle animations
+- Animation is an **enterprise feature** for AG Charts
+- Initial load animations for different series types
+- Data update animations with three sequential phases (remove, update, add)
+- Animation duration configuration
+- Legend toggle animations
 
 ### Key APIs and Configuration Options Documented
 
--   `AgAnimationOptions` interface with:
-    -   `enabled?: boolean` - Enable/disable animation module
-    -   `duration?: DurationMs` - Total animation duration in milliseconds
--   Animation object as a property of chart options
--   Default behavior claims (enabled by default, configurable duration)
+- `AgAnimationOptions` interface with:
+    - `enabled?: boolean` - Enable/disable animation module
+    - `duration?: DurationMs` - Total animation duration in milliseconds
+- Animation object as a property of chart options
+- Default behavior claims (enabled by default, configurable duration)
 
 ### Examples Referenced
 
@@ -26,29 +26,29 @@
 
 ### Interactive Features Described
 
--   Switching between series types to see initial load animations
--   Legend toggling to animate series in/out
--   Data manipulation buttons (add, remove, update, add/remove/update) to trigger data animations
--   Duration selection buttons to change animation speed
+- Switching between series types to see initial load animations
+- Legend toggling to animate series in/out
+- Data manipulation buttons (add, remove, update, add/remove/update) to trigger data animations
+- Duration selection buttons to change animation speed
 
 ## Validation Targets
 
 ### TypeScript Interface Verification
 
--   **Primary interface**: `AgAnimationOptions` in `packages/ag-charts-types/src/chart/animationOptions.ts`
-    -   Verify `enabled` property exists and is optional boolean
-    -   Verify `duration` property exists and is optional DurationMs type
-    -   Check for any undocumented properties in the interface
+- **Primary interface**: `AgAnimationOptions` in `packages/ag-charts-types/src/chart/animationOptions.ts`
+    - Verify `enabled` property exists and is optional boolean
+    - Verify `duration` property exists and is optional DurationMs type
+    - Check for any undocumented properties in the interface
 
 ### Implementation Files to Check
 
--   **Animation class**: `packages/ag-charts-enterprise/src/features/animation/animation.ts`
-    -   Verify default value for `enabled` (documented as needing to be set to `true`)
-    -   Check if `duration` has a default value
-    -   Verify enterprise-only status
--   **Animation module**: `packages/ag-charts-enterprise/src/features/animation/animationModule.ts`
-    -   Confirm packageType is 'enterprise'
-    -   Verify module registration and options key
+- **Animation class**: `packages/ag-charts-enterprise/src/features/animation/animation.ts`
+    - Verify default value for `enabled` (documented as needing to be set to `true`)
+    - Check if `duration` has a default value
+    - Verify enterprise-only status
+- **Animation module**: `packages/ag-charts-enterprise/src/features/animation/animationModule.ts`
+    - Confirm packageType is 'enterprise'
+    - Verify module registration and options key
 
 ### Examples to Test with Expected Behaviors
 
@@ -56,48 +56,48 @@
 
 **Documentation claims**:
 
--   Shows initial load animations when switching between series types
--   Legend toggling animates series in and out
--   Different series types (bar, line, area, pie/donut) have distinct animations
+- Shows initial load animations when switching between series types
+- Legend toggling animates series in and out
+- Different series types (bar, line, area, pie/donut) have distinct animations
 
 **Expected behaviors for example-tester**:
 
--   Chart should render with smooth animations on initial load
--   Clicking series type buttons should trigger chart type transitions with animations
--   Legend item clicks should animate series in/out smoothly
--   All series types should have visible animation effects
--   Animation should be enabled by default (verify `animation: { enabled: true }` in code)
+- Chart should render with smooth animations on initial load
+- Clicking series type buttons should trigger chart type transitions with animations
+- Legend item clicks should animate series in/out smoothly
+- All series types should have visible animation effects
+- Animation should be enabled by default (verify `animation: { enabled: true }` in code)
 
 #### data-updates Example
 
 **Documentation claims**:
 
--   Shows three-phase animation: remove, update, add
--   Different series types handle data updates with animations
+- Shows three-phase animation: remove, update, add
+- Different series types handle data updates with animations
 
 **Expected behaviors for example-tester**:
 
--   "Add" button should animate new data points appearing
--   "Remove" button should animate data points disappearing
--   "Update" button should animate data value changes
--   "Add/Remove/Update" should show all three phases
--   Each series type should have appropriate data update animations
+- "Add" button should animate new data points appearing
+- "Remove" button should animate data points disappearing
+- "Update" button should animate data value changes
+- "Add/Remove/Update" should show all three phases
+- Each series type should have appropriate data update animations
 
 #### duration Example
 
 **Documentation claims**:
 
--   Duration controls the length of all animations in milliseconds
--   For initial load: duration of whole animation
--   For data update: total time of all three phases
+- Duration controls the length of all animations in milliseconds
+- For initial load: duration of whole animation
+- For data update: total time of all three phases
 
 **Expected behaviors for example-tester**:
 
--   Duration buttons should change animation speed
--   Shorter durations (e.g., 500ms) should have faster animations
--   Longer durations (e.g., 2000ms) should have slower animations
--   Duration should affect both initial load and data update animations
--   Verify `changeDuration` function updates `animation.duration` property
+- Duration buttons should change animation speed
+- Shorter durations (e.g., 500ms) should have faster animations
+- Longer durations (e.g., 2000ms) should have slower animations
+- Duration should affect both initial load and data update animations
+- Verify `changeDuration` function updates `animation.duration` property
 
 ### User Interactions to Validate
 
@@ -123,16 +123,16 @@
 
 ### Chart Elements Expected to be Interactive
 
--   Series type buttons (bar, line, area, donut)
--   Legend items (for toggling series visibility)
--   Data manipulation buttons (add, remove, update, add/remove/update)
--   Duration selection buttons
+- Series type buttons (bar, line, area, donut)
+- Legend items (for toggling series visibility)
+- Data manipulation buttons (add, remove, update, add/remove/update)
+- Duration selection buttons
 
 ### Expected Tooltip and Highlighting Behaviors
 
--   Tooltips should still work during animations
--   Hover states should be maintained if hovering during animations
--   Interactive elements should remain responsive during animation sequences
+- Tooltips should still work during animations
+- Hover states should be maintained if hovering during animations
+- Interactive elements should remain responsive during animation sequences
 
 ## Known Exceptions
 
@@ -155,7 +155,6 @@ No existing `technical-review-exceptions.md` file found for this page.
     - Test all series type transitions
     - Verify legend toggle animations
 2. **Test data-updates example**:
-
     - Delegate to example-tester for three-phase validation
     - Screenshot each animation phase
     - Test all data manipulation buttons
@@ -183,19 +182,19 @@ No existing `technical-review-exceptions.md` file found for this page.
 
 ### Success Criteria
 
--   All documented API properties exist and work as described
--   Animation is confirmed as enterprise-only feature
--   All three examples demonstrate the documented features correctly
--   Animations render smoothly without visual artifacts
--   Interactive elements remain functional during animations
--   No console errors or warnings during normal usage
--   Documentation accurately describes the three-phase update animation
+- All documented API properties exist and work as described
+- Animation is confirmed as enterprise-only feature
+- All three examples demonstrate the documented features correctly
+- Animations render smoothly without visual artifacts
+- Interactive elements remain functional during animations
+- No console errors or warnings during normal usage
+- Documentation accurately describes the three-phase update animation
 
 ### Estimated Complexity
 
--   **High complexity** due to:
-    -   Multiple animation types and phases to validate
-    -   Visual nature requiring extensive screenshot analysis
-    -   Performance and timing considerations
-    -   Enterprise feature verification
-    -   Interactive testing requirements
+- **High complexity** due to:
+    - Multiple animation types and phases to validate
+    - Visual nature requiring extensive screenshot analysis
+    - Performance and timing considerations
+    - Enterprise feature verification
+    - Interactive testing requirements

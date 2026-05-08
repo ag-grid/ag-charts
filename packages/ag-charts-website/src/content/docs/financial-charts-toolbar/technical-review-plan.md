@@ -4,25 +4,25 @@
 
 ### Features Covered
 
--   Financial chart toolbar functionality for analyzing and annotating charts
--   Chart type selection (7 types: Candlestick, Hollow Candlestick, OHLC, Line, Step Line, HLC, High Low)
--   Drawing tools for lines and channels (5 types)
--   Text annotations (4 types)
--   Arrow drawings (3 types)
--   Fibonacci tools (2 types)
--   Measuring tools (4 types + quick measure)
--   Keyboard shortcuts for toolbar actions
--   Save & restore functionality via Chart State API
--   Theme customization for annotations
+- Financial chart toolbar functionality for analyzing and annotating charts
+- Chart type selection (7 types: Candlestick, Hollow Candlestick, OHLC, Line, Step Line, HLC, High Low)
+- Drawing tools for lines and channels (5 types)
+- Text annotations (4 types)
+- Arrow drawings (3 types)
+- Fibonacci tools (2 types)
+- Measuring tools (4 types + quick measure)
+- Keyboard shortcuts for toolbar actions
+- Save & restore functionality via Chart State API
+- Theme customization for annotations
 
 ### Key APIs and Configuration Options Documented
 
--   `toolbar?: boolean` property in `AgPriceVolumePreset` (default: `true`)
--   Theme overrides via `theme.overrides.common.annotations`
--   Annotation types defined in `AgAnnotation` union type
--   Individual annotation interfaces like `AgLineAnnotation`, `AgCalloutAnnotation`, etc.
--   Annotation toolbar configuration via `AgAnnotationsToolbar`
--   Chart State API integration for save/restore
+- `toolbar?: boolean` property in `AgPriceVolumePreset` (default: `true`)
+- Theme overrides via `theme.overrides.common.annotations`
+- Annotation types defined in `AgAnnotation` union type
+- Individual annotation interfaces like `AgLineAnnotation`, `AgCalloutAnnotation`, etc.
+- Annotation toolbar configuration via `AgAnnotationsToolbar`
+- Chart State API integration for save/restore
 
 ### Examples Referenced
 
@@ -35,13 +35,13 @@
 
 ### Interactive Features Described
 
--   Drawing tools with click-and-drag creation
--   Double-click to edit annotations
--   Settings button for detailed configuration
--   Keyboard shortcuts for undo/redo, copy/paste, delete, movement
--   Shift key snapping to 45° angles
--   Visual feedback during interactions (hover states, selection)
--   Toolbar button interactions
+- Drawing tools with click-and-drag creation
+- Double-click to edit annotations
+- Settings button for detailed configuration
+- Keyboard shortcuts for undo/redo, copy/paste, delete, movement
+- Shift key snapping to 45° angles
+- Visual feedback during interactions (hover states, selection)
+- Toolbar button interactions
 
 ## Validation Targets
 
@@ -72,119 +72,117 @@
 
 **Documentation Claims:**
 
--   Shows Trend Line (single line between two points)
--   Shows Horizontal Line (across entire chart with optional axis label)
--   Shows Vertical Line (across entire chart with optional axis label)
--   Shows Parallel Channel (two parallel lines with fill and optional center line)
--   Shows Disjoint Channel (two non-parallel lines with fill)
--   Stroke/fill colors, stroke width, and line style are customizable
--   Lines can be extended to infinity
--   Labels can be added via settings or double-click
+- Shows Trend Line (single line between two points)
+- Shows Horizontal Line (across entire chart with optional axis label)
+- Shows Vertical Line (across entire chart with optional axis label)
+- Shows Parallel Channel (two parallel lines with fill and optional center line)
+- Shows Disjoint Channel (two non-parallel lines with fill)
+- Stroke/fill colors, stroke width, and line style are customizable
+- Lines can be extended to infinity
+- Labels can be added via settings or double-click
 
 **Expected Behaviors for example-tester:**
 
--   All 5 line types should be visible and interactive
--   Clicking/dragging should create new lines
--   Double-clicking lines should open settings
--   Visual customization options should work
--   Extension options should make lines extend beyond their anchor points
--   Fill should appear between channel lines
+- All 5 line types should be visible and interactive
+- Clicking/dragging should create new lines
+- Double-clicking lines should open settings
+- Visual customization options should work
+- Extension options should make lines extend beyond their anchor points
+- Fill should appear between channel lines
 
 #### text-annotations Example
 
 **Documentation Claims:**
 
--   Shows Text (simple text string)
--   Shows Comment (text within comment box)
--   Shows Callout (text box with arrow anchored to chart position)
--   Shows Note (icon with hover text)
--   Shift+Enter creates new lines within annotations
+- Shows Text (simple text string)
+- Shows Comment (text within comment box)
+- Shows Callout (text box with arrow anchored to chart position)
+- Shows Note (icon with hover text)
+- Shift+Enter creates new lines within annotations
 
 **Expected Behaviors for example-tester:**
 
--   All 4 text annotation types should be visible
--   Text should be editable
--   Comment boxes should have visible borders
--   Callout arrows should point to specific chart positions
--   Note icons should show tooltip on hover
--   Multi-line text should work with Shift+Enter
+- All 4 text annotation types should be visible
+- Text should be editable
+- Comment boxes should have visible borders
+- Callout arrows should point to specific chart positions
+- Note icons should show tooltip on hover
+- Multi-line text should work with Shift+Enter
 
 #### arrow-drawings Example
 
 **Documentation Claims:**
 
--   Shows Arrow (between two points)
--   Shows Arrow Up (fixed size up arrow)
--   Shows Arrow Down (fixed size down arrow)
+- Shows Arrow (between two points)
+- Shows Arrow Up (fixed size up arrow)
+- Shows Arrow Down (fixed size down arrow)
 
 **Expected Behaviors for example-tester:**
 
--   Regular arrow should connect two points
--   Up/Down arrows should be fixed size
--   All arrows should be selectable and movable
--   Arrow heads should render correctly
+- Regular arrow should connect two points
+- Up/Down arrows should be fixed size
+- All arrows should be selectable and movable
+- Arrow heads should render correctly
 
 #### fibonacci-tools Example
 
 **Documentation Claims:**
 
--   Shows Fibonacci Retracement (multiple bands based on two points)
--   Shows Fibonacci Trend Based (bands from three key points)
--   Users can choose number of bands to show
+- Shows Fibonacci Retracement (multiple bands based on two points)
+- Shows Fibonacci Trend Based (bands from three key points)
+- Users can choose number of bands to show
 
 **Expected Behaviors for example-tester:**
 
--   Fibonacci bands should render at correct ratios
--   Band count should be configurable
--   Labels should show ratio values
--   Bands should update when endpoints are moved
--   Fill between bands should be visible if enabled
+- Fibonacci bands should render at correct ratios
+- Band count should be configurable
+- Labels should show ratio values
+- Bands should update when endpoints are moved
+- Fill between bands should be visible if enabled
 
 #### measuring-tools Example
 
 **Documentation Claims:**
 
--   Shows Measure (quick tool for date and price range, removed on click)
--   Shows Date Range (time difference, bar count, volume sum if enabled)
--   Shows Price Range (absolute and percentage difference)
--   Shows Date and Price (combined measure)
+- Shows Measure (quick tool for date and price range, removed on click)
+- Shows Date Range (time difference, bar count, volume sum if enabled)
+- Shows Price Range (absolute and percentage difference)
+- Shows Date and Price (combined measure)
 
 **Expected Behaviors for example-tester:**
 
--   Quick measure should disappear when clicking elsewhere
--   Date range should show time and bar count
--   Price range should show both absolute and percentage
--   Combined tool should show all measurements
--   Volume sum should appear if volume is enabled
+- Quick measure should disappear when clicking elsewhere
+- Date range should show time and bar count
+- Price range should show both absolute and percentage
+- Combined tool should show all measurements
+- Volume sum should appear if volume is enabled
 
 #### annotation-customisation Example
 
 **Documentation Claims:**
 
--   Shows theme override usage for annotations
--   Demonstrates customizing line stroke, strokeWidth, lineDash
--   Shows parallel-channel customization with fill
--   Shows comment annotation styling
--   Middle line strokeOpacity can be set to 0
+- Shows theme override usage for annotations
+- Demonstrates customizing line stroke, strokeWidth, lineDash
+- Shows parallel-channel customization with fill
+- Shows comment annotation styling
+- Middle line strokeOpacity can be set to 0
 
 **Expected Behaviors for example-tester:**
 
--   Theme overrides should apply to annotations
--   Line annotations should have lime color, 3px width, [3,4] dash
--   Parallel channel should have red stroke/fill
--   Comment should have orange fill, blue text
--   Middle line of parallel channel should be invisible
+- Theme overrides should apply to annotations
+- Line annotations should have lime color, 3px width, [3,4] dash
+- Parallel channel should have red stroke/fill
+- Comment should have orange fill, blue text
+- Middle line of parallel channel should be invisible
 
 ### User Interactions to Validate
 
 1. **Toolbar Navigation:**
-
     - Click toolbar buttons to activate tools
     - Hover over buttons for tooltips
     - Check dropdown menus for grouped tools
 
 2. **Drawing Interactions:**
-
     - Click and drag to create annotations
     - Single click for point-based annotations
     - Shift+drag for 45° angle snapping
@@ -192,7 +190,6 @@
     - Settings button interaction
 
 3. **Keyboard Shortcuts:**
-
     - Ctrl/Cmd+Z for undo
     - Ctrl/Cmd+Y for redo
     - Ctrl/Cmd+C/V for copy/paste
@@ -303,17 +300,17 @@ No existing technical-review-exceptions.md file found for this page.
 
 ## Success Criteria
 
--   All toolbar buttons function correctly
--   All annotation types can be created and edited
--   Keyboard shortcuts work as documented
--   Theme customizations apply properly
--   Visual feedback is appropriate for all interactions
--   No console errors during normal usage
--   Examples demonstrate all documented features
+- All toolbar buttons function correctly
+- All annotation types can be created and edited
+- Keyboard shortcuts work as documented
+- Theme customizations apply properly
+- Visual feedback is appropriate for all interactions
+- No console errors during normal usage
+- Examples demonstrate all documented features
 
 ## Estimated Complexity/Time
 
--   Total validation points: ~60
--   High complexity areas: Drawing tools, annotations, keyboard interactions
--   Medium complexity: Fibonacci/measuring tools, state management
--   Expected time: 3-4 hours for thorough testing
+- Total validation points: ~60
+- High complexity areas: Drawing tools, annotations, keyboard interactions
+- Medium complexity: Fibonacci/measuring tools, state management
+- Expected time: 3-4 hours for thorough testing

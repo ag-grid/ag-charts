@@ -7,8 +7,10 @@ import { snapPoint } from '../utils/coords';
 import { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
 import type { FibonacciRetracementTrendBasedScene } from './fibonacciRetracementTrendBasedScene';
 
-interface FibonacciRetracementTrendBasedStateMachineContext
-    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
+interface FibonacciRetracementTrendBasedStateMachineContext extends Omit<
+    AnnotationsCreateStateMachineContext,
+    'create'
+> {
     create: (datum: FibonacciRetracementTrendBasedProperties) => void;
 }
 

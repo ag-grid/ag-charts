@@ -337,7 +337,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<
 
         const fills = isLeaf ? properties.fills : properties.undocumentedGroupFills;
         const strokes = isLeaf ? properties.strokes : properties.undocumentedGroupStrokes;
-        const index = isLeaf ? rootIndex : nodeDatum.depth ?? -1;
+        const index = isLeaf ? rootIndex : (nodeDatum.depth ?? -1);
 
         const highlightedNode = this.getActiveHighlightNode();
         const tileHighlightState = this.getHierarchyHighlightState(isHighlight, highlightedNode, nodeDatum);

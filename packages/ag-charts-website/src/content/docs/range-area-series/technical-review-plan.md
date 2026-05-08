@@ -4,18 +4,18 @@
 
 ### Chart Types/Features Covered
 
--   **Range Area Series**: Enterprise-only series type for displaying data ranges between high and low values
--   **Multiple Series**: Combining multiple range area series in a single chart
--   **Missing Data Handling**: Behavior with invalid data points and `connectMissingData` option
--   **Customization**: Markers and labels configuration
+- **Range Area Series**: Enterprise-only series type for displaying data ranges between high and low values
+- **Multiple Series**: Combining multiple range area series in a single chart
+- **Missing Data Handling**: Behavior with invalid data points and `connectMissingData` option
+- **Customization**: Markers and labels configuration
 
 ### Key APIs and Configuration Options Documented
 
--   **Required Keys**: `xKey`, `yLowKey`, `yHighKey`
--   **Optional Name Properties**: `xName`, `yName`, `yLowName`, `yHighName`
--   **Styling Options**: `marker`, `label`
--   **Data Handling**: `connectMissingData`
--   **Label Formatter**: Custom formatting function with `itemType` parameter
+- **Required Keys**: `xKey`, `yLowKey`, `yHighKey`
+- **Optional Name Properties**: `xName`, `yName`, `yLowName`, `yHighName`
+- **Styling Options**: `marker`, `label`
+- **Data Handling**: `connectMissingData`
+- **Label Formatter**: Custom formatting function with `itemType` parameter
 
 ### Examples Referenced
 
@@ -26,23 +26,23 @@
 
 ### Interactive Features Described
 
--   Tooltips showing `xName`, `yLowName`, `yHighName` values
--   Legend display using `yName`
--   Hover states for range areas
--   Label display for both high and low values
+- Tooltips showing `xName`, `yLowName`, `yHighName` values
+- Legend display using `yName`
+- Hover states for range areas
+- Label display for both high and low values
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgRangeAreaSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/rangeAreaOptions.ts`
--   `AgRangeAreaSeriesLabelOptions` and related types
--   `AgRangeAreaSeriesTooltipRendererParams` with `itemType` field
+- `AgRangeAreaSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/rangeAreaOptions.ts`
+- `AgRangeAreaSeriesLabelOptions` and related types
+- `AgRangeAreaSeriesTooltipRendererParams` with `itemType` field
 
 ### Implementation Files to Check
 
--   `/packages/ag-charts-enterprise/src/series/range-area/rangeArea.ts` - Main series implementation
--   `/packages/ag-charts-enterprise/src/series/range-area/rangeAreaProperties.ts` - Default values and property definitions
+- `/packages/ag-charts-enterprise/src/series/range-area/rangeArea.ts` - Main series implementation
+- `/packages/ag-charts-enterprise/src/series/range-area/rangeAreaProperties.ts` - Default values and property definitions
 
 ### Examples to Test with Expected Behaviors
 
@@ -50,81 +50,79 @@
 
 **Documentation Claims:**
 
--   Creates a range area using `type: 'range-area'`
--   Uses `yLowKey: 'flatsAndMaisonettes'` and `yHighKey: 'detachedHouses'`
--   Should display a shaded area between the two data values
+- Creates a range area using `type: 'range-area'`
+- Uses `yLowKey: 'flatsAndMaisonettes'` and `yHighKey: 'detachedHouses'`
+- Should display a shaded area between the two data values
 
 **Expected Behaviors:**
 
--   Chart renders with a single filled area between low and high values
--   Area should be shaded with default fill color (#99CCFF based on implementation)
--   Hover over area should show tooltips with data values
--   No markers should be visible by default
--   Legend should show series (check if default name is used)
+- Chart renders with a single filled area between low and high values
+- Area should be shaded with default fill color (#99CCFF based on implementation)
+- Hover over area should show tooltips with data values
+- No markers should be visible by default
+- Legend should show series (check if default name is used)
 
 #### 2. multiple-range-areas
 
 **Documentation Claims:**
 
--   Two range area series combined in one chart
--   `yName` controls legend text
--   `yLowName`, `yHighName`, `xName` control tooltip text
--   First series: flats to terraced houses
--   Second series: semi-detached to detached houses
+- Two range area series combined in one chart
+- `yName` controls legend text
+- `yLowName`, `yHighName`, `xName` control tooltip text
+- First series: flats to terraced houses
+- Second series: semi-detached to detached houses
 
 **Expected Behaviors:**
 
--   Two distinct filled areas rendered with different colors
--   Legend shows "Flats & Terraced" and "Semi-detached & Detached"
--   Tooltips show custom names when hovering over areas
--   Areas should not overlap incorrectly
--   Both series should be independently hoverable
+- Two distinct filled areas rendered with different colors
+- Legend shows "Flats & Terraced" and "Semi-detached & Detached"
+- Tooltips show custom names when hovering over areas
+- Areas should not overlap incorrectly
+- Both series should be independently hoverable
 
 #### 3. range-area-missing-data
 
 **Documentation Claims:**
 
--   Data with `Infinity`, `null`, `undefined`, or `NaN` creates gaps
--   `connectMissingData: true` draws connecting area across gaps
--   Invalid `xKey` values are ignored
+- Data with `Infinity`, `null`, `undefined`, or `NaN` creates gaps
+- `connectMissingData: true` draws connecting area across gaps
+- Invalid `xKey` values are ignored
 
 **Expected Behaviors:**
 
--   Default behavior: visible gaps in the range area where data is missing
--   With `connectMissingData: true`: area connects across missing data points
--   Chart should handle all invalid value types gracefully
--   No console errors with missing data
--   Tooltips should not appear over gap areas
+- Default behavior: visible gaps in the range area where data is missing
+- With `connectMissingData: true`: area connects across missing data points
+- Chart should handle all invalid value types gracefully
+- No console errors with missing data
+- Tooltips should not appear over gap areas
 
 #### 4. range-area-labels
 
 **Documentation Claims:**
 
--   Markers enabled with `size: 7`
--   Labels enabled with `padding: 17`
--   Label formatter uses `itemType` to distinguish 'low' vs 'high'
--   Formatter shows "L: value" or "H: value"
+- Markers enabled with `size: 7`
+- Labels enabled with `padding: 17`
+- Label formatter uses `itemType` to distinguish 'low' vs 'high'
+- Formatter shows "L: value" or "H: value"
 
 **Expected Behaviors:**
 
--   Visible markers at both high and low data points
--   Markers should be 7px in size
--   Labels appear near markers with 17px padding
--   Labels show "L:" prefix for low values and "H:" for high values
--   Both high and low values should have labels for each x position
--   Labels should not overlap excessively
+- Visible markers at both high and low data points
+- Markers should be 7px in size
+- Labels appear near markers with 17px padding
+- Labels show "L:" prefix for low values and "H:" for high values
+- Both high and low values should have labels for each x position
+- Labels should not overlap excessively
 
 ### User Interactions to Validate
 
 1. **Hover Interactions**:
-
     - Hover over filled area to trigger tooltips
     - Hover over edges/boundaries of range area
     - Hover between multiple series areas
     - Hover over gap areas (should not show tooltips)
 
 2. **Legend Interactions**:
-
     - Click legend items to show/hide series
     - Hover legend items to highlight corresponding series
 
@@ -191,31 +189,31 @@ No existing technical-review-exceptions.md file found for this page.
 
 ### simple-range-area
 
--   **Task**: Validate basic range area series implementation
--   **Expected from docs**: Single series with area between yLowKey and yHighKey values
--   **Validate**: Proper API usage, chart renders without errors, tooltips work
--   **Check for**: Default colors, proper data binding, no console warnings
+- **Task**: Validate basic range area series implementation
+- **Expected from docs**: Single series with area between yLowKey and yHighKey values
+- **Validate**: Proper API usage, chart renders without errors, tooltips work
+- **Check for**: Default colors, proper data binding, no console warnings
 
 ### multiple-range-areas
 
--   **Task**: Test multiple series with custom naming
--   **Expected from docs**: Two series with custom yName for legend, custom tooltip names
--   **Validate**: Both series render, legend shows correct names, tooltips use custom names
--   **Check for**: Series independence, no rendering conflicts, proper color assignment
+- **Task**: Test multiple series with custom naming
+- **Expected from docs**: Two series with custom yName for legend, custom tooltip names
+- **Validate**: Both series render, legend shows correct names, tooltips use custom names
+- **Check for**: Series independence, no rendering conflicts, proper color assignment
 
 ### range-area-missing-data
 
--   **Task**: Verify missing data handling
--   **Expected from docs**: Gaps for invalid values, connectMissingData option works
--   **Validate**: Gaps render correctly, connecting line works when enabled
--   **Check for**: No errors with null/undefined/NaN/Infinity values
+- **Task**: Verify missing data handling
+- **Expected from docs**: Gaps for invalid values, connectMissingData option works
+- **Validate**: Gaps render correctly, connecting line works when enabled
+- **Check for**: No errors with null/undefined/NaN/Infinity values
 
 ### range-area-labels
 
--   **Task**: Test marker and label customization
--   **Expected from docs**: Markers at size 7, labels with custom formatter using itemType
--   **Validate**: Markers visible, labels show L/H prefixes, proper positioning
--   **Check for**: Label formatter receives correct itemType values, no overlapping issues
+- **Task**: Test marker and label customization
+- **Expected from docs**: Markers at size 7, labels with custom formatter using itemType
+- **Validate**: Markers visible, labels show L/H prefixes, proper positioning
+- **Check for**: Label formatter receives correct itemType values, no overlapping issues
 
 ## Success Criteria
 

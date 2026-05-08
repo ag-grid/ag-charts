@@ -28,10 +28,10 @@ To use a Colour Scale, set the series `colorKey` property to a data field contai
 
 In this configuration:
 
--   `colorKey` is set to 'score', which supplies numeric values for the Colour Scale.
--   `colorName` sets the title that appears next to the colour value in tooltips.
--   The default colour scheme is applied as a continuous gradient across the data range.
--   A [Gradient Legend](#gradient-legend) is displayed, showing how colours map to values.
+- `colorKey` is set to 'score', which supplies numeric values for the Colour Scale.
+- `colorName` sets the title that appears next to the colour value in tooltips.
+- The default colour scheme is applied as a continuous gradient across the data range.
+- A [Gradient Legend](#gradient-legend) is displayed, showing how colours map to values.
 
 Colour Scales are supported on [Heatmap](./heatmap-series/), [Treemap](./treemap-series/) and [Sunburst](./sunburst-series/),
 [Scatter](./scatter-series/) and [Bubble](./bubble-series/) as well as all [Map](./maps/) series types.
@@ -61,11 +61,11 @@ By default, the Colour Scale domain is derived from the data. Use `colorScale.do
 
 In this example:
 
--   Use the buttons to toggle `domain` between `[1, 10]` or the default of approximately 4 to 8.
--   Using [Custom Colours](#custom-colours), the lowest values are `tomato`, the middle values are `gold`, and the highest values are `seagreen`.
-    -   With the fixed domain, the lowest value is 1 which is not in the data, so no cells appear as `tomato`.
-    -   With the default domain, the lowest value in the domain is 4 and appears as `tomato`.
--   Values outside a fixed domain are clamped. In this example of `[1, 10]`, a value of 0 would receive the same colour as 1.
+- Use the buttons to toggle `domain` between `[1, 10]` or the default of approximately 4 to 8.
+- Using [Custom Colours](#custom-colours), the lowest values are `tomato`, the middle values are `gold`, and the highest values are `seagreen`.
+    - With the fixed domain, the lowest value is 1 which is not in the data, so no cells appear as `tomato`.
+    - With the default domain, the lowest value in the domain is 4 and appears as `tomato`.
+- Values outside a fixed domain are clamped. In this example of `[1, 10]`, a value of 0 would receive the same colour as 1.
 
 ## Discrete Mode
 
@@ -93,10 +93,10 @@ Use `colorScale.mode` to switch between a continuous gradient and discrete colou
 
 In this example:
 
--   In discrete mode, each data value receives a solid colour rather than a blended gradient.
--   The number of bins is determined by the number of colours in the Colour Scale.
--   Use [Colour Stops](#colour-stops) to control the bin boundaries and the colours used.
--   Discrete mode can use the [Gradient Legend](#gradient-legend) if desired. See [Legends](#legends) for details.
+- In discrete mode, each data value receives a solid colour rather than a blended gradient.
+- The number of bins is determined by the number of colours in the Colour Scale.
+- Use [Colour Stops](#colour-stops) to control the bin boundaries and the colours used.
+- Discrete mode can use the [Gradient Legend](#gradient-legend) if desired. See [Legends](#legends) for details.
 
 ## Custom Colours
 
@@ -130,15 +130,15 @@ With `stop` values, each colour is positioned at an explicit point in the domain
 
 In continuous mode, colours blend smoothly between stops:
 
--   0 → 7 interpolates from `tomato` to `gold`.
--   7 → 9 interpolates from `gold` to `seagreen`.
--   9 → 10 is solid `seagreen`.
+- 0 → 7 interpolates from `tomato` to `gold`.
+- 7 → 9 interpolates from `gold` to `seagreen`.
+- 9 → 10 is solid `seagreen`.
 
 In discrete mode, each stop marks a bin boundary:
 
--   0–6 is solid `tomato`.
--   7–8 is solid `gold`.
--   9–10 is solid `seagreen`.
+- 0–6 is solid `tomato`.
+- 7–8 is solid `gold`.
+- 9–10 is solid `seagreen`.
 
 ### Named Stops
 
@@ -209,11 +209,11 @@ The Gradient Legend displays a colour bar alongside the chart to help match colo
 
 In the above example:
 
--   `position` places the legend at the `'bottom'`, `'top'`, `'left'`, or `'right'` of the chart.
-    -   When the position is `left` or `right`, values are displayed in descending order. Use `reverseOrder` to change this.
--   `gradient.thickness` controls the width of the gradient bar.
--   `gradient.preferredLength` sets the initial length of the gradient bar. The actual length may be adjusted to fit the chart dimensions or domain.
--   Customise label appearance with `scale.label` (font, colour) and `scale.padding` (distance between bar and labels).
+- `position` places the legend at the `'bottom'`, `'top'`, `'left'`, or `'right'` of the chart.
+    - When the position is `left` or `right`, values are displayed in descending order. Use `reverseOrder` to change this.
+- `gradient.thickness` controls the width of the gradient bar.
+- `gradient.preferredLength` sets the initial length of the gradient bar. The actual length may be adjusted to fit the chart dimensions or domain.
+- Customise label appearance with `scale.label` (font, colour) and `scale.padding` (distance between bar and labels).
 
 See the [API Reference](#reference-AgGradientLegendOptions) for all options.
 

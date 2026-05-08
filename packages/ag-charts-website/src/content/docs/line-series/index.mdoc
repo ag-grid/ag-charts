@@ -22,9 +22,9 @@ To create a Line Series, use the `line` series type. If no `type` is provided, a
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
--   `yKey` provides the numerical values, corresponding to the [Number Axis](./axes-types/#number).
--   `yName` configures display names, reflected in [Tooltip Titles](./tooltips/) and [Legend Items](./legend/).
+- `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
+- `yKey` provides the numerical values, corresponding to the [Number Axis](./axes-types/#number).
+- `yName` configures display names, reflected in [Tooltip Titles](./tooltips/) and [Legend Items](./legend/).
 
 ## Customisation
 
@@ -102,8 +102,8 @@ Please see the [API Reference](./line-series/#reference-AgLineSeriesOptions-inte
 
 {% chartExampleRunner title="Line Series with Incomplete Data" name="gap-line" type="generated" /%}
 
--   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line. Set `connectMissingData: true` to draw a connecting line between points either side of a missing point.
--   Data points with invalid `xKey` values will be ignored.
+- Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the line. Set `connectMissingData: true` to draw a connecting line between points either side of a missing point.
+- Data points with invalid `xKey` values will be ignored.
 
 ### Continuous Data
 
@@ -111,9 +111,9 @@ By default, the Line series uses a [Category Axis](./axes-types/#category) to pl
 
 {% chartExampleRunner title="Time Data: Temperature Sensors" name="time-line" type="generated" /%}
 
--   Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
--   See [Time Axes](./axes-time) for more information about the different time axes available.
--   All time axes automatically select an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
+- Time can be provided as `number` or `Date` objects, where `number` values are interpreted as timestamps derived from Unix time.
+- See [Time Axes](./axes-time) for more information about the different time axes available.
+- All time axes automatically select an appropriate label format depending on the time span of the data, making a best-effort attempt to prevent the labels from overlapping.
 
 See [Axes Types](./axes-types/) for more information on using a [Time Axis](./axes-types/#time) or a [Number Axis](./axes-types/#number).
 

@@ -22,12 +22,13 @@ import type { AgBaseHierarchyChartOptions } from './series/standalone/hierarchyO
 import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
-export interface AgChartThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseChartThemeOptions<TDatum, TContext> {}
+export interface AgChartThemeOptions<TDatum = DatumDefault, TContext = ContextDefault> extends AgBaseChartThemeOptions<
+    TDatum,
+    TContext
+> {}
 
 export interface AgCartesianChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBaseCartesianChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     /**
      * A predefined theme name or an object containing theme overrides.
      *
@@ -38,38 +39,35 @@ export interface AgCartesianChartOptions<TDatum = DatumDefault, TContext = Conte
 }
 
 export interface AgPolarChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBasePolarChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBasePolarChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
 export interface AgTopologyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseTopologyChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBaseTopologyChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 export interface AgStandaloneChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseStandaloneChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBaseStandaloneChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
-export interface AgGaugeChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseChartOptions<TDatum, TContext> {
+export interface AgGaugeChartOptions<TDatum = DatumDefault, TContext = ContextDefault> extends AgBaseChartOptions<
+    TDatum,
+    TContext
+> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
 // @todo(xxxx) - backwards compat
 export interface AgHierarchyChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseHierarchyChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBaseHierarchyChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
 // @todo(xxxx) - backwards compat
 export interface AgFlowProportionChartOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseFlowProportionChartOptions<TDatum, TContext>,
-        AgBaseChartOptions<TDatum, TContext> {
+    extends AgBaseFlowProportionChartOptions<TDatum, TContext>, AgBaseChartOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
@@ -115,8 +113,10 @@ export type AgBaseSparklinePresetThemeOptions<TDatum = DatumDefault> = AgSparkli
 export type AgFinancialChartOptions<TDatum = DatumDefault> = AgBaseFinancialPresetOptions<TDatum> &
     AgFinancialChartPresets;
 
-export interface AgBaseGaugePresetOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseGaugePresetThemeOptions<TDatum, TContext> {
+export interface AgBaseGaugePresetOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseGaugePresetThemeOptions<TDatum, TContext> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
@@ -138,8 +138,10 @@ export type AgGaugeOptions<TDatum = DatumDefault, TContext = ContextDefault> = A
 > &
     AgGaugePresets<TContext>;
 
-export interface AgBaseSparklinePresetOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSparklinePresetThemeOptions<TDatum> {
+export interface AgBaseSparklinePresetOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseSparklinePresetThemeOptions<TDatum> {
     theme?: AgChartTheme<TDatum, TContext> | AgChartThemeName;
 }
 
@@ -247,8 +249,11 @@ export interface AgChartInstance<
 > extends AgTypedChartInstance<DatumDefault, ContextDefault, TOptions> {}
 
 // @ts-expect-error Expected to be unused in code, simplified typings to enable rendering for API docs.
-interface _AgChartInstanceInterface<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgTypedChartInstance<TDatum, TContext, AgChartOptions<TDatum, TContext>> {
+interface _AgChartInstanceInterface<TDatum = DatumDefault, TContext = ContextDefault> extends AgTypedChartInstance<
+    TDatum,
+    TContext,
+    AgChartOptions<TDatum, TContext>
+> {
     update(options: AgChartOptions<TDatum, TContext>): Promise<void>;
     updateDelta(deltaOptions: AgChartOptions<TDatum, TContext>): Promise<void>;
     getOptions(): AgChartOptions<TDatum, TContext>;

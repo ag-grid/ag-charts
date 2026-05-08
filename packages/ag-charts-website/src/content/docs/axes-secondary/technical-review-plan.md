@@ -4,51 +4,51 @@
 
 ### Chart Types/Features Covered
 
--   Secondary axes configuration for comparing datasets with different scales
--   Multiple y-axis support (primary left, secondary right)
--   Axis-to-series association using the `keys` property
--   Support for any number of additional axes
+- Secondary axes configuration for comparing datasets with different scales
+- Multiple y-axis support (primary left, secondary right)
+- Axis-to-series association using the `keys` property
+- Support for any number of additional axes
 
 ### Key APIs and Configuration Options Documented
 
--   `axes` array configuration
--   `keys` property for linking series to axes
--   `position` property for axis placement (`left`, `right`, `top`, `bottom`)
--   Axis types (`category`, `number`)
--   Axis formatting with label formatters
--   Axis titles with `enabled` property
+- `axes` array configuration
+- `keys` property for linking series to axes
+- `position` property for axis placement (`left`, `right`, `top`, `bottom`)
+- Axis types (`category`, `number`)
+- Axis formatting with label formatters
+- Axis titles with `enabled` property
 
 ### Examples Referenced
 
--   **multiple-axes**: Demonstrates secondary y-axis with:
-    -   Bar series (male/female cattle) on primary axis
-    -   Line series (beef exports) on secondary axis
-    -   Different scales and formatters for each axis
-    -   Legend configuration
+- **multiple-axes**: Demonstrates secondary y-axis with:
+    - Bar series (male/female cattle) on primary axis
+    - Line series (beef exports) on secondary axis
+    - Different scales and formatters for each axis
+    - Legend configuration
 
 ### Interactive Features Described
 
--   Visual comparison of datasets with different scales
--   Automatic axis association based on `keys` matching
+- Visual comparison of datasets with different scales
+- Automatic axis association based on `keys` matching
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgBaseCartesianAxisOptions` in `/packages/ag-charts-types/src/chart/cartesianOptions.ts`
-    -   Verify `keys?: string[]` property exists
-    -   Check `position?: AgCartesianAxisPosition` property
--   `AgAxisCaptionOptions` for title configuration
--   `AgNumericAxisFormattableLabelOptions` for label formatting
+- `AgBaseCartesianAxisOptions` in `/packages/ag-charts-types/src/chart/cartesianOptions.ts`
+    - Verify `keys?: string[]` property exists
+    - Check `position?: AgCartesianAxisPosition` property
+- `AgAxisCaptionOptions` for title configuration
+- `AgNumericAxisFormattableLabelOptions` for label formatting
 
 ### Implementation Files to Check
 
--   `/packages/ag-charts-community/src/chart/axis/axis.ts`
-    -   Verify `@Property keys: string[] = []` implementation
--   `/packages/ag-charts-community/src/chart/chart.ts`
-    -   Check axis-series matching logic using `keys`
--   `/packages/ag-charts-community/src/chart/cartesianChart.ts`
-    -   Validate secondary axis positioning logic
+- `/packages/ag-charts-community/src/chart/axis/axis.ts`
+    - Verify `@Property keys: string[] = []` implementation
+- `/packages/ag-charts-community/src/chart/chart.ts`
+    - Check axis-series matching logic using `keys`
+- `/packages/ag-charts-community/src/chart/cartesianChart.ts`
+    - Validate secondary axis positioning logic
 
 ### Examples to Test with Expected Behaviors
 
@@ -56,43 +56,43 @@
 
 **Documentation claims:**
 
--   Shows cattle holdings (bar series) and beef exports (line series) on different scales
--   Primary axis (left) displays cattle numbers in millions with 'M' suffix
--   Secondary axis (right) displays exports in thousands with 'k' suffix
--   Title enabled explicitly on secondary axis with `enabled: true`
+- Shows cattle holdings (bar series) and beef exports (line series) on different scales
+- Primary axis (left) displays cattle numbers in millions with 'M' suffix
+- Secondary axis (right) displays exports in thousands with 'k' suffix
+- Title enabled explicitly on secondary axis with `enabled: true`
 
 **Expected behaviors to validate:**
 
--   Two y-axes rendered on opposite sides of chart
--   Correct scale separation - cattle numbers on left, export tonnes on right
--   Label formatters apply correct suffixes ('M' for millions, 'k' for thousands)
--   Bar series renders against left axis scale
--   Line series renders against right axis scale
--   Both axis titles are visible
--   Legend shows all three series with square markers
+- Two y-axes rendered on opposite sides of chart
+- Correct scale separation - cattle numbers on left, export tonnes on right
+- Label formatters apply correct suffixes ('M' for millions, 'k' for thousands)
+- Bar series renders against left axis scale
+- Line series renders against right axis scale
+- Both axis titles are visible
+- Legend shows all three series with square markers
 
 **Interactive features to test:**
 
--   Hovering over bar series shows tooltips with cattle numbers
--   Hovering over line series shows tooltips with export values
--   Legend item clicks toggle series visibility
--   Chart maintains correct axis associations when series are toggled
+- Hovering over bar series shows tooltips with cattle numbers
+- Hovering over line series shows tooltips with export values
+- Legend item clicks toggle series visibility
+- Chart maintains correct axis associations when series are toggled
 
 ### User Interactions to Validate
 
--   Tooltip display on hover for both primary and secondary axis series
--   Legend interaction (click to toggle series)
--   Responsive behavior when resizing
--   Keyboard navigation through chart elements
+- Tooltip display on hover for both primary and secondary axis series
+- Legend interaction (click to toggle series)
+- Responsive behavior when resizing
+- Keyboard navigation through chart elements
 
 ### Visual States to Screenshot and Analyze
 
--   Default chart rendering with all series visible
--   Hover states over bar series (primary axis)
--   Hover states over line series (secondary axis)
--   Chart with one series hidden via legend
--   Mobile viewport rendering
--   Focus states during keyboard navigation
+- Default chart rendering with all series visible
+- Hover states over bar series (primary axis)
+- Hover states over line series (secondary axis)
+- Chart with one series hidden via legend
+- Mobile viewport rendering
+- Focus states during keyboard navigation
 
 ## Known Exceptions
 
@@ -140,19 +140,19 @@ No documented exceptions file exists for this page.
 
 ## Success Criteria
 
--   All TypeScript interfaces contain documented properties
--   Example runs without errors and matches documented behavior
--   Visual rendering matches documentation descriptions
--   Interactive features work as described
--   No undocumented behaviors discovered during testing
+- All TypeScript interfaces contain documented properties
+- Example runs without errors and matches documented behavior
+- Visual rendering matches documentation descriptions
+- Interactive features work as described
+- No undocumented behaviors discovered during testing
 
 ## Estimated Complexity
 
--   **High complexity** due to:
-    -   Critical feature for data visualization
-    -   Complex axis-series association logic
-    -   Multiple interactive elements
-    -   Important for many use cases
+- **High complexity** due to:
+    - Critical feature for data visualization
+    - Complex axis-series association logic
+    - Multiple interactive elements
+    - Important for many use cases
 
 ## example-tester Delegation Plan
 
@@ -173,9 +173,9 @@ No documented exceptions file exists for this page.
 
 **Specific validations needed:**
 
--   Verify AG Charts API usage follows best practices
--   Check for TypeScript type safety
--   Validate data binding correctness
--   Test console for errors or warnings
--   Confirm chart rendering matches expected visual output
--   Verify axis-series associations work correctly
+- Verify AG Charts API usage follows best practices
+- Check for TypeScript type safety
+- Validate data binding correctness
+- Test console for errors or warnings
+- Confirm chart rendering matches expected visual output
+- Verify axis-series associations work correctly

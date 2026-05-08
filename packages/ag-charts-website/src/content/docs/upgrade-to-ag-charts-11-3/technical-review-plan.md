@@ -19,81 +19,81 @@ This is a migration guide page for AG Charts version 11.3. The page contains:
 
 ### Examples Referenced
 
--   No example code is provided on this page
--   No interactive examples are embedded
+- No example code is provided on this page
+- No interactive examples are embedded
 
 ### Interactive Features Described
 
--   None - this is a migration guide without interactive examples
+- None - this is a migration guide without interactive examples
 
 ## Validation Targets
 
 ### 1. TypeScript Interface Verification
 
--   **Priority: HIGH**
--   Verify that the deprecated `contextMenu` properties exist in AG Charts 11.2 or earlier type definitions:
-    -   `extraActions?: AgContextMenuAction[]`
-    -   `extraSeriesAreaActions?: AgContextMenuAction[]`
-    -   `extraNodeActions?: AgContextMenuAction[]`
-    -   `extraLegendItemActions?: AgContextMenuAction[]`
--   Confirm that `AgContextMenuOptions` interface in 11.3 includes:
-    -   `items?: (AgContextMenuItem | string)[]` property with proper typing
-    -   Deprecated properties should either be removed or marked as deprecated
--   Verify the `showOn` property exists in `AgContextMenuItem` with appropriate values:
-    -   `'always'`, `'series-area'`, `'series-node'`, `'legend-item'` etc.
+- **Priority: HIGH**
+- Verify that the deprecated `contextMenu` properties exist in AG Charts 11.2 or earlier type definitions:
+    - `extraActions?: AgContextMenuAction[]`
+    - `extraSeriesAreaActions?: AgContextMenuAction[]`
+    - `extraNodeActions?: AgContextMenuAction[]`
+    - `extraLegendItemActions?: AgContextMenuAction[]`
+- Confirm that `AgContextMenuOptions` interface in 11.3 includes:
+    - `items?: (AgContextMenuItem | string)[]` property with proper typing
+    - Deprecated properties should either be removed or marked as deprecated
+- Verify the `showOn` property exists in `AgContextMenuItem` with appropriate values:
+    - `'always'`, `'series-area'`, `'series-node'`, `'legend-item'` etc.
 
 ### 2. Implementation File Checks
 
--   **Priority: HIGH**
--   Search for migration/deprecation handling code that maps old context menu properties to new `items` array
--   Verify that using the deprecated properties still works in 11.3 (backward compatibility)
--   Check console warnings are issued when using deprecated properties
--   Confirm the mapping logic correctly translates old extra actions to new `items` with proper `showOn` values
--   Validate that the new `items` API with `showOn` provides equivalent functionality
+- **Priority: HIGH**
+- Search for migration/deprecation handling code that maps old context menu properties to new `items` array
+- Verify that using the deprecated properties still works in 11.3 (backward compatibility)
+- Check console warnings are issued when using deprecated properties
+- Confirm the mapping logic correctly translates old extra actions to new `items` with proper `showOn` values
+- Validate that the new `items` API with `showOn` provides equivalent functionality
 
 ### 3. Context Menu Documentation Cross-Reference
 
--   **Priority: HIGH**
--   Verify the context-menu documentation page properly documents the new `items[]` API
--   Check that examples in context-menu docs demonstrate the `showOn` property usage
--   Ensure the migration path from `extraActions` to `items` is clear and well-documented
--   Confirm that all `showOn` values mentioned in the deprecation are documented
+- **Priority: HIGH**
+- Verify the context-menu documentation page properly documents the new `items[]` API
+- Check that examples in context-menu docs demonstrate the `showOn` property usage
+- Ensure the migration path from `extraActions` to `items` is clear and well-documented
+- Confirm that all `showOn` values mentioned in the deprecation are documented
 
 ### 4. Blog Post and External Links Verification
 
--   **Priority: MEDIUM**
--   Verify the blog post link (https://blog.ag-grid.com/whats-new-in-ag-charts-11-3/) is valid and accessible
--   Check that the blog post mentions the context menu improvements
--   Ensure the blog post content aligns with the deprecation statements in the migration guide
+- **Priority: MEDIUM**
+- Verify the blog post link (https://blog.ag-grid.com/whats-new-in-ag-charts-11-3/) is valid and accessible
+- Check that the blog post mentions the context menu improvements
+- Ensure the blog post content aligns with the deprecation statements in the migration guide
 
 ### 5. Deprecation Accuracy and Completeness
 
--   **Priority: HIGH**
--   Verify the deprecation statement is accurate and complete:
-    -   The old APIs were `extraActions[]`, `extraSeriesAreaActions[]`, `extraNodeActions`, `extraLegendItemActions`
-    -   The new API uses `items[]` with `showOn` values to control visibility
--   Check if there are any other context menu related deprecations in 11.3 that should be documented
--   Validate that the mapping from old to new API is one-to-one and no functionality is lost
+- **Priority: HIGH**
+- Verify the deprecation statement is accurate and complete:
+    - The old APIs were `extraActions[]`, `extraSeriesAreaActions[]`, `extraNodeActions`, `extraLegendItemActions`
+    - The new API uses `items[]` with `showOn` values to control visibility
+- Check if there are any other context menu related deprecations in 11.3 that should be documented
+- Validate that the mapping from old to new API is one-to-one and no functionality is lost
 
 ### 6. Version and Change Statements Accuracy
 
--   **Priority: HIGH**
--   Confirm that the migration version is correctly set to 11.3.0
--   Verify the statements about no breaking changes are accurate (deprecated APIs should still work)
--   Verify the statements about no behaviour changes are accurate
--   Check if any deprecated APIs from previous versions were actually removed in 11.3
--   Validate that the only documented change is the context menu deprecation
+- **Priority: HIGH**
+- Confirm that the migration version is correctly set to 11.3.0
+- Verify the statements about no breaking changes are accurate (deprecated APIs should still work)
+- Verify the statements about no behaviour changes are accurate
+- Check if any deprecated APIs from previous versions were actually removed in 11.3
+- Validate that the only documented change is the context menu deprecation
 
 ### 7. Changelog and Version History Cross-Check
 
--   **Priority: MEDIUM**
--   Check the changelog.json entry for v11.3 matches the deprecation notes
--   Verify that the context menu changes are properly documented in version history
--   Ensure no undocumented breaking changes or deprecations exist
+- **Priority: MEDIUM**
+- Check the changelog.json entry for v11.3 matches the deprecation notes
+- Verify that the context menu changes are properly documented in version history
+- Ensure no undocumented breaking changes or deprecations exist
 
 ## Known Exceptions
 
--   No technical-review-exceptions.md file exists for this page
+- No technical-review-exceptions.md file exists for this page
 
 ## Execution Plan
 
@@ -150,19 +150,19 @@ This is a migration guide page for AG Charts version 11.3. The page contains:
 
 Since this page contains no examples, the example-tester agent will not be needed for example validation. However, they may be useful for:
 
--   Testing context menu functionality with both old and new APIs to verify backward compatibility
--   Validating that the migration path works correctly in practice
--   Checking that console warnings appear when using deprecated properties
+- Testing context menu functionality with both old and new APIs to verify backward compatibility
+- Validating that the migration path works correctly in practice
+- Checking that console warnings appear when using deprecated properties
 
 ## Estimated Complexity
 
--   **Medium**: While this is a migration guide, the context menu API change involves multiple deprecated properties and a significant API redesign
--   **Time Estimate**: 25-30 minutes for complete review
--   **Risk Areas**:
-    -   Ensuring complete backward compatibility for all deprecated properties
-    -   Verifying the new `items[]` API provides equivalent functionality
-    -   Confirming no other undocumented changes exist in 11.3
-    -   Validating that the `showOn` property mapping is correct and complete
+- **Medium**: While this is a migration guide, the context menu API change involves multiple deprecated properties and a significant API redesign
+- **Time Estimate**: 25-30 minutes for complete review
+- **Risk Areas**:
+    - Ensuring complete backward compatibility for all deprecated properties
+    - Verifying the new `items[]` API provides equivalent functionality
+    - Confirming no other undocumented changes exist in 11.3
+    - Validating that the `showOn` property mapping is correct and complete
 
 ## Special Considerations
 

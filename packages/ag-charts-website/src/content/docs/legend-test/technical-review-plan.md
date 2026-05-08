@@ -17,7 +17,7 @@
 
 ## Validation
 
--   Legend configuration API
--   Pagination controls
--   Interactive behaviors (hover, click)
--   Responsive resize behavior
+- Legend configuration API
+- Pagination controls
+- Interactive behaviors (hover, click)
+- Responsive resize behavior

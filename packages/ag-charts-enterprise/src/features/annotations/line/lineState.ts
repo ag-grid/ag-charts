@@ -7,8 +7,10 @@ import { snapPoint } from '../utils/coords';
 import { ArrowProperties, LineProperties, LineTypeProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
-interface LineStateMachineContext<Datum extends LineTypeProperties>
-    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
+interface LineStateMachineContext<Datum extends LineTypeProperties> extends Omit<
+    AnnotationsCreateStateMachineContext,
+    'create'
+> {
     create: (datum: Datum) => void;
 }
 

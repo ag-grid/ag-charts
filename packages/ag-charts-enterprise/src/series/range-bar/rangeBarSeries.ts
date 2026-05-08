@@ -189,8 +189,10 @@ class RangeBarSeriesNodeEvent<
     }
 }
 
-interface RangeBarSeriesNodeDataContext
-    extends _ModuleSupport.AbstractBarSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum> {
+interface RangeBarSeriesNodeDataContext extends _ModuleSupport.AbstractBarSeriesNodeDataContext<
+    RangeBarNodeDatum,
+    RangeBarNodeLabelDatum
+> {
     itemId: RangeBarItemId;
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRangeBarSeriesStyle>;
 }

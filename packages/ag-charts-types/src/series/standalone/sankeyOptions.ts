@@ -6,7 +6,8 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         AgSankeySeriesThemeableOptions<TDatum, TContext> {
@@ -15,13 +16,15 @@ export interface AgSankeySeriesOptions<TDatum = DatumDefault, TContext = Context
 }
 
 export interface AgSankeySeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesLinkStyle> {}
 
 export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgSankeySeriesOptionsKeys,
         Required<AgSankeySeriesNodeStyle> {
@@ -31,8 +34,10 @@ export interface AgSankeySeriesNodeItemStylerParams<TDatum, TContext = ContextDe
     size: number;
 }
 
-export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'> {
+export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'selection'
+> {
     /** Options for the label for each node. */
     label?: AgSankeySeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
@@ -47,8 +52,11 @@ export interface AgSankeySeriesThemeableOptions<TDatum = DatumDefault, TContext 
     tooltip?: AgSeriesTooltip<AgSankeySeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgSankeySeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgSankeySeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgSankeySeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
     /** Placement of a label relative to its node. */
@@ -128,11 +136,11 @@ interface SizeParams {
 }
 
 export interface AgSankeySeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgSankeySeriesOptionsKeys,
         AgSankeySeriesOptionsNames,
         SizeParams {}
 
 export interface AgSankeySeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgSankeySeriesOptionsKeys,
-        SizeParams {}
+    extends AgSankeySeriesOptionsKeys, SizeParams {}

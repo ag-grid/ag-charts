@@ -4,13 +4,13 @@
 
 ### Content Overview
 
--   **Type**: Browser compatibility documentation
--   **Scope**: Lists officially supported desktop and mobile browsers for AG Charts Community and Enterprise
--   **Features Documented**:
-    -   Desktop browser support (Chrome, Firefox, Edge, Safari)
-    -   Mobile browser support (Safari on iOS/iPadOS, Chrome on iOS/iPadOS/Android)
-    -   Browser version policy (two latest major versions)
-    -   Testing philosophy for unlisted browsers
+- **Type**: Browser compatibility documentation
+- **Scope**: Lists officially supported desktop and mobile browsers for AG Charts Community and Enterprise
+- **Features Documented**:
+    - Desktop browser support (Chrome, Firefox, Edge, Safari)
+    - Mobile browser support (Safari on iOS/iPadOS, Chrome on iOS/iPadOS/Android)
+    - Browser version policy (two latest major versions)
+    - Testing philosophy for unlisted browsers
 
 ### Key Claims
 
@@ -21,8 +21,8 @@
 
 ### Visual Elements
 
--   Browser icons displayed inline using image tags
--   Table format for browser listings
+- Browser icons displayed inline using image tags
+- Table format for browser listings
 
 ## Validation Targets
 
@@ -30,25 +30,25 @@
 
 #### 1. Browser Support Implementation
 
--   **Files to Check**:
-    -   Check for any browser-specific code in `packages/ag-charts-community/src/`
-    -   Look for polyfills or browser compatibility layers
-    -   Search for user agent detection or browser-specific workarounds
-    -   Check build configuration for browser targets
+- **Files to Check**:
+    - Check for any browser-specific code in `packages/ag-charts-community/src/`
+    - Look for polyfills or browser compatibility layers
+    - Search for user agent detection or browser-specific workarounds
+    - Check build configuration for browser targets
 
 #### 2. Build Target Verification
 
--   **Files to Check**:
-    -   TypeScript configuration files (`tsconfig.json`) for ES target settings
-    -   Webpack/build configurations for transpilation targets
-    -   Package.json for browserslist configuration
+- **Files to Check**:
+    - TypeScript configuration files (`tsconfig.json`) for ES target settings
+    - Webpack/build configurations for transpilation targets
+    - Package.json for browserslist configuration
 
 #### 3. Testing Infrastructure
 
--   **Files to Check**:
-    -   Test configuration files to verify browser testing setup
-    -   CI/CD configurations for cross-browser testing
-    -   Any browser compatibility test suites
+- **Files to Check**:
+    - Test configuration files to verify browser testing setup
+    - CI/CD configurations for cross-browser testing
+    - Any browser compatibility test suites
 
 ### Example Testing
 
@@ -58,34 +58,34 @@
 
 #### 1. Resource Files
 
--   Verify all browser icon SVG files exist in `resources/` directory:
-    -   chrome.svg
-    -   firefox.svg
-    -   edge.svg
-    -   safari.svg
-    -   safari-ios.svg
+- Verify all browser icon SVG files exist in `resources/` directory:
+    - chrome.svg
+    - firefox.svg
+    - edge.svg
+    - safari.svg
+    - safari-ios.svg
 
 #### 2. Icon Rendering
 
--   Verify icons render correctly at 24x24 pixels
--   Check icon visibility and clarity
--   Ensure proper alt text is displayed
+- Verify icons render correctly at 24x24 pixels
+- Check icon visibility and clarity
+- Ensure proper alt text is displayed
 
 ### Content Accuracy Verification
 
 #### 1. Browser Version Policy
 
--   Verify "two latest major versions" claim aligns with:
-    -   Build configuration
-    -   Testing infrastructure
-    -   Known browser compatibility issues
+- Verify "two latest major versions" claim aligns with:
+    - Build configuration
+    - Testing infrastructure
+    - Known browser compatibility issues
 
 #### 2. Mobile Browser Support
 
--   Verify mobile-specific considerations in codebase:
-    -   Touch event handling
-    -   Viewport/responsive behavior
-    -   Mobile-specific optimizations
+- Verify mobile-specific considerations in codebase:
+    - Touch event handling
+    - Viewport/responsive behavior
+    - Mobile-specific optimizations
 
 ## Known Exceptions
 
@@ -96,7 +96,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 1: Technical Infrastructure (High)
 
 1. **Build Configuration Analysis**
-
     - Check TypeScript compilation targets
     - Review bundling/transpilation settings
     - Verify polyfill usage
@@ -119,7 +118,6 @@ No technical-review-exceptions.md file exists for this page.
 ### Priority 3: Visual Elements (Medium)
 
 1. **Icon File Verification**
-
     - Confirm all SVG files exist
     - Check file integrity
     - **Success Criteria**: All 5 browser icons present and valid
@@ -143,11 +141,11 @@ No technical-review-exceptions.md file exists for this page.
 
 ## Time Estimate
 
--   **Phase 1 (Planning)**: Complete ✓
--   **Phase 2 (Execution)**: ~30 minutes
-    -   Technical checks: 20 minutes
-    -   Visual validation: 5 minutes
-    -   Report writing: 5 minutes
+- **Phase 1 (Planning)**: Complete ✓
+- **Phase 2 (Execution)**: ~30 minutes
+    - Technical checks: 20 minutes
+    - Visual validation: 5 minutes
+    - Report writing: 5 minutes
 
 ## Special Considerations
 

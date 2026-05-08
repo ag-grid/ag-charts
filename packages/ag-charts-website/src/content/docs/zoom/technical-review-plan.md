@@ -4,39 +4,39 @@
 
 ### Chart Types/Features Covered
 
--   **Zoom functionality** (Enterprise feature)
--   Mouse scrolling zoom with configurable anchor points and step sizes
--   Click-and-drag panning
--   Select-to-zoom (drag selection box)
--   Touch/multi-touch gestures (two-finger pinch/pan)
--   Axis-specific zoom controls (drag axis to zoom/pan)
--   Double-click/tap to reset
--   Keyboard zoom controls (+/- keys)
--   Auto-scaling y-axis based on visible data
--   Zoom buttons UI with customization
--   Asynchronous data loading during zoom
--   Integration with Navigator and Context Menu
--   State persistence via Chart State API
+- **Zoom functionality** (Enterprise feature)
+- Mouse scrolling zoom with configurable anchor points and step sizes
+- Click-and-drag panning
+- Select-to-zoom (drag selection box)
+- Touch/multi-touch gestures (two-finger pinch/pan)
+- Axis-specific zoom controls (drag axis to zoom/pan)
+- Double-click/tap to reset
+- Keyboard zoom controls (+/- keys)
+- Auto-scaling y-axis based on visible data
+- Zoom buttons UI with customization
+- Asynchronous data loading during zoom
+- Integration with Navigator and Context Menu
+- State persistence via Chart State API
 
 ### Key APIs and Configuration Options Documented
 
--   `zoom.enabled` - Main enable flag
--   `zoom.enableScrolling` - Mouse wheel/trackpad zoom
--   `zoom.anchorPointX/Y` - Zoom anchor behavior ('start', 'middle', 'end', 'pointer')
--   `zoom.scrollingStep` - Zoom increment per scroll (default 0.1)
--   `zoom.axes` - Which axes to zoom ('x', 'y', 'xy')
--   `zoom.enablePanning` - Click-drag pan behavior
--   `zoom.panKey` - Modifier key for panning when selecting is enabled
--   `zoom.enableSelecting` - Drag-to-select zoom area
--   `zoom.enableTwoFingerZoom` - Touch gesture support
--   `zoom.enableAxisDragging` - Drag axis to zoom
--   `zoom.axisDraggingMode` - Axis drag behavior ('zoom', 'pan')
--   `zoom.enableAxisScrolling` - Scroll on axis to zoom
--   `zoom.enableDoubleClickToReset` - Double-click reset behavior
--   `zoom.minVisibleItems` - Zoom limit constraint
--   `zoom.autoScaling` - Y-axis auto-fit to visible data
--   `zoom.buttons` - Zoom button UI configuration
--   `dataSource.getData` - Async data loading callback
+- `zoom.enabled` - Main enable flag
+- `zoom.enableScrolling` - Mouse wheel/trackpad zoom
+- `zoom.anchorPointX/Y` - Zoom anchor behavior ('start', 'middle', 'end', 'pointer')
+- `zoom.scrollingStep` - Zoom increment per scroll (default 0.1)
+- `zoom.axes` - Which axes to zoom ('x', 'y', 'xy')
+- `zoom.enablePanning` - Click-drag pan behavior
+- `zoom.panKey` - Modifier key for panning when selecting is enabled
+- `zoom.enableSelecting` - Drag-to-select zoom area
+- `zoom.enableTwoFingerZoom` - Touch gesture support
+- `zoom.enableAxisDragging` - Drag axis to zoom
+- `zoom.axisDraggingMode` - Axis drag behavior ('zoom', 'pan')
+- `zoom.enableAxisScrolling` - Scroll on axis to zoom
+- `zoom.enableDoubleClickToReset` - Double-click reset behavior
+- `zoom.minVisibleItems` - Zoom limit constraint
+- `zoom.autoScaling` - Y-axis auto-fit to visible data
+- `zoom.buttons` - Zoom button UI configuration
+- `dataSource.getData` - Async data loading callback
 
 ### Examples Referenced and Their Purposes
 
@@ -57,42 +57,42 @@
 
 ### Interactive Features Described
 
--   Mouse wheel scrolling (zoom in/out)
--   Click and drag to pan
--   Click and drag to select zoom area
--   Axis dragging to zoom/pan specific axis
--   Double-click to reset (chart area or specific axis)
--   Two-finger pinch to zoom
--   Two-finger pan
--   Keyboard controls (+/- keys)
--   Hover to reveal zoom buttons
--   Context menu zoom actions
--   Touch gestures on mobile devices
+- Mouse wheel scrolling (zoom in/out)
+- Click and drag to pan
+- Click and drag to select zoom area
+- Axis dragging to zoom/pan specific axis
+- Double-click to reset (chart area or specific axis)
+- Two-finger pinch to zoom
+- Two-finger pan
+- Keyboard controls (+/- keys)
+- Hover to reveal zoom buttons
+- Context menu zoom actions
+- Touch gestures on mobile devices
 
 ## Validation Targets
 
 ### Specific TypeScript Interfaces to Verify
 
--   `AgZoomOptions` - Main zoom configuration interface
--   `AgDataSourceOptions` - Async data loading interface
--   Button configuration types (icon, tooltip, value, label, section properties)
--   Anchor point type values ('start', 'middle', 'end', 'pointer')
--   Pan key type values ('alt', 'ctrl', 'shift', 'meta')
--   Axes type values ('x', 'y', 'xy')
--   Axis dragging mode values ('zoom', 'pan')
--   Button visibility values ('always', 'zoomed', 'hover')
+- `AgZoomOptions` - Main zoom configuration interface
+- `AgDataSourceOptions` - Async data loading interface
+- Button configuration types (icon, tooltip, value, label, section properties)
+- Anchor point type values ('start', 'middle', 'end', 'pointer')
+- Pan key type values ('alt', 'ctrl', 'shift', 'meta')
+- Axes type values ('x', 'y', 'xy')
+- Axis dragging mode values ('zoom', 'pan')
+- Button visibility values ('always', 'zoomed', 'hover')
 
 ### Implementation Files to Check
 
--   Zoom module implementation in enterprise package
--   Zoom interaction handlers
--   Button UI implementation
--   Auto-scaling logic
--   Async data source handling
--   Touch gesture support
--   Keyboard event handlers
--   Context menu integration code
--   Navigator integration points
+- Zoom module implementation in enterprise package
+- Zoom interaction handlers
+- Button UI implementation
+- Auto-scaling logic
+- Async data source handling
+- Touch gesture support
+- Keyboard event handlers
+- Context menu integration code
+- Navigator integration points
 
 ### Examples to Test with Expected Behaviors
 
@@ -100,190 +100,190 @@
 
 **Documentation claims:**
 
--   Scroll to zoom in/out
--   Touch/multi-touch functionality
--   +/- keys for zoom
--   Click-drag to pan
--   Axis drag to zoom that axis
--   Double-click to reset
--   Updates axis ticks when tick.maxSpacing is set
+- Scroll to zoom in/out
+- Touch/multi-touch functionality
+- +/- keys for zoom
+- Click-drag to pan
+- Axis drag to zoom that axis
+- Double-click to reset
+- Updates axis ticks when tick.maxSpacing is set
 
 **Expected behaviors for example-tester:**
 
--   Chart should render with zoom enabled
--   Mouse wheel should zoom the chart
--   Clicking and dragging should pan the chart
--   Dragging an axis should zoom that axis only
--   Double-clicking should reset zoom to original state
--   +/- keys should zoom when chart has focus
+- Chart should render with zoom enabled
+- Mouse wheel should zoom the chart
+- Clicking and dragging should pan the chart
+- Dragging an axis should zoom that axis only
+- Double-clicking should reset zoom to original state
+- +/- keys should zoom when chart has focus
 
 #### 2. zoom-anchor-point
 
 **Documentation claims:**
 
--   Sets anchor to 'pointer' for both axes
--   Zoom keeps mouse pointer at same chart position
+- Sets anchor to 'pointer' for both axes
+- Zoom keeps mouse pointer at same chart position
 
 **Expected behaviors for example-tester:**
 
--   Zooming should keep the point under the mouse cursor stationary
--   Both X and Y axes should use pointer anchoring
+- Zooming should keep the point under the mouse cursor stationary
+- Both X and Y axes should use pointer anchoring
 
 #### 3. zoom-scrolling-step
 
 **Documentation claims:**
 
--   Sets scrollingStep to 0.4 (40% per scroll)
+- Sets scrollingStep to 0.4 (40% per scroll)
 
 **Expected behaviors for example-tester:**
 
--   Each scroll should zoom by 40% instead of default 10%
--   Larger zoom increments should be noticeable
+- Each scroll should zoom by 40% instead of default 10%
+- Larger zoom increments should be noticeable
 
 #### 4. zoom-axes
 
 **Documentation claims:**
 
--   Enables zoom on both X and Y axes
--   Default is X-axis only
+- Enables zoom on both X and Y axes
+- Default is X-axis only
 
 **Expected behaviors for example-tester:**
 
--   Scrolling should zoom both axes simultaneously
--   Should demonstrate 'xy' axes configuration
+- Scrolling should zoom both axes simultaneously
+- Should demonstrate 'xy' axes configuration
 
 #### 5. zoom-pan-key
 
 **Documentation claims:**
 
--   Requires shift key for panning
--   Selecting is enabled
+- Requires shift key for panning
+- Selecting is enabled
 
 **Expected behaviors for example-tester:**
 
--   Normal click-drag should create selection box
--   Shift+click-drag should pan the chart
--   panKey should be set to 'shift'
+- Normal click-drag should create selection box
+- Shift+click-drag should pan the chart
+- panKey should be set to 'shift'
 
 #### 6. zoom-selecting
 
 **Documentation claims:**
 
--   Only selection zoom enabled
--   All other zoom methods disabled
--   Double-click to reset still works
+- Only selection zoom enabled
+- All other zoom methods disabled
+- Double-click to reset still works
 
 **Expected behaviors for example-tester:**
 
--   Click-drag should create selection box for zooming
--   No scrolling, panning, or axis dragging
--   Double-click should reset zoom
+- Click-drag should create selection box for zooming
+- No scrolling, panning, or axis dragging
+- Double-click should reset zoom
 
 #### 7. two-finger-disabled
 
 **Documentation claims:**
 
--   Two-finger gestures not consumed by chart
--   Page zooms/scrolls instead
+- Two-finger gestures not consumed by chart
+- Page zooms/scrolls instead
 
 **Expected behaviors for example-tester:**
 
--   enableTwoFingerZoom should be false
--   Touch gestures should not affect chart zoom
+- enableTwoFingerZoom should be false
+- Touch gestures should not affect chart zoom
 
 #### 8. zoom-axis-controls
 
 **Documentation claims:**
 
--   axisDraggingMode: 'zoom' makes dragging y-axes zoom both
--   Can set to 'pan' mode
--   Can disable with enableAxisDragging: false
--   enableAxisScrolling enables axis scroll zoom
+- axisDraggingMode: 'zoom' makes dragging y-axes zoom both
+- Can set to 'pan' mode
+- Can disable with enableAxisDragging: false
+- enableAxisScrolling enables axis scroll zoom
 
 **Expected behaviors for example-tester:**
 
--   Should demonstrate different axis dragging modes
--   Y-axes should zoom together in 'zoom' mode
+- Should demonstrate different axis dragging modes
+- Y-axes should zoom together in 'zoom' mode
 
 #### 9. zoom-min-visible-items
 
 **Documentation claims:**
 
--   Limits zoom to minimum 10 visible items
--   Prevents excessive zoom
+- Limits zoom to minimum 10 visible items
+- Prevents excessive zoom
 
 **Expected behaviors for example-tester:**
 
--   Should not be able to zoom beyond 10 data points
--   minVisibleItems should be set to 10
+- Should not be able to zoom beyond 10 data points
+- minVisibleItems should be set to 10
 
 #### 10. auto-scaling
 
 **Documentation claims:**
 
--   Disabled auto-scaling example
--   Y-axis doesn't adjust when panning
+- Disabled auto-scaling example
+- Y-axis doesn't adjust when panning
 
 **Expected behaviors for example-tester:**
 
--   autoScaling.enabled should be false
--   Y-axis should remain fixed when panning X-axis
+- autoScaling.enabled should be false
+- Y-axis should remain fixed when panning X-axis
 
 #### 11. zoom-context-menu
 
 **Documentation claims:**
 
--   Shows zoom actions in context menu
--   Right-click integration
+- Shows zoom actions in context menu
+- Right-click integration
 
 **Expected behaviors for example-tester:**
 
--   Context menu should contain zoom-related actions
--   Should have both zoom and context menu enabled
+- Context menu should contain zoom-related actions
+- Should have both zoom and context menu enabled
 
 #### 12. zoom-buttons
 
 **Documentation claims:**
 
--   Default buttons appear on hover
--   Zoom in/out, pan left/right, reset buttons
+- Default buttons appear on hover
+- Zoom in/out, pan left/right, reset buttons
 
 **Expected behaviors for example-tester:**
 
--   Buttons should appear when hovering near bottom
--   All 5 default buttons should be present
--   Each button should perform its described action
+- Buttons should appear when hovering near bottom
+- All 5 default buttons should be present
+- Each button should perform its described action
 
 #### 13. zoom-custom-buttons
 
 **Documentation claims:**
 
--   Always visible buttons
--   Custom tooltips and labels
--   Pan-to-start/end buttons added
--   Pan left/right removed
--   Order changed, reset has label only
+- Always visible buttons
+- Custom tooltips and labels
+- Pan-to-start/end buttons added
+- Pan left/right removed
+- Order changed, reset has label only
 
 **Expected behaviors for example-tester:**
 
--   buttons.visible should be 'always'
--   Custom button configuration should match code
--   Pan left/right buttons should not exist
--   New pan-to-start/end buttons should work
+- buttons.visible should be 'always'
+- Custom button configuration should match code
+- Pan left/right buttons should not exist
+- New pan-to-start/end buttons should work
 
 #### 14. zoom-async
 
 **Documentation claims:**
 
--   Uses dataSource.getData callback
--   Loads finer data for visible window
--   Should include coarse data always
+- Uses dataSource.getData callback
+- Loads finer data for visible window
+- Should include coarse data always
 
 **Expected behaviors for example-tester:**
 
--   dataSource should be configured with getData function
--   Should make async calls when zooming
--   Data should update based on visible window
+- dataSource should be configured with getData function
+- Should make async calls when zooming
+- Data should update based on visible window
 
 ### User Interactions to Validate
 
@@ -350,14 +350,12 @@ No existing `technical-review-exceptions.md` file found for this page.
 ### Priority 1: Core Zoom Functionality
 
 1. **Test basic zoom example**
-
     - Validate all documented interaction methods
     - Screenshot default state and various zoom levels
     - Test keyboard controls
     - Success: All zoom methods work as described
 
 2. **Verify TypeScript interfaces**
-
     - Check AgZoomOptions structure
     - Validate property types and values
     - Success: All documented properties exist with correct types
@@ -371,13 +369,11 @@ No existing `technical-review-exceptions.md` file found for this page.
 ### Priority 2: Advanced Features
 
 4. **Test selection zoom**
-
     - Validate selection box creation
     - Test with/without pan key
     - Success: Selection zoom works correctly
 
 5. **Test axis-specific controls**
-
     - Axis dragging modes
     - Axis scrolling
     - Independent axis zoom
@@ -391,14 +387,12 @@ No existing `technical-review-exceptions.md` file found for this page.
 ### Priority 3: UI and Integration
 
 7. **Test zoom buttons**
-
     - Default configuration
     - Custom button setup
     - Visibility modes
     - Success: Buttons appear and function correctly
 
 8. **Test integrations**
-
     - Context menu zoom actions
     - Navigator compatibility
     - Success: Integrations work seamlessly
@@ -411,23 +405,22 @@ No existing `technical-review-exceptions.md` file found for this page.
 ### Priority 4: Advanced Scenarios
 
 10. **Test async data loading**
-
-    -   DataSource callback execution
-    -   Window parameter accuracy
-    -   Success: Data loads dynamically during zoom
+    - DataSource callback execution
+    - Window parameter accuracy
+    - Success: Data loads dynamically during zoom
 
 11. **Test edge cases**
-    -   Rapid zoom/pan sequences
-    -   Boundary conditions
-    -   Window resize during zoom
-    -   Success: No errors or visual glitches
+    - Rapid zoom/pan sequences
+    - Boundary conditions
+    - Window resize during zoom
+    - Success: No errors or visual glitches
 
 ### Estimated Complexity
 
--   High complexity due to numerous interaction methods
--   Extensive visual validation required
--   Multiple configuration combinations to test
--   Time estimate: 3-4 hours for thorough review
+- High complexity due to numerous interaction methods
+- Extensive visual validation required
+- Multiple configuration combinations to test
+- Time estimate: 3-4 hours for thorough review
 
 ## Delegation Plan for example-tester Agent
 
@@ -442,9 +435,9 @@ For each example, provide the example-tester agent with:
 
 The agent should focus on:
 
--   Correct AG Charts zoom API usage
--   Chart rendering without errors
--   Interactive behavior matching documentation
--   Performance during zoom operations
--   TypeScript type safety
--   Best practices for zoom configuration
+- Correct AG Charts zoom API usage
+- Chart rendering without errors
+- Interactive behavior matching documentation
+- Performance during zoom operations
+- TypeScript type safety
+- Best practices for zoom configuration

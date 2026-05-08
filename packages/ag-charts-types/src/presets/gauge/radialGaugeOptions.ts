@@ -42,8 +42,10 @@ export interface AgRadialGaugeScale<TContext = ContextDefault> extends FillsOpti
     interval?: AgRadialGaugeScaleInterval;
 }
 
-export interface AgRadialGaugeTooltipRendererParams
-    extends AgSeriesTooltipRendererParams<DatumDefault, ContextDefault> {
+export interface AgRadialGaugeTooltipRendererParams extends AgSeriesTooltipRendererParams<
+    DatumDefault,
+    ContextDefault
+> {
     /** Value of the Gauge */
     value: number;
 }
@@ -88,20 +90,27 @@ export interface AgRadialGaugeTarget extends AgRadialGaugeSeriesStyle {
     label?: AgRadialGaugeTargetLabelOptions;
 }
 
-export interface AgRadialGaugeLabelOptions
-    extends AgChartAutoSizedLabelOptions<never, AgRadialGaugeLabelFormatterParams, ContextDefault> {
+export interface AgRadialGaugeLabelOptions extends AgChartAutoSizedLabelOptions<
+    never,
+    AgRadialGaugeLabelFormatterParams,
+    ContextDefault
+> {
     /** Text to always display. */
     text?: string;
 }
 
-export interface AgRadialGaugeSecondaryLabelOptions
-    extends AgChartAutoSizedSecondaryLabelOptions<never, AgRadialGaugeLabelFormatterParams, ContextDefault> {
+export interface AgRadialGaugeSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<
+    never,
+    AgRadialGaugeLabelFormatterParams,
+    ContextDefault
+> {
     /** Text to always display. */
     text?: string;
 }
 
-export interface AgRadialGaugeThemeableOptions<TContext = ContextDefault>
-    extends AgBaseGaugeThemeableOptions<TContext> {
+export interface AgRadialGaugeThemeableOptions<
+    TContext = ContextDefault,
+> extends AgBaseGaugeThemeableOptions<TContext> {
     /** Outer radius of the gauge. */
     outerRadius?: PixelSize;
     /** Inner radius of the gauge. */

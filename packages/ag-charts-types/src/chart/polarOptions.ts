@@ -51,20 +51,16 @@ export interface AgBasePolarChartOptions<TDatum = DatumDefault, TContext = Conte
 type ThemeOmittedAxisOptions = 'type' | 'crossLines';
 
 export interface AgAngleCategoryAxisThemeOptions<TContext = ContextDefault>
-    extends Omit<AgAngleCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
-        AgAngleAxesCrossLineThemeOptions {}
+    extends Omit<AgAngleCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>, AgAngleAxesCrossLineThemeOptions {}
 
 export interface AgAngleNumberAxisThemeOptions<TContext = ContextDefault>
-    extends Omit<AgAngleNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
-        AgAngleAxesCrossLineThemeOptions {}
+    extends Omit<AgAngleNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>, AgAngleAxesCrossLineThemeOptions {}
 
 export interface AgRadiusCategoryAxisThemeOptions<TContext = ContextDefault>
-    extends Omit<AgRadiusCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>,
-        AgRadiusAxesCrossLineThemeOptions {}
+    extends Omit<AgRadiusCategoryAxisOptions<TContext>, ThemeOmittedAxisOptions>, AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgRadiusNumberAxisThemeOptions<TContext = ContextDefault>
-    extends Omit<AgRadiusNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>,
-        AgRadiusAxesCrossLineThemeOptions {}
+    extends Omit<AgRadiusNumberAxisOptions<TContext>, ThemeOmittedAxisOptions>, AgRadiusAxesCrossLineThemeOptions {}
 
 export interface AgPolarAxesTheme<TContext = ContextDefault> {
     'angle-category'?: AgAngleCategoryAxisThemeOptions<TContext>;
@@ -73,8 +69,10 @@ export interface AgPolarAxesTheme<TContext = ContextDefault> {
     'radius-number'?: AgRadiusNumberAxisThemeOptions<TContext>;
 }
 
-export interface AgBasePolarThemeOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseThemeableChartOptions<TDatum, TContext> {
+export interface AgBasePolarThemeOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseThemeableChartOptions<TDatum, TContext> {
     /** Axis configurations. */
     axes?: AgPolarAxesTheme<TContext>;
 }

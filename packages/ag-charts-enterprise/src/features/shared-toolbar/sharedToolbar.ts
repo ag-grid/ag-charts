@@ -6,18 +6,18 @@ import type { SharedToolbarSection } from './sharedToolbarTypes';
 export interface SharedToolbarWithSection<
     ButtonOptions extends _ModuleSupport.ToolbarButtonOptions = _ModuleSupport.ToolbarButtonOptions,
 > extends Pick<
-        _ModuleSupport.Toolbar<ButtonOptions>,
-        | 'destroy'
-        | 'addListener'
-        | 'removeListener'
-        | 'setHidden'
-        | 'addToolbarListener'
-        | 'updateButtons'
-        | 'updateButtonByIndex'
-        | 'toggleActiveButtonByIndex'
-        | 'toggleButtonEnabledByIndex'
-        | 'clearActiveButton'
-    > {
+    _ModuleSupport.Toolbar<ButtonOptions>,
+    | 'destroy'
+    | 'addListener'
+    | 'removeListener'
+    | 'setHidden'
+    | 'addToolbarListener'
+    | 'updateButtons'
+    | 'updateButtonByIndex'
+    | 'toggleActiveButtonByIndex'
+    | 'toggleButtonEnabledByIndex'
+    | 'clearActiveButton'
+> {
     layout: (layoutBox: _ModuleSupport.BBox, padding?: number) => void;
 }
 

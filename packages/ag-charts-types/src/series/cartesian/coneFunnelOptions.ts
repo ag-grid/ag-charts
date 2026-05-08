@@ -11,39 +11,47 @@ import type {
 } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Spacing between label and the associated divider. */
     spacing?: PixelSize;
     /** The placement of the label in relation to the divider between drop-offs. */
     placement?: 'before' | 'middle' | 'after';
 }
 
-export interface AgConeFunnelSeriesStageLabelOptions<TContext = ContextDefault>
-    extends AgNumericAxisFormattableLabelOptions<TContext> {
+export interface AgConeFunnelSeriesStageLabelOptions<
+    TContext = ContextDefault,
+> extends AgNumericAxisFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 
 export interface AgConeFunnelSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         Required<AgConeFunnelSeriesStyle> {}
 
 export interface AgConeFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export interface AgConeFunnelSeriesLabelFormatterParams<TDatum = DatumDefault>
-    extends AgConeFunnelSeriesOptionsKeys<TDatum> {}
+export interface AgConeFunnelSeriesLabelFormatterParams<
+    TDatum = DatumDefault,
+> extends AgConeFunnelSeriesOptionsKeys<TDatum> {}
 
 export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgConeFunnelSeriesOptionsKeys<TDatum>,
+    extends
+        AgConeFunnelSeriesOptionsKeys<TDatum>,
         AgConeFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgConeFunnelSeriesStyle {}
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInMiniChart' | 'showInLegend' | 'selection'>,
+    extends
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInMiniChart' | 'showInLegend' | 'selection'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. */
     fills?: AgColorType[];
@@ -77,7 +85,8 @@ export interface AgConeFunnelSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgConeFunnelSeriesOptionsNames {}
 
 export interface AgConeFunnelSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'>,
         AgConeFunnelSeriesOptionsKeys<TDatum>,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum, TContext> {

@@ -7,7 +7,8 @@ import type {
 } from './radialOptions';
 
 export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
@@ -24,8 +25,10 @@ export interface AgBaseRadialColumnSeriesOptions<TDatum = DatumDefault, TContext
     stackGroup?: string;
 }
 
-export interface AgRadialColumnSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
+export interface AgRadialColumnSeriesThemeableOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgBaseRadialSeriesThemeableOptions<TDatum, TContext> {
     /** The ratio used to calculate the column width based on the circumference and padding between items. */
     columnWidthRatio?: Ratio;
     /** Prevents columns from becoming too wide. This value is relative to the diameter of the polar chart. */
@@ -33,8 +36,7 @@ export interface AgRadialColumnSeriesThemeableOptions<TDatum = DatumDefault, TCo
 }
 
 export interface AgRadialColumnSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadialColumnSeriesThemeableOptions<TDatum, TContext>,
-        AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
+    extends AgRadialColumnSeriesThemeableOptions<TDatum, TContext>, AgBaseRadialColumnSeriesOptions<TDatum, TContext> {
     /** Configuration for Radial Column Series. */
     type: 'radial-column';
 }

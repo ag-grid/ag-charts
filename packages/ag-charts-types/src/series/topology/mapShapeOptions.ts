@@ -11,7 +11,8 @@ import type {
 } from '../seriesOptions';
 
 export interface AgMapShapeSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgMapShapeSeriesOptionsKeys<TDatum>,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesStyle {}
@@ -48,7 +49,8 @@ export interface AgMapShapeSeriesOptionsNames {
 }
 
 export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgMapShapeSeriesStyle,
+    extends
+        AgMapShapeSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /**
      * The colour range to interpolate the numeric colour domain (min and max `colorKey` values) into.
@@ -70,7 +72,8 @@ export interface AgMapShapeSeriesThemeableOptions<TDatum = DatumDefault, TContex
 }
 
 export interface AgMapShapeSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapShapeSeriesOptionsKeys<TDatum>,
         AgMapShapeSeriesOptionsNames,
         AgMapShapeSeriesThemeableOptions<TDatum, TContext> {

@@ -4,22 +4,22 @@
 
 ### Features Covered
 
--   Chart overlays for different states (missing data, no visible series, loading, unsupported browser)
--   Customization of overlay text messages
--   Custom overlay renderers for full HTML control
--   Examples of custom loading spinners
+- Chart overlays for different states (missing data, no visible series, loading, unsupported browser)
+- Customization of overlay text messages
+- Custom overlay renderers for full HTML control
+- Examples of custom loading spinners
 
 ### Key APIs and Configuration Options Documented
 
--   `overlays` configuration object with four sub-properties:
-    -   `loading`: Configuration for loading state overlay
-    -   `noData`: Configuration for missing data overlay
-    -   `noVisibleSeries`: Configuration for no visible series overlay
-    -   `unsupportedBrowser`: Configuration for unsupported browser overlay
--   Each overlay supports:
-    -   `text`: Custom message text (string or TextSegment array)
-    -   `renderer`: Custom function returning HTML string or HTMLElement
-    -   `enabled`: Whether overlay is enabled (not explicitly documented but exists in TypeScript)
+- `overlays` configuration object with four sub-properties:
+    - `loading`: Configuration for loading state overlay
+    - `noData`: Configuration for missing data overlay
+    - `noVisibleSeries`: Configuration for no visible series overlay
+    - `unsupportedBrowser`: Configuration for unsupported browser overlay
+- Each overlay supports:
+    - `text`: Custom message text (string or TextSegment array)
+    - `renderer`: Custom function returning HTML string or HTMLElement
+    - `enabled`: Whether overlay is enabled (not explicitly documented but exists in TypeScript)
 
 ### Examples Referenced
 
@@ -31,9 +31,9 @@
 
 ### Interactive Features Described
 
--   Overlays appear automatically based on chart state
--   Loading overlay specifically linked to asynchronous data loading feature
--   Custom renderers can return interactive HTML elements
+- Overlays appear automatically based on chart state
+- Loading overlay specifically linked to asynchronous data loading feature
+- Custom renderers can return interactive HTML elements
 
 ## Validation Targets
 
@@ -68,80 +68,80 @@
 **Documentation claims**: Basic overlay for missing data
 **Expected behaviors**:
 
--   Chart should display default "No data to display" message when no data provided
--   Overlay should be centered in chart area
--   Should use default styling
+- Chart should display default "No data to display" message when no data provided
+- Overlay should be centered in chart area
+- Should use default styling
 
 **Delegation to example-tester**:
 
--   Verify chart renders without errors when data is empty
--   Check that overlay text matches expected default message
--   Validate no console errors
--   Confirm overlay DOM structure follows AG Charts patterns
+- Verify chart renders without errors when data is empty
+- Check that overlay text matches expected default message
+- Validate no console errors
+- Confirm overlay DOM structure follows AG Charts patterns
 
 #### 2. no-visible-series
 
 **Documentation claims**: Message displayed when all series are hidden
 **Expected behaviors**:
 
--   Chart should show overlay when series.visible is false for all series
--   Overlay should display default "No visible series" message
--   Overlay should disappear when a series is made visible
+- Chart should show overlay when series.visible is false for all series
+- Overlay should display default "No visible series" message
+- Overlay should disappear when a series is made visible
 
 **Delegation to example-tester**:
 
--   Test with all series initially visible, then hide all
--   Verify overlay appears with correct message
--   Re-enable a series and verify overlay disappears
--   Check for smooth transitions
+- Test with all series initially visible, then hide all
+- Verify overlay appears with correct message
+- Re-enable a series and verify overlay disappears
+- Check for smooth transitions
 
 #### 3. loading
 
 **Documentation claims**: Loading animation shown during asynchronous data loading
 **Expected behaviors**:
 
--   Loading spinner should appear when using dataSource with async loading
--   Should show default loading animation with three animated bars
--   Should include loading text below spinner
+- Loading spinner should appear when using dataSource with async loading
+- Should show default loading animation with three animated bars
+- Should include loading text below spinner
 
 **Delegation to example-tester**:
 
--   Verify loading overlay appears during async data fetch
--   Check animation is smooth and visible
--   Validate loading text is displayed
--   Confirm overlay disappears when data loads
+- Verify loading overlay appears during async data fetch
+- Check animation is smooth and visible
+- Validate loading text is displayed
+- Confirm overlay disappears when data loads
 
 #### 4. no-data
 
 **Documentation claims**: Custom overlay renderer for missing data
 **Expected behaviors**:
 
--   Custom renderer function should be called when no data
--   Should render HTML with emphasis and strong tags as shown
--   Renderer should return valid HTML string or element
+- Custom renderer function should be called when no data
+- Should render HTML with emphasis and strong tags as shown
+- Renderer should return valid HTML string or element
 
 **Delegation to example-tester**:
 
--   Verify custom renderer is invoked
--   Check rendered HTML matches expected structure
--   Validate custom styling is applied
--   Ensure no rendering errors
+- Verify custom renderer is invoked
+- Check rendered HTML matches expected structure
+- Validate custom styling is applied
+- Ensure no rendering errors
 
 #### 5. loading-custom
 
 **Documentation claims**: Custom loading spinner implementation
 **Expected behaviors**:
 
--   Custom renderer should create DOM elements
--   Should include custom CSS animations via style element
--   Container and spinner elements should be properly structured
+- Custom renderer should create DOM elements
+- Should include custom CSS animations via style element
+- Container and spinner elements should be properly structured
 
 **Delegation to example-tester**:
 
--   Verify custom loading spinner renders correctly
--   Check CSS animations are applied
--   Validate DOM structure matches code
--   Test during actual async loading scenario
+- Verify custom loading spinner renders correctly
+- Check CSS animations are applied
+- Validate DOM structure matches code
+- Test during actual async loading scenario
 
 ### User Interactions to Validate
 
@@ -182,7 +182,6 @@ No documented exceptions found in `technical-review-exceptions.md` for this page
 ### Priority 2: Example Testing via example-tester
 
 1. **Test each example in order**:
-
     - no-data-plain: Default behavior validation
     - no-visible-series: Series visibility interaction
     - loading: Async loading integration
@@ -198,7 +197,6 @@ No documented exceptions found in `technical-review-exceptions.md` for this page
 ### Priority 3: Visual and Interactive Testing
 
 1. **Screenshot capture plan**:
-
     - Capture each overlay type in default state
     - Test responsive behavior at different viewport sizes
     - Document dark theme variations
@@ -213,7 +211,6 @@ No documented exceptions found in `technical-review-exceptions.md` for this page
 ### Priority 4: Content Quality Assessment
 
 1. **Documentation completeness**:
-
     - Check if `enabled` property should be documented
     - Verify all overlay types are covered
     - Ensure renderer params are fully explained
@@ -225,19 +222,19 @@ No documented exceptions found in `technical-review-exceptions.md` for this page
 
 ### Success Criteria
 
--   All TypeScript interfaces match documented API
--   All five examples render without errors
--   Overlays appear/disappear based on correct triggers
--   Custom renderers produce expected HTML output
--   No console errors during any interactions
--   Visual appearance matches documentation descriptions
--   Loading animations perform smoothly
+- All TypeScript interfaces match documented API
+- All five examples render without errors
+- Overlays appear/disappear based on correct triggers
+- Custom renderers produce expected HTML output
+- No console errors during any interactions
+- Visual appearance matches documentation descriptions
+- Loading animations perform smoothly
 
 ### Estimated Complexity
 
--   API validation: Low complexity (straightforward interface checks)
--   Example testing: Medium complexity (requires async scenario setup)
--   Visual testing: Medium complexity (animation capture needed)
--   Interactive testing: Low complexity (basic state changes)
+- API validation: Low complexity (straightforward interface checks)
+- Example testing: Medium complexity (requires async scenario setup)
+- Visual testing: Medium complexity (animation capture needed)
+- Interactive testing: Low complexity (basic state changes)
 
 Total estimated time: 45-60 minutes for complete review

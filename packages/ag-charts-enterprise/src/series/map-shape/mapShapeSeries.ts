@@ -61,8 +61,10 @@ const {
     getLabelStyles,
 } = _ModuleSupport;
 
-interface MapShapeNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
+interface MapShapeNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    MapShapeNodeDatum,
+    MapShapeNodeLabelDatum
+> {}
 
 interface ShapeDataValues {
     readonly idValue: string;

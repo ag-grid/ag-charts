@@ -69,8 +69,11 @@ interface ChordNodeLabelDatum {
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 
-interface ChordNodeDataContext
-    extends FlowProportionSeriesContext<ChordNodeDatum, ChordLinkDatum, ChordNodeLabelDatum> {}
+interface ChordNodeDataContext extends FlowProportionSeriesContext<
+    ChordNodeDatum,
+    ChordLinkDatum,
+    ChordNodeLabelDatum
+> {}
 
 const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
 export class ChordSeries extends FlowProportionSeries<

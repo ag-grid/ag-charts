@@ -11,18 +11,18 @@ This skill provides structured complexity and effort estimation for JIRA tickets
 
 Activate this skill when the user requests:
 
--   "Estimate this JIRA ticket"
--   "Analyze complexity of [ticket/feature]"
--   "What's the effort for this project?"
--   "Size this feature"
--   "How long will this take?"
--   "What are the risks for this work?"
+- "Estimate this JIRA ticket"
+- "Analyze complexity of [ticket/feature]"
+- "What's the effort for this project?"
+- "Size this feature"
+- "How long will this take?"
+- "What are the risks for this work?"
 
 ## Prerequisites
 
--   User provides JIRA ticket content (markdown format preferred)
--   Access to repository codebase for dependency analysis
--   Understanding of project architecture (consult `tools/prompts/technology-stack.md` if needed)
+- User provides JIRA ticket content (markdown format preferred)
+- Access to repository codebase for dependency analysis
+- Understanding of project architecture (consult `tools/prompts/technology-stack.md` if needed)
 
 ## Workflow
 
@@ -36,25 +36,25 @@ Activate this skill when the user requests:
 
 **After reading, confirm you understand:**
 
--   [ ] Repository structure and key packages
--   [ ] Build and test commands
--   [ ] Architectural constraints (e.g., zero runtime dependencies)
+- [ ] Repository structure and key packages
+- [ ] Build and test commands
+- [ ] Architectural constraints (e.g., zero runtime dependencies)
 
 ### Step 1: Gather and Analyze Ticket Information
 
 **Complete ALL before proceeding:**
 
--   [ ] Receive JIRA ticket content from user (markdown format)
--   [ ] Extract key requirements, acceptance criteria, and constraints
--   [ ] Identify the primary affected areas (packages/files)
--   [ ] Note what information is present vs. missing in the ticket
+- [ ] Receive JIRA ticket content from user (markdown format)
+- [ ] Extract key requirements, acceptance criteria, and constraints
+- [ ] Identify the primary affected areas (packages/files)
+- [ ] Note what information is present vs. missing in the ticket
 
 **Initial Analysis Questions:**
 
--   What type of work is this? (bug fix, new feature, refactoring, docs, etc.)
--   Which packages are affected? (community, enterprise, types, website, etc.)
--   Are there related tickets or dependencies mentioned?
--   Is the scope well-defined or vague?
+- What type of work is this? (bug fix, new feature, refactoring, docs, etc.)
+- Which packages are affected? (community, enterprise, types, website, etc.)
+- Are there related tickets or dependencies mentioned?
+- Is the scope well-defined or vague?
 
 ### Step 2: Identify Ambiguities and Implementation Choices
 
@@ -63,25 +63,21 @@ Activate this skill when the user requests:
 **Analyze for ambiguities in these areas:**
 
 1. **Technical Approach**
-
     - Are there multiple valid implementation strategies?
     - Is the desired architecture/pattern specified?
     - Are performance requirements defined?
 
 2. **Scope Boundaries**
-
     - Is the feature scope clearly bounded?
     - Are edge cases and error handling specified?
     - Is backward compatibility required?
 
 3. **Integration Points**
-
     - How should this integrate with existing systems?
     - Are framework wrappers (React/Angular/Vue) affected?
     - Are there public API changes?
 
 4. **Testing & Quality**
-
     - What level of test coverage is expected?
     - Are visual regression tests needed?
     - Should benchmarks be added/updated?
@@ -93,21 +89,21 @@ Activate this skill when the user requests:
 
 **For each significant ambiguity identified:**
 
--   [ ] Document the ambiguity clearly
--   [ ] List the possible implementation choices
--   [ ] Note how each choice impacts time/complexity/risk
--   [ ] **USE AskUserQuestion tool** to get clarification before proceeding
+- [ ] Document the ambiguity clearly
+- [ ] List the possible implementation choices
+- [ ] Note how each choice impacts time/complexity/risk
+- [ ] **USE AskUserQuestion tool** to get clarification before proceeding
 
 **Use the AskUserQuestion tool to present ambiguities:**
 
 Present 1-4 ambiguities at once using the AskUserQuestion tool with this structure:
 
--   **question**: Clear question about the ambiguity (e.g., "How should the 'xy' mode work visually?")
--   **header**: Short label (max 12 chars) (e.g., "Dual-axis UI")
--   **options**: 2-4 implementation choices with:
-    -   **label**: Concise option name (e.g., "Two Navigators")
-    -   **description**: Impact explanation (e.g., "Show both X-axis (bottom) and Y-axis (right) navigators - 20% more complexity, clearer UI")
--   **multiSelect**: false (user should pick one approach)
+- **question**: Clear question about the ambiguity (e.g., "How should the 'xy' mode work visually?")
+- **header**: Short label (max 12 chars) (e.g., "Dual-axis UI")
+- **options**: 2-4 implementation choices with:
+    - **label**: Concise option name (e.g., "Two Navigators")
+    - **description**: Impact explanation (e.g., "Show both X-axis (bottom) and Y-axis (right) navigators - 20% more complexity, clearer UI")
+- **multiSelect**: false (user should pick one approach)
 
 **Example usage:**
 
@@ -156,42 +152,38 @@ AskUserQuestion({
 
 **After receiving answers:**
 
--   Document the chosen approach in a summary
--   Adjust estimate based on selected options
--   Include decisions in the "Implementation Decisions" section of the report
+- Document the chosen approach in a summary
+- Adjust estimate based on selected options
+- Include decisions in the "Implementation Decisions" section of the report
 
 ### Step 3: Investigate Codebase Dependencies and Complexity
 
 **Use the Explore agent for thorough codebase analysis:**
 
--   [ ] Identify all affected files and packages
--   [ ] Analyze existing similar implementations for patterns
--   [ ] Check for dependencies on other systems/modules
--   [ ] Look for related tests that need updating
--   [ ] Search for documentation that needs changes
+- [ ] Identify all affected files and packages
+- [ ] Analyze existing similar implementations for patterns
+- [ ] Check for dependencies on other systems/modules
+- [ ] Look for related tests that need updating
+- [ ] Search for documentation that needs changes
 
 **Key Investigation Areas:**
 
 1. **Core Implementation**
-
     - Where is the main logic located?
     - How complex is the existing code in that area?
     - Are there similar features to reference?
 
 2. **Type System**
-
     - Will `ag-charts-types` need updates?
     - Are there complex type definitions involved?
     - Will this affect public API surface?
 
 3. **Testing Surface**
-
     - How many test files are affected?
     - Are image snapshots needed?
     - Will this need E2E tests?
 
 4. **Documentation & Examples**
-
     - How many doc pages need updates?
     - Are new examples required?
     - Will framework variants be generated?
@@ -226,9 +218,9 @@ AskUserQuestion({
 
 **Key Highlights:**
 
--   [1-2 sentence summary of main implementation work]
--   [Major scope decision or constraint]
--   [Top risk or concern if applicable]
+- [1-2 sentence summary of main implementation work]
+- [Major scope decision or constraint]
+- [Top risk or concern if applicable]
 
 ---
 
@@ -238,15 +230,15 @@ AskUserQuestion({
 
 **Rationale:**
 
--   [Explanation of complexity drivers]
--   [Why this level was chosen]
+- [Explanation of complexity drivers]
+- [Why this level was chosen]
 
 **Complexity Breakdown:**
 
--   Implementation: [Low/Medium/High]
--   Testing: [Low/Medium/High]
--   Documentation: [Low/Medium/High]
--   Integration: [Low/Medium/High]
+- Implementation: [Low/Medium/High]
+- Testing: [Low/Medium/High]
+- Documentation: [Low/Medium/High]
+- Integration: [Low/Medium/High]
 
 ---
 
@@ -258,41 +250,37 @@ AskUserQuestion({
 
 **Breakdown:**
 
--   **Investigation & Design:** [X hours/days]
+- **Investigation & Design:** [X hours/days]
+    - Understanding requirements
+    - Design decisions
+    - Spike work if needed
 
-    -   Understanding requirements
-    -   Design decisions
-    -   Spike work if needed
+- **Core Implementation:** [X hours/days]
+    - Primary code changes
+    - Type definitions
+    - Public API updates
 
--   **Core Implementation:** [X hours/days]
+- **Testing:** [X hours/days]
+    - Unit tests
+    - E2E tests (if applicable)
+    - Visual regression tests (if applicable)
+    - Benchmark updates (if applicable)
 
-    -   Primary code changes
-    -   Type definitions
-    -   Public API updates
+- **Documentation:** [X hours/days]
+    - Doc page updates/creation
+    - Example creation
+    - Migration guides (if applicable)
 
--   **Testing:** [X hours/days]
-
-    -   Unit tests
-    -   E2E tests (if applicable)
-    -   Visual regression tests (if applicable)
-    -   Benchmark updates (if applicable)
-
--   **Documentation:** [X hours/days]
-
-    -   Doc page updates/creation
-    -   Example creation
-    -   Migration guides (if applicable)
-
--   **Review & Iteration:** [X hours/days]
-    -   Code review feedback
-    -   Test failures
-    -   Bug fixes
+- **Review & Iteration:** [X hours/days]
+    - Code review feedback
+    - Test failures
+    - Bug fixes
 
 **Assumptions:**
 
--   [List key assumptions affecting the estimate]
--   [e.g., "Assuming developer is familiar with canvas rendering"]
--   [e.g., "Assuming no major architectural changes needed"]
+- [List key assumptions affecting the estimate]
+- [e.g., "Assuming developer is familiar with canvas rendering"]
+- [e.g., "Assuming no major architectural changes needed"]
 
 ---
 
@@ -300,25 +288,25 @@ AskUserQuestion({
 
 **External Dependencies:**
 
--   [List dependencies on other teams/tickets]
--   [Any blocked/blocking items]
+- [List dependencies on other teams/tickets]
+- [Any blocked/blocking items]
 
 **Information Gaps:**
 
--   [What's not specified in the ticket]
--   [Questions that remain unanswered]
--   [Areas needing clarification from stakeholders]
+- [What's not specified in the ticket]
+- [Questions that remain unanswered]
+- [Areas needing clarification from stakeholders]
 
 **Implicit Scope (not explicitly mentioned):**
 
--   [Tasks likely required but not stated]
--   [e.g., "Framework wrapper updates"]
--   [e.g., "Locale string additions"]
+- [Tasks likely required but not stated]
+- [e.g., "Framework wrapper updates"]
+- [e.g., "Locale string additions"]
 
 **Out of Scope (confirm with stakeholder):**
 
--   [Items that might be expected but should be separate]
--   [e.g., "Performance optimization beyond basic implementation"]
+- [Items that might be expected but should be separate]
+- [e.g., "Performance optimization beyond basic implementation"]
 
 ---
 
@@ -330,12 +318,12 @@ AskUserQuestion({
 
 **Details:**
 
--   [What makes this risky]
--   [Potential impact]
+- [What makes this risky]
+- [Potential impact]
 
 **Mitigation:**
 
--   [How to reduce this risk]
+- [How to reduce this risk]
 
 ---
 
@@ -345,12 +333,12 @@ AskUserQuestion({
 
 **Details:**
 
--   [What makes this risky]
--   [Potential impact]
+- [What makes this risky]
+- [Potential impact]
 
 **Mitigation:**
 
--   [How to reduce this risk]
+- [How to reduce this risk]
 
 ---
 
@@ -360,12 +348,12 @@ AskUserQuestion({
 
 **Details:**
 
--   [What makes this risky]
--   [Potential impact]
+- [What makes this risky]
+- [Potential impact]
 
 **Mitigation:**
 
--   [How to reduce this risk]
+- [How to reduce this risk]
 
 ---
 
@@ -375,21 +363,21 @@ AskUserQuestion({
 
 **Justification:**
 
--   [Overall risk analysis]
--   [Factors contributing to risk level]
--   [Known unknowns summary]
+- [Overall risk analysis]
+- [Factors contributing to risk level]
+- [Known unknowns summary]
 
 **Risk Factors:**
 
--   **Technical Risk:** [Low/Medium/High] - [Why]
--   **Schedule Risk:** [Low/Medium/High] - [Why]
--   **Integration Risk:** [Low/Medium/High] - [Why]
--   **Requirement Risk:** [Low/Medium/High] - [Why]
+- **Technical Risk:** [Low/Medium/High] - [Why]
+- **Schedule Risk:** [Low/Medium/High] - [Why]
+- **Integration Risk:** [Low/Medium/High] - [Why]
+- **Requirement Risk:** [Low/Medium/High] - [Why]
 
 **Confidence in Estimate:**
 
--   [High/Medium/Low confidence and why]
--   [What would increase confidence]
+- [High/Medium/Low confidence and why]
+- [What would increase confidence]
 
 ---
 
@@ -421,15 +409,15 @@ _Note: Include this section only if significant implementation choices were clar
 
 **Cannot mark estimation complete until ALL checked:**
 
--   [ ] User provided JIRA ticket content
--   [ ] All significant ambiguities identified and clarified with user
--   [ ] Codebase investigation completed using Explore agent
--   [ ] All sections of estimation report filled out
--   [ ] Complexity level justified with rationale
--   [ ] Time estimate includes breakdown and assumptions
--   [ ] Top 3 risks identified with mitigation strategies
--   [ ] Overall risk level assessed
--   [ ] Report reviewed for completeness and accuracy
+- [ ] User provided JIRA ticket content
+- [ ] All significant ambiguities identified and clarified with user
+- [ ] Codebase investigation completed using Explore agent
+- [ ] All sections of estimation report filled out
+- [ ] Complexity level justified with rationale
+- [ ] Time estimate includes breakdown and assumptions
+- [ ] Top 3 risks identified with mitigation strategies
+- [ ] Overall risk level assessed
+- [ ] Report reviewed for completeness and accuracy
 
 ## Critical Rules
 
@@ -455,36 +443,36 @@ _Note: Include this section only if significant implementation choices were clar
 
 **Solution:**
 
--   Request more details from user
--   List specific information needed
--   Provide estimate with large uncertainty range if user cannot provide more details
+- Request more details from user
+- List specific information needed
+- Provide estimate with large uncertainty range if user cannot provide more details
 
 ### Problem: Cannot find relevant code areas
 
 **Solution:**
 
--   Use Explore agent with broader search patterns
--   Ask user for hints about where code might be located
--   Document this as a "known unknown" in the report
+- Use Explore agent with broader search patterns
+- Ask user for hints about where code might be located
+- Document this as a "known unknown" in the report
 
 ### Problem: Multiple valid implementation approaches with vastly different complexity
 
 **Solution:**
 
--   Use the AskUserQuestion tool to present each approach as an option
--   Include complexity/time impact in each option's description
--   Provide recommendation in one option's description if applicable
--   Let user select their preferred approach through the structured interface
--   Document chosen approach in the "Implementation Decisions" section
+- Use the AskUserQuestion tool to present each approach as an option
+- Include complexity/time impact in each option's description
+- Provide recommendation in one option's description if applicable
+- Let user select their preferred approach through the structured interface
+- Document chosen approach in the "Implementation Decisions" section
 
 ### Problem: Estimate exceeds reasonable time (e.g., >2 weeks for single person)
 
 **Solution:**
 
--   Consider if work should be broken into multiple tickets
--   Highlight this in the risk assessment
--   Recommend creating sub-tasks or phases
--   Discuss with user about scope reduction options
+- Consider if work should be broken into multiple tickets
+- Highlight this in the risk assessment
+- Recommend creating sub-tasks or phases
+- Discuss with user about scope reduction options
 
 ## Estimation Calibration Data Points
 
@@ -492,54 +480,54 @@ _Note: Include this section only if significant implementation choices were clar
 
 ### Series Implementation
 
--   **New series type** (extending AbstractBarSeries, CartesianSeries, etc.): **10 days / 2 weeks**
-    -   Includes: Core implementation, type definitions, rendering logic, theme integration
-    -   Includes: Unit tests, visual regression tests, documentation page, framework examples
-    -   Examples: Overlapping bar/column series, timeline series, quadrant chart
-    -   Does NOT include: Highly complex rendering algorithms, advanced interactions beyond standard
+- **New series type** (extending AbstractBarSeries, CartesianSeries, etc.): **10 days / 2 weeks**
+    - Includes: Core implementation, type definitions, rendering logic, theme integration
+    - Includes: Unit tests, visual regression tests, documentation page, framework examples
+    - Examples: Overlapping bar/column series, timeline series, quadrant chart
+    - Does NOT include: Highly complex rendering algorithms, advanced interactions beyond standard
 
 ### Annotation Implementation
 
--   **New annotation type**: **15-20 days (3-4 weeks)**
-    -   Includes: Core annotation class, rendering, drag/resize interactions, type definitions
-    -   Includes: Comprehensive testing (unit, E2E, visual regression), documentation, examples
-    -   Examples: Text annotations, shape annotations, measurement tools
-    -   Complexity drivers: Drag/drop interactions, resize handles, connection points, styling system
+- **New annotation type**: **15-20 days (3-4 weeks)**
+    - Includes: Core annotation class, rendering, drag/resize interactions, type definitions
+    - Includes: Comprehensive testing (unit, E2E, visual regression), documentation, examples
+    - Examples: Text annotations, shape annotations, measurement tools
+    - Complexity drivers: Drag/drop interactions, resize handles, connection points, styling system
 
 ### Other Common Work Items
 
--   **Simple bug fix** (isolated, clear root cause): 0.5-1 day
--   **Complex bug fix** (requires investigation, multiple areas): 2-3 days
--   **New chart option** (simple property, minimal logic): 1-2 days
--   **Event/callback addition**: 2-4 days (depending on complexity)
--   **Performance optimization**: 3-5 days (investigation + implementation)
--   **Breaking API change**: Add 20-30% for migration guide, backward compatibility testing
+- **Simple bug fix** (isolated, clear root cause): 0.5-1 day
+- **Complex bug fix** (requires investigation, multiple areas): 2-3 days
+- **New chart option** (simple property, minimal logic): 1-2 days
+- **Event/callback addition**: 2-4 days (depending on complexity)
+- **Performance optimization**: 3-5 days (investigation + implementation)
+- **Breaking API change**: Add 20-30% for migration guide, backward compatibility testing
 
 **Adjustment Guidelines:**
 
--   **Add 20-30%** if implementation requires deep integration with multiple systems
--   **Add 30-50%** if feature has significant unknowns or unclear requirements
--   **Add 40-60%** for enterprise features requiring licensing checks, advanced theming
--   **Reduce by 20-30%** only if leveraging substantial existing infrastructure with minimal changes
+- **Add 20-30%** if implementation requires deep integration with multiple systems
+- **Add 30-50%** if feature has significant unknowns or unclear requirements
+- **Add 40-60%** for enterprise features requiring licensing checks, advanced theming
+- **Reduce by 20-30%** only if leveraging substantial existing infrastructure with minimal changes
 
 ## Related Documentation
 
--   [JIRA Guide](../guides/jira.md) - JIRA quick reference
--   [JIRA Create Skill](../skills/jira-create/SKILL.md) - Creating JIRA tickets
--   [Technology Stack](../technology-stack.md) - Architectural constraints
--   [Testing Guide](../guides/testing.md) - Testing requirements and patterns
--   [Documentation Guide](../guides/docs-pages.md) - Documentation requirements
--   [Code Quality Guide](../guides/code-quality.md) - Quality standards
+- [JIRA Guide](../guides/jira.md) - JIRA quick reference
+- [JIRA Create Skill](../skills/jira-create/SKILL.md) - Creating JIRA tickets
+- [Technology Stack](../technology-stack.md) - Architectural constraints
+- [Testing Guide](../guides/testing.md) - Testing requirements and patterns
+- [Documentation Guide](../guides/docs-pages.md) - Documentation requirements
+- [Code Quality Guide](../guides/code-quality.md) - Quality standards
 
 ## Example Usage
 
 **When the user says:**
 
--   "Estimate AG-12345"
--   "How complex is this feature?"
--   "Size this ticket for me"
--   "What's the effort for implementing [feature]?"
--   "Analyze the risks for this work"
+- "Estimate AG-12345"
+- "How complex is this feature?"
+- "Size this ticket for me"
+- "What's the effort for implementing [feature]?"
+- "Analyze the risks for this work"
 
 **This skill will:**
 

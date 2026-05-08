@@ -37,8 +37,8 @@ interface AngleAxisTickDatum<TDatum> {
 export abstract class AngleAxis<
     TDomain,
     TScale extends Scale<TDomain, any>,
-    TOptions extends
-        NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> = NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
+    TOptions extends NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions> =
+        NormalisedBaseAngleAxisOptions<NormalisedAngleAxisLabelOptions>,
 > extends _ModuleSupport.PolarAxis<TScale, any, TOptions> {
     protected tickLineGroupSelection = Selection.select<_ModuleSupport.Line<AngleAxisTickDatum<TDomain>>>(
         this.tickLineGroup,

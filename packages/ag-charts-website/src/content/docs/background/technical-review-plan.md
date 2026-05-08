@@ -4,44 +4,44 @@
 
 ### Features Covered
 
--   Chart background color configuration using `background.fill` property
--   Simple color string value assignment for background
--   Link to related "Fills & Borders" documentation for chart elements
+- Chart background color configuration using `background.fill` property
+- Simple color string value assignment for background
+- Link to related "Fills & Borders" documentation for chart elements
 
 ### Key APIs and Configuration Options
 
--   `background.fill`: Property to set background color (accepts color strings)
--   AgChartBackground interface with properties:
-    -   `visible`: Whether the background should be visible
-    -   `fill`: Color of the chart background (CssColor type)
-    -   `image`: Background image configuration (excluded from API reference)
+- `background.fill`: Property to set background color (accepts color strings)
+- AgChartBackground interface with properties:
+    - `visible`: Whether the background should be visible
+    - `fill`: Color of the chart background (CssColor type)
+    - `image`: Background image configuration (excluded from API reference)
 
 ### Examples Referenced
 
--   **background-fill**: Demonstrates setting background color and dynamic color changes
-    -   Shows initial background color set to 'aliceblue'
-    -   Includes interactive button to change background to random RGB colors
-    -   Uses pie chart as the example chart type
+- **background-fill**: Demonstrates setting background color and dynamic color changes
+    - Shows initial background color set to 'aliceblue'
+    - Includes interactive button to change background to random RGB colors
+    - Uses pie chart as the example chart type
 
 ### Interactive Features Described
 
--   Dynamic background color changes via button click
--   RGB color string format support
+- Dynamic background color changes via button click
+- RGB color string format support
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgChartBackground` in `packages/ag-charts-types/src/chart/chartOptions.ts`
--   `AgChartBackgroundImage` in `packages/ag-charts-types/src/chart/backgroundOptions.ts` (excluded from docs)
--   `AgPolarChartOptions` usage in example
+- `AgChartBackground` in `packages/ag-charts-types/src/chart/chartOptions.ts`
+- `AgChartBackgroundImage` in `packages/ag-charts-types/src/chart/backgroundOptions.ts` (excluded from docs)
+- `AgPolarChartOptions` usage in example
 
 ### Implementation Files to Check
 
--   `packages/ag-charts-community/src/chart/background/background.ts`
-    -   Default values for properties
-    -   Property decorators and implementations
-    -   Visible property behavior
+- `packages/ag-charts-community/src/chart/background/background.ts`
+    - Default values for properties
+    - Property decorators and implementations
+    - Visible property behavior
 
 ### Examples to Test
 
@@ -49,10 +49,10 @@
 
 **Documentation Claims:**
 
--   Background fill can be set using color string values
--   Example shows 'rgb(63, 127, 255)' in code snippet
--   Example uses 'aliceblue' as initial background color
--   Random color button changes background dynamically
+- Background fill can be set using color string values
+- Example shows 'rgb(63, 127, 255)' in code snippet
+- Example uses 'aliceblue' as initial background color
+- Random color button changes background dynamically
 
 **Expected Behaviors for example-tester:**
 
@@ -65,10 +65,10 @@
 
 **Visual States to Capture:**
 
--   Default state with 'aliceblue' background
--   Multiple states after clicking random color button
--   Different viewport sizes to verify background coverage
--   Focus state of the random color button
+- Default state with 'aliceblue' background
+- Multiple states after clicking random color button
+- Different viewport sizes to verify background coverage
+- Focus state of the random color button
 
 ### User Interactions to Validate
 
@@ -135,9 +135,9 @@ No technical review exceptions file exists for this page.
 
 ## Success Criteria
 
--   All documented properties exist in TypeScript definitions
--   Example demonstrates exactly what documentation describes
--   No console errors during interactions
--   Background covers entire chart area at all viewport sizes
--   Color changes apply immediately without visual glitches
--   Documentation accurately reflects implementation defaults
+- All documented properties exist in TypeScript definitions
+- Example demonstrates exactly what documentation describes
+- No console errors during interactions
+- Background covers entire chart area at all viewport sizes
+- Color changes apply immediately without visual glitches
+- Documentation accurately reflects implementation defaults

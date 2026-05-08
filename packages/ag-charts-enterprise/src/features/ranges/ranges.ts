@@ -361,10 +361,10 @@ export class Ranges extends BaseProperties implements ModuleInstance {
             stroke: component.stroke,
             strokeWidth: component.strokeWidth,
             textColor: component.textColor,
-            paddingTop: typeof component.padding === 'number' ? component.padding : component.padding.top ?? 0,
-            paddingRight: typeof component.padding === 'number' ? component.padding : component.padding.right ?? 0,
-            paddingBottom: typeof component.padding === 'number' ? component.padding : component.padding.bottom ?? 0,
-            paddingLeft: typeof component.padding === 'number' ? component.padding : component.padding.left ?? 0,
+            paddingTop: typeof component.padding === 'number' ? component.padding : (component.padding.top ?? 0),
+            paddingRight: typeof component.padding === 'number' ? component.padding : (component.padding.right ?? 0),
+            paddingBottom: typeof component.padding === 'number' ? component.padding : (component.padding.bottom ?? 0),
+            paddingLeft: typeof component.padding === 'number' ? component.padding : (component.padding.left ?? 0),
         };
     }
 

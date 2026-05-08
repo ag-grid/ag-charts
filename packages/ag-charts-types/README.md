@@ -57,27 +57,27 @@
 <details>
   <summary><strong>Table of Contents</strong></summary>
 
--   [📖 Overview](#-overview)
-    -   [Chart Types](#chart-types)
-    -   [Features](#features)
-    -   [Financial Charts](#financial-charts)
-    -   [Map Charts](#map-charts)
--   [⚡️ Quick Start](#️-quick-start)
-    -   [Installation](#installation)
-    -   [Setup](#setup)
--   [🤝 Support](#-support)
-    -   [Enterprise Support](#enterprise-support)
-    -   [Bug Reports](#bug-reports)
-    -   [Questions](#questions)
-    -   [Contributing](#contributing)
--   [⚠️ License](#️-license)
+- [📖 Overview](#-overview)
+    - [Chart Types](#chart-types)
+    - [Features](#features)
+    - [Financial Charts](#financial-charts)
+    - [Map Charts](#map-charts)
+- [⚡️ Quick Start](#️-quick-start)
+    - [Installation](#installation)
+    - [Setup](#setup)
+- [🤝 Support](#-support)
+    - [Enterprise Support](#enterprise-support)
+    - [Bug Reports](#bug-reports)
+    - [Questions](#questions)
+    - [Contributing](#contributing)
+- [⚠️ License](#️-license)
 
 </details>
 
 AG Charts is available in two versions: Community & Enterprise.
 
--   `ag-charts-community` is free, available under the MIT license, and comes with core series types, such as [Pie](https://www.ag-grid.com/charts/javascript/pie-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Area](https://www.ag-grid.com/charts/javascript/area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Bar](https://www.ag-grid.com/charts/javascript/bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Scatter](https://www.ag-grid.com/charts/javascript/scatter-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and [Bubble](https://www.ag-grid.com/charts/javascript/bubble-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) in addition to all of the key features expected from a Types charting library, including [Accessibility](https://www.ag-grid.com/charts/javascript/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Tooltips](https://www.ag-grid.com/charts/javascript/tooltips/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Themes](https://www.ag-grid.com/charts/javascript/themes/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Markers](https://www.ag-grid.com/charts/javascript/markers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Legends](https://www.ag-grid.com/charts/javascript/legend/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Axis Types](https://www.ag-grid.com/charts/javascript/axes-types/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and [Secondary Axes](https://www.ag-grid.com/charts/javascript/axes-secondary/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
--   `ag-charts-enterprise` is available under a commercial license and comes with additional series types, such as [Maps](https://www.ag-grid.com/charts/javascript/maps/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Sankey](https://www.ag-grid.com/charts/javascript/sankey-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Radar](https://www.ag-grid.com/charts/javascript/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), and [Waterfall](https://www.ag-grid.com/charts/javascript/waterfall-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) Charts as well as advanced interactivity features, like [Animations](https://www.ag-grid.com/charts/javascript/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Context Menus](https://www.ag-grid.com/charts/javascript/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Zooming](https://www.ag-grid.com/charts/javascript/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Navigators](https://www.ag-grid.com/charts/javascript/navigator/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Synchronization](https://www.ag-grid.com/charts/javascript/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and much more, including [Financial Charts](https://www.ag-grid.com/charts/javascript/financial-charts/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+- `ag-charts-community` is free, available under the MIT license, and comes with core series types, such as [Pie](https://www.ag-grid.com/charts/javascript/pie-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Area](https://www.ag-grid.com/charts/javascript/area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Bar](https://www.ag-grid.com/charts/javascript/bar-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Scatter](https://www.ag-grid.com/charts/javascript/scatter-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and [Bubble](https://www.ag-grid.com/charts/javascript/bubble-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) in addition to all of the key features expected from a Types charting library, including [Accessibility](https://www.ag-grid.com/charts/javascript/accessibility/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Tooltips](https://www.ag-grid.com/charts/javascript/tooltips/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Themes](https://www.ag-grid.com/charts/javascript/themes/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Markers](https://www.ag-grid.com/charts/javascript/markers/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Legends](https://www.ag-grid.com/charts/javascript/legend/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Axis Types](https://www.ag-grid.com/charts/javascript/axes-types/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and [Secondary Axes](https://www.ag-grid.com/charts/javascript/axes-secondary/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+- `ag-charts-enterprise` is available under a commercial license and comes with additional series types, such as [Maps](https://www.ag-grid.com/charts/javascript/maps/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Sankey](https://www.ag-grid.com/charts/javascript/sankey-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Radar](https://www.ag-grid.com/charts/javascript/radar-area-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), and [Waterfall](https://www.ag-grid.com/charts/javascript/waterfall-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) Charts as well as advanced interactivity features, like [Animations](https://www.ag-grid.com/charts/javascript/animation/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Context Menus](https://www.ag-grid.com/charts/javascript/context-menu/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Zooming](https://www.ag-grid.com/charts/javascript/zoom/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Navigators](https://www.ag-grid.com/charts/javascript/navigator/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github), [Synchronization](https://www.ag-grid.com/charts/javascript/sync/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github) and much more, including [Financial Charts](https://www.ag-grid.com/charts/javascript/financial-charts/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
 
 ### Features & Chart Types
 

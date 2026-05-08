@@ -139,8 +139,10 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     style?: AgSeriesMarkerStyle;
 }
 
-interface BubbleSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
+interface BubbleSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
+    BubbleScatterNodeDatum,
+    BubbleScatterNodeDatum
+> {
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 

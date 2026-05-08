@@ -6,8 +6,10 @@ import type { PointProperties } from '../properties/pointProperties';
 import type { PointScene } from '../scenes/pointScene';
 import type { AnnotationStateEvents } from './stateTypes';
 
-interface PointStateMachineContext<Datum extends PointProperties>
-    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
+interface PointStateMachineContext<Datum extends PointProperties> extends Omit<
+    AnnotationsCreateStateMachineContext,
+    'create'
+> {
     create: (datum: Datum) => void;
 }
 

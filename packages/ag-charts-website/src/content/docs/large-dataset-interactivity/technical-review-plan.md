@@ -12,10 +12,10 @@
 
 This page documents AG Charts' large dataset interactivity capabilities, specifically:
 
--   Performance optimization for datasets with over 1 million points
--   Out-of-the-box performance with no additional configuration required
--   Integration with zoom, navigator, and scroll features
--   Reference to M4 algorithm for data aggregation
+- Performance optimization for datasets with over 1 million points
+- Out-of-the-box performance with no additional configuration required
+- Integration with zoom, navigator, and scroll features
+- Reference to M4 algorithm for data aggregation
 
 **Key Claims to Validate**:
 
@@ -30,8 +30,8 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 ### Documentation Files
 
--   **Main Page**: `packages/ag-charts-website/src/content/docs/large-dataset-interactivity/index.mdoc`
--   **Exceptions File**: NOT FOUND (no technical-review-exceptions.md)
+- **Main Page**: `packages/ag-charts-website/src/content/docs/large-dataset-interactivity/index.mdoc`
+- **Exceptions File**: NOT FOUND (no technical-review-exceptions.md)
 
 ### Examples
 
@@ -42,28 +42,28 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 ### TypeScript Definition Files
 
--   `packages/ag-charts-types/src/chart/zoomOptions.ts` - Zoom configuration options
--   `packages/ag-charts-types/src/chart/navigatorOptions.ts` - Navigator configuration options
--   `packages/ag-charts-types/src/chart/agChartOptions.ts` - Main chart options
+- `packages/ag-charts-types/src/chart/zoomOptions.ts` - Zoom configuration options
+- `packages/ag-charts-types/src/chart/navigatorOptions.ts` - Navigator configuration options
+- `packages/ag-charts-types/src/chart/agChartOptions.ts` - Main chart options
 
 ### Implementation Files (Data Aggregation)
 
--   `packages/ag-charts-community/src/chart/series/aggregation.ts` - Core aggregation logic
--   `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts` - Line series aggregation
--   `packages/ag-charts-community/src/chart/series/cartesian/areaAggregation.ts` - Area series aggregation
--   `packages/ag-charts-community/src/chart/series/cartesian/barAggregation.ts` - Bar series aggregation
--   `packages/ag-charts-community/src/chart/series/cartesian/bubbleAggregation.ts` - Bubble series aggregation
--   `packages/ag-charts-community/src/chart/data/aggregateFunctions.ts` - Aggregate utility functions
+- `packages/ag-charts-community/src/chart/series/aggregation.ts` - Core aggregation logic
+- `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts` - Line series aggregation
+- `packages/ag-charts-community/src/chart/series/cartesian/areaAggregation.ts` - Area series aggregation
+- `packages/ag-charts-community/src/chart/series/cartesian/barAggregation.ts` - Bar series aggregation
+- `packages/ag-charts-community/src/chart/series/cartesian/bubbleAggregation.ts` - Bubble series aggregation
+- `packages/ag-charts-community/src/chart/data/aggregateFunctions.ts` - Aggregate utility functions
 
 ### Series Implementation Files
 
--   `packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts`
--   `packages/ag-charts-community/src/chart/series/cartesian/areaSeries.ts`
--   `packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
--   `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts`
--   `packages/ag-charts-enterprise/src/series/cartesian/rangeSeries/*` (range-area, range-bar)
--   `packages/ag-charts-enterprise/src/series/cartesian/candlestickSeries.ts`
--   `packages/ag-charts-enterprise/src/series/cartesian/ohlcSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/lineSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/areaSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/barSeries.ts`
+- `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts`
+- `packages/ag-charts-enterprise/src/series/cartesian/rangeSeries/*` (range-area, range-bar)
+- `packages/ag-charts-enterprise/src/series/cartesian/candlestickSeries.ts`
+- `packages/ag-charts-enterprise/src/series/cartesian/ohlcSeries.ts`
 
 ---
 
@@ -76,25 +76,25 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 **Verification Steps**:
 
--   [ ] Search implementation for M4 algorithm references
--   [ ] Verify aggregation.ts implements M4 or similar algorithm
--   [ ] Confirm the blog post link is accurate and accessible
--   [ ] Check if algorithm name should be capitalized differently or if it's technically accurate
--   [ ] Validate that the aggregation approach matches M4 characteristics:
-    -   Min/max value tracking per bucket
-    -   Preserves visual representation accuracy
-    -   Dynamic bucket sizing based on zoom level
+- [ ] Search implementation for M4 algorithm references
+- [ ] Verify aggregation.ts implements M4 or similar algorithm
+- [ ] Confirm the blog post link is accurate and accessible
+- [ ] Check if algorithm name should be capitalized differently or if it's technically accurate
+- [ ] Validate that the aggregation approach matches M4 characteristics:
+    - Min/max value tracking per bucket
+    - Preserves visual representation accuracy
+    - Dynamic bucket sizing based on zoom level
 
 **Files to Check**:
 
--   `packages/ag-charts-community/src/chart/series/aggregation.ts` - Review `createAggregationIndices()` and related functions
--   `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts` - Check `aggregateLineData()` implementation
+- `packages/ag-charts-community/src/chart/series/aggregation.ts` - Review `createAggregationIndices()` and related functions
+- `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts` - Check `aggregateLineData()` implementation
 
 **Expected Findings**:
 
--   Implementation uses min/max tracking indices (AGGREGATION_INDEX_X_MIN, AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_Y_MIN, AGGREGATION_INDEX_Y_MAX)
--   Dynamic range calculation via `aggregationRangeFittingPoints()`
--   Bucket compaction via `compactAggregationIndices()`
+- Implementation uses min/max tracking indices (AGGREGATION_INDEX_X_MIN, AGGREGATION_INDEX_X_MAX, AGGREGATION_INDEX_Y_MIN, AGGREGATION_INDEX_Y_MAX)
+- Dynamic range calculation via `aggregationRangeFittingPoints()`
+- Bucket compaction via `compactAggregationIndices()`
 
 ### 2. Default Configuration Claim
 
@@ -103,21 +103,21 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 **Verification Steps**:
 
--   [ ] Confirm aggregation is enabled by default (no opt-in required)
--   [ ] Check if enterprise modules are needed for any aggregation features
--   [ ] Verify threshold values are sensible defaults
--   [ ] Validate that the example doesn't require special configuration beyond typical zoom/navigator setup
+- [ ] Confirm aggregation is enabled by default (no opt-in required)
+- [ ] Check if enterprise modules are needed for any aggregation features
+- [ ] Verify threshold values are sensible defaults
+- [ ] Validate that the example doesn't require special configuration beyond typical zoom/navigator setup
 
 **Files to Check**:
 
--   `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts:16` - `AGGREGATION_THRESHOLD = 1e3` (1000 points)
--   Series implementations to confirm automatic aggregation
+- `packages/ag-charts-community/src/chart/series/cartesian/lineAggregation.ts:16` - `AGGREGATION_THRESHOLD = 1e3` (1000 points)
+- Series implementations to confirm automatic aggregation
 
 **Expected Findings**:
 
--   Aggregation activates automatically when data exceeds threshold
--   No special imports or configuration needed
--   Works in community edition
+- Aggregation activates automatically when data exceeds threshold
+- No special imports or configuration needed
+- Works in community edition
 
 ### 3. Performance Threshold Validation
 
@@ -126,21 +126,21 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 **Verification Steps**:
 
--   [ ] Review aggregation threshold constants
--   [ ] Confirm 1M+ point handling in implementation
--   [ ] Check example demonstrates up to 1M points
--   [ ] Verify no hardcoded limits prevent >1M point datasets
+- [ ] Review aggregation threshold constants
+- [ ] Confirm 1M+ point handling in implementation
+- [ ] Check example demonstrates up to 1M points
+- [ ] Verify no hardcoded limits prevent >1M point datasets
 
 **Files to Check**:
 
--   `packages/ag-charts-community/src/chart/series/aggregation.ts` - Memory limits and power-of-2 calculations
--   Example data.ts - Base data array size
+- `packages/ag-charts-community/src/chart/series/aggregation.ts` - Memory limits and power-of-2 calculations
+- Example data.ts - Base data array size
 
 **Expected Findings**:
 
--   `baseData = getData(1e6)` in example confirms 1M point generation
--   Implementation uses Int32Array/Float64Array for efficient memory usage
--   Power-of-2 cap at 2^24 (~16M buckets) in aggregation.ts:125
+- `baseData = getData(1e6)` in example confirms 1M point generation
+- Implementation uses Int32Array/Float64Array for efficient memory usage
+- Power-of-2 cap at 2^24 (~16M buckets) in aggregation.ts:125
 
 ### 4. Zoom Integration Validation
 
@@ -149,10 +149,10 @@ This page documents AG Charts' large dataset interactivity capabilities, specifi
 
 **Verification Steps**:
 
--   [ ] Verify zoom configuration in example matches documented options
--   [ ] Confirm autoScaling behavior
--   [ ] Check dynamic adaptation implementation
--   [ ] Validate axis configuration switches based on series type
+- [ ] Verify zoom configuration in example matches documented options
+- [ ] Confirm autoScaling behavior
+- [ ] Check dynamic adaptation implementation
+- [ ] Validate axis configuration switches based on series type
 
 **Example Configuration to Validate**:
 
@@ -170,18 +170,18 @@ zoom: {
 
 **TypeScript Definition Defaults**:
 
--   From `zoomOptions.ts:102`: `enabled` default is `false`
--   From `zoomOptions.ts:66`: `anchorPointX` default is `'end'`
--   From `zoomOptions.ts:72`: `anchorPointY` default is `'middle'`
--   From `zoomOptions.ts:82`: `axes` default is `'x'`
--   From `zoomOptions.ts:54`: `autoScaling.enabled` default is `true`
+- From `zoomOptions.ts:102`: `enabled` default is `false`
+- From `zoomOptions.ts:66`: `anchorPointX` default is `'end'`
+- From `zoomOptions.ts:72`: `anchorPointY` default is `'middle'`
+- From `zoomOptions.ts:82`: `axes` default is `'x'`
+- From `zoomOptions.ts:54`: `autoScaling.enabled` default is `true`
 
 **Potential Issues**:
 
--   Example sets `zoom.enabled: true` (required, not default)
--   Example sets `anchorPointX: 'pointer'` (non-default)
--   Example sets `anchorPointY: 'pointer'` (non-default)
--   Documentation should clarify these are example-specific, not defaults
+- Example sets `zoom.enabled: true` (required, not default)
+- Example sets `anchorPointX: 'pointer'` (non-default)
+- Example sets `anchorPointY: 'pointer'` (non-default)
+- Documentation should clarify these are example-specific, not defaults
 
 ### 5. Navigator Configuration Validation
 
@@ -199,15 +199,15 @@ navigator: {
 
 **Verification Steps**:
 
--   [ ] Check Navigator default enabled state
--   [ ] Verify miniChart default enabled state
--   [ ] Confirm navigator height and spacing defaults
--   [ ] Validate navigator disabling for scatter/bubble series in example
+- [ ] Check Navigator default enabled state
+- [ ] Verify miniChart default enabled state
+- [ ] Confirm navigator height and spacing defaults
+- [ ] Validate navigator disabling for scatter/bubble series in example
 
 **Files to Check**:
 
--   `packages/ag-charts-types/src/chart/navigatorOptions.ts`
--   Example main.ts lines 139-144 (conditional navigator disabling)
+- `packages/ag-charts-types/src/chart/navigatorOptions.ts`
+- Example main.ts lines 139-144 (conditional navigator disabling)
 
 ---
 
@@ -225,13 +225,13 @@ navigator: {
 
 **Expected Behaviors**:
 
--   [ ] Controls allow switching between: line, area, bar, stacked-bar, stacked-area, range-area, range-bar, candlestick, ohlc, scatter, bubble
--   [ ] Data size controls allow: 1K, 10K, 100K, 500K, 1M points
--   [ ] Chart responds smoothly to zoom/pan interactions
--   [ ] Navigator updates dynamically
--   [ ] Chart title updates to reflect current series type and data size
--   [ ] Axis configuration switches appropriately for scatter/bubble (xy axes) vs others (time/number axes)
--   [ ] Animation is disabled (expected for performance)
+- [ ] Controls allow switching between: line, area, bar, stacked-bar, stacked-area, range-area, range-bar, candlestick, ohlc, scatter, bubble
+- [ ] Data size controls allow: 1K, 10K, 100K, 500K, 1M points
+- [ ] Chart responds smoothly to zoom/pan interactions
+- [ ] Navigator updates dynamically
+- [ ] Chart title updates to reflect current series type and data size
+- [ ] Axis configuration switches appropriately for scatter/bubble (xy axes) vs others (time/number axes)
+- [ ] Animation is disabled (expected for performance)
 
 **Key Configurations to Verify**:
 
@@ -257,23 +257,23 @@ setData(points: number, label: string) - lines 152-161
 
 **Static Analysis Checks**:
 
--   [ ] Verify all series types use correct key mappings
--   [ ] Confirm stacked series properly halve data points
--   [ ] Validate scatter/bubble disable navigator and autoScaling
--   [ ] Check animation disabled for performance
--   [ ] Verify zoom configuration consistency
+- [ ] Verify all series types use correct key mappings
+- [ ] Confirm stacked series properly halve data points
+- [ ] Validate scatter/bubble disable navigator and autoScaling
+- [ ] Check animation disabled for performance
+- [ ] Verify zoom configuration consistency
 
 **Runtime Behavior Checks** (for example-tester agent):
 
--   [ ] All 11 series types render correctly
--   [ ] All 5 data sizes load successfully (1K, 10K, 100K, 500K, 1M)
--   [ ] Zoom interactions work smoothly at all data sizes
--   [ ] Navigator reflects current zoom state
--   [ ] Chart title updates correctly on series/data changes
--   [ ] No console errors or warnings
--   [ ] Performance remains acceptable at 1M points
--   [ ] Series switching maintains zoom state appropriately
--   [ ] Tooltip displays on hover (interactive verification)
+- [ ] All 11 series types render correctly
+- [ ] All 5 data sizes load successfully (1K, 10K, 100K, 500K, 1M)
+- [ ] Zoom interactions work smoothly at all data sizes
+- [ ] Navigator reflects current zoom state
+- [ ] Chart title updates correctly on series/data changes
+- [ ] No console errors or warnings
+- [ ] Performance remains acceptable at 1M points
+- [ ] Series switching maintains zoom state appropriately
+- [ ] Tooltip displays on hover (interactive verification)
 
 ---
 
@@ -294,95 +294,94 @@ setData(points: number, label: string) - lines 152-161
 **1. Series Type Testing** (Priority: HIGH)
 Test all 11 series type options:
 
--   Line (default)
--   Area
--   Bar
--   Stacked Bar
--   Stacked Area
--   Range Area
--   Range Bar
--   Candlestick
--   OHLC
--   Scatter
--   Bubble
+- Line (default)
+- Area
+- Bar
+- Stacked Bar
+- Stacked Area
+- Range Area
+- Range Bar
+- Candlestick
+- OHLC
+- Scatter
+- Bubble
 
 **Expected for each**:
 
--   Series renders without errors
--   Chart title updates to show series type
--   Appropriate axis configuration (time vs number)
--   Navigator visibility (enabled for time-series, disabled for scatter/bubble)
+- Series renders without errors
+- Chart title updates to show series type
+- Appropriate axis configuration (time vs number)
+- Navigator visibility (enabled for time-series, disabled for scatter/bubble)
 
 **2. Data Size Testing** (Priority: HIGH)
 Test all data size buttons:
 
--   1K points
--   10K points
--   100K points
--   500K points
--   1M points
+- 1K points
+- 10K points
+- 100K points
+- 500K points
+- 1M points
 
 **Expected for each**:
 
--   Data loads without errors
--   Chart title updates to show data size
--   Chart remains interactive
--   No performance degradation warnings in console
--   Navigator (when enabled) updates appropriately
+- Data loads without errors
+- Chart title updates to show data size
+- Chart remains interactive
+- No performance degradation warnings in console
+- Navigator (when enabled) updates appropriately
 
 **3. Interaction Testing** (Priority: HIGH)
 For at least 3 series types (line, bar, candlestick) and 3 data sizes (1K, 100K, 1M):
 
 **Zoom Testing**:
 
--   Mouse wheel zoom works
--   Zoom in/out maintains visual accuracy
--   Double-click reset works
--   Zoom controls (if visible) function correctly
+- Mouse wheel zoom works
+- Zoom in/out maintains visual accuracy
+- Double-click reset works
+- Zoom controls (if visible) function correctly
 
 **Pan Testing**:
 
--   Click-drag panning works when zoomed
--   Pan maintains visual continuity
--   Navigator reflects pan position
+- Click-drag panning works when zoomed
+- Pan maintains visual continuity
+- Navigator reflects pan position
 
 **Navigator Testing** (when enabled):
 
--   Navigator mini-chart displays
--   Dragging navigator handles zooms main chart
--   Navigator position indicator is accurate
--   Mini-chart reflects main chart data
+- Navigator mini-chart displays
+- Dragging navigator handles zooms main chart
+- Navigator position indicator is accurate
+- Mini-chart reflects main chart data
 
 **4. Visual Regression Testing** (Priority: MEDIUM)
 Capture screenshots for:
 
--   Default state (Line, 1K)
--   Large dataset state (Line, 1M)
--   Alternative series (Candlestick, 100K)
--   Scatter with number axes (Scatter, 100K)
--   Zoomed state (any series, show zoom detail)
+- Default state (Line, 1K)
+- Large dataset state (Line, 1M)
+- Alternative series (Candlestick, 100K)
+- Scatter with number axes (Scatter, 100K)
+- Zoomed state (any series, show zoom detail)
 
 **5. Console Monitoring** (Priority: HIGH)
 Monitor browser console for:
 
--   JavaScript errors
--   Warning messages
--   Performance warnings
--   Failed network requests
+- JavaScript errors
+- Warning messages
+- Performance warnings
+- Failed network requests
 
 **6. Configuration Verification** (Priority: MEDIUM)
 Verify runtime configuration matches code:
 
--   Animation disabled
--   Zoom enabled with correct anchor points
--   AutoScaling enabled for time-series
--   Correct axis types per series
--   Navigator state per series type
+- Animation disabled
+- Zoom enabled with correct anchor points
+- AutoScaling enabled for time-series
+- Correct axis types per series
+- Navigator state per series type
 
 #### Expected Agent Deliverables
 
 1. **Test Execution Report** with:
-
     - Pass/fail status for each series type
     - Pass/fail status for each data size
     - Interaction test results
@@ -390,13 +389,11 @@ Verify runtime configuration matches code:
     - Performance observations
 
 2. **Visual Evidence**:
-
     - Screenshots saved to `reports/screenshots/`
     - Naming convention: `{series-type}_{data-size}_{state}.png`
     - Examples: `line_1m_default.png`, `candlestick_100k_zoomed.png`
 
 3. **Issue Documentation**:
-
     - Critical failures (rendering errors, crashes)
     - Warnings (performance degradation, console warnings)
     - Discrepancies between documentation and behavior
@@ -422,28 +419,23 @@ Verify runtime configuration matches code:
 ### Screenshot Capture Sequence
 
 1. **Default State**: Line chart, 1K points
-
     - Save as: `reports/screenshots/default_line_1k.png`
 
 2. **Large Dataset**: Line chart, 1M points
-
     - Click "1M" button
     - Wait for render
     - Save as: `reports/screenshots/line_1m.png`
 
 3. **Zoomed State**: Line chart, 1M points, zoomed
-
     - Scroll to zoom in
     - Save as: `reports/screenshots/line_1m_zoomed.png`
 
 4. **Alternative Series**: Candlestick, 100K points
-
     - Select "Candlestick" from dropdown
     - Click "100K" button
     - Save as: `reports/screenshots/candlestick_100k.png`
 
 5. **Scatter Plot**: Scatter, 100K points (number axes, no navigator)
-
     - Select "Scatter" from dropdown
     - Click "100K" button
     - Save as: `reports/screenshots/scatter_100k_no_navigator.png`
@@ -469,33 +461,33 @@ Verify runtime configuration matches code:
 
 ### Completeness Checks
 
--   [ ] All interactive features mentioned in docs are demonstrated in example
--   [ ] Performance characteristics are clearly explained
--   [ ] Limitations or caveats are documented (per note: "Performance may vary...")
--   [ ] Related features (zoom, navigator, scroll) are properly cross-referenced
+- [ ] All interactive features mentioned in docs are demonstrated in example
+- [ ] Performance characteristics are clearly explained
+- [ ] Limitations or caveats are documented (per note: "Performance may vary...")
+- [ ] Related features (zoom, navigator, scroll) are properly cross-referenced
 
 ### Accuracy Checks
 
--   [ ] M4 algorithm reference is technically accurate
--   [ ] Blog post link is valid and relevant
--   [ ] "Out of the box" claim is substantiated
--   [ ] "1 million points" threshold is validated in code
+- [ ] M4 algorithm reference is technically accurate
+- [ ] Blog post link is valid and relevant
+- [ ] "Out of the box" claim is substantiated
+- [ ] "1 million points" threshold is validated in code
 
 ### Missing Documentation
 
--   [ ] Check if aggregation threshold is documented (AGGREGATION_THRESHOLD = 1e3)
--   [ ] Check if MAX_POINTS limit is documented (MAX_POINTS = 10)
--   [ ] Verify if memory limits are mentioned (2^24 cap)
--   [ ] Consider if scatter/bubble limitations should be noted (no aggregation?)
+- [ ] Check if aggregation threshold is documented (AGGREGATION_THRESHOLD = 1e3)
+- [ ] Check if MAX_POINTS limit is documented (MAX_POINTS = 10)
+- [ ] Verify if memory limits are mentioned (2^24 cap)
+- [ ] Consider if scatter/bubble limitations should be noted (no aggregation?)
 
 ### Cross-Reference Validation
 
--   [ ] Navigator page link: `./navigator/` - verify page exists and is accurate
--   [ ] Zoom page link: `./zoom/#axis-zoom-controls` - verify anchor exists
--   [ ] Zoom page link: `./zoom/` - general zoom page reference
--   [ ] Scrolling link: `./zoom/#scrolling` - verify anchor exists
--   [ ] Panning link: `./zoom/#panning` - verify anchor exists
--   [ ] Blog post link: External URL validation
+- [ ] Navigator page link: `./navigator/` - verify page exists and is accurate
+- [ ] Zoom page link: `./zoom/#axis-zoom-controls` - verify anchor exists
+- [ ] Zoom page link: `./zoom/` - general zoom page reference
+- [ ] Scrolling link: `./zoom/#scrolling` - verify anchor exists
+- [ ] Panning link: `./zoom/#panning` - verify anchor exists
+- [ ] Blog post link: External URL validation
 
 ---
 
@@ -541,25 +533,21 @@ This review will be considered successful when:
 ## Next Steps
 
 1. **Execute Technical Accuracy Review** (Phase 2)
-
     - Validate aggregation implementation against M4 algorithm
     - Check all TypeScript definitions
     - Verify default values and thresholds
 
 2. **Delegate Example Testing** (Phase 2)
-
     - Launch example-tester agent with instructions above
     - Collect test results and screenshots
     - Document any failures or discrepancies
 
 3. **Perform Visual Testing** (Phase 2)
-
     - Execute Puppeteer screenshot sequence
     - Test all interactive features
     - Monitor console output
 
 4. **Content Quality Review** (Phase 2)
-
     - Check completeness
     - Validate cross-references
     - Identify missing documentation
@@ -573,8 +561,8 @@ This review will be considered successful when:
 
 ## Notes
 
--   **Enterprise vs Community**: Example imports from `ag-charts-enterprise` - verify if aggregation is enterprise-only or if it's available in community
--   **Browser Compatibility**: Performance claims may vary by browser - consider noting this
--   **Data Generation**: Uses seeded random (sfc32) for deterministic data - good for reproducibility
--   **Memory Efficiency**: Implementation uses TypedArrays (Int32Array, Float64Array) for performance
--   **Aggregation Details**: Uses 4-value spans (AGGREGATION_SPAN = 4) for min/max x/y indices
+- **Enterprise vs Community**: Example imports from `ag-charts-enterprise` - verify if aggregation is enterprise-only or if it's available in community
+- **Browser Compatibility**: Performance claims may vary by browser - consider noting this
+- **Data Generation**: Uses seeded random (sfc32) for deterministic data - good for reproducibility
+- **Memory Efficiency**: Implementation uses TypedArrays (Int32Array, Float64Array) for performance
+- **Aggregation Details**: Uses 4-value spans (AGGREGATION_SPAN = 4) for min/max x/y indices

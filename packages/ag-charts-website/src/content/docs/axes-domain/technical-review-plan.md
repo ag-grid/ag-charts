@@ -4,11 +4,11 @@
 
 ### Features Covered
 
--   Axis domain concept and automatic calculation
--   Nice domain feature for visually pleasing axis ranges
--   Manual domain configuration with min/max properties
--   Domain reversal functionality
--   Continuous vs category axis domain behavior
+- Axis domain concept and automatic calculation
+- Nice domain feature for visually pleasing axis ranges
+- Manual domain configuration with min/max properties
+- Domain reversal functionality
+- Continuous vs category axis domain behavior
 
 ### Key APIs and Configuration Options Documented
 
@@ -25,10 +25,10 @@
 
 ### Interactive Features Described
 
--   Toggle buttons for nice property
--   Buttons to set specific min/max values
--   Reset button for automatic domain calculation
--   Toggle for reverse property
+- Toggle buttons for nice property
+- Buttons to set specific min/max values
+- Reset button for automatic domain calculation
+- Toggle for reverse property
 
 ## Validation Targets
 
@@ -38,7 +38,6 @@
     - Verify `nice?: boolean` property exists
     - Verify extends `AgBaseContinuousAxisOptions` with `min` and `max`
 2. **AgBaseAxisOptions** in `packages/ag-charts-types/src/chart/axisOptions.ts`
-
     - Verify `reverse?: boolean` property exists
 
 3. **AgBaseContinuousAxisOptions** in `packages/ag-charts-types/src/chart/axisOptions.ts`
@@ -48,7 +47,6 @@
 ### Implementation Files to Check
 
 1. **Continuous axis implementations**:
-
     - `packages/ag-charts-community/src/chart/axis/numberAxis.ts`
     - `packages/ag-charts-community/src/chart/axis/timeAxis.ts`
     - Check for nice domain calculation logic
@@ -65,56 +63,55 @@
 
 **Documentation claims**:
 
--   When nice=false, axis ranges from exactly 1.87 to 88.07
--   When nice=true, axis extends to 0 to 100
--   Button toggles the nice property
+- When nice=false, axis ranges from exactly 1.87 to 88.07
+- When nice=true, axis extends to 0 to 100
+- Button toggles the nice property
 
 **Expected behaviors for example-tester**:
 
--   Chart renders without console errors
--   Y-axis displays number values
--   Initial state should show nice domain (0-100)
--   Button click should toggle between exact data domain (1.87-88.07) and nice domain (0-100)
--   Axis labels should update to reflect domain changes
--   Data points should remain in same relative positions
+- Chart renders without console errors
+- Y-axis displays number values
+- Initial state should show nice domain (0-100)
+- Button click should toggle between exact data domain (1.87-88.07) and nice domain (0-100)
+- Axis labels should update to reflect domain changes
+- Data points should remain in same relative positions
 
 #### axis-min-max Example
 
 **Documentation claims**:
 
--   Buttons set specific domain minimum and maximum
--   Reset button applies automatically calculated domain
--   Shows how to use axis.min and axis.max configurations
+- Buttons set specific domain minimum and maximum
+- Reset button applies automatically calculated domain
+- Shows how to use axis.min and axis.max configurations
 
 **Expected behaviors for example-tester**:
 
--   Chart renders without console errors
--   Interactive buttons for setting min/max values
--   Reset button restores automatic domain
--   Y-axis updates when buttons are clicked
--   Data visualization adjusts to new domain ranges
--   Chart should handle edge cases (e.g., min > max gracefully)
+- Chart renders without console errors
+- Interactive buttons for setting min/max values
+- Reset button restores automatic domain
+- Y-axis updates when buttons are clicked
+- Data visualization adjusts to new domain ranges
+- Chart should handle edge cases (e.g., min > max gracefully)
 
 #### cartesian-axis-reversed Example
 
 **Documentation claims**:
 
--   Shows contrasting data representation in Bar series
--   Button toggles axis.reverse property
--   Visual impact varies by series type
+- Shows contrasting data representation in Bar series
+- Button toggles axis.reverse property
+- Visual impact varies by series type
 
 **Expected behaviors for example-tester**:
 
--   Bar chart renders without console errors
--   Button toggles reverse property
--   When reversed, bars should flip orientation/direction
--   Axis labels should reverse order
--   Data values remain accurate despite visual reversal
+- Bar chart renders without console errors
+- Button toggles reverse property
+- When reversed, bars should flip orientation/direction
+- Axis labels should reverse order
+- Data values remain accurate despite visual reversal
 
 ### User Interactions to Validate
 
 1. **Button interactions**:
-
     - Click nice toggle button multiple times
     - Click min/max setting buttons
     - Click reset button after setting custom min/max
@@ -128,13 +125,11 @@
 ### Visual States to Screenshot and Analyze
 
 1. **axis-nice example**:
-
     - Default state (nice=true)
     - After toggling to nice=false
     - Axis labels at both states
 
 2. **axis-min-max example**:
-
     - Default automatic domain
     - After setting custom min
     - After setting custom max
@@ -147,15 +142,15 @@
 
 ### Chart Elements That Should Be Interactive
 
--   Toggle/setting buttons in all examples
--   Chart should remain interactive during domain changes
--   Tooltips should continue working after domain modifications
+- Toggle/setting buttons in all examples
+- Chart should remain interactive during domain changes
+- Tooltips should continue working after domain modifications
 
 ### Expected Tooltip Content and Highlighting Behaviors
 
--   Tooltips should show correct data values regardless of domain settings
--   Values in tooltips should not change when nice/reverse toggles
--   Highlighting should work consistently across domain changes
+- Tooltips should show correct data values regardless of domain settings
+- Values in tooltips should not change when nice/reverse toggles
+- Highlighting should work consistently across domain changes
 
 ## Known Exceptions
 
@@ -176,7 +171,6 @@ No documented exceptions found for this page.
     - Confirm nice domain extends to 0-100
     - Test toggle functionality
 2. Test axis-min-max example:
-
     - Verify buttons work as described
     - Test reset functionality
     - Check edge cases
@@ -202,16 +196,16 @@ No documented exceptions found for this page.
 
 ### Success Criteria
 
--   All documented properties exist in TypeScript definitions
--   Examples demonstrate exactly what documentation describes
--   No console errors during interactions
--   Visual states match documented behavior
--   Smooth user experience with all interactive features
+- All documented properties exist in TypeScript definitions
+- Examples demonstrate exactly what documentation describes
+- No console errors during interactions
+- Visual states match documented behavior
+- Smooth user experience with all interactive features
 
 ### Estimated Complexity
 
--   **High complexity** areas: Nice domain calculation logic, interaction between nice and min/max
--   **Medium complexity** areas: Example validation, visual testing
--   **Low complexity** areas: Basic property existence checks
+- **High complexity** areas: Nice domain calculation logic, interaction between nice and min/max
+- **Medium complexity** areas: Example validation, visual testing
+- **Low complexity** areas: Basic property existence checks
 
 This page appears to be well-structured with clear examples. Main focus should be on verifying the exact behaviors claimed (like specific data ranges) and ensuring the interactive examples work smoothly.

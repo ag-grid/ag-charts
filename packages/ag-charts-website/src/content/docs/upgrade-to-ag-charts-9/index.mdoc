@@ -17,43 +17,43 @@ This release includes the following breaking changes:
 
 **Series Changes**
 
--   `sizeKey` is removed from `scatter` series. Use `bubble` series instead.
--   `treemap` series has been removed. Use the new Enterprise treemap series instead.
--   `column` series has been removed. Use `bar` series.
--   `bar` series now gives a vertical representation by default. Use `series[].direction = 'horizontal'` for a horizontal representation.
+- `sizeKey` is removed from `scatter` series. Use `bubble` series instead.
+- `treemap` series has been removed. Use the new Enterprise treemap series instead.
+- `column` series has been removed. Use `bar` series.
+- `bar` series now gives a vertical representation by default. Use `series[].direction = 'horizontal'` for a horizontal representation.
 
 **Note:** The `bar` and `column` changes do NOT affect any AG Grid APIs used for integrated charts. They do, however, affect theme overrides.
 
 **Padding**
 
--   `seriesAreaPadding` has moved to `seriesArea.padding`.
--   `axes[].groupPaddingInner` now only adds padding between grouped items. To add padding between groups, use `groupPaddingOuter`.
+- `seriesAreaPadding` has moved to `seriesArea.padding`.
+- `axes[].groupPaddingInner` now only adds padding between grouped items. To add padding between groups, use `groupPaddingOuter`.
 
 **Axes**
 
--   `axes[].gridStyle` option moved to `axes[].gridLine.style`.
--   `axes[].tick.count` - removed.
+- `axes[].gridStyle` option moved to `axes[].gridLine.style`.
+- `axes[].tick.count` - removed.
 
 **Themes**
 
--   `ag-pastel`, `ag-pastel-dark`, `ag-solar`, `ag-solar-dark` themes are removed.
--   The root `type` field is removed from themes.
--   `theme.overrides.{cartesian,polar,hierarchy}` options are removed.
+- `ag-pastel`, `ag-pastel-dark`, `ag-solar`, `ag-solar-dark` themes are removed.
+- The root `type` field is removed from themes.
+- `theme.overrides.{cartesian,polar,hierarchy}` options are removed.
 
 **Miscellaneous**
 
--   `tooltip.tracking` - removed.
--   The following are removed from `AgPieSeriesLabelFormatterParams`. These values can be obtained from the `datum` object in conjunction with `angleKey`.
-    -   `calloutLabelValue`
-    -   `sectorLabelValue`
-    -   `angleValue`
-    -   `radiusValue`.
--   `AgCartesianChartOptions`
-    -   `type` property is removed.
--   `AgHierarchyChartOptions`
-    -   `type` property is removed.
--   `AgPolarChartOptions`
-    -   `type` property is removed.
+- `tooltip.tracking` - removed.
+- The following are removed from `AgPieSeriesLabelFormatterParams`. These values can be obtained from the `datum` object in conjunction with `angleKey`.
+    - `calloutLabelValue`
+    - `sectorLabelValue`
+    - `angleValue`
+    - `radiusValue`.
+- `AgCartesianChartOptions`
+    - `type` property is removed.
+- `AgHierarchyChartOptions`
+    - `type` property is removed.
+- `AgPolarChartOptions`
+    - `type` property is removed.
 
 ### Behaviour Changes
 
@@ -61,20 +61,20 @@ This release includes the following default behaviour changes:
 
 **Themes Defaults**
 
--   Themes have new default values for `fills` and `strokes`.
--   Axis line is hidden by default for Number Axes. Use `axes[].line.enabled` to show.
--   Axis ticks are not shown by default. Use `axes[].tick.enabled` to show.
+- Themes have new default values for `fills` and `strokes`.
+- Axis line is hidden by default for Number Axes. Use `axes[].line.enabled` to show.
+- Axis ticks are not shown by default. Use `axes[].tick.enabled` to show.
 
 **Other Changes**
 
--   The Pie Series remains centred within the container regardless of callout label size. Only the radius size changes when avoiding callout label collisions.
--   `axes[].tick` styles are no longer inherited by grid lines. Use `axes[].gridLine.style`.
+- The Pie Series remains centred within the container regardless of callout label size. Only the radius size changes when avoiding callout label collisions.
+- `axes[].tick` styles are no longer inherited by grid lines. Use `axes[].gridLine.style`.
 
 ### Deprecations
 
 This release includes the following deprecations:
 
--   `agCharts.AgChart` - deprecated. Use `agCharts.AgCharts`.
+- `agCharts.AgChart` - deprecated. Use `agCharts.AgCharts`.
 
 ### Changes List
 
@@ -84,18 +84,18 @@ If you would like to see the full list of changes in this release, please see th
 
 ### AG Charts 9.3
 
--   Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-3/) blog post.
--   See the [Upgrade notes](./upgrade-to-ag-charts-9-3/).
--   See the [Changelog](/changelog/?fixVersion=9.3.0).
+- Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-3/) blog post.
+- See the [Upgrade notes](./upgrade-to-ag-charts-9-3/).
+- See the [Changelog](/changelog/?fixVersion=9.3.0).
 
 ### AG Charts 9.2
 
--   Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-2/) blog post.
--   See the [Upgrade notes](./upgrade-to-ag-charts-9-2/).
--   See the [Changelog](/changelog/?fixVersion=9.2.0).
+- Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-2/) blog post.
+- See the [Upgrade notes](./upgrade-to-ag-charts-9-2/).
+- See the [Changelog](/changelog/?fixVersion=9.2.0).
 
 ### AG Charts 9.1
 
--   Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-1/) blog post.
--   See the [Upgrade notes](./upgrade-to-ag-charts-9-1/).
--   See the [Changelog](/changelog/?fixVersion=9.1.0).
+- Read the [What's New](https://blog.ag-grid.com/whats-new-in-ag-charts-9-1/) blog post.
+- See the [Upgrade notes](./upgrade-to-ag-charts-9-1/).
+- See the [Changelog](/changelog/?fixVersion=9.1.0).

@@ -4,11 +4,11 @@
 
 This is a migration/upgrade guide documentation page for AG Charts version 12.1. The page focuses on:
 
--   What's new in version 12.1 (with link to blog post)
--   Breaking changes (none)
--   Behavior changes (none)
--   Removal of deprecated APIs (none)
--   Deprecations (one deprecation: `AgSeriesAreaPaddingOptions`)
+- What's new in version 12.1 (with link to blog post)
+- Breaking changes (none)
+- Behavior changes (none)
+- Removal of deprecated APIs (none)
+- Deprecations (one deprecation: `AgSeriesAreaPaddingOptions`)
 
 ### Key Features Documented
 
@@ -27,7 +27,7 @@ However, the upgrade documentation page itself does not detail these features - 
 
 The only API change documented on this page is:
 
--   Deprecation of `AgSeriesAreaPaddingOptions` type in favor of `PaddingOptions` or `Padding` types
+- Deprecation of `AgSeriesAreaPaddingOptions` type in favor of `PaddingOptions` or `Padding` types
 
 ### Examples Referenced
 
@@ -42,14 +42,12 @@ No interactive features are described on this page.
 ### TypeScript Interfaces to Verify
 
 1. **AgSeriesAreaPaddingOptions** (deprecated)
-
     - Location: `packages/ag-charts-types/src/chart/chartOptions.ts:42`
     - Verify: Marked with `@deprecated v12.1.0` annotation
     - Verify: Extends `PaddingOptions` interface
     - Verify: Documentation correctly identifies replacement types
 
 2. **PaddingOptions** (replacement type)
-
     - Location: `packages/ag-charts-types/src/series/cartesian/commonOptions.ts:182`
     - Verify: Interface is not deprecated
     - Verify: Contains same properties as deprecated type
@@ -62,7 +60,6 @@ No interactive features are described on this page.
 ### Implementation Files to Check
 
 1. **SeriesArea Implementation**
-
     - Check usage of padding-related types in series area implementation
     - Verify that code still accepts the deprecated type for backwards compatibility
     - Ensure no runtime errors when using deprecated type
@@ -95,7 +92,6 @@ No `technical-review-exceptions.md` file exists for this page, so there are no d
 ### Priority 1: Critical Accuracy Checks
 
 1. **Verify TypeScript Deprecation**
-
     - Confirm `AgSeriesAreaPaddingOptions` is properly deprecated with correct version
     - Verify replacement types (`PaddingOptions` and `Padding`) exist and are not deprecated
     - Check that the deprecated type extends the correct interface
@@ -107,7 +103,6 @@ No `technical-review-exceptions.md` file exists for this page, so there are no d
 ### Priority 2: Documentation Completeness
 
 1. **Check for Missing Content**
-
     - Verify if the 6 new features from the blog should be mentioned in the upgrade guide
     - Check if there should be migration examples for the deprecated API
     - Verify if the changelog section renders correctly
@@ -127,10 +122,10 @@ No `technical-review-exceptions.md` file exists for this page, so there are no d
 
 This is a **simple review** due to:
 
--   No examples to test
--   Only one API change (deprecation)
--   No interactive features
--   No visual elements to validate
+- No examples to test
+- Only one API change (deprecation)
+- No interactive features
+- No visual elements to validate
 
 **Estimated time**: 15-20 minutes
 

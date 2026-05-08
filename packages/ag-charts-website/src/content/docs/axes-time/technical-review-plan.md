@@ -4,22 +4,22 @@
 
 ### Features Covered
 
--   Three types of time axes: Unit Time, Ordinal Time, and Continuous Time
--   Time data handling with `number` (Unix timestamps) and `Date` objects
--   Custom unit configuration for Unit Time Axis (including weekly data)
--   Time intervals for customizing axis ticks, grid lines, and labels
--   Parent level labels for hierarchical time display
--   Formatting options for time labels
+- Three types of time axes: Unit Time, Ordinal Time, and Continuous Time
+- Time data handling with `number` (Unix timestamps) and `Date` objects
+- Custom unit configuration for Unit Time Axis (including weekly data)
+- Time intervals for customizing axis ticks, grid lines, and labels
+- Parent level labels for hierarchical time display
+- Formatting options for time labels
 
 ### Key APIs and Configuration Options Documented
 
--   `AgUnitTimeAxisOptions` - Unit Time Axis configuration
--   `AgOrdinalTimeAxisOptions` - Ordinal Time Axis configuration
--   `AgTimeAxisOptions` - Continuous Time Axis configuration
--   `AgTimeInterval` and `AgTimeIntervalUnit` - Time interval configuration
--   `unit` property for Unit Time Axis (with custom `step` and `epoch`)
--   `interval.step` property for controlling tick/grid spacing
--   `parentLevel` configuration for hierarchical time labels
+- `AgUnitTimeAxisOptions` - Unit Time Axis configuration
+- `AgOrdinalTimeAxisOptions` - Ordinal Time Axis configuration
+- `AgTimeAxisOptions` - Continuous Time Axis configuration
+- `AgTimeInterval` and `AgTimeIntervalUnit` - Time interval configuration
+- `unit` property for Unit Time Axis (with custom `step` and `epoch`)
+- `interval.step` property for controlling tick/grid spacing
+- `parentLevel` configuration for hierarchical time labels
 
 ### Examples Referenced
 
@@ -31,10 +31,10 @@
 
 ### Interactive Features Described
 
--   Dynamic zooming with parent level adjustments
--   Switching between different time axis types
--   Time-based data visualization with proper spacing
--   Hierarchical time label display
+- Dynamic zooming with parent level adjustments
+- Switching between different time axis types
+- Time-based data visualization with proper spacing
+- Hierarchical time label display
 
 ## Validation Targets
 
@@ -61,85 +61,85 @@
 
 **Documentation claims:**
 
--   Shows difference between three time axis types
--   Unit Time: Shows evenly spaced bands for each time unit
--   Ordinal Time: Shows only provided values, ignoring time intervals
--   Continuous Time: Shows data on a continuous scale
--   Missing months (June-September) should be handled differently by each type
+- Shows difference between three time axis types
+- Unit Time: Shows evenly spaced bands for each time unit
+- Ordinal Time: Shows only provided values, ignoring time intervals
+- Continuous Time: Shows data on a continuous scale
+- Missing months (June-September) should be handled differently by each type
 
 **Expected behaviors:**
 
--   Unit Time: All months Jan-Dec shown with even spacing
--   Ordinal Time: Only months with data shown (no gaps for missing months)
--   Continuous Time: Proportional spacing based on actual time intervals
--   Interactive switching between axis types via buttons
--   Bar chart visualization with school absence data
+- Unit Time: All months Jan-Dec shown with even spacing
+- Ordinal Time: Only months with data shown (no gaps for missing months)
+- Continuous Time: Proportional spacing based on actual time intervals
+- Interactive switching between axis types via buttons
+- Bar chart visualization with school absence data
 
 #### unit-time-unit
 
 **Documentation claims:**
 
--   Demonstrates custom unit configuration for weekly data
--   Uses `unit: { unit: 'day', step: 7, epoch: new Date(2024, 0, 1) }`
--   Formatter used to display week numbers
--   Week starts on Monday due to epoch setting
+- Demonstrates custom unit configuration for weekly data
+- Uses `unit: { unit: 'day', step: 7, epoch: new Date(2024, 0, 1) }`
+- Formatter used to display week numbers
+- Week starts on Monday due to epoch setting
 
 **Expected behaviors:**
 
--   Data grouped into weekly buckets
--   Week numbers displayed on x-axis
--   Weeks start on Monday (Jan 1, 2024)
--   Proper handling of partial weeks
--   Bar chart showing weekly aggregated data
+- Data grouped into weekly buckets
+- Week numbers displayed on x-axis
+- Weeks start on Monday (Jan 1, 2024)
+- Proper handling of partial weeks
+- Bar chart showing weekly aggregated data
 
 #### time-interval
 
 **Documentation claims:**
 
--   Shows customization of axis intervals
--   Demonstrates both simple string interval and complex object interval
--   Controls spacing of ticks, grid lines, and labels
+- Shows customization of axis intervals
+- Demonstrates both simple string interval and complex object interval
+- Controls spacing of ticks, grid lines, and labels
 
 **Expected behaviors:**
 
--   Monthly interval spacing visible
--   Grid lines aligned with month boundaries
--   Custom weekly intervals (7-day steps) when configured
--   Proper epoch handling for interval alignment
+- Monthly interval spacing visible
+- Grid lines aligned with month boundaries
+- Custom weekly intervals (7-day steps) when configured
+- Proper epoch handling for interval alignment
 
 #### axis-parent-level
 
 **Documentation claims:**
 
--   Parent level enabled by default for Unit Time Axis
--   Shows hierarchical labels (e.g., months with year parent)
--   Dynamically adjusts as user zooms
--   Bold formatting for parent level
+- Parent level enabled by default for Unit Time Axis
+- Shows hierarchical labels (e.g., months with year parent)
+- Dynamically adjusts as user zooms
+- Bold formatting for parent level
 
 **Expected behaviors:**
 
--   Day-level data with month parent labels
--   Parent labels in bold
--   Zoom interaction changes label hierarchy
--   Smooth transition between zoom levels
--   Parent ticks visible
+- Day-level data with month parent labels
+- Parent labels in bold
+- Zoom interaction changes label hierarchy
+- Smooth transition between zoom levels
+- Parent ticks visible
 
 #### axis-parent-level-customisation
 
 **Documentation claims:**
 
--   Custom formatting for parent level labels
--   Different tick configurations for parent vs child
--   Multi-line label formatting
--   Inherits from base axis options but can override
+- Custom formatting for parent level labels
+- Different tick configurations for parent vs child
+- Multi-line label formatting
+- Inherits from base axis options but can override
 
 **Expected behaviors:**
 
--   No ticks for regular labels (width: 0)
--   Visible ticks for parent level (width: 1)
--   Day format: '%e' (day of month)
--   Parent month format: '%e\n%b' (day and month on separate lines)
--   Parent year format: '%b\n%Y' (month and year on separate lines)
+- No ticks for regular labels (width: 0)
+- Visible ticks for parent level (width: 1)
+- Day format: '%e' (day of month)
+- Parent month format: '%e\n%b' (day and month on separate lines)
+- Parent year format: '%b\n%Y' (month and year on separate lines)
 
 ### User Interactions to Validate
 
@@ -206,9 +206,9 @@ No existing technical review exceptions found for this page.
 
 ### Success Criteria
 
--   All TypeScript interfaces match documentation
--   Examples demonstrate claimed behaviors
--   No console errors during interactions
--   Visual rendering matches descriptions
--   Interactive features work as documented
--   Parent level functionality operates correctly
+- All TypeScript interfaces match documentation
+- Examples demonstrate claimed behaviors
+- No console errors during interactions
+- Visual rendering matches descriptions
+- Interactive features work as documented
+- Parent level functionality operates correctly

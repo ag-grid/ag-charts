@@ -23,13 +23,10 @@ import type {
 export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
 export interface AgCandlestickSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>,
-        FillOptions {}
+    extends AgOhlcSeriesBaseItemStylerParams<TDatum, TContext>, FillOptions {}
 
 export interface AgCandlestickSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>,
-        AgOhlcSeriesBaseOptions<TDatum>,
-        FillOptions {}
+    extends AgOhlcSeriesBaseTooltipRendererParams<TDatum, TContext>, AgOhlcSeriesBaseOptions<TDatum>, FillOptions {}
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {
     /** Options to style chart's wicks */
@@ -49,8 +46,7 @@ export interface AgCandlestickSeriesStyles {
 }
 
 export interface AgCandlestickSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>,
-        AgCandlestickSeriesStyles {
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend'>, AgCandlestickSeriesStyles {
     /** Series-specific tooltip configuration. */
     tooltip?: AgSeriesTooltip<AgCandlestickSeriesTooltipRendererParams<TDatum, TContext>>;
     /** Function used to return formatting for individual columns, based on the given parameters.*/
@@ -64,7 +60,8 @@ export interface AgCandlestickHighlightStyleOptions extends AgCandlestickSeriesI
 }
 
 export interface AgCandlestickSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
+    extends
+        AgCandlestickSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgOhlcSeriesBaseOptions<TDatum>,

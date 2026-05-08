@@ -11,8 +11,10 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-interface TextualPointStateMachineContext<Datum extends TextualPointProperties>
-    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
+interface TextualPointStateMachineContext<Datum extends TextualPointProperties> extends Omit<
+    AnnotationsCreateStateMachineContext,
+    'create'
+> {
     create: (datum: Datum) => void;
 }
 

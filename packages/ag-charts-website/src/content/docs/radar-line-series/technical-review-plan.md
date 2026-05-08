@@ -4,14 +4,13 @@
 
 ### Chart Types/Features Covered
 
--   **Radar Line Series** (also called Spider Line) - Enterprise feature
--   Used for contrasting different datasets across shared categories
--   Polar chart type with angle and radius axes
+- **Radar Line Series** (also called Spider Line) - Enterprise feature
+- Used for contrasting different datasets across shared categories
+- Polar chart type with angle and radius axes
 
 ### Key APIs and Configuration Options Documented
 
 1. **Series Configuration**:
-
     - `type: 'radar-line'` - Series type identifier
     - `angleKey` - Key for shared category (Angle Axis)
     - `radiusKey` - Key for numerical datasets (Radius Axis)
@@ -35,8 +34,8 @@
 
 ### Interactive Features Described
 
--   Visual comparison across multiple datasets
--   Implied interactivity through standard AG Charts features (tooltips, hover states)
+- Visual comparison across multiple datasets
+- Implied interactivity through standard AG Charts features (tooltips, hover states)
 
 ## Validation Targets
 
@@ -58,73 +57,71 @@
 
 **Documentation Claims**:
 
--   Creates a radar line chart comparing quality and efficiency across departments
--   Uses `angleKey: 'department'` for categories
--   Uses `radiusKey` for 'quality' and 'efficiency' data
--   Uses `radiusName` for series labels
+- Creates a radar line chart comparing quality and efficiency across departments
+- Uses `angleKey: 'department'` for categories
+- Uses `radiusKey` for 'quality' and 'efficiency' data
+- Uses `radiusName` for series labels
 
 **Expected Behaviors for example-tester**:
 
--   Chart should render as a spider/radar chart with polygon shape
--   Two line series should be visible (quality and efficiency)
--   Department categories should appear around the angle axis
--   Tooltips should show on hover over data points
--   Legend should display series names from `radiusName`
--   No console errors or warnings
--   TypeScript types should be correctly used (AgChartOptions)
+- Chart should render as a spider/radar chart with polygon shape
+- Two line series should be visible (quality and efficiency)
+- Department categories should appear around the angle axis
+- Tooltips should show on hover over data points
+- Legend should display series names from `radiusName`
+- No console errors or warnings
+- TypeScript types should be correctly used (AgChartOptions)
 
 #### 2. axis-shape
 
 **Documentation Claims**:
 
--   Changes both axes to 'circle' shape instead of default 'polygon'
--   Uses `shape: 'circle'` on both angle-category and radius-number axes
+- Changes both axes to 'circle' shape instead of default 'polygon'
+- Uses `shape: 'circle'` on both angle-category and radius-number axes
 
 **Expected Behaviors for example-tester**:
 
--   Chart should render with circular/concentric grid lines
--   Both angle and radius axes should have circular appearance
--   Data lines should still connect points properly
--   All other functionality should remain intact
--   Uses AgPolarChartOptions type (verify this is correct)
+- Chart should render with circular/concentric grid lines
+- Both angle and radius axes should have circular appearance
+- Data lines should still connect points properly
+- All other functionality should remain intact
+- Uses AgPolarChartOptions type (verify this is correct)
 
 #### 3. axis-label-orientation
 
 **Documentation Claims**:
 
--   Changes angle axis label orientation from 'fixed' to 'parallel'
--   Labels should align parallel to the axis
+- Changes angle axis label orientation from 'fixed' to 'parallel'
+- Labels should align parallel to the axis
 
 **Expected Behaviors for example-tester**:
 
--   Angle axis labels should be rotated to align with their axis direction
--   Labels should be readable and not overlap
--   Only angle axis labels affected, not radius axis
--   All standard interactivity preserved
+- Angle axis labels should be rotated to align with their axis direction
+- Labels should be readable and not overlap
+- Only angle axis labels affected, not radius axis
+- All standard interactivity preserved
 
 #### 4. radius-axis-position
 
 **Documentation Claims**:
 
--   Sets `positionAngle: 72` to position radius axis at 72 degrees
--   Sets `label.rotation: -72` to counter-rotate labels
+- Sets `positionAngle: 72` to position radius axis at 72 degrees
+- Sets `label.rotation: -72` to counter-rotate labels
 
 **Expected Behaviors for example-tester**:
 
--   Radius axis line should be positioned at 72-degree angle
--   Radius axis labels should be rotated -72 degrees (horizontal)
--   Chart data rendering unaffected by axis positioning
+- Radius axis line should be positioned at 72-degree angle
+- Radius axis labels should be rotated -72 degrees (horizontal)
+- Chart data rendering unaffected by axis positioning
 
 ### User Interactions to Validate
 
 1. **Hover interactions**:
-
     - Tooltips should appear on data points
     - Highlight effects on hovered series/points
     - Tooltip content should match data values
 
 2. **Legend interactions**:
-
     - Click to show/hide series
     - Hover to highlight series
 
@@ -216,17 +213,17 @@ No documented exceptions file exists for this page.
 
 ## Success Criteria
 
--   All TypeScript interfaces match documented APIs
--   All examples render without console errors
--   All documented features work as described
--   Visual appearance matches documentation claims
--   Interactive features function properly
--   No critical accuracy issues found
+- All TypeScript interfaces match documented APIs
+- All examples render without console errors
+- All documented features work as described
+- Visual appearance matches documentation claims
+- Interactive features function properly
+- No critical accuracy issues found
 
 ## Estimated Complexity/Time
 
--   API validation: Medium complexity (15-20 minutes)
--   Example testing: High complexity (30-40 minutes with example-tester)
--   Visual testing: Medium complexity (20-25 minutes)
--   Implementation verification: Medium complexity (15-20 minutes)
--   Total estimated time: 80-105 minutes
+- API validation: Medium complexity (15-20 minutes)
+- Example testing: High complexity (30-40 minutes with example-tester)
+- Visual testing: Medium complexity (20-25 minutes)
+- Implementation verification: Medium complexity (15-20 minutes)
+- Total estimated time: 80-105 minutes
