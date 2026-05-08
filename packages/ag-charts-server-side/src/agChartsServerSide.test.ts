@@ -492,7 +492,13 @@ describe('AgChartsServerSide enterprise licensing', () => {
                     { x: 'B', y: '2', value: 40 },
                 ],
                 series: [
-                    { type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] },
+                    {
+                        type: 'heatmap',
+                        xKey: 'x',
+                        yKey: 'y',
+                        colorKey: 'value',
+                        colorScale: { fills: [{ color: '#c7e9c0' }, { color: '#00441b' }] },
+                    },
                 ],
             },
             width: 400,

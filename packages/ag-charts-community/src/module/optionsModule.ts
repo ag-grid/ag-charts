@@ -8,6 +8,7 @@ import {
     ModuleRegistry,
     ModuleType,
     type PlainObject,
+    type ValidateOptions,
     deepClone,
     deepFreeze,
     distribute,
@@ -389,13 +390,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         removeIncompatibleModuleOptions(this.chartDef.name, processedOptions);
         processModuleOptions(this.chartDef.name, processedOptions, missingSeriesModules);
 
-        this.validateSeriesOptions(processedOptions);
+        // Post-theme validation: suppress advisory warnings (e.g. deprecation) so we don't
+        // re-emit them for theme-injected values that the user did not supply themselves.
+        this.validateSeriesOptions(processedOptions, { silentAdvisories: true });
 
         // The second pass validation of the axes, after they have been processed and the keys remapped. Any missing
         // `type` properties are now inferred and those axes can be validated.
-        this.validateAxesOptions(processedOptions, unmappedAxisKeys);
+        this.validateAxesOptions(processedOptions, unmappedAxisKeys, { silentAdvisories: true });
 
-        this.validatePluginOptions(processedOptions);
+        this.validatePluginOptions(processedOptions, { silentAdvisories: true });
         this.processMiniChartSeriesOptions(processedOptions);
 
         if (!processedOptions.loadGoogleFonts) {
@@ -407,7 +410,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
     }
 
-    private validatePluginOptions(options: T) {
+    private validatePluginOptions(options: T, opts: ValidateOptions = {}) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (
@@ -415,7 +418,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 pluginDef.options != null &&
                 (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
             ) {
-                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name);
+                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, opts);
                 for (const error of invalid) {
                     Logger.warn(error);
                 }
@@ -424,7 +427,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private validateSeriesOptions(options: T): ModulePlaceholder[] {
+    private validateSeriesOptions(options: T, opts: ValidateOptions = {}): ModulePlaceholder[] {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
@@ -476,7 +479,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateSeries = validate } = seriesDef;
-            const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath);
+            const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, opts);
 
             for (const error of invalid) {
                 Logger.warn(error);
@@ -491,7 +494,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>) {
+    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>, opts: ValidateOptions = {}) {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
@@ -541,7 +544,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateAxis = validate } = axisDef;
-            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath);
+            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, opts);
 
             for (const error of invalid) {
                 Logger.warn(error);
