@@ -47,11 +47,16 @@ export interface DatumCallbackParams<TDatum, THighlightState extends string = Hi
     selectionState?: SelectionState;
 }
 
-export interface SeriesCallbackParams<THighlightState extends string = HighlightState> {
+export interface SeriesCallbackParams<
+    THighlightState extends string = HighlightState,
+    TSelectionState extends string = SelectionState,
+> {
     /** The unique identifier of the series. */
     seriesId: string;
     /** The specific highlight state of the element. */
     highlightState?: THighlightState;
+    /** The specific selection state of the element. */
+    selectionState?: TSelectionState;
 }
 
 export interface ContextCallbackParams<TContext> {

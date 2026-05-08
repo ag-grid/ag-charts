@@ -60,7 +60,7 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { HighlightState } from '../seriesProperties';
+import type { HighlightState } from '../seriesTypes';
 import { getItemStyles } from '../util';
 import {
     collapsedStartingBarPosition,

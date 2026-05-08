@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -34,7 +35,7 @@ export type AgScatterSeriesLabelFormatterParams<TDatum = DatumDefault> = AgScatt
 export interface AgScatterSeriesStylerParams<TDatum, TContext>
     extends
         AgScatterSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgSeriesMarkerStyle {}
 

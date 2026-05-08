@@ -27,21 +27,7 @@ import type {
 } from 'ag-charts-types';
 
 import type { SeriesTooltip } from './seriesTooltip';
-
-export enum HighlightState {
-    None,
-    Item,
-    Series,
-    OtherSeries,
-    OtherItem,
-}
-
-export enum SelectionState {
-    None,
-    Item,
-    OtherItem,
-    OtherSeries,
-}
+import { HighlightState, SelectionState } from './seriesTypes';
 
 export const highlightStates = [
     HighlightState.None,
@@ -120,7 +106,7 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
     }
 }
 
-export function toSelectionString(state: SelectionState): PublicSelectionState {
+export function toSelectionString(state: SelectionState | undefined): PublicSelectionState | undefined {
     const unreachable = (a: never): never => a;
     switch (state) {
         case SelectionState.Item:
@@ -131,6 +117,8 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
             return 'unselected-series';
         case SelectionState.None:
             return 'none';
+        case undefined:
+            return undefined;
         default:
             return unreachable(state);
     }

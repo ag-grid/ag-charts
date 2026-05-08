@@ -11,9 +11,8 @@ import type { PropertyDefinition } from '../data/dataModelTypes';
 import { DataSet } from '../data/dataSet';
 import type { PickFocusInputs, PickFocusOutputs, SeriesConstructorOpts, SeriesNodeDataContext } from './series';
 import { Series } from './series';
-import { SelectionState } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
-import type { DatumIndexType, SeriesNodeDatum } from './seriesTypes';
+import { type DatumIndexType, SelectionState, type SeriesNodeDatum } from './seriesTypes';
 import { findNodeDatumInArray } from './util';
 
 export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
@@ -262,7 +261,7 @@ export abstract class DataModelSeries<
     }
 
     protected override getDataSelectionState(datumIndex: number | undefined): SelectionState | undefined {
-        if (datumIndex === undefined || !this.properties.selection.enabled) return undefined;
+        if (!this.properties.selection.enabled) return undefined;
 
         const selectionState = this.ctx.chartState.getValue('selectionState');
         if (selectionState === undefined) return undefined;
@@ -281,11 +280,19 @@ export abstract class DataModelSeries<
         // be the bucket's representative index. Fall back to the per-datum
         // bitset when no aggregation level applies.
         const selectionBuffer = this.data?.selections.get(this.id);
-        const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
-        const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
-        if (isItem) return SelectionState.Item;
+        if (datumIndex !== undefined) {
+            const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
+            const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
+            if (isItem) return SelectionState.Item;
+        }
 
         const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-        return selectionCount === 0 ? SelectionState.OtherSeries : SelectionState.OtherItem;
+        if (datumIndex === undefined && selectionCount === 0) {
+            return SelectionState.OtherSeries;
+        }
+        if (datumIndex !== undefined && selectionCount > 0) {
+            return SelectionState.OtherItem;
+        }
+        return undefined;
     }
 }

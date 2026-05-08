@@ -64,7 +64,8 @@ import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,
@@ -1195,7 +1196,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         } = opts;
         const segments = this.contextNodeData?.segments;
 
-        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle());
+        const highlightStyle = this.getHighlightStyle();
+        const selectionStyle = this.getSelectionStyle();
+        const seriesStyle = this.getStyle(undefined, undefined);
+        const merged = mergeDefaults(selectionStyle, highlightStyle, seriesStyle);
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
         strokePaths.setProperties({
@@ -1275,7 +1279,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker, styler } = properties;
 
-        const markerStyle = styler ? this.getStyle().marker : undefined;
+        const markerStyle = styler ? this.getStyle(undefined, undefined).marker : undefined;
 
         const markerDrawMode = cartesianMarkerDrawMode(
             properties,
@@ -1312,7 +1316,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const stylerStyle = this.getStyle(highlightState);
+                const selectionState = this.getDataSelectionState(datum.datumIndex);
+                const stylerStyle = this.getStyle(highlightState, selectionState);
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
                 const params = this.makeItemStylerParams(
@@ -1404,11 +1409,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         });
     }
 
-    makeStylerParams(highlightStateEnum?: HighlightState): AgAreaSeriesStylerParams<unknown, unknown> {
+    makeStylerParams(
+        highlightStateEnum: HighlightState | undefined,
+        selectionStateEnum: SelectionState | undefined
+    ): AgAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
             this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules>;
@@ -1425,6 +1434,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                 lineDashOffset: marker.lineDashOffset,
             },
             highlightState,
+            selectionState,
             fill,
             fillOpacity,
             lineDash,
@@ -1482,7 +1492,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined, undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
@@ -1522,7 +1532,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle();
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(
+            undefined,
+            undefined
+        );
         const useAreaFill = !marker.enabled || marker.fill == null;
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
@@ -1693,14 +1706,15 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     public getStyle(
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
     ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
                 ['series', `${this.declarationOrder}`],
@@ -1734,7 +1748,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined, undefined);
         const params = this.makeItemStylerParams(
             this.dataModel!,
             this.processedData!,

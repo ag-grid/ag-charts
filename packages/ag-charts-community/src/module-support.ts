@@ -188,9 +188,9 @@ export {
     FillImageDefaults,
     FillPatternDefaults,
     HighlightProperties,
-    HighlightState,
     SeriesProperties,
     toHighlightString,
+    toSelectionString,
 } from './chart/series/seriesProperties';
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';
@@ -203,6 +203,7 @@ export type {
     SeriesNodeDatum,
     SeriesNodeEventTypes,
 } from './chart/series/seriesTypes';
+export { HighlightState, SelectionState } from './chart/series/seriesTypes';
 export { getItemStyles, getItemStylesPerItemId, visibleRangeIndices, findNodeDatumInArray } from './chart/series/util';
 export { AbstractBarSeries, AbstractBarSeriesProperties } from './chart/series/cartesian/abstractBarSeries';
 export type {

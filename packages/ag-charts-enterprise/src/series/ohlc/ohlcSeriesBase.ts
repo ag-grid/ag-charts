@@ -7,7 +7,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams } from 'ag-charts-community';
+import type { AgOhlcSeriesBaseOptions, AgOhlcSeriesItemStylerParams, SelectionState } from 'ag-charts-community';
 import {
     AGGREGATION_INDEX_X_MAX,
     AGGREGATION_INDEX_X_MIN,
@@ -92,8 +92,14 @@ class OhlcSeriesNodeEvent<
     readonly highKey?: string;
     readonly lowKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: OhlcNodeDatum, series: OhlcSeriesBase<OhlcSeriesBaseTypes>) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: OhlcNodeDatum,
+        series: OhlcSeriesBase<OhlcSeriesBaseTypes>,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.openKey = series.properties.openKey;
         this.closeKey = series.properties.closeKey;

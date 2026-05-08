@@ -13,8 +13,15 @@ import type { AnimationManager } from '../../interaction/animationManager';
 import { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { SeriesMarker } from '../seriesMarker';
-import { HighlightState, highlightStates } from '../seriesProperties';
-import type { DatumIndexType, ISeries, ISeriesProperties, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
+import { highlightStates } from '../seriesProperties';
+import type {
+    DatumIndexType,
+    HighlightState,
+    ISeries,
+    ISeriesProperties,
+    NodeDataDependant,
+    SeriesNodeDatum,
+} from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeriesTypes';
 
 type NodeWithDrawingMode<D> = Node<D> & { drawingMode?: AgDrawingMode };

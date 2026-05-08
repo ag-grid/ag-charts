@@ -4,6 +4,7 @@ import {
     type AgRangeBarSeriesOptions,
     type AgRangeBarSeriesStyle,
     type AgRangeBarSeriesStylerParams,
+    type SelectionState,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -60,6 +61,7 @@ const {
     getItemStyles,
     calculateSegments,
     toHighlightString,
+    toSelectionString,
     HighlightState,
     AggregationManager,
     upsertNodeDatum,
@@ -181,8 +183,14 @@ class RangeBarSeriesNodeEvent<
     readonly yLowKey?: string;
     readonly yHighKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: RangeBarNodeDatum, series: RangeBarSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RangeBarNodeDatum,
+        series: RangeBarSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yLowKey = series.properties.yLowKey;
         this.yHighKey = series.properties.yHighKey;
@@ -969,7 +977,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
     ): Required<AgRangeBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
@@ -984,7 +993,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         } = this.properties;
         let stylerResult: AgRangeBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1006,7 +1015,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     }
 
     private makeStylerParams(
-        highlightStateEnum?: _ModuleSupport.HighlightState
+        highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRangeBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
@@ -1023,12 +1033,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
             yHighKey,
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         return {
             cornerRadius,
             fill,
             fillOpacity,
             highlightState,
+            selectionState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -1057,7 +1069,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
     ): Required<AgRangeBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler } = properties;
@@ -1067,7 +1080,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         let style = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            this.getStyle(datumIndex === undefined, highlightState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState)
         );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
@@ -1119,7 +1132,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         opts.datumSelection.each((node, datum) => {
             if (!opts.datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
+                const selectionState = this.getDataSelectionState(datum.datumIndex);
+                datum.style = this.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState, selectionState);
             }
         });
     }
@@ -1219,7 +1233,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const format = this.getItemStyle(datumIndex, false);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
         const value = `${this.getAxisValueText(yAxis, 'tooltip', yLowValue, datum, yLowKey, legendItemName)} - ${this.getAxisValueText(yAxis, 'tooltip', yHighValue, datum, yHighKey, legendItemName)}`;
         return this.formatTooltipWithContext(
             tooltip,
@@ -1257,7 +1271,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<RangeBarSer
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
-            HighlightState.None
+            HighlightState.None,
+            undefined
         );
         return {
             marker: {

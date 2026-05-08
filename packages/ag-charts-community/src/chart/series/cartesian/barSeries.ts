@@ -67,8 +67,8 @@ import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, SplitBucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
@@ -1326,7 +1326,10 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         return opts.datumSelection.update(opts.nodeData, undefined, this.getDatumId.bind(this));
     }
 
-    private makeStylerParams(highlightStateEnum?: HighlightState): AgBarSeriesStylerParams<unknown, unknown> {
+    private makeStylerParams(
+        highlightStateEnum: HighlightState | undefined,
+        selectionStateEnum: SelectionState | undefined
+    ): AgBarSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
             cornerRadius,
@@ -1342,12 +1345,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
             yKey,
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         return {
             cornerRadius,
             fill,
             fillOpacity,
             highlightState,
+            selectionState,
             lineDash,
             lineDashOffset,
             seriesId,
@@ -1397,7 +1402,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
     ): Required<AgBarSeriesStyle> & { opacity: number } {
         const {
             cornerRadius,
@@ -1412,7 +1418,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         } = this.properties;
         let stylerResult: AgBarSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1436,13 +1442,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
-        highlightState?: HighlightState
+        highlightState: HighlightState | undefined,
+        selectionState: SelectionState | undefined
     ): Required<AgBarSeriesStyle> {
         const { properties, dataModel, processedData } = this;
         const { itemStyler, simpleItemStyler } = properties;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
-        const selectionStyle = this.getSelectionStyle(datumIndex);
+        const selectionStyle = this.getSelectionStyle(datumIndex, selectionState);
 
         // Fast path: simpleItemStyler bypasses options graph resolution
         if (simpleItemStyler && processedData != null && datumIndex != null) {
@@ -1452,14 +1459,14 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
                 overrides,
                 selectionStyle,
                 highlightStyle,
-                this.getStyle(false, highlightState)
+                this.getStyle(false, highlightState, selectionState)
             ) as Required<AgBarSeriesStyle>;
         }
 
         let style = mergeDefaults(
             highlightStyle,
             selectionStyle,
-            this.getStyle(datumIndex === undefined, highlightState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState)
         );
 
         if (itemStyler && dataModel != null && processedData != null && datumIndex != null) {
@@ -1501,7 +1508,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
         function applyDatumStyle(node: BarShape, datum: BarNodeDatum): void {
             if (!opts.datumSelection.isGarbage(node)) {
                 const highlightState = series.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                datum.style = series.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState);
+                const selectionState = series.getDataSelectionState(datum.datumIndex);
+                datum.style = series.getItemStyle(datum.datumIndex, opts.isHighlight, highlightState, selectionState);
             }
         }
 
@@ -1601,7 +1609,7 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
 
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
-        const format = this.getItemStyle(datumIndex, false);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -1636,7 +1644,8 @@ export class BarSeries extends AbstractBarSeries<BarSeriesTypes> {
     private legendItemSymbol(): LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
-            HighlightState.None
+            HighlightState.None,
+            undefined
         );
 
         return {

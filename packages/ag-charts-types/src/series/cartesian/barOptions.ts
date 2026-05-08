@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -61,7 +62,7 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
 
 export interface AgBarSeriesStylerParams<TDatum, TContext>
     extends
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
         Required<AgBarSeriesStyle> {

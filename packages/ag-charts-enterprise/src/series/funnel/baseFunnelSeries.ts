@@ -1,6 +1,7 @@
 import {
     type AgFunnelSeriesLabelFormatterParams,
     type AgFunnelSeriesStyle,
+    type SelectionState,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -108,9 +109,10 @@ class FunnelSeriesNodeEvent<
         type: TEvent,
         nativeEvent: Event,
         datum: FunnelNodeDatum,
-        series: BaseFunnelSeries<BaseFunnelSeriesTypes>
+        series: BaseFunnelSeries<BaseFunnelSeriesTypes>,
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.stageKey;
         this.yKey = series.properties.valueKey;
     }

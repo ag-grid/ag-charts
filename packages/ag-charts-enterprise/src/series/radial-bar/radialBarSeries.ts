@@ -2,6 +2,7 @@ import {
     type AgRadialBarSeriesOptions,
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
+    type SelectionState,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -50,8 +51,14 @@ class RadialBarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialBarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadialBarNodeDatum, series: RadialBarSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RadialBarNodeDatum,
+        series: RadialBarSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }
@@ -297,7 +304,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const nodeData: RadialBarNodeDatum[] = [];
         const styles = getItemStyles((nodeDatum: RadialBarNodeDatum | undefined, isHighlight, highlightState) =>
-            getItemStyle(this, nodeDatum, isHighlight, highlightState)
+            getItemStyle(this, nodeDatum, isHighlight, highlightState, undefined)
         );
         const context = {
             itemId: radiusKey,
@@ -422,7 +429,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState);
+                    const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
                 }
 
                 const style =
@@ -541,7 +549,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (radiusValue === undefined && !this.properties.allowNullKeys) return;
 
-        const format = getItemStyle(this, nodeDatum, false);
+        const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
 
         return this.formatTooltipWithContext(
             tooltip,
@@ -579,7 +587,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,
             false,
-            _ModuleSupport.HighlightState.None
+            _ModuleSupport.HighlightState.None,
+            undefined
         );
 
         const markerStyle = {

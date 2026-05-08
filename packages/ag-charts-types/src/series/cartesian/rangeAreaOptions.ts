@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumItemCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -24,7 +25,7 @@ import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, St
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
     extends
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         Required<AgRangeAreaSeriesStyle> {}

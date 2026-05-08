@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -58,7 +59,7 @@ export interface AgRadialSeriesTooltipRendererParams<TDatum, TContext = ContextD
 
 export interface AgRadialSeriesStylerParams<TDatum, TContext>
     extends
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRadialSeriesOptionsKeys<TDatum>,
         Required<AgRadialSeriesStyle> {

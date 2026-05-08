@@ -4,9 +4,10 @@ import {
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
+    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
-import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable } from 'ag-charts-core';
+import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable, RequireOptional } from 'ag-charts-core';
 import { ChartAxisDirection, deepClone, mergeDefaults } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
@@ -29,6 +30,7 @@ const {
     getItemStyles,
     calculateSegments,
     toHighlightString,
+    toSelectionString,
     processedDataIsAnimatable,
     upsertNodeDatum,
 } = _ModuleSupport;
@@ -98,8 +100,14 @@ class BoxPlotSeriesNodeEvent<
     readonly q3Key?: string;
     readonly maxKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: BoxPlotNodeDatum,
+        series: BoxPlotSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;
         this.q1Key = series.properties.q1Key;
@@ -467,7 +475,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
         const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.getStyle(
             false,
-            HighlightState.None
+            HighlightState.None,
+            undefined
         );
 
         return {
@@ -548,7 +557,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const format = this.getItemStyle(datumIndex, false);
+        const format = this.getItemStyle(datumIndex, false, undefined, undefined);
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [
             {
@@ -644,7 +653,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     }
 
     private makeStylerParams(
-        highlightStateEnum?: _ModuleSupport.HighlightState
+        highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgBoxPlotSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const {
@@ -679,19 +689,25 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
             yName,
         } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         // Do not allow any of the returned properties to be `undefined`.
         // Exceptions:
         // -   `fill` is a required color property that can be a string or a partial-object.
         // -   `yName` key has no `yKey` fallback like `xName`.
         type T = ReturnType<BoxPlotSeries['makeStylerParams']>;
-        type Rules = CallbackParamRules<DeepRequired<Omit<T, 'yName'>, 'fill'> & Pick<T, 'yName'>>;
+        type Rules = CallbackParamRules<
+            DeepRequired<Omit<T, 'yName' | 'selectionState'>, 'fill'> &
+                Pick<T, 'yName'> &
+                Pick<RequireOptional<T>, 'selectionState'>
+        >;
         return {
             cap: { lengthRatio },
             cornerRadius,
             fill,
             fillOpacity,
             highlightState,
+            selectionState,
             lineDash,
             lineDashOffset,
             maxKey,
@@ -723,7 +739,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
 
     private getStyle(
         ignoreStylerCallback: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
     ): Required<AgBoxPlotSeriesStyle> & { opacity: number } {
         const {
             cap,
@@ -740,7 +757,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         } = this.properties;
         let stylerResult: AgBoxPlotSeriesStyle = {};
         if (!ignoreStylerCallback && styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -772,7 +789,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
     private getItemStyle(
         datumIndex: number | undefined,
         isHighlight: boolean,
-        highlightState?: _ModuleSupport.HighlightState
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
     ): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { itemStyler } = properties;
@@ -782,7 +800,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         let style = mergeDefaults(
             selectionStyle,
             highlightStyle,
-            this.getStyle(datumIndex === undefined, highlightState)
+            this.getStyle(datumIndex === undefined, highlightState, selectionState)
         );
 
         if (itemStyler != null && datumIndex != null) {
@@ -851,7 +869,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, nodeDatum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, nodeDatum.datumIndex);
-            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState);
+            const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+            nodeDatum.style = this.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState, selectionState);
         });
     }
 
@@ -870,7 +889,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         const fillBBox = this.getShapeFillBBox();
-        const strokeAlignment = this.getStyle(false, HighlightState.None).strokeWidth / 2;
+        const strokeAlignment = this.getStyle(false, HighlightState.None, undefined).strokeWidth / 2;
 
         const wickStrokeAlignment = properties.whisker.strokeWidth ?? properties.strokeWidth;
 

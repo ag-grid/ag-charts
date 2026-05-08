@@ -77,19 +77,21 @@ import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, SelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type {
-    BucketLookupFeature,
-    DatumIndexType,
-    INodeEvent,
-    ISeries,
-    ISeriesProperties,
-    NodeDataDependencies,
-    SeriesNodeDatum,
-    SeriesNodeEventTypes,
+import {
+    type BucketLookupFeature,
+    type DatumIndexType,
+    HighlightState,
+    type INodeEvent,
+    type ISeries,
+    type ISeriesProperties,
+    type NodeDataDependencies,
+    SelectionState,
+    type SeriesNodeDatum,
+    type SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';
@@ -151,7 +153,13 @@ export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TSeries extends Series<any, TDatum, object, any>,
     TEvent extends string = SeriesNodeEventTypes,
-> = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
+> = new <T extends TEvent>(
+    type: T,
+    event: Event,
+    { datum }: TDatum,
+    series: TSeries,
+    selectionState: PublicSelectionState | undefined
+) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
@@ -164,18 +172,21 @@ export class SeriesNodeEvent<
     readonly seriesId: string;
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
+    readonly selectionState: PublicSelectionState | undefined;
     defaultPrevented = false;
 
     constructor(
         readonly type: TEvent,
         readonly event: Event,
         nodeDatum: TDatum,
-        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>
+        series: ISeries<DatumIndexType, TDatum, ISeriesProperties, unknown>,
+        selectionState: PublicSelectionState | undefined
     ) {
         this.datum = nodeDatum.datum;
         this.seriesId = series.id;
         this.dataIdKey = series.data?.dataIdKey;
         this.itemId = getItemId(nodeDatum, this.dataIdKey);
+        this.selectionState = selectionState;
     }
 
     public preventDefault() {
@@ -1096,19 +1107,22 @@ export abstract class Series<
     }
 
     fireNodeClickEvent(event: Event, datum: TDatum): boolean {
-        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        const clickEvent = new this.NodeEvent('seriesNodeClick', event, datum, this, selectionState);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     fireNodeDoubleClickEvent(event: Event, datum: TDatum): boolean {
-        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        const clickEvent = new this.NodeEvent('seriesNodeDoubleClick', event, datum, this, selectionState);
         this.fireEvent(clickEvent);
         return !clickEvent.defaultPrevented;
     }
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
-        return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
+        const selectionState = this.getSelectionStateString(datum.datumIndex);
+        return new this.NodeEvent('nodeContextMenuAction', event, datum, this, selectionState);
     }
 
     onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {
@@ -1348,9 +1362,10 @@ export abstract class Series<
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: AgSeriesMarkerStyle | undefined = this.properties.selection.enabled
-            ? this.getSelectionStyle(datumIndex, selectionState)
-            : undefined;
+        const selectionStyle: AgSeriesMarkerStyle | undefined =
+            checkForHighlight && this.properties.selection.enabled
+                ? this.getSelectionStyle(datumIndex, selectionState)
+                : undefined;
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,
