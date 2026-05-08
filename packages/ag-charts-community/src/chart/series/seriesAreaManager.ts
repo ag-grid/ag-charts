@@ -1,5 +1,4 @@
-import type { DynamicContext, Point } from 'ag-charts-core';
-import type { CallbackParamRules } from 'ag-charts-core';
+import type { CallbackParamRules, DynamicContext, Point } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
