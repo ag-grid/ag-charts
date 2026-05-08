@@ -1,4 +1,5 @@
 import type { DynamicContext, Point } from 'ag-charts-core';
+import type { CallbackParamRules } from 'ag-charts-core';
 import { ChartUpdateType, Logger, Vec4, clamp, createId } from 'ag-charts-core';
 import type { AgActiveItemState, AgChartClickEvent, AgChartDoubleClickEvent, AgInitialFocus } from 'ag-charts-types';
 
@@ -631,8 +632,8 @@ export class SeriesAreaManager extends BaseManager {
 
         // Fallback to Chart-level event dispatch.
         const newEvent = { type: event.type === 'click' ? 'click' : 'doubleClick', event: event.sourceEvent } satisfies
-            | AgChartClickEvent
-            | AgChartDoubleClickEvent;
+            | CallbackParamRules<AgChartClickEvent>
+            | CallbackParamRules<AgChartDoubleClickEvent>;
         this.chart.fireEvent(newEvent);
     }
 
@@ -782,7 +783,7 @@ export class SeriesAreaManager extends BaseManager {
                 this.update(ChartUpdateType.SERIES_UPDATE);
             }
         } else {
-            this.chart.fireEvent<AgChartClickEvent>({
+            this.chart.fireEvent<CallbackParamRules<AgChartClickEvent>>({
                 type: 'click',
                 event: sourceEvent,
             });
