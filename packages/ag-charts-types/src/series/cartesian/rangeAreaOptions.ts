@@ -24,7 +24,8 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type { AgBaseCartesianSeriesAxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgRangeAreaSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState, SelectionState>,
+    extends
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         Required<AgRangeAreaSeriesStyle> {}
@@ -49,7 +50,8 @@ export interface AgRangeAreaSeriesStyle extends FillOptions {
 export type AgRangeAreaSeriesItemType = 'low' | 'high';
 
 export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+    extends
+        Omit<AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,
         Omit<AgSeriesMarkerStyle, 'shape'> {
@@ -58,7 +60,8 @@ export interface AgRangeAreaSeriesTooltipRendererParams<TDatum = DatumDefault, T
 }
 
 export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
-    extends AgRangeAreaSeriesOptionsKeys<TDatum>,
+    extends
+        AgRangeAreaSeriesOptionsKeys<TDatum>,
         DatumItemCallbackParams<AgRangeAreaSeriesItemType, TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         Required<AgSeriesMarkerStyle> {
@@ -66,8 +69,11 @@ export interface AgRangeAreaSeriesItemStylerParams<TDatum, TContext>
     itemType: AgRangeAreaSeriesItemType;
 }
 
-export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Where to render series labels relative to the area. */
     placement?: AgRangeAreaSeriesLabelPlacement;
     /** Spacing in pixels between the label and the edge of the marker. */
@@ -79,8 +85,11 @@ export type AgRangeAreaSeriesLabelPlacement = 'inside' | 'outside';
 export type AgRangeAreaSeriesLabelFormatterParams<TDatum = DatumDefault> = AgRangeAreaSeriesOptionsKeys<TDatum> &
     AgRangeAreaSeriesOptionsNames;
 
-export interface AgRangeAreaMarker<TDatum, TContext>
-    extends AgSeriesMarkerOptions<TDatum, AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, TContext> {
+export interface AgRangeAreaMarker<TDatum, TContext> extends AgSeriesMarkerOptions<
+    TDatum,
+    AgRangeAreaSeriesItemStylerParams<TDatum, TContext>,
+    TContext
+> {
     /** Function used to return formatting for individual markers, based on the supplied information.*/
     itemStyler?: Styler<AgRangeAreaSeriesItemStylerParams<TDatum, TContext>, AgSeriesMarkerStyle>;
 }
@@ -90,8 +99,10 @@ export interface AgRangeAreaSeriesLineThemeableOptions<TDatum, TContext> extends
     marker?: AgRangeAreaMarker<TDatum, TContext>;
 }
 
-export interface AgRangeAreaSeriesItemMarker<TDatum, TContext>
-    extends Omit<AgSeriesMarkerOptions<TDatum, never, TContext>, 'itemStyler'> {}
+export interface AgRangeAreaSeriesItemMarker<TDatum, TContext> extends Omit<
+    AgSeriesMarkerOptions<TDatum, never, TContext>,
+    'itemStyler'
+> {}
 
 // statically assert that AgRangeAreaSeriesItemMarker matches AgRangeAreaMarker with `itemStyler` omitted.
 type AreExact<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
@@ -113,8 +124,7 @@ export interface AgRangeAreaSeriesItemThemeableOptions<TDatum, TContext> {
 }
 
 export interface AgRangeAreaSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends FillOptions,
-        AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    extends FillOptions, AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series.  */
     marker?: AgRangeAreaMarker<TDatum, TContext>;
     /** The colour for the stroke. */
@@ -176,7 +186,8 @@ export interface AgRangeAreaSeriesOptionsNames {
 }
 
 export interface AgRangeAreaSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgRangeAreaSeriesOptionsKeys<TDatum>,
         AgRangeAreaSeriesOptionsNames,

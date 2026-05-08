@@ -26,7 +26,8 @@ import type {
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
@@ -36,8 +37,10 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
-export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'> {
+export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'selection'
+> {
     innerSpacing?: PixelSize;
     /**
      * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
@@ -58,8 +61,10 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgOrganizationSeriesOptionsExpander<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesExpanderStyle {
+export interface AgOrganizationSeriesOptionsExpander<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesExpanderStyle {
     itemStyler?: Styler<
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
@@ -82,8 +87,10 @@ export interface AgOrganizationSeriesOptionsExpanderText extends AgOrganizationS
     // formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
 }
 
-export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesLinkStyle {
+export interface AgOrganizationSeriesOptionsLink<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesLinkStyle {
     itemStyler?: Styler<AgOrganizationSeriesLinkItemStylerParams<TDatum, TContext>, AgOrganizationSeriesLinkStyle>;
 }
 
@@ -98,8 +105,10 @@ export interface AgOrganizationSeriesOptionsLinkStepInterpolation {
     cornerRadius?: PixelSize;
 }
 
-export interface AgOrganizationSeriesThemeableOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesNodeStyle {
+export interface AgOrganizationSeriesThemeableOptionsNode<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesNodeStyle {
     labels?: AgOrganizationSeriesOptionsNodeText<TDatum, TContext>[];
     subtitle?: AgOrganizationSeriesOptionsNodeSubtitle<TDatum, TContext>;
     title?: AgOrganizationSeriesOptionsNodeTitle<TDatum, TContext>;
@@ -121,8 +130,10 @@ export interface AgOrganizationSeriesNodeStyle extends FillOptions, LineDashOpti
     width?: PixelSize;
 }
 
-export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>, 'labels'> {
+export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>,
+    'labels'
+> {
     itemStyler?: Styler<AgOrganizationSeriesNodeItemStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeStyle>;
     labels?: AgOrganizationSeriesOptionsNodeLabel<TDatum, TContext>[];
 }
@@ -141,16 +152,20 @@ export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
 
 export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | 'right' | 'top';
 
-export interface AgOrganizationSeriesOptionsNodeSubtitle<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeSubtitle<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     /**
      * Default: 'subtitle'
      */
     key?: string;
 }
 
-export interface AgOrganizationSeriesOptionsNodeTitle<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeTitle<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     /**
      * Default: 'title'
      */
@@ -158,14 +173,15 @@ export interface AgOrganizationSeriesOptionsNodeTitle<TDatum = DatumDefault, TCo
 }
 
 export interface AgOrganizationSeriesOptionsNodeText<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesNodeTextStyle,
-        Toggleable {
+    extends AgOrganizationSeriesNodeTextStyle, Toggleable {
     formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
     itemStyler?: Styler<AgOrganizationSeriesNodeTextStylerParams<TDatum, TContext>, AgOrganizationSeriesNodeTextStyle>;
 }
 
-export interface AgOrganizationSeriesOptionsNodeLabel<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
+export interface AgOrganizationSeriesOptionsNodeLabel<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgOrganizationSeriesOptionsNodeText<TDatum, TContext> {
     key: string;
 }
 
@@ -200,7 +216,8 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
 }
 
 export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesExpanderStyle {
     /** The depth of the data point within the organization. */
@@ -210,7 +227,8 @@ export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefa
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
+    extends
+        Omit<DatumCallbackParams<TDatum, HighlightState>, 'datum' | 'highlightState'>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesLinkStyle {
     /** The data point from which the link starts. */
@@ -220,7 +238,8 @@ export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesNodeStyle {
     /** The depth of the data point within the organization. */
@@ -230,7 +249,8 @@ export interface AgOrganizationSeriesNodeItemStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesNodeTextStyle {
     /** The depth of the data */
@@ -240,5 +260,4 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
 }
 
 export interface AgOrganizationSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
-        AgOrganizationSeriesOptionsKeys {}
+    extends AgSeriesTooltipRendererParams<TDatum, TContext>, AgOrganizationSeriesOptionsKeys {}

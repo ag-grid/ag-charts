@@ -28,8 +28,11 @@ export type AgBarSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
     /** Distance between the shape edges and the text. */
@@ -37,7 +40,8 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
 }
 
 export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
         Required<AgBarSeriesStyle> {
@@ -57,7 +61,8 @@ export interface AgBarSeriesItemStylerParams<TDatum, TContext = ContextDefault>
 }
 
 export interface AgBarSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState, SelectionState>,
+    extends
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgBarSeriesOptionsKeys<TDatum>,
         Required<AgBarSeriesStyle> {
@@ -73,7 +78,8 @@ export type AgBarSeriesLabelFormatterParams<TDatum = DatumDefault> = AgBarSeries
     AgBarSeriesOptionsNames;
 
 export interface AgBarSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBarSeriesOptionsKeys<TDatum>,
+    extends
+        AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,
         AgBarSeriesStyle,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
@@ -82,8 +88,7 @@ export interface AgBarSeriesTooltipRendererParams<TDatum = DatumDefault, TContex
 }
 
 export interface AgBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBarSeriesStyle,
-        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
+    extends AgBarSeriesStyle, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /**
      * Bar rendering direction.
      *
@@ -136,7 +141,8 @@ export interface AgBarSeriesOptionsNames {
 }
 
 export interface AgBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgBarSeriesOptionsKeys<TDatum>,
         AgBarSeriesOptionsNames,

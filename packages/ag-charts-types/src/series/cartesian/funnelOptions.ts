@@ -7,8 +7,11 @@ import type { ContextDefault, CssColor, DatumDefault, DatumKey, Opacity, PixelSi
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {}
+export interface AgFunnelSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {}
 
 export interface AgFunnelSeriesStageLabelOptions<TContext> extends AgNumericAxisFormattableLabelOptions<TContext> {
     /** Placement of the label in relation to the chart. */
@@ -16,7 +19,8 @@ export interface AgFunnelSeriesStageLabelOptions<TContext> extends AgNumericAxis
 }
 
 export interface AgFunnelSeriesItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgFunnelSeriesOptionsKeys<TDatum>,
         Required<AgFunnelSeriesStyle> {}
@@ -26,7 +30,8 @@ export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDas
 export interface AgFunnelSeriesLabelFormatterParams<TDatum = DatumDefault> extends AgFunnelSeriesOptionsKeys<TDatum> {}
 
 export interface AgFunnelSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgFunnelSeriesOptionsKeys<TDatum>,
+    extends
+        AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgFunnelSeriesStyle {}
@@ -37,7 +42,8 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
 }
 
 export interface AgFunnelSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend' | 'showInMiniChart' | 'selection'>,
+    extends
+        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'showInLegend' | 'showInMiniChart' | 'selection'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: AgColorType[];
@@ -79,7 +85,8 @@ export interface AgFunnelSeriesOptionsKeys<TDatum = DatumDefault> {
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'showInLegend' | 'selection'>,
         AgFunnelSeriesOptionsKeys<TDatum>,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum, TContext> {

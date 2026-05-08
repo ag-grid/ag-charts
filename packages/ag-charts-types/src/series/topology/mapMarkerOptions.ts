@@ -20,7 +20,8 @@ import type {
 } from '../seriesOptions';
 
 export interface AgMapMarkerSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesStyle {}
@@ -73,8 +74,11 @@ export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions, Line
     size?: PixelSize;
 }
 
-export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgMapMarkerSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgMapMarkerSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -84,7 +88,8 @@ export interface AgMapMarkerSeriesLabel<TDatum, TContext = ContextDefault>
 }
 
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgMapMarkerSeriesStyle,
+    extends
+        AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
@@ -108,7 +113,8 @@ export interface AgMapMarkerSeriesThemeableOptions<TDatum = DatumDefault, TConte
 }
 
 export interface AgMapMarkerSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapMarkerSeriesOptionsKeys<TDatum>,
         AgMapMarkerSeriesOptionsNames,
         AgMapMarkerSeriesThemeableOptions<TDatum, TContext> {

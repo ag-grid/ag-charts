@@ -25,7 +25,8 @@ import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../serie
 export type AgTreemapHighlightState = HierarchyHighlightState;
 
 export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         FillOptions,
@@ -36,8 +37,11 @@ export interface AgTreemapSeriesTooltipRendererParams<TDatum, TContext = Context
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}
 
-export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgTreemapSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgTreemapSeriesGroupLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgTreemapSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /** The distance between the tiles and the title. */
     spacing?: PixelSize;
 }
@@ -56,8 +60,7 @@ export interface AgTreemapSeriesGroupLayout<TDatum, TContext = ContextDefault> {
 }
 
 export interface AgTreemapSeriesGroupOptions<TDatum, TContext = ContextDefault>
-    extends AgTreemapSeriesGroupStyle,
-        AgTreemapSeriesGroupLayout<TDatum, TContext> {
+    extends AgTreemapSeriesGroupStyle, AgTreemapSeriesGroupLayout<TDatum, TContext> {
     /** Apply rounded corners to each group. */
     cornerRadius?: PixelSize;
     /** Highlight overrides for groups. */
@@ -114,16 +117,17 @@ export interface AgTreemapSeriesGroupHighlightOptions {
 }
 
 export interface AgTreemapSeriesTileOptions<TDatum, TContext = ContextDefault>
-    extends AgTreemapSeriesTileStyle,
-        AgTreemapSeriesTileLayout<TDatum, TContext> {
+    extends AgTreemapSeriesTileStyle, AgTreemapSeriesTileLayout<TDatum, TContext> {
     /** Apply rounded corners to each tile. */
     cornerRadius?: PixelSize;
     /** Highlight overrides for tiles. */
     highlight?: AgTreemapSeriesTileHighlightOptions;
 }
 
-export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlight' | 'showInLegend' | 'selection'> {
+export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'highlight' | 'showInLegend' | 'selection'
+> {
     /** The colours to cycle through for the fills of the groups and tiles. */
     fills?: AgColorType[];
     /** The colours to cycle through for the strokes of the groups and tiles. */
@@ -146,7 +150,8 @@ export interface AgTreemapSeriesThemeableOptions<TDatum = DatumDefault, TContext
 }
 
 export interface AgTreemapSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'highlightStyle' | 'showInLegend' | 'selection'>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames,
         AgTreemapSeriesThemeableOptions<TDatum, TContext> {
@@ -176,7 +181,8 @@ export interface AgTreemapSeriesOptionsNames {
 
 /** The parameters of the Treemap series formatter function. */
 export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, AgTreemapHighlightState>,
+    extends
+        DatumCallbackParams<TDatum, AgTreemapHighlightState>,
         ContextCallbackParams<TContext>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesStyle {
@@ -185,8 +191,7 @@ export interface AgTreemapSeriesItemStylerParams<TDatum, TContext = ContextDefau
 }
 
 export interface AgTreemapSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgTreemapSeriesOptionsKeys,
-        AgTreemapSeriesOptionsNames {
+    extends AgTreemapSeriesOptionsKeys, AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
 }

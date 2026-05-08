@@ -6,7 +6,8 @@ import type { AgColorType, FillOptions, LineDashOptions, StrokeOptions } from '.
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         AgChordSeriesThemeableOptions<TDatum, TContext> {
@@ -15,13 +16,15 @@ export interface AgChordSeriesOptions<TDatum = DatumDefault, TContext = ContextD
 }
 
 export interface AgChordSeriesLinkItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesLinkStyle> {}
 
 export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDefault>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgChordSeriesOptionsKeys,
         Required<AgChordSeriesNodeStyle> {
@@ -31,8 +34,10 @@ export interface AgChordSeriesNodeItemStylerParams<TDatum, TContext = ContextDef
     size: number;
 }
 
-export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'> {
+export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseSeriesThemeableOptions<TDatum, TContext>,
+    'selection'
+> {
     /** Options for the label for each node. */
     label?: AgChordSeriesLabelOptions<TDatum, TContext>;
     /** The colours to cycle through for the fills of the nodes and links. */
@@ -47,8 +52,11 @@ export interface AgChordSeriesThemeableOptions<TDatum = DatumDefault, TContext =
     tooltip?: AgSeriesTooltip<AgChordSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgChordSeriesLabelOptions<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgChordSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgChordSeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgChordSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /** Spacing between a node and its label. */
     spacing?: PixelSize;
     /** If the label text exceeds the maximum length, it will be truncated and an ellipsis will be appended to indicate this. */
@@ -97,7 +105,8 @@ interface SizeParams {
 }
 
 export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
         SizeParams,
@@ -106,5 +115,4 @@ export interface AgChordSeriesTooltipRendererParams<TDatum, TContext = ContextDe
         LineDashOptions {}
 
 export interface AgChordSeriesLabelFormatterParams<_TDatum = DatumDefault>
-    extends AgChordSeriesOptionsKeys,
-        SizeParams {}
+    extends AgChordSeriesOptionsKeys, SizeParams {}

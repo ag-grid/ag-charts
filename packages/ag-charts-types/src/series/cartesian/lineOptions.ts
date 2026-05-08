@@ -26,7 +26,8 @@ import type {
 import type { AgBaseCartesianSeriesAxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgLineSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
         AgErrorBoundSeriesTooltipRendererParams<TDatum>,
         AgSeriesMarkerStyle {}
 
@@ -34,9 +35,7 @@ export type AgLineSeriesLabelFormatterParams<TDatum = DatumDefault> = AgLineSeri
     AgLineSeriesOptionsNames;
 
 export interface AgLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends StrokeOptions,
-        LineDashOptions,
-        Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
+    extends StrokeOptions, LineDashOptions, Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'highlight'> {
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgLineSeriesStylerParams<TDatum, TContext>, AgLineSeriesStylerResult>;
     /** Configuration for the markers used in the series. */
@@ -72,7 +71,8 @@ export interface AgLineSeriesOptionsKeys<TDatum = DatumDefault> {
 }
 
 export interface AgLineSeriesStylerParams<TDatum, TContext>
-    extends AgLineSeriesOptionsKeys<TDatum>,
+    extends
+        AgLineSeriesOptionsKeys<TDatum>,
         SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
@@ -87,9 +87,7 @@ export interface AgLineSeriesStylerResult extends StrokeOptions, LineDashOptions
 }
 
 export interface AgLineSeriesMarkerItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgLineSeriesOptionsKeys<TDatum>,
-        ContextCallbackParams<TContext>,
-        Required<AgSeriesMarkerStyle> {
+    extends AgLineSeriesOptionsKeys<TDatum>, ContextCallbackParams<TContext>, Required<AgSeriesMarkerStyle> {
     /** The x value of the datum. */
     xValue: any;
     /** The y value of the datum. */
@@ -114,7 +112,8 @@ export interface AgLineSeriesOptionsNames {
 }
 
 export interface AgLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgLineSeriesOptionsKeys<TDatum>,
         AgLineSeriesOptionsNames,

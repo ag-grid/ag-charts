@@ -10,22 +10,27 @@ import type {
 
 export interface AgRadarLineSeriesStyle extends AgRadarSeriesStyle {}
 
-export interface AgRadarLineSeriesStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarLineSeriesStyle> {}
+export interface AgRadarLineSeriesStylerParams<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgRadarSeriesStylerParams<TDatum, TContext, AgRadarLineSeriesStyle> {}
 
-export interface AgRadarLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadarSeriesThemeableOptions<
-        TDatum,
-        TContext,
-        AgRadarLineSeriesStyle,
-        AgRadarLineSeriesStylerParams<TDatum, TContext>
-    > {
+export interface AgRadarLineSeriesThemeableOptions<
+    TDatum = DatumDefault,
+    TContext = ContextDefault,
+> extends AgRadarSeriesThemeableOptions<
+    TDatum,
+    TContext,
+    AgRadarLineSeriesStyle,
+    AgRadarLineSeriesStylerParams<TDatum, TContext>
+> {
     /** Function used to return formatting for entire series, based on the given parameters.*/
     styler?: Styler<AgRadarLineSeriesStylerParams<TDatum, TContext>, AgRadarLineSeriesStyle>;
 }
 
 export interface AgRadarLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRadarLineSeriesThemeableOptions<TDatum, TContext>,
+    extends
+        AgRadarLineSeriesThemeableOptions<TDatum, TContext>,
         AgBaseRadarSeriesOptions<
             TDatum,
             TContext,

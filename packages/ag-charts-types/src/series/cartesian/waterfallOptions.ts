@@ -32,8 +32,7 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgWaterfallSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>,
-        AgWaterfallSeriesStyle {
+    extends AgCartesianSeriesTooltipRendererParams<TDatum, TContext>, AgWaterfallSeriesStyle {
     /** The type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemType: AgWaterfallSeriesItemType;
 }
@@ -43,8 +42,11 @@ export interface AgWaterfallSeriesItemTooltip<TDatum = DatumDefault, TContext = 
     renderer?: Renderer<AgWaterfallSeriesTooltipRendererParams<TDatum, TContext>, AgTooltipRendererResult>;
 }
 
-export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgWaterfallSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Where to render series labels relative to the bars. */
     placement?: AgWaterfallSeriesLabelPlacement;
     /** Spacing in pixels between the label and the edge of the bar. */
@@ -58,8 +60,10 @@ export type AgWaterfallSeriesLabelPlacement =
     | 'outside-start'
     | 'outside-end';
 
-export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseCartesianThemeableOptions<TDatum, TContext>, 'selection'> {
+export interface AgWaterfallSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault> extends Omit<
+    AgBaseCartesianThemeableOptions<TDatum, TContext>,
+    'selection'
+> {
     /**
      * Bar rendering direction.
      *
@@ -93,7 +97,8 @@ export interface AgWaterfallSeriesOptionsNames {
 }
 
 export interface AgWaterfallSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgBaseCartesianSeriesAxisOptions,
         AgWaterfallSeriesOptionsKeys<TDatum>,
         AgWaterfallSeriesOptionsNames,

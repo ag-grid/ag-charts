@@ -28,9 +28,8 @@ export interface AgRadarSeriesThemeableOptions<
         TContext,
         TStyle
     >,
-> extends StrokeOptions,
-        LineDashOptions,
-        AgBaseSeriesThemeableOptions<TDatum, TContext> {
+>
+    extends StrokeOptions, LineDashOptions, AgBaseSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the markers used in the series. */
     marker?: AgSeriesMarkerOptions<TDatum, AgRadialSeriesOptionsKeys<TDatum>, TContext>;
     /** Configuration for the labels shown on top of data points. */
@@ -59,7 +58,9 @@ export interface AgBaseRadarSeriesOptions<
         TContext,
         TStyle
     >,
-> extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+>
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgRadialSeriesOptionsKeys<TDatum>,
         AgRadialSeriesOptionsNames,
         AgRadarSeriesThemeableOptions<TDatum, TContext, TStyle, TStylerParams> {
