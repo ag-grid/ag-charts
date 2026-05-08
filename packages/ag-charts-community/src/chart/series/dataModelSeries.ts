@@ -268,7 +268,7 @@ export abstract class DataModelSeries<
         if (selectionState === undefined) return undefined;
 
         const options = this.ctx.chartState.getValue('options');
-        if (!options?.selection.enabled) return undefined;
+        if (!options?.selection?.enabled) return undefined;
 
         const totalNumberOfSelection = selectionState.selectedCount;
         if (totalNumberOfSelection === 0) {

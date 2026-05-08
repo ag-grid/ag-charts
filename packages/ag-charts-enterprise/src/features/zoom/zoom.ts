@@ -77,7 +77,7 @@ export class Zoom extends AbstractModuleInstance {
         return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
     }
 
-    private get selectionOpts(): NormalisedSelectionOptions {
+    private get selectionOpts(): NormalisedSelectionOptions | undefined {
         return this.ctx.chartState.getValue('options', 'selection');
     }
 
@@ -317,7 +317,7 @@ export class Zoom extends AbstractModuleInstance {
         let newDragState = DragState.None;
 
         const selectionOpts = this.selectionOpts;
-        const hasDataSelection = selectionOpts.enabled && selectionOpts.enableDrag;
+        const hasDataSelection: boolean = !!(selectionOpts?.enabled && selectionOpts?.enableDrag);
         const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
         const modifierlessDragInUse = enableSelecting || hasDataSelection;
         // Allow panning if either selection is disabled or the panning key is pressed.
