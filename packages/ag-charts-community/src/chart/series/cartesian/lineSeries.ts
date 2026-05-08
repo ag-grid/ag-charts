@@ -720,8 +720,45 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
+        const { itemStyler } = marker;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const thisSeries = this;
+
+        if (itemStyler == null) {
+            // Without itemStyler, the resolved marker style is purely a function of
+            // (highlightState, selectionState) — none of the per-datum inputs reach the
+            // result. Cache the full style by state so per-datum work collapses to
+            // state resolution + a Map lookup + a property write.
+            const finalStyleByState = new Map<string, AgSeriesMarkerStyle>();
+
+            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
+                if (datumSelection.isGarbage(node)) return;
+
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let style = finalStyleByState.get(stateKey);
+                if (style === undefined) {
+                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                    style = thisSeries.getMarkerStyle(
+                        marker,
+                        datum,
+                        undefined,
+                        { isHighlight, highlightState, selectionState, hideWithSize0 },
+                        stylerStyle.marker,
+                        {
+                            stroke: stylerStyle.stroke,
+                            strokeWidth: stylerStyle.strokeWidth,
+                            strokeOpacity: stylerStyle.strokeOpacity,
+                        }
+                    );
+                    finalStyleByState.set(stateKey, style);
+                }
+                datum.style = style;
+            });
+            return;
+        }
 
         // Pre-compute per-pass invariants. resolveColumnById and getDomain don't depend on
         // datumIndex — pulling them out of the loop avoids N×4 dataModel lookups for N markers.
@@ -738,7 +775,6 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         // chain once per distinct combination.
         const styleByState = new Map<string, ReturnType<LineSeries['getStyle']>>();
 
-        const thisSeries = this;
         datumSelection.each(function updateDatumSelectionStyles(node, datum) {
             if (datumSelection.isGarbage(node)) return;
 

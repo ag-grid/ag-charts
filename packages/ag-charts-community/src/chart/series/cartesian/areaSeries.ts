@@ -1312,8 +1312,45 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { hideWithSize0 } = this;
         const { datumSelection, isHighlight } = opts;
         const { marker } = this.properties;
+        const { itemStyler } = marker;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const thisSeries = this;
+
+        if (itemStyler == null) {
+            // Without itemStyler, the resolved marker style is purely a function of
+            // (highlightState, selectionState). Cache the full style by state so per-datum
+            // work collapses to state resolution + a Map lookup + a property write.
+            const finalStyleByState = new Map<string, AgSeriesMarkerStyle>();
+
+            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
+                if (datumSelection.isGarbage(node)) return;
+
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let style = finalStyleByState.get(stateKey);
+                if (style === undefined) {
+                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                    style = thisSeries.getMarkerStyle(
+                        marker,
+                        datum,
+                        undefined,
+                        { isHighlight, highlightState, selectionState, hideWithSize0 },
+                        stylerStyle.marker,
+                        {
+                            stroke: stylerStyle.stroke,
+                            strokeWidth: stylerStyle.strokeWidth,
+                            strokeOpacity: stylerStyle.strokeOpacity,
+                        }
+                    );
+                    finalStyleByState.set(stateKey, style);
+                }
+                datum.style = style;
+            });
+            return;
+        }
+
         datumSelection.each((node, datum) => {
             if (!datumSelection.isGarbage(node)) {
                 const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
