@@ -1,6 +1,8 @@
 import {
     AgChartOptions,
     AgCharts,
+    AgOrganizationNodeTextFormatterParams,
+    AgOrganizationSeriesNodeTextStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -24,7 +26,7 @@ const options: AgChartOptions = {
             node: {
                 title: {
                     key: 'name',
-                    itemStyler: (params: any) => {
+                    itemStyler: (params: AgOrganizationSeriesNodeTextStylerParams) => {
                         if (params.datum.job === 'Chief Financial Officer') {
                             return {
                                 color: '#ff7faa',
@@ -35,7 +37,7 @@ const options: AgChartOptions = {
                 },
                 subtitle: {
                     key: 'job',
-                    formatter: (params: any) => {
+                    formatter: (params: AgOrganizationNodeTextFormatterParams) => {
                         if (params.value === 'Quality Assurance') {
                             return [
                                 { text: 'QUALITY', fontSize: 14, fontWeight: 'bold', color: 'purple' },
@@ -44,7 +46,7 @@ const options: AgChartOptions = {
                         }
                         return params.value;
                     },
-                    itemStyler: (params: any) => {
+                    itemStyler: (params: AgOrganizationSeriesNodeTextStylerParams) => {
                         if (params.datum.job === 'Developer') {
                             return {
                                 color: '#006f9b',
@@ -59,7 +61,7 @@ const options: AgChartOptions = {
                     },
                     {
                         key: 'tenure',
-                        itemStyler: (params: any) => {
+                        itemStyler: (params: AgOrganizationSeriesNodeTextStylerParams) => {
                             if (params.datum.tenure > 2) {
                                 return {
                                     color: '#ff7faa',

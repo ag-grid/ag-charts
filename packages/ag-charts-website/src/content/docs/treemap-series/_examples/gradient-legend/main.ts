@@ -1,9 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
     GradientLegendModule,
     ModuleRegistry,
     TreemapSeriesModule,
@@ -11,13 +8,8 @@ import {
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    GradientLegendModule,
-    TreemapSeriesModule,
-    ContextMenuModule,
-]);
+ModuleRegistry.registerModules([GradientLegendModule, TreemapSeriesModule]);
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
@@ -27,6 +19,9 @@ const options: AgChartOptions = {
             labelKey: 'title',
             colorKey: 'change',
             colorName: 'Change',
+            colorScale: {
+                fills: [{ color: 'tomato' }, { color: 'lightyellow', stop: 0 }, { color: 'seagreen' }],
+            },
         },
     ],
     gradientLegend: {
@@ -36,7 +31,7 @@ const options: AgChartOptions = {
         text: 'UK Government Budget',
     },
     subtitle: {
-        text: '2024',
+        text: '2024 — Change from previous year',
     },
 };
 

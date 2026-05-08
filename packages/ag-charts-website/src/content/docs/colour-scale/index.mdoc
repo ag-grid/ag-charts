@@ -4,23 +4,23 @@ description: 'Use the $framework Colour Scale to map numeric data values to colo
 enterprise: true
 ---
 
-A Colour Scale maps numeric data values to colours, adding a visual dimension to the chart. This is used by series types that support a `colorKey`, such as [Heatmap](./heatmap-series/), [Treemap](./treemap-series/), [Sunburst](./sunburst-series/), and [Map](./maps/) series.
+A Colour Scale maps numeric data values to colours, adding a visual dimension to the chart. This is used by series types that support a `colorKey`, such as [Heatmap](./heatmap-series/), [Treemap](./treemap-series/), [Sunburst](./sunburst-series/), and [Scatter](./scatter-series/) series.
 
 ## Simple Colour Scale
 
+To use a Colour Scale, set the series `colorKey` property to a data field containing numeric values.
+
 {% chartExampleRunner title="Simple Colour Scale" name="simple-colour-scale" type="generated" /%}
 
-To use a Colour Scale, set `colorKey` on the series to a data property containing numeric values.
-
 ```js format="snippet"
 {
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
-            colorName: 'Temperature',
+            xKey: 'segment',
+            yKey: 'service',
+            colorKey: 'score',
+            colorName: 'Score',
         },
     ],
 }
@@ -28,212 +28,153 @@ To use a Colour Scale, set `colorKey` on the series to a data property containin
 
 In this configuration:
 
--   `colorKey` is set to 'temperature', which supplies numeric values for the Colour Scale. The data domain is automatically derived from the data — in this case, approximately 3 to 19.
+-   `colorKey` is set to 'score', which supplies numeric values for the Colour Scale.
 -   `colorName` sets the title that appears next to the colour value in tooltips.
 -   The default colour scheme is applied as a continuous gradient across the data range.
+-   A [Gradient Legend](#gradient-legend) is displayed, showing how colours map to values.
 
-## Custom Fills
+Colour Scales are supported on [Heatmap](./heatmap-series/), [Treemap](./treemap-series/) and [Sunburst](./sunburst-series/),
+[Scatter](./scatter-series/) and [Bubble](./bubble-series/) as well as all [Map](./maps/) series types.
 
-{% chartExampleRunner title="Custom Fills" name="custom-fills" type="generated" /%}
+## Domain
 
-Use `colorScale.fills` to provide custom colours. Each item in the array specifies a `color`.
+By default, the Colour Scale domain is derived from the data. Use `colorScale.domain` to set a fixed domain.
 
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
-            colorScale: {
-                fills: [{ color: 'navy' }, { color: 'lightyellow' }, { color: 'darkred' }],
-            },
-        },
-    ],
-}
-```
-
-With three colours and no `stop` values, the colours are spaced equally across the data domain. In this example the data ranges from 3 to 19, so:
-
--   3 is navy.
--   11 (the midpoint) is lightyellow.
--   19 is darkred.
--   Values between these points are a smooth gradient blend — e.g. 7 is a blend of navy and lightyellow.
-
-## Colour Stops
-
-{% chartExampleRunner title="Colour Stops" name="colour-stops" type="generated" /%}
-
-Use `stop` values to position colours at specific points in the data domain, rather than distributing them equally.
+{% chartExampleRunner title="Domain" name="fixed-domain" type="generated" /%}
 
 ```js format="snippet"
 {
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
+            xKey: 'segment',
+            yKey: 'service',
+            colorKey: 'score',
             colorScale: {
-                fills: [
-                    { color: 'darkblue' },
-                    { color: 'lightblue', stop: 5 },
-                    { color: 'lightyellow', stop: 10 },
-                    { color: 'orange', stop: 15 },
-                    { color: 'darkred' },
-                ],
+                fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+                domain: [1, 10],
             },
         },
     ],
 }
 ```
 
-In this configuration:
+In this example:
 
--   The first item (darkblue) has no `stop`, so it defaults to the data minimum (~3).
--   lightblue starts at 5 — values from 3 to 5 are a gradient from darkblue to lightblue.
--   lightyellow starts at 10 — values from 5 to 10 are a gradient from lightblue to lightyellow.
--   orange starts at 15 — values from 10 to 15 are a gradient from lightyellow to orange.
--   The last item (darkred) has no `stop`, so it defaults to the data maximum (~19) — values from 15 to 19 are a gradient from orange to darkred.
--   The `fills` array must be sorted in ascending `stop` order.
-
-## Fixed Domain
-
-{% chartExampleRunner title="Fixed Domain" name="fixed-domain" type="generated" /%}
-
-By default, the Colour Scale domain is derived from the data extent. Use `colorScale.domain` to set a fixed domain, which is useful for ensuring consistent colours across multiple charts or datasets with a known value range.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
-            colorScale: {
-                fills: [{ color: 'darkblue' }, { color: 'lightyellow' }, { color: 'darkred' }],
-                domain: [0, 25],
-            },
-        },
-    ],
-}
-```
-
-In this configuration:
-
--   `domain` is set to `[0, 25]`, overriding the auto-detected range of approximately 3 to 19.
--   0 is darkblue, 12.5 is lightyellow, and 25 is darkred.
--   Although the data only contains values from 3 to 19, the full 0–25 range is used. This means winter months (around 3–5) appear as a dark blue rather than the very darkest blue, because the colour for 0 is reserved for the bottom of the fixed range.
--   Values outside the domain are clamped — a value of -5 would receive the same colour as 0.
+-   Use the buttons to toggle `domain` between `[1, 10]` or the default of approximately 4 to 8.
+-   Using [Custom Colours](#custom-colours), the lowest values are `tomato`, the middle values are `gold`, and the highest values are `seagreen`.
+    -   With the fixed domain, the lowest value is 1 which is not in the data, so no cells appear as `tomato`.
+    -   With the default domain, the lowest value in the domain is 4 and appears as `tomato`.
+-   Values outside a fixed domain are clamped. In this example of `[1, 10]`, a value of 0 would receive the same colour as 1.
 
 ## Discrete Mode
 
+Use `colorScale.mode` to switch between a continuous gradient and discrete colour bins.
+
 {% chartExampleRunner title="Discrete Mode" name="discrete-mode" type="generated" /%}
 
-Use `colorScale.mode` to switch between a continuous gradient and discrete colour bins. In discrete mode, each data value receives a solid colour rather than a blended gradient.
-
 ```js format="snippet"
 {
     series: [
         {
             type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
+            xKey: 'segment',
+            yKey: 'service',
+            colorKey: 'score',
             colorScale: {
                 mode: 'discrete',
-                fills: [
-                    { color: 'steelblue', stop: 5 },
-                    { color: 'lightblue', stop: 10 },
-                    { color: 'lightyellow', stop: 15 },
-                    { color: 'coral' },
-                ],
+                domain: [0, 10],
+                fills: [{ color: 'tomato', stop: 7 }, { color: 'gold', stop: 9 }, { color: 'seagreen' }],
             },
         },
     ],
 }
 ```
 
-In this configuration:
+In this example:
 
--   Each `stop` is the first value of the _next_ bin. So steelblue covers values below 5, lightblue covers 5 to 9, lightyellow covers 10 to 14, and coral covers 15 and above.
--   Unlike continuous mode, there is no gradient blending — a value of 7 is exactly the same lightblue as a value of 9.
--   When using discrete mode, a category [Legend](./legend/) is shown by default instead of the Gradient Legend, with one item per bin.
+-   In discrete mode, each data value receives a solid colour rather than a blended gradient.
+-   The number of bins is determined by the number of colours in the Colour Scale.
+-   Use [Colour Stops](#colour-stops) to control the bin boundaries and the colours used.
+-   Discrete mode can use the [Gradient Legend](#gradient-legend) if desired. See [Legends](#legends) for details.
 
-## Named Stops
+## Custom Colours
 
-{% chartExampleRunner title="Named Stops" name="named-stops" type="generated" /%}
+Use `colorScale.fills` to provide custom colours. Each item in the array specifies a `color` and an optional `stop` and `name`.
 
-Use the `name` property on fills to provide descriptive labels that appear in the legend and tooltips.
+{% chartExampleRunner title="Custom Colours" name="colour-stops" type="generated" /%}
+
+### Colours
+
+Without `stop` values, colours are spaced equally across the data domain.
 
 ```js format="snippet"
 {
-    series: [
-        {
-            type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
-            colorScale: {
-                mode: 'discrete',
-                fills: [
-                    { color: 'steelblue', name: 'Cold', stop: 5 },
-                    { color: 'lightblue', name: 'Cool', stop: 10 },
-                    { color: 'lightyellow', name: 'Mild', stop: 15 },
-                    { color: 'coral', name: 'Warm' },
-                ],
-            },
-        },
-    ],
+    colorScale: {
+        fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+    },
 }
 ```
 
-In this configuration:
+### Colour Stops
 
--   The legend shows 'Cold', 'Cool', 'Mild', and 'Warm' instead of the default numeric range labels ('0 - 5', '5 - 10', etc.).
--   Tooltips also display the `name` for the matching bin — e.g. hovering a cell with temperature 7 shows 'Cool'.
--   In continuous mode, `name` values appear at their `stop` positions on the Gradient Legend.
+With `stop` values, each colour is positioned at an explicit point in the domain. The `fills` array must be sorted in ascending `stop` order. The first and last fills default to the data minimum and maximum if no `stop` is set.
 
-## Missing Data
+```js format="snippet"
+{
+    colorScale: {
+        fills: [{ color: 'tomato', stop: 7 }, { color: 'gold', stop: 9 }, { color: 'seagreen' }],
+    },
+}
+```
+
+In continuous mode, colours blend smoothly between stops:
+
+-   0 → 7 interpolates from `tomato` to `gold`.
+-   7 → 9 interpolates from `gold` to `seagreen`.
+-   9 → 10 is solid `seagreen`.
+
+In discrete mode, each stop marks a bin boundary:
+
+-   0–6 is solid `tomato`.
+-   7–8 is solid `gold`.
+-   9–10 is solid `seagreen`.
+
+### Named Stops
+
+With `name` values, descriptive labels are used in the legend and tooltips instead of numeric ranges.
+
+```js format="snippet"
+{
+    colorScale: {
+        fills: [
+            { color: 'tomato', name: 'Detractor', stop: 7 },
+            { color: 'gold', name: 'Passive', stop: 9 },
+            { color: 'seagreen', name: 'Promoter' },
+        ],
+    },
+}
+```
+
+### Missing Data
+
+Set `colorScale.missingDataFill` to set the colour for a datum that has no value for the `colorKey`.
 
 {% chartExampleRunner title="Missing Data" name="missing-data" type="generated" /%}
 
-When a datum has no `colorKey` value, each series type falls back to its own default: Heatmap cells are transparent, Treemap and Sunburst segments use their palette fill, Map Markers use the series fill, and Map Shapes and Map Lines skip the datum entirely.
-
-Set `colorScale.missingDataFill` to use one placeholder colour across all of these cases instead.
-
 ```js format="snippet"
 {
-    series: [
-        {
-            type: 'heatmap',
-            xKey: 'month',
-            yKey: 'year',
-            colorKey: 'temperature',
-            colorScale: {
-                fills: [{ color: 'navy' }, { color: 'lightyellow' }, { color: 'darkred' }],
-                missingDataFill: '#e0e0e0',
-            },
-        },
-    ],
+    colorScale: {
+        missingDataFill: '#e0e0e0',
+    },
 }
 ```
 
--   Datums without a `temperature` value are rendered in `#e0e0e0`.
--   On Map Lines, the value is applied as the stroke.
--   On Map Shapes and Map Lines, setting `missingDataFill` also makes these datums respond to hover, since they are no longer skipped.
--   When `missingDataFill` is set, hovering a missing-data datum dismisses any prior tooltip rather than showing one of its own.
+## Legends
 
-## Legend Type
+The standard category [Legend](./legend/) can be used with [Discrete Colour Scales](#discrete-mode), and the [Gradient Legend](#gradient-legend) can be used with both discrete and continuous Colour Scales.
 
-Both the [Gradient Legend](#gradient-legend) and the standard category [Legend](./legend/) can be used with Colour Scales, in either continuous or discrete mode. The chart automatically selects a default based on the mode:
-
--   **Continuous mode** — Gradient Legend is shown by default.
--   **Discrete mode** — Standard Legend is shown by default, with one item per colour bin.
-
-This default can be overridden by explicitly enabling or disabling each legend. Use the buttons below to see how each combination looks.
+The default legend depends on the `colorScale.mode`, but can be overridden by explicitly enabling or disabling each legend.
 
 {% chartExampleRunner title="Legend Type" name="legend-choice" type="generated" /%}
 
@@ -248,91 +189,37 @@ This default can be overridden by explicitly enabling or disabling each legend. 
 }
 ```
 
-Set `gradientLegend.enabled` and `legend.enabled` to choose which legend to display. For example, to force a Gradient Legend in discrete mode, enable the Gradient Legend and disable the standard Legend.
+### Gradient Legend
 
-## Gradient Legend
-
-The Gradient Legend aids in matching the colour coding of the series to the underlying values. It is enabled by default for series using a `colorKey` in continuous mode.
+The Gradient Legend displays a colour bar alongside the chart to help match colours to values.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
 ```js format="snippet"
 {
     gradientLegend: {
-        enabled: true,
-    },
-}
-```
-
-### Position
-
-{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
-
-By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
-
-```js format="snippet"
-{
-    gradientLegend: {
         position: 'right',
-    },
-}
-```
-
-When the position is `left` or `right`, the Gradient Legend displays the values in descending order. Use `reverseOrder` to change this.
-
-### Size
-
-{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
         gradient: {
-            thickness: 50,
-            preferredLength: 400,
+            thickness: 16,
+            preferredLength: 100,
         },
-    },
-}
-```
-
-In the above configuration:
-
--   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
-
-### Labels
-
-{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
-
-It is possible to customise the font, colour and padding of the labels by using the `scale` options.
-
-```js format="snippet"
-{
-    gradientLegend: {
         scale: {
             label: {
-                fontSize: 20,
                 fontStyle: 'italic',
-                fontWeight: 'bold',
-                fontFamily: 'serif',
                 color: 'red',
             },
-            padding: 20,
+            padding: 10,
         },
     },
 }
 ```
 
-## Supported Series
+In the above example:
 
-The following series types support Colour Scales via `colorKey` and `colorScale`:
-
--   [Heatmap](./heatmap-series/) — cell colour
--   [Treemap](./treemap-series/) — tile colour
--   [Sunburst](./sunburst-series/) — sector colour
--   [Map Shapes](./map-shapes/) — region fill
--   [Map Lines](./map-lines/) — line colour
--   [Map Markers](./map-markers/) — marker colour
+-   `position` places the legend at the `'bottom'` (default), `'top'`, `'left'`, or `'right'` of the chart. When the position is `left` or `right`, values are displayed in descending order. Use `reverseOrder` to change this.
+-   `gradient.thickness` controls the width of the gradient bar.
+-   `gradient.preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
+-   Customise label appearance with `scale.label` (font, colour) and `scale.padding` (distance between bar and labels). See the [API Reference](#api-reference) for all options.
 
 ## API Reference
 

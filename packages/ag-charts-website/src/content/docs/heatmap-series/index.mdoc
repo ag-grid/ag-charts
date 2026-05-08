@@ -1,6 +1,6 @@
 ---
 title: 'Heatmap Series'
-description: '$framework Heatmap Charts display data in a matrix format, using colours to denote the magnitude of the values. Customise the colour range and labels. Gradient legend support.'
+description: '$framework Heatmap Charts display data in a matrix format, using colours to denote the magnitude of the values. Customise the colour scale and labels. Gradient legend support.'
 enterprise: true
 ---
 
@@ -31,19 +31,11 @@ In this configuration:
 -   `yKey` is set to 'year', which is the category for the Y Axis.
 -   `colorKey` is set to 'temperature', which supplies numerical values for the Colour Scale.
 
-## Grouped Category Axis
+## Colour Scale
 
-To display the heatmap cells under hierarchical category groups, use a [Grouped Category Axis](./axes-types/#grouped-category) on either axis.
+{% chartExampleRunner title="Colour Scale" name="color-range-with-many-values" type="generated" /%}
 
-{% chartExampleRunner title="Grouped Category Heatmap" name="grouped-category-heatmap" type="generated" /%}
-
-## Customisation
-
-### Colour Range
-
-{% chartExampleRunner title="Colour Range With Many Values" name="color-range-with-many-values" type="generated" /%}
-
-Series items colours can be customised via the `colorRange` configuration array.
+Use `colorScale` to control how numeric values map to colours. Toggle between continuous gradients and discrete bins, or set a fixed domain for consistent colouring across charts.
 
 ```js format="snippet"
 {
@@ -53,15 +45,21 @@ Series items colours can be customised via the `colorRange` configuration array.
             xKey: 'month',
             yKey: 'year',
             colorKey: 'temperature',
-            colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
+            colorScale: {
+                fills: [{ color: 'navy' }, { color: 'lightyellow', stop: 10 }, { color: 'darkred' }],
+            },
         },
     ],
 }
 ```
 
-The `colorRange` array must contain 2 or more values.
+-   `fills` specifies the colours and optional `stop` positions. Without `stop` values, colours are spaced equally across the data range.
+-   `mode` switches between `'continuous'` (smooth gradient, default) and `'discrete'` (solid colour bins).
+-   `domain` overrides the auto-detected range — e.g. `[0, 25]` ensures consistent colours regardless of the data extent.
 
-### Labels
+For the full range of options — named stops, missing data handling, and more — see the [Colour Scale](./colour-scale/) page.
+
+## Labels
 
 {% chartExampleRunner title="Heatmap Label" name="customising-labels" type="generated" /%}
 
@@ -71,10 +69,7 @@ If `label.enabled` is set to `true`, the labels will show the numeric value from
 colorKey: 'temperature',
 label: {
     enabled: true,
-    formatter: ({ datum, colorKey }) => {
-        const value = datum[colorKey];
-        return `${value.toFixed(0)}°C`;
-    },
+    formatter: ({ datum: { temperature } }) => `${temperature.toFixed(0)}°C`,
 }
 ```
 
@@ -82,82 +77,19 @@ A label `formatter` can be used to customise the label text.
 
 ## Gradient Legend
 
-The Gradient Legend aids in matching the colour coding of the heatmap series to the underlying values, and is enabled by default.
+The Gradient Legend is enabled by default for heatmap series using a `colorKey`. It displays a colour bar to help match cell colours to values.
 
 {% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
 
 ```js format="snippet"
-series: [
-    {
-        type: 'heatmap',
-        xKey: 'month',
-        yKey: 'year',
-        colorKey: 'temperature',
-    },
-],
-gradientLegend: {
-    enabled: true,
-}
-```
-
-### Position
-
-{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
-
-By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
-
-```js format="snippet"
 {
     gradientLegend: {
-        position: 'right',
+        enabled: true,
     },
 }
 ```
 
-When the position is `left` or `right`, the Gradient Legend displays the values in descending order. Use `reverseOrder` to change this.
-
-### Size
-
-{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
-        gradient: {
-            thickness: 50,
-            preferredLength: 400,
-        },
-    },
-}
-```
-
-In the above configuration:
-
--   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
-
-### Labels
-
-{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
-
-It is possible to customise the font, colour and padding of the labels by using the `scale` options.
-
-```js format="snippet"
-{
-    gradientLegend: {
-        scale: {
-            label: {
-                fontSize: 20,
-                fontStyle: 'italic',
-                fontWeight: 'bold',
-                fontFamily: 'serif',
-                color: 'red',
-            },
-            padding: 20,
-        },
-    },
-}
-```
+For position, size, and label customisation options, see the [Colour Scale — Gradient Legend](./colour-scale/#gradient-legend) section.
 
 ## API Reference
 

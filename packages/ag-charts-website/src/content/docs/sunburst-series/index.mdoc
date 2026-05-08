@@ -170,83 +170,29 @@ In this configuration:
 -   `padding` adds space between the edge of a sector and its contents.
 -   `formatter` allows customising the value of a label using a function.
 
-## Gradient Legend
+## Colour Scale
 
-The Gradient Legend aids in matching the colour coding of the Sunburst Series to the underlying values, and is enabled by default.
+Use `colorScale` to control how `colorKey` values map to colours. In this example, negative GDP changes appear in red and positive changes in green.
 
-{% chartExampleRunner title="Gradient Legend" name="gradient-legend" type="generated" /%}
-
-```js format="snippet"
-series: [
-    {
-        type: 'sunburst',
-        colorKey: 'gdpChange',
-        // ...
-    },
-],
-gradientLegend: {
-    enabled: true,
-}
-```
-
-### Position
-
-{% chartExampleRunner title="Gradient Legend Position" name="gradient-legend-position" type="generated" /%}
-
-By default the Gradient Legend is placed at the bottom of the chart. Use the `position` option to change this.
+{% chartExampleRunner title="Colour Scale" name="gradient-legend" type="generated" /%}
 
 ```js format="snippet"
 {
-    gradientLegend: {
-        position: 'right',
-    },
-}
-```
-
-When the position is `left` or `right`, the Gradient Legend displays the values in descending order. Use `reverseOrder` to change this.
-
-### Size
-
-{% chartExampleRunner title="Gradient Legend Size" name="gradient-legend-size" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
-        gradient: {
-            thickness: 50,
-            preferredLength: 400,
-        },
-    },
-}
-```
-
-In the above configuration:
-
--   `thickness` controls the thickness (or width) of the gradient bar.
--   `preferredLength` sets the initial length of the gradient bar. It is only _preferred_, as the Gradient Legend is constrained by the container edges.
-
-### Labels
-
-It is possible to customise the font, colour and padding of the labels by using the `scale` options.
-
-{% chartExampleRunner title="Gradient Legend Labels" name="gradient-legend-labels" type="generated" /%}
-
-```js format="snippet"
-{
-    gradientLegend: {
-        scale: {
-            label: {
-                fontSize: 20,
-                fontStyle: 'italic',
-                fontWeight: 'bold',
-                fontFamily: 'serif',
-                color: 'red',
+    series: [
+        {
+            type: 'sunburst',
+            labelKey: 'name',
+            colorKey: 'gdpChange',
+            colorName: 'Change',
+            colorScale: {
+                fills: [{ color: 'tomato' }, { color: 'lightyellow', stop: 0 }, { color: 'seagreen' }],
             },
-            padding: 20,
         },
-    },
+    ],
 }
 ```
+
+For the full range of colour scale options — discrete mode, named stops, fixed domains, missing data, and gradient legend customisation — see the [Colour Scale](./colour-scale/) page.
 
 ## Highlighting
 

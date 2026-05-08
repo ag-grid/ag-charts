@@ -44,6 +44,7 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+/** inScope */
 function updateStatus() {
     const count = Array.from(chart.getSelection()).length;
     document.getElementById('selectionStatus')!.textContent =
