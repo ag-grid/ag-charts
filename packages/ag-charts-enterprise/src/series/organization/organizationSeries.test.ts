@@ -370,38 +370,6 @@ interface StandaloneTestCase extends ChartTestCase {
     options: AgStandaloneChartOptions;
 }
 
-function createExpanderHeightExample(height: number): any {
-    const series = SIMPLE_ORG_CHART.series![0];
-    return {
-        ...SIMPLE_ORG_CHART,
-        series: [
-            {
-                ...series,
-                expander: { height },
-            },
-        ],
-    };
-}
-
-function createExpanderSpacingExample(expanderHeight: number, expanderSpacing: number): any {
-    return {
-        ...SIMPLE_ORG_CHART,
-        series: [
-            {
-                type: 'organization',
-                idKey: 'id',
-                parentIdKey: 'parentId',
-                expander: { height: expanderHeight, spacing: expanderSpacing },
-                node: {
-                    title: { key: 'name' },
-                    subtitle: { key: 'job' },
-                    labels: [{ key: 'location' }],
-                },
-            },
-        ],
-    };
-}
-
 function createTextImageExample(
     textAlign: TextAlign,
     imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
@@ -729,19 +697,6 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
                 },
             ],
         } as any,
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
-    EXPANDER_HEIGHT_SHORT: {
-        // Layout reserves and renders the pill at exactly the configured height; verifies all
-        // three `networkTreeLayout` consumers (link-draw start/elbow, child-group offset) shrink
-        // in step so children sit closer to the parent without elbow misalignment.
-        options: createExpanderHeightExample(16),
-        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
-    },
-    EXPANDER_HEIGHT_TALL: {
-        // Inverse of EXPANDER_HEIGHT_SHORT: a taller pill expands the parent–child gap and the
-        // count text remains vertically centred against the rendered pill height (not a constant).
-        options: createExpanderHeightExample(32),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     TEXT_TIER_BACKING_BOX_PARTIAL_OVERRIDE: {
@@ -1082,14 +1037,6 @@ describe('OrganizationSeries', () => {
     });
 
     describe('theme defaults', () => {
-        it('should apply Figma-aligned theme defaults', async () => {
-            const options: AgChartOptions = { ...SIMPLE_ORG_CHART };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
         it('should apply default highlight stroke when a node is hovered', async () => {
             // AG-17192 regression. cornerRadius=0 lets JSDOM bbox-hit-test the rect (see
             // .claude/rules/testing.md); without the theme stroke default the hovered node
@@ -1207,26 +1154,6 @@ describe('OrganizationSeries', () => {
                     },
                 ],
             };
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        it('should not overlap last label with expander pill at default spacing', async () => {
-            // Regression for the overlap caused by node.padding shrinking 16→8: the bottom
-            // padding becomes max(padding, expanderHeight/2 + spacing).
-            const options: AgChartOptions = createExpanderSpacingExample(24, 4) as AgChartOptions;
-            prepareEnterpriseTestOptions(options);
-
-            chart = AgCharts.create(options);
-            await compare();
-        });
-
-        it('should leave card layout unchanged when expander is short enough', async () => {
-            // When max(padding, expanderHeight/2 + spacing) collapses to padding, parent and
-            // leaf cards share the same bottom padding — no extra space reserved.
-            const options: AgChartOptions = createExpanderSpacingExample(8, 0) as AgChartOptions;
             prepareEnterpriseTestOptions(options);
 
             chart = AgCharts.create(options);

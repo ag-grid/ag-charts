@@ -1,6 +1,8 @@
 import {
     type AgActiveItemState,
     type AgOrganizationNodeTextFormatterParams,
+    type AgOrganizationSeriesExpanderItemStylerParams,
+    type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
@@ -311,9 +313,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     hasItemStylers() {
-        const { node, link, selection } = this.properties;
+        const { expander, node, link, selection } = this.properties;
         return (
             selection.enabled ||
+            expander.itemStyler != null ||
             node.itemStyler != null ||
             link.itemStyler != null ||
             node.title.itemStyler != null ||
@@ -632,7 +635,14 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: this.properties.node.width,
             nodeMaxHeight: this.properties.node.maxHeight,
             nodeMaxWidth: this.properties.node.maxWidth,
-            expanderPillHeight: this.properties.expander.height,
+            expanderOffset: this.properties.expander.enabled
+                ? this.properties.expander.text.fontSize / 2 +
+                  this.properties.expander.padding +
+                  this.properties.expander.strokeWidth
+                : 0,
+            expanderSpacing: this.properties.expander.enabled
+                ? this.properties.expander.spacing
+                : this.properties.verticalSpacing ?? 0,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
@@ -791,6 +801,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         const { itemStyler } = this.properties.node;
         const { itemStyler: titleStyler } = this.properties.node.title;
         const { itemStyler: subtitleStyler } = this.properties.node.subtitle;
+        const { itemStyler: expanderStyler } = this.properties.expander;
 
         const highlightStyle = this.getHighlightStyle(isHighlight, datumIndex, highlightState);
         const selectionStyle = this.getSelectionStyle(datumIndex);
@@ -799,33 +810,19 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             title: this.getNodeTextDefaultStyle(this.properties.node.title),
             subtitle: this.getNodeTextDefaultStyle(this.properties.node.subtitle),
             labels: this.properties.node.labels.map((label) => this.getNodeTextDefaultStyle(label)),
-            expander: { height: this.properties.expander.height, spacing: this.properties.expander.spacing },
+            expander: this.getExpanderDefaultStyle(),
         });
 
-        if (itemStyler && dataModel && processedData && datumIndex != null) {
-            const overrides = this.cachedDatumCallback(
-                _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
-                () => {
-                    const params = this.makeNodeItemStylerParams(
-                        dataModel,
-                        processedData,
-                        datumIndex,
-                        depth,
-                        highlightState,
-                        isCollapsed,
-                        style
-                    );
-                    return this.ctx.optionsGraphService.resolvePartial(
-                        ['series', `${this.declarationOrder}`],
-                        this.callWithContext(itemStyler, params)
-                    );
-                }
-            );
-
-            if (overrides) {
-                style = mergeDefaults(overrides, style);
-            }
-        }
+        style = this.getNodeItemStylerStyle(
+            itemStyler,
+            style,
+            dataModel,
+            processedData,
+            datumIndex,
+            depth,
+            highlightState,
+            isCollapsed
+        );
 
         style.title = this.getNodeTextItemStylerStyle(
             titleStyler,
@@ -842,6 +839,17 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             subtitleStyler,
             style.subtitle,
             'subtitle',
+            dataModel,
+            processedData,
+            datumIndex,
+            depth,
+            highlightState,
+            isCollapsed
+        );
+
+        style.expander = this.getExpanderItemStylerStyle(
+            expanderStyler,
+            style.expander,
             dataModel,
             processedData,
             datumIndex,
@@ -912,6 +920,30 @@ export class OrganizationSeries extends AbstractNetworkSeries<
         };
     }
 
+    private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
+        const { cornerRadius, enabled, fill, fillOpacity, padding, spacing, stroke, strokeWidth, strokeOpacity, text } =
+            this.properties.expander;
+        return {
+            cornerRadius,
+            enabled,
+            fill,
+            fillOpacity,
+            padding,
+            spacing,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            text: {
+                color: text.color,
+                fontFamily: text.fontFamily,
+                fontSize: text.fontSize,
+                fontStyle: text.fontStyle,
+                fontWeight: text.fontWeight,
+                textAlign: text.textAlign,
+            },
+        };
+    }
+
     private getLinkDefaultStyle(): DeepRequired<AgOrganizationSeriesLinkStyle> {
         const { interpolation, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties.link;
         return {
@@ -944,6 +976,90 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             cornerRadius: props.cornerRadius,
             padding: props.padding,
         };
+    }
+
+    private getNodeItemStylerStyle(
+        styler:
+            | Styler<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>, AgOrganizationSeriesNodeStyle>
+            | undefined,
+        style: RequiredOrganizationNodeStyle,
+        dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
+        processedData: _ModuleSupport.ProcessedData<any> | undefined,
+        datumIndex: number | undefined,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
+    ) {
+        if (!styler || !dataModel || !processedData || datumIndex == null) {
+            return style;
+        }
+
+        const overrides = this.cachedDatumCallback(
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'node', isCollapsed),
+            () => {
+                const params = this.makeNodeItemStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    isCollapsed,
+                    style
+                );
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(styler, params)
+                );
+            }
+        );
+
+        if (overrides) {
+            style = mergeDefaults(overrides, style);
+        }
+
+        return style;
+    }
+
+    private getExpanderItemStylerStyle(
+        styler:
+            | Styler<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>, AgOrganizationSeriesExpanderStyle>
+            | undefined,
+        style: DeepRequired<AgOrganizationSeriesExpanderStyle>,
+        dataModel: _ModuleSupport.DataModel<any, any, any> | undefined,
+        processedData: _ModuleSupport.ProcessedData<any> | undefined,
+        datumIndex: number | undefined,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean
+    ) {
+        if (!styler || !dataModel || !processedData || datumIndex == null) {
+            return style;
+        }
+
+        const overrides = this.cachedDatumCallback(
+            _ModuleSupport.createDatumId(this.id, datumIndex, 'expander', isCollapsed),
+            () => {
+                const params = this.makeExpanderItemStylerParams(
+                    dataModel,
+                    processedData,
+                    datumIndex,
+                    depth,
+                    highlightState,
+                    isCollapsed,
+                    style
+                );
+                return this.ctx.optionsGraphService.resolvePartial(
+                    ['series', `${this.declarationOrder}`],
+                    this.callWithContext(styler, params)
+                );
+            }
+        );
+
+        if (overrides) {
+            style = mergeDefaults(overrides, style);
+        }
+
+        return style;
     }
 
     private getNodeTextItemStylerStyle(
@@ -1032,6 +1148,30 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
             selectionState: 'unselected-item',
         } satisfies CallbackParamRules<AgOrganizationSeriesNodeItemStylerParams<unknown, unknown>>;
+    }
+
+    private makeExpanderItemStylerParams(
+        _dataModel: NonNullable<typeof this.dataModel>,
+        processedData: NonNullable<typeof this.processedData>,
+        datumIndex: number,
+        depth: number,
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        isCollapsed: boolean,
+        style: Required<AgOrganizationSeriesExpanderStyle>
+    ): AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown> {
+        const { id: seriesId } = this;
+
+        const datum = processedData.dataSources.get(seriesId)?.data?.[datumIndex];
+
+        return {
+            ...style,
+            datum,
+            depth,
+            isCollapsed,
+            seriesId,
+            highlightState: highlightState == null ? 'none' : _ModuleSupport.toHighlightString(highlightState),
+            selectionState: 'unselected-item',
+        } satisfies CallbackParamRules<AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>>;
     }
 
     private makeNodeTextStylerParams(

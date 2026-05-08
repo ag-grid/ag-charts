@@ -1,5 +1,7 @@
 import {
     type AgOrganizationNodeTextFormatterParams,
+    type AgOrganizationSeriesExpanderItemStylerParams,
+    type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkItemStylerParams,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeItemStylerParams,
@@ -52,10 +54,63 @@ export class OrganizationSeriesProperties extends NetworkSeriesProperties {
 
 class OrganizationSeriesExpanderProperties extends BaseProperties {
     @Property
-    height: number = 24;
+    cornerRadius: number = 0;
 
     @Property
-    spacing: number = 4;
+    enabled: boolean = true;
+
+    @Property
+    fill: CssColor = 'white';
+
+    @Property
+    fillOpacity: number = 1;
+
+    @Property
+    itemStyler?: Styler<
+        AgOrganizationSeriesExpanderItemStylerParams<unknown, unknown>,
+        AgOrganizationSeriesExpanderStyle
+    >;
+
+    @Property
+    padding: number = 6;
+
+    @Property
+    spacing: number = 0;
+
+    @Property
+    stroke: CssColor = 'black';
+
+    @Property
+    strokeOpacity: number = 1;
+
+    @Property
+    strokeWidth: number = 1;
+
+    @Property
+    text = new OrganizationSeriesExpanderTextProperties();
+}
+
+class OrganizationSeriesExpanderTextProperties extends BaseProperties {
+    @Property
+    color: CssColor = 'black';
+
+    @Property
+    fontFamily!: FontFamily;
+
+    @Property
+    fontSize: FontSize = 12;
+
+    @Property
+    fontStyle: FontStyle = 'normal';
+
+    @Property
+    fontWeight!: FontWeight;
+
+    @Property
+    formatter?: Formatter<AgOrganizationNodeTextFormatterParams<unknown, unknown>>;
+
+    @Property
+    textAlign: TextAlign = 'left';
 }
 
 class OrganizationSeriesLinkProperties extends BaseProperties {

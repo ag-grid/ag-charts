@@ -1,8 +1,10 @@
 import {
+    type AgOrganizationSeriesExpanderStyle,
     type AgOrganizationSeriesLinkStyle,
     type AgOrganizationSeriesNodeStyle,
     type AgOrganizationSeriesNodeTextStyle,
     type AgOrganizationSeriesOptions,
+    type AgOrganizationSeriesOptionsExpander,
     type AgOrganizationSeriesOptionsLink,
     type AgOrganizationSeriesOptionsLinkStepInterpolation,
     type AgOrganizationSeriesOptionsNode,
@@ -36,6 +38,32 @@ import {
     textWrap,
     union,
 } from 'ag-charts-core';
+
+const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
+    ...fillOptionsDef,
+    ...strokeOptionsDef,
+    cornerRadius: positiveNumber,
+    enabled: boolean,
+    itemStyler: callbackDefs<AgOrganizationSeriesExpanderStyle>({
+        ...fillOptionsDef,
+        ...strokeOptionsDef,
+        cornerRadius: positiveNumber,
+        enabled: boolean,
+        padding: positiveNumber,
+        spacing: positiveNumber,
+        text: {
+            ...fontOptionsDef,
+            textAlign: textAlign,
+        },
+    }),
+    padding: positiveNumber,
+    spacing: positiveNumber,
+    text: {
+        ...fontOptionsDef,
+        textAlign: textAlign,
+        formatter: callbackOf(textOrSegments),
+    },
+};
 
 const stepInterpolation: OptionsDefs<AgOrganizationSeriesOptionsLinkStepInterpolation> = {
     type: required(constant('step')),
@@ -115,6 +143,7 @@ export const organizationSeriesOptionsDef: OptionsDefs<AgOrganizationSeriesOptio
     ...commonSeriesOptionsDefs,
     ..._ModuleSupport.organizationSeriesThemeableOptionsDef,
     type: required(constant('organization')),
+    expander: expander,
     idKey: string,
     link: link,
     node: node,

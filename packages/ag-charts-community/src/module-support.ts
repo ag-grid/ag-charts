@@ -364,7 +364,7 @@ export { sectorBox } from './scene/util/sector';
 export { drawCorner } from './scene/util/corner';
 export type { Corner } from './scene/util/corner';
 export type { ShapeLineCap, ShapeColor } from './scene/shape/shape';
-export { SvgPath, TranslatableSvgPath } from './scene/shape/svgPath';
+export { SvgPath, TranslatableSvgPath, RotatableSvgPath } from './scene/shape/svgPath';
 export { Text, RotatableText, TransformableText } from './scene/shape/text';
 export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
