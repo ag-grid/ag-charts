@@ -101,7 +101,7 @@ if [ "$1" == "--host" ] ; then
 
   playwright_image=mcr.microsoft.com/playwright:v1.57.0-jammy
   if ! docker image inspect ${playwright_image} >/dev/null 2>&1 ; then
-    pull_attempts=3
+    pull_attempts=4
     for attempt in $(seq 1 ${pull_attempts}) ; do
       if docker pull ${playwright_image} ; then
         break
@@ -110,9 +110,10 @@ if [ "$1" == "--host" ] ; then
         echo "Failed to pull ${playwright_image} after ${pull_attempts} attempts."
         exit 1
       fi
-      backoff=$((attempt * 10))
-      echo "Pull attempt ${attempt} failed, retrying in ${backoff}s..."
-      sleep ${backoff}
+      backoff=$((attempt * 15))
+      jitter=$((RANDOM % 10))
+      echo "Pull attempt ${attempt} failed, retrying in $((backoff + jitter))s..."
+      sleep $((backoff + jitter))
     done
   fi
 
