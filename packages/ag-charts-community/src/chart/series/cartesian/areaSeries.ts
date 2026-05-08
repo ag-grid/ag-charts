@@ -1195,7 +1195,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         } = opts;
         const segments = this.contextNodeData?.segments;
 
-        const merged = mergeDefaults(this.getHighlightStyle(), this.getStyle(undefined, undefined));
+        const highlightStyle = this.getHighlightStyle();
+        const selectionStyle = this.getSelectionStyle();
+        const seriesStyle = this.getStyle(undefined, undefined);
+        const merged = mergeDefaults(selectionStyle, highlightStyle, seriesStyle);
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
         strokePaths.setProperties({

@@ -913,6 +913,7 @@ export abstract class Series<
 
     public getSelectionStyle(datumIndex?: TDatumIndex, selectionState?: SelectionState) {
         selectionState ??= this.getDataSelectionState(datumIndex);
+        selectionState ??= this.getSeriesSelectionState();
         if (selectionState === undefined) return undefined;
         return this.properties.selection.getStyle(selectionState);
     }
