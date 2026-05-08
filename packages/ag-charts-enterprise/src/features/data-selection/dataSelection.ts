@@ -268,18 +268,13 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
         const changes = this.allocSelectionChanges();
         const shouldClearSelections: boolean = !hasAddToSelectionModifier(dragEndEvent);
-        const changedSeries = new Set<Series>();
+        // On a clear-and-replace drag every series sees a state transition
+        // (Item/OtherItem flips for each rendered marker), so dispatch the
+        // internal change to all of them — error-bar styling and other
+        // per-marker consumers wouldn't otherwise re-render the previously
+        // selected series.
+        const changedSeries = new Set<Series>(shouldClearSelections ? this.ctx.chartService.series : undefined);
         if (shouldClearSelections) {
-            // Every series with prior selections has its bitset cleared; their
-            // bucketLookup caches need refreshing even if the drag bbox doesn't
-            // pick any new datums on them.
-            for (const series of this.ctx.chartService.series) {
-                if (!series.properties.selection.enabled) continue;
-                const sel = series.data?.selections.get(series.id);
-                if (sel !== undefined && sel.getLength() > 0) {
-                    changedSeries.add(series);
-                }
-            }
             clearAllSelections(changes, this.state, this.ctx.chartService.series);
         }
 
