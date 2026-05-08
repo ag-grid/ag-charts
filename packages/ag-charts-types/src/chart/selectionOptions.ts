@@ -1,3 +1,5 @@
+import type { AgSelectionStyleOptions } from '../series/seriesOptions';
+
 export type AgSelectionClickMode = 'single' | 'multiple';
 
 export type AgSelectionContainment = 'any' | 'all';
@@ -43,7 +45,7 @@ export interface AgChartSelectionOptions {
     containment?: AgSelectionContainment;
 }
 
-export interface AgSelectionOptions<ItemSelectionStyleOptions> {
+export interface AgSelectionOptions<ItemSelectionStyleOptions = AgSelectionStyleOptions> {
     /** Set to `true` to enable the data-selection on this series. */
     enabled?: boolean;
     /**
