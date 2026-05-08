@@ -16,8 +16,8 @@ tests.
 
 Exercise:
 
-- Initial load time.
-- Series toggle redraw time.
+-   Initial load time.
+-   Series toggle redraw time.
 
 {% chartExampleRunner title="Simple-Chart" name="simple-chart" type="generated" /%}
 
@@ -25,8 +25,8 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
-- Update time.
+-   Initial load time.
+-   Update time.
 
 {% chartExampleRunner title="Simple-Sparkline" name="simple-sparkline" type="generated" /%}
 
@@ -34,8 +34,8 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
-- Series toggle redraw time.
+-   Initial load time.
+-   Series toggle redraw time.
 
 {% chartExampleRunner title="Multi-Series" name="multi-series" type="generated" initialLoadDeferred=true /%}
 
@@ -43,7 +43,7 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
+-   Initial load time.
 
 {% chartExampleRunner title="Large Multi-Series" name="large-scale-multi-series" type="generated" initialLoadDeferred=true /%}
 
@@ -51,7 +51,7 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
+-   Initial load time.
 
 {% chartExampleRunner title="Integrated Large Scale" name="integrated-large-scale" type="generated" initialLoadDeferred=true /%}
 
@@ -59,8 +59,8 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
-- Chart resize redraw time.
+-   Initial load time.
+-   Chart resize redraw time.
 
 {% chartExampleRunner title="Resize Test" name="resize" type="generated" /%}
 
@@ -124,10 +124,16 @@ Exercise:
 
 Exercise:
 
-- Initial load time.
-- Interactive hover redraw time.
+-   Initial load time.
+-   Interactive hover redraw time.
 
 {% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}
+
+## Data Selection at Scale
+
+Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path).
+
+{% chartExampleRunner title="Data Selection Zoom" name="data-selection-zoom" type="generated" initialLoadDeferred=true /%}
 
 ## High-Frequency Data Updates
 
