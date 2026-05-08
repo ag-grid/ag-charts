@@ -101,12 +101,11 @@ type GaugeAnimationEvent = {
     skip: undefined;
 };
 
-interface LinearGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<
-        LinearGaugeNodeDatumIndex,
-        LinearGaugeNodeDatum,
-        LinearGaugeLabelDatum
-    > {
+interface LinearGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
+    LinearGaugeNodeDatumIndex,
+    LinearGaugeNodeDatum,
+    LinearGaugeLabelDatum
+> {
     tickData: _ModuleSupport.TickDatum[];
     targetData: LinearGaugeTargetDatum[];
     scaleData: LinearGaugeNodeDatum[];

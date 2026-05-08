@@ -103,10 +103,10 @@ data() {
 
 In this configuration:
 
--   `value` is the value displayed by the gauge.
--   `scale.min` defines the minimum value of the scale.
--   `scale.max` defines the maximum value of the scale.
--   The data is represented by a coloured bar displayed over a grey scale.
+- `value` is the value displayed by the gauge.
+- `scale.min` defines the minimum value of the scale.
+- `scale.max` defines the maximum value of the scale.
+- The data is represented by a coloured bar displayed over a grey scale.
 
 ## Horizontal Linear Gauge
 
@@ -137,9 +137,9 @@ To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
 
 In the above configuration:
 
--   The thickness of the scale is specified as 100 pixels.
--   The thickness of the bar is specified as 50 pixels.
--   It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
+- The thickness of the scale is specified as 100 pixels.
+- The thickness of the bar is specified as 50 pixels.
+- It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
 
 ### Labels
 
@@ -164,9 +164,9 @@ An label can be configured with the `label` property.
 
 In this configuration:
 
--   The label placement in relation to the gauge is configured by the `placement` property.
--   The label is configured to avoid simultaneously overlapping the bar and scale with the `avoidCollisions` property.
--   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
+- The label placement in relation to the gauge is configured by the `placement` property.
+- The label is configured to avoid simultaneously overlapping the bar and scale with the `avoidCollisions` property.
+- The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
 
 ### Segmentation
 
@@ -188,11 +188,11 @@ To split the gauge into segments, set `segmentation.enabled` to `true`.
 
 In this configuration:
 
--   `segmentation.interval` specifies how the gauge is segmented. Available options are:
-    -   `step` - segments the gauge at a fixed interval.
-    -   `count` - segments the gauge a fixed number of times.
-    -   `values` - segments the gauge at specific scale values.
--   `spacing` defines the spacing between each segment.
+- `segmentation.interval` specifies how the gauge is segmented. Available options are:
+    - `step` - segments the gauge at a fixed interval.
+    - `count` - segments the gauge a fixed number of times.
+    - `values` - segments the gauge at specific scale values.
+- `spacing` defines the spacing between each segment.
 
 ### Corner Radius
 
@@ -207,8 +207,8 @@ In this configuration:
 
 In this configuration:
 
--   `cornerRadius` specifies the amount of curvature applied to each corner.
--   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+- `cornerRadius` specifies the amount of curvature applied to each corner.
+- `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
 
 ## Colour Options
 
@@ -246,8 +246,8 @@ Multiple colours can be specified using the `fills` property.
 
 In this configuration:
 
--   `fills` specifies an array of colours to use to fill the bar.
--   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
+- `fills` specifies an array of colours to use to fill the bar.
+- `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
 
 The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
 
@@ -272,10 +272,10 @@ The default behaviour is to space out the colours evenly. This can be customised
 
 In this configuration:
 
--   Each colour stops at the `stop` value, and the next colour begins at that point.
--   If no `stop` is provided, the fills will be distributed equally.
--   The last colour is used until the end of the scale or bar.
--   Both `discrete` and `continuous` modes can be used with colour stops.
+- Each colour stops at the `stop` value, and the next colour begins at that point.
+- If no `stop` is provided, the fills will be distributed equally.
+- The last colour is used until the end of the scale or bar.
+- Both `discrete` and `continuous` modes can be used with colour stops.
 
 ## Targets
 
@@ -296,8 +296,8 @@ Gauges often display targets or thresholds to provide context to the displayed d
 
 In this configuration:
 
--   `value` is the position for the target marker.
--   `text` is an optional string for the target label.
+- `value` is the position for the target marker.
+- `text` is an optional string for the target label.
 
 ### Customisation
 
@@ -336,10 +336,10 @@ In this configuration:
 
 In this configuration:
 
--   `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
--   `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
--   `size` is the size of the marker, in pixels.
--   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+- `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
+- `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
+- `size` is the size of the marker, in pixels.
+- `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
 
 ## Bullet Series
 
@@ -376,9 +376,9 @@ The Linear Gauge is used to create a Bullet Series.
 
 In the above configuration:
 
--   The bar `thickness` is set to less that the gauge thickness.
--   The scale has a number of `fills` and a `fillMode` of `discrete`.
--   The target has `line` shape with a `strokeWidth` of 2 and is placed in the `middle`.
+- The bar `thickness` is set to less that the gauge thickness.
+- The scale has a number of `fills` and a `fillMode` of `discrete`.
+- The target has `line` shape with a `strokeWidth` of 2 and is placed in the `middle`.
 
 ## API Reference
 

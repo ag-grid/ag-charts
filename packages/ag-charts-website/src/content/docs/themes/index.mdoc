@@ -46,10 +46,10 @@ You can create your own theme, which builds upon an existing theme and allows yo
 
 A custom theme is an object with the following optional properties:
 
--   `baseTheme` - The name of the theme to base this theme upon (if not specified, the `'ag-default'` theme is used).
--   `palette` - The palette to use, replaces the palette of the base theme.
--   `params` - The theme parameters to set global styles.
--   `overrides` - The object to be merged with the base theme's defaults and override them.
+- `baseTheme` - The name of the theme to base this theme upon (if not specified, the `'ag-default'` theme is used).
+- `palette` - The palette to use, replaces the palette of the base theme.
+- `params` - The theme parameters to set global styles.
+- `overrides` - The object to be merged with the base theme's defaults and override them.
 
 See the [Themes API page](/themes-api/) for the complete options structure.
 
@@ -74,9 +74,9 @@ const myTheme = {
 
 The `params` object is used to set styles across the whole chart in one place.
 
--   Set the font with `fontFamily` and `fontSize`.
--   Use `foregroundColor`, `backgroundColor` and `accentColor` to set the main colours on the chart. All other colours will default to a mix of these three.
--   Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. Please see the [Themes API reference](/themes-api/#reference-AgChartTheme-params) for the full list of available options.
+- Set the font with `fontFamily` and `fontSize`.
+- Use `foregroundColor`, `backgroundColor` and `accentColor` to set the main colours on the chart. All other colours will default to a mix of these three.
+- Use specific params to adjust tooltips, menus, panels, toolbars, buttons and text inputs, for example `tooltipBackgroundColor`. Please see the [Themes API reference](/themes-api/#reference-AgChartTheme-params) for the full list of available options.
 
 {% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
 
@@ -100,18 +100,18 @@ const myTheme = {
 
 In the above example:
 
--   The three main colours are defined with some additional specific colours for chrome elements.
--   All text elements are set to the same font family.
--   All text, except the titles and footer, are set to the same font size.
+- The three main colours are defined with some additional specific colours for chrome elements.
+- All text elements are set to the same font family.
+- All text, except the titles and footer, are set to the same font size.
 
 ### Overrides
 
 The `overrides` object is similar in its structure to the chart's options and is used as follows:
 
--   Items in the `overrides.common` object are applied to all chart types.
--   Items in the series specific object (e.g. `overrides.line`), are applied to charts of that series type.
--   Series specific properties are found in the `series` object of the series type (e.g. `overrides.line.series`).
--   The `axes` config contains one object for each axis type.
+- Items in the `overrides.common` object are applied to all chart types.
+- Items in the series specific object (e.g. `overrides.line`), are applied to charts of that series type.
+- Series specific properties are found in the `series` object of the series type (e.g. `overrides.line.series`).
+- The `axes` config contains one object for each axis type.
 
 {% chartExampleRunner title="Custom Theme" name="custom-theme" type="generated"  /%}
 
@@ -142,9 +142,9 @@ const myTheme = {
 
 In the above example:
 
--   A different palette of colours and strokes is provided for all series to use.
--   The font size of the title is increased.
--   The `bar` series has specific label and stroke options set.
+- A different palette of colours and strokes is provided for all series to use.
+- The font size of the title is increased.
+- The `bar` series has specific label and stroke options set.
 
 ### Advanced Custom Theme
 
@@ -225,11 +225,11 @@ const myTheme = {
 
 In the above example:
 
--   A different palette of colours and strokes is provided for all series to use.
--   Some `param` global styles are specified.
--   Some `common` overrides are specified which apply to all chart types.
--   Different axes overrides are specified for `category` and `number` axes types.
--   Different series specific overrides are specified for `bar`, `line` and `pie` series.
+- A different palette of colours and strokes is provided for all series to use.
+- Some `param` global styles are specified.
+- Some `common` overrides are specified which apply to all chart types.
+- Different axes overrides are specified for `category` and `number` axes types.
+- Different series specific overrides are specified for `bar`, `line` and `pie` series.
 
 ## Figma Design System
 

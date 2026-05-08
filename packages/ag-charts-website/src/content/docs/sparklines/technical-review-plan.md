@@ -4,17 +4,16 @@
 
 ### Features Covered
 
--   Sparklines overview and minimal configuration
--   Three sparkline types: Bar, Line, and Area
--   Series customization options
--   Axis configuration for sparklines
--   API reference for all sparkline preset types
+- Sparklines overview and minimal configuration
+- Three sparkline types: Bar, Line, and Area
+- Series customization options
+- Axis configuration for sparklines
+- API reference for all sparkline preset types
 
 ### Key APIs and Configuration Options Documented
 
 1. **createSparkline API**: Main factory function for creating sparklines
 2. **Minimal Configuration**:
-
     - `type`: 'bar', 'line', or 'area'
     - `container`: DOM element
     - `data`: Chart data array
@@ -22,7 +21,6 @@
     - `yKey`: Numerical value field
 
 3. **Series Customization**:
-
     - Direct series properties at top level (no series array)
     - Example shows `fill` and `cornerRadius` for bar series
 
@@ -39,9 +37,9 @@
 
 ### Interactive Features Described
 
--   Tooltips (shown in examples with custom renderers)
--   Hover states (highlight configuration shown in main example)
--   No explicit mention of other interactions
+- Tooltips (shown in examples with custom renderers)
+- Hover states (highlight configuration shown in main example)
+- No explicit mention of other interactions
 
 ## Validation Targets
 
@@ -67,47 +65,47 @@
 
 **Documentation claims**:
 
--   Shows multiple sparkline types (bar, line, area) in a dashboard layout
--   Bar sparklines use horizontal direction with labels
--   Line sparklines show price trends with tooltips
--   Area sparklines show price changes with min/max constraints
+- Shows multiple sparkline types (bar, line, area) in a dashboard layout
+- Bar sparklines use horizontal direction with labels
+- Line sparklines show price trends with tooltips
+- Area sparklines show price changes with min/max constraints
 
 **Expected behaviors for example-tester**:
 
--   All three sparkline types should render correctly
--   Bar sparklines should display horizontal bars with inside/outside labels
--   Line sparklines should show continuous price data with hover tooltips
--   Area sparklines should show filled areas for change data
--   Tooltips should format currency values correctly
--   No console errors during rendering
+- All three sparkline types should render correctly
+- Bar sparklines should display horizontal bars with inside/outside labels
+- Line sparklines should show continuous price data with hover tooltips
+- Area sparklines should show filled areas for change data
+- Tooltips should format currency values correctly
+- No console errors during rendering
 
 #### customised-sparkline example
 
 **Documentation claims**:
 
--   Bar sparkline with custom fill color (#5C6BC0)
--   Corner radius of 3 applied to bars
+- Bar sparkline with custom fill color (#5C6BC0)
+- Corner radius of 3 applied to bars
 
 **Expected behaviors for example-tester**:
 
--   Bar sparkline renders with specified blue color
--   Bars have rounded corners (3px radius)
--   Basic bar sparkline functionality intact
+- Bar sparkline renders with specified blue color
+- Bars have rounded corners (3px radius)
+- Basic bar sparkline functionality intact
 
 #### sparkline-axes example
 
 **Documentation claims**:
 
--   Line sparkline with visible time axis
--   Custom axis styling (stroke color and width)
--   Min/max value constraints applied
+- Line sparkline with visible time axis
+- Custom axis styling (stroke color and width)
+- Min/max value constraints applied
 
 **Expected behaviors for example-tester**:
 
--   Time axis visible at bottom of sparkline
--   Axis styled with specified stroke color (#66A4) and width (1px)
--   Y-axis constrained between -3 and 3
--   Line chart renders correctly with axis
+- Time axis visible at bottom of sparkline
+- Axis styled with specified stroke color (#66A4) and width (1px)
+- Y-axis constrained between -3 and 3
+- Line chart renders correctly with axis
 
 ### User Interactions to Validate
 
@@ -167,23 +165,23 @@ No technical-review-exceptions.md file exists for this page.
 
 ### Success Criteria
 
--   All documented APIs exist and work as described
--   Examples demonstrate claimed features
--   No console errors during interaction
--   Visual rendering matches documentation descriptions
--   Tooltips and interactions work as expected
+- All documented APIs exist and work as described
+- Examples demonstrate claimed features
+- No console errors during interaction
+- Visual rendering matches documentation descriptions
+- Tooltips and interactions work as expected
 
 ### Estimated Complexity
 
--   **High complexity areas**:
-    -   Series option inheritance/flattening logic
-    -   Multiple sparkline instances in single example
--   **Medium complexity**:
-    -   Axis configuration variations
-    -   Tooltip customization
--   **Low complexity**:
-    -   Basic sparkline rendering
-    -   Simple styling options
+- **High complexity areas**:
+    - Series option inheritance/flattening logic
+    - Multiple sparkline instances in single example
+- **Medium complexity**:
+    - Axis configuration variations
+    - Tooltip customization
+- **Low complexity**:
+    - Basic sparkline rendering
+    - Simple styling options
 
 ## example-tester Delegation Plan
 
@@ -192,30 +190,30 @@ No technical-review-exceptions.md file exists for this page.
 **Task**: Validate complex dashboard with multiple sparkline types
 **Expectations**:
 
--   30 sparkline instances should render (10 companies × 3 types each)
--   Bar sparklines use horizontal direction with market cap data
--   Line sparklines show price trends over time
--   Area sparklines display price changes with -10 to 10 range
--   Custom tooltip formatters for currency display
--   Highlight configuration disables opacity changes
--   Labels show inside or outside bars based on value
+- 30 sparkline instances should render (10 companies × 3 types each)
+- Bar sparklines use horizontal direction with market cap data
+- Line sparklines show price trends over time
+- Area sparklines display price changes with -10 to 10 range
+- Custom tooltip formatters for currency display
+- Highlight configuration disables opacity changes
+- Labels show inside or outside bars based on value
 
 ### customised-sparkline example
 
 **Task**: Verify bar sparkline customization
 **Expectations**:
 
--   Single bar sparkline with blue fill (#5C6BC0)
--   Corner radius of 3px on bars
--   Standard bar chart interaction
+- Single bar sparkline with blue fill (#5C6BC0)
+- Corner radius of 3px on bars
+- Standard bar chart interaction
 
 ### sparkline-axes example
 
 **Task**: Test axis configuration and visibility
 **Expectations**:
 
--   Line sparkline with visible time axis
--   Axis uses semi-transparent color (#66A4)
--   1px stroke width on axis
--   Y-values constrained between -3 and 3
--   Time-based x-axis handling dates correctly
+- Line sparkline with visible time axis
+- Axis uses semi-transparent color (#66A4)
+- 1px stroke width on axis
+- Y-values constrained between -3 and 3
+- Time-based x-axis handling dates correctly

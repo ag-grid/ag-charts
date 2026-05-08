@@ -153,7 +153,7 @@ export const getPageImages = async ({
     const fullDarkModeImagePath = path.join(docsPath, pageName, darkModeImagePath);
     const darkModeImage = images[fullDarkModeImagePath];
     const darkModeImageSrc = darkModeImage
-        ? (await darkModeImage()).default.src ?? (await darkModeImage()).default
+        ? ((await darkModeImage()).default.src ?? (await darkModeImage()).default)
         : undefined;
 
     return {

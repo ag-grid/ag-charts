@@ -61,8 +61,8 @@ Multiple Range Area Series can be combined into a single chart.
 
 In this configuration:
 
--   `yName` is used to control the text displayed in the legend.
--   `yLowName`, `yHighName` and `xName` are used to control the text displayed in the tooltip.
+- `yName` is used to control the text displayed in the legend.
+- `yLowName`, `yHighName` and `xName` are used to control the text displayed in the tooltip.
 
 ## Missing Data
 
@@ -70,9 +70,9 @@ The series handles missing or invalid data based on the presence or validity of 
 
 {% chartExampleRunner title="Range Area Missing Data" name="range-area-missing-data" type="generated" /%}
 
--   Data points with a `yLowKey` or `yHighKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the range.
--   Set `connectMissingData: true` to draw a connecting area between points either side of a missing section.
--   Data points with invalid `xKey` values will be ignored.
+- Data points with a `yLowKey` or `yHighKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as a gap in the range.
+- Set `connectMissingData: true` to draw a connecting area between points either side of a missing section.
+- Data points with invalid `xKey` values will be ignored.
 
 ## Customisation
 
@@ -101,9 +101,9 @@ Series markers and labels can be enabled using the `marker` and `label` options.
 
 In this configuration:
 
--   Markers have been enabled using the `marker` options object.
--   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
--   The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
+- Markers have been enabled using the `marker` options object.
+- The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
+- The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
 
 ### Inverted Style
 
@@ -129,9 +129,9 @@ The `invertedStyle` property allows specifying a fill for areas where the `yHigh
 
 In this configuration:
 
--   The series `fill` of blue is used where `high > low`.
--   The `invertedStyle.fill` of red is used where `high < low`.
--   The `invertedStyle` object supports `fill` and `fillOpacity`.
+- The series `fill` of blue is used where `high > low`.
+- The `invertedStyle.fill` of red is used where `high < low`.
+- The `invertedStyle` object supports `fill` and `fillOpacity`.
 
 ### High and Low Styling
 
@@ -189,13 +189,13 @@ Use the `item.high` and `item.low` properties to apply specific overrides.
 
 In this configuration:
 
--   The `strokeWidth` is set to 2 on all lines.
--   All Markers are set a `size` of 12 with a gray `fill`.
--   The `stroke` for high line is set to a greenish colour.
--   The `stroke` for low Line is set to a reddish colour.
--   An [itemStyler](./stylers/#item-stylers) is used to override the `fill` of
-    [highlighted Markers](./series-highlighting/#stylers), using different fill values for the
-    `high` and `low` Markers.
+- The `strokeWidth` is set to 2 on all lines.
+- All Markers are set a `size` of 12 with a gray `fill`.
+- The `stroke` for high line is set to a greenish colour.
+- The `stroke` for low Line is set to a reddish colour.
+- An [itemStyler](./stylers/#item-stylers) is used to override the `fill` of
+  [highlighted Markers](./series-highlighting/#stylers), using different fill values for the
+  `high` and `low` Markers.
 
 ## API Reference
 

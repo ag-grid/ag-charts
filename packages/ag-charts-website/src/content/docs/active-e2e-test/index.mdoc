@@ -11,8 +11,8 @@ E2E Tests For `AgChartState['active']`.
 
 # Bubble-Example
 
--   Clicking `getState()` **MUST** console-log the bubble that is active in the tooltip.
--   Ticking `preventDefault` **MUST** avoid tooltip-pagination `activeChange` events from firing.
+- Clicking `getState()` **MUST** console-log the bubble that is active in the tooltip.
+- Ticking `preventDefault` **MUST** avoid tooltip-pagination `activeChange` events from firing.
 
 {% chartExampleRunner title="Hover-Focus API" name="bubble-example" type="generated" /%}
 
@@ -70,12 +70,12 @@ Initialised to "Legend Item: UK"
 
 # Interactive Tooltip
 
--   All user-interaction (Mouse/Touch/Keyboard) deactivation `activeChange` **MUST** be prevented.
--   Clicking the "Clear" button (setState) **MUST** clear the activation.
--   Chart resize:
-    -   Hover over a bar with the Mouse.
-    -   Press the "S" key on the Keyboard.
-    -   The chart resizes ; The highlight **MUST** redraw correct.
+- All user-interaction (Mouse/Touch/Keyboard) deactivation `activeChange` **MUST** be prevented.
+- Clicking the "Clear" button (setState) **MUST** clear the activation.
+- Chart resize:
+    - Hover over a bar with the Mouse.
+    - Press the "S" key on the Keyboard.
+    - The chart resizes ; The highlight **MUST** redraw correct.
 
 {% chartExampleRunner
     title="Interactive Tooltip and preventDefault"
@@ -86,11 +86,11 @@ Initialised to "Legend Item: UK"
 
 When `preventDefault` is ticked:
 
--   Series Area Mouse/Keyboard interactions **MUST NOT** show Highlight.
--   Series Area Mouse/Keyboard interactions **MUST NOT** show Tooltip.
--   Legend Mouse/Keyboard interactions **MUST NOT** update Highlight.
--   Series Area/Legend Keyboard interactions **MUST** show Focus Indicator.
--   Legend Mouse/Keyboard click **MUST** update Series Visibility.
+- Series Area Mouse/Keyboard interactions **MUST NOT** show Highlight.
+- Series Area Mouse/Keyboard interactions **MUST NOT** show Tooltip.
+- Legend Mouse/Keyboard interactions **MUST NOT** update Highlight.
+- Series Area/Legend Keyboard interactions **MUST** show Focus Indicator.
+- Legend Mouse/Keyboard click **MUST** update Series Visibility.
 
 {% chartExampleRunner
     title="Prevent Default Test"
@@ -114,11 +114,11 @@ When `preventDefault` is ticked:
 
 When clicking a candlestick
 
--   An "Unfreeze" button **MUST** be shown in the tooltip
--   Series Area Mouse/Keyboard interactions **MUST NOT** update Highlight.
--   Series Area Mouse/Keyboard interactions **MUST NOT** update Tooltip.
--   Series Area Mouse/Keyboard interactions **MUST NOT** update the X-Crosshair.
--   Series Area Mouse-Move interactions **MUST** update the Y-Crosshair.
+- An "Unfreeze" button **MUST** be shown in the tooltip
+- Series Area Mouse/Keyboard interactions **MUST NOT** update Highlight.
+- Series Area Mouse/Keyboard interactions **MUST NOT** update Tooltip.
+- Series Area Mouse/Keyboard interactions **MUST NOT** update the X-Crosshair.
+- Series Area Mouse-Move interactions **MUST** update the Y-Crosshair.
 
 {% chartExampleRunner
     title="Candlestick Crosshairs"
@@ -130,9 +130,9 @@ When clicking a candlestick
 
 Check that `frozen` and `dataIdKey` work properly together:
 
--   Click a bar: it **MUST** activate & freeze.
--   Click "Add Start" button: same bar **MUST** be activated.
--   Click "Remove Start" button: same bar **MUST** be activated.
+- Click a bar: it **MUST** activate & freeze.
+- Click "Add Start" button: same bar **MUST** be activated.
+- Click "Remove Start" button: same bar **MUST** be activated.
 
 {% chartExampleRunner
     title="Updating Data"
@@ -144,14 +144,14 @@ Check that `frozen` and `dataIdKey` work properly together:
 
 Check that `frozen` survives zoom/panning changes:
 
--   Click "Freeze on April":
-    -   That marker **MUST** freeze and activate.
--   Update the ZoomPan such that the April marker moves:
-    -   The highlight/tooltip **MUST** update to reflect the marker's new position.
--   Update the ZoomPan such that the April marker is no longer in the viewport:
-    -   The higlight/tooltip/crosshair **MUST** be hidden.
--   Update the ZoomPan such that the April marker return into the viewport:
-    -   The higlight/tooltip/crosshair **MUST** be restored.
+- Click "Freeze on April":
+    - That marker **MUST** freeze and activate.
+- Update the ZoomPan such that the April marker moves:
+    - The highlight/tooltip **MUST** update to reflect the marker's new position.
+- Update the ZoomPan such that the April marker is no longer in the viewport:
+    - The higlight/tooltip/crosshair **MUST** be hidden.
+- Update the ZoomPan such that the April marker return into the viewport:
+    - The higlight/tooltip/crosshair **MUST** be restored.
 
 {% chartExampleRunner
     title="Frozen Survives ZoomPan"
@@ -171,14 +171,12 @@ There's 4 test permutations:
 ```
 
 1. Valid `itemId` / Thawed
-
     - Click "Private Car" Legend Item (hide series)
     - Click "Restore (Valid/Thawed)"
     - Click "Private Car" Legend Item (show series)
         - "Private Car" legend-item **MUST** be active (i.e. whole series is highlighted)
 
 2. Invalid `itemId` / Thawed
-
     - Click "Private Car" Legend Item (hide series)
     - Click "Restore (Invalid/Thawed)"
         - Console **MUST NOT** warn that `itemId` is invalid.
@@ -187,14 +185,12 @@ There's 4 test permutations:
         - Console **MUST NOT** warn that `itemId` is invalid.
 
 3. Valid `itemId` / Frozen
-
     - Click "Private Car" Legend Item (hide series)
     - Click "Restore (Valid/Frozen)"
     - Click "Private Car" Legend Item (show series)
         - "Private Car 2020" bar **MUST** be active.
 
 4. Invalid `itemId` / Frozen
-
     - Click "Private Car" Legend Item (hide series)
     - Click "Restore (Invalid/Frozen)"
         - Console **MUST NOT** warn that `itemId` is invalid.
@@ -210,10 +206,10 @@ There's 4 test permutations:
 
 # External Legend
 
--   The external legend should behave just like our internal legend.
--   The external legend is implemented using `setState({active})`.
--   Our internal legend is disabled (`legend.enabled: false`); this **MUST NOT**
-    affect the external legend.
+- The external legend should behave just like our internal legend.
+- The external legend is implemented using `setState({active})`.
+- Our internal legend is disabled (`legend.enabled: false`); this **MUST NOT**
+  affect the external legend.
 
 {% chartExampleRunner
     title="External Legends"

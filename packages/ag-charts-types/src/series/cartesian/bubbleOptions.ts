@@ -18,7 +18,8 @@ import type {
 import type { AgBaseCartesianSeriesAxisOptions, AgColorScale, FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys<TDatum>,
         AgBubbleSeriesOptionsNames,
         FillOptions,
@@ -27,8 +28,11 @@ export interface AgBubbleSeriesTooltipRendererParams<TDatum = DatumDefault, TCon
 export type AgBubbleSeriesLabelFormatterParams<TDatum = DatumDefault> = AgBubbleSeriesOptionsKeys<TDatum> &
     AgBubbleSeriesOptionsNames;
 
-export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgBubbleSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgBubbleSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /**
      * Placement of label in relation to the marker.
      *
@@ -40,7 +44,8 @@ export interface AgBubbleSeriesLabel<TDatum, TContext = ContextDefault>
 export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
 export interface AgBubbleSeriesStylerParams<TDatum, TContext>
-    extends AgBubbleSeriesOptionsKeys<TDatum>,
+    extends
+        AgBubbleSeriesOptionsKeys<TDatum>,
         SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         AgBubbleSeriesStyle {
@@ -64,8 +69,7 @@ export type BubbleSeriesItemStylerParams<TDatum = DatumDefault, TContext = Conte
 export type AgBubbleSeriesItemStylerParams<TDatum, TContext> = BubbleSeriesItemStylerParams<TDatum, TContext>;
 
 export interface AgBubbleSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBubbleSeriesStyle,
-        AgBaseCartesianThemeableOptions<TDatum, TContext> {
+    extends AgBubbleSeriesStyle, AgBaseCartesianThemeableOptions<TDatum, TContext> {
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
     domain?: [number, number];
     /** Determines the smallest size a marker can be in pixels. */
@@ -122,7 +126,8 @@ export interface AgBubbleSeriesOptionsNames {
 }
 
 export interface AgBubbleSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,
         AgBaseCartesianSeriesAxisOptions,
         AgBubbleSeriesThemeableOptions<TDatum, TContext>,
         AgBubbleSeriesOptionsKeys<TDatum>,

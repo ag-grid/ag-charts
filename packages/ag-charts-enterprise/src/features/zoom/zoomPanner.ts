@@ -42,7 +42,7 @@ export class ZoomPanner {
     private get decelerationValue(): number {
         const { deceleration } = this;
         return Math.max(
-            typeof deceleration === 'number' ? deceleration : decelerationValues[deceleration] ?? 1,
+            typeof deceleration === 'number' ? deceleration : (decelerationValues[deceleration] ?? 1),
             0.0001
         );
     }

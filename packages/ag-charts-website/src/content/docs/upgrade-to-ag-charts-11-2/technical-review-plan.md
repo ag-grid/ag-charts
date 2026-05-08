@@ -15,59 +15,59 @@ This is a migration guide page for AG Charts version 11.2. The page contains:
 
 ### Examples Referenced
 
--   No example code is provided on this page
--   No interactive examples are embedded
+- No example code is provided on this page
+- No interactive examples are embedded
 
 ### Interactive Features Described
 
--   None - this is a migration guide without interactive examples
+- None - this is a migration guide without interactive examples
 
 ## Validation Targets
 
 ### 1. TypeScript Interface Verification
 
--   **Priority: HIGH**
--   Verify that `tooltip.position.type` property exists in AG Charts 11.1 or earlier type definitions
--   Confirm that `AgTooltipPositionOptions` interface in 11.2 includes:
-    -   `anchorTo?: AgTooltipAnchorTo` property
-    -   `placement?: AgTooltipPlacement | AgTooltipPlacement[]` property
-    -   NO `type` property (or if present, it should be marked as deprecated)
--   Check both chart-level and series-level tooltip options for this deprecation
+- **Priority: HIGH**
+- Verify that `tooltip.position.type` property exists in AG Charts 11.1 or earlier type definitions
+- Confirm that `AgTooltipPositionOptions` interface in 11.2 includes:
+    - `anchorTo?: AgTooltipAnchorTo` property
+    - `placement?: AgTooltipPlacement | AgTooltipPlacement[]` property
+    - NO `type` property (or if present, it should be marked as deprecated)
+- Check both chart-level and series-level tooltip options for this deprecation
 
 ### 2. Implementation File Checks
 
--   **Priority: HIGH**
--   Search for migration/deprecation handling code that maps old `position.type` to new `anchorTo`/`placement`
--   Verify that using the deprecated `position.type` property still works in 11.2 (backward compatibility)
--   Check console warnings are issued when using deprecated property
--   Confirm the mapping logic correctly translates old values to new properties
+- **Priority: HIGH**
+- Search for migration/deprecation handling code that maps old `position.type` to new `anchorTo`/`placement`
+- Verify that using the deprecated `position.type` property still works in 11.2 (backward compatibility)
+- Check console warnings are issued when using deprecated property
+- Confirm the mapping logic correctly translates old values to new properties
 
 ### 3. Documentation Cross-Reference
 
--   **Priority: MEDIUM**
--   Verify the tooltips documentation page properly documents the new `anchorTo` and `placement` properties
--   Check that the changelog.json entry for v11.2 (AG-10540) matches the deprecation note
--   Ensure the blog post link is valid and accessible
+- **Priority: MEDIUM**
+- Verify the tooltips documentation page properly documents the new `anchorTo` and `placement` properties
+- Check that the changelog.json entry for v11.2 (AG-10540) matches the deprecation note
+- Ensure the blog post link is valid and accessible
 
 ### 4. Deprecation Accuracy
 
--   **Priority: HIGH**
--   Verify the deprecation statement is accurate:
-    -   The old API was `tooltip.position.type`
-    -   The new API uses `tooltip.position.anchorTo` and/or `tooltip.position.placement`
-    -   This applies to both chart and series tooltip options
--   Check if there are any other related deprecations in 11.2 that should be documented
+- **Priority: HIGH**
+- Verify the deprecation statement is accurate:
+    - The old API was `tooltip.position.type`
+    - The new API uses `tooltip.position.anchorTo` and/or `tooltip.position.placement`
+    - This applies to both chart and series tooltip options
+- Check if there are any other related deprecations in 11.2 that should be documented
 
 ### 5. Version Accuracy
 
--   **Priority: MEDIUM**
--   Confirm that the migration version is correctly set to 11.2.0
--   Verify the statements about no breaking changes and no behaviour changes are accurate
--   Check if any deprecated APIs from previous versions were actually removed in 11.2
+- **Priority: MEDIUM**
+- Confirm that the migration version is correctly set to 11.2.0
+- Verify the statements about no breaking changes and no behaviour changes are accurate
+- Check if any deprecated APIs from previous versions were actually removed in 11.2
 
 ## Known Exceptions
 
--   No technical-review-exceptions.md file exists for this page
+- No technical-review-exceptions.md file exists for this page
 
 ## Execution Plan
 
@@ -111,9 +111,9 @@ Since this page contains no examples, the example-tester agent will not be neede
 
 ## Estimated Complexity
 
--   **Low**: This is a straightforward migration guide with minimal content
--   **Time Estimate**: 15-20 minutes for complete review
--   **Risk Areas**:
-    -   Ensuring backward compatibility is properly maintained
-    -   Verifying all deprecations are documented
-    -   Confirming no undocumented breaking changes exist
+- **Low**: This is a straightforward migration guide with minimal content
+- **Time Estimate**: 15-20 minutes for complete review
+- **Risk Areas**:
+    - Ensuring backward compatibility is properly maintained
+    - Verifying all deprecations are documented
+    - Confirming no undocumented breaking changes exist

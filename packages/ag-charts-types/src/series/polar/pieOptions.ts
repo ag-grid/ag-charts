@@ -27,8 +27,11 @@ import type {
     AgMultiSeriesHighlightOptions,
 } from '../seriesOptions';
 
-export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels between the callout line and the label text. */
     offset?: PixelSize;
     /** Minimum angle in degrees required for a sector to show a label. */
@@ -37,8 +40,11 @@ export interface AgPieSeriesLabelOptions<TDatum, TParams, TContext = ContextDefa
     avoidCollisions?: boolean;
 }
 
-export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, TParams, TContext> {
+export interface AgPieSeriesSectorLabelOptions<TDatum, TParams, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    TParams,
+    TContext
+> {
     /** Distance in pixels, used to make the label text closer to or further from the center. This offset is applied after positionRatio. */
     positionOffset?: PixelSize;
     /** Position of labels as a ratio proportional to pie radius. Additional offset in pixels can be applied by using positionOffset. */
@@ -68,7 +74,8 @@ export interface AgPieTitleOptions extends Toggleable, TextOptions {
 }
 
 export interface AgPieCalloutLineItemStylerParams<TDatum, TContext>
-    extends DatumCallbackParams<TDatum, HighlightState>,
+    extends
+        DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgPieSeriesLabelFormatterParams<TDatum> {}
 
@@ -93,8 +100,7 @@ export interface AgPieSeriesCalloutOptions<TDatum = DatumDefault, TContext = Con
 }
 
 export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext>,
-        LineDashOptions {
+    extends AgBaseSeriesThemeableOptions<TDatum, TContext>, LineDashOptions {
     /** Configuration for the series title. */
     title?: AgPieTitleOptions;
     /** Configuration for the labels used outside the sectors. */
@@ -140,7 +146,8 @@ export interface AgPieSeriesThemeableOptions<TDatum = DatumDefault, TContext = C
 }
 
 export interface AgPieSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
+    extends
+        Omit<AgPieSeriesThemeableOptions<TDatum, TContext>, 'innerLabels'>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight' | 'selection'> {
@@ -173,7 +180,8 @@ export interface AgPieSeriesOptionsNames {
 }
 
 export interface AgPieSeriesTooltipRendererParams<TDatum, TContext = ContextDefault>
-    extends AgSeriesTooltipRendererParams<TDatum, TContext>,
+    extends
+        AgSeriesTooltipRendererParams<TDatum, TContext>,
         AgPieSeriesOptionsKeys<TDatum>,
         AgPieSeriesOptionsNames,
         FillOptions,

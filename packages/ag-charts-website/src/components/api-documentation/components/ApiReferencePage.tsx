@@ -107,7 +107,7 @@ function ApiReferencePageContent({
                             ']
                         </>
                     ) : (
-                        pageTitle?.name ?? pageRef.name
+                        (pageTitle?.name ?? pageRef.name)
                     )}
                 </h1>
                 <Markdown remarkPlugins={[remarkBreaks]}>{parseJsDocs(pageRef.docs)}</Markdown>

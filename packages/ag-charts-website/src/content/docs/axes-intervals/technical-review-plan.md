@@ -7,17 +7,14 @@ The `axes-intervals` documentation page covers the configuration of axis interva
 ### Key Features Covered:
 
 1. **Step Intervals** - Fixed intervals with regular spacing
-
     - Number axes: numeric step values
     - Log axes: exponent increments
     - Time axes: AgTimeInterval or AgTimeIntervalUnit
 
 2. **Values Intervals** - Irregular intervals at specific values
-
     - Support for number, Date, or String arrays
 
 3. **Min/Max Spacing** - Responsive intervals based on pixel gaps
-
     - minSpacing: minimum pixel gap between items
     - maxSpacing: maximum pixel gap between items
     - Category axes don't support maxSpacing
@@ -40,21 +37,17 @@ The `axes-intervals` documentation page covers the configuration of axis interva
 ### TypeScript Interfaces to Verify:
 
 1. `AgAxisBaseIntervalOptions` (packages/ag-charts-types/src/chart/axisOptions.ts)
-
     - `values?: any[]`
     - `minSpacing?: PixelSize`
 
 2. `AgAxisContinuousIntervalOptions<T>` (packages/ag-charts-types/src/chart/axisOptions.ts)
-
     - `step?: T`
     - `maxSpacing?: PixelSize`
 
 3. `AgAxisCategoryIntervalOptions` (packages/ag-charts-types/src/chart/cartesianOptions.ts)
-
     - `placement?: AgAxisIntervalPlacement` ('on' | 'between')
 
 4. `AgAxisDiscreteTimeIntervalOptions` (packages/ag-charts-types/src/chart/cartesianOptions.ts)
-
     - `placement?: AgAxisIntervalPlacement`
 
 5. `AgTimeInterval` and `AgTimeIntervalUnit` (packages/ag-charts-types/src/chart/axisOptions.ts)
@@ -73,75 +66,75 @@ The `axes-intervals` documentation page covers the configuration of axis interva
 
 **Documentation Claims:**
 
--   Shows number axis with `step: 5`
--   Should display values at 0, 5, 10, etc.
--   Tests default interval override behavior
+- Shows number axis with `step: 5`
+- Should display values at 0, 5, 10, etc.
+- Tests default interval override behavior
 
 **Expected Behaviors:**
 
--   Y-axis should show intervals at multiples of 5
--   Grid lines and ticks should align with these intervals
--   Labels should show at 0, 5, 10, 15, etc.
+- Y-axis should show intervals at multiples of 5
+- Grid lines and ticks should align with these intervals
+- Labels should show at 0, 5, 10, 15, etc.
 
 #### 2. time-axis-label-format (Time Axis Interval)
 
 **Documentation Claims:**
 
--   Demonstrates time axis intervals using AgTimeInterval or AgTimeIntervalUnit
--   Should show proper time-based intervals
+- Demonstrates time axis intervals using AgTimeInterval or AgTimeIntervalUnit
+- Should show proper time-based intervals
 
 **Expected Behaviors:**
 
--   X-axis should show time-based intervals
--   Intervals should respect the configured time unit
--   Labels should format according to time intervals
+- X-axis should show time-based intervals
+- Intervals should respect the configured time unit
+- Labels should format according to time intervals
 
 #### 3. axis-values (Values)
 
 **Documentation Claims:**
 
--   Shows irregular intervals using `values: [50, 88, 100]`
--   Should display only specified values on axis
+- Shows irregular intervals using `values: [50, 88, 100]`
+- Should display only specified values on axis
 
 **Expected Behaviors:**
 
--   Axis should show only the values 50, 88, and 100
--   No other tick marks or labels should appear
--   Grid lines should align with these specific values
+- Axis should show only the values 50, 88, and 100
+- No other tick marks or labels should appear
+- Grid lines should align with these specific values
 
 #### 4. axis-min-max-spacing (Min/Max Spacing)
 
 **Documentation Claims:**
 
--   Has button to apply min/max spacing
--   Has resize handle in bottom right
--   minSpacing: 15, maxSpacing: 25
--   Intervals should adjust with chart size
--   Notes about spacing constraints when values are close
+- Has button to apply min/max spacing
+- Has resize handle in bottom right
+- minSpacing: 15, maxSpacing: 25
+- Intervals should adjust with chart size
+- Notes about spacing constraints when values are close
 
 **Expected Behaviors:**
 
--   Button should toggle between default and min/max spacing
--   Resize handle should allow chart resizing
--   Intervals should dynamically adjust when resizing
--   Spacing between intervals should stay within 15-25 pixels
--   Should demonstrate non-standard intervals when constraints are too tight
+- Button should toggle between default and min/max spacing
+- Resize handle should allow chart resizing
+- Intervals should dynamically adjust when resizing
+- Spacing between intervals should stay within 15-25 pixels
+- Should demonstrate non-standard intervals when constraints are too tight
 
 #### 5. axis-placement (Placement)
 
 **Documentation Claims:**
 
--   Uses alternating band shading
--   Shows difference between 'on' and 'between' placement
--   'on': ticks/grid lines positioned above label on each category
--   'between': ticks/grid lines positioned between category labels
+- Uses alternating band shading
+- Shows difference between 'on' and 'between' placement
+- 'on': ticks/grid lines positioned above label on each category
+- 'between': ticks/grid lines positioned between category labels
 
 **Expected Behaviors:**
 
--   Should have alternating band shading visible
--   Toggle or buttons to switch between 'on' and 'between'
--   Visual difference in tick/grid line positioning
--   Labels should remain in same position, only ticks/grid lines move
+- Should have alternating band shading visible
+- Toggle or buttons to switch between 'on' and 'between'
+- Visual difference in tick/grid line positioning
+- Labels should remain in same position, only ticks/grid lines move
 
 ### User Interactions to Validate:
 
@@ -198,25 +191,21 @@ No existing `technical-review-exceptions.md` file found for this page.
 For each example, provide the agent with:
 
 1. **axis-interval**:
-
     - Verify `interval: { step: 5 }` configuration
     - Check Y-axis shows multiples of 5
     - Validate grid lines align with intervals
 
 2. **time-axis-label-format**:
-
     - Verify time interval configuration
     - Check proper time unit handling
     - Validate label formatting
 
 3. **axis-values**:
-
     - Verify `interval: { values: [50, 88, 100] }` configuration
     - Check only specified values appear
     - Validate no extra tick marks
 
 4. **axis-min-max-spacing**:
-
     - Verify minSpacing: 15, maxSpacing: 25 configuration
     - Check resize functionality
     - Validate dynamic interval adjustment

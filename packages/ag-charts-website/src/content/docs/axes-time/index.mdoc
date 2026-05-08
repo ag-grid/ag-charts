@@ -9,9 +9,9 @@ Time can be provided as `number` or `Date` objects, where `number` values are in
 
 There are three methods of displaying time along an axis.
 
--   [Unit Time Axis](#unit-time) - Each 'unit' has a dedicated band within the domain.
--   [Ordinal Time Axis](#ordinal-time) - Only provided values are shown, with missing values omitted.
--   [Continuous Time Axis](#continuous-time) - Data is shown on a continuous scale.
+- [Unit Time Axis](#unit-time) - Each 'unit' has a dedicated band within the domain.
+- [Ordinal Time Axis](#ordinal-time) - Only provided values are shown, with missing values omitted.
+- [Continuous Time Axis](#continuous-time) - Data is shown on a continuous scale.
 
 The difference between a [Unit Time Axis](#unit-time), an [Ordinal Time Axis](#ordinal-time), and a [Continuous Time Axis](#continuous-time) is demonstrated in the following example:
 
@@ -57,7 +57,7 @@ To explicitly set the `unit`, provide an `AgTimeInterval` string or `AgTimeInter
 
 In this configuration:
 
--   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
+- `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
 
 {% note %}
 
@@ -89,9 +89,9 @@ The `AgTimeIntervalUnit` object supports advanced configuration for more complex
 
 In this example:
 
--   `step` specifies the multiple of the unit to use. In this example, `step: 7` combined with `unit: 'day'` will display one data point for any provided date within each week.
--   `epoch` is an optional `Date` that specifies the starting point for the unit. In this example, the week runs from Monday to Monday.
--   In this example, a [Formatter](./formatters) is used to format the labels as numbered weeks of the year.
+- `step` specifies the multiple of the unit to use. In this example, `step: 7` combined with `unit: 'day'` will display one data point for any provided date within each week.
+- `epoch` is an optional `Date` that specifies the starting point for the unit. In this example, the week runs from Monday to Monday.
+- In this example, a [Formatter](./formatters) is used to format the labels as numbered weeks of the year.
 
 For a full list of configuration options see [Unit Time Axis Options](#reference-AgUnitTimeAxisOptions).
 
@@ -165,9 +165,9 @@ The [Axis Interval](./axes-intervals) of Time Axes labels, grid lines and ticks 
 
 In this configuration:
 
--   `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
--   `step` is an optional number that specifies the multiple of the unit to use.
--   `epoch` is an optional `Date` that specifies the starting point for the interval.
+- `unit` must be one of `millisecond`, `second`, `minute`, `hour`, `day`, `month`, or `year`.
+- `step` is an optional number that specifies the multiple of the unit to use.
+- `epoch` is an optional `Date` that specifies the starting point for the interval.
 
 {% note %}
 
@@ -198,8 +198,8 @@ It is enabled by default for the [Unit Time Axis](#unit-time), and can be opted 
 
 In this example:
 
--   The data is shown with a 'day' unit, and the parent level of 'month' is shown in bold.
--   As you zoom out, the labels will change to 'month', with a parent level of 'year'.
+- The data is shown with a 'day' unit, and the parent level of 'month' is shown in bold.
+- As you zoom out, the labels will change to 'month', with a parent level of 'year'.
 
 ### Customisation
 
@@ -235,9 +235,9 @@ Parent level labels and ticks options are inherited from the axes label and tick
 
 In this configuration:
 
--   The label format is set to show the day and month for the `day` level, and the month for the `month` level.
--   The parent level tick is given a width of `1` to show the parent level ticks.
--   The parent level label format is set to show the day and month on separate lines for the `month` level, and the month and year on separate lines for the `year` level.
+- The label format is set to show the day and month for the `day` level, and the month for the `month` level.
+- The parent level tick is given a width of `1` to show the parent level ticks.
+- The parent level label format is set to show the day and month on separate lines for the `month` level, and the month and year on separate lines for the `year` level.
 
 See [Axis Labels](./axes-labels/#label-text-formatting) and the [Formatters](./formatters/) pages for more information on formatting labels.
 

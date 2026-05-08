@@ -128,7 +128,7 @@ See the [Colour Scale](./colour-scale/) page for the full range of colour scale 
 
 In this configuration:
 
--   `fills` and `strokes` are an array of colours to use for the fills and strokes, where each node receives the colour indexed by the index of its root node
+- `fills` and `strokes` are an array of colours to use for the fills and strokes, where each node receives the colour indexed by the index of its root node
 
 {% note %}
 When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
@@ -165,11 +165,11 @@ All segments can contain both labels and secondary labels, which can be shrunk t
 
 In this configuration:
 
--   `fontSize` sets the size of the font.
--   `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space.
--   `spacing` controls the amount of space below a label.
--   `padding` adds space between the edge of a sector and its contents.
--   `formatter` allows customising the value of a label using a function.
+- `fontSize` sets the size of the font.
+- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space.
+- `spacing` controls the amount of space below a label.
+- `padding` adds space between the edge of a sector and its contents.
+- `formatter` allows customising the value of a label using a function.
 
 ## Highlighting
 
@@ -177,10 +177,10 @@ In this configuration:
 
 Each sunburst highlight state exposes a separate style object:
 
--   `highlightedItem` – the hovered segment.
--   `highlightedBranch` – All segments that share the same root node.
--   `unhighlightedItem` – All segments in the highlightedBranch that are not the highlighted segment.
--   `unhighlightedBranch` – segments that belong to different branches.
+- `highlightedItem` – the hovered segment.
+- `highlightedBranch` – All segments that share the same root node.
+- `unhighlightedItem` – All segments in the highlightedBranch that are not the highlighted segment.
+- `unhighlightedBranch` – segments that belong to different branches.
 
 ```js format="snippet"
 {
@@ -202,9 +202,9 @@ Each sunburst highlight state exposes a separate style object:
 
 In this configuration:
 
--   Hovered segments get an accent stroke while preserving the default fill.
--   Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
--   Segments in other branches fade based on `unhighlightedBranch`.
+- Hovered segments get an accent stroke while preserving the default fill.
+- Sibling segments in the same branch inherit `highlightedBranch` styles (merged with their own highlight state).
+- Segments in other branches fade based on `unhighlightedBranch`.
 
 ## API Reference
 

@@ -8,10 +8,10 @@ This is a migration guide documenting changes from AG Charts 11.x to 12.0. Unlik
 
 ### Content Structure
 
--   Breaking changes (5 items across 4 categories)
--   Behavior changes (11 items across 5 categories)
--   Deprecations (4 items)
--   Removed deprecated properties (4 items)
+- Breaking changes (5 items across 4 categories)
+- Behavior changes (11 items across 5 categories)
+- Deprecations (4 items)
+- Removed deprecated properties (4 items)
 
 ### Key APIs and Configuration Options Documented
 
@@ -29,10 +29,10 @@ This is a migration guide documenting changes from AG Charts 11.x to 12.0. Unlik
 
 ### Interactive Features Described
 
--   Zoom functionality with new autoScaling default
--   Context menu with new "Reset Zoom" item
--   Navigator with new default height when Mini Chart enabled
--   Tooltip behavior changes with labelKey
+- Zoom functionality with new autoScaling default
+- Context menu with new "Reset Zoom" item
+- Navigator with new default height when Mini Chart enabled
+- Tooltip behavior changes with labelKey
 
 ## Validation Targets
 
@@ -40,53 +40,53 @@ This is a migration guide documenting changes from AG Charts 11.x to 12.0. Unlik
 
 #### Series-Related
 
--   `packages/ag-charts-types/src/chart/series/seriesOptions.ts` - Verify `type` is required
--   `packages/ag-charts-types/src/chart/series/cartesian/bubbleSeriesOptions.ts` - Check labelKey behavior
--   `packages/ag-charts-types/src/chart/seriesOptions.ts` - Verify listener property names
+- `packages/ag-charts-types/src/chart/series/seriesOptions.ts` - Verify `type` is required
+- `packages/ag-charts-types/src/chart/series/cartesian/bubbleSeriesOptions.ts` - Check labelKey behavior
+- `packages/ag-charts-types/src/chart/seriesOptions.ts` - Verify listener property names
 
 #### Axes-Related
 
--   `packages/ag-charts-types/src/chart/axis/timeAxisOptions.ts` - Confirm removed properties
--   `packages/ag-charts-types/src/chart/axis/unitTimeAxisOptions.ts` - Verify replacement axis type
--   `packages/ag-charts-types/src/chart/axis/axisOptions.ts` - Check thickness property
+- `packages/ag-charts-types/src/chart/axis/timeAxisOptions.ts` - Confirm removed properties
+- `packages/ag-charts-types/src/chart/axis/unitTimeAxisOptions.ts` - Verify replacement axis type
+- `packages/ag-charts-types/src/chart/axis/axisOptions.ts` - Check thickness property
 
 #### Theme-Related
 
--   `packages/ag-charts-types/src/chart/themeOptions.ts` - Verify theme.params structure
--   `packages/ag-charts-types/src/chart/chartOptions.ts` - Confirm chartPadding exists
+- `packages/ag-charts-types/src/chart/themeOptions.ts` - Verify theme.params structure
+- `packages/ag-charts-types/src/chart/chartOptions.ts` - Confirm chartPadding exists
 
 #### Other Configuration
 
--   `packages/ag-charts-types/src/chart/zoomOptions.ts` - Check autoScaling, minVisibleItems
--   `packages/ag-charts-types/src/chart/tooltipOptions.ts` - Verify position properties
--   `packages/ag-charts-types/src/chart/contextMenuOptions.ts` - Check items[] vs extraActions
--   `packages/ag-charts-types/src/util/time.ts` - Verify AgTimeInterval types
+- `packages/ag-charts-types/src/chart/zoomOptions.ts` - Check autoScaling, minVisibleItems
+- `packages/ag-charts-types/src/chart/tooltipOptions.ts` - Verify position properties
+- `packages/ag-charts-types/src/chart/contextMenuOptions.ts` - Check items[] vs extraActions
+- `packages/ag-charts-types/src/util/time.ts` - Verify AgTimeInterval types
 
 ### Implementation Files to Check
 
 #### Series Implementation
 
--   `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts` - labelKey fallback logic
--   `packages/ag-charts-community/src/chart/series/seriesProperties.ts` - type requirement
--   `packages/ag-charts-community/src/chart/interaction/tooltipManager.ts` - labelKey in tooltip
+- `packages/ag-charts-community/src/chart/series/cartesian/bubbleSeries.ts` - labelKey fallback logic
+- `packages/ag-charts-community/src/chart/series/seriesProperties.ts` - type requirement
+- `packages/ag-charts-community/src/chart/interaction/tooltipManager.ts` - labelKey in tooltip
 
 #### Axes Implementation
 
--   `packages/ag-charts-community/src/chart/axis/timeAxis.ts` - Removed properties
--   `packages/ag-charts-community/src/chart/axis/ordinalTimeAxis.ts` - Sorting behavior
--   `packages/ag-charts-community/src/chart/axis/axis.ts` - Thickness default calculation
+- `packages/ag-charts-community/src/chart/axis/timeAxis.ts` - Removed properties
+- `packages/ag-charts-community/src/chart/axis/ordinalTimeAxis.ts` - Sorting behavior
+- `packages/ag-charts-community/src/chart/axis/axis.ts` - Thickness default calculation
 
 #### Theme Implementation
 
--   `packages/ag-charts-community/src/chart/themes/themes.ts` - Default color values
--   `packages/ag-charts-community/src/chart/themes/darkTheme.ts` - Dark theme defaults
--   `packages/ag-charts-community/src/chart/themes/materialTheme.ts` - Material theme defaults
+- `packages/ag-charts-community/src/chart/themes/themes.ts` - Default color values
+- `packages/ag-charts-community/src/chart/themes/darkTheme.ts` - Dark theme defaults
+- `packages/ag-charts-community/src/chart/themes/materialTheme.ts` - Material theme defaults
 
 #### Other Implementation
 
--   `packages/ag-charts-community/src/chart/interaction/zoomManager.ts` - autoScaling default
--   `packages/ag-charts-community/src/chart/interaction/contextMenu.ts` - Reset Zoom item
--   `packages/ag-charts-enterprise/src/features/navigator/navigator.ts` - Default height
+- `packages/ag-charts-community/src/chart/interaction/zoomManager.ts` - autoScaling default
+- `packages/ag-charts-community/src/chart/interaction/contextMenu.ts` - Reset Zoom item
+- `packages/ag-charts-enterprise/src/features/navigator/navigator.ts` - Default height
 
 ### User Interactions to Validate
 
@@ -111,88 +111,88 @@ None found - no `technical-review-exceptions.md` file exists for this page
 
 #### 1.1 Series Type Requirement
 
--   [ ] Check `AgSeriesOptions` interface for `type` property optionality
--   [ ] Verify TypeScript compilation fails without `type`
--   [ ] Confirm error message is helpful for migration
+- [ ] Check `AgSeriesOptions` interface for `type` property optionality
+- [ ] Verify TypeScript compilation fails without `type`
+- [ ] Confirm error message is helpful for migration
 
 #### 1.2 Time Axis Property Removal
 
--   [ ] Verify `unit`, `paddingInner`, `paddingOuter`, `groupPaddingInner` are removed from TimeAxisOptions
--   [ ] Confirm these properties exist in UnitTimeAxisOptions
--   [ ] Test that using removed properties causes TypeScript errors
+- [ ] Verify `unit`, `paddingInner`, `paddingOuter`, `groupPaddingInner` are removed from TimeAxisOptions
+- [ ] Confirm these properties exist in UnitTimeAxisOptions
+- [ ] Test that using removed properties causes TypeScript errors
 
 #### 1.3 Theme Padding Migration
 
--   [ ] Verify `theme.params.padding` is removed
--   [ ] Confirm `chartPadding` exists as replacement
--   [ ] Check implementation for migration path
+- [ ] Verify `theme.params.padding` is removed
+- [ ] Confirm `chartPadding` exists as replacement
+- [ ] Check implementation for migration path
 
 #### 1.4 Series Listener Renaming
 
--   [ ] Verify `nodeClick` and `nodeDoubleClick` are removed
--   [ ] Confirm `seriesNodeClick` and `seriesNodeDoubleClick` exist
--   [ ] Check all series types for consistency
+- [ ] Verify `nodeClick` and `nodeDoubleClick` are removed
+- [ ] Confirm `seriesNodeClick` and `seriesNodeDoubleClick` exist
+- [ ] Check all series types for consistency
 
 #### 1.5 Vue Version Requirement
 
--   [ ] Check package.json for Vue peer dependency version
--   [ ] Verify minimum version is 3.5
+- [ ] Check package.json for Vue peer dependency version
+- [ ] Verify minimum version is 3.5
 
 ### Priority 2: Behavior Changes Validation (High)
 
 #### 2.1 Bubble Series Label Behavior
 
--   [ ] Check BubbleSeries implementation for labelKey fallback logic
--   [ ] Verify it falls back to sizeKey instead of yKey
--   [ ] Test tooltip includes label value when labelKey is set
+- [ ] Check BubbleSeries implementation for labelKey fallback logic
+- [ ] Verify it falls back to sizeKey instead of yKey
+- [ ] Test tooltip includes label value when labelKey is set
 
 #### 2.2 Axis Sorting and Formatting
 
--   [ ] Verify vertical time axes sort with earliest at top
--   [ ] Check default label format improvements
--   [ ] Confirm thickness calculation (30% max)
+- [ ] Verify vertical time axes sort with earliest at top
+- [ ] Check default label format improvements
+- [ ] Confirm thickness calculation (30% max)
 
 #### 2.3 Theme Default Colors
 
--   [ ] Verify each color value change is accurate:
-    -   foregroundColor: #464646 → #181d1f
-    -   axisColor: #c3c3c3 → #b4b6b6
-    -   borderColor: #dddddd → rgba(24, 29, 31, 0.15)
-    -   chromeBackgroundColor: #fafafa → #fafafb
-    -   crosshairLabelBackgroundColor: #464646 → #181d1f
-    -   gridLineColor: #e0eaf2 → #e8e8e9
-    -   inputTextColor: #464646 → #181d1f
-    -   subtleTextColor: #8c8c8c → #707374
-    -   textColor: #464646 → #181d1f
--   [ ] Check new popupShadow and focusShadow properties
+- [ ] Verify each color value change is accurate:
+    - foregroundColor: #464646 → #181d1f
+    - axisColor: #c3c3c3 → #b4b6b6
+    - borderColor: #dddddd → rgba(24, 29, 31, 0.15)
+    - chromeBackgroundColor: #fafafa → #fafafb
+    - crosshairLabelBackgroundColor: #464646 → #181d1f
+    - gridLineColor: #e0eaf2 → #e8e8e9
+    - inputTextColor: #464646 → #181d1f
+    - subtleTextColor: #8c8c8c → #707374
+    - textColor: #464646 → #181d1f
+- [ ] Check new popupShadow and focusShadow properties
 
 #### 2.4 Other Defaults
 
--   [ ] Verify strokeWidth default when stroke is provided
--   [ ] Check Navigator height (40px) with Mini Chart
--   [ ] Confirm zoom.autoScaling defaults to true
--   [ ] Verify "Reset Zoom" in default context menu
+- [ ] Verify strokeWidth default when stroke is provided
+- [ ] Check Navigator height (40px) with Mini Chart
+- [ ] Confirm zoom.autoScaling defaults to true
+- [ ] Verify "Reset Zoom" in default context menu
 
 ### Priority 3: Deprecations and Removals (Medium)
 
 #### 3.1 Time Import Deprecation
 
--   [ ] Verify `time` import shows deprecation warning
--   [ ] Confirm AgTimeInterval and AgTimeIntervalUnit work as replacements
--   [ ] Check utc\* and week removal
+- [ ] Verify `time` import shows deprecation warning
+- [ ] Confirm AgTimeInterval and AgTimeIntervalUnit work as replacements
+- [ ] Check utc\* and week removal
 
 #### 3.2 HighlightStyle Deprecation
 
--   [ ] Verify highlightStyle removed except for treemap/sunburst
--   [ ] Confirm highlight options work as replacement
+- [ ] Verify highlightStyle removed except for treemap/sunburst
+- [ ] Confirm highlight options work as replacement
 
 #### 3.3 Removed Properties
 
--   [ ] Verify all removed properties are actually gone:
-    -   zoom.minVisibleItemsX/Y
-    -   tooltip.position.type
-    -   contextMenu.extraActions[]
--   [ ] Confirm suggested replacements exist and work
+- [ ] Verify all removed properties are actually gone:
+    - zoom.minVisibleItemsX/Y
+    - tooltip.position.type
+    - contextMenu.extraActions[]
+- [ ] Confirm suggested replacements exist and work
 
 ### Success Criteria
 
@@ -204,9 +204,9 @@ None found - no `technical-review-exceptions.md` file exists for this page
 
 ### Estimated Complexity
 
--   **High Complexity**: Theme default color verification (11 values to check across multiple themes)
--   **Medium Complexity**: Breaking change validation, behavior testing
--   **Low Complexity**: Simple property removal verification
+- **High Complexity**: Theme default color verification (11 values to check across multiple themes)
+- **Medium Complexity**: Breaking change validation, behavior testing
+- **Low Complexity**: Simple property removal verification
 
 ### Delegation Plan for example-tester Agent
 
@@ -221,21 +221,21 @@ Since there are no examples to test, the example-tester agent will not be used i
 
 ### High Risk Areas
 
--   Theme color changes affecting visual appearance across all charts
--   Breaking changes that might not be caught by TypeScript (runtime only)
--   Zoom behavior changes affecting user experience
+- Theme color changes affecting visual appearance across all charts
+- Breaking changes that might not be caught by TypeScript (runtime only)
+- Zoom behavior changes affecting user experience
 
 ### Medium Risk Areas
 
--   Axis sorting changes potentially breaking existing layouts
--   Tooltip behavior modifications
--   Context menu changes
+- Axis sorting changes potentially breaking existing layouts
+- Tooltip behavior modifications
+- Context menu changes
 
 ### Low Risk Areas
 
--   Simple property removals with clear migration paths
--   Deprecation warnings for future removal
--   Vue version requirement (framework-specific)
+- Simple property removals with clear migration paths
+- Deprecation warnings for future removal
+- Vue version requirement (framework-specific)
 
 ## Notes
 

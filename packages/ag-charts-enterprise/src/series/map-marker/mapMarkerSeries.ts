@@ -58,8 +58,10 @@ const {
     getLabelStyles,
 } = _ModuleSupport;
 
-interface MapMarkerNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
+interface MapMarkerNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    MapMarkerNodeDatum,
+    MapMarkerNodeLabelDatum
+> {}
 
 interface MarkerDataValues {
     readonly idValue: string | undefined;

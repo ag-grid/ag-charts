@@ -6,38 +6,37 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 
 ### Chart Types/Features Covered
 
--   **Ordered Data Example**: Demonstrates performance with time-series data
+- **Ordered Data Example**: Demonstrates performance with time-series data
+    - Multiple series types: Line, Area, Bar, Range Area, Range Bar, Candlestick, OHLC
+    - Multiple axis types: Continuous Time, Ordinal Time, Ordinal Time with Parent Level, Unit Time
+    - Data scaling: 1k to 1m data points
+    - Zoom functionality with auto-scaling
+    - Navigator with mini-chart
+    - Scene stats debugging enabled
 
-    -   Multiple series types: Line, Area, Bar, Range Area, Range Bar, Candlestick, OHLC
-    -   Multiple axis types: Continuous Time, Ordinal Time, Ordinal Time with Parent Level, Unit Time
-    -   Data scaling: 1k to 1m data points
-    -   Zoom functionality with auto-scaling
-    -   Navigator with mini-chart
-    -   Scene stats debugging enabled
-
--   **Bubble/Scatter Example**: Demonstrates high-volume point rendering
-    -   Bubble and Scatter series types
-    -   `maxRenderedItems` performance optimization
-    -   Multiple marker shapes
-    -   Data scaling: 1k to 1m data points
-    -   Zoom functionality (XY axes)
-    -   Opacity optimizations for overlapping points
+- **Bubble/Scatter Example**: Demonstrates high-volume point rendering
+    - Bubble and Scatter series types
+    - `maxRenderedItems` performance optimization
+    - Multiple marker shapes
+    - Data scaling: 1k to 1m data points
+    - Zoom functionality (XY axes)
+    - Opacity optimizations for overlapping points
 
 ### Key APIs and Configuration Options Documented
 
--   None explicitly documented on this page - the page relies entirely on examples
--   Examples use undocumented features like `window.agChartsDebug = 'scene:stats'`
--   Examples demonstrate enterprise features (zoom, navigator)
+- None explicitly documented on this page - the page relies entirely on examples
+- Examples use undocumented features like `window.agChartsDebug = 'scene:stats'`
+- Examples demonstrate enterprise features (zoom, navigator)
 
 ### Interactive Features Expected
 
--   Data volume controls (1k, 10k, 100k, 1m points)
--   Series type switching
--   Axis type switching (ordered data example)
--   Shape selection (bubble/scatter example)
--   Max visible items slider (bubble/scatter example)
--   Zoom and pan interactions
--   Navigator interactions (ordered data example)
+- Data volume controls (1k, 10k, 100k, 1m points)
+- Series type switching
+- Axis type switching (ordered data example)
+- Shape selection (bubble/scatter example)
+- Max visible items slider (bubble/scatter example)
+- Zoom and pan interactions
+- Navigator interactions (ordered data example)
 
 ## Validation Targets
 
@@ -47,7 +46,6 @@ The high-performance-charts documentation page is minimal but critical, showcasi
     - `AgCartesianAxisOptions` - verify 'ordinal-time' and 'unit-time' axis types
     - Verify `parentLevel` property on ordinal-time axis
 2. **Series Options**:
-
     - `AgBubbleSeriesOptions` - verify `maxRenderedItems` property
     - `AgScatterSeriesOptions` - verify `maxRenderedItems` property
     - Various series types used in ordered data example
@@ -60,13 +58,11 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 ### Implementation Files to Check
 
 1. **Axis Implementations**:
-
     - `packages/ag-charts-community/src/chart/axis/ordinalTimeAxis.ts`
     - `packages/ag-charts-community/src/chart/axis/unitTimeAxis.ts`
     - Parent level implementation for ordinal-time axis
 
 2. **Series Performance**:
-
     - Bubble series implementation for `maxRenderedItems`
     - Scatter series implementation for `maxRenderedItems`
     - Performance optimizations in rendering pipeline
@@ -83,19 +79,16 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 **Expected Behaviors to Validate**:
 
 1. **Performance with Large Datasets**:
-
     - Chart should handle 1k, 10k, 100k, 1m data points
     - Performance should remain acceptable at all data volumes
     - Scene stats should show render metrics
 
 2. **Series Type Switching**:
-
     - Area, Bar, Line, Range Area, Range Bar, Candlestick, OHLC should all render correctly
     - Switching between types should maintain data and zoom state
     - Each series type should handle large datasets
 
 3. **Axis Type Behaviors**:
-
     - Continuous Time: Standard time axis behavior
     - Ordinal Time: Should display discrete time points
     - Ordinal Time (Parent Level): Should show hierarchical time grouping
@@ -109,11 +102,11 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 
 **example-tester Delegation**:
 
--   Verify no console errors with different data volumes
--   Check that scene stats are displayed
--   Validate series type switching maintains chart integrity
--   Test zoom/pan performance with large datasets
--   Verify navigator mini-chart updates correctly
+- Verify no console errors with different data volumes
+- Check that scene stats are displayed
+- Validate series type switching maintains chart integrity
+- Test zoom/pan performance with large datasets
+- Verify navigator mini-chart updates correctly
 
 #### Bubble/Scatter Example (`bubble-scatter`)
 
@@ -122,20 +115,17 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 **Expected Behaviors to Validate**:
 
 1. **maxRenderedItems Performance Feature**:
-
     - Should limit rendered points to specified value (default 2000)
     - Slider should dynamically update visible points (500-10000)
     - Performance should improve with lower limits
     - Points should be intelligently selected/culled
 
 2. **Large Dataset Handling**:
-
     - Should handle up to 1m data points
     - Opacity settings (0.2) should help with overlapping points
     - Performance should remain acceptable
 
 3. **Series Type and Shape Switching**:
-
     - Bubble vs Scatter series should render differently
     - All shapes should render correctly: circle, cross, diamond, heart, plus, square, star, triangle
     - Shape switching should maintain performance
@@ -146,30 +136,27 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 
 **example-tester Delegation**:
 
--   Verify maxRenderedItems actually limits rendered points
--   Test performance with different data volumes and render limits
--   Check that opacity theme overrides are applied
--   Validate all marker shapes render correctly
--   Test zoom/pan performance with various maxRenderedItems settings
+- Verify maxRenderedItems actually limits rendered points
+- Test performance with different data volumes and render limits
+- Check that opacity theme overrides are applied
+- Validate all marker shapes render correctly
+- Test zoom/pan performance with various maxRenderedItems settings
 
 ### User Interactions to Validate
 
 #### Ordered Data Example
 
 1. **Data Volume Stress Testing**:
-
     - Click each data volume button (1k → 10k → 100k → 1m)
     - Monitor performance degradation
     - Check memory usage patterns
 
 2. **Series Type Interactions**:
-
     - Switch between all 7 series types at different data volumes
     - Verify transitions are smooth
     - Check that zoom state is preserved
 
 3. **Axis Type Testing**:
-
     - Switch between all 4 axis types
     - Verify parent level grouping appears for ordinal-time-parent
     - Check axis label rendering at different zoom levels
@@ -183,13 +170,11 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 #### Bubble/Scatter Example
 
 1. **maxRenderedItems Testing**:
-
     - Drag slider from 500 to 10000 in increments
     - Verify visual changes in point density
     - Check performance impact
 
 2. **Data Volume with Render Limits**:
-
     - Test each data volume with different maxRenderedItems
     - Verify culling algorithm effectiveness
 
@@ -219,7 +204,7 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 
 ## Known Exceptions
 
--   No exceptions file exists for this page
+- No exceptions file exists for this page
 
 ## Execution Plan
 
@@ -246,16 +231,16 @@ The high-performance-charts documentation page is minimal but critical, showcasi
 
 ### Success Criteria
 
--   Examples handle 1m data points without crashing
--   maxRenderedItems effectively limits rendering
--   All axis types render correctly
--   Zoom/pan remains responsive at scale
--   No console errors during interactions
--   Scene stats provide useful metrics
+- Examples handle 1m data points without crashing
+- maxRenderedItems effectively limits rendering
+- All axis types render correctly
+- Zoom/pan remains responsive at scale
+- No console errors during interactions
+- Scene stats provide useful metrics
 
 ### Estimated Complexity
 
--   High complexity due to performance testing requirements
--   Need to carefully monitor browser performance
--   Multiple data volumes and configurations to test
--   Approximately 45-60 minutes for thorough testing
+- High complexity due to performance testing requirements
+- Need to carefully monitor browser performance
+- Multiple data volumes and configurations to test
+- Approximately 45-60 minutes for thorough testing

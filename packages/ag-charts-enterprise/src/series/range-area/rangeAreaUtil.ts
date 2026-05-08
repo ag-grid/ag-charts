@@ -41,8 +41,10 @@ interface RangeAreaStrokePathDatum {
 
 export type RangeAreaItemId = `${string}-${string}`;
 
-export interface RangeAreaContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
+export interface RangeAreaContext extends _ModuleSupport.CartesianSeriesNodeDataContext<
+    RangeAreaMarkerDatum,
+    RangeAreaLabelDatum
+> {
     readonly itemId: RangeAreaItemId;
     fillData: RangeAreaFillPathDatum;
     highStrokeData: RangeAreaStrokePathDatum;

@@ -39,9 +39,9 @@ The `segmentation` option takes a `key` to determine which axis to use, and a `s
 
 In this configuration:
 
--   The series `fill` and `stroke` are red when values fall below 0 on the y-axis.
--   The series `fill` and `stroke` are green when values are above 0 on the y-axis.
--   Properties `fillOpacity` and `strokeWidth` not specified in the segment are inherited from the series.
+- The series `fill` and `stroke` are red when values fall below 0 on the y-axis.
+- The series `fill` and `stroke` are green when values are above 0 on the y-axis.
+- Properties `fillOpacity` and `strokeWidth` not specified in the segment are inherited from the series.
 
 ## Segmentation Key
 
@@ -72,22 +72,20 @@ Set `segmentation.key: 'x'` to segment along the `xKey` axis, or `segmentation.k
 
 In the example above:
 
--   The series uses a solid stroke for 2024 and a dashed stroke for 2025 to distinguish actual and forecast data.
+- The series uses a solid stroke for 2024 and a dashed stroke for 2025 to distinguish actual and forecast data.
 
 ## Segments
 
 Each segment in the `segments` array is defined by bounds and provides style overrides:
 
--   **`start` / `stop`**
+- **`start` / `stop`**
+    - The axis range for the segment style to start and stop at.
+    - Omit `start` to begin at the axis minimum or the `stop` of the previous segment.
+    - Omit `stop` to end at the axis maximum or the `start` of the next segment.
 
-    -   The axis range for the segment style to start and stop at.
-    -   Omit `start` to begin at the axis minimum or the `stop` of the previous segment.
-    -   Omit `stop` to end at the axis maximum or the `start` of the next segment.
-
--   **Style properties**
-
-    -   These are the same styling keys available on the series, such as `stroke` and `fill`.
-    -   Unspecified properties fall back to the main series options or defaults.
+- **Style properties**
+    - These are the same styling keys available on the series, such as `stroke` and `fill`.
+    - Unspecified properties fall back to the main series options or defaults.
 
 ## API Reference
 

@@ -4,20 +4,20 @@
 
 ### Chart Types/Features Covered
 
--   Funnel Series (`type: 'funnel'`) - Enterprise feature
--   Vertical funnel charts (default)
--   Horizontal funnel charts
--   Segmented funnel charts (without drop-offs)
--   Customization of fills and styling
+- Funnel Series (`type: 'funnel'`) - Enterprise feature
+- Vertical funnel charts (default)
+- Horizontal funnel charts
+- Segmented funnel charts (without drop-offs)
+- Customization of fills and styling
 
 ### Key APIs and Configuration Options Documented
 
--   `stageKey` - Required property for defining funnel stages
--   `valueKey` - Required property for numerical values determining bar width
--   `direction` - 'horizontal' or 'vertical' (default)
--   `dropOff.enabled` - Controls display of drop-offs between stages
--   `fills` - Array of colors for stage fills
--   API Reference link to `AgFunnelSeriesOptions`
+- `stageKey` - Required property for defining funnel stages
+- `valueKey` - Required property for numerical values determining bar width
+- `direction` - 'horizontal' or 'vertical' (default)
+- `dropOff.enabled` - Controls display of drop-offs between stages
+- `fills` - Array of colors for stage fills
+- API Reference link to `AgFunnelSeriesOptions`
 
 ### Examples Referenced
 
@@ -28,27 +28,27 @@
 
 ### Interactive Features Described
 
--   Drop-offs between stages showing value changes
--   Bar widths representing values at each stage
--   Customizable fills with opacity for drop-offs
--   Tooltips (implied but not explicitly documented)
+- Drop-offs between stages showing value changes
+- Bar widths representing values at each stage
+- Customizable fills with opacity for drop-offs
+- Tooltips (implied but not explicitly documented)
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgFunnelSeriesOptions` in `packages/ag-charts-types/src/series/cartesian/funnelOptions.ts`
--   `AgFunnelSeriesDropOff` interface
--   `AgFunnelSeriesLabelOptions` interface
--   `AgFunnelSeriesStageLabelOptions` interface
--   `AgFunnelSeriesStyle` interface
+- `AgFunnelSeriesOptions` in `packages/ag-charts-types/src/series/cartesian/funnelOptions.ts`
+- `AgFunnelSeriesDropOff` interface
+- `AgFunnelSeriesLabelOptions` interface
+- `AgFunnelSeriesStageLabelOptions` interface
+- `AgFunnelSeriesStyle` interface
 
 ### Implementation Files to Check
 
--   `packages/ag-charts-enterprise/src/series/funnel/funnelSeries.ts` - Main implementation
--   `packages/ag-charts-enterprise/src/series/funnel/funnelProperties.ts` - Default values
--   `packages/ag-charts-enterprise/src/series/funnel/funnelModule.ts` - Module registration
--   Verify this is Enterprise-only feature (not in community package)
+- `packages/ag-charts-enterprise/src/series/funnel/funnelSeries.ts` - Main implementation
+- `packages/ag-charts-enterprise/src/series/funnel/funnelProperties.ts` - Default values
+- `packages/ag-charts-enterprise/src/series/funnel/funnelModule.ts` - Module registration
+- Verify this is Enterprise-only feature (not in community package)
 
 ### Examples to Test with Expected Behaviors
 
@@ -56,109 +56,109 @@
 
 **Documentation claims:**
 
--   Basic funnel series with `stageKey` and `valueKey` configuration
--   Shows value changes during a process
--   Bar widths represent values at each stage
--   Drop-offs denote changes between stages
+- Basic funnel series with `stageKey` and `valueKey` configuration
+- Shows value changes during a process
+- Bar widths represent values at each stage
+- Drop-offs denote changes between stages
 
 **Expected behaviors to validate:**
 
--   Chart renders as vertical funnel by default
--   Bars have different widths based on data values
--   Drop-offs are visible between stages
--   Tooltips show on hover (verify content)
--   Stage labels are displayed
--   No console errors
+- Chart renders as vertical funnel by default
+- Bars have different widths based on data values
+- Drop-offs are visible between stages
+- Tooltips show on hover (verify content)
+- Stage labels are displayed
+- No console errors
 
 #### 2. horizontal-funnel
 
 **Documentation claims:**
 
--   Setting `direction: 'horizontal'` creates horizontal funnel
--   Same features as vertical but oriented horizontally
+- Setting `direction: 'horizontal'` creates horizontal funnel
+- Same features as vertical but oriented horizontally
 
 **Expected behaviors to validate:**
 
--   Chart renders horizontally
--   Drop-offs connect bars horizontally
--   Stage labels positioned appropriately for horizontal layout
--   Tooltips work correctly in horizontal orientation
--   Responsive behavior maintained
+- Chart renders horizontally
+- Drop-offs connect bars horizontally
+- Stage labels positioned appropriately for horizontal layout
+- Tooltips work correctly in horizontal orientation
+- Responsive behavior maintained
 
 #### 3. segmented
 
 **Documentation claims:**
 
--   Setting `dropOff: { enabled: false }` removes drop-offs
--   Creates segmented appearance without connections
+- Setting `dropOff: { enabled: false }` removes drop-offs
+- Creates segmented appearance without connections
 
 **Expected behaviors to validate:**
 
--   No drop-off shapes between bars
--   Bars appear as separate segments
--   Spacing between segments is visible
--   All other features (tooltips, labels) still work
--   Verify `dropOff.enabled` default is `true` (from code: line 37)
+- No drop-off shapes between bars
+- Bars appear as separate segments
+- Spacing between segments is visible
+- All other features (tooltips, labels) still work
+- Verify `dropOff.enabled` default is `true` (from code: line 37)
 
 #### 4. funnel-fills
 
 **Documentation claims:**
 
--   `fills` array defines colors for each stage
--   Drop-offs use opacity of same fills
--   Data can be reversed to show funnel in reverse order
+- `fills` array defines colors for each stage
+- Drop-offs use opacity of same fills
+- Data can be reversed to show funnel in reverse order
 
 **Expected behaviors to validate:**
 
--   Custom colors applied to bars as specified
--   Drop-offs use semi-transparent versions of bar colors
--   Funnel appears reversed (wide to narrow vs narrow to wide)
--   Colors cycle if more stages than colors provided
--   Verify opacity can be customized via dropOff options
+- Custom colors applied to bars as specified
+- Drop-offs use semi-transparent versions of bar colors
+- Funnel appears reversed (wide to narrow vs narrow to wide)
+- Colors cycle if more stages than colors provided
+- Verify opacity can be customized via dropOff options
 
 ### User Interactions to Validate
 
--   Hover over funnel bars for tooltips
--   Hover over drop-off areas
--   Hover over stage labels
--   Click interactions on bars/drop-offs
--   Keyboard navigation (Tab, Arrow keys)
--   Touch/mobile interactions
--   Resize behavior for responsive charts
+- Hover over funnel bars for tooltips
+- Hover over drop-off areas
+- Hover over stage labels
+- Click interactions on bars/drop-offs
+- Keyboard navigation (Tab, Arrow keys)
+- Touch/mobile interactions
+- Resize behavior for responsive charts
 
 ### Visual States to Screenshot
 
--   Default rendering of each example
--   Hover states showing tooltips
--   Focus states for keyboard navigation
--   Mobile viewport rendering
--   Different data scenarios (if examples vary data)
+- Default rendering of each example
+- Hover states showing tooltips
+- Focus states for keyboard navigation
+- Mobile viewport rendering
+- Different data scenarios (if examples vary data)
 
 ### Interactive Features Requiring Before/After Comparison
 
--   Tooltip appearance on hover
--   Visual feedback when hovering bars
--   Focus indicators during keyboard navigation
--   Responsive layout changes on resize
+- Tooltip appearance on hover
+- Visual feedback when hovering bars
+- Focus indicators during keyboard navigation
+- Responsive layout changes on resize
 
 ### Chart Elements That Should Be Interactive
 
--   Funnel bars (hover for tooltips, click handling)
--   Drop-off areas (possible hover effects)
--   Stage labels (potential interactions)
--   Legend items (if legend is shown)
+- Funnel bars (hover for tooltips, click handling)
+- Drop-off areas (possible hover effects)
+- Stage labels (potential interactions)
+- Legend items (if legend is shown)
 
 ### Expected Tooltip Content and Behaviors
 
--   Stage name from `stageKey`
--   Value from `valueKey`
--   Possibly percentage or change information
--   Proper positioning relative to hovered element
--   Consistent styling with theme
+- Stage name from `stageKey`
+- Value from `valueKey`
+- Possibly percentage or change information
+- Proper positioning relative to hovered element
+- Consistent styling with theme
 
 ## Known Exceptions
 
--   No `technical-review-exceptions.md` file exists for this page
+- No `technical-review-exceptions.md` file exists for this page
 
 ## Execution Plan
 
@@ -208,44 +208,44 @@
 
 #### simple-funnel
 
--   Verify basic funnel series setup with minimal configuration
--   Check that `stageKey` and `valueKey` are properly used from data
--   Validate drop-offs are enabled by default
--   Test tooltip content shows stage and value information
--   Ensure no TypeScript errors with basic configuration
+- Verify basic funnel series setup with minimal configuration
+- Check that `stageKey` and `valueKey` are properly used from data
+- Validate drop-offs are enabled by default
+- Test tooltip content shows stage and value information
+- Ensure no TypeScript errors with basic configuration
 
 #### horizontal-funnel
 
--   Confirm `direction: 'horizontal'` produces horizontal layout
--   Verify all visual elements adapt to horizontal orientation
--   Check stage label placement is appropriate
--   Test interactions work correctly in horizontal mode
--   Validate no console warnings about orientation
+- Confirm `direction: 'horizontal'` produces horizontal layout
+- Verify all visual elements adapt to horizontal orientation
+- Check stage label placement is appropriate
+- Test interactions work correctly in horizontal mode
+- Validate no console warnings about orientation
 
 #### segmented
 
--   Verify `dropOff: { enabled: false }` removes drop-off shapes
--   Confirm bars appear as separate segments
--   Check spacing between segments is consistent
--   Validate other features remain functional
--   Test that enabling drop-offs again works correctly
+- Verify `dropOff: { enabled: false }` removes drop-off shapes
+- Confirm bars appear as separate segments
+- Check spacing between segments is consistent
+- Validate other features remain functional
+- Test that enabling drop-offs again works correctly
 
 #### funnel-fills
 
--   Verify custom colors from `fills` array are applied
--   Check color cycling if stages exceed array length
--   Validate drop-offs use appropriate opacity
--   Confirm data reversal creates inverted funnel shape
--   Test fill opacity and stroke properties if configured
+- Verify custom colors from `fills` array are applied
+- Check color cycling if stages exceed array length
+- Validate drop-offs use appropriate opacity
+- Confirm data reversal creates inverted funnel shape
+- Test fill opacity and stroke properties if configured
 
 ### Expected Quality Checks
 
--   No console errors or warnings
--   Proper TypeScript typing throughout
--   AG Charts API used correctly
--   Chart renders without visual artifacts
--   Performance is acceptable with typical data sizes
--   Examples follow AG Charts best practices
+- No console errors or warnings
+- Proper TypeScript typing throughout
+- AG Charts API used correctly
+- Chart renders without visual artifacts
+- Performance is acceptable with typical data sizes
+- Examples follow AG Charts best practices
 
 ## Success Criteria
 

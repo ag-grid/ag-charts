@@ -33,5 +33,5 @@ Codespaces auto-forwards port 3000 and provides a URL to view the chart in your 
 
 ## Requirements
 
--   Node.js 20.0.0 or later
--   `skia-canvas` native dependencies (included in the Codespaces image)
+- Node.js 20.0.0 or later
+- `skia-canvas` native dependencies (included in the Codespaces image)

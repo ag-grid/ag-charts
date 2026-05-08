@@ -288,7 +288,7 @@ function calculateRawTicks<TScale extends Scale<TDatum, number, TickInterval<TSc
     }
 
     const niceDomain = niceMode.includes(NiceMode.TickAndDomain)
-        ? secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain)
+        ? (secondaryAxisTicks?.domain ?? scale.niceDomain(domainParams, domain))
         : domain;
     let tickDomain: TDatum[] = niceDomain;
     let rawTicks: any[] | undefined;

@@ -27,7 +27,8 @@ export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
     Required<AgRangeBarSeriesStyle>;
 
 export interface AgRangeBarSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState>,
+    extends
+        SeriesCallbackParams<HighlightState>,
         ContextCallbackParams<TContext>,
         AgRangeBarSeriesOptionsKeys<TDatum>,
         Required<AgRangeBarSeriesStyle> {}
@@ -45,8 +46,11 @@ export type AgRangeBarSeriesTooltipRendererParams<
     AgRangeBarSeriesOptionsNames &
     AgRangeBarSeriesStyle;
 
-export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
-    extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams<TDatum>, TContext> {
+export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault> extends AgChartLabelOptions<
+    TDatum,
+    AgRangeBarSeriesLabelFormatterParams<TDatum>,
+    TContext
+> {
     /** Where to render series labels relative to the bars. */
     placement?: AgRangeBarSeriesLabelPlacement;
     /** Spacing in pixels between the label and the edge of the bar. */
@@ -56,8 +60,7 @@ export interface AgRangeBarSeriesLabelOptions<TDatum, TContext = ContextDefault>
 export type AgRangeBarSeriesLabelPlacement = 'inside' | 'outside';
 
 export interface AgRangeBarSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseCartesianThemeableOptions<TDatum, TContext>,
-        AgRangeBarSeriesStyle {
+    extends AgBaseCartesianThemeableOptions<TDatum, TContext>, AgRangeBarSeriesStyle {
     /**
      * Bar rendering direction.
      *
@@ -116,7 +119,8 @@ export interface AgRangeBarSeriesOptionsNames {
 }
 
 export interface AgRangeBarSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgRangeBarSeriesOptionsKeys<TDatum>,
+    extends
+        AgRangeBarSeriesOptionsKeys<TDatum>,
         AgRangeBarSeriesOptionsNames,
         AgRangeBarSeriesThemeableOptions<TDatum, TContext>,
         Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlight'>,

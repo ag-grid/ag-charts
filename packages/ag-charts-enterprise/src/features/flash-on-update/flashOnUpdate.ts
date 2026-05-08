@@ -390,7 +390,7 @@ export class FlashOnUpdate extends BaseProperties implements ModuleInstance, AgF
         this.bandSelection.update(data);
 
         this.bandSelection.each((rect, datum) => {
-            const b = useNewBounds ? datum.bounds : datum.prevBounds ?? datum.bounds;
+            const b = useNewBounds ? datum.bounds : (datum.prevBounds ?? datum.bounds);
             rect.fill = this.fill;
             rect.fillOpacity = 0;
             rect.x = b.x;

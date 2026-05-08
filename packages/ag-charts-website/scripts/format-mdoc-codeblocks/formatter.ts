@@ -146,7 +146,7 @@ async function formatCodeBlock(code: string, lang: string, meta?: string): Promi
     };
 
     // For reactHooks format, use .tsx extension to properly handle JSX
-    const effectiveExtension = metadata?.format === 'reactHooks' ? '.tsx' : extensionMap[normalizedLang] ?? '.js';
+    const effectiveExtension = metadata?.format === 'reactHooks' ? '.tsx' : (extensionMap[normalizedLang] ?? '.js');
     const filepath = `snippet${effectiveExtension}`;
 
     // Determine the parser based on language and content

@@ -50,7 +50,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<ConeFunnelSeriesTypes> {
         } = this;
         const visibleItems = this.data?.data.reduce(
             (accum, _, datumIndex) =>
-                accum + (legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true ? 1 : 0),
+                accum + ((legendManager?.getItemEnabled({ seriesId, itemId: datumIndex }) ?? true) ? 1 : 0),
             0
         );
         return visibleItems != null && visibleItems > 1;

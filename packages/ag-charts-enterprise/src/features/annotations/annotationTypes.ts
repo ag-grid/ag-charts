@@ -100,20 +100,19 @@ export interface Padding {
 }
 
 export type FibonacciBands = 10 | 6 | 4;
-export interface AnnotationAxisContext
-    extends Pick<
-        _ModuleSupport.AxisContext,
-        | 'continuous'
-        | 'direction'
-        | 'position'
-        | 'scale'
-        | 'scaleInvert'
-        | 'scaleInvertNearest'
-        | 'formatScaleValue'
-        | 'attachLabel'
-        | 'inRange'
-        | 'getRangeOverflow'
-    > {
+export interface AnnotationAxisContext extends Pick<
+    _ModuleSupport.AxisContext,
+    | 'continuous'
+    | 'direction'
+    | 'position'
+    | 'scale'
+    | 'scaleInvert'
+    | 'scaleInvertNearest'
+    | 'formatScaleValue'
+    | 'attachLabel'
+    | 'inRange'
+    | 'getRangeOverflow'
+> {
     bounds: _ModuleSupport.BBox;
     labelPadding: number;
     snapToGroup: boolean;

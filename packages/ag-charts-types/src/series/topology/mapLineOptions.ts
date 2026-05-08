@@ -59,8 +59,7 @@ export interface AgMapLineSeriesOptionsNames {
 }
 
 export interface AgMapLineSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgMapLineSeriesStyle,
-        Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
+    extends AgMapLineSeriesStyle, Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'> {
     /** Determines the largest width a stroke can be in pixels. */
     maxStrokeWidth?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */
@@ -83,7 +82,8 @@ export interface AgMapLineHighlightStyleOptions extends StrokeOptions, LineDashO
 }
 
 export interface AgMapLineSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
+    extends
+        Omit<AgBaseSeriesOptions<TDatum, TContext>, 'highlightStyle' | 'highlight'>,
         AgMapLineSeriesOptionsKeys<TDatum>,
         AgMapLineSeriesOptionsNames,
         AgMapLineSeriesThemeableOptions<TDatum, TContext> {

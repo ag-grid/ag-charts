@@ -49,9 +49,9 @@ Both horizontal and vertical Scrollbars can be positioned on either side of the 
 
 In the above example:
 
--   Set `'left'` or `'right'` positions for the vertical Scrollbar.
--   Set `'top'` or `'bottom'` positions for the horizontal Scrollbar.
--   By default, `position` matches the primary axis for each direction.
+- Set `'left'` or `'right'` positions for the vertical Scrollbar.
+- Set `'top'` or `'bottom'` positions for the horizontal Scrollbar.
+- By default, `position` matches the primary axis for each direction.
 
 ## Placement and Spacing
 
@@ -72,12 +72,12 @@ The `placement` property determines where the Scrollbar appears within the axis 
 
 In the above example:
 
--   Use the buttons to change the `placement` option:
-    -   `'outer'` (default) - positions the scrollbar outside the axis ticks and labels, but inside title.
-    -   `'inner'` - positions the scrollbar inside the ticks and labels, but outside the series area.
--   Use the sliders to change the spacing between elements:
-    -   The `spacing` value controls the gap between the Scrollbar and the series area or axis labels.
-    -   The `tickSpacing` value controls the gap between axis ticks and an `inner` Scrollbar.
+- Use the buttons to change the `placement` option:
+    - `'outer'` (default) - positions the scrollbar outside the axis ticks and labels, but inside title.
+    - `'inner'` - positions the scrollbar inside the ticks and labels, but outside the series area.
+- Use the sliders to change the spacing between elements:
+    - The `spacing` value controls the gap between the Scrollbar and the series area or axis labels.
+    - The `tickSpacing` value controls the gap between axis ticks and an `inner` Scrollbar.
 
 ## Customisation
 
@@ -110,10 +110,10 @@ Use the `track` and `thumb` properties to style the Scrollbar components.
 
 In this configuration:
 
--   `thickness` sets the height of horizontal scrollbars or width of vertical scrollbars.
--   `track` styles the background area of the Scrollbar.
--   `thumb` styles the draggable indicator showing the current position.
--   `thumb.hoverStyle` customises the thumb colour on hover.
+- `thickness` sets the height of horizontal scrollbars or width of vertical scrollbars.
+- `track` styles the background area of the Scrollbar.
+- `thumb` styles the draggable indicator showing the current position.
+- `thumb.hoverStyle` customises the thumb colour on hover.
 
 Both `track` and `thumb` support standard fill, stroke and corner radius options.
 
@@ -123,12 +123,12 @@ See [API Reference](#api-reference) for more details.
 
 The Scrollbar track mirrors native scrollbar behaviour:
 
--   Clicking the track pages the thumb by one viewport width towards the click position.
--   Holding the mouse button down repeats the page increment automatically.
--   Shift+Click jumps the thumb so the click is centred within the thumb.
--   Scrolling over the Scrollbar track pans the viewport in the corresponding direction.
--   On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable target for dragging.
--   The Scrollbars are fully accessible with keyboard navigation and screen readers automatically supported.
+- Clicking the track pages the thumb by one viewport width towards the click position.
+- Holding the mouse button down repeats the page increment automatically.
+- Shift+Click jumps the thumb so the click is centred within the thumb.
+- Scrolling over the Scrollbar track pans the viewport in the corresponding direction.
+- On touch devices, consider increasing `scrollbar.thickness` to provide a more comfortable target for dragging.
+- The Scrollbars are fully accessible with keyboard navigation and screen readers automatically supported.
 
 ## Scrolling
 
@@ -140,9 +140,9 @@ Use `enableSeriesAreaScrolling` and `enableAxisScrolling` to extend this to the 
 
 In this example:
 
--   `enableSeriesAreaScrolling` enables scrolling within the series area to pan the chart.
--   `enableAxisScrolling` enables scrolling over the axis to pan in that axis direction.
--   If [Zoom](./zoom) is also enabled, its scroll interactions take precedence.
+- `enableSeriesAreaScrolling` enables scrolling within the series area to pan the chart.
+- `enableAxisScrolling` enables scrolling over the axis to pan in that axis direction.
+- If [Zoom](./zoom) is also enabled, its scroll interactions take precedence.
 
 ## Visibility
 
@@ -161,9 +161,9 @@ When enabled, the Scrollbar is shown automatically when the data exceeds the ava
 
 In this example:
 
--   `'auto'` (default) - shows the Scrollbar only when the data does not fit within the viewport.
--   `'always'` - always shows the Scrollbar.
--   `'never'` - hides the Scrollbar even when it is needed.
+- `'auto'` (default) - shows the Scrollbar only when the data does not fit within the viewport.
+- `'always'` - always shows the Scrollbar.
+- `'never'` - hides the Scrollbar even when it is needed.
 
 ## API Reference
 

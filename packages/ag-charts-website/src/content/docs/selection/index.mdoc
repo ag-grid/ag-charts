@@ -43,11 +43,11 @@ By default, clicking a datum replaces the current selection, and clicking on a b
 
 In the above example:
 
--   `'single'` replaces the current selection with the clicked datum.
--   `'multiple'` toggles the clicked datum in or out of the existing selection. This mode is particularly useful on [touch](./touch/) devices.
--   Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while clicking will always add or remove the clicked datum from the selection.
--   When `enableClickAwayToClear` is set to `false`, the selection remains in place when the user clicks an empty area of the chart.
--   Click range is determined by the `nodeClickRange` property on each series type.
+- `'single'` replaces the current selection with the clicked datum.
+- `'multiple'` toggles the clicked datum in or out of the existing selection. This mode is particularly useful on [touch](./touch/) devices.
+- Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while clicking will always add or remove the clicked datum from the selection.
+- When `enableClickAwayToClear` is set to `false`, the selection remains in place when the user clicks an empty area of the chart.
+- Click range is determined by the `nodeClickRange` property on each series type.
 
 ## Drag-to-Select
 
@@ -67,11 +67,11 @@ Set `enableDrag` to `true` to allow the user draw a rectangle across the chart a
 
 In the above example:
 
--   Dragging the mouse across the chart draws a rectangle. When the mouse is released, any datums that overlap the rectangle are selected.
--   Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while completing a drag adds the newly enclosed datums to the existing selection instead of replacing it.
--   The `containment` option controls which datums the drag rectangle picks up.
-    -   `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
-    -   `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
+- Dragging the mouse across the chart draws a rectangle. When the mouse is released, any datums that overlap the rectangle are selected.
+- Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while completing a drag adds the newly enclosed datums to the existing selection instead of replacing it.
+- The `containment` option controls which datums the drag rectangle picks up.
+    - `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
+    - `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
 
 ## Styling
 
@@ -104,9 +104,9 @@ Use the series `series.selection.selectedItem` and `series.selection.unselectedI
 
 In this example:
 
--   `selectedItem` sets the selected datum to a red fill and border.
--   `unselectedItem` sets the unselected datums to a grey fill.
--   For dynamic per-datum styling, use the series [item styler](./stylers/), which includes a `selectionState` property in the parameters.
+- `selectedItem` sets the selected datum to a red fill and border.
+- `unselectedItem` sets the unselected datums to a grey fill.
+- For dynamic per-datum styling, use the series [item styler](./stylers/), which includes a `selectionState` property in the parameters.
 
 ## Selection API
 
@@ -116,9 +116,9 @@ In this example:
 
 `chart.getSelection()` returns an `Iterable` of every currently selected item. Each item contains:
 
--   `seriesId`- the series the datum belongs to.
--   `itemId` - the unique identifier of the datum, derived from `dataIdKey` if set, otherwise the datum index.
--   `datum` - the original data object from the chart data array.
+- `seriesId`- the series the datum belongs to.
+- `itemId` - the unique identifier of the datum, derived from `dataIdKey` if set, otherwise the datum index.
+- `datum` - the original data object from the chart data array.
 
 `chart.setSelection(items)` replaces the current selection. Each item requires `seriesId` and `itemId` to identify the datum. The existing selection is cleared before the new items are applied.
 
@@ -140,9 +140,9 @@ The `selectionChange` event fires whenever the selection is updated, whether by 
 
 The event contains:
 
--   `source` - `'user-interaction'` or `'api-call'`.
--   `added` - an array of items added to the selection.
--   `removed` - an array of items removed from the selection.
+- `source` - `'user-interaction'` or `'api-call'`.
+- `added` - an array of items added to the selection.
+- `removed` - an array of items removed from the selection.
 
 ## Feature Interactions
 

@@ -36,8 +36,8 @@ Legend toggling is disabled in Waterfall Series to avoid misleading or incorrect
 Adding Total and Subtotal values at specific points in a Waterfall Series can make the data easier to interpret.
 These values are automatically calculated based on the following criteria:
 
--   **Total**: Accumulates all values from the starting point (zero) up to the current point.
--   **Subtotal**: Begins at the last Total or Subtotal and sums up to the current point.
+- **Total**: Accumulates all values from the starting point (zero) up to the current point.
+- **Subtotal**: Begins at the last Total or Subtotal and sums up to the current point.
 
 {% chartExampleRunner title="Total Subtotal Values" name="total-subtotal-values" type="generated" /%}
 
@@ -62,9 +62,9 @@ Total and Subtotal values are added to the `totals` array within the `series` op
 
 In this configuration:
 
--   `totalType` specifies whether the value is a Total or Subtotal.
--   `index` determines the position in the data after which the Total or Subtotal will appear.
--   `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](./axes-types/#category).
+- `totalType` specifies whether the value is a Total or Subtotal.
+- `index` determines the position in the data after which the Total or Subtotal will appear.
+- `axisLabel` is used to provide a unique label, used as a category on the [Category Axis](./axes-types/#category).
 
 ## Customisation
 
@@ -103,8 +103,8 @@ Series items are customised via the `item` configuration object.
 
 In this configuration:
 
--   `positive` and `negative` change Positive/Negative series items.
--   `total` changes Total/Subtotal series items.
+- `positive` and `negative` change Positive/Negative series items.
+- `total` changes Total/Subtotal series items.
 
 Note that the `total` series item also contains a `name` property to change the total name to 'Total / Subtotal' in the
 Total legend item and tooltips.

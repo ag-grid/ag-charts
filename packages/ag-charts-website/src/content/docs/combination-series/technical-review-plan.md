@@ -4,35 +4,35 @@
 
 ### Chart Types/Features Covered
 
--   Combination charts using multiple series types in a single chart
--   Supported series types: bar, line, area, scatter, and bubble
--   Secondary axis functionality for different scales
--   Series rendering order based on array position
--   Dynamic series switching between combinations
+- Combination charts using multiple series types in a single chart
+- Supported series types: bar, line, area, scatter, and bubble
+- Secondary axis functionality for different scales
+- Series rendering order based on array position
+- Dynamic series switching between combinations
 
 ### Key APIs and Configuration Options Documented
 
--   Series `type` property (must be specified explicitly on each series)
--   Series array configuration with mixed types
--   Series keys: `xKey`, `yKey`, `yName`
--   Grouped bar configuration
--   Secondary axis configuration with `keys` property
--   Series update mechanism using `chart.update()`
+- Series `type` property (must be specified explicitly on each series)
+- Series array configuration with mixed types
+- Series keys: `xKey`, `yKey`, `yName`
+- Grouped bar configuration
+- Secondary axis configuration with `keys` property
+- Series update mechanism using `chart.update()`
 
 ### Examples Referenced
 
--   **combination**: Main example demonstrating:
-    -   Bar & Line combination
-    -   Area & Bar combination
-    -   Secondary axis usage
-    -   Dynamic switching between combinations
-    -   Multiple data series (men, women, portions)
+- **combination**: Main example demonstrating:
+    - Bar & Line combination
+    - Area & Bar combination
+    - Secondary axis usage
+    - Dynamic switching between combinations
+    - Multiple data series (men, women, portions)
 
 ### Interactive Features Described
 
--   Button controls to switch between chart types
--   Secondary axis with different scale
--   Series rendering order importance
+- Button controls to switch between chart types
+- Secondary axis with different scale
+- Series rendering order importance
 
 ## Validation Targets
 
@@ -63,36 +63,32 @@
 
 **Documentation claims:**
 
--   Shows two combination types: Bar & Line, Area & Bar
--   Series are rendered according to order in the series array
--   Area and line series are plotted on a secondary axis with different scale
--   Can switch between combinations using buttons
+- Shows two combination types: Bar & Line, Area & Bar
+- Series are rendered according to order in the series array
+- Area and line series are plotted on a secondary axis with different scale
+- Can switch between combinations using buttons
 
 **Expected behaviors to validate:**
 
 1. **Initial state**: Should display Bar & Line combination
-
     - Two bar series (women and men) on primary Y axis
     - One line series (portions) on secondary Y axis
     - Primary Y axis on left with "Adults Who Eat 5 A Day (%)" title
     - Secondary Y axis on right with "Portions Consumed (Per Day)" title
 
 2. **Bar & Line combination**:
-
     - Bar series should be grouped together
     - Line series should use secondary axis
     - Tooltips should show correct values for each series
     - Legend should show all three series
 
 3. **Area & Bar combination**:
-
     - Area series should render first (behind bars)
     - Bar series should render on top
     - Area series should use secondary axis
     - Visual stacking order should be correct
 
 4. **Interactive features**:
-
     - Clicking "Area & Bar" button should switch to area/bar combination
     - Clicking "Bar & Line" button should switch back
     - Chart should update smoothly without errors
@@ -106,14 +102,12 @@
 ### User Interactions to Validate
 
 1. **Button interactions**:
-
     - Click "Area & Bar" button
     - Click "Bar & Line" button
     - Rapid switching between buttons
     - Multiple clicks on same button
 
 2. **Chart element interactions**:
-
     - Hover over bar series elements - expect tooltips
     - Hover over line series points/line - expect tooltips
     - Hover over area series - expect tooltips
@@ -121,7 +115,6 @@
     - Click on legend items - expect series toggle
 
 3. **Axis interactions**:
-
     - Hover over axis labels
     - Hover over axis titles
     - Verify no unexpected interactions
@@ -175,13 +168,11 @@ No technical review exceptions file exists for this page.
 ### Priority 1: Core Functionality Validation
 
 1. **Verify supported series types** (High complexity)
-
     - Check TypeScript definitions for all mentioned series types
     - Verify bar, line, area, scatter, bubble are valid options
     - Check if `type` property is required on each series
 
 2. **Test combination example core behavior** (High complexity)
-
     - Delegate to example-tester agent with detailed expectations
     - Verify both combinations render correctly
     - Check series rendering order
@@ -195,13 +186,11 @@ No technical review exceptions file exists for this page.
 ### Priority 2: Interactive Features Testing
 
 4. **Test dynamic combination switching** (Medium complexity)
-
     - Click buttons and verify transitions
     - Check for console errors during switches
     - Validate chart update mechanism
 
 5. **Test chart element interactions** (High complexity)
-
     - Systematic hover testing over all elements
     - Screenshot tooltips and highlighting
     - Test legend interactions
@@ -214,7 +203,6 @@ No technical review exceptions file exists for this page.
 ### Priority 3: Documentation Accuracy
 
 7. **Cross-reference API documentation** (Medium complexity)
-
     - Verify all properties shown in code snippets
     - Check for any missing required properties
     - Validate property types
@@ -226,7 +214,6 @@ No technical review exceptions file exists for this page.
 ### Priority 4: Edge Cases and Visual Testing
 
 9. **Test responsive behavior** (Medium complexity)
-
     - Multiple viewport sizes
     - Window resizing during interactions
     - Mobile touch simulation
@@ -238,13 +225,13 @@ No technical review exceptions file exists for this page.
 
 ### Success Criteria
 
--   All mentioned series types are valid and can be combined
--   Example demonstrates the documented features correctly
--   Secondary axis works as described
--   No console errors during normal usage
--   Interactive features work smoothly
--   Documentation accurately reflects implementation
+- All mentioned series types are valid and can be combined
+- Example demonstrates the documented features correctly
+- Secondary axis works as described
+- No console errors during normal usage
+- Interactive features work smoothly
+- Documentation accurately reflects implementation
 
 ### Estimated Time
 
--   Phase 2 execution: 45-60 minutes due to extensive interaction testing and multiple chart states
+- Phase 2 execution: 45-60 minutes due to extensive interaction testing and multiple chart states

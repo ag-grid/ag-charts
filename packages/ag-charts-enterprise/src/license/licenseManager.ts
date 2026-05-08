@@ -240,7 +240,7 @@ export class LicenseManager {
         if (!this.document) {
             return false;
         }
-        const win = this.document?.defaultView ?? globalThis.window != undefined ? globalThis : undefined;
+        const win = (this.document?.defaultView ?? globalThis.window != undefined) ? globalThis : undefined;
         if (!win) {
             return false;
         }

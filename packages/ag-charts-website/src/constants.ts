@@ -115,6 +115,8 @@ export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SE
 
 export const PRODUCTION_GRID_SITE_URL = 'https://www.ag-grid.com';
 
+export const PRODUCTION_STUDIO_SITE_URL = 'https://www.ag-grid.com/studio';
+
 export const LIVE_SITEMAP_URL = import.meta.env?.LIVE_SITEMAP_URL;
 
 function calculateGridUrl() {
@@ -155,6 +157,7 @@ export const CHARTS_SITE_URL = getChartsUrl();
 export const TRIAL_LICENCE_FORM_URL = import.meta.env?.PUBLIC_TRIAL_LICENCE_FORM_URL;
 
 export const EXAMPLE_STYLE_FILE_NAME = 'ag-example-styles.css';
+export const DEBUG_SCRIPT_FILE_NAME = 'ag-charts-debug.js';
 
 export const ZI_FORM_ID = 'aad0527d-5af6-4263-8dcd-60f3ac998d5d';
 export type TrialLicenceFormType = 'emailOnly' | 'allFields' | 'original';

@@ -45,8 +45,10 @@ export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<nu
     readonly labelText: TextOrSegments;
 }
 
-export interface AreaSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<MarkerSelectionDatum, LabelSelectionDatum> {
+export interface AreaSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
+    MarkerSelectionDatum,
+    LabelSelectionDatum
+> {
     fillData: AreaFillPathDatum;
     strokeData: AreaStrokePathDatum;
     stackVisible: boolean;

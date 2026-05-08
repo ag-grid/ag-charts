@@ -116,8 +116,10 @@ export interface PresetModuleDefinition<TOptions> extends ModuleDefinition<Modul
     processData?(this: void, data: unknown): { data?: unknown[]; series?: Array<{ xKey: string; yKey: string }> };
 }
 
-export interface AxisModuleDefinition<TOptions, TInstance extends ModuleInstance = ModuleInstance>
-    extends ModuleDefinition<ModuleType.Axis, TOptions, TInstance> {
+export interface AxisModuleDefinition<
+    TOptions,
+    TInstance extends ModuleInstance = ModuleInstance,
+> extends ModuleDefinition<ModuleType.Axis, TOptions, TInstance> {
     readonly chartType: string;
 
     options: OptionsDefs<TOptions>;
@@ -128,8 +130,11 @@ export interface AxisModuleDefinition<TOptions, TInstance extends ModuleInstance
 /** The post-theme-merge options shape passed to {@link AxisModuleDefinition.create}. */
 export type AxisCreateOptions<TOptions> = Normalised<TOptions>;
 
-export interface SeriesModuleDefinition<TOptions>
-    extends ModuleDefinition<ModuleType.Series, TOptions, SeriesModuleInstance> {
+export interface SeriesModuleDefinition<TOptions> extends ModuleDefinition<
+    ModuleType.Series,
+    TOptions,
+    SeriesModuleInstance
+> {
     readonly chartType: string;
 
     readonly groupable?: boolean;
@@ -150,21 +155,29 @@ export interface SeriesModuleDefinition<TOptions>
     options: OptionsDefs<TOptions>;
 }
 
-export interface PluginModuleDefinition<TOptions, TRegistry = unknown>
-    extends ModuleDefinition<ModuleType.Plugin, TOptions> {
+export interface PluginModuleDefinition<TOptions, TRegistry = unknown> extends ModuleDefinition<
+    ModuleType.Plugin,
+    TOptions
+> {
     readonly chartType?: string;
 
     register?(this: void, ctx: DynamicContext<TRegistry>): void;
 }
 
-export interface AxisPluginModuleDefinition<TOptions>
-    extends ModuleDefinition<ModuleType.AxisPlugin, TOptions, AxisPluginModuleInstance> {
+export interface AxisPluginModuleDefinition<TOptions> extends ModuleDefinition<
+    ModuleType.AxisPlugin,
+    TOptions,
+    AxisPluginModuleInstance
+> {
     readonly chartType?: string;
     readonly axisTypes?: string[];
 }
 
-export interface SeriesPluginModuleDefinition<TOptions>
-    extends ModuleDefinition<ModuleType.SeriesPlugin, TOptions, SeriesPluginModuleInstance> {
+export interface SeriesPluginModuleDefinition<TOptions> extends ModuleDefinition<
+    ModuleType.SeriesPlugin,
+    TOptions,
+    SeriesPluginModuleInstance
+> {
     readonly chartType?: string;
     readonly seriesTypes?: string[];
 }

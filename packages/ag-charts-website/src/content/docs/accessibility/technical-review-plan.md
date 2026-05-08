@@ -4,28 +4,28 @@
 
 ### Features Covered
 
--   Keyboard navigation support in AG Charts
--   Screen reader (ARIA) support
--   Web conformance guidelines (ADA, Section 508, WCAG 2.0)
--   High contrast theme considerations
--   API reference for keyboard navigation options
+- Keyboard navigation support in AG Charts
+- Screen reader (ARIA) support
+- Web conformance guidelines (ADA, Section 508, WCAG 2.0)
+- High contrast theme considerations
+- API reference for keyboard navigation options
 
 ### Key APIs and Configuration Options Documented
 
--   `AgKeyboardOptions` interface with:
-    -   `enabled` property (default: true)
-    -   `tabIndex` property (default: 0)
+- `AgKeyboardOptions` interface with:
+    - `enabled` property (default: true)
+    - `tabIndex` property (default: 0)
 
 ### Examples Referenced
 
--   **keyboard-navigation**: Demonstrates keyboard navigation between chart components, arrow key navigation within series, Enter/Space key interaction, and context menu access
+- **keyboard-navigation**: Demonstrates keyboard navigation between chart components, arrow key navigation within series, Enter/Space key interaction, and context menu access
 
 ### Interactive Features Described
 
--   Tab navigation between chart components (series, legend, legend pagination, toolbars, navigator)
--   Arrow key navigation (left/right within series/legend items, up/down between series)
--   Enter/Space key toggle for legend items and click triggers
--   Context menu access via Shift+F10 (Windows) or Ctrl+Alt+Shift+M (Mac with VoiceOver)
+- Tab navigation between chart components (series, legend, legend pagination, toolbars, navigator)
+- Arrow key navigation (left/right within series/legend items, up/down between series)
+- Enter/Space key toggle for legend items and click triggers
+- Context menu access via Shift+F10 (Windows) or Ctrl+Alt+Shift+M (Mac with VoiceOver)
 
 ## Validation Targets
 
@@ -39,7 +39,6 @@
 ### Implementation Files to Check
 
 1. Keyboard navigation implementation in core/community packages:
-
     - Look for keyboard event handlers
     - Verify default values match documentation (enabled: true, tabIndex: 0)
     - Check focus management implementation
@@ -55,13 +54,13 @@
 
 **Documentation claims:**
 
--   Tab moves focus between chart components (series, legend, pagination, toolbars, navigator)
--   Arrow keys navigate within series (left/right) and between series (up/down)
--   Enter/Space triggers click listeners on focused items
--   Enter/Space toggles legend items
--   Context menu accessible via keyboard shortcuts
--   Tab order flows from top input → chart components → element below chart
--   Shift+Tab reverses navigation order
+- Tab moves focus between chart components (series, legend, pagination, toolbars, navigator)
+- Arrow keys navigate within series (left/right) and between series (up/down)
+- Enter/Space triggers click listeners on focused items
+- Enter/Space toggles legend items
+- Context menu accessible via keyboard shortcuts
+- Tab order flows from top input → chart components → element below chart
+- Shift+Tab reverses navigation order
 
 **Expected behaviors to validate:**
 
@@ -78,17 +77,16 @@
 
 **Visual states to capture:**
 
--   Default chart state
--   Focus indicators on different chart components (series, legend, buttons)
--   Legend item toggled state (before/after Enter key)
--   Context menu when opened via keyboard
--   Focus movement between series (up/down navigation)
--   Focus movement within series (left/right navigation)
+- Default chart state
+- Focus indicators on different chart components (series, legend, buttons)
+- Legend item toggled state (before/after Enter key)
+- Context menu when opened via keyboard
+- Focus movement between series (up/down navigation)
+- Focus movement within series (left/right navigation)
 
 ### User Interactions to Validate
 
 1. **Systematic keyboard navigation testing:**
-
     - Tab through all components and verify focus order
     - Test arrow key navigation in all directions
     - Verify Enter/Space activation on all interactive elements
@@ -96,13 +94,11 @@
     - Test Escape key behavior if applicable
 
 2. **Canvas element interaction testing:**
-
     - Verify keyboard focus indicators are visible on canvas elements
     - Test that focused data points have appropriate visual feedback
     - Ensure keyboard navigation works with different chart types if shown
 
 3. **Screen reader testing simulations:**
-
     - Verify ARIA attributes are present on chart elements
     - Check that focus changes announce appropriate context
     - Test legend item state announcements
@@ -165,17 +161,17 @@ No documented exceptions found for this page.
 
 ### Success Criteria
 
--   All documented keyboard shortcuts work as described
--   Default configuration values match implementation
--   Focus indicators are clearly visible
--   Navigation order is logical and matches documentation
--   No console errors during keyboard interaction
--   Screen reader announcements are appropriate
--   Example demonstrates all documented features
+- All documented keyboard shortcuts work as described
+- Default configuration values match implementation
+- Focus indicators are clearly visible
+- Navigation order is logical and matches documentation
+- No console errors during keyboard interaction
+- Screen reader announcements are appropriate
+- Example demonstrates all documented features
 
 ### Estimated Complexity
 
--   High complexity due to extensive keyboard interaction testing
--   Requires systematic testing of multiple navigation patterns
--   Visual validation of focus states critical
--   Screen reader functionality verification important
+- High complexity due to extensive keyboard interaction testing
+- Requires systematic testing of multiple navigation patterns
+- Visual validation of focus states critical
+- Screen reader functionality verification important

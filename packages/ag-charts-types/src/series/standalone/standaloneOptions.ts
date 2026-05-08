@@ -20,5 +20,7 @@ export interface AgBaseStandaloneChartOptions<TDatum = DatumDefault, TContext = 
     series?: AgStandaloneSeriesOptions<TDatum, TContext>[];
 }
 
-export interface AgBaseStandaloneThemeOptions<TDatum = ContextDefault, TContext = ContextDefault>
-    extends AgBaseThemeableChartOptions<TDatum, TContext> {}
+export interface AgBaseStandaloneThemeOptions<
+    TDatum = ContextDefault,
+    TContext = ContextDefault,
+> extends AgBaseThemeableChartOptions<TDatum, TContext> {}

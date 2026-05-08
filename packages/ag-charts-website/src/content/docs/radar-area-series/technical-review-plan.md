@@ -4,14 +4,13 @@
 
 ### Chart Types/Features Covered
 
--   Radar Area Series (also called Spider Area) - Enterprise feature
--   Shows magnitude of various datasets within shared categories
--   Area-based trend visualization in polar coordinate system
+- Radar Area Series (also called Spider Area) - Enterprise feature
+- Shows magnitude of various datasets within shared categories
+- Area-based trend visualization in polar coordinate system
 
 ### Key APIs and Configuration Options Documented
 
 1. **Series Configuration**:
-
     - `type: 'radar-area'` - Series type identifier
     - `angleKey` - Property for shared categories on Angle Axis
     - `radiusKey` - Property for numerical datasets on Radius Axis
@@ -31,9 +30,9 @@
 
 ### Interactive Features Described
 
--   Visual comparison of area-based trends across categories
--   Multiple datasets visualization within shared categories
--   Customizable axis shapes and label orientations
+- Visual comparison of area-based trends across categories
+- Multiple datasets visualization within shared categories
+- Customizable axis shapes and label orientations
 
 ## Validation Targets
 
@@ -57,76 +56,74 @@
 
 **Documentation Claims**:
 
--   Creates radar area chart with two series
--   Uses 'department' as angleKey (shared category)
--   Uses 'quality' and 'efficiency' as radiusKey values
--   Labels series as "Quality" and "Efficiency"
+- Creates radar area chart with two series
+- Uses 'department' as angleKey (shared category)
+- Uses 'quality' and 'efficiency' as radiusKey values
+- Labels series as "Quality" and "Efficiency"
 
 **Expected Behaviors for example-tester**:
 
--   Chart renders with radar/spider web layout
--   Two overlapping area series visible
--   Department categories distributed around angle axis
--   Quality and Efficiency values plotted on radius axis
--   Legend shows "Quality" and "Efficiency" labels
--   Areas filled with different colors for distinction
--   Tooltips show department, series name, and value on hover
+- Chart renders with radar/spider web layout
+- Two overlapping area series visible
+- Department categories distributed around angle axis
+- Quality and Efficiency values plotted on radius axis
+- Legend shows "Quality" and "Efficiency" labels
+- Areas filled with different colors for distinction
+- Tooltips show department, series name, and value on hover
 
 #### 2. axis-shape
 
 **Documentation Claims**:
 
--   Demonstrates circle shape option (vs default polygon)
--   Both axes configured with `shape: 'circle'`
--   Results in concentric circles instead of polygon grid
+- Demonstrates circle shape option (vs default polygon)
+- Both axes configured with `shape: 'circle'`
+- Results in concentric circles instead of polygon grid
 
 **Expected Behaviors for example-tester**:
 
--   Grid lines form concentric circles
--   Category axis forms a circle
--   Same data visualization but with circular grid
--   Areas still render correctly within circular grid
--   Tooltips and interactions work identically
+- Grid lines form concentric circles
+- Category axis forms a circle
+- Same data visualization but with circular grid
+- Areas still render correctly within circular grid
+- Tooltips and interactions work identically
 
 #### 3. axis-label-orientation
 
 **Documentation Claims**:
 
--   Changes angle axis label orientation to 'parallel'
--   Labels align parallel to the axis (vs fixed orientation)
+- Changes angle axis label orientation to 'parallel'
+- Labels align parallel to the axis (vs fixed orientation)
 
 **Expected Behaviors for example-tester**:
 
--   Department labels rotate to align with their axis position
--   Labels follow angle of their position on circle
--   Text remains readable at all positions
--   No label overlap issues
+- Department labels rotate to align with their axis position
+- Labels follow angle of their position on circle
+- Text remains readable at all positions
+- No label overlap issues
 
 #### 4. radius-axis-position
 
 **Documentation Claims**:
 
--   Positions radius axis at 72 degrees using `positionAngle`
--   Rotates radius axis labels by -72 degrees using `label.rotation`
+- Positions radius axis at 72 degrees using `positionAngle`
+- Rotates radius axis labels by -72 degrees using `label.rotation`
 
 **Expected Behaviors for example-tester**:
 
--   Radius axis line positioned at 72-degree angle
--   Radius labels rotated -72 degrees (compensating for axis rotation)
--   Labels remain horizontal/readable
--   Grid lines and values align correctly
+- Radius axis line positioned at 72-degree angle
+- Radius labels rotated -72 degrees (compensating for axis rotation)
+- Labels remain horizontal/readable
+- Grid lines and values align correctly
 
 ### User Interactions to Validate
 
 1. **Hover interactions**:
-
     - Hover over area segments for tooltips
     - Hover over different series areas
     - Hover near area boundaries
     - Hover over axis labels and grid lines
 
 2. **Legend interactions**:
-
     - Click legend items to show/hide series
     - Hover over legend items for highlighting
 
@@ -138,12 +135,10 @@
 ### Visual States to Screenshot and Analyze
 
 1. **Default states**:
-
     - Each example in default rendering
     - Desktop, tablet, and mobile viewports
 
 2. **Interactive states**:
-
     - Tooltip display on area hover
     - Series highlighting on legend hover
     - Hidden series state (legend click)
@@ -170,7 +165,6 @@
 ### Expected Tooltip Content and Highlighting Behaviors
 
 1. **Tooltip content**:
-
     - Department name (angleKey value)
     - Series name (Quality/Efficiency)
     - Numerical value (radiusKey value)
@@ -182,7 +176,7 @@
 
 ## Known Exceptions
 
--   No technical-review-exceptions.md file exists for this page
+- No technical-review-exceptions.md file exists for this page
 
 ## Execution Plan
 
@@ -225,19 +219,19 @@
 
 ### Success Criteria
 
--   All examples render without console errors
--   Documented features work as described
--   TypeScript interfaces match documentation
--   Interactive behaviors function correctly
--   Visual rendering matches descriptions
--   No undocumented required configurations
+- All examples render without console errors
+- Documented features work as described
+- TypeScript interfaces match documentation
+- Interactive behaviors function correctly
+- Visual rendering matches descriptions
+- No undocumented required configurations
 
 ### Estimated Complexity/Time
 
--   High complexity due to enterprise feature and polar coordinate system
--   Multiple customization options to validate
--   Extensive visual and interaction testing required
--   Estimated 60-90 minutes for thorough review
+- High complexity due to enterprise feature and polar coordinate system
+- Multiple customization options to validate
+- Extensive visual and interaction testing required
+- Estimated 60-90 minutes for thorough review
 
 ## Delegation Plan for example-tester Agent
 
@@ -246,51 +240,51 @@
 **Example**: simple-radar-area
 **Instructions**: Validate basic radar area chart renders with two series. Verify:
 
--   Chart uses polar/radar layout with web-like grid
--   Two area series (Quality and Efficiency) are visible and distinguishable
--   Department categories are distributed around the angle axis
--   Areas are filled and overlap appropriately
--   Legend shows correct series names
--   Tooltips display department, series name, and value
--   No console errors or warnings
+- Chart uses polar/radar layout with web-like grid
+- Two area series (Quality and Efficiency) are visible and distinguishable
+- Department categories are distributed around the angle axis
+- Areas are filled and overlap appropriately
+- Legend shows correct series names
+- Tooltips display department, series name, and value
+- No console errors or warnings
 
 ### Task 2: Circle Shape Validation
 
 **Example**: axis-shape
 **Instructions**: Verify circle shape configuration works correctly:
 
--   Grid forms concentric circles instead of polygon web
--   Both angle and radius axes use circular shape
--   Area series render correctly within circular grid
--   All interactive features work identically to polygon shape
--   Visual appearance matches a "radar chart with circular grid"
+- Grid forms concentric circles instead of polygon web
+- Both angle and radius axes use circular shape
+- Area series render correctly within circular grid
+- All interactive features work identically to polygon shape
+- Visual appearance matches a "radar chart with circular grid"
 
 ### Task 3: Label Orientation Testing
 
 **Example**: axis-label-orientation
 **Instructions**: Validate parallel label orientation:
 
--   Angle axis labels (departments) rotate to align with their radial position
--   Labels follow the angle of their position around the circle
--   Text remains readable at all positions (no upside-down text)
--   No label overlap or rendering issues
--   Compare with default fixed orientation for contrast
+- Angle axis labels (departments) rotate to align with their radial position
+- Labels follow the angle of their position around the circle
+- Text remains readable at all positions (no upside-down text)
+- No label overlap or rendering issues
+- Compare with default fixed orientation for contrast
 
 ### Task 4: Radius Axis Positioning
 
 **Example**: radius-axis-position
 **Instructions**: Test custom radius axis positioning:
 
--   Radius axis line positioned at 72-degree angle (not default 0/90)
--   Radius axis labels rotated -72 degrees
--   Labels remain horizontal and readable despite axis rotation
--   Grid lines and values align correctly with rotated axis
--   Interaction and rendering quality maintained
+- Radius axis line positioned at 72-degree angle (not default 0/90)
+- Radius axis labels rotated -72 degrees
+- Labels remain horizontal and readable despite axis rotation
+- Grid lines and values align correctly with rotated axis
+- Interaction and rendering quality maintained
 
 ### General Testing Requirements for All Examples
 
--   Verify enterprise import is used: `ag-charts-enterprise`
--   Check for TypeScript type safety
--   Test hover interactions on various chart elements
--   Validate responsive behavior at different viewport sizes
--   Ensure consistent visual quality and performance
+- Verify enterprise import is used: `ag-charts-enterprise`
+- Check for TypeScript type safety
+- Test hover interactions on various chart elements
+- Validate responsive behavior at different viewport sizes
+- Ensure consistent visual quality and performance

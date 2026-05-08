@@ -1152,7 +1152,7 @@ export abstract class Chart extends Observable implements ModuleInstance, ChartS
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabGuardIndex(enabled ? tabIndex ?? 0 : -1);
+        this.ctx.domManager.setTabGuardIndex(enabled ? (tabIndex ?? 0) : -1);
         this.ctx.domManager.setThemeParameters(this.chartOptions.themeParameters);
     }
 

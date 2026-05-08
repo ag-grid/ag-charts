@@ -13,7 +13,6 @@
 ### TypeScript Definition Files
 
 1. **AgDataTransaction Interface**
-
     - Path: `packages/ag-charts-types/src/chart/dataTransaction.ts`
     - Purpose: Defines the transaction interface for incremental data updates
     - Properties to verify: `add`, `addIndex`, `remove`, `update`
@@ -26,7 +25,6 @@
 ### Implementation Files
 
 1. **Chart Class**
-
     - Path: `packages/ag-charts-community/src/chart/chart.ts`
     - Key method: `applyTransaction()` at line 1893
     - Purpose: Main implementation of transaction API
@@ -57,54 +55,54 @@
 
 ### Exception Files
 
--   **Status**: No `technical-review-exceptions.md` file found
+- **Status**: No `technical-review-exceptions.md` file found
 
 ## Validation Tasks
 
 ### 1. TypeScript Definitions Verification
 
--   [ ] Verify `AgDataTransaction<T>` interface properties match documentation
--   [ ] Confirm `add?: T[]` property documentation
--   [ ] Confirm `addIndex?: number` property documentation and behavior
--   [ ] Confirm `remove?: T[]` property documentation
--   [ ] Confirm `update?: T[]` property documentation
--   [ ] Verify `applyTransaction()` method signature on `AgChartInstance`
--   [ ] Verify return type is `Promise<void>`
--   [ ] Verify TypeScript comments match documentation claims
+- [ ] Verify `AgDataTransaction<T>` interface properties match documentation
+- [ ] Confirm `add?: T[]` property documentation
+- [ ] Confirm `addIndex?: number` property documentation and behavior
+- [ ] Confirm `remove?: T[]` property documentation
+- [ ] Confirm `update?: T[]` property documentation
+- [ ] Verify `applyTransaction()` method signature on `AgChartInstance`
+- [ ] Verify return type is `Promise<void>`
+- [ ] Verify TypeScript comments match documentation claims
 
 ### 2. Implementation Cross-Check
 
--   [ ] Verify `Chart.applyTransaction()` implementation matches documented behavior
--   [ ] Verify transaction processing order (remove, update, add) matches docs
--   [ ] Check `DataSet.normalizeTransaction()` logic for `addIndex` behavior:
-    -   [ ] `addIndex === undefined` or `>= length` → append to end
-    -   [ ] `addIndex === 0` → prepend to beginning
-    -   [ ] `0 < addIndex < length` → insert at position
--   [ ] Verify referential equality requirement for `remove` and `update`
--   [ ] Verify Promise resolution behavior (resolves after render)
+- [ ] Verify `Chart.applyTransaction()` implementation matches documented behavior
+- [ ] Verify transaction processing order (remove, update, add) matches docs
+- [ ] Check `DataSet.normalizeTransaction()` logic for `addIndex` behavior:
+    - [ ] `addIndex === undefined` or `>= length` → append to end
+    - [ ] `addIndex === 0` → prepend to beginning
+    - [ ] `0 < addIndex < length` → insert at position
+- [ ] Verify referential equality requirement for `remove` and `update`
+- [ ] Verify Promise resolution behavior (resolves after render)
 
 ### 3. Example Testing (Static Analysis)
 
 **simple-apply-transaction example:**
 
--   [ ] Verify `addItems()` function uses `{ add: newItems }` correctly
--   [ ] Verify `addAtIndex()` function uses `{ add: [newItem], addIndex: 2 }` correctly
--   [ ] Verify `removeItem()` function uses `{ remove: [itemToRemove] }` correctly
--   [ ] Verify `updateItems()` function mutates items before calling `applyTransaction()`
--   [ ] Verify example maintains object references correctly
--   [ ] Verify data array is synchronized with transactions
--   [ ] Check example matches bar series configuration shown in docs
--   [ ] Verify button labels match documentation descriptions
+- [ ] Verify `addItems()` function uses `{ add: newItems }` correctly
+- [ ] Verify `addAtIndex()` function uses `{ add: [newItem], addIndex: 2 }` correctly
+- [ ] Verify `removeItem()` function uses `{ remove: [itemToRemove] }` correctly
+- [ ] Verify `updateItems()` function mutates items before calling `applyTransaction()`
+- [ ] Verify example maintains object references correctly
+- [ ] Verify data array is synchronized with transactions
+- [ ] Check example matches bar series configuration shown in docs
+- [ ] Verify button labels match documentation descriptions
 
 ### 4. Content Quality Checks
 
--   [ ] Verify completeness of transaction API coverage
--   [ ] Check clarity of referential equality explanation
--   [ ] Verify all code snippets are accurate
--   [ ] Check if combined operations section is clear
--   [ ] Verify processing order documentation is accurate
--   [ ] Check if framework-specific instructions are present and accurate
--   [ ] Verify API Reference sections point to correct interfaces
+- [ ] Verify completeness of transaction API coverage
+- [ ] Check clarity of referential equality explanation
+- [ ] Verify all code snippets are accurate
+- [ ] Check if combined operations section is clear
+- [ ] Verify processing order documentation is accurate
+- [ ] Check if framework-specific instructions are present and accurate
+- [ ] Verify API Reference sections point to correct interfaces
 
 ### 5. Visual & Interaction Testing
 
@@ -112,39 +110,39 @@
 
 Could not verify:
 
--   Runtime rendering of transaction updates
--   Interactive button behavior
--   Visual chart updates after transactions
--   Animation behavior during incremental updates
--   Performance of large dataset transactions
+- Runtime rendering of transaction updates
+- Interactive button behavior
+- Visual chart updates after transactions
+- Animation behavior during incremental updates
+- Performance of large dataset transactions
 
 ### 6. Technical Accuracy Checklist
 
--   [ ] Default values (if any mentioned)
--   [ ] Property types and optional/required status
--   [ ] Method signatures and return types
--   [ ] Code snippet syntax and correctness
--   [ ] Processing order accuracy
--   [ ] Referential equality requirement accuracy
--   [ ] Promise resolution timing
+- [ ] Default values (if any mentioned)
+- [ ] Property types and optional/required status
+- [ ] Method signatures and return types
+- [ ] Code snippet syntax and correctness
+- [ ] Processing order accuracy
+- [ ] Referential equality requirement accuracy
+- [ ] Promise resolution timing
 
 ## Review Scope
 
 **In Scope:**
 
--   API accuracy verification
--   Code snippet validation
--   Example configuration consistency
--   TypeScript definition alignment
--   Documentation completeness
+- API accuracy verification
+- Code snippet validation
+- Example configuration consistency
+- TypeScript definition alignment
+- Documentation completeness
 
 **Out of Scope (degraded mode):**
 
--   Runtime behavior validation
--   Visual rendering verification
--   Interactive testing
--   Performance benchmarking
--   Browser-based screenshot capture
+- Runtime behavior validation
+- Visual rendering verification
+- Interactive testing
+- Performance benchmarking
+- Browser-based screenshot capture
 
 ## Next Steps
 

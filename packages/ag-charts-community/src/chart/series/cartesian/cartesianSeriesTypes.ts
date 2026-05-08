@@ -89,8 +89,9 @@ export interface CartesianCreateNodeDataContext<TDatum extends CartesianSeriesNo
  * Specialized context for bar-like series (Bar, Histogram, RangeBar, Waterfall).
  * Adds bar-specific positioning fields.
  */
-export interface CartesianBarLikeContext<TDatum extends CartesianSeriesNodeDatum>
-    extends CartesianCreateNodeDataContext<TDatum> {
+export interface CartesianBarLikeContext<
+    TDatum extends CartesianSeriesNodeDatum,
+> extends CartesianCreateNodeDataContext<TDatum> {
     readonly barWidth: number;
     readonly groupOffset: number;
     readonly crisp: boolean;
@@ -100,8 +101,9 @@ export interface CartesianBarLikeContext<TDatum extends CartesianSeriesNodeDatum
  * Specialized context for marker-like series (Line, Area, Bubble, Scatter).
  * Adds marker-specific offset fields for band scale positioning.
  */
-export interface CartesianMarkerLikeContext<TDatum extends CartesianSeriesNodeDatum>
-    extends CartesianCreateNodeDataContext<TDatum> {
+export interface CartesianMarkerLikeContext<
+    TDatum extends CartesianSeriesNodeDatum,
+> extends CartesianCreateNodeDataContext<TDatum> {
     /** X offset for band scale center positioning */
     readonly xOffset: number;
     /** Y offset for band scale center positioning */
