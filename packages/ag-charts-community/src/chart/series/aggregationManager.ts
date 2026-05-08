@@ -1,4 +1,10 @@
+import { EventEmitter } from 'ag-charts-core';
+
 import { DeferredExecutor } from '../../util/deferredExecutor';
+
+export interface AggregationManagerEvents {
+    filtersChanged: void;
+}
 
 /**
  * Base interface for aggregation filters used by AggregationManager.
@@ -38,21 +44,19 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
     private _filters: TFilter[] | undefined;
     private _dataLength: number = 0;
     private readonly executor = new DeferredExecutor<TFilter[]>();
-    private onFiltersChanged?: () => void;
+
+    /**
+     * Emits `filtersChanged` on every filter-set mutation: aggregation
+     * rebuilds (immediate + deferred coarser levels), staleness-driven
+     * discards (`markStale`), and on-demand level merges
+     * (`ensureLevelForRange`). `BucketLookupFeature` subscribes here to
+     * keep the per-bucket SELECTED roll-up cache in sync with the active
+     * filter list.
+     */
+    readonly events = new EventEmitter<AggregationManagerEvents>();
 
     get filters(): TFilter[] | undefined {
         return this._filters;
-    }
-
-    /**
-     * Subscribe a single callback to every filter-set mutation: aggregation
-     * rebuilds (immediate + deferred coarser levels), staleness-driven
-     * discards (`markStale`), and on-demand level merges
-     * (`ensureLevelForRange`). Used by `BucketLookupFeature` to keep the
-     * per-bucket SELECTED roll-up cache in sync with the active filter list.
-     */
-    setOnFiltersChanged(cb: (() => void) | undefined): void {
-        this.onFiltersChanged = cb;
     }
 
     /**
@@ -79,18 +83,18 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
                 if (computeRemaining) {
                     this.executor.schedule(computeRemaining, (remaining) => {
                         this.mergeFilters(remaining);
-                        this.onFiltersChanged?.();
+                        this.events.emit('filtersChanged', undefined);
                     });
                 }
 
                 this._filters = immediate;
-                this.onFiltersChanged?.();
+                this.events.emit('filtersChanged', undefined);
                 return immediate;
             }
         }
 
         this._filters = options.computeFull(this._filters);
-        this.onFiltersChanged?.();
+        this.events.emit('filtersChanged', undefined);
         return this._filters;
     }
 
@@ -103,9 +107,9 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
 
         if (!hasLevel && this.executor.isPending()) {
             // demand() runs the executor's onComplete (which already called
-            // mergeFilters and onFiltersChanged). No additional work needed —
-            // the historical second mergeFilters call here was a double-merge
-            // bug.
+            // mergeFilters and emitted filtersChanged). No additional work
+            // needed — the historical second mergeFilters call here was a
+            // double-merge bug.
             this.executor.demand();
         }
     }
@@ -148,7 +152,7 @@ export class AggregationManager<TFilter extends AggregationFilterBase> {
             // closures over the now-orphaned `indexData` TypedArrays. (The
             // `stale: true` branch keeps the filter objects alive, so cached
             // readers stay valid.)
-            this.onFiltersChanged?.();
+            this.events.emit('filtersChanged', undefined);
         }
     }
 

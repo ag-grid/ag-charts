@@ -134,7 +134,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
     private readonly populatedEpochs = new WeakMap<TFilter, number>();
 
     constructor(protected readonly opts: BucketLookupManagerOpts<TFilter>) {
-        opts.aggregationManager.setOnFiltersChanged(() => this.populateStaleFilters());
+        opts.aggregationManager.events.on('filtersChanged', () => this.populateStaleFilters());
     }
 
     /**
@@ -152,10 +152,10 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
     }
 
     /**
-     * Filter-set-mutation entrypoint (subscribed via
-     * `aggregationManager.setOnFiltersChanged`). Doesn't bump the epoch —
-     * existing filters' SELECTED slots are still valid for the current
-     * selection — but newly-added filter objects aren't yet in
+     * Filter-set-mutation entrypoint (subscribed to
+     * `aggregationManager.events.on('filtersChanged', …)`). Doesn't bump
+     * the epoch — existing filters' SELECTED slots are still valid for the
+     * current selection — but newly-added filter objects aren't yet in
      * `populatedEpochs`, so they get populated on this pass.
      */
     private populateStaleFilters(): void {
