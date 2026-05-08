@@ -116,8 +116,8 @@ The chart state can also be read and updated programmatically. `setState()` perf
 replacement — to toggle a single node, read the current state, modify the array, then set it back.
 
 ```js
-const state = chart.getState();
-chart.setState({ collapsed: [...state.collapsed, 'marketing'] });
+const { version, collapsed = [] } = chart.getState();
+chart.setState({ version, collapsed: [...collapsed, 'marketing'] });
 ```
 
 When a node is set as the active item via `initialState.active`, all its collapsed ancestors are
@@ -147,8 +147,8 @@ A `tooltip.renderer` callback can be used for custom formatting.
 {% chartExampleRunner title="Org Chart Node Customisation" name="org-chart-node-customisation" type="generated" /%}
 
 The `node.itemStyler` callback provides per-node visual customisation based on data and tree state.
-It receives `datum`, `depth`, and `isCollapsed`, and can return `fill`, `stroke`, `strokeWidth`,
-`opacity`, `cornerRadius`, and `lineDash`.
+It receives `datum`, `depth`, and `isCollapsed`, and can return `fill`, `fillOpacity`, `stroke`,
+`strokeWidth`, `strokeOpacity`, `cornerRadius`, and `lineDash`.
 
 ```js format="snippet"
 {

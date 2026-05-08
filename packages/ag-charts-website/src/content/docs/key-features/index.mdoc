@@ -64,7 +64,7 @@ Polar charts such as the [Radar Line Series](./radar-line-series), use [Polar Ax
 
 Charts can have more than one axis in each direction, allowing for series with different domains to be displayed on the same chart.
 
-Use the axes `keys` property to link the series `_Key` property to the axis.
+Use the series `xKeyAxis` / `yKeyAxis` property to link a series to a specific axis.
 
 ```js format="snippet"
 {
@@ -358,16 +358,22 @@ Use `highlight` options to [customise](./series-highlighting/#customisation) hig
 
 ```js format="snippet"
 {
-    highlight: {
-        // Attributes that apply to the highlighted item only.
-        highlightedItem: {
-            strokeWidth: 5,
+    series: [
+        {
+            type: 'bar',
+            // Per-series highlight customisation.
+            highlight: {
+                // Attributes that apply to the highlighted item only.
+                highlightedItem: {
+                    strokeWidth: 5,
+                },
+                // Attributes that apply to all other series.
+                unhighlightedSeries: {
+                    opacity: 0.2,
+                },
+            },
         },
-        // Attributes that apply to all other series.
-        unhighlightedSeries: {
-            opacity: 0.2,
-        },
-    },
+    ],
 }
 ```
 
