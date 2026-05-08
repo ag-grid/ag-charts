@@ -323,6 +323,7 @@ export function selectionOptionsDef<T>(itemSelectionOptionsDef: T) {
         containment: selectionContainmentValidator,
         selectedItem: itemSelectionOptionsDef,
         unselectedItem: itemSelectionOptionsDef,
+        unselectedSeries: itemSelectionOptionsDef,
     };
 }
 

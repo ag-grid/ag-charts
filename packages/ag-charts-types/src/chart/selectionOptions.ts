@@ -46,7 +46,10 @@ export interface AgChartSelectionOptions {
     containment?: AgSelectionContainment;
 }
 
-export interface AgSelectionOptions<ItemSelectionStyleOptions> {
+export interface AgSelectionOptions<
+    ItemSelectionStyleOptions,
+    SeriesSelectionStyleOptions = ItemSelectionStyleOptions,
+> {
     /** Set to `true` to enable the data-selection on this series. */
     enabled?: boolean;
     /**
@@ -57,6 +60,8 @@ export interface AgSelectionOptions<ItemSelectionStyleOptions> {
     containment?: AgSelectionContainment;
     /** Styling options for selected items.  */
     selectedItem?: ItemSelectionStyleOptions;
-    /** Styling Options for unselected items. */
+    /** Styling options for unselected items. */
     unselectedItem?: ItemSelectionStyleOptions;
+    /** Styling options for series with no selections when there is at least one other selected series. */
+    unselectedSeries?: SeriesSelectionStyleOptions;
 }

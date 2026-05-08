@@ -267,9 +267,21 @@ export abstract class DataModelSeries<
         const options = this.ctx.chartState.getValue('options');
         if (!options?.selection.enabled) return undefined;
 
-        if (selectionState.selectedCount === 0) return SelectionState.None;
+        const totalNumberOfSelection = selectionState.selectedCount;
+        if (totalNumberOfSelection === 0) {
+            return SelectionState.None;
+        }
 
-        const isSelected: boolean = this.data?.selections.get(this.id)?.isSelected(datumIndex) ?? false;
-        return isSelected ? SelectionState.Selected : SelectionState.Unselected;
+        const selectionBuffer = this.data?.selections.get(this.id);
+        if (selectionBuffer?.isSelected(datumIndex)) {
+            return SelectionState.Item;
+        }
+
+        const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
+        if (selectionCount === 0) {
+            return SelectionState.OtherSeries;
+        } else {
+            return SelectionState.OtherItem;
+        }
     }
 }

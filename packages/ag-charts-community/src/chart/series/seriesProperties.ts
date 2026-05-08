@@ -38,8 +38,9 @@ export enum HighlightState {
 
 export enum SelectionState {
     None,
-    Selected,
-    Unselected,
+    Item,
+    OtherItem,
+    OtherSeries,
 }
 
 export const highlightStates = [
@@ -56,7 +57,7 @@ export type HighlightStyleOptionKey =
     | 'highlightedSeries'
     | 'unhighlightedSeries';
 
-export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem';
+export type SelectionStyleOptionKey = 'selectedItem' | 'unselectedItem' | 'unselectedSeries';
 
 export function getHighlightStyleOptionKeys(highlightState: HighlightState): HighlightStyleOptionKey[] {
     switch (highlightState) {
@@ -75,10 +76,12 @@ export function getHighlightStyleOptionKeys(highlightState: HighlightState): Hig
 
 export function getSelectionStyleOptionKeys(selectionState: SelectionState): SelectionStyleOptionKey[] {
     switch (selectionState) {
-        case SelectionState.Selected:
+        case SelectionState.Item:
             return ['selectedItem'];
-        case SelectionState.Unselected:
+        case SelectionState.OtherItem:
             return ['unselectedItem'];
+        case SelectionState.OtherSeries:
+            return ['unselectedSeries'];
         case SelectionState.None:
             return [];
         default: {
@@ -120,10 +123,12 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
 export function toSelectionString(state: SelectionState): PublicSelectionState {
     const unreachable = (a: never): never => a;
     switch (state) {
-        case SelectionState.Selected:
+        case SelectionState.Item:
             return 'selected-item';
-        case SelectionState.Unselected:
+        case SelectionState.OtherItem:
             return 'unselected-item';
+        case SelectionState.OtherSeries:
+            return 'unselected-series';
         case SelectionState.None:
             return 'none';
         default:
@@ -131,11 +136,11 @@ export function toSelectionString(state: SelectionState): PublicSelectionState {
     }
 }
 
-export function isSelected(state: SelectionState | undefined): boolean {
-    if (state === SelectionState.None || state === SelectionState.Unselected) {
+export function isUnselected(state: SelectionState | undefined): boolean {
+    if (state === SelectionState.None || state === SelectionState.OtherItem || state == SelectionState.OtherSeries) {
         // Compile-time check for SelectionState exhaustiveness:
         type ActualComplement = Exclude<SelectionState, typeof state>;
-        type ExpectedComplement = SelectionState.Selected;
+        type ExpectedComplement = SelectionState.Item;
         return true satisfies AreExact<ActualComplement, ExpectedComplement>;
     }
     return false;
@@ -187,6 +192,9 @@ export class SeriesSelectionProperties<TOpts extends object> extends BasePropert
 
     @Property
     readonly unselectedItem: SelectionOptions<TOpts> = {};
+
+    @Property
+    readonly unselectedSeries: SelectionOptions<TOpts> = {};
 
     @Property
     selectedOffset = 0; // pie-only
