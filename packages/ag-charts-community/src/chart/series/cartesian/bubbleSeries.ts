@@ -38,8 +38,8 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
-    type SelectionState,
     type StrokeOptions,
+    type SelectionState as PublicSelectionState,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -77,8 +77,8 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, SelectionState, toHighlightString, toSelectionString } from '../seriesProperties';
-import type { BucketLookupFeature, ErrorBoundSeriesNodeDatum, SeriesNodeEventTypes } from '../seriesTypes';
+import { HighlightState, toHighlightString, toSelectionString } from '../seriesProperties';
+import type { BucketLookupFeature, ErrorBoundSeriesNodeDatum, SelectionState, SeriesNodeEventTypes } from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,
@@ -124,7 +124,7 @@ class BubbleScatterSeriesNodeEvent<
         nativeEvent: Event,
         datum: BubbleScatterNodeDatum,
         series: BubbleSeries,
-        selectionState: SelectionState | undefined
+        selectionState: PublicSelectionState | undefined
     ) {
         super(type, nativeEvent, datum, series, selectionState);
         this.sizeKey = series.properties.sizeKey;
