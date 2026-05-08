@@ -2,6 +2,7 @@ import {
     type AgRadialBarSeriesOptions,
     type AgRadialSeriesLabelFormatterParams,
     type AgRadialSeriesStyle,
+    type SelectionState,
     type TextOrSegments,
     _ModuleSupport,
 } from 'ag-charts-community';
@@ -50,8 +51,14 @@ class RadialBarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialBarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadialBarNodeDatum, series: RadialBarSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RadialBarNodeDatum,
+        series: RadialBarSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

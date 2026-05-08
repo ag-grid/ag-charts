@@ -8,7 +8,7 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState } from 'ag-charts-types';
+import type { AgActiveItemState, SelectionState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -47,6 +47,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
+    readonly selectionState: SelectionState | undefined;
 }
 
 export interface ISeriesProperties {
@@ -83,6 +84,7 @@ export interface ISeries<
     getCategoryValue(datumIndex: TDatumIndex): any;
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
     isHighlightEnabled(): boolean;
+    getSelectionStateString(datumIndex: TDatumIndex | undefined): SelectionState;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;

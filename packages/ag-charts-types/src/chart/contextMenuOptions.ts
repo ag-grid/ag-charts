@@ -1,3 +1,4 @@
+import type { SelectionState } from './callbackOptions';
 import type {
     AgChartContextMenuEvent,
     AgNodeContextMenuActionEvent,
@@ -128,6 +129,8 @@ export interface AgContextMenuGetItemsParamsSeriesNode<TDatum = DatumDefault, TC
         GetItemsParamsMixin<TDatum, TContext> {
     /** Which clicked element this menu item should be shown for. */
     showOn: 'series-node';
+    /** The current selection state of this datum. Set to `undefined` if the selection module is not enabled. */
+    selectionState?: SelectionState;
 }
 
 export interface AgContextMenuGetItemsParamsLegendItem<_TDatumReserved = never, TContext = ContextDefault>

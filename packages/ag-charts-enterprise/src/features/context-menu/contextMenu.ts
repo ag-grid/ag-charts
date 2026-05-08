@@ -149,6 +149,7 @@ export class ContextMenu extends AbstractModuleInstance {
 
             case 'series-node': {
                 if (this.pickedNode == null) throw new Error(`this.pickedNode is null`);
+                // FIXME: Some optional keys like dataIdKey are not set. Is that a concern?
                 const params: AgContextMenuGetItemsParamsSeriesNode = {
                     showOn,
                     context,
@@ -156,6 +157,7 @@ export class ContextMenu extends AbstractModuleInstance {
                     itemId: getItemId(this.pickedNode, this.pickedNode.series.data?.dataIdKey),
                     datum: this.pickedNode.datum,
                     defaultItems,
+                    selectionState: this.pickedNode.series.getSelectionStateString(this.pickedNode.datumIndex),
                 };
 
                 for (const k of DATUM_KEYS) {

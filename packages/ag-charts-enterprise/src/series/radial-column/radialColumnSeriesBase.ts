@@ -2,6 +2,7 @@ import type {
     AgBaseRadialColumnSeriesOptions,
     AgRadialSeriesLabelFormatterParams,
     AgRadialSeriesStyle,
+    SelectionState,
     TextOrSegments,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -46,8 +47,14 @@ class RadialColumnSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadialColumnNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadialColumnNodeDatum, series: RadialColumnSeriesBase<any>) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RadialColumnNodeDatum,
+        series: RadialColumnSeriesBase<any>,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

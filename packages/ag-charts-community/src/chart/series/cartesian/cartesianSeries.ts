@@ -14,7 +14,7 @@ import {
     findMinMax,
     isFiniteNumber,
 } from 'ag-charts-core';
-import type { AgDrawingMode, AgSeriesSegmentation } from 'ag-charts-types';
+import type { AgDrawingMode, AgSeriesSegmentation, SelectionState } from 'ag-charts-types';
 
 import type { HighlightNodeDatum } from '../../../core/eventsHub';
 import type { AnimationValue } from '../../../motion/animation';
@@ -103,9 +103,10 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
         type: TEvent,
         nativeEvent: Event,
         datum: SeriesNodeDatum<number>,
-        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>
+        series: ISeries<number, SeriesNodeDatum<number>, ISeriesProperties & { xKey?: string; yKey?: string }>,
+        selectionState: SelectionState | undefined
     ) {
-        super(type, nativeEvent, datum, series);
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.yKey = series.properties.yKey;
     }
