@@ -241,6 +241,12 @@
                     "isEnterprise": true
                 },
                 {
+                    "moduleName": "OrganizationSeriesModule",
+                    "name": "Org Chart",
+                    "path": "org-chart",
+                    "isEnterprise": true
+                },
+                {
                     "name": "Maps",
                     "path": "maps",
                     "isEnterprise": true,
@@ -382,7 +388,7 @@
                 },
                 {
                     "moduleName": "SelectionModule",
-                    "name": "Selection",
+                    "name": "Data Selection",
                     "path": "selection",
                     "isEnterprise": true
                 },
