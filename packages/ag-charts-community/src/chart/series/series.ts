@@ -167,7 +167,8 @@ const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 export class SeriesNodeEvent<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TEvent extends string = SeriesNodeEventTypes,
-> implements INodeEvent<TEvent> {
+> implements INodeEvent<TEvent>
+{
     readonly datum: unknown;
     readonly seriesId: string;
     readonly itemId: string | number;
@@ -265,17 +266,17 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
 
 export abstract class Series<
-    TDatumIndex extends DatumIndexType,
-    TDatum extends SeriesNodeDatum<TDatumIndex>,
-    TOpts extends object,
-    TProps extends SeriesProperties<TOpts>,
-    TLabel = TDatum,
-    TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
-        TDatumIndex,
-        TDatum,
-        TLabel
-    >,
->
+        TDatumIndex extends DatumIndexType,
+        TDatum extends SeriesNodeDatum<TDatumIndex>,
+        TOpts extends object,
+        TProps extends SeriesProperties<TOpts>,
+        TLabel = TDatum,
+        TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
+            TDatumIndex,
+            TDatum,
+            TLabel
+        >,
+    >
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
@@ -546,7 +547,7 @@ export abstract class Series<
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? (this.ctx.chartService.highlight?.drawingMode ?? 'overlay') : 'overlay';
+        return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
     }
 
     protected getAnimationDrawingModes() {
@@ -910,8 +911,12 @@ export abstract class Series<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        highlightState ??= this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
+        // Skip the highlightManager + getHighlightState chain entirely when the caller
+        // already knows the resolved state (the per-datum hot path always does).
+        if (highlightState === undefined) {
+            const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+            highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
+        }
         return this.properties.highlight.getStyle(highlightState);
     }
 
@@ -1326,6 +1331,10 @@ export abstract class Series<
         params?: TParams,
         opts?: {
             highlightState?: HighlightState;
+            // Pre-resolved selection state. Per-datum hot paths already compute this for
+            // their own purposes (e.g. line-series styler params); pass it through to skip
+            // the redundant getDataSelectionState() call here.
+            selectionState?: SelectionState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
             resolveMarkerSubPath?: string[];
@@ -1344,16 +1353,25 @@ export abstract class Series<
             resolveStyler = false,
             hideWithSize0 = false,
         } = opts ?? {};
-        const selectionState: SelectionState | undefined = this.getDataSelectionState(datumIndex);
-        const resolvePath = ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath];
+        const selectionState: SelectionState | undefined =
+            opts?.selectionState ?? this.getDataSelectionState(datumIndex);
 
         if (hideWithSize0 && isUnselected(selectionState)) {
             return { size: 0 } satisfies AgSeriesMarkerStyle;
         }
 
+        // resolvePath is only consumed by the resolveStyler/itemStyler branches —
+        // build it lazily so the (common) no-styler path skips an array allocation per call.
+        let resolvePath: string[] | undefined;
+        const getResolvePath = () => (resolvePath ??= ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath]);
+
         if (resolveStyler) {
             const resolveOpt = { permissivePath: true };
-            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, defaultOverrideStyle, resolveOpt);
+            const resolved = this.ctx.optionsGraphService.resolvePartial(
+                getResolvePath(),
+                defaultOverrideStyle,
+                resolveOpt
+            );
             if (resolved) {
                 defaultOverrideStyle = { ...resolved, size: resolved.size ?? defaultOverrideStyle.size };
             }
@@ -1377,9 +1395,17 @@ export abstract class Series<
         let markerStyle = baseStyle;
 
         if (itemStyler && params) {
-            const highlight = this.ctx.highlightManager?.getActiveHighlight();
-            const highlightStateString = this.getHighlightStateString(highlight, isHighlight, datumIndex);
-            const selectionStateString = this.getSelectionStateString(datumIndex, selectionState);
+            // Use the resolved highlightState directly when the caller provided one — avoids
+            // a redundant trip through highlightManager.getActiveHighlight() + getHighlightState().
+            const highlightStateString =
+                highlightState !== undefined
+                    ? toHighlightString(highlightState)
+                    : this.getHighlightStateString(
+                          this.ctx.highlightManager?.getActiveHighlight(),
+                          isHighlight,
+                          datumIndex
+                      );
+            const selectionStateString = selectionState !== undefined ? toSelectionString(selectionState) : undefined;
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1391,7 +1417,7 @@ export abstract class Series<
                 selectionState: selectionStateString,
                 datum,
             });
-            const resolved = this.ctx.optionsGraphService.resolvePartial(resolvePath, style);
+            const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
 
             markerStyle = mergeDefaults(resolved, markerStyle);
         }

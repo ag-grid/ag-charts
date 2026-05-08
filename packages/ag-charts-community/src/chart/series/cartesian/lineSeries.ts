@@ -689,7 +689,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker } = properties;
 
-        const markerDrawMode = cartesianMarkerDrawMode(properties, contextNodeData, processedData!, axes, marker);
+        const markerDrawMode = cartesianMarkerDrawMode(
+            properties,
+            contextNodeData,
+            processedData!,
+            axes,
+            marker,
+            marker,
+            this.chart?.isMiniChart
+        );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
         nodeData = markerDrawMode.needsNodeData ? nodeData : [];
 
@@ -760,7 +768,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
                 marker,
                 datum,
                 params,
-                { isHighlight, highlightState, hideWithSize0 },
+                { isHighlight, highlightState, selectionState, hideWithSize0 },
                 markerStyle,
                 { stroke, strokeWidth, strokeOpacity }
             );

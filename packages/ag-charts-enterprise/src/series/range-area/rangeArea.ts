@@ -971,9 +971,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const rules: LowHighRules = properties.styler ? this.getStylerMarkerOptions().item : properties.item;
         const { low, high } = rules;
 
-        const markerDrawMode = cartesianMarkerDrawMode(properties, undefined, processedData!, axes, {
-            enabled: low.marker.enabled || high.marker.enabled,
-        });
+        const markerDrawMode = cartesianMarkerDrawMode(
+            properties,
+            undefined,
+            processedData!,
+            axes,
+            { enabled: low.marker.enabled || high.marker.enabled },
+            undefined,
+            this.chart?.isMiniChart
+        );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
 
         if (properties.item.low.marker.isDirty() || properties.item.high.marker.isDirty()) {

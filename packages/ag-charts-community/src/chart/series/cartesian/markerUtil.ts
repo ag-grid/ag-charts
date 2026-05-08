@@ -199,14 +199,18 @@ export function cartesianMarkerDrawMode(
     processedData: { input: { count: number } },
     axes: { [ChartAxisDirection.X]?: { scale: Scale<unknown, number, unknown> } },
     marker: { enabled: boolean },
-    markerStyle: { enabled?: boolean } = marker
+    markerStyle: { enabled?: boolean } = marker,
+    isMiniChart: boolean = false
 ): CartesianMarkerDrawMode {
     const markersEnabled =
         contextNodeData?.crossFiltering === true ||
         markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
-    if (properties.selection.enabled) {
+    if (properties.selection.enabled && !isMiniChart) {
         // selection.enabled needs NodeData for selected-style overrides to function.
+        // Mini-chart series inherit selection.enabled from the main chart but the navigator
+        // preview never renders selection visualisations, so the size-0 marker placeholders
+        // are pure overhead — fall through to the marker-disabled path.
         return { needsNodeData: true, hideWithSize0: !markersEnabled };
     } else {
         return { needsNodeData: markersEnabled, hideWithSize0: false };

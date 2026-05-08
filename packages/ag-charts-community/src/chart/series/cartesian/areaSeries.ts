@@ -1287,7 +1287,8 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             processedData!,
             axes,
             marker,
-            markerStyle
+            markerStyle,
+            this.chart?.isMiniChart
         );
         this.hideWithSize0 = markerDrawMode.hideWithSize0;
 

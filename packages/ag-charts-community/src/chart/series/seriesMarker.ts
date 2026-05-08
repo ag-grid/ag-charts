@@ -56,10 +56,25 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
         AgSeriesMarkerStyle
     >;
 
-    getStyle(): AgSeriesMarkerStyle {
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+    private _cachedStyle?: AgSeriesMarkerStyle;
 
-        return {
+    override onChangeDetection(property: string): void {
+        // Any property change invalidates the cached snapshot. lineDash / lineDashOffset
+        // aren't change-detected and so don't reach here; they're part of the cache build
+        // itself, so a snapshot mismatch on those still reflects the latest values.
+        this._cachedStyle = undefined;
+        super.onChangeDetection(property);
+    }
+
+    getStyle(): AgSeriesMarkerStyle {
+        // Cached snapshot — cleared on any decorated property change. Returning the same
+        // object across calls is safe: callers feed it into mergeDefaults / spreads, which
+        // read keys but don't mutate.
+        if (this._cachedStyle !== undefined) {
+            return this._cachedStyle;
+        }
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return (this._cachedStyle = {
             size,
             shape,
             fill,
@@ -69,7 +84,7 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-        } satisfies RequireOptional<AgSeriesMarkerStyle>;
+        } satisfies RequireOptional<AgSeriesMarkerStyle>);
     }
 
     getDiameter(): number {
