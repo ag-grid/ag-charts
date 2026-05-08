@@ -287,8 +287,4 @@ export abstract class DataModelSeries<
         const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
         return selectionCount === 0 ? SelectionState.OtherSeries : SelectionState.OtherItem;
     }
-
-    protected override getSeriesSelectionState(): SelectionState | undefined {
-        return this.getDataSelectionState(undefined);
-    }
 }

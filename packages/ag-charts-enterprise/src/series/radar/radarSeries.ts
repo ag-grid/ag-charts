@@ -650,7 +650,7 @@ export abstract class RadarSeries<
         const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightState(highlightDatum);
         const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
-        const selectionState = this.getSeriesSelectionState();
+        const selectionState = this.getDataSelectionState(undefined);
         const stylerStyle = this.getStyle(highlightState, selectionState);
         return mergeDefaults(highlightStyle, stylerStyle);
     }
