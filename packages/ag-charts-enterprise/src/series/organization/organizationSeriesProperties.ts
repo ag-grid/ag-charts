@@ -72,6 +72,12 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     >;
 
     @Property
+    lineDash: number[] = [];
+
+    @Property
+    lineDashOffset?: number;
+
+    @Property
     padding: number = 6;
 
     @Property

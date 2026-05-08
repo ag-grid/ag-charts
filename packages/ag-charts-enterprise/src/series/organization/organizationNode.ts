@@ -393,8 +393,8 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.shapeNode.width = bbox.width;
         this.shapeNode.height = bbox.height;
 
-        applyFillStyles(this.shapeNode, styles);
-        applyStrokeStyles(this.shapeNode, styles);
-        this.shapeNode.cornerRadius = styles.cornerRadius;
+        applyFillStyles(this.shapeNode, styles.expander);
+        applyStrokeStyles(this.shapeNode, styles.expander);
+        this.shapeNode.cornerRadius = styles.expander.cornerRadius;
     }
 }

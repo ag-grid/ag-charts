@@ -918,13 +918,26 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
-        const { cornerRadius, enabled, fill, fillOpacity, padding, stroke, strokeWidth, strokeOpacity, text } =
-            this.properties.expander;
+        const {
+            cornerRadius,
+            enabled,
+            fill,
+            fillOpacity,
+            lineDash,
+            lineDashOffset,
+            padding,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            text,
+        } = this.properties.expander;
         return {
             cornerRadius,
             enabled,
             fill,
             fillOpacity,
+            lineDash,
+            lineDashOffset: lineDashOffset ?? 0,
             padding,
             stroke,
             strokeWidth,

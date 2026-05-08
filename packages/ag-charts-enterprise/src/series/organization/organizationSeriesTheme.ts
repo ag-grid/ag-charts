@@ -25,7 +25,13 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         verticalSpacing: 52,
         expander: {
             enabled: true,
-            cornerRadius: 4,
+            cornerRadius: { $path: '../node/cornerRadius' },
+            fill: { $path: '../node/fill' },
+            stroke: { $path: '../node/stroke' },
+            strokeOpacity: { $path: '../node/strokeOpacity' },
+            strokeWidth: { $path: '../node/strokeWidth' },
+            lineDash: { $path: '../node/lineDash' },
+            lineDashOffset: { $path: '../node/lineDashOffset' },
             padding: 5,
             text: {
                 color: { $ref: 'subtleTextColor' },

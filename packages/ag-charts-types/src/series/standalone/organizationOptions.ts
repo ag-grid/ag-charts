@@ -64,10 +64,10 @@ export interface AgOrganizationSeriesOptionsExpander<TDatum = DatumDefault, TCon
         AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
         AgOrganizationSeriesExpanderStyle
     >;
-    text?: AgOrganizationSeriesOptionsExpanderText<TDatum, TContext>;
+    text?: AgOrganizationSeriesOptionsExpanderText;
 }
 
-export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, StrokeOptions {
+export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, LineDashOptions, StrokeOptions {
     cornerRadius?: PixelSize;
     padding?: PixelSize;
     text?: AgOrganizationSeriesExpanderTextStyle;
@@ -78,9 +78,8 @@ export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
     textAlign?: TextAlign;
 }
 
-export interface AgOrganizationSeriesOptionsExpanderText<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgOrganizationSeriesExpanderTextStyle {
-    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
+export interface AgOrganizationSeriesOptionsExpanderText extends AgOrganizationSeriesExpanderTextStyle {
+    // formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
 }
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>

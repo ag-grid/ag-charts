@@ -41,11 +41,13 @@ import {
 
 const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
     ...fillOptionsDef,
+    ...lineDashOptionsDef,
     ...strokeOptionsDef,
     cornerRadius: positiveNumber,
     enabled: boolean,
     itemStyler: callbackDefs<AgOrganizationSeriesExpanderStyle>({
         ...fillOptionsDef,
+        ...lineDashOptionsDef,
         ...strokeOptionsDef,
         cornerRadius: positiveNumber,
         enabled: boolean,
@@ -59,7 +61,7 @@ const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
     text: {
         ...fontOptionsDef,
         textAlign: textAlign,
-        formatter: callbackOf(textOrSegments),
+        // formatter: callbackOf(textOrSegments),
     },
 };
 
