@@ -39,7 +39,6 @@ export enum HighlightState {
 export enum SelectionState {
     None,
     Item,
-    Series,
     OtherItem,
     OtherSeries,
 }
@@ -81,8 +80,6 @@ export function getSelectionStyleOptionKeys(selectionState: SelectionState): Sel
             return ['selectedItem'];
         case SelectionState.OtherItem:
             return ['unselectedItem'];
-        case SelectionState.Series:
-            return [];
         case SelectionState.OtherSeries:
             return ['unselectedSeries'];
         case SelectionState.None:
@@ -130,8 +127,6 @@ export function toSelectionString(state: SelectionState | undefined): PublicSele
             return 'selected-item';
         case SelectionState.OtherItem:
             return 'unselected-item';
-        case SelectionState.Series:
-            return 'selected-series';
         case SelectionState.OtherSeries:
             return 'unselected-series';
         case SelectionState.None:
@@ -147,7 +142,7 @@ export function isUnselected(state: SelectionState | undefined): boolean {
     if (state === SelectionState.None || state === SelectionState.OtherItem || state == SelectionState.OtherSeries) {
         // Compile-time check for SelectionState exhaustiveness:
         type ActualComplement = Exclude<SelectionState, typeof state>;
-        type ExpectedComplement = SelectionState.Item | SelectionState.Series;
+        type ExpectedComplement = SelectionState.Item;
         return true satisfies AreExact<ActualComplement, ExpectedComplement>;
     }
     return false;
