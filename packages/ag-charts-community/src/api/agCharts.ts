@@ -259,7 +259,9 @@ class AgChartsInternal {
         if (data != null) {
             chart.ctx.dataService.restoreData(data);
         }
-        chart.ctx.dataService.setForcedLoading(chartOptions.processedOptions.loading);
+        if ('loading' in chartOptions.processedOptions) {
+            chart.ctx.dataService.setForcedLoading((chartOptions.processedOptions as { loading?: boolean }).loading);
+        }
 
         if (proxy == null) {
             proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
