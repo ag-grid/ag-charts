@@ -250,40 +250,48 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
         onPlay: () => {
             if (!start) return;
 
+            // Hoist Object.keys() out of the per-node loop: same `start` object for every node.
+            const startKeys = Object.keys(start);
             for (const node of nodes) {
-                node.setProperties(start);
+                node.setPropertiesWithKeys(start, startKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionPlay() {
                     for (const node of selectionNodes) {
-                        node.setProperties(start);
+                        node.setPropertiesWithKeys(start, startKeys);
                     }
                 });
             }
         },
         onUpdate(props) {
+            // Hoist Object.keys() out of the per-node loop: animation passes the same
+            // interpolated `props` object to every node within a single frame.
+            const propKeys = Object.keys(props);
             for (const node of nodes) {
-                node.setProperties(props);
+                node.setPropertiesWithKeys(props, propKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionUpdate() {
                     for (const node of selectionNodes) {
-                        node.setProperties(props);
+                        node.setPropertiesWithKeys(props, propKeys);
                     }
                 });
             }
         },
         onStop: () => {
+            // Hoist both the spread and Object.keys() — every node gets the same end-state.
+            const endProps = { ...to, ...finish };
+            const endKeys = Object.keys(endProps);
             for (const node of nodes) {
-                node.setProperties({ ...to, ...finish });
+                node.setPropertiesWithKeys(endProps, endKeys);
             }
             for (const selection of selections) {
                 const selectionNodes = selection.nodes();
                 selection.batchedUpdate(function staticMotionStop() {
                     for (const node of selectionNodes) {
-                        node.setProperties({ ...to, ...finish });
+                        node.setPropertiesWithKeys(endProps, endKeys);
                     }
                     selection.cleanup();
                 });

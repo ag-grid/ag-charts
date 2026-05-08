@@ -714,20 +714,21 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { marker } = this.properties;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        datumSelection.each((node, datum) => {
+        const thisSeries = this;
+        datumSelection.each(function updateDatumSelectionStyles(node, datum) {
             if (!datumSelection.isGarbage(node)) {
-                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const selectionState = this.getDataSelectionState(datum.datumIndex);
-                const stylerStyle = this.getStyle(highlightState, selectionState);
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-                const params = this.makeItemStylerParams(
-                    this.dataModel!,
-                    this.processedData!,
+                const params = thisSeries.makeItemStylerParams(
+                    thisSeries.dataModel!,
+                    thisSeries.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle(
+                datum.style = thisSeries.getMarkerStyle(
                     marker,
                     datum,
                     params,
@@ -762,14 +763,15 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const drawingMode = this.getDrawingMode(isHighlight, opts.drawingMode);
 
-        datumSelection.each((node, datum) => {
-            const state = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+        const thisSeries = this;
+        datumSelection.each(function datumSelectionUpdate(node, datum) {
+            const state = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const style = datum.style ?? contextNodeData.styles[state];
-            this.applyMarkerStyle(style, node, datum.point, fillBBox, {
+            thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
             });
-            node.drawingMode = this.resolveMarkerDrawingModeForState(drawingMode, style);
+            node.drawingMode = thisSeries.resolveMarkerDrawingModeForState(drawingMode, style);
         });
 
         if (!isHighlight) {

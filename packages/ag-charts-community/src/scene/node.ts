@@ -1,11 +1,4 @@
-import {
-    DeclaredSceneChangeDetection,
-    Logger,
-    assignIfNotStrictlyEqual,
-    createId,
-    createSvgElement,
-    objectsEqual,
-} from 'ag-charts-core';
+import { DeclaredSceneChangeDetection, Logger, createId, createSvgElement, objectsEqual } from 'ag-charts-core';
 
 import { BBox } from './bbox';
 import type { ImageLoader } from './image/imageLoader';
@@ -327,7 +320,16 @@ export abstract class Node<TDatum = unknown> {
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
         try {
-            assignIfNotStrictlyEqual(this, styles);
+            // Direct assignment is faster than assignIfNotStrictlyEqual here:
+            // change-detection setters already short-circuit unchanged values internally,
+            // so the outer "read-then-compare" via propertyGetter is pure overhead in the hot path.
+            const target = this as any;
+            const source = styles as any;
+            const keys = Object.keys(source);
+            for (let i = 0, n = keys.length; i < n; i++) {
+                const key = keys[i];
+                target[key] = source[key];
+            }
         } finally {
             this.batchLevel--;
             if (this.batchLevel === 0 && this.batchDirty) {
@@ -341,7 +343,13 @@ export abstract class Node<TDatum = unknown> {
     setPropertiesWithKeys<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }, keys: readonly string[]) {
         this.batchLevel++;
         try {
-            assignIfNotStrictlyEqual(this, styles, keys);
+            // Direct assignment — see setProperties for rationale.
+            const target = this as any;
+            const source = styles as any;
+            for (let i = 0, n = keys.length; i < n; i++) {
+                const key = keys[i];
+                target[key] = source[key];
+            }
         } finally {
             this.batchLevel--;
             if (this.batchLevel === 0 && this.batchDirty) {
