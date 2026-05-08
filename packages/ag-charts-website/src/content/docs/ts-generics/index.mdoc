@@ -7,9 +7,9 @@ AG Charts leverages TypeScript Generics for chart data and context. This
 significantly enhances the developer experience through improved code completion
 and compile-time validation.
 
-## Type \<TData>
+## Type \<TDatum>
 
-The `TData` (default: `any`) generic parameter is used to specify the interface
+The `TDatum` (default: `any`) generic parameter is used to specify the interface
 of datums in the data.
 
 <!-- cspell:disable -->
@@ -85,7 +85,7 @@ The `TContext` type (default: `unknown`) generic parameter is used to specify
 the interface of the `context` properties.
 
 The [Context Object](./context) is arbitrary user-defined data that will be passed to all
-callbacks. This useful for attaching a custom state to your chart.
+callbacks. This is useful for attaching custom state to your chart.
 
 <!-- cspell:disable -->
 

@@ -67,8 +67,8 @@ The `value` property accepts:
 
 - [Calendar Interval](#calendar-intervals) - An `AgTimeInterval` or `AgTimeIntervalUnit` for calendar-aware ranges on time axes.
 - Number - A duration in milliseconds for time axes, or a numeric offset for number axes.
-- Pair - A Number, Date or `undefined` array `[start, end]` defining an absolute range.
-- [Function](#window-relative-functions) - A function that receives the data domain and current visible window, and returns a new range.
+- Pair - A `[Date | number, Date | number]` tuple defining an absolute range.
+- [Function](#window-relative-functions) - A function that receives the data domain and current visible window, and returns a new range. The function may return `undefined` for either endpoint to leave that side of the range unchanged.
 - `undefined` - Resets the zoom to show all data or the initial zoom range.
 
 ### Calendar Intervals
