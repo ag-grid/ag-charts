@@ -82,12 +82,12 @@ const link: OptionsDefs<AgOrganizationSeriesOptionsLink> = {
 };
 
 const nodeImage: OptionsDefs<AgOrganizationSeriesOptionsNodeImage> = {
+    cornerRadius: positiveNumber,
     enabled: boolean,
     key: string,
     height: positiveNumberNonZero,
     width: positiveNumberNonZero,
     position: union('bottom', 'left', 'right', 'top'),
-    shape: union('circle', 'square'),
     spacing: positiveNumber,
 };
 
@@ -115,14 +115,14 @@ const node: OptionsDefs<AgOrganizationSeriesOptionsNode> = {
     ...fillOptionsDef,
     ...lineDashOptionsDef,
     ...strokeOptionsDef,
-    cornerRadius: number,
+    cornerRadius: positiveNumber,
     height: number,
     image: nodeImage,
     itemStyler: callbackDefs<AgOrganizationSeriesNodeStyle>({
         ...fillOptionsDef,
         ...lineDashOptionsDef,
         ...strokeOptionsDef,
-        cornerRadius: number,
+        cornerRadius: positiveNumber,
         height: number,
         image: nodeImage,
         maxHeight: number,

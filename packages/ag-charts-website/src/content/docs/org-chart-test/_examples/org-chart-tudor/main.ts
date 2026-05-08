@@ -24,7 +24,6 @@ const options: AgStandaloneChartOptions = {
             type: 'organization',
             idKey: 'name',
             parentIdKey: 'parent',
-            expander: { enabled: true },
             node: {
                 title: {
                     key: 'name',
