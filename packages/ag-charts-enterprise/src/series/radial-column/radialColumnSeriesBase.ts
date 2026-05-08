@@ -87,8 +87,10 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     style?: AgRadialSeriesStyle;
 }
 
-interface RadialColumnSeriesNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialColumnNodeDatum, RadialColumnNodeDatum> {
+interface RadialColumnSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    RadialColumnNodeDatum,
+    RadialColumnNodeDatum
+> {
     styles: _ModuleSupport.SeriesNodeStyleContext<AgRadialSeriesStyle>;
 }
 

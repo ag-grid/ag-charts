@@ -261,7 +261,6 @@ async function resetZoom(): Promise<void> {
     await chartRef.current.waitForUpdate();
 }
 
-
 async function selectFiftyPercent(): Promise<void> {
     const seriesArea = getSeriesAreaElement();
     const rect = seriesArea.getBoundingClientRect();
