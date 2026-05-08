@@ -152,10 +152,8 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     style?: AgSeriesMarkerStyle;
 }
 
-interface BubbleSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
-    BubbleScatterNodeDatum,
-    BubbleScatterNodeDatum
-> {
+interface BubbleSeriesNodeDataContext
+    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
@@ -973,40 +971,74 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-
         const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
-        const params = { xKey, yKey, sizeKey, labelKey, colorKey };
         const colorScaleValid = this.isColorScaleValid();
-
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        datumSelection.each((node, datum) => {
-            if (!datumSelection.isGarbage(node)) {
-                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const selectionState = this.getDataSelectionState(datum.datumIndex);
-                const stylerStyle = this.getStyle(highlightState, selectionState);
+        const thisSeries = this;
 
-                if (colorScaleValid && datum.colorValue != null) {
-                    stylerStyle.fill = this.colorScale.convert(datum.colorValue);
-                } else if (
-                    colorKey != null &&
-                    datum.colorValue == null &&
-                    this.properties.colorScale.missingDataFill != null
-                ) {
-                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
+        // params is consumed only by the itemStyler branch of getMarkerStyle.
+        // Hoist it here so both paths can share the allocation.
+        const params = { xKey, yKey, sizeKey, labelKey, colorKey };
+
+        if (marker.itemStyler == null && !colorScaleValid) {
+            // Without an itemStyler or colour-scale fill, every per-datum input falls out of
+            // the result except datum.point.size (which sets the bubble radius). Cache the
+            // size-invariant portion of the merged marker style by (highlightState,
+            // selectionState). Per-datum work then collapses to state resolution + a Map
+            // lookup + a single object spread that splices in the per-datum size.
+            type StyleTemplate = ReturnType<typeof thisSeries.getMarkerStyle>;
+            const styleByState = new Map<string, StyleTemplate>();
+
+            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
+                if (datumSelection.isGarbage(node)) return;
+
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let template = styleByState.get(stateKey);
+                if (template === undefined) {
+                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                    template = thisSeries.getMarkerStyle(
+                        marker,
+                        datum,
+                        params,
+                        { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
+                        { ...stylerStyle, size: datum.point.size }
+                    );
+                    styleByState.set(stateKey, template);
                 }
+                // datum.point.size is the only per-datum field in this path. Reuse the cached
+                // object directly when size matches (e.g. ScatterSeries with fixed size).
+                datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
+            });
+            return;
+        }
 
-                datum.style = this.getMarkerStyle(
-                    marker,
-                    datum,
-                    params,
-                    {
-                        isHighlight,
-                        highlightState,
-                        resolveMarkerSubPath: [],
-                    },
-                    { ...stylerStyle, size: datum.point.size }
-                );
+        // Per-datum path: itemStyler present or colour-scale fill varies per datum.
+        datumSelection.each(function updateDatumSelectionStyles(node, datum) {
+            if (datumSelection.isGarbage(node)) return;
+
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+            const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+
+            if (colorScaleValid && datum.colorValue != null) {
+                stylerStyle.fill = thisSeries.colorScale.convert(datum.colorValue);
+            } else if (
+                colorKey != null &&
+                datum.colorValue == null &&
+                thisSeries.properties.colorScale.missingDataFill != null
+            ) {
+                stylerStyle.fill = thisSeries.properties.colorScale.missingDataFill;
             }
+
+            datum.style = thisSeries.getMarkerStyle(
+                marker,
+                datum,
+                params,
+                { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
+                { ...stylerStyle, size: datum.point.size }
+            );
         });
     }
 
