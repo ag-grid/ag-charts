@@ -265,7 +265,9 @@ export class MapMarkerSeries
                     : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
+                    : []),
             ],
         });
 

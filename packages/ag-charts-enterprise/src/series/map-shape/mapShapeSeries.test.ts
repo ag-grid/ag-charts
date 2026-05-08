@@ -16,6 +16,7 @@ import {
     clickAction,
     deproxy,
     expectWarningMessages,
+    expectWarningsCalls,
     extractImageData,
     hoverAction,
     resetMockConsole,
@@ -508,6 +509,35 @@ describe('MapShapeSeries', () => {
 
             chart = deproxy(AgCharts.create(options));
             await compare();
+        });
+
+        it('AG-17195 should not warn when colorKey resolves to null/undefined/missing', async () => {
+            const data = usData.map((datum, idx) => {
+                if (idx === 0) return { ...datum, gdp: null };
+                if (idx === 1) return { ...datum, gdp: undefined };
+                if (idx === 2) return { name: datum.name, code: datum.code };
+                return datum;
+            });
+            const options: AgChartOptions = {
+                data,
+                topology: usTopology,
+                series: [
+                    {
+                        type: 'map-shape',
+                        idKey: 'name',
+                        colorKey: 'gdp',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            expectWarningsCalls().toEqual([]);
         });
 
         it('should fill missing colorValue with colorScale.missingDataFill', async () => {
