@@ -1,4 +1,10 @@
-import type { AgSelectionStyleOptions } from '../series/seriesOptions';
+import type { FillOptions, LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { Opacity } from './types';
+
+export interface AgSelectionStyleOptions extends StrokeOptions, LineDashOptions, FillOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: Opacity;
+}
 
 export type AgSelectionClickMode = 'single' | 'multiple';
 
