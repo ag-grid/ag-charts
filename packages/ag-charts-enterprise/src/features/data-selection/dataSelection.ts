@@ -6,6 +6,7 @@ import {
     type DynamicContext,
     Logger,
     type NormalisedSelectionOptions,
+    hasNoModifiers,
 } from 'ag-charts-core';
 
 import {
@@ -214,7 +215,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
-        if (!enabled || !enableDrag) return;
+        if (!enabled || !enableDrag || !hasNoModifiers(dragStartEvent.sourceEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
