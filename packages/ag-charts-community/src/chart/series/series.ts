@@ -62,6 +62,7 @@ import { ModuleMap } from '../../module/moduleMap';
 import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import { type Node, PointerEvents } from '../../scene/node';
+import type { Selection } from '../../scene/selection';
 import type { Path } from '../../scene/shape/path';
 import { Transformable } from '../../scene/transformable';
 import type { TypedEvent, TypedEventListener } from '../../util/observable';
@@ -1456,6 +1457,58 @@ export abstract class Series<
                 point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }
         }
+    }
+
+    /**
+     * Iterates the marker datum-selection, resolving highlight + selection state per datum,
+     * managing a state-keyed cache of computed values, and invoking a series-supplied per-datum
+     * callback. Used by the `updateDatumStyles` of every marker-rendering series.
+     *
+     * Both the no-itemStyler full-style cache and the itemStyler-present upstream-getStyle()
+     * cache fit this shape — they differ only in what they cache (final marker style vs styler
+     * style) and what `perDatum` does with it.
+     *
+     * @param datumSelection - the marker selection to iterate
+     * @param isHighlight - whether this is the highlight render pass
+     * @param keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
+     * @param cacheable - false disables caching (e.g. bubble with active colorScale, where
+     *                   `stylerStyle.fill` is mutated per datum)
+     * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
+     * @param perDatum - called per non-garbage datum with the cached value
+     */
+    protected runMarkerStylePass<TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache>(
+        datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
+        isHighlight: boolean,
+        keyExtra: ((datum: TPassDatum) => string) | undefined,
+        cacheable: boolean,
+        computeCacheValue: (
+            highlightState: HighlightState,
+            selectionState: SelectionState | undefined,
+            datum: TPassDatum
+        ) => TCache,
+        perDatum: (
+            datum: TPassDatum,
+            highlightState: HighlightState,
+            selectionState: SelectionState | undefined,
+            cached: TCache
+        ) => void
+    ): void {
+        const cache = cacheable ? new Map<string, TCache>() : null;
+        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+        const thisSeries = this;
+        datumSelection.each(function runMarkerStylePass(node, datum) {
+            if (datumSelection.isGarbage(node)) return;
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+            const extra = keyExtra === undefined ? '' : `:${keyExtra(datum)}`;
+            const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
+            let cached = cache?.get(stateKey);
+            if (cached === undefined) {
+                cached = computeCacheValue(highlightState, selectionState, datum);
+                cache?.set(stateKey, cached);
+            }
+            perDatum(datum, highlightState, selectionState, cached);
+        });
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

@@ -1315,25 +1315,18 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { marker } = this.properties;
         const { itemStyler } = marker;
 
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const thisSeries = this;
-
         if (itemStyler == null) {
             // Without itemStyler, the resolved marker style is purely a function of
             // (highlightState, selectionState). Cache the full style by state so per-datum
             // work collapses to state resolution + a Map lookup + a property write.
-            const finalStyleByState = new Map<string, AgSeriesMarkerStyle>();
-
-            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
-                if (datumSelection.isGarbage(node)) return;
-
-                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-                let style = finalStyleByState.get(stateKey);
-                if (style === undefined) {
-                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                    style = thisSeries.getMarkerStyle(
+            this.runMarkerStylePass(
+                datumSelection,
+                isHighlight,
+                undefined,
+                true,
+                (highlightState, selectionState, datum) => {
+                    const stylerStyle = this.getStyle(highlightState, selectionState);
+                    return this.getMarkerStyle(
                         marker,
                         datum,
                         undefined,
@@ -1345,50 +1338,41 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
                             strokeOpacity: stylerStyle.strokeOpacity,
                         }
                     );
-                    finalStyleByState.set(stateKey, style);
+                },
+                (datum, _h, _s, cached) => {
+                    datum.style = cached;
                 }
-                datum.style = style;
-            });
+            );
             return;
         }
 
         // getStyle(highlightState, selectionState) returns an identical object for the same
         // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
         // chain once per distinct combination.
-        const styleByState = new Map<string, ReturnType<AreaSeries['getStyle']>>();
-
-        datumSelection.each(function updateAreaDatumSelectionStyles(node, datum) {
-            if (!datumSelection.isGarbage(node)) {
-                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-                let stylerStyle = styleByState.get(stateKey);
-                if (stylerStyle === undefined) {
-                    stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                    styleByState.set(stateKey, stylerStyle);
-                }
+        this.runMarkerStylePass(
+            datumSelection,
+            isHighlight,
+            undefined,
+            true,
+            (highlightState, selectionState) => this.getStyle(highlightState, selectionState),
+            (datum, highlightState, selectionState, stylerStyle) => {
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-
-                const params = thisSeries.makeItemStylerParams(
-                    thisSeries.dataModel!,
-                    thisSeries.processedData!,
+                const params = this.makeItemStylerParams(
+                    this.dataModel!,
+                    this.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = thisSeries.getMarkerStyle(
+                datum.style = this.getMarkerStyle(
                     marker,
                     datum,
                     params,
                     { isHighlight, highlightState, selectionState, hideWithSize0 },
                     stylerStyle.marker,
-                    {
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    }
+                    { stroke, strokeWidth, strokeOpacity }
                 );
             }
-        });
+        );
     }
 
     protected override updateDatumNodes(opts: {

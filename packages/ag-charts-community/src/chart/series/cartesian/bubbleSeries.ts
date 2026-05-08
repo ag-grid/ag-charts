@@ -975,8 +975,6 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { datumSelection, isHighlight } = opts;
         const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
         const colorScaleValid = this.isColorScaleValid();
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const thisSeries = this;
 
         // params is consumed only by the itemStyler branch of getMarkerStyle.
         // Hoist it here so both paths can share the allocation.
@@ -990,69 +988,59 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             // lookup + a single object spread that splices in the per-datum size.
             // NOTE: unlike other series, the cached value is a per-state *template* — the
             // final datum.style may differ only in size.
-            type StyleTemplate = ReturnType<typeof thisSeries.getMarkerStyle>;
-            const finalStyleByState = new Map<string, StyleTemplate>();
-
-            datumSelection.each(function updateDatumSelectionStyles(node, datum) {
-                if (datumSelection.isGarbage(node)) return;
-
-                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-                let template = finalStyleByState.get(stateKey);
-                if (template === undefined) {
-                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                    template = thisSeries.getMarkerStyle(
+            this.runMarkerStylePass(
+                datumSelection,
+                isHighlight,
+                undefined,
+                true,
+                (highlightState, selectionState, datum) => {
+                    const stylerStyle = this.getStyle(highlightState, selectionState);
+                    return this.getMarkerStyle(
                         marker,
                         datum,
                         params,
                         { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
                         { ...stylerStyle, size: datum.point.size }
                     );
-                    finalStyleByState.set(stateKey, template);
+                },
+                (datum, _h, _s, template) => {
+                    // datum.point.size is the only per-datum field in this path. Reuse the cached
+                    // object directly when size matches (e.g. ScatterSeries with fixed size).
+                    datum.style =
+                        template.size === datum.point.size ? template : { ...template, size: datum.point.size };
                 }
-                // datum.point.size is the only per-datum field in this path. Reuse the cached
-                // object directly when size matches (e.g. ScatterSeries with fixed size).
-                datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
-            });
+            );
             return;
         }
 
         // Per-datum path: itemStyler present or colour-scale fill varies per datum.
         // Both the colorScaleValid and missingDataFill branches mutate stylerStyle.fill
         // per-datum, so we cannot safely share a cached stylerStyle when colorKey is set.
-        const styleByState = colorKey == null ? new Map<string, ReturnType<BubbleSeries['getStyle']>>() : null;
-
-        datumSelection.each(function updateDatumSelectionStyles(node, datum) {
-            if (datumSelection.isGarbage(node)) return;
-
-            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-            let stylerStyle = styleByState?.get(stateKey);
-            if (stylerStyle === undefined) {
-                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                styleByState?.set(stateKey, stylerStyle);
+        this.runMarkerStylePass(
+            datumSelection,
+            isHighlight,
+            undefined,
+            colorKey == null,
+            (highlightState, selectionState) => this.getStyle(highlightState, selectionState),
+            (datum, highlightState, selectionState, stylerStyle) => {
+                if (colorScaleValid && datum.colorValue != null) {
+                    stylerStyle.fill = this.colorScale.convert(datum.colorValue);
+                } else if (
+                    colorKey != null &&
+                    datum.colorValue == null &&
+                    this.properties.colorScale.missingDataFill != null
+                ) {
+                    stylerStyle.fill = this.properties.colorScale.missingDataFill;
+                }
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
+                    { ...stylerStyle, size: datum.point.size }
+                );
             }
-
-            if (colorScaleValid && datum.colorValue != null) {
-                stylerStyle.fill = thisSeries.colorScale.convert(datum.colorValue);
-            } else if (
-                colorKey != null &&
-                datum.colorValue == null &&
-                thisSeries.properties.colorScale.missingDataFill != null
-            ) {
-                stylerStyle.fill = thisSeries.properties.colorScale.missingDataFill;
-            }
-
-            datum.style = thisSeries.getMarkerStyle(
-                marker,
-                datum,
-                params,
-                { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
-                { ...stylerStyle, size: datum.point.size }
-            );
-        });
+        );
     }
 
     protected override updateDatumNodes(opts: {

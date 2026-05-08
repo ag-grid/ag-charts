@@ -1025,27 +1025,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         isHighlight: boolean;
     }) {
         const { hideWithSize0 } = this;
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-
-        const thisSeries = this;
 
         if (this.properties.marker.itemStyler == null) {
             // Without itemStyler, the resolved marker style is purely a function of
             // (highlightState, selectionState, itemType). Cache the full style by composite
             // key so per-datum work collapses to state resolution + a Map lookup + a write.
-            const finalStyleByState = new Map<string, AgSeriesMarkerStyle>();
-
-            datumSelection.each(function updateRangeAreaDatumStyles(_, datum) {
-                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-                const stateKey = `${highlightState}:${selectionState ?? '-'}:${datum.itemType}`;
-                let style = finalStyleByState.get(stateKey);
-                if (style === undefined) {
-                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+            this.runMarkerStylePass(
+                datumSelection,
+                isHighlight,
+                (datum) => datum.itemType,
+                true,
+                (highlightState, selectionState, datum) => {
+                    const stylerStyle = this.getStyle(highlightState, selectionState);
                     const { fill, fillOpacity, item } = stylerStyle;
                     const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
-                    const { marker } = thisSeries.properties.item[datum.itemType];
-                    style = thisSeries.getMarkerStyle(
+                    const { marker } = this.properties.item[datum.itemType];
+                    return this.getMarkerStyle(
                         marker,
                         datum,
                         undefined,
@@ -1057,18 +1052,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
                             hideWithSize0,
                         },
                         stylerStyle.item[datum.itemType].marker,
-                        {
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                        }
+                        { fill, fillOpacity, stroke, strokeWidth, strokeOpacity }
                     );
-                    finalStyleByState.set(stateKey, style);
+                },
+                (datum, _h, _s, cached) => {
+                    datum.style = cached;
                 }
-                datum.style = style;
-            });
+            );
             return;
         }
 
@@ -1076,43 +1066,33 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
         // chain once per distinct combination. itemType is not part of the key because
         // getStyle() is item-type-agnostic; individual item sub-styles are extracted per datum.
-        const styleByState = new Map<string, ReturnType<RangeAreaSeries['getStyle']>>();
-
-        datumSelection.each(function updateRangeAreaDatumSelectionStyles(_, datum) {
-            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-            let stylerStyle = styleByState.get(stateKey);
-            if (stylerStyle === undefined) {
-                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                styleByState.set(stateKey, stylerStyle);
+        this.runMarkerStylePass(
+            datumSelection,
+            isHighlight,
+            undefined,
+            true,
+            (highlightState, selectionState) => this.getStyle(highlightState, selectionState),
+            (datum, highlightState, selectionState, stylerStyle) => {
+                const { fill, fillOpacity, item } = stylerStyle;
+                const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
+                const { marker } = this.properties.item[datum.itemType];
+                const params = this.makeItemStylerParams(datum.itemType);
+                datum.style = this.getMarkerStyle(
+                    marker,
+                    datum,
+                    params,
+                    {
+                        isHighlight,
+                        highlightState,
+                        selectionState,
+                        resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
+                        hideWithSize0,
+                    },
+                    stylerStyle.item[datum.itemType].marker,
+                    { fill, fillOpacity, stroke, strokeWidth, strokeOpacity }
+                );
             }
-            const { fill, fillOpacity, item } = stylerStyle;
-            const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
-            const { marker } = thisSeries.properties.item[datum.itemType];
-
-            const params = thisSeries.makeItemStylerParams(datum.itemType);
-            datum.style = thisSeries.getMarkerStyle(
-                marker,
-                datum,
-                params,
-                {
-                    isHighlight,
-                    highlightState,
-                    selectionState,
-                    resolveMarkerSubPath: ['item', datum.itemType, 'marker'],
-                    hideWithSize0,
-                },
-                stylerStyle.item[datum.itemType].marker,
-                {
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                }
-            );
-        });
+        );
     }
 
     protected override updateDatumNodes(opts: {
