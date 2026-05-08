@@ -86,7 +86,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        if (!this.supportsSelection()) return [];
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return [];
 
         return function* getSelectionIterator(this: DataSelection) {
             for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
@@ -104,7 +105,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -149,7 +151,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     clearSelection(): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
