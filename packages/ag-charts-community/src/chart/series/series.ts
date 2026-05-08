@@ -1356,9 +1356,10 @@ export abstract class Series<
         const highlightStyle: AgSeriesMarkerStyle | undefined = checkForHighlight
             ? this.getHighlightStyle(isHighlight, datumIndex, highlightState)
             : undefined;
-        const selectionStyle: AgSeriesMarkerStyle | undefined = this.properties.selection.enabled
-            ? this.getSelectionStyle(datumIndex, selectionState)
-            : undefined;
+        const selectionStyle: AgSeriesMarkerStyle | undefined =
+            checkForHighlight && this.properties.selection.enabled
+                ? this.getSelectionStyle(datumIndex, selectionState)
+                : undefined;
         const baseStyle = mergeDefaults(
             selectionStyle,
             highlightStyle,

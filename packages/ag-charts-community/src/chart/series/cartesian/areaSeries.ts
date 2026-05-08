@@ -1416,7 +1416,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth, xKey, yKey } =
             this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
-        const selectionState = toSelectionString(selectionStateEnum ?? SelectionState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ResultRules = CallbackParamRules<AgAreaSeriesStylerParams<unknown, unknown> & MarkerRules>;
