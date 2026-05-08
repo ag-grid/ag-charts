@@ -75,9 +75,6 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     padding: number = 6;
 
     @Property
-    spacing: number = 0;
-
-    @Property
     stroke: CssColor = 'black';
 
     @Property

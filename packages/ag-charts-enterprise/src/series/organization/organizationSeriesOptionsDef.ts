@@ -50,14 +50,12 @@ const expander: OptionsDefs<AgOrganizationSeriesOptionsExpander> = {
         cornerRadius: positiveNumber,
         enabled: boolean,
         padding: positiveNumber,
-        spacing: positiveNumber,
         text: {
             ...fontOptionsDef,
             textAlign: textAlign,
         },
     }),
     padding: positiveNumber,
-    spacing: positiveNumber,
     text: {
         ...fontOptionsDef,
         textAlign: textAlign,

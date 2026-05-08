@@ -22,12 +22,11 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
         innerSpacing: 20,
         outerSpacing: 40,
-        verticalSpacing: 21,
+        verticalSpacing: 52,
         expander: {
             enabled: true,
             cornerRadius: 4,
             padding: 5,
-            spacing: 21,
             text: {
                 color: { $ref: 'subtleTextColor' },
                 fontFamily: { $ref: 'fontFamily' },

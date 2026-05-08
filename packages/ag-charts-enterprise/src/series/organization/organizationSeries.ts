@@ -640,9 +640,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                   this.properties.expander.padding +
                   this.properties.expander.strokeWidth
                 : 0,
-            expanderSpacing: this.properties.expander.enabled
-                ? this.properties.expander.spacing
-                : this.properties.verticalSpacing ?? 0,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
@@ -921,7 +918,7 @@ export class OrganizationSeries extends AbstractNetworkSeries<
     }
 
     private getExpanderDefaultStyle(): DeepRequired<AgOrganizationSeriesExpanderStyle> {
-        const { cornerRadius, enabled, fill, fillOpacity, padding, spacing, stroke, strokeWidth, strokeOpacity, text } =
+        const { cornerRadius, enabled, fill, fillOpacity, padding, stroke, strokeWidth, strokeOpacity, text } =
             this.properties.expander;
         return {
             cornerRadius,
@@ -929,7 +926,6 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fill,
             fillOpacity,
             padding,
-            spacing,
             stroke,
             strokeWidth,
             strokeOpacity,

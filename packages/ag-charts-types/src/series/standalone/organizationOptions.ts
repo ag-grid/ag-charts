@@ -70,7 +70,6 @@ export interface AgOrganizationSeriesOptionsExpander<TDatum = DatumDefault, TCon
 export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, StrokeOptions {
     cornerRadius?: PixelSize;
     padding?: PixelSize;
-    spacing?: PixelSize;
     text?: AgOrganizationSeriesExpanderTextStyle;
 }
 
