@@ -29,9 +29,7 @@ const options: AgChartOptions = {
             sizeName: 'Total',
             colorKey: 'change',
             colorName: 'Change',
-            colorScale: {
-                fills: [{ color: '#43A047' }, { color: '#FF5722' }],
-            },
+            colorRange: ['#43A047', '#FF5722'],
         },
     ],
     title: {

@@ -39,9 +39,7 @@ const options: AgChartOptions = {
             sizeName: 'GDP',
             colorKey: 'gdpChange',
             colorName: 'Change',
-            colorScale: {
-                fills: [{ color: '#FF9800' }, { color: '#8BC34A' }],
-            },
+            colorRange: ['#FF9800', '#8BC34A'],
         },
     ],
     title: {

@@ -56,7 +56,7 @@ The options for `mode` are:
 
 ## Tooltip Position
 
-By default the tooltip is anchored to the hovered datapoint or the pointer depending on series type — `'node'` for marker-based series and `'pointer'` for shape-based series. Use `placement`, `anchorTo` and `offset` to customise this.
+By default the tooltip is anchored to the hovered datapoint. Use `placement`, `anchorTo` and `offset` to customise this.
 
 {% chartExampleRunner title="Tooltip Position" name="tooltip-position" type="generated" /%}
 
@@ -64,6 +64,7 @@ By default the tooltip is anchored to the hovered datapoint or the pointer depen
 {
     tooltip: {
         position: {
+            anchorTo: 'node',
             placement: 'top',
             offset: 8,
         },
