@@ -1,14 +1,8 @@
 <div class="example-controls">
     <div class="controls-row">
-        Mode:
         <button onclick="setMode('continuous')">Continuous</button>
         <button onclick="setMode('discrete')">Discrete</button>
-        <span class="gap-left">Gradient Legend:</span>
-        <button onclick="setGradientLegend(true)">On</button>
-        <button onclick="setGradientLegend(false)">Off</button>
-        <span class="gap-left">Category Legend:</span>
-        <button onclick="setCategoryLegend(true)">On</button>
-        <button onclick="setCategoryLegend(false)">Off</button>
+        <button onclick="toggleLegendType()">Toggle Legend Type</button>
     </div>
 </div>
 <div id="myChart"></div>

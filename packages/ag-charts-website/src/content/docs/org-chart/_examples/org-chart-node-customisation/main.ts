@@ -1,7 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesNodeItemStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -23,7 +22,7 @@ const options: AgChartOptions = {
             idKey: 'id',
             parentIdKey: 'parentId',
             node: {
-                itemStyler: (params: AgOrganizationSeriesNodeItemStylerParams) => {
+                itemStyler: (params: any) => {
                     if (params.datum.job === 'Chief Financial Officer') {
                         return {
                             fill: '#fff1e5',

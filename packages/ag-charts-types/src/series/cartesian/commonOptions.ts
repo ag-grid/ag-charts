@@ -69,9 +69,9 @@ export interface AgGradientColorStop {
 }
 
 export interface AgColorScaleColorStop {
-    /** Colour at this position. */
+    /** Colour of this bin. */
     color: CssColor;
-    /** Position of this colour in the data domain. In continuous mode, the colour appears exactly at this value. In discrete mode, this is the first value of the next bin. */
+    /** Stop value of this bin. The stop is the first value of the next bin. */
     stop?: number;
     /** Display name for this bin, used in legend and tooltip labels. */
     name?: string;
@@ -89,8 +89,12 @@ export interface AgColorScale {
      */
     mode?: AgGradientColorMode;
     /**
-     * Fill colour for datums with no `colorKey` value. If unset, each series
-     * preserves its default behaviour for missing data.
+     * Fill colour used for datums with missing colour values — those where the
+     * `colorKey` resolves to `null`, `undefined`, or is absent from the datum.
+     *
+     * For line-based colour-scale series (e.g. `map-line`) this is applied as
+     * the stroke colour. If unset, each series preserves its default behaviour
+     * for missing data.
      */
     missingDataFill?: CssColor;
 }

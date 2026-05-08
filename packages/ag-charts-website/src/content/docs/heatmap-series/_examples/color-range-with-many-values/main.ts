@@ -1,22 +1,32 @@
 import {
-    AgCartesianChartOptions,
+    AgChartOptions,
     AgCharts,
-    AgHeatmapSeriesOptions,
+    AnimationModule,
     CategoryAxisModule,
+    ContextMenuModule,
+    CrosshairModule,
     GradientLegendModule,
     HeatmapSeriesModule,
     ModuleRegistry,
+    NumberAxisModule,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
-
-const options: AgCartesianChartOptions = {
+ModuleRegistry.registerModules([
+    AnimationModule,
+    CategoryAxisModule,
+    CrosshairModule,
+    GradientLegendModule,
+    HeatmapSeriesModule,
+    NumberAxisModule,
+    ContextMenuModule,
+]);
+const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'UK Monthly Mean Temperature',
+        text: 'UK monthly mean temperature °C',
     },
     series: [
         {
@@ -27,26 +37,9 @@ const options: AgCartesianChartOptions = {
             yName: 'Year',
             colorKey: 'temperature',
             colorName: 'Temperature',
-            colorScale: {
-                fills: [{ color: 'navy' }, { color: 'lightyellow', stop: 10 }, { color: 'darkred' }],
-            },
+            colorRange: ['#43a2ca', '#a8ddb5', '#f0f9e8'],
         },
     ],
 };
 
 const chart = AgCharts.create(options);
-
-function setMode(mode: 'continuous' | 'discrete') {
-    const series = options.series![0] as AgHeatmapSeriesOptions;
-    series.colorScale = { ...series.colorScale, mode };
-    chart.update(options);
-}
-
-function setDomain(type: 'auto' | 'fixed') {
-    const series = options.series![0] as AgHeatmapSeriesOptions;
-    series.colorScale = {
-        ...series.colorScale,
-        domain: type === 'fixed' ? [0, 25] : undefined,
-    };
-    chart.update(options);
-}

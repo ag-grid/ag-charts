@@ -89,18 +89,15 @@ function toggleCTO() {
 
 function toggleActiveEvePark() {
     const { version, active } = chart.getState();
-    const isActive = active?.activeItem?.itemId === 'qa';
 
     chart.setState({
         version,
-        active: isActive
-            ? undefined
-            : {
-                  activeItem: {
-                      type: 'series-node',
-                      seriesId: 'OrganizationSeries-1',
-                      itemId: 'qa',
-                  },
-              },
+        active: {
+            activeItem: {
+                type: 'series-node',
+                seriesId: 'OrganizationSeries-1',
+                itemId: 'qa',
+            },
+        },
     });
 }

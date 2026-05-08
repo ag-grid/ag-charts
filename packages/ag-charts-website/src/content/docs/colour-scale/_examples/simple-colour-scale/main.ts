@@ -15,23 +15,17 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Service Quality Ratings',
-    },
-    subtitle: {
-        text: 'NPS Score (0–10)',
+        text: 'UK Monthly Mean Temperature',
     },
     series: [
         {
             type: 'heatmap',
-            xKey: 'segment',
-            xName: 'Segment',
-            yKey: 'service',
-            yName: 'Service',
-            colorKey: 'score',
-            colorName: 'Score',
-            colorScale: {
-                domain: [0, 10],
-            },
+            xKey: 'month',
+            xName: 'Month',
+            yKey: 'year',
+            yName: 'Year',
+            colorKey: 'temperature',
+            colorName: 'Temperature',
         },
     ],
 };

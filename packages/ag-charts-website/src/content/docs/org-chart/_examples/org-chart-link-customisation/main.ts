@@ -1,7 +1,6 @@
 import {
     AgChartOptions,
     AgCharts,
-    AgOrganizationSeriesLinkItemStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -26,7 +25,7 @@ const options: AgChartOptions = {
                 stroke: '#ff8833',
                 strokeWidth: 2,
                 lineDash: [8, 2],
-                itemStyler: (params: AgOrganizationSeriesLinkItemStylerParams) => {
+                itemStyler: (params: any) => {
                     if (params.fromDatum.job === 'Chief Technology Officer' && params.toDatum.job === 'Developer') {
                         return { stroke: '#00994d' };
                     } else if (params.fromDatum.job === 'Chief Executive Officer') {

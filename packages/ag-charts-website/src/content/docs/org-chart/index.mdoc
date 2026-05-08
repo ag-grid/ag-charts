@@ -44,8 +44,8 @@ data field via `key` and stacks vertically below the subtitle.
 
 {% chartExampleRunner title="Org Chart Images" name="org-chart-images" type="generated" /%}
 
-The `image` object configures an image sourced from the data via its `key` property, and supports
-`shape` (`'circle'` or `'square'`), `width`, `height`, and `position` within the card.
+The `image` property accepts a URL string and supports `shape` (`'circle'` or `'square'`), `width`,
+`height`, and `position` within the card.
 
 ```js format="snippet"
 {
@@ -117,8 +117,8 @@ The chart state can also be read and updated programmatically. `setState()` perf
 replacement — to toggle a single node, read the current state, modify the array, then set it back.
 
 ```js
-const { version, collapsed } = chart.getState();
-chart.setState({ version, collapsed: [...(collapsed ?? []), 'marketing'] });
+const state = chart.getState();
+chart.setState({ collapsed: [...state.collapsed, 'marketing'] });
 ```
 
 When a node is set as the active item via `initialState.active`, all its collapsed ancestors are
@@ -149,7 +149,7 @@ A `tooltip.renderer` callback can be used for custom formatting.
 
 The `node.itemStyler` callback provides per-node visual customisation based on data and tree state.
 It receives `datum`, `depth`, and `isCollapsed`, and can return `fill`, `stroke`, `strokeWidth`,
-`cornerRadius`, and `lineDash`.
+`opacity`, `cornerRadius`, and `lineDash`.
 
 ```js format="snippet"
 {
