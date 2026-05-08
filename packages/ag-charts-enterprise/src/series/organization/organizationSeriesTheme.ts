@@ -39,7 +39,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             highlightedItem: {
-                stroke: { $foregroundBackgroundMix: 0.5 },
+                stroke: { $ref: 'accentColor' },
                 strokeWidth: 2,
             },
         },
