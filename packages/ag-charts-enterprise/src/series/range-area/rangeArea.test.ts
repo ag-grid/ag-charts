@@ -209,18 +209,7 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / yLowValue] ignored:",
-    "[invalid]",
-  ],
-  [
-    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / yHighValue] ignored:",
-    "[invalid]",
-  ],
-]
-`);
+        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 
     it(`AG-17099 should render gaps in aggregated mode with a large null block`, async () => {
@@ -243,18 +232,7 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yLowValue] ignored:",
-    "[null]",
-  ],
-  [
-    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yHighValue] ignored:",
-    "[null]",
-  ],
-]
-`);
+        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 
     it(`AG-17099 should render a gap in aggregated mode with a single null row`, async () => {
@@ -285,18 +263,7 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
-        expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yLowValue] ignored:",
-    "[null]",
-  ],
-  [
-    "AG Charts - invalid value of type [object] for [RangeAreaSeries-1 / yHighValue] ignored:",
-    "[null]",
-  ],
-]
-`);
+        expectWarningsCalls().toMatchInlineSnapshot(`[]`);
     });
 
     it(`should render a range-area chart with reversed axes`, async () => {

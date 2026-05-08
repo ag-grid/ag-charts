@@ -256,8 +256,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: `xValue`, allowNullKey }),
-                valueProperty(yLowKey, yScaleType, { id: `yLowValue` }),
-                valueProperty(yHighKey, yScaleType, { id: `yHighValue` }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: undefined }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: undefined }),
                 ...extraProps,
             ],
         });

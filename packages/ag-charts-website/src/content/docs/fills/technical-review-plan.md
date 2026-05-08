@@ -4,28 +4,25 @@
 
 ### Chart Types/Features Covered
 
--   Series fills with solid colors, gradients, patterns, and images
--   Marker fills with the same fill options
--   Visual customization for improved contrast between series
--   Integration with the theme palette system
+- Series fills with solid colors, gradients, patterns, and images
+- Marker fills with the same fill options
+- Visual customization for improved contrast between series
+- Integration with the theme palette system
 
 ### Key APIs and Configuration Options Documented
 
 1. **Fill Types**:
-
     - Solid fills (CSS color strings)
     - Gradient fills (`AgGradientColor` interface)
     - Pattern fills (`AgPatternColor` interface)
     - Image fills (`AgImageFill` interface)
 
 2. **Gradient Configuration**:
-
     - `colorStops` array with color and stop values
     - Optional `rotation` property
     - Color distribution behavior
 
 3. **Pattern Configuration**:
-
     - Stock patterns (lines and shapes)
     - Custom SVG path patterns
     - Styling properties: `stroke`, `fill`, `backgroundFill`
@@ -51,23 +48,21 @@
 
 ### Interactive Features Described
 
--   Visual differentiation between series using different fill types
--   Color transitions in gradients
--   Pattern customization for visual appeal
--   Image scaling and tiling behaviors
+- Visual differentiation between series using different fill types
+- Color transitions in gradients
+- Pattern customization for visual appeal
+- Image scaling and tiling behaviors
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
 1. `AgGradientColor` in `packages/ag-charts-types/src/series/cartesian/commonOptions.ts`
-
     - Verify `colorStops` property type
     - Check `rotation` property existence
     - Confirm `type: 'gradient'` requirement
 
 2. `AgPatternColor` in `packages/ag-charts-types/src/series/cartesian/commonOptions.ts`
-
     - Verify all documented stock patterns match `AgPatternName` type
     - Check properties: `pattern`, `path`, `width`, `height`, `rotation`, `scale`
     - Verify styling properties: `fill`, `fillOpacity`, `backgroundFill`, `backgroundFillOpacity`, `stroke`, `strokeWidth`
@@ -81,7 +76,6 @@
 ### Implementation Files to Check
 
 1. Fill implementation in core/community packages:
-
     - Gradient rendering logic
     - Pattern rendering implementation
     - Image loading and rendering
@@ -97,7 +91,6 @@
 #### For example-tester agent delegation:
 
 1. **series-fill-types**:
-
     - **Documentation claims**: Shows all four fill types (solid, gradient, pattern, image)
     - **Expected behaviors**:
         - Four different series with distinct fill types
@@ -108,7 +101,6 @@
     - **Validation criteria**: Each fill type renders correctly and is visually distinct
 
 2. **gradient-fill**:
-
     - **Documentation claims**: Demonstrates gradient with multiple color stops
     - **Code snippet shows**: 4 color stops with specific colors and stop values
     - **Expected behaviors**:
@@ -118,7 +110,6 @@
     - **Features to validate**: Color stop positioning and smooth transitions
 
 3. **pattern-fill**:
-
     - **Documentation claims**: Shows stock pattern usage with 'stars' pattern
     - **Expected behaviors**:
         - Series filled with repeating star shapes
@@ -126,7 +117,6 @@
     - **Stock patterns to verify**: All 11 documented patterns should be available
 
 4. **pattern-fill-customisation**:
-
     - **Documentation claims**: Pattern styling with stroke, fill, and backgroundFill
     - **Expected behaviors**:
         - Pattern elements styled with custom colors
@@ -134,7 +124,6 @@
     - **Interactive features**: Visual customization of pattern appearance
 
 5. **pattern-custom-path**:
-
     - **Documentation claims**: Custom SVG path pattern support
     - **Code snippet shows**: SVG path data string 'M0,6 Q4,1 8,6 T16,6'
     - **Expected behaviors**:
@@ -143,7 +132,6 @@
     - **Validation**: SVG path renders as repeating pattern
 
 6. **image-fill**:
-
     - **Documentation claims**: Four fit modes (contain, cover, stretch, none)
     - **Expected behaviors**:
         - Contain: Image fits within shape without cropping, preserves aspect ratio
@@ -165,13 +153,11 @@
 ### User Interactions to Validate
 
 1. Hover interactions over filled series to verify:
-
     - Tooltips work correctly with all fill types
     - Hover highlighting doesn't break custom fills
     - Visual feedback is appropriate
 
 2. Legend interactions:
-
     - Legend items show correct fill representations
     - Clicking legend items properly toggles series with custom fills
 
@@ -238,17 +224,17 @@ No technical-review-exceptions.md file exists for this page.
 
 ### Success Criteria
 
--   All documented APIs match TypeScript definitions
--   All examples render without console errors
--   Visual appearance matches documentation descriptions
--   Interactive features work as expected
--   No TypeScript violations or API misuse
--   Responsive behavior is correct
+- All documented APIs match TypeScript definitions
+- All examples render without console errors
+- Visual appearance matches documentation descriptions
+- Interactive features work as expected
+- No TypeScript violations or API misuse
+- Responsive behavior is correct
 
 ### Estimated Complexity
 
--   High complexity due to:
-    -   Multiple fill types with different configurations
-    -   Visual rendering validation requirements
-    -   Interactive behavior testing needs
-    -   Cross-browser compatibility considerations
+- High complexity due to:
+    - Multiple fill types with different configurations
+    - Visual rendering validation requirements
+    - Interactive behavior testing needs
+    - Cross-browser compatibility considerations

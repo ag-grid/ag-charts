@@ -98,7 +98,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
         for (let i = 0; i < maxDepth; i++) {
             const depthLabel = depthOptions[i]?.label;
             optionsMap.push(
-                depthLabel?.enabled ?? label?.enabled ?? true
+                (depthLabel?.enabled ?? label?.enabled ?? true)
                     ? {
                           enabled: true,
                           spacing: depthLabel?.spacing ?? label?.spacing ?? 5,
@@ -683,7 +683,7 @@ export class GroupedCategoryAxis extends CategoryAxis<
                       const tickSize = tickSizeAtDepth[depth] ?? 0;
 
                       const stroke = tickOptions?.stroke ?? tick.stroke;
-                      const strokeWidth = tickOptions?.enabled === false ? 0 : tickOptions?.width ?? tick.width;
+                      const strokeWidth = tickOptions?.enabled === false ? 0 : (tickOptions?.width ?? tick.width);
                       const h = -direction * tickSize;
                       const tickOffset = -direction * (scrollbarThickness + tickSpacing);
                       const [x1, y1, x2, y2] = horizontal

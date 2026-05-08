@@ -4,19 +4,19 @@
 
 ### Features Covered
 
--   Internationalization/localization system for AG Charts
--   Built-in locale support with 32 provided translations
--   Custom text value overrides
--   External framework integration (FormatJS, I18Next, React Intl, React I18Next)
--   Parameter interpolation and formatting in translations
+- Internationalization/localization system for AG Charts
+- Built-in locale support with 32 provided translations
+- Custom text value overrides
+- External framework integration (FormatJS, I18Next, React Intl, React I18Next)
+- Parameter interpolation and formatting in translations
 
 ### Key APIs and Configuration Options
 
--   `locale.localeText` - Object of key/value pairs for translations
--   `locale.getLocaleText` - Callback function for dynamic translation
--   `AG_CHARTS_LOCALE_*` exports from `ag-charts-locale` package
--   Parameter syntax: `${value}` with optional formatters `[number]`, `[percent]`, `[date]`, `[time]`, `[datetime]`
--   Framework-specific integration patterns
+- `locale.localeText` - Object of key/value pairs for translations
+- `locale.getLocaleText` - Callback function for dynamic translation
+- `AG_CHARTS_LOCALE_*` exports from `ag-charts-locale` package
+- Parameter syntax: `${value}` with optional formatters `[number]`, `[percent]`, `[date]`, `[time]`, `[datetime]`
+- Framework-specific integration patterns
 
 ### Examples Referenced
 
@@ -31,29 +31,29 @@
 
 ### Interactive Features Described
 
--   Hover tooltips on zoom toolbar buttons
--   Right-click context menu with translated options
--   Legend interaction showing "no visible series" overlay
--   Parameter interpolation with formatting
+- Hover tooltips on zoom toolbar buttons
+- Right-click context menu with translated options
+- Legend interaction showing "no visible series" overlay
+- Parameter interpolation with formatting
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgLocaleOptions` interface structure
--   `LocaleTextCallback` type definition
--   `LocaleValue` type and parameter handling
--   All `AG_CHARTS_LOCALE_*` export types from `ag-charts-locale`
+- `AgLocaleOptions` interface structure
+- `LocaleTextCallback` type definition
+- `LocaleValue` type and parameter handling
+- All `AG_CHARTS_LOCALE_*` export types from `ag-charts-locale`
 
 ### Implementation Files to Check
 
--   Core locale implementation in `packages/ag-charts-community/src/locale/`
--   Default English locale values
--   Locale text formatter implementation
--   Context menu locale integration
--   Zoom toolbar locale integration
--   Legend overlay locale integration
--   All locale files in `packages/ag-charts-locale/src/locales/`
+- Core locale implementation in `packages/ag-charts-community/src/locale/`
+- Default English locale values
+- Locale text formatter implementation
+- Context menu locale integration
+- Zoom toolbar locale integration
+- Legend overlay locale integration
+- All locale files in `packages/ag-charts-locale/src/locales/`
 
 ### Examples to Test
 
@@ -61,60 +61,58 @@
 
 **Documentation Claims:**
 
--   Uses French locale (`AG_CHARTS_LOCALE_FR_FR`)
--   Zoom toolbar buttons show French tooltips on hover
--   Right-click context menu shows French options
--   Legend click shows French "no visible series" overlay
--   Falls back to English for missing values
+- Uses French locale (`AG_CHARTS_LOCALE_FR_FR`)
+- Zoom toolbar buttons show French tooltips on hover
+- Right-click context menu shows French options
+- Legend click shows French "no visible series" overlay
+- Falls back to English for missing values
 
 **Expected Behaviors for example-tester:**
 
--   Chart renders with line series
--   Zoom toolbar is visible and enabled
--   Context menu is enabled
--   Legend is visible
--   All UI text should be in French
--   No console errors
+- Chart renders with line series
+- Zoom toolbar is visible and enabled
+- Context menu is enabled
+- Legend is visible
+- All UI text should be in French
+- No console errors
 
 **Specific Features to Validate:**
 
--   Hover each zoom button (zoom in, zoom out, pan left/right/start/end, reset)
--   Right-click on chart area to open context menu
--   Click legend item to hide series and see overlay
--   Verify French text appears in all cases
+- Hover each zoom button (zoom in, zoom out, pan left/right/start/end, reset)
+- Right-click on chart area to open context menu
+- Click legend item to hide series and see overlay
+- Verify French text appears in all cases
 
 #### custom-text-values Example
 
 **Documentation Claims:**
 
--   Customizes specific English translation keys
--   Uses spread operator to extend `AG_CHARTS_LOCALE_EN_US`
--   Overrides zoom toolbar and context menu translations
--   Shows custom English text instead of default
+- Customizes specific English translation keys
+- Uses spread operator to extend `AG_CHARTS_LOCALE_EN_US`
+- Overrides zoom toolbar and context menu translations
+- Shows custom English text instead of default
 
 **Expected Behaviors for example-tester:**
 
--   Chart renders with same configuration as first example
--   Custom English text appears in tooltips and menus
--   Demonstrates proper override syntax
+- Chart renders with same configuration as first example
+- Custom English text appears in tooltips and menus
+- Demonstrates proper override syntax
 
 **Specific Features to Validate:**
 
--   Hover zoom buttons to see custom tooltips
--   Right-click to see custom context menu text
--   Verify exact custom text matches configuration
+- Hover zoom buttons to see custom tooltips
+- Right-click to see custom context menu text
+- Verify exact custom text matches configuration
 
 ### User Interactions to Validate
 
 1. **Zoom Toolbar Interactions:**
-
     - Hover over each button (7 buttons total)
     - Verify tooltip text matches locale
     - Test keyboard navigation to buttons
     - Verify tooltips position correctly
 
 2. **Context Menu Interactions:**
-
     - Right-click on chart area
     - Right-click on different chart elements
     - Verify menu items are translated
@@ -122,7 +120,6 @@
     - Test menu dismissal (Escape, click outside)
 
 3. **Legend Interactions:**
-
     - Click legend items to toggle series
     - Verify "no visible series" overlay text
     - Test with multiple series if applicable
@@ -191,22 +188,22 @@ No existing technical-review-exceptions.md file found for this page.
 
 **Instructions for Agent:**
 
--   Navigate to the example
--   Verify chart renders with French locale
--   Test zoom toolbar tooltips (all 7 buttons)
--   Test right-click context menu
--   Test legend click for "no visible series" overlay
--   Check for console errors
--   Verify all text is in French
--   Test keyboard navigation
+- Navigate to the example
+- Verify chart renders with French locale
+- Test zoom toolbar tooltips (all 7 buttons)
+- Test right-click context menu
+- Test legend click for "no visible series" overlay
+- Check for console errors
+- Verify all text is in French
+- Test keyboard navigation
 
 **Expected Results:**
 
--   All UI text in French
--   Proper tooltip positioning
--   Context menu functionality
--   Legend interaction works
--   No console errors
+- All UI text in French
+- Proper tooltip positioning
+- Context menu functionality
+- Legend interaction works
+- No console errors
 
 ### Example 2: custom-text-values
 
@@ -214,19 +211,19 @@ No existing technical-review-exceptions.md file found for this page.
 
 **Instructions for Agent:**
 
--   Navigate to the example
--   Verify custom English text in zoom tooltips
--   Verify custom context menu text
--   Compare actual text with configured overrides
--   Test all interactive elements
--   Check for console errors
+- Navigate to the example
+- Verify custom English text in zoom tooltips
+- Verify custom context menu text
+- Compare actual text with configured overrides
+- Test all interactive elements
+- Check for console errors
 
 **Expected Results:**
 
--   Custom English text appears exactly as configured
--   All overrides work properly
--   Base locale still functions for non-overridden keys
--   No console errors
+- Custom English text appears exactly as configured
+- All overrides work properly
+- Base locale still functions for non-overridden keys
+- No console errors
 
 ## Success Criteria
 

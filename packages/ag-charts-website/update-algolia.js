@@ -13,7 +13,7 @@ require('dotenv').config();
 
 const fs = require('fs-extra');
 const { JSDOM } = require('jsdom');
-const algoliasearch = require('algoliasearch');
+const { algoliasearch } = require('algoliasearch');
 const commander = require('commander');
 const path = require('path');
 
@@ -327,26 +327,27 @@ const processIndexForFramework = async (framework) => {
     } else {
         console.log(`Pushing records for ${indexName} to Algolia ...`);
 
-        const index = algoliaClient.initIndex(indexName);
-
-        index.setSettings({
-            searchableAttributes: ['title', 'heading', 'subHeading', 'text'], // attributes used for searching
-            disableExactOnAttributes: ['text'], // don't allow "exact matches" in the text
-            attributesToSnippet: ['text:40'], // configure snippet length shown in results
-            distinct: 1, // only allow each page to appear in the results once
-            attributeForDistinct: 'breadcrumb', // configure what is used to decide if a page is the same
-            customRanking: ['desc(rank)', 'asc(positionInPage)'], // custom tweaks to the ranking
-            camelCaseAttributes: ['heading', 'subHeading', 'text'], // split camelCased text so it can match regular text
-            hitsPerPage: 10, // how many results should be returned per page
-            snippetEllipsisText: '…', // the character used when truncating content for snippets
+        await algoliaClient.setSettings({
+            indexName,
+            indexSettings: {
+                searchableAttributes: ['title', 'heading', 'subHeading', 'text'], // attributes used for searching
+                disableExactOnAttributes: ['text'], // don't allow "exact matches" in the text
+                attributesToSnippet: ['text:40'], // configure snippet length shown in results
+                distinct: 1, // only allow each page to appear in the results once
+                attributeForDistinct: 'breadcrumb', // configure what is used to decide if a page is the same
+                customRanking: ['desc(rank)', 'asc(positionInPage)'], // custom tweaks to the ranking
+                camelCaseAttributes: ['heading', 'subHeading', 'text'], // split camelCased text so it can match regular text
+                hitsPerPage: 10, // how many results should be returned per page
+                snippetEllipsisText: '…', // the character used when truncating content for snippets
+            },
         });
 
         try {
             if (clearIndices) {
-                await index.clearObjects();
+                await algoliaClient.clearObjects({ indexName });
             }
 
-            const result = await index.saveObjects(records);
+            const result = await algoliaClient.saveObjects({ indexName, objects: records });
 
             console.log(`Response from Algolia:`, result);
         } catch (e) {

@@ -14,9 +14,9 @@ To change the style of an entire series based on some condition, use a [Series S
 
 In this example:
 
--   If the values in the 'Coal' line series are higher than the 'Nuclear' series, the markers and labels are larger and marked in red.
--   The 'Imported' series bar for 'Jul' is red with a lime highlight style.
--   The y-axis labels are coloured with a gradient scale.
+- If the values in the 'Coal' line series are higher than the 'Nuclear' series, the markers and labels are larger and marked in red.
+- The 'Imported' series bar for 'Jul' is red with a lime highlight style.
+- The y-axis labels are coloured with a gradient scale.
 
 ```js format="snippet"
 {
@@ -75,15 +75,15 @@ In this example:
 
 Item Stylers can be found:
 
--   In the `series` object, for customising primitive properties on the series level.
--   Inside nested series property objects, such as `marker`.
--   Inside series and axes `label` objects.
+- In the `series` object, for customising primitive properties on the series level.
+- Inside nested series property objects, such as `marker`.
+- Inside series and axes `label` objects.
 
 Each `itemStyler` receives a `params` object containing:
 
--   Relevant details of the item, such as the `datum`, `seriesId`, and `_Keys`.
--   The style properties currently applied to the item.
--   The [highlight state](./series-highlighting/#stylers) of the item.
+- Relevant details of the item, such as the `datum`, `seriesId`, and `_Keys`.
+- The style properties currently applied to the item.
+- The [highlight state](./series-highlighting/#stylers) of the item.
 
 It should return an object containing the styles to be applied to the item.
 
@@ -100,8 +100,8 @@ These are most often used within [Theme Overrides](./themes/#overrides).
 
 In this example:
 
--   Any series containing 'benchmark' in its key is coloured gray, and the other series are blue.
--   The legend items also reflect this styling.
+- Any series containing 'benchmark' in its key is coloured gray, and the other series are blue.
+- The legend items also reflect this styling.
 
 ```js format="snippet"
 {
@@ -138,9 +138,9 @@ The series level `styler` is called before the more specific `itemStyler`, with 
 
 Each `styler` receives a `params` object containing:
 
--   Relevant details of the series, such as the `seriesId`, and `_Keys`.
--   The style properties currently applied to the series.
--   The [highlight state](./series-highlighting/#stylers) of the series.
+- Relevant details of the series, such as the `seriesId`, and `_Keys`.
+- The style properties currently applied to the series.
+- The [highlight state](./series-highlighting/#stylers) of the series.
 
 It should return an object containing the styles to be applied to the series.
 Styling of nested property objects other than `marker` must be done with an `itemStyler`.

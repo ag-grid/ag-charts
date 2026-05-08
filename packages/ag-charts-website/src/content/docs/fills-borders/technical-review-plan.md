@@ -4,34 +4,34 @@
 
 ### Chart Features Covered
 
--   Fills and borders for chart elements (series labels, axis labels, legend, series area)
--   Padding configuration (single value and object with top/right/bottom/left)
--   Corner radius styling
--   Item styler callbacks for customizing individual labels
--   Gradient fills and patterns (referenced via links)
+- Fills and borders for chart elements (series labels, axis labels, legend, series area)
+- Padding configuration (single value and object with top/right/bottom/left)
+- Corner radius styling
+- Item styler callbacks for customizing individual labels
+- Gradient fills and patterns (referenced via links)
 
 ### Key APIs and Configuration Options
 
--   `seriesArea` - border, cornerRadius, padding properties
--   `legend` - position, fill, fillOpacity, border, padding properties
--   `label` - color, fill, fillOpacity, cornerRadius, padding, border, itemStyler properties
--   `AgChartLabelStylerParams` - type used for itemStyler callbacks
--   Gradient fill configuration with type, rotation, and colorStops
+- `seriesArea` - border, cornerRadius, padding properties
+- `legend` - position, fill, fillOpacity, border, padding properties
+- `label` - color, fill, fillOpacity, cornerRadius, padding, border, itemStyler properties
+- `AgChartLabelStylerParams` - type used for itemStyler callbacks
+- Gradient fill configuration with type, rotation, and colorStops
 
 ### Examples Referenced
 
--   **fills-borders**: Main example demonstrating all features on a bubble chart with:
-    -   Series area border with corner radius
-    -   Legend with border, fill, and padding
-    -   Series labels with fills, borders, and padding
-    -   Axis labels with fills and padding
-    -   Item styler overriding labels for names starting with 'D' and 'E'
+- **fills-borders**: Main example demonstrating all features on a bubble chart with:
+    - Series area border with corner radius
+    - Legend with border, fill, and padding
+    - Series labels with fills, borders, and padding
+    - Axis labels with fills and padding
+    - Item styler overriding labels for names starting with 'D' and 'E'
 
 ### Interactive Features Described
 
--   Visual styling features (static appearance)
--   Item styler dynamic styling based on data values
--   No explicit interactive behaviors mentioned (hover, click, etc.)
+- Visual styling features (static appearance)
+- Item styler dynamic styling based on data values
+- No explicit interactive behaviors mentioned (hover, click, etc.)
 
 ## Validation Targets
 
@@ -46,17 +46,14 @@
 ### Implementation Files to Check
 
 1. Series area implementation:
-
     - `/packages/ag-charts-community/src/chart/seriesArea.ts`
     - Default values for border, cornerRadius, padding
 
 2. Label styling implementation:
-
     - `/packages/ag-charts-community/src/chart/label.ts`
     - Label box styling properties and defaults
 
 3. Legend implementation:
-
     - `/packages/ag-charts-community/src/chart/legend.ts`
     - Border, fill, padding properties and defaults
 
@@ -70,11 +67,11 @@
 
 **Documentation claims:**
 
--   Border drawn around series area with corner radius and no padding
--   Legend has border, fill, corner radius, and padding (single number)
--   Series labels have border, fill, corner radius, and padding (object with top/right/bottom/left)
--   Axis labels have fill and padding
--   Item styler customizes labels for names starting with 'D' and 'E' with gradient fills
+- Border drawn around series area with corner radius and no padding
+- Legend has border, fill, corner radius, and padding (single number)
+- Series labels have border, fill, corner radius, and padding (object with top/right/bottom/left)
+- Axis labels have fill and padding
+- Item styler customizes labels for names starting with 'D' and 'E' with gradient fills
 
 **Expected behaviors to validate:**
 
@@ -184,19 +181,19 @@ No documented exceptions found for this page.
 
 ### Success Criteria
 
--   All TypeScript interfaces contain documented properties
--   Example renders all described visual features correctly
--   Code snippets are syntactically correct and functional
--   Item styler produces expected visual overrides
--   No console errors during example execution
--   Visual features remain stable during interactions
+- All TypeScript interfaces contain documented properties
+- Example renders all described visual features correctly
+- Code snippets are syntactically correct and functional
+- Item styler produces expected visual overrides
+- No console errors during example execution
+- Visual features remain stable during interactions
 
 ### Estimated Complexity
 
--   **High complexity** due to multiple styling systems (fills, borders, padding, gradients)
--   Multiple chart elements to validate (series area, legend, labels, axes)
--   Dynamic styling through itemStyler adds complexity
--   Gradient rendering validation required
+- **High complexity** due to multiple styling systems (fills, borders, padding, gradients)
+- Multiple chart elements to validate (series area, legend, labels, axes)
+- Dynamic styling through itemStyler adds complexity
+- Gradient rendering validation required
 
 ## Delegation Plan for example-tester Agent
 
@@ -207,7 +204,6 @@ No documented exceptions found for this page.
 **Documentation claims to validate:**
 
 1. Series area has a border with:
-
     - Stroke color: #999
     - Stroke width: 3px
     - Stroke opacity: 0.75
@@ -215,21 +211,18 @@ No documented exceptions found for this page.
     - No padding (padding: 0)
 
 2. Legend configuration:
-
     - Positioned top-right with floating: true
     - Fill color: #999 with opacity 0.15
     - Border enabled with #999 stroke and 0.5 opacity
     - Padding: 10px (single value for all sides)
 
 3. Series labels styling:
-
     - Male series: #badaff fill, #2c79d5 border
     - Female series: #fcc992 fill, #ea7e04 border
     - Corner radius: 4px
     - Padding object with different values per side
 
 4. Item styler functionality:
-
     - Names starting with 'D': gradient fills, red border, bold white text
     - Names starting with 'E': gradient fills, black border, bold black text
     - Different gradients for male vs female series
@@ -242,16 +235,16 @@ No documented exceptions found for this page.
 
 **Expected behaviors:**
 
--   Chart should render without console errors
--   All visual styling should be applied as documented
--   Gradients should render correctly
--   Item styler should only affect labels with names starting with 'D' or 'E'
--   TypeScript types should be properly used (AgChartLabelStylerParams)
+- Chart should render without console errors
+- All visual styling should be applied as documented
+- Gradients should render correctly
+- Item styler should only affect labels with names starting with 'D' or 'E'
+- TypeScript types should be properly used (AgChartLabelStylerParams)
 
 **Specific features to test:**
 
--   Verify gradient configuration structure matches AG Charts API
--   Check that border.enabled: true is properly set
--   Validate padding object structure
--   Ensure itemStyler return values are valid
--   Confirm fill types (solid vs gradient) work correctly
+- Verify gradient configuration structure matches AG Charts API
+- Check that border.enabled: true is properly set
+- Validate padding object structure
+- Ensure itemStyler return values are valid
+- Confirm fill types (solid vs gradient) work correctly

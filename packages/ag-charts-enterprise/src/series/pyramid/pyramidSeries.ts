@@ -59,8 +59,10 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
     style: AgPyramidSeriesStyle;
 }
 
-interface PyramidNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
+interface PyramidNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    PyramidNodeDatum,
+    PyramidNodeLabelDatum
+> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
     bounds: _ModuleSupport.BBox;
 }

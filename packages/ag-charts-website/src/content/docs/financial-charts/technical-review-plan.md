@@ -4,28 +4,28 @@
 
 ### Chart Types/Features Covered
 
--   **Financial Charts**: A specialized chart preset for financial data visualization
--   **Enterprise feature**: Requires ag-charts-enterprise
--   **Built-in chart types**:
-    -   Candlestick (default)
-    -   OHLC
-    -   Line
--   **Pre-configured features**:
-    -   Annotations and drawings (trend lines, text annotations)
-    -   Interactive zoom capabilities
-    -   Range buttons for time period navigation
-    -   Toolbar for chart type selection
-    -   Volume display (optional)
-    -   Status bar
-    -   Navigator (mini-chart)
+- **Financial Charts**: A specialized chart preset for financial data visualization
+- **Enterprise feature**: Requires ag-charts-enterprise
+- **Built-in chart types**:
+    - Candlestick (default)
+    - OHLC
+    - Line
+- **Pre-configured features**:
+    - Annotations and drawings (trend lines, text annotations)
+    - Interactive zoom capabilities
+    - Range buttons for time period navigation
+    - Toolbar for chart type selection
+    - Volume display (optional)
+    - Status bar
+    - Navigator (mini-chart)
 
 ### Key APIs and Configuration Options Documented
 
--   `AgCharts.createFinancialChart()` - Main API for creating financial charts
--   `AgFinancialChartOptions` - Configuration interface
--   Minimal configuration approach (just data required)
--   Default data keys: 'date', 'open', 'high', 'low', 'close', 'volume' (optional)
--   `initialState` configuration for pre-loaded annotations
+- `AgCharts.createFinancialChart()` - Main API for creating financial charts
+- `AgFinancialChartOptions` - Configuration interface
+- Minimal configuration approach (just data required)
+- Default data keys: 'date', 'open', 'high', 'low', 'close', 'volume' (optional)
+- `initialState` configuration for pre-loaded annotations
 
 ### Examples Referenced
 
@@ -36,11 +36,11 @@
 
 ### Interactive Features Described
 
--   Drawing/annotation tools via toolbar
--   Zoom functionality
--   Range buttons for navigation
--   Chart type switching via toolbar
--   Video demonstrations of features
+- Drawing/annotation tools via toolbar
+- Zoom functionality
+- Range buttons for navigation
+- Chart type switching via toolbar
+- Video demonstrations of features
 
 ## Validation Targets
 
@@ -69,9 +69,9 @@
 
 **Documentation claims:**
 
--   Shows minimal configuration approach
--   Demonstrates pre-configured annotations
--   Uses standard OHLC data structure
+- Shows minimal configuration approach
+- Demonstrates pre-configured annotations
+- Uses standard OHLC data structure
 
 **Expected behaviors for example-tester agent:**
 
@@ -90,26 +90,23 @@
 
 **Interactive features to validate:**
 
--   Hover over candlesticks should show tooltips with OHLC values
--   Annotations should be interactive (hoverable/selectable)
--   Chart should respond to window resizing
+- Hover over candlesticks should show tooltips with OHLC values
+- Annotations should be interactive (hoverable/selectable)
+- Chart should respond to window resizing
 
 ### User Interactions to Validate
 
 1. **Toolbar interactions**:
-
     - Chart type switching between candlestick, OHLC, and line
     - Drawing tool selection and usage
     - Annotation tool selection and usage
 
 2. **Zoom interactions**:
-
     - Mouse wheel zoom
     - Drag to zoom
     - Zoom reset functionality
 
 3. **Range button interactions**:
-
     - Time period selection
     - Navigation between different date ranges
 
@@ -185,19 +182,19 @@ No documented exceptions found for this page.
 
 ## Success Criteria
 
--   All TypeScript interfaces match documented API
--   Example renders without errors
--   All documented features are functional
--   Interactive features work as described
--   No console errors or warnings
--   Responsive design works correctly
--   Documentation accurately reflects implementation
+- All TypeScript interfaces match documented API
+- Example renders without errors
+- All documented features are functional
+- Interactive features work as described
+- No console errors or warnings
+- Responsive design works correctly
+- Documentation accurately reflects implementation
 
 ## Estimated Complexity
 
--   **High complexity** due to:
-    -   Enterprise-only features
-    -   Multiple interactive systems (toolbar, annotations, zoom)
-    -   Complex data visualization
-    -   Multiple chart type variations
-    -   Extensive configuration options
+- **High complexity** due to:
+    - Enterprise-only features
+    - Multiple interactive systems (toolbar, annotations, zoom)
+    - Complex data visualization
+    - Multiple chart type variations
+    - Extensive configuration options

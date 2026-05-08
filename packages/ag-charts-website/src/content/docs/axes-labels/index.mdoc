@@ -13,11 +13,11 @@ AG Charts has a number of methods to avoid axis label collisions, which occur wh
 
 In this example:
 
--   Use the grab handle in the bottom right of the example to resize the chart. Observe how the labels behave with the different options applied.
--   The first dropdown allows enabling and disabling collision avoidance altogether.
--   The second dropdown buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
--   The [Rotation](#rotation), [Wrapping](#wrapping) and [Truncation](#truncation) controls enable exploration of their behaviour with all the available options.
--   If enabled, labels try [wrapping](#wrapping), then [truncation](#truncation), [rotation](#rotation), and finally [skipping](#skipping) if needed.
+- Use the grab handle in the bottom right of the example to resize the chart. Observe how the labels behave with the different options applied.
+- The first dropdown allows enabling and disabling collision avoidance altogether.
+- The second dropdown buttons allows changing the length of the labels. This more easily shows the [wrapping](#wrapping) and [skipping](#skipping) behaviour.
+- The [Rotation](#rotation), [Wrapping](#wrapping) and [Truncation](#truncation) controls enable exploration of their behaviour with all the available options.
+- If enabled, labels try [wrapping](#wrapping), then [truncation](#truncation), [rotation](#rotation), and finally [skipping](#skipping) if needed.
 
 Collision avoidance is enabled by default, to disable set `label.avoidCollisions` to false.
 
@@ -35,10 +35,10 @@ Text wrapping allows labels to fit within constrained space by breaking across m
 
 Wrapping behaviour is set with the `label.wrapping` property:
 
--   `'on-space'` - Wraps only on whitespace. If no suitable space is found, the next avoidance strategy is used.
--   `'always'` - Forces wrapping to fit within the available space, including breaking words if needed.
--   `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
--   `'never'` - Disables wrapping. Labels will remain on a single line, with the next avoidance strategy being used.
+- `'on-space'` - Wraps only on whitespace. If no suitable space is found, the next avoidance strategy is used.
+- `'always'` - Forces wrapping to fit within the available space, including breaking words if needed.
+- `'hyphenate'` - Similar to `'always'`, but inserts a hyphen (`-`) when wrapping in the middle of a word.
+- `'never'` - Disables wrapping. Labels will remain on a single line, with the next avoidance strategy being used.
 
 ```js format="snippet"
 {
@@ -67,9 +67,9 @@ Rotating axis labels allows fitting more labels into a smaller area, at the expe
 
 Three rotation options are available:
 
--   No rotation.
--   Fixed rotation - labels are always rotated by the amount specified in the `rotation` property.
--   Automatic rotation - labels are rotated if any label will be wider than the gap between ticks.
+- No rotation.
+- Fixed rotation - labels are always rotated by the amount specified in the `rotation` property.
+- Automatic rotation - labels are rotated if any label will be wider than the gap between ticks.
 
 Automatic rotation can be enabled or disabled using the `autoRotate` property.
 It is also possible to specify a rotation angle for the automatic rotation via the `autoRotateAngle` property.
@@ -121,14 +121,14 @@ The `label.formatter` callback allows maximum flexibility for controlling what a
 
 In the above example:
 
--   The number axis uses a formatter to multiply by 100 and append `'%'` to all values.
--   The category axis uses a formatter to add `'=='` around the 'Windows' label only.
+- The number axis uses a formatter to multiply by 100 and append `'%'` to all values.
+- The category axis uses a formatter to add `'=='` around the 'Windows' label only.
 
 The formatter function receives a single `params` object which contains:
 
--   The raw `value` of the label (without any default formatting applied).
--   The `index` of the label in the data array.
--   The number of `fractionDigits`, if the value is a number.
+- The raw `value` of the label (without any default formatting applied).
+- The `index` of the label in the data array.
+- The number of `fractionDigits`, if the value is a number.
 
 It is called for each label and should return a string.
 
@@ -158,8 +158,8 @@ also be used.
 
 In the above example:
 
--   The time axis uses a format to display the short month name and full year for all values.
--   The number axis uses a format to prepend a `'$'` and use 2 decimal places for all values. Shorter numbers are padding with `'0'`.
+- The time axis uses a format to display the short month name and full year for all values.
+- The number axis uses a format to prepend a `'$'` and use 2 decimal places for all values. Shorter numbers are padding with `'0'`.
 
 The syntax used in the format strings depends on the axis type.
 

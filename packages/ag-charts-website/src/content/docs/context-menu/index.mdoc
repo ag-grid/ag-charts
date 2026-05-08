@@ -9,8 +9,8 @@ The Context Menu provides context-aware interactions with the chart elements.
 
 In this example:
 
--   Right clicking anywhere on the chart shows the Context Menu with the option to download the chart.
--   Right clicking on a legend item will show the Context Menu with additional options to toggle series visibility.
+- Right clicking anywhere on the chart shows the Context Menu with the option to download the chart.
+- Right clicking on a legend item will show the Context Menu with additional options to toggle series visibility.
 
 The Context Menu is enabled by default, to disable set `contextMenu.enabled` to `false`.
 
@@ -49,8 +49,8 @@ The `contextMenu.items` array accepts special string values to conveniently reco
 
 In this example:
 
--   The "Custom Order" button reorders the default built-in Menu Items and adds separators.
--   The "Default Order" button resets the Menu Items to the default `['defaults']` value.
+- The "Custom Order" button reorders the default built-in Menu Items and adds separators.
+- The "Default Order" button resets the Menu Items to the default `['defaults']` value.
 
 These string values can be used in combination with [Custom Actions](#custom-actions).
 
@@ -93,10 +93,10 @@ Use the `showOn` property to specify when the action should be shown.
 
 In this configuration:
 
--   A single custom action is added for the entire chart, the series area, the series node and the legend items.
-    Multiple actions per item can be specified within the array if required.
--   Right clicking on one of these areas will show these additional actions in the Context Menu.
--   Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
+- A single custom action is added for the entire chart, the series area, the series node and the legend items.
+  Multiple actions per item can be specified within the array if required.
+- Right clicking on one of these areas will show these additional actions in the Context Menu.
+- Clicking these extra actions will display information in the console, demonstrating that the action is aware of details about the right-clicked item.
 
 ## Sub-Menus
 
@@ -154,8 +154,8 @@ To add Sub-Menus to the Context Menu, simply use the `items` property recursivel
 
 In this configuration:
 
--   The built-in Zoom and Legend menu items are placed into Sub-Menus.
--   An additional "Debug Console" Sub-Menu is added with custom actions to log events to the console.
+- The built-in Zoom and Legend menu items are placed into Sub-Menus.
+- An additional "Debug Console" Sub-Menu is added with custom actions to log events to the console.
 
 ## Dynamic Items
 
@@ -188,8 +188,8 @@ The `getItems` callback can be used to implement Dynamic Context Menus. This is 
 
 In this example:
 
--   The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
-    whose text is dynamically derived from the Context Menu Event parameters.
+- The Context Menu on Bar Nodes includes a console `Log Datum` Menu Item,
+  whose text is dynamically derived from the Context Menu Event parameters.
 
 ## API Reference
 

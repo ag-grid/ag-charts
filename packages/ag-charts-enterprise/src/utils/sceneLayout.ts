@@ -15,7 +15,7 @@ export function layoutScenesRow(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
+        const gap = Array.isArray(gaps) ? (gaps[index] ?? 0) : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
@@ -44,7 +44,7 @@ export function layoutScenesColumn(
 
     let index = 0;
     for (const scene of scenes) {
-        const gap = Array.isArray(gaps) ? gaps[index] ?? 0 : gaps;
+        const gap = Array.isArray(gaps) ? (gaps[index] ?? 0) : gaps;
         if (Array.isArray(scene)) {
             for (const scene_ of scene) {
                 layoutSetY(scene_, y);

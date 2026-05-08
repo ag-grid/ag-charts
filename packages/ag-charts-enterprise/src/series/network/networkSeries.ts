@@ -18,8 +18,10 @@ import type { NetworkLinkInterpolation } from './networkTypes';
 
 export type NetworkSeriesDatumIndex = number;
 
-export interface NetworkDatum<NetworkVertex, TNetworkEdge>
-    extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
+export interface NetworkDatum<
+    NetworkVertex,
+    TNetworkEdge,
+> extends _ModuleSupport.SeriesNodeDatum<NetworkSeriesDatumIndex> {
     vertex: Vertex<NetworkVertex, TNetworkEdge>;
 }
 
@@ -30,8 +32,10 @@ export class NetworkSeriesProperties extends _ModuleSupport.SeriesProperties<obj
     readonly tooltip = _ModuleSupport.makeSeriesTooltip<any>();
 }
 
-export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge>
-    extends _ModuleSupport.SeriesNodeDataContext<NetworkSeriesDatumIndex, NetworkDatum<NetworkVertex, TNetworkEdge>> {
+export interface NetworkSeriesContextNodeData<NetworkVertex, TNetworkEdge> extends _ModuleSupport.SeriesNodeDataContext<
+    NetworkSeriesDatumIndex,
+    NetworkDatum<NetworkVertex, TNetworkEdge>
+> {
     linkData: NetworkLinkDatum<NetworkVertex, TNetworkEdge>[];
 
     // labelData is unused.

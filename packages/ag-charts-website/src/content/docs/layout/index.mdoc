@@ -44,8 +44,8 @@ AgCharts.create(options);
 
 In this configuration:
 
--   The element containing the chart is sized using inline styles. It could also be sized by styling the provided class.
--   All attributes on the `container` element - including `class` and `style` - are left unchanged when calling `AgCharts.create`.
+- The element containing the chart is sized using inline styles. It could also be sized by styling the provided class.
+- All attributes on the `container` element - including `class` and `style` - are left unchanged when calling `AgCharts.create`.
 
 {% /if %}
 
@@ -57,8 +57,8 @@ In this configuration:
 
 In this configuration:
 
--   The element containing the chart is sized using the `style` prop.
--   It could also be sized by styling the class specified in the `className` prop.
+- The element containing the chart is sized using the `style` prop.
+- It could also be sized by styling the class specified in the `className` prop.
 
 {% /if %}
 {% if isFramework("angular") %}
@@ -74,8 +74,8 @@ In this configuration:
 
 In this configuration:
 
--   The element containing the chart is sized using the `style` attribute.
--   It could also be sized by styling the class specified in the `class` attribute.
+- The element containing the chart is sized using the `style` attribute.
+- It could also be sized by styling the class specified in the `class` attribute.
 
 {% note %}
 As the `ag-charts` container element is a custom HTML element without implicit browser styling, it should be styled as a `block` element.
@@ -90,8 +90,8 @@ As the `ag-charts` container element is a custom HTML element without implicit b
 
 In this configuration:
 
--   The element containing the chart is sized using the `style` attribute.
--   It could also be sized by styling the class specified in the `class` attribute.
+- The element containing the chart is sized using the `style` attribute.
+- It could also be sized by styling the class specified in the `class` attribute.
 
 {% /if %}
 
@@ -138,8 +138,8 @@ In this configuration:
 
 In this configuration:
 
--   The chart container is styled by placing it within a parent element using a `display: grid` layout.
--   In this example, the grid has a single cell. By default, grid stretches child elements to fill the width and height of the cell.
+- The chart container is styled by placing it within a parent element using a `display: grid` layout.
+- In this example, the grid has a single cell. By default, grid stretches child elements to fill the width and height of the cell.
 
 ## Chart Layout Calculation
 
@@ -150,17 +150,17 @@ Each chart is composed of a single or multiple series, and optionally a [Legend]
 Components are laid out in the following order; earlier elements take up space that is then unavailable for the layout
 of later elements:
 
--   Chart padding.
--   Title plus its configured spacing.
--   Subtitle plus its configured spacing.
--   Footnote plus its configured spacing.
--   [Legend](./legend/) plus its configured spacing.
--   [Toolbar](./financial-charts-toolbar/).
--   [Range Buttons](./range-buttons/).
--   [Navigator](./navigator/) plus its configured spacing.
--   Series area padding.
--   [Axes](./axes-types/).
--   Series area.
+- Chart padding.
+- Title plus its configured spacing.
+- Subtitle plus its configured spacing.
+- Footnote plus its configured spacing.
+- [Legend](./legend/) plus its configured spacing.
+- [Toolbar](./financial-charts-toolbar/).
+- [Range Buttons](./range-buttons/).
+- [Navigator](./navigator/) plus its configured spacing.
+- Series area padding.
+- [Axes](./axes-types/).
+- Series area.
 
 If any elements are disabled or not used, they do not consume any space during layout processing.
 

@@ -4,21 +4,19 @@
 
 ### Chart Types/Features Covered
 
--   **Axis Positioning**: Control where axes are rendered (top, bottom, left, right)
--   **Axis Crossing Point**: Using `crossAt` to position axes at specific values
--   **Secondary Axes**: Multiple axes on the same edge or opposite edges
--   **Sticky Behavior**: Axis behavior when cross position is outside domain
+- **Axis Positioning**: Control where axes are rendered (top, bottom, left, right)
+- **Axis Crossing Point**: Using `crossAt` to position axes at specific values
+- **Secondary Axes**: Multiple axes on the same edge or opposite edges
+- **Sticky Behavior**: Axis behavior when cross position is outside domain
 
 ### Key APIs and Configuration Options Documented
 
 1. **position** property:
-
     - Values: `'top'`, `'bottom'`, `'left'`, `'right'`
     - Controls axis placement on chart edges
     - Default: horizontal axes at `'bottom'`, vertical axes at `'left'`
 
 2. **crossAt** property:
-
     - Type: `{ value: number | Date | string | string[], sticky?: boolean }`
     - Allows axis to intersect perpendicular axis at specific value
     - Default `sticky: true` keeps axis in view when cross value is out of range
@@ -34,22 +32,20 @@
 
 ### Interactive Features Described
 
--   Axis positioning at chart edges
--   Axis crossing at specified values
--   Sticky behavior during zoom (referenced)
--   Multiple axes on same edge
+- Axis positioning at chart edges
+- Axis crossing at specified values
+- Sticky behavior during zoom (referenced)
+- Multiple axes on same edge
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
 1. **AgCartesianAxisPosition** type in `/packages/ag-charts-types/src/chart/cartesianOptions.ts`
-
     - Should be: `type AgCartesianAxisPosition = 'top' | 'right' | 'bottom' | 'left'` (line 323)
     - Used by: `position` property in `AgBaseCartesianAxisOptions`
 
 2. **AgBaseCartesianAxisOptions** interface in `/packages/ag-charts-types/src/chart/cartesianOptions.ts`
-
     - `position?: AgCartesianAxisPosition` (line 40)
     - `crossAt?: AgCartesianAxisCrossAt` (line 42)
     - `keys?: string[]` (line 38)
@@ -60,9 +56,9 @@
 
 ### Implementation Files to Check
 
--   `/packages/ag-charts-community/src/chart/axis/` - Axis positioning logic
--   `/packages/ag-charts-community/src/chart/cartesianChart.ts` - Axis placement implementation
--   Default values for `position` and `sticky`
+- `/packages/ag-charts-community/src/chart/axis/` - Axis positioning logic
+- `/packages/ag-charts-community/src/chart/cartesianChart.ts` - Axis placement implementation
+- Default values for `position` and `sticky`
 
 ### Examples to Test with Expected Behaviors
 
@@ -70,10 +66,10 @@
 
 **Documentation Claims:**
 
--   Bottom axis with `position: 'bottom'` showing Quarter
--   Left axis with `position: 'left'` for revenue
--   Right axis with `position: 'right'` for profit margin
--   Multiple axes on different edges
+- Bottom axis with `position: 'bottom'` showing Quarter
+- Left axis with `position: 'left'` for revenue
+- Right axis with `position: 'right'` for profit margin
+- Multiple axes on different edges
 
 **Expected Configuration Pattern**:
 
@@ -87,31 +83,31 @@ axes: {
 
 **Expected Behaviors:**
 
--   Three axes render at specified positions (bottom, left, right)
--   Category axis appears at bottom of chart
--   Two number axes on left and right sides
--   Axis titles display correctly at each position
--   Series data binds correctly to respective axes via `keys`
--   Left axis scales for revenue data
--   Right axis scales for profit margin data
+- Three axes render at specified positions (bottom, left, right)
+- Category axis appears at bottom of chart
+- Two number axes on left and right sides
+- Axis titles display correctly at each position
+- Series data binds correctly to respective axes via `keys`
+- Left axis scales for revenue data
+- Right axis scales for profit margin data
 
 **Visual Verification:**
 
--   Bottom axis: horizontal, shows category labels
--   Left axis: vertical, shows revenue scale
--   Right axis: vertical, shows profit margin scale
--   Axes don't overlap or obscure chart content
--   Tick marks face inward on all axes
+- Bottom axis: horizontal, shows category labels
+- Left axis: vertical, shows revenue scale
+- Right axis: vertical, shows profit margin scale
+- Axes don't overlap or obscure chart content
+- Tick marks face inward on all axes
 
 #### 2. axis-cross-at
 
 **Documentation Claims:**
 
--   Left axis positioned at `value: 0` on bottom axis scale
--   Bottom axis positioned at `value: 0` on left axis scale
--   Creates centered coordinate system
--   Axes intersect at origin (0, 0)
--   `sticky` behavior when zooming (axis sticks to edge when value leaves range)
+- Left axis positioned at `value: 0` on bottom axis scale
+- Bottom axis positioned at `value: 0` on left axis scale
+- Creates centered coordinate system
+- Axes intersect at origin (0, 0)
+- `sticky` behavior when zooming (axis sticks to edge when value leaves range)
 
 **Expected Configuration Pattern**:
 
@@ -124,31 +120,29 @@ axes: {
 
 **Expected Behaviors:**
 
--   Both axes cross at (0, 0) point
--   Axes render through center of chart (not at edges)
--   Quadrant-style coordinate system visible
--   Both positive and negative values visible on both axes
--   Default `sticky: true` keeps axes in view
--   `crossAt.value` type matches perpendicular axis domain type
+- Both axes cross at (0, 0) point
+- Axes render through center of chart (not at edges)
+- Quadrant-style coordinate system visible
+- Both positive and negative values visible on both axes
+- Default `sticky: true` keeps axes in view
+- `crossAt.value` type matches perpendicular axis domain type
 
 **Visual Verification:**
 
--   Axes intersect at chart center (where both = 0)
--   Four quadrants clearly defined
--   Axis lines visible through data area
--   Tick marks and labels render correctly
--   Chart content distributed across all quadrants
+- Axes intersect at chart center (where both = 0)
+- Four quadrants clearly defined
+- Axis lines visible through data area
+- Tick marks and labels render correctly
+- Chart content distributed across all quadrants
 
 ### User Interactions to Validate
 
 1. **Axis Positioning**:
-
     - Verify axes render at correct edges
     - Test with all four position values
     - Check multiple axes on same edge behavior
 
 2. **Cross At Interaction** (if zoom available):
-
     - Zoom to move crossAt value out of range
     - Verify axis sticks to edge (sticky: true)
     - Test with `sticky: false` if example provides it
@@ -160,7 +154,6 @@ axes: {
 ### Visual States to Screenshot
 
 1. **axis-position-basic**:
-
     - Full chart showing all three axes at their positions
     - Clear view of axis titles and labels
     - Series data visible on both scales
@@ -187,7 +180,6 @@ No existing technical-review-exceptions.md file found for this page.
 ### Priority 2: Example Testing (Delegate to example-tester)
 
 1. **axis-position-basic**:
-
     - Verify three axes render at correct positions
     - Test axis-series binding via `keys` property
     - Validate titles display at each axis position
@@ -225,17 +217,17 @@ No existing technical-review-exceptions.md file found for this page.
 
 ### axis-position-basic
 
--   **Task**: Validate multi-position axis rendering
--   **Expected from docs**: Three axes at bottom, left, and right positions with titles
--   **Validate**: Correct positioning, axis-series binding via keys, proper scaling
--   **Check for**: Axis titles visible, correct tick marks, no rendering conflicts
+- **Task**: Validate multi-position axis rendering
+- **Expected from docs**: Three axes at bottom, left, and right positions with titles
+- **Validate**: Correct positioning, axis-series binding via keys, proper scaling
+- **Check for**: Axis titles visible, correct tick marks, no rendering conflicts
 
 ### axis-cross-at
 
--   **Task**: Test centered axis crossing feature
--   **Expected from docs**: Axes intersect at (0, 0), creating quadrant system
--   **Validate**: Axes render through chart center, both positive/negative values
--   **Check for**: Proper intersection point, axis lines through data area
+- **Task**: Test centered axis crossing feature
+- **Expected from docs**: Axes intersect at (0, 0), creating quadrant system
+- **Validate**: Axes render through chart center, both positive/negative values
+- **Check for**: Proper intersection point, axis lines through data area
 
 ## Success Criteria
 

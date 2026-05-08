@@ -4,10 +4,10 @@
 
 ### Chart Types/Features Covered
 
--   Series markers configuration for `line`, `area`, `scatter`, and `bubble` series
--   Standard marker attributes: `shape`, `size`, `fill`, and `stroke`
--   Custom marker shapes using callback functions
--   Marker shape API using path drawing commands
+- Series markers configuration for `line`, `area`, `scatter`, and `bubble` series
+- Standard marker attributes: `shape`, `size`, `fill`, and `stroke`
+- Custom marker shapes using callback functions
+- Marker shape API using path drawing commands
 
 ### Key APIs and Configuration Options Documented
 
@@ -17,7 +17,6 @@
     - `fill`: Fill color
     - `stroke`: Stroke color
 2. **Location Differences**:
-
     - For `line` and `area` series: Properties within `marker` object
     - For `scatter` and `bubble` series: Properties directly on series level
 
@@ -32,9 +31,9 @@
 
 ### Interactive Features Described
 
--   Legend markers automatically match series marker shape and color
--   Tooltips should appear on hover over markers
--   Visual feedback when hovering over data points
+- Legend markers automatically match series marker shape and color
+- Tooltips should appear on hover over markers
+- Visual feedback when hovering over data points
 
 ## Validation Targets
 
@@ -65,9 +64,9 @@
 
 **Documentation claims**:
 
--   Shows different marker shapes, sizes, and colors
--   Legend markers match series markers in shape and color but not size
--   Multiple series with different marker configurations
+- Shows different marker shapes, sizes, and colors
+- Legend markers match series markers in shape and color but not size
+- Multiple series with different marker configurations
 
 **Expected behaviors for example-tester**:
 
@@ -87,9 +86,9 @@
 
 **Documentation claims**:
 
--   Demonstrates custom heart-shaped marker using callback function
--   Uses `arc()`, `lineTo()`, and `closePath()` path methods
--   Custom shape appears in both chart and legend
+- Demonstrates custom heart-shaped marker using callback function
+- Uses `arc()`, `lineTo()`, and `closePath()` path methods
+- Custom shape appears in both chart and legend
 
 **Expected behaviors for example-tester**:
 
@@ -180,9 +179,9 @@ No documented exceptions found for this page.
 
 ## Success Criteria
 
--   All documented marker properties exist in TypeScript definitions
--   Examples render without console errors
--   Custom marker shapes display correctly
--   Legend markers match series markers as documented
--   Tooltips work with all marker types
--   Documentation accurately reflects implementation
+- All documented marker properties exist in TypeScript definitions
+- Examples render without console errors
+- Custom marker shapes display correctly
+- Legend markers match series markers as documented
+- Tooltips work with all marker types
+- Documentation accurately reflects implementation

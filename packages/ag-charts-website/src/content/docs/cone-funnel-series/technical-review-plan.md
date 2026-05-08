@@ -4,13 +4,12 @@
 
 ### Chart Type Coverage
 
--   **Primary Chart Type**: Cone Funnel Series (`type: 'cone-funnel'`)
--   **Description**: Shows the change of a value over a set of processes, with lines representing values at each stage and filled areas denoting changes
+- **Primary Chart Type**: Cone Funnel Series (`type: 'cone-funnel'`)
+- **Description**: Shows the change of a value over a set of processes, with lines representing values at each stage and filled areas denoting changes
 
 ### Key APIs and Configuration Options Documented
 
 1. **Core Properties**:
-
     - `stageKey`: Defines stages for the lines of the cone funnel
     - `valueKey`: Provides numerical values determining line width
     - `direction`: Controls orientation ('horizontal' or 'vertical')
@@ -27,15 +26,14 @@
 
 ### Interactive Features Described
 
--   Implied standard chart interactions (tooltips, hover states)
--   No specific interactive features explicitly documented
+- Implied standard chart interactions (tooltips, hover states)
+- No specific interactive features explicitly documented
 
 ## Validation Targets
 
 ### TypeScript Interface Verification
 
 1. **Primary Interface**: `AgConeFunnelSeriesOptions` in `/packages/ag-charts-types/src/series/cartesian/coneFunnelOptions.ts`
-
     - Verify `stageKey` and `valueKey` properties exist and are required
     - Confirm `direction` property with 'horizontal' | 'vertical' options
     - Check `fills` property type (should be `AgColorType[]`)
@@ -59,64 +57,61 @@
 
 **Documentation Claims**:
 
--   Shows a basic cone funnel chart
--   Uses `stageKey: 'group'` and `valueKey: 'value'`
--   Title: "Conversion Drop Off"
+- Shows a basic cone funnel chart
+- Uses `stageKey: 'group'` and `valueKey: 'value'`
+- Title: "Conversion Drop Off"
 
 **Expected Behaviors for example-tester**:
 
--   Chart renders with cone/funnel shape
--   Lines represent stages from data
--   Filled areas between lines show drop-off
--   Tooltips show stage and value information
--   No console errors or warnings
--   Proper TypeScript typing with `AgChartOptions`
+- Chart renders with cone/funnel shape
+- Lines represent stages from data
+- Filled areas between lines show drop-off
+- Tooltips show stage and value information
+- No console errors or warnings
+- Proper TypeScript typing with `AgChartOptions`
 
 #### 2. horizontal-cone-funnel
 
 **Documentation Claims**:
 
--   Creates horizontal cone funnel by setting `direction: 'horizontal'`
+- Creates horizontal cone funnel by setting `direction: 'horizontal'`
 
 **Expected Behaviors for example-tester**:
 
--   Chart renders horizontally (left-to-right or right-to-left)
--   Same funnel behavior but rotated 90 degrees
--   All interactions work in horizontal orientation
--   Proper axis and label positioning for horizontal layout
+- Chart renders horizontally (left-to-right or right-to-left)
+- Same funnel behavior but rotated 90 degrees
+- All interactions work in horizontal orientation
+- Proper axis and label positioning for horizontal layout
 
 #### 3. cone-funnel-fills
 
 **Documentation Claims**:
 
--   Customizes fills using `fills: ["#5090DC", "#FFA03A", "#459D55"]`
--   Series is reversed by providing data items in reverse order
+- Customizes fills using `fills: ["#5090DC", "#FFA03A", "#459D55"]`
+- Series is reversed by providing data items in reverse order
 
 **Expected Behaviors for example-tester**:
 
--   Drop-off areas use the specified colors in order
--   Data reversal is visually apparent (widest at bottom/right)
--   Colors cycle through the fills array as specified
--   All three colors should be visible if there are enough drop-offs
+- Drop-off areas use the specified colors in order
+- Data reversal is visually apparent (widest at bottom/right)
+- Colors cycle through the fills array as specified
+- All three colors should be visible if there are enough drop-offs
 
 ### User Interaction Tests
 
 #### Visual States to Capture
 
 1. **Default rendering**:
-
     - Full chart view showing all stages and drop-offs
     - Verify cone/funnel shape is clear and correct
 
 2. **Hover interactions**:
-
     - Hover over drop-off areas (filled regions)
     - Hover over stage lines/boundaries
     - Capture tooltip content and positioning
     - Check for highlighting or visual feedback
 
 3. **Responsive behavior**:
-
     - Desktop, tablet, and mobile viewport sizes
     - Verify labels and stages adjust appropriately
 
@@ -127,14 +122,13 @@
 
 ### Known Exceptions
 
--   No technical-review-exceptions.md file exists for this page
+- No technical-review-exceptions.md file exists for this page
 
 ## Execution Plan
 
 ### Priority 1: Core Functionality Validation
 
 1. **TypeScript Interface Validation** (15 min)
-
     - Verify all documented properties in `AgConeFunnelSeriesOptions`
     - Check property types and requirements
     - Confirm enterprise vs community availability
@@ -148,7 +142,6 @@
 ### Priority 2: Feature-Specific Testing
 
 3. **Direction Property Testing** (15 min)
-
     - Deploy example-tester agent for horizontal-cone-funnel
     - Verify horizontal orientation works correctly
     - Compare visual layout with vertical version
@@ -163,7 +156,6 @@
 ### Priority 3: Interactive and Visual Testing
 
 5. **Comprehensive Interaction Testing** (25 min)
-
     - Systematic hover testing over all chart elements
     - Tooltip content validation
     - Keyboard navigation testing
@@ -177,7 +169,6 @@
 ### Priority 4: Documentation Completeness
 
 7. **API Coverage Check** (10 min)
-
     - Compare documented properties with full TypeScript interface
     - Identify any undocumented but important options
     - Check for missing configuration examples
@@ -191,24 +182,24 @@
 
 ### Must Pass
 
--   All three examples render without console errors
--   TypeScript interfaces match documented properties
--   Core functionality (stageKey, valueKey) works as described
--   Direction property correctly changes orientation
--   Fills customization applies colors as documented
+- All three examples render without console errors
+- TypeScript interfaces match documented properties
+- Core functionality (stageKey, valueKey) works as described
+- Direction property correctly changes orientation
+- Fills customization applies colors as documented
 
 ### Should Pass
 
--   Tooltips display appropriate information
--   Hover states provide visual feedback
--   Examples demonstrate all documented features
--   Responsive behavior is acceptable
+- Tooltips display appropriate information
+- Hover states provide visual feedback
+- Examples demonstrate all documented features
+- Responsive behavior is acceptable
 
 ### Nice to Have
 
--   Documentation covers all available options
--   Examples show diverse use cases
--   Interactive features are well-documented
+- Documentation covers all available options
+- Examples show diverse use cases
+- Interactive features are well-documented
 
 ## Delegation Plan for example-tester Agent
 
@@ -226,9 +217,9 @@
 
 ## Estimated Complexity
 
--   **Total Time**: ~2 hours
--   **Complexity**: Medium
--   **Risk Areas**:
-    -   Enterprise-only feature verification
-    -   Limited documentation of interactive features
-    -   Potential undocumented configuration options
+- **Total Time**: ~2 hours
+- **Complexity**: Medium
+- **Risk Areas**:
+    - Enterprise-only feature verification
+    - Limited documentation of interactive features
+    - Potential undocumented configuration options

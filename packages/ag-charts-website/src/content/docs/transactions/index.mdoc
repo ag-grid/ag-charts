@@ -30,10 +30,10 @@ Transactions support three types of operations: adding, removing, and updating d
 
 {% chartExampleRunner title="Apply Transaction" name="simple-apply-transaction" type="generated" /%}
 
--   **Add 5 Items**: Appends 5 new items to the end of the dataset.
--   **Add at Index 2**: Inserts a new item at position 2 using `addIndex`.
--   **Remove Last**: Removes the last item from the dataset.
--   **Update First 5**: Modifies the values of the first 5 items.
+- **Add 5 Items**: Appends 5 new items to the end of the dataset.
+- **Add at Index 2**: Inserts a new item at position 2 using `addIndex`.
+- **Remove Last**: Removes the last item from the dataset.
+- **Update First 5**: Modifies the values of the first 5 items.
 
 {% note %}
 By default, items are identified by object reference. To update or remove an item,
@@ -141,15 +141,15 @@ instead of by object reference.
 
 When `dataIdKey` is set:
 
--   **Remove** operations only need the ID field on each item.
--   **Update** operations match by ID and replace the existing datum with the new object.
--   **Add** operations work the same as without `dataIdKey`.
+- **Remove** operations only need the ID field on each item.
+- **Update** operations match by ID and replace the existing datum with the new object.
+- **Add** operations work the same as without `dataIdKey`.
 
 {% chartExampleRunner title="ID-Based Transaction" name="id-based-transaction" type="generated" /%}
 
--   **Add 3 Items**: Appends 3 new items to the dataset.
--   **Remove Last by ID**: Removes the last item using only its `id` field.
--   **Update First by ID**: Creates a new object with the same `id` to replace the first item.
+- **Add 3 Items**: Appends 3 new items to the dataset.
+- **Remove Last by ID**: Removes the last item using only its `id` field.
+- **Update First by ID**: Creates a new object with the same `id` to replace the first item.
 
 ### Setting dataIdKey
 

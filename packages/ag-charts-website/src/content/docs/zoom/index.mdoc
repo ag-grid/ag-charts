@@ -20,13 +20,13 @@ To enable this feature, set `zoom.enabled` to `true`.
 
 In the above example you can:
 
--   Scroll in and out with the mouse wheel or trackpad.
--   Zoom and pan using [touch and multi-touch](./touch) functionality.
--   Use {% kbd "+" /%} and {% kbd "-" /%} keys to zoom in or out (when in focus).
--   Click and drag the mouse to pan around the zoomed in chart.
--   Click (or touch) and drag an axis to zoom in or out on only that axis.
--   Double click (or double tap) anywhere to reset the zoom.
--   Double click (or double tap) an axis to reset the zoom on only that axis.
+- Scroll in and out with the mouse wheel or trackpad.
+- Zoom and pan using [touch and multi-touch](./touch) functionality.
+- Use {% kbd "+" /%} and {% kbd "-" /%} keys to zoom in or out (when in focus).
+- Click and drag the mouse to pan around the zoomed in chart.
+- Click (or touch) and drag an axis to zoom in or out on only that axis.
+- Double click (or double tap) anywhere to reset the zoom.
+- Double click (or double tap) an axis to reset the zoom on only that axis.
 
 {% note %}
 If `axis[].tick.maxSpacing` is provided, the axis ticks and labels will update with the zoom.
@@ -40,10 +40,10 @@ This allows zooming by using the mouse wheel or trackpad, as shown in the above 
 
 By default, the chart will zoom while keeping the right side of the x-axis pinned. You can change this anchor point with the `anchorPointX` and `anchorPointY` properties, setting them each to one of:
 
--   `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
--   `middle` (default for y-axis), the middle of the chart,
--   `end` (default for x-axis), the right or top of the chart when scrolling on the x or y axis respectively,
--   `pointer`, keep the mouse pointer above the same position on the chart when zooming.
+- `start`, the left or bottom of the chart when scrolling on the x or y axis respectively,
+- `middle` (default for y-axis), the middle of the chart,
+- `end` (default for x-axis), the right or top of the chart when scrolling on the x or y axis respectively,
+- `pointer`, keep the mouse pointer above the same position on the chart when zooming.
 
 In the example below, we set the anchor point for both axes to the mouse pointer.
 
@@ -161,7 +161,7 @@ To disable this behaviour, use `enableTwoFingerZoom: false`.
 
 In the above example:
 
--   Two fingers gestures are not consumed by the chart. Instead they zoom or scroll the entire page.
+- Two fingers gestures are not consumed by the chart. Instead they zoom or scroll the entire page.
 
 ## Axis Zoom Controls
 
@@ -169,10 +169,10 @@ By default, a user can click and drag on any axis to change the zoom of that axi
 
 {% chartExampleRunner title="Axis Zoom Controls" name="zoom-axis-controls" type="generated" /%}
 
--   When using `axisDraggingMode: 'zoom'` (default), dragging either of the y-axes will zoom both of them.
--   Use `axisDraggingMode: 'pan'` to pan while dragging an axis.
--   Use `enableAxisDragging: false` to disable all axis dragging.
--   Scrolling on an axis to zoom is enabled by default. Use `enableAxisScrolling: false` to disable it.
+- When using `axisDraggingMode: 'zoom'` (default), dragging either of the y-axes will zoom both of them.
+- Use `axisDraggingMode: 'pan'` to pan while dragging an axis.
+- Use `enableAxisDragging: false` to disable all axis dragging.
+- Scrolling on an axis to zoom is enabled by default. Use `enableAxisScrolling: false` to disable it.
 
 ## Double-Click to Reset
 
@@ -213,8 +213,8 @@ This is enabled by default when zooming the x-axis. To disable, use `autoScaling
 
 In the above example:
 
--   Zoom in to the chart by scrolling and then pan left and right.
--   Observe how the vertical axis domain changes to fit the displayed data range.
+- Zoom in to the chart by scrolling and then pan left and right.
+- Observe how the vertical axis domain changes to fit the displayed data range.
 
 Auto Scaling is never applied when the user has manually adjusted the y-axis by dragging it. Auto Scaling will be reapplied when the y-axis is reset, for example by double clicking on it.
 
@@ -245,9 +245,9 @@ This is useful for appending data without disrupting users viewing a specific ti
 
 In this example:
 
--   The chart is initially zoomed to the middle of the data.
--   Start the updates to see new data appended at the end.
--   Notice in the Navigator that new data has been added, but the chart view remains fixed on the same time range.
+- The chart is initially zoomed to the middle of the data.
+- Start the updates to see new data appended at the end.
+- Notice in the Navigator that new data has been added, but the chart view remains fixed on the same time range.
 
 ### Preserve Ratios
 
@@ -270,9 +270,9 @@ This is useful for maintaining a consistent proportional view of your data, with
 
 In this example:
 
--   The chart is initially zoomed to the last 20% of the data.
--   Start the updates to see new data points added in batches.
--   Notice that more data points become visible in the chart view as total data grows, since the zoom ratio stays at 80%-100%.
+- The chart is initially zoomed to the last 20% of the data.
+- Start the updates to see new data points added in batches.
+- Notice that more data points become visible in the chart view as total data grows, since the zoom ratio stays at 80%-100%.
 
 ### Reset
 
@@ -295,9 +295,9 @@ This is useful for switching between unrelated datasets, discarding previous use
 
 In this example:
 
--   The chart is initially zoomed to show only the last few data points.
--   Pan or zoom to a different position in the chart.
--   Click a button to switch datasets and notice that the zoom resets to the initial state.
+- The chart is initially zoomed to show only the last few data points.
+- Pan or zoom to a different position in the chart.
+- Click a button to switch datasets and notice that the zoom resets to the initial state.
 
 ### Stick to End
 
@@ -321,10 +321,10 @@ When `stickToEnd` is active, it takes precedence over the configured strategy. O
 
 In this example:
 
--   The chart is initially zoomed to the end of the data.
--   Start the updates to see new data appended and the view scrolls to follow.
--   Pan away from the end to see the `preserveDomain` strategy take over with a fixed view.
--   Pan back to the end and the view will resume following new data.
+- The chart is initially zoomed to the end of the data.
+- Start the updates to see new data appended and the view scrolls to follow.
+- Pan away from the end to see the `preserveDomain` strategy take over with a fixed view.
+- Pan back to the end and the view will resume following new data.
 
 ## Navigator
 
@@ -344,17 +344,17 @@ Zoom buttons are enabled by default. To disable, use `zoom.buttons.enabled: fals
 
 Hover near the bottom of the above example to see the default zoom buttons.
 
--   **Zoom out**: Zooms the chart out by one [step](#scrolling-step).
--   **Zoom in**: Zooms the chart in by one [step](#scrolling-step).
--   **Pan left**: Pans the chart to the left by one [step](#scrolling-step).
--   **Pan right**: Pans the chart to the right by one [step](#scrolling-step).
--   **Reset**: Resets the zoom to the original level and position. Equivalent to [Double-Click to Reset](#double-click-to-reset).
+- **Zoom out**: Zooms the chart out by one [step](#scrolling-step).
+- **Zoom in**: Zooms the chart in by one [step](#scrolling-step).
+- **Pan left**: Pans the chart to the left by one [step](#scrolling-step).
+- **Pan right**: Pans the chart to the right by one [step](#scrolling-step).
+- **Reset**: Resets the zoom to the original level and position. Equivalent to [Double-Click to Reset](#double-click-to-reset).
 
 To change when the buttons will appear, use `zoom.buttons.visible`:
 
--   `always` – The buttons will always be visible.
--   `zoomed` – The buttons will appear when the chart has been zoomed.
--   `hover` – The buttons will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
+- `always` – The buttons will always be visible.
+- `zoomed` – The buttons will appear when the chart has been zoomed.
+- `hover` – The buttons will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
 
 ### Customisation
 
@@ -408,11 +408,11 @@ It is possible to customise the visibility, order and grouping of buttons, as we
 
 In the above example:
 
--   The pan-left and pan-right buttons are not shown.
--   Additional buttons are added to enable panning to the start and end of the x-axis.
--   All the buttons have custom tooltip text.
--   The order of the zoom-in and zoom-out buttons is swapped and they have a label as well as an icon.
--   The reset button has only a label and no icon.
+- The pan-left and pan-right buttons are not shown.
+- Additional buttons are added to enable panning to the start and end of the x-axis.
+- All the buttons have custom tooltip text.
+- The order of the zoom-in and zoom-out buttons is swapped and they have a label as well as an icon.
+- The reset button has only a label and no icon.
 
 For more information see the [API Reference section](#reference-AgZoomOptions-buttons-buttons).
 

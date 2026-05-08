@@ -119,12 +119,11 @@ interface RadialGaugeTickDatum {
     text: TextOrSegments;
 }
 
-interface RadialGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<
-        RadialGaugeNodeDatumIndex,
-        RadialGaugeNodeDatum,
-        RadialGaugeLabelDatum
-    > {
+interface RadialGaugeNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<
+    RadialGaugeNodeDatumIndex,
+    RadialGaugeNodeDatum,
+    RadialGaugeLabelDatum
+> {
     needleData: RadialGaugeNeedleDatum[];
     targetData: RadialGaugeTargetDatum[];
     scaleData: RadialGaugeNodeDatum[];

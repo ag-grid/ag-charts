@@ -86,8 +86,10 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     style?: Required<AgRadialSeriesStyle>;
 }
 
-export interface RadialBarSeriesNodeDataContext
-    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialBarNodeDatum, RadialBarNodeDatum> {
+export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
+    RadialBarNodeDatum,
+    RadialBarNodeDatum
+> {
     styles: _ModuleSupport.SeriesNodeStyleContext<Required<AgRadialSeriesStyle>>;
 }
 

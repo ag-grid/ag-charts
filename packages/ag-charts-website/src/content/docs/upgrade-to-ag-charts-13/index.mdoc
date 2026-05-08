@@ -134,15 +134,15 @@ See [Axis Configuration](./axes-configuration) for more details.
 
 ### Highlight Changes
 
--   `highlightStyle` is removed from `treemap` and `sunburst` series. Use `highlight` options and `itemStyler` callbacks instead.
--   The `highlighted` boolean is removed from all callback params. Use `highlightState` instead.
+- `highlightStyle` is removed from `treemap` and `sunburst` series. Use `highlight` options and `itemStyler` callbacks instead.
+- The `highlighted` boolean is removed from all callback params. Use `highlightState` instead.
 
 ### Miscellaneous
 
--   All callbacks that used to return a `string` or `string | TextSegment[]` now also support returning a `number` or `Date` value.
--   `TextSegment`s now also support `string | number | Date` in the `text` field.
--   `itemId` used in `waterfall`, `range-area`, `range-bar`, `candlestick` and `ohlc` series formatter, styler and renderers is removed and replaced by `itemType`
--   `itemId` type in event parameters is updated from `string` to `string | number`.
+- All callbacks that used to return a `string` or `string | TextSegment[]` now also support returning a `number` or `Date` value.
+- `TextSegment`s now also support `string | number | Date` in the `text` field.
+- `itemId` used in `waterfall`, `range-area`, `range-bar`, `candlestick` and `ohlc` series formatter, styler and renderers is removed and replaced by `itemType`
+- `itemId` type in event parameters is updated from `string` to `string | number`.
 
 {% /expandingSection %}
 
@@ -160,23 +160,23 @@ This release includes the following behaviour changes:
 
 ### Axes
 
--   `interval.placement` defaults to `'between'` instead of `'on'`.
--   `min` and `max` are absolute values and not overridden by `nice`. Use `preferredMin` and `preferredMax` for more flexible options.
+- `interval.placement` defaults to `'between'` instead of `'on'`.
+- `min` and `max` are absolute values and not overridden by `nice`. Use `preferredMin` and `preferredMax` for more flexible options.
 
 ### Highlighting
 
--   Default highlighting now de-emphasises unhighlighted items and series. Use the series `highlight` options to customise.
--   `highlight.bringToFront` defaults to `true` for all series. Use `bringToFront: false` to disable.
--   `highlight.drawingMode` defaults to `'cutout'` instead of `'overlay'`.
--   Financial Charts have `highlight.enabled: false` on all series.
+- Default highlighting now de-emphasises unhighlighted items and series. Use the series `highlight` options to customise.
+- `highlight.bringToFront` defaults to `true` for all series. Use `bringToFront: false` to disable.
+- `highlight.drawingMode` defaults to `'cutout'` instead of `'overlay'`.
+- Financial Charts have `highlight.enabled: false` on all series.
 
 ### Other Changes
 
--   `zoom.enableAxisScrolling` defaults to `true`. Use `enableAxisScrolling: false` to disable.
--   The new `zoom.onDataChange.strategy` of `'preserveDomain'` is the default. Use `'preserveRatios'` for previous behaviour.
--   The new `zoom.onDataChange.stickToEnd` option defaults to `true` for Financial Charts.
--   Sankey series use the full width of the series area when `edgePlacement: undefined`. Use `seriesArea.padding` to adjust.
--   `maxRenderedItems` for `scatter` and `bubble` series defaults to `2000` instead of `10000`.
+- `zoom.enableAxisScrolling` defaults to `true`. Use `enableAxisScrolling: false` to disable.
+- The new `zoom.onDataChange.strategy` of `'preserveDomain'` is the default. Use `'preserveRatios'` for previous behaviour.
+- The new `zoom.onDataChange.stickToEnd` option defaults to `true` for Financial Charts.
+- Sankey series use the full width of the series area when `edgePlacement: undefined`. Use `seriesArea.padding` to adjust.
+- `maxRenderedItems` for `scatter` and `bubble` series defaults to `2000` instead of `10000`.
 
 {% /expandingSection %}
 
@@ -194,8 +194,8 @@ The following APIs have been deprecated since version 12 and have now been remov
 
 <!-- ### Deprecated APIs section Name -->
 
--   `highlightStyle` is removed from all series. Use `highlight` options instead.
--   `AgSeriesAreaPaddingOptions` type is removed. Use the identical `PaddingOptions` or `Padding` types instead.
+- `highlightStyle` is removed from all series. Use `highlight` options instead.
+- `AgSeriesAreaPaddingOptions` type is removed. Use the identical `PaddingOptions` or `Padding` types instead.
 
 {% /expandingSection %}
 

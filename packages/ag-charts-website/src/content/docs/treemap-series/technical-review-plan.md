@@ -4,63 +4,63 @@
 
 ### Chart Types/Features Covered
 
--   **Treemap Series**: Enterprise-only visualization for hierarchical data structures
--   **Key Capabilities**:
-    -   Hierarchical data visualization using nested rectangles
-    -   Rectangle area representing numeric values
-    -   Color scales for additional data dimensions
-    -   Customizable labels for both group (non-leaf) and tile (leaf) nodes
-    -   Auto-sizing labels with minimum font size constraints
-    -   Secondary labels for tiles
-    -   Layout customization (padding, gaps, corner radius)
-    -   Multiple hierarchy levels support
-    -   Gradient Legend integration for color scale reference
+- **Treemap Series**: Enterprise-only visualization for hierarchical data structures
+- **Key Capabilities**:
+    - Hierarchical data visualization using nested rectangles
+    - Rectangle area representing numeric values
+    - Color scales for additional data dimensions
+    - Customizable labels for both group (non-leaf) and tile (leaf) nodes
+    - Auto-sizing labels with minimum font size constraints
+    - Secondary labels for tiles
+    - Layout customization (padding, gaps, corner radius)
+    - Multiple hierarchy levels support
+    - Gradient Legend integration for color scale reference
 
 ### Key APIs and Configuration Options Documented
 
 #### 1. Core Series Configuration
 
--   `type: 'treemap'` - Series type identifier (enterprise only)
--   `labelKey` - Property name for primary labels (e.g., 'name', 'title')
--   `secondaryLabelKey` - Property for secondary tile labels
--   `childrenKey` - Property containing children array (defaults to 'children')
--   `sizeKey` - Property for numeric sizing values
--   `sizeName` - Human-readable description for size values in tooltips
--   `colorKey` - Property for color scale numeric values
--   `colorName` - Human-readable description for color values in tooltips
--   `colorRange` - Array of colors for gradient interpolation
--   `fills` and `strokes` - Arrays of colors indexed by root node
+- `type: 'treemap'` - Series type identifier (enterprise only)
+- `labelKey` - Property name for primary labels (e.g., 'name', 'title')
+- `secondaryLabelKey` - Property for secondary tile labels
+- `childrenKey` - Property containing children array (defaults to 'children')
+- `sizeKey` - Property for numeric sizing values
+- `sizeName` - Human-readable description for size values in tooltips
+- `colorKey` - Property for color scale numeric values
+- `colorName` - Human-readable description for color values in tooltips
+- `colorRange` - Array of colors for gradient interpolation
+- `fills` and `strokes` - Arrays of colors indexed by root node
 
 #### 2. Group Configuration (`group` property)
 
--   `label` - Label styling (fontSize, spacing)
--   `padding` - Space from edge to content
--   `gap` - Space between adjacent groups
--   `cornerRadius` - Rounded corners
--   `textAlign` - Horizontal alignment
--   `interactive` - Enable/disable hover highlighting
+- `label` - Label styling (fontSize, spacing)
+- `padding` - Space from edge to content
+- `gap` - Space between adjacent groups
+- `cornerRadius` - Rounded corners
+- `textAlign` - Horizontal alignment
+- `interactive` - Enable/disable hover highlighting
 
 #### 3. Tile Configuration (`tile` property)
 
--   `label` - Primary label with auto-sizing support
-    -   `fontSize` - Initial font size
-    -   `minimumFontSize` - Minimum size when shrinking
-    -   `spacing` - Space below label
--   `secondaryLabel` - Additional label with formatter support
--   `padding` - Space from edge to labels
--   `gap` - Space between adjacent tiles
--   `cornerRadius` - Rounded corners
--   `textAlign` and `verticalAlign` - Label positioning
+- `label` - Primary label with auto-sizing support
+    - `fontSize` - Initial font size
+    - `minimumFontSize` - Minimum size when shrinking
+    - `spacing` - Space below label
+- `secondaryLabel` - Additional label with formatter support
+- `padding` - Space from edge to labels
+- `gap` - Space between adjacent tiles
+- `cornerRadius` - Rounded corners
+- `textAlign` and `verticalAlign` - Label positioning
 
 #### 4. Gradient Legend Configuration
 
--   `gradientLegend.enabled` - Show/hide legend (default true when colorKey used)
--   `gradientLegend.position` - 'bottom', 'right', 'left', 'top'
--   `gradientLegend.reverseOrder` - Reverse value ordering
--   `gradient.thickness` - Width of gradient bar
--   `gradient.preferredLength` - Initial bar length
--   `scale.label` - Label styling (fontSize, fontStyle, fontWeight, fontFamily, color)
--   `scale.padding` - Distance from gradient to labels
+- `gradientLegend.enabled` - Show/hide legend (default true when colorKey used)
+- `gradientLegend.position` - 'bottom', 'right', 'left', 'top'
+- `gradientLegend.reverseOrder` - Reverse value ordering
+- `gradient.thickness` - Width of gradient bar
+- `gradient.preferredLength` - Initial bar length
+- `scale.label` - Label styling (fontSize, fontStyle, fontWeight, fontFamily, color)
+- `scale.padding` - Distance from gradient to labels
 
 ### Examples Referenced and Their Purposes
 
@@ -78,11 +78,11 @@
 
 ### Interactive Features Described
 
--   Hover tooltips showing configured data values
--   Interactive highlighting for tiles and groups
--   Auto-shrinking labels to fit available space
--   Gradient legend as color reference
--   Visual hierarchy through nested rectangles
+- Hover tooltips showing configured data values
+- Interactive highlighting for tiles and groups
+- Auto-shrinking labels to fit available space
+- Gradient legend as color reference
+- Visual hierarchy through nested rectangles
 
 ## Validation Targets
 
@@ -109,133 +109,132 @@
 
 #### 1. simple-treemap
 
--   **Documentation Claims**: Basic treemap using `labelKey: 'title'`
--   **Expected Behaviors**:
-    -   UK Government Budget data renders as nested rectangles
-    -   Parent nodes show category names (e.g., "Pensions", "Health Care")
-    -   Leaf nodes show subcategory titles
-    -   Default coloring with no color scale
-    -   Tooltips display title values on hover
-    -   Title and subtitle present ("UK Government Budget", "2024")
--   **Data Validation**: Hierarchical structure with title and children properties
+- **Documentation Claims**: Basic treemap using `labelKey: 'title'`
+- **Expected Behaviors**:
+    - UK Government Budget data renders as nested rectangles
+    - Parent nodes show category names (e.g., "Pensions", "Health Care")
+    - Leaf nodes show subcategory titles
+    - Default coloring with no color scale
+    - Tooltips display title values on hover
+    - Title and subtitle present ("UK Government Budget", "2024")
+- **Data Validation**: Hierarchical structure with title and children properties
 
 #### 2. sizing
 
--   **Documentation Claims**: `sizeKey` provides relative sizing, larger nodes appear top-left
--   **Expected Behaviors**:
-    -   Rectangle areas proportional to 'size' values
-    -   Larger values positioned towards top-left corner
-    -   Tooltips show size values with "Size" label
-    -   Node reordering based on size values
-    -   Visual hierarchy reflects numeric proportions
--   **Key Feature**: Size-based layout algorithm
+- **Documentation Claims**: `sizeKey` provides relative sizing, larger nodes appear top-left
+- **Expected Behaviors**:
+    - Rectangle areas proportional to 'size' values
+    - Larger values positioned towards top-left corner
+    - Tooltips show size values with "Size" label
+    - Node reordering based on size values
+    - Visual hierarchy reflects numeric proportions
+- **Key Feature**: Size-based layout algorithm
 
 #### 3. color-scale
 
--   **Documentation Claims**: Color interpolation using `colorKey` and `colorRange`
--   **Expected Behaviors**:
-    -   Tiles colored based on 'change' values
-    -   Green (#43A047) to red (#FF5722) gradient
-    -   Positive changes appear green, negative changes appear red
-    -   Tooltips show "Change" values
-    -   Gradient legend visible by default at bottom
-    -   Legend shows color scale matching chart
--   **Validation**: Color interpolation accuracy
+- **Documentation Claims**: Color interpolation using `colorKey` and `colorRange`
+- **Expected Behaviors**:
+    - Tiles colored based on 'change' values
+    - Green (#43A047) to red (#FF5722) gradient
+    - Positive changes appear green, negative changes appear red
+    - Tooltips show "Change" values
+    - Gradient legend visible by default at bottom
+    - Legend shows color scale matching chart
+- **Validation**: Color interpolation accuracy
 
 #### 4. other-colors
 
--   **Documentation Claims**: Custom fills/strokes indexed by root node
--   **Expected Behaviors**:
-    -   10 distinct fill colors as specified
-    -   Matching stroke colors for each fill
-    -   Colors assigned by root node index
-    -   No gradient legend (colorRange not used)
-    -   Note states fills/strokes ignored when colorRange used
--   **Edge Case**: Verify colorRange overrides fills/strokes
+- **Documentation Claims**: Custom fills/strokes indexed by root node
+- **Expected Behaviors**:
+    - 10 distinct fill colors as specified
+    - Matching stroke colors for each fill
+    - Colors assigned by root node index
+    - No gradient legend (colorRange not used)
+    - Note states fills/strokes ignored when colorRange used
+- **Edge Case**: Verify colorRange overrides fills/strokes
 
 #### 5. labels
 
--   **Documentation Claims**: Custom label styling with auto-sizing
--   **Expected Behaviors**:
-    -   Group labels: 18px font size, 2px spacing
-    -   Tile labels: 32px initial, shrink to minimum 18px
-    -   Secondary labels show formatted size values
-    -   Label spacing: 12px for tiles
-    -   Text fits within available space
-    -   Formatter function applies to secondary labels
--   **Key Feature**: Font size auto-adjustment
+- **Documentation Claims**: Custom label styling with auto-sizing
+- **Expected Behaviors**:
+    - Group labels: 18px font size, 2px spacing
+    - Tile labels: 32px initial, shrink to minimum 18px
+    - Secondary labels show formatted size values
+    - Label spacing: 12px for tiles
+    - Text fits within available space
+    - Formatter function applies to secondary labels
+- **Key Feature**: Font size auto-adjustment
 
 #### 6. layout
 
--   **Documentation Claims**: Custom padding and gap values
--   **Expected Behaviors**:
-    -   Group padding: 12px from edges
-    -   Group gap: 5px between groups
-    -   Tile padding: 10px from edges
-    -   Tile gap: 2px between tiles
-    -   Visual spacing matches configuration
-    -   Nested elements respect parent spacing
--   **Validation**: Layout calculations
+- **Documentation Claims**: Custom padding and gap values
+- **Expected Behaviors**:
+    - Group padding: 12px from edges
+    - Group gap: 5px between groups
+    - Tile padding: 10px from edges
+    - Tile gap: 2px between tiles
+    - Visual spacing matches configuration
+    - Nested elements respect parent spacing
+- **Validation**: Layout calculations
 
 #### 7. nesting
 
--   **Documentation Claims**: Multiple hierarchy levels support
--   **Expected Behaviors**:
-    -   Deep nesting (3+ levels) renders correctly
-    -   Each level maintains parent-child relationships
-    -   Labels visible at all hierarchy levels
-    -   Interactive features work at all depths
-    -   Visual hierarchy clear through nesting
--   **Complexity**: Deep hierarchy rendering
+- **Documentation Claims**: Multiple hierarchy levels support
+- **Expected Behaviors**:
+    - Deep nesting (3+ levels) renders correctly
+    - Each level maintains parent-child relationships
+    - Labels visible at all hierarchy levels
+    - Interactive features work at all depths
+    - Visual hierarchy clear through nesting
+- **Complexity**: Deep hierarchy rendering
 
 #### 8. gradient-legend
 
--   **Documentation Claims**: Gradient legend enabled by default with colorKey
--   **Expected Behaviors**:
-    -   Legend appears at bottom by default
-    -   Color gradient matches chart colors
-    -   Value labels on scale ends
-    -   Legend reflects data value range
-    -   Proper integration with treemap
--   **Default Behavior**: Automatic enablement
+- **Documentation Claims**: Gradient legend enabled by default with colorKey
+- **Expected Behaviors**:
+    - Legend appears at bottom by default
+    - Color gradient matches chart colors
+    - Value labels on scale ends
+    - Legend reflects data value range
+    - Proper integration with treemap
+- **Default Behavior**: Automatic enablement
 
 #### 9. gradient-legend-position
 
--   **Documentation Claims**: Position options, reverseOrder for vertical
--   **Expected Behaviors**:
-    -   Legend positioned on right side
-    -   Values in descending order (vertical default)
-    -   reverseOrder option changes to ascending
-    -   Legend adapts to container constraints
-    -   Proper spacing from chart
--   **Variations**: All position options
+- **Documentation Claims**: Position options, reverseOrder for vertical
+- **Expected Behaviors**:
+    - Legend positioned on right side
+    - Values in descending order (vertical default)
+    - reverseOrder option changes to ascending
+    - Legend adapts to container constraints
+    - Proper spacing from chart
+- **Variations**: All position options
 
 #### 10. gradient-legend-size
 
--   **Documentation Claims**: thickness: 50px, preferredLength: 400px
--   **Expected Behaviors**:
-    -   Gradient bar 50px thick
-    -   Initial length 400px (constrained by container)
-    -   Size adjustments visible
-    -   Labels adjust to available space
-    -   Responsive to container size
--   **Constraints**: Container edge behavior
+- **Documentation Claims**: thickness: 50px, preferredLength: 400px
+- **Expected Behaviors**:
+    - Gradient bar 50px thick
+    - Initial length 400px (constrained by container)
+    - Size adjustments visible
+    - Labels adjust to available space
+    - Responsive to container size
+- **Constraints**: Container edge behavior
 
 #### 11. gradient-legend-labels
 
--   **Documentation Claims**: Custom label styling
--   **Expected Behaviors**:
-    -   Font: 20px italic bold serif
-    -   Color: red
-    -   Padding: 20px from gradient
-    -   All style properties applied
-    -   Consistent across all labels
--   **Validation**: Complete style application
+- **Documentation Claims**: Custom label styling
+- **Expected Behaviors**:
+    - Font: 20px italic bold serif
+    - Color: red
+    - Padding: 20px from gradient
+    - All style properties applied
+    - Consistent across all labels
+- **Validation**: Complete style application
 
 ### User Interactions to Validate
 
 1. **Hover Behaviors**:
-
     - Hover over tiles → tooltips with label, size, color values
     - Hover over groups → highlight if interactive enabled
     - Hover over empty space → no interaction
@@ -243,7 +242,6 @@
     - Edge hover → proper tooltip positioning
 
 2. **Visual Feedback**:
-
     - Tile highlight on hover
     - Group highlight when interactive: true
     - Clear visual hierarchy
@@ -279,14 +277,14 @@
 
 Based on documentation:
 
--   **Tiles (Leaf Nodes)**: Always interactive with tooltips
--   **Groups (Parent Nodes)**: Interactive only if `group.interactive: true`
--   **Gradient Legend**: Non-interactive reference element
--   **Labels**: Non-interactive text elements
+- **Tiles (Leaf Nodes)**: Always interactive with tooltips
+- **Groups (Parent Nodes)**: Interactive only if `group.interactive: true`
+- **Gradient Legend**: Non-interactive reference element
+- **Labels**: Non-interactive text elements
 
 ## Known Exceptions
 
--   No documented exceptions file found for this page
+- No documented exceptions file found for this page
 
 ## Execution Plan
 
@@ -313,11 +311,11 @@ Delegate testing of each example with specific expectations:
 
 For each example, provide agent with:
 
--   Expected visual appearance from documentation
--   Configuration properties to verify
--   Interactive behaviors to test
--   Specific validation criteria
--   Console error checking
+- Expected visual appearance from documentation
+- Configuration properties to verify
+- Interactive behaviors to test
+- Specific validation criteria
+- Console error checking
 
 ### Priority 3: Visual and Interaction Testing
 
@@ -338,18 +336,18 @@ For each example, provide agent with:
 
 ### Success Criteria
 
--   All TypeScript properties match documentation
--   Examples demonstrate claimed features
--   Interactive behaviors work as described
--   Visual rendering matches descriptions
--   No console errors or warnings
--   Gradient legend properly integrated
--   Enterprise-only restriction enforced
--   Auto-sizing labels function correctly
+- All TypeScript properties match documentation
+- Examples demonstrate claimed features
+- Interactive behaviors work as described
+- Visual rendering matches descriptions
+- No console errors or warnings
+- Gradient legend properly integrated
+- Enterprise-only restriction enforced
+- Auto-sizing labels function correctly
 
 ### Estimated Complexity
 
--   **High**: Color scales, auto-sizing, deep hierarchies
--   **Medium**: Layout calculations, tooltips, legend integration
--   **Low**: Basic properties, static styling
--   **Time Estimate**: 2-3 hours comprehensive review
+- **High**: Color scales, auto-sizing, deep hierarchies
+- **Medium**: Layout calculations, tooltips, legend integration
+- **Low**: Basic properties, static styling
+- **Time Estimate**: 2-3 hours comprehensive review

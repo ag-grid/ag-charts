@@ -4,36 +4,32 @@
 
 ### Chart Features Covered
 
--   Linear Gauge chart type (new preset type)
--   Both vertical (default) and horizontal orientations
--   Single data point visualization within a predefined range
--   Visual representation using a colored bar over a grey scale
+- Linear Gauge chart type (new preset type)
+- Both vertical (default) and horizontal orientations
+- Single data point visualization within a predefined range
+- Visual representation using a colored bar over a grey scale
 
 ### Key APIs and Configuration Options Documented
 
 1. **Core Configuration**
-
     - `type: 'linear-gauge'` - Chart type identifier
     - `value` - The single data point to display
     - `scale.min/max` - Range boundaries for the gauge
     - `direction` - Vertical (default) or horizontal orientation
 
 2. **Visual Customization**
-
     - `thickness` - Gauge thickness
     - `bar.thickness` or `bar.thicknessRatio` - Bar thickness configuration
     - `cornerRadius` and `cornerMode` - Rounded corner styling
     - `segmentation` - Split gauge into segments
 
 3. **Color Options**
-
     - Single color fills (`fill`)
     - Multiple color fills with `fills` array
     - `fillMode` - 'continuous' (gradient) or 'discrete' (blocks)
     - Color stops for custom distribution
 
 4. **Labels**
-
     - `label` configuration with placement options
     - `avoidCollisions` feature
     - Scale labels (`scale.label`)
@@ -60,8 +56,8 @@
 
 ### Interactive Features Described
 
--   No explicit interactive features documented (no mention of hover, click, or tooltips)
--   Chart appears to be a static visualization of a single value
+- No explicit interactive features documented (no mention of hover, click, or tooltips)
+- Chart appears to be a static visualization of a single value
 
 ## Validation Targets
 
@@ -92,7 +88,6 @@
 #### For example-tester agent delegation:
 
 1. **simple-linear-gauge**
-
     - **Documentation claims**: Basic gauge with value 80 on 0-100 scale
     - **Expected behaviors**:
         - Vertical gauge rendered by default
@@ -102,7 +97,6 @@
     - **Configuration to verify**: Minimal config with type, value, and scale
 
 2. **horizontal-linear-gauge**
-
     - **Documentation claims**: Horizontal orientation with `direction: 'horizontal'`
     - **Expected behaviors**:
         - Gauge rendered horizontally instead of vertically
@@ -111,7 +105,6 @@
     - **Configuration to verify**: `direction` property correctly sets orientation
 
 3. **thickness**
-
     - **Documentation claims**: Scale thickness 100px, bar thickness 50px
     - **Expected behaviors**:
         - Scale (background) should be 100px thick
@@ -120,7 +113,6 @@
     - **Configuration to verify**: Both `thickness` and `bar.thickness` properties
 
 4. **labels**
-
     - **Documentation claims**:
         - Label with `placement: 'inside-start'`
         - `avoidCollisions: true` prevents overlap
@@ -132,7 +124,6 @@
     - **Configuration to verify**: Label placement and collision avoidance
 
 5. **segmentation**
-
     - **Documentation claims**:
         - Segmentation enabled with 4 segments
         - 2px spacing between segments
@@ -143,7 +134,6 @@
     - **Configuration to verify**: `segmentation.interval.count` and `spacing`
 
 6. **corner-radius**
-
     - **Documentation claims**:
         - `cornerRadius: 99` for high curvature
         - `cornerMode: 'container'` applies to start/end only
@@ -154,7 +144,6 @@
     - **Configuration to verify**: Corner styling properties
 
 7. **fill** and **fill-mode**
-
     - **Documentation claims**: Custom colors for scale and bar
     - **Expected behaviors**:
         - Scale uses light grey (#f5f6fa)
@@ -163,7 +152,6 @@
     - **Configuration to verify**: Fill properties and fillMode behavior
 
 8. **scale-values**
-
     - **Documentation claims**: Color stops at specific values (35, 45, 55, 65)
     - **Expected behaviors**:
         - Colors change at specified stop values
@@ -172,7 +160,6 @@
     - **Configuration to verify**: Color stop implementation
 
 9. **targets**
-
     - **Documentation claims**: Target at value 70 with "Average" text
     - **Expected behaviors**:
         - Marker positioned at 70% of scale
@@ -181,7 +168,6 @@
     - **Configuration to verify**: Target value and text properties
 
 10. **custom-targets**
-
     - **Documentation claims**:
         - Three targets with different shapes and placements
         - Triangle shapes at 30 (before) and 75 (after)
@@ -206,10 +192,10 @@
 
 ### User Interactions to Validate
 
--   Hover behaviors over gauge elements (though none documented)
--   Tooltip display (if implemented but not documented)
--   Responsive behavior on resize
--   Accessibility features (keyboard navigation if any)
+- Hover behaviors over gauge elements (though none documented)
+- Tooltip display (if implemented but not documented)
+- Responsive behavior on resize
+- Accessibility features (keyboard navigation if any)
 
 ### Visual States to Screenshot and Analyze
 
@@ -225,8 +211,8 @@
 
 ## Known Exceptions
 
--   No existing technical-review-exceptions.md file found
--   No documented exceptions to consider during review
+- No existing technical-review-exceptions.md file found
+- No documented exceptions to consider during review
 
 ## Execution Plan
 
@@ -271,16 +257,16 @@
 
 ### Success Criteria
 
--   All documented APIs exist and work as described
--   Examples render without errors
--   Visual appearance matches documentation claims
--   No TypeScript type mismatches
--   All features behave as documented
--   Screenshots capture all visual states accurately
+- All documented APIs exist and work as described
+- Examples render without errors
+- Visual appearance matches documentation claims
+- No TypeScript type mismatches
+- All features behave as documented
+- Screenshots capture all visual states accurately
 
 ### Estimated Complexity
 
--   High complexity due to new chart type with many configuration options
--   12 examples to validate thoroughly
--   Multiple visual customization features to verify
--   Potential for undocumented interactive behaviors
+- High complexity due to new chart type with many configuration options
+- 12 examples to validate thoroughly
+- Multiple visual customization features to verify
+- Potential for undocumented interactive behaviors

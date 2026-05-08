@@ -11,8 +11,10 @@ import {
 } from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
 
-interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
-    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
+interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType> extends Omit<
+    AnnotationsCreateStateMachineContext,
+    'create'
+> {
     create: (datum: Datum) => void;
 }
 

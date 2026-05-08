@@ -23,9 +23,9 @@ To create an Area series use the `'area'` series type.
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
--   `yKey` provides the numerical values for each dataset, corresponding to the [Number Axis](./axes-types/#number).
--   `yName` configures display names, reflected in [Tooltip Titles](./tooltips) and [Legend Items](./legend).
+- `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
+- `yKey` provides the numerical values for each dataset, corresponding to the [Number Axis](./axes-types/#number).
+- `yName` configures display names, reflected in [Tooltip Titles](./tooltips) and [Legend Items](./legend).
 
 ## Multiple Area Series
 
@@ -92,10 +92,10 @@ It is possible to customise the appearance of the line, fill, labels and markers
 
 In this example
 
--   All series have a custom `stroke` and `fill` colour.
--   A custom `lineDash` is provided for the Subscriptions series.
--   [Markers](#reference-AgAreaSeriesOptions-marker) are enabled for the Services series.
--   [Labels](#reference-AgAreaSeriesOptions-label) are enabled for the Products series.
+- All series have a custom `stroke` and `fill` colour.
+- A custom `lineDash` is provided for the Subscriptions series.
+- [Markers](#reference-AgAreaSeriesOptions-marker) are enabled for the Services series.
+- [Labels](#reference-AgAreaSeriesOptions-label) are enabled for the Products series.
 
 ### Interpolation
 
@@ -122,8 +122,8 @@ Please see the [API Reference](./area-series/#reference-AgAreaSeriesOptions-inte
 
 {% chartExampleRunner title="Area Series with Incomplete Data" name="missing-data-area" type="generated" /%}
 
--   Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as gaps. Set `connectMissingData: true` to draw a connection between points either side of a missing point.
--   Data points with invalid `xKey` values will be ignored.
+- Data points with a `yKey` value of positive or negative `Infinity`, `null`, `undefined` or `NaN` will be rendered as gaps. Set `connectMissingData: true` to draw a connection between points either side of a missing point.
+- Data points with invalid `xKey` values will be ignored.
 
 ## API Reference
 

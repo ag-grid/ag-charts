@@ -1169,7 +1169,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private getSeriesGroupId(series: GroupingSeriesOptions) {
-        return [series.type, series.xKey, series.stacked ? series.stackGroup ?? 'stacked' : 'grouped']
+        return [series.type, series.xKey, series.stacked ? (series.stackGroup ?? 'stacked') : 'grouped']
             .filter(Boolean)
             .join('-');
     }

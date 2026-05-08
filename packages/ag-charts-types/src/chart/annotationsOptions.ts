@@ -188,12 +188,7 @@ export type AgAnnotation =
 // ********************/
 
 export interface AgLineAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Writeable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the trend line annotation.*/
     type: 'line';
     /** Configuration for the drag handles. */
@@ -230,7 +225,8 @@ export interface AgCrossLineAnnotation extends Writeable, Visible, StrokeOptions
 // ***********************/
 
 export interface AgFibonacciAnnotation
-    extends AnnotationLinePoints,
+    extends
+        AnnotationLinePoints,
         Extendable,
         Writeable,
         Visible,
@@ -331,12 +327,7 @@ export interface AgTextAnnotation extends AgTextAnnotationStyles, AgAnnotationPo
 // ********************/
 
 export interface AgArrowAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Writeable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+    extends AnnotationLinePoints, Extendable, Writeable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the arrow annotation.*/
     type: 'arrow';
     handle?: AgAnnotationHandle;

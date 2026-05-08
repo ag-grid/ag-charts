@@ -63,7 +63,8 @@ export interface AgErrorBarThemeableOptions extends ErrorBarStylingOptions {
 }
 
 export interface AgErrorBarOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends ErrorBarKeyOptions<TDatum>,
+    extends
+        ErrorBarKeyOptions<TDatum>,
         ErrorBarNameOptions,
         ErrorBarFormatterOption<TDatum, TContext>,
         AgErrorBarThemeableOptions {}

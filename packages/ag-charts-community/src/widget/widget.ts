@@ -48,9 +48,9 @@ abstract class WidgetBounds<TElement extends HTMLElement> {
 }
 
 export abstract class Widget<
-        TElement extends HTMLElement = HTMLElement,
-        TChildWidget extends IWidget<HTMLElement> = IWidget<HTMLElement>,
-    >
+    TElement extends HTMLElement = HTMLElement,
+    TChildWidget extends IWidget<HTMLElement> = IWidget<HTMLElement>,
+>
     extends WidgetBounds<TElement>
     implements IWidget<TElement>
 {

@@ -124,7 +124,7 @@ It's possible to override the default colours, or the colours on a group or tile
 
 In this configuration:
 
--   `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
+- `fills` and `strokes` are an array of colours to use for the fills and strokes, where node receives the colour indexed by the index of its root node
 
 {% note %}
 When a `colorRange` is used, the `fills` and `strokes` arrays are ignored
@@ -172,11 +172,11 @@ Labels can be customised through the `group` and `tile` properties for non-leaf 
 
 In this configuration:
 
--   `fontSize` sets the size of the font
--   `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space (tiles only)
--   `spacing` controls the amount of space below a label
--   `padding` adds space between the edge of a group or tile and its contents
--   `formatter` allows customising the value of a label using a function
+- `fontSize` sets the size of the font
+- `minimumFontSize` will enable the font size to shrink down to the given value if there is not enough space (tiles only)
+- `spacing` controls the amount of space below a label
+- `padding` adds space between the edge of a group or tile and its contents
+- `formatter` allows customising the value of a label using a function
 
 ## Layout
 
@@ -207,10 +207,10 @@ Various spacing values can be adjusted to tweak the layout of the chart.
 
 In this configuration:
 
--   `group.padding` adjusts the padding between the edge of the group, its title, and the inner nodes
--   `group.gap` adjusts the gap between adjacent tiles where one or more nodes in the parent node are group nodes
--   `tile.padding` adjusts the padding between the edge of the tile and its labels
--   `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
+- `group.padding` adjusts the padding between the edge of the group, its title, and the inner nodes
+- `group.gap` adjusts the gap between adjacent tiles where one or more nodes in the parent node are group nodes
+- `tile.padding` adjusts the padding between the edge of the tile and its labels
+- `tile.gap` adjusts the gap between adjacent tiles where all nodes in the parent node are leaf nodes
 
 ## Hierarchy Levels
 
@@ -226,15 +226,15 @@ Treemaps leaf tiles are configured via `tile.highlight`, while group rectangles 
 
 The leaf tiles support the following states:
 
--   `highlightedItem` – styles applied to the hovered tile.
--   `unhighlightedItem` – styles applied to other nodes within the same branch.
--   `highlightedBranch` – styles inherited by every node that shares the hovered root.
--   `unhighlightedBranch` – styles applied to nodes in other branches.
+- `highlightedItem` – styles applied to the hovered tile.
+- `unhighlightedItem` – styles applied to other nodes within the same branch.
+- `highlightedBranch` – styles inherited by every node that shares the hovered root.
+- `unhighlightedBranch` – styles applied to nodes in other branches.
 
 The groups support the following states:
 
--   `highlightedItem` – styles applied to the hovered group.
--   `unhighlightedItem` – styles applied to other groups.
+- `highlightedItem` – styles applied to the hovered group.
+- `unhighlightedItem` – styles applied to other groups.
 
 When a group is hovered, its `fillOpacity` and `strokeOpacity` styles are inherited by its child leaf tiles.
 
@@ -265,9 +265,9 @@ When a group is hovered, its `fillOpacity` and `strokeOpacity` styles are inheri
 
 In this configuration:
 
--   `group.highlight` only affects the group rectangles.
--   `tile.highlight` controls the tiles themselves. When a group is hovered, only the `fillOpacity` and `strokeOpacity` styles are inherited by its tiles.
--   Providing `fill`/`stroke` overrides allows highlight colours to take precedence over colour scales.
+- `group.highlight` only affects the group rectangles.
+- `tile.highlight` controls the tiles themselves. When a group is hovered, only the `fillOpacity` and `strokeOpacity` styles are inherited by its tiles.
+- Providing `fill`/`stroke` overrides allows highlight colours to take precedence over colour scales.
 
 ## API Reference
 

@@ -61,8 +61,8 @@ Multiple Range Bar Series can be combined into a single chart.
 
 In this configuration:
 
--   `yName` is used to control the text displayed in the legend.
--   `yLowName`, `yHighName` and `xName` are used to control the text displayed in the tooltip.
+- `yName` is used to control the text displayed in the legend.
+- `yLowName`, `yHighName` and `xName` are used to control the text displayed in the tooltip.
 
 ## Missing Data
 
@@ -72,10 +72,10 @@ The series handles missing or invalid data based on the presence or validity of 
 
 When the axes types are continuous (`'number'`, `'time'` or `'log'`), the `yLowKey`, `yHighKey` and `xKey` values in the data object are considered invalid if they are:
 
--   `+/-Infinity`
--   `null`
--   `undefined`
--   `NaN`
+- `+/-Infinity`
+- `null`
+- `undefined`
+- `NaN`
 
 {% note %}
 Data entries with invalid `yLowKey`, `yHighKey` and `xKey` values will result in gaps in the series.
@@ -107,8 +107,8 @@ Series labels can be enabled using the `label` options.
 
 In this configuration:
 
--   The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
--   The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
+- The `yHighKey` and `yLowKey` values for each data point are presented as labels via the `label` options.
+- The `label.formatter` function uses the `itemType` from the params object to distinguish whether the label is a `low` or `high` value.
 
 ### Corner Radius
 

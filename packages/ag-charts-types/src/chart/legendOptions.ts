@@ -172,15 +172,15 @@ export interface AgChartLegendEvent<T extends string, TContext = ContextDefault>
 }
 
 export interface AgChartLegendClickEvent<TContext = ContextDefault>
-    extends AgChartLegendEvent<'click', TContext>,
-        AgPreventableEvent {}
+    extends AgChartLegendEvent<'click', TContext>, AgPreventableEvent {}
 
 export interface AgChartLegendDoubleClickEvent<TContext = ContextDefault>
-    extends AgChartLegendEvent<'dblclick', TContext>,
-        AgPreventableEvent {}
+    extends AgChartLegendEvent<'dblclick', TContext>, AgPreventableEvent {}
 
-export interface AgChartLegendContextMenuEvent<TContext = ContextDefault>
-    extends AgChartLegendEvent<'contextmenu', TContext> {}
+export interface AgChartLegendContextMenuEvent<TContext = ContextDefault> extends AgChartLegendEvent<
+    'contextmenu',
+    TContext
+> {}
 
 export interface AgChartLegendListeners<TContext = ContextDefault> {
     /** The listener to call when a legend item is clicked. */

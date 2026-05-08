@@ -26,15 +26,15 @@ Use the `width` option to set a fixed pixel width for each bar.
 
 In this example:
 
--   Each bar in the series has a fixed width of 30 pixels.
--   Toggle the fixed width off to let bars automatically size to fit the series area.
--   Use the slider to change the width in pixels.
+- Each bar in the series has a fixed width of 30 pixels.
+- Toggle the fixed width off to let bars automatically size to fit the series area.
+- Use the slider to change the width in pixels.
 
 When using fixed width bars:
 
--   Resizing the chart does not affect the width of the bars.
--   The bars will be clipped if the fixed width exceeds the available space in the series area.
--   Clipped bars can be viewed using the [Scrollbar](./scrollbar), [Navigator](./navigator) or [Zoom](./zoom) controls.
+- Resizing the chart does not affect the width of the bars.
+- The bars will be clipped if the fixed width exceeds the available space in the series area.
+- Clipped bars can be viewed using the [Scrollbar](./scrollbar), [Navigator](./navigator) or [Zoom](./zoom) controls.
 
 ### Band Alignment
 
@@ -55,12 +55,12 @@ Use the `bandAlignment` option on a [Category](./axes-types/#category), [Unit Ti
 
 In this example:
 
--   The category axis has an initial band alignment of `start`.
--   Use the buttons to compare other band alignment options.
-    -   `justify` - bands are sized to fill the chart width, with the bars centred within each band.
-    -   `start` - bands are sized to fit the bar width and aligned to the start of the axis.
-    -   `center` - bands are sized to fit the bar width and centred within the chart width.
-    -   `end` - bands are sized to fit the bar width and aligned to the end of the axis.
+- The category axis has an initial band alignment of `start`.
+- Use the buttons to compare other band alignment options.
+    - `justify` - bands are sized to fill the chart width, with the bars centred within each band.
+    - `start` - bands are sized to fit the bar width and aligned to the start of the axis.
+    - `center` - bands are sized to fit the bar width and centred within the chart width.
+    - `end` - bands are sized to fit the bar width and aligned to the end of the axis.
 
 ## Width Ratio
 
@@ -82,10 +82,10 @@ Use the `widthRatio` option to set the bar width as a proportion of the default 
 
 In this example:
 
--   The World series uses the default width ratio of 1.
--   The Australia series has an initial width ratio of 0.4.
--   Use the slider to change the width ratio.
--   This gives an [Actual vs Target](#actual-vs-target-bars) style visualisation, with the "World" series as a background reference.
+- The World series uses the default width ratio of 1.
+- The Australia series has an initial width ratio of 0.4.
+- Use the slider to change the width ratio.
+- This gives an [Actual vs Target](#actual-vs-target-bars) style visualisation, with the "World" series as a background reference.
 
 ## Actual vs Target Bars
 
@@ -114,10 +114,10 @@ Bars can be layered to create actual vs target comparisons by using `grouped: fa
 
 In this example:
 
--   The Target series uses `grouped: false` to span the full category width as a background bar.
--   The Actual series also uses `grouped: false` with a `widthRatio` of 0.5 to appear narrower in front.
--   The Target series is specified first in the `series` array so that it appears behind the Actual series.
--   The target has reduced `fillOpacity` and highlighting disabled.
+- The Target series uses `grouped: false` to span the full category width as a background bar.
+- The Actual series also uses `grouped: false` with a `widthRatio` of 0.5 to appear narrower in front.
+- The Target series is specified first in the `series` array so that it appears behind the Actual series.
+- The target has reduced `fillOpacity` and highlighting disabled.
 
 ### Multiple Metrics
 
@@ -127,10 +127,10 @@ Multiple grouped series can be displayed over a single ungrouped target bar.
 
 In this example:
 
--   The "Target" series is ungrouped and spans the full category width as a background reference.
--   The "Europe" and "Asia" series are grouped by default, sharing their portion of the category width.
--   When a series has `grouped: false`, its `widthRatio` is relative to the full category width.
--   When `grouped: true` (the default), `widthRatio` is relative to the automatically calculated width allocated to each series within group.
+- The "Target" series is ungrouped and spans the full category width as a background reference.
+- The "Europe" and "Asia" series are grouped by default, sharing their portion of the category width.
+- When a series has `grouped: false`, its `widthRatio` is relative to the full category width.
+- When `grouped: true` (the default), `widthRatio` is relative to the automatically calculated width allocated to each series within group.
 
 ## Skip Null Bars
 
@@ -151,9 +151,9 @@ Use the `skipNullBars` option on a [Category](./axes-types/#category), [Unit Tim
 
 In this example:
 
--   Various values in the data are set to `null`, `undefined` or missing.
--   When an axis has `skipNullBars: true`, bars with `null`, `undefined` or missing values are not represented on the chart.
--   Toggle between "Skip Null Bars" and "Show Null Bars" to compare the difference.
+- Various values in the data are set to `null`, `undefined` or missing.
+- When an axis has `skipNullBars: true`, bars with `null`, `undefined` or missing values are not represented on the chart.
+- Toggle between "Skip Null Bars" and "Show Null Bars" to compare the difference.
 
 ## API Reference
 

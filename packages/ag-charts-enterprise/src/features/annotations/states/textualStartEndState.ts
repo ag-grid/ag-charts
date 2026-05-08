@@ -11,8 +11,10 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProperties>
-    extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
+interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProperties> extends Omit<
+    AnnotationsStateMachineContext,
+    'create' | 'delete' | 'datum' | 'node' | 'showTextInput'
+> {
     create: (datum: Datum) => void;
     delete: () => void;
     showTextInput: () => void;

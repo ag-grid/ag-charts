@@ -4,26 +4,26 @@
 
 ### Features Covered
 
--   Default tooltip behavior and content generation
--   Tooltip modes (single, shared, compact)
--   Tooltip positioning and anchoring options
--   Tooltip arrow display configuration
--   Tooltip pagination for overlapping datapoints
--   Tooltip customization via CSS and renderer functions
--   Tooltip range configuration
--   Tooltip interaction enablement
+- Default tooltip behavior and content generation
+- Tooltip modes (single, shared, compact)
+- Tooltip positioning and anchoring options
+- Tooltip arrow display configuration
+- Tooltip pagination for overlapping datapoints
+- Tooltip customization via CSS and renderer functions
+- Tooltip range configuration
+- Tooltip interaction enablement
 
 ### Key APIs and Configuration Options Documented
 
--   `tooltip.mode` - Controls tooltip display mode
--   `tooltip.position.anchorTo` - Anchoring options (node, pointer, chart)
--   `tooltip.position.placement` - Positioning relative to anchor
--   `tooltip.position.xOffset/yOffset` - Manual positioning offsets
--   `tooltip.showArrow` - Arrow visibility control
--   `tooltip.pagination` - Enable cycling through overlapping points
--   `tooltip.renderer` - Custom content/HTML rendering
--   `tooltip.range` - Proximity threshold for display
--   `series[].tooltip.interaction.enabled` - Enable tooltip interaction
+- `tooltip.mode` - Controls tooltip display mode
+- `tooltip.position.anchorTo` - Anchoring options (node, pointer, chart)
+- `tooltip.position.placement` - Positioning relative to anchor
+- `tooltip.position.xOffset/yOffset` - Manual positioning offsets
+- `tooltip.showArrow` - Arrow visibility control
+- `tooltip.pagination` - Enable cycling through overlapping points
+- `tooltip.renderer` - Custom content/HTML rendering
+- `tooltip.range` - Proximity threshold for display
+- `series[].tooltip.interaction.enabled` - Enable tooltip interaction
 
 ### Examples Referenced
 
@@ -40,34 +40,34 @@
 
 ### Interactive Features Described
 
--   Hovering over datapoints to show tooltips
--   Click-based pagination through overlapping points
--   Cursor changes (hand cursor for pagination)
--   Text selection and link clicking (when interaction enabled)
--   Fallback positioning when constrained by container
--   Range-based activation (nearest, exact, pixel distance)
+- Hovering over datapoints to show tooltips
+- Click-based pagination through overlapping points
+- Cursor changes (hand cursor for pagination)
+- Text selection and link clicking (when interaction enabled)
+- Fallback positioning when constrained by container
+- Range-based activation (nearest, exact, pixel distance)
 
 ## Validation Targets
 
 ### TypeScript Interfaces to Verify
 
--   `AgChartTooltipOptions` - Main tooltip configuration interface
--   `AgSeriesTooltip` - Series-specific tooltip options
--   Tooltip position interfaces (anchorTo, placement, offset properties)
--   Tooltip renderer parameter types for different series
--   Mode enumeration values ('single', 'shared', 'compact')
--   Range type definition (string literals and number)
+- `AgChartTooltipOptions` - Main tooltip configuration interface
+- `AgSeriesTooltip` - Series-specific tooltip options
+- Tooltip position interfaces (anchorTo, placement, offset properties)
+- Tooltip renderer parameter types for different series
+- Mode enumeration values ('single', 'shared', 'compact')
+- Range type definition (string literals and number)
 
 ### Implementation Files to Check
 
--   Core tooltip implementation in `packages/ag-charts-community/src/`
--   Tooltip positioning logic and fallback behavior
--   Pagination implementation for overlapping points
--   Default tooltip content generation logic
--   CSS class application in default tooltip
--   Renderer callback invocation and parameter passing
--   Range calculation implementation
--   Interaction enabling/disabling logic
+- Core tooltip implementation in `packages/ag-charts-community/src/`
+- Tooltip positioning logic and fallback behavior
+- Pagination implementation for overlapping points
+- Default tooltip content generation logic
+- CSS class application in default tooltip
+- Renderer callback invocation and parameter passing
+- Range calculation implementation
+- Interaction enabling/disabling logic
 
 ### Examples to Test with Expected Behaviors
 
@@ -75,199 +75,199 @@
 
 **Documentation claims:**
 
--   Shows how yName is used in tooltips
--   Default mode selection based on series count and yName presence
--   Stacked bar chart with custom yName values
+- Shows how yName is used in tooltips
+- Default mode selection based on series count and yName presence
+- Stacked bar chart with custom yName values
 
 **Expected behaviors for example-tester:**
 
--   Two stacked bar series with month on x-axis
--   Tooltips should show "Sweaters Made" and "Hats Made" instead of raw keys
--   Should use shared mode (≤3 series)
--   Legend should also use yName values
+- Two stacked bar series with month on x-axis
+- Tooltips should show "Sweaters Made" and "Hats Made" instead of raw keys
+- Should use shared mode (≤3 series)
+- Legend should also use yName values
 
 #### 2. tooltip-mode
 
 **Documentation claims:**
 
--   Demonstrates switching between single, shared, and compact modes
--   Mode can be set at chart level
+- Demonstrates switching between single, shared, and compact modes
+- Mode can be set at chart level
 
 **Expected behaviors for example-tester:**
 
--   Interactive mode switching via dropdown
--   Single mode: Shows one series at a time
--   Shared mode: Shows all series for same x-value
--   Compact mode: Reduced padding and fields
+- Interactive mode switching via dropdown
+- Single mode: Shows one series at a time
+- Shared mode: Shows all series for same x-value
+- Compact mode: Reduced padding and fields
 
 #### 3. tooltip-position
 
 **Documentation claims:**
 
--   Anchoring to node/pointer/chart
--   Placement options (top, left, right, etc.)
--   Fallback placement array support
--   Left+Right fallback example behavior
+- Anchoring to node/pointer/chart
+- Placement options (top, left, right, etc.)
+- Fallback placement array support
+- Left+Right fallback example behavior
 
 **Expected behaviors for example-tester:**
 
--   Dropdown controls for anchorTo and placement
--   Leftmost datapoint should show tooltip on right when "Left + Right fallback" selected
--   Different anchor behaviors (follow node vs pointer)
--   Placement changes should be visually obvious
+- Dropdown controls for anchorTo and placement
+- Leftmost datapoint should show tooltip on right when "Left + Right fallback" selected
+- Different anchor behaviors (follow node vs pointer)
+- Placement changes should be visually obvious
 
 #### 4. default-tooltip-arrow
 
 **Documentation claims:**
 
--   Arrow removed when constrained or offset
--   showArrow: false removes arrow
+- Arrow removed when constrained or offset
+- showArrow: false removes arrow
 
 **Expected behaviors for example-tester:**
 
--   Toggle control for showArrow
--   Arrow should appear/disappear based on setting
--   Arrow points to exact origin point
+- Toggle control for showArrow
+- Arrow should appear/disappear based on setting
+- Arrow points to exact origin point
 
 #### 5. tooltip-pagination
 
 **Documentation claims:**
 
--   Click to cycle through overlapping points
--   Hand cursor when hovering overlapping data
--   Shows count of overlapping points
--   Only available with 2+ overlapping points
+- Click to cycle through overlapping points
+- Hand cursor when hovering overlapping data
+- Shows count of overlapping points
+- Only available with 2+ overlapping points
 
 **Expected behaviors for example-tester:**
 
--   Bubble chart with overlapping bubbles
--   Cursor changes to hand over overlaps
--   Click cycles through tooltips
--   Counter shows (e.g., "1 of 3")
--   Each click highlights different bubble
+- Bubble chart with overlapping bubbles
+- Cursor changes to hand over overlaps
+- Click cycles through tooltips
+- Counter shows (e.g., "1 of 3")
+- Each click highlights different bubble
 
 #### 6. default-tooltip-styling
 
 **Documentation claims:**
 
--   CSS classes for styling tooltip elements
--   Example shows papayawhip background, peachpuff border, maroon text
--   Bold heading style
+- CSS classes for styling tooltip elements
+- Example shows papayawhip background, peachpuff border, maroon text
+- Bold heading style
 
 **Expected behaviors for example-tester:**
 
--   Custom CSS visible in tooltip styling
--   All specified CSS classes present in DOM
--   Styles complement rather than override defaults
+- Custom CSS visible in tooltip styling
+- All specified CSS classes present in DOM
+- Styles complement rather than override defaults
 
 #### 7. tooltip-content-title
 
 **Documentation claims:**
 
--   Renderer modifies default template content
--   Returns object with heading, title, data fields
--   Custom formatting (uppercase, fixed decimals)
+- Renderer modifies default template content
+- Returns object with heading, title, data fields
+- Custom formatting (uppercase, fixed decimals)
 
 **Expected behaviors for example-tester:**
 
--   "Clothing Production" as heading
--   Uppercase series names as titles
--   Values formatted to 1 decimal place
--   Still uses default tooltip template
+- "Clothing Production" as heading
+- Uppercase series names as titles
+- Values formatted to 1 decimal place
+- Still uses default tooltip template
 
 #### 8. tooltip-renderer
 
 **Documentation claims:**
 
--   Returns HTML string for complete custom tooltip
--   Uses params.fill for color styling
--   Custom class and inline styles
--   Arrow symbol (&#10172;) in content
+- Returns HTML string for complete custom tooltip
+- Uses params.fill for color styling
+- Custom class and inline styles
+- Arrow symbol (&#10172;) in content
 
 **Expected behaviors for example-tester:**
 
--   Completely custom HTML structure
--   Color matches series fill
--   Custom "my-tooltip" class
--   Integer formatted values (no decimals)
+- Completely custom HTML structure
+- Color matches series fill
+- Custom "my-tooltip" class
+- Integer formatted values (no decimals)
 
 #### 9. interaction-range
 
 **Documentation claims:**
 
--   'nearest' - default for marker series
--   'exact' - default for shape series
--   Numeric pixel distance option
+- 'nearest' - default for marker series
+- 'exact' - default for shape series
+- Numeric pixel distance option
 
 **Expected behaviors for example-tester:**
 
--   Range control changing tooltip activation
--   'nearest' always shows closest point
--   'exact' requires hovering directly on element
--   Pixel distance creates activation radius
+- Range control changing tooltip activation
+- 'nearest' always shows closest point
+- 'exact' requires hovering directly on element
+- Pixel distance creates activation radius
 
 #### 10. tooltip-interaction
 
 **Documentation claims:**
 
--   Default: cannot hover or select text
--   interaction.enabled allows text selection and links
--   Set on series level
+- Default: cannot hover or select text
+- interaction.enabled allows text selection and links
+- Set on series level
 
 **Expected behaviors for example-tester:**
 
--   Toggle for enabling interaction
--   When enabled: can select tooltip text
--   When enabled: can click links in tooltip
--   When disabled: tooltip disappears on hover attempt
+- Toggle for enabling interaction
+- When enabled: can select tooltip text
+- When enabled: can click links in tooltip
+- When disabled: tooltip disappears on hover attempt
 
 ### User Interactions to Validate
 
--   Basic hover activation over chart elements
--   Pagination clicking on overlapping datapoints
--   Cursor changes (arrow to hand for pagination)
--   Text selection in interactive tooltips
--   Link clicking in interactive tooltips
--   Tooltip following mouse in pointer mode
--   Constraint behavior at chart edges
--   Fallback positioning when primary placement blocked
+- Basic hover activation over chart elements
+- Pagination clicking on overlapping datapoints
+- Cursor changes (arrow to hand for pagination)
+- Text selection in interactive tooltips
+- Link clicking in interactive tooltips
+- Tooltip following mouse in pointer mode
+- Constraint behavior at chart edges
+- Fallback positioning when primary placement blocked
 
 ### Visual States to Screenshot and Analyze
 
--   Default tooltip appearance for each mode
--   Tooltip with and without arrow
--   Pagination states (showing counters)
--   Custom styled tooltips
--   Custom HTML tooltips
--   Tooltips at chart edges (constraint behavior)
--   Overlapping datapoint tooltips
--   Interactive tooltip with selectable text
+- Default tooltip appearance for each mode
+- Tooltip with and without arrow
+- Pagination states (showing counters)
+- Custom styled tooltips
+- Custom HTML tooltips
+- Tooltips at chart edges (constraint behavior)
+- Overlapping datapoint tooltips
+- Interactive tooltip with selectable text
 
 ### Interactive Features Requiring Before/After Comparison
 
--   Pagination click cycling (before: tooltip 1, after: tooltip 2)
--   Mode switching (before: single, after: shared)
--   Arrow toggle (before: with arrow, after: without)
--   Range changes (before: exact activation, after: nearest)
--   Interaction toggle (before: non-interactive, after: selectable)
+- Pagination click cycling (before: tooltip 1, after: tooltip 2)
+- Mode switching (before: single, after: shared)
+- Arrow toggle (before: with arrow, after: without)
+- Range changes (before: exact activation, after: nearest)
+- Interaction toggle (before: non-interactive, after: selectable)
 
 ### Chart Elements That Should Be Interactive
 
 Based on documentation:
 
--   All data points (bars, markers, bubbles) should show tooltips on hover
--   Overlapping points should show hand cursor and allow clicking
--   Interactive tooltips should maintain visibility when hovering over them
--   Range setting should affect activation distance
+- All data points (bars, markers, bubbles) should show tooltips on hover
+- Overlapping points should show hand cursor and allow clicking
+- Interactive tooltips should maintain visibility when hovering over them
+- Range setting should affect activation distance
 
 ### Expected Tooltip Content and Highlighting
 
--   Default format: heading (x-value), symbol, title, data rows
--   Shared mode: multiple series combined
--   Single mode: one series only
--   Compact mode: minimal padding/fields
--   Custom content via renderer modifications
--   Series highlighting should match tooltip focus
+- Default format: heading (x-value), symbol, title, data rows
+- Shared mode: multiple series combined
+- Single mode: one series only
+- Compact mode: minimal padding/fields
+- Custom content via renderer modifications
+- Series highlighting should match tooltip focus
 
 ## Known Exceptions
 
@@ -309,18 +309,18 @@ For each example, provide:
 
 The agent should validate:
 
--   Correct AG Charts API usage
--   No console errors or warnings
--   TypeScript type safety
--   Chart renders as described
--   Interactive behaviors work correctly
--   Performance is acceptable
+- Correct AG Charts API usage
+- No console errors or warnings
+- TypeScript type safety
+- Chart renders as described
+- Interactive behaviors work correctly
+- Performance is acceptable
 
 ### Success Criteria
 
--   All documented APIs exist and work as described
--   Examples demonstrate claimed features accurately
--   Interactive behaviors match documentation
--   No console errors during normal usage
--   Visual appearance matches descriptions
--   TypeScript types are accurate and complete
+- All documented APIs exist and work as described
+- Examples demonstrate claimed features accurately
+- Interactive behaviors match documentation
+- No console errors during normal usage
+- Visual appearance matches descriptions
+- TypeScript types are accurate and complete

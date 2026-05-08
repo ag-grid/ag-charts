@@ -5,8 +5,9 @@ import type {
 } from 'ag-charts-community';
 import type { InternalAgColorType } from 'ag-charts-core';
 
-export interface FlowProportionSeriesProperties<SeriesOptions extends object>
-    extends _ModuleSupport.SeriesProperties<SeriesOptions> {
+export interface FlowProportionSeriesProperties<
+    SeriesOptions extends object,
+> extends _ModuleSupport.SeriesProperties<SeriesOptions> {
     nodes: any[] | undefined;
     fromKey: string;
     toKey: string;
