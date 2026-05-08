@@ -192,7 +192,9 @@ export class MapLineSeries
                 }),
                 ...(labelKey == null ? [] : [valueProperty(labelKey, 'category', { id: 'labelValue' })]),
                 ...(sizeKey == null ? [] : [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })]),
-                ...(colorKey == null ? [] : [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })]),
+                ...(colorKey == null
+                    ? []
+                    : [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]),
             ],
         });
 

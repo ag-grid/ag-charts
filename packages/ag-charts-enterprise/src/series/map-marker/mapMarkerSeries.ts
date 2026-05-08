@@ -265,7 +265,9 @@ export class MapMarkerSeries
                     : []),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
                 ...(sizeKey ? [valueProperty(sizeKey, sizeScaleType, { id: 'sizeValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
+                    : []),
             ],
         });
 
@@ -778,10 +780,11 @@ export class MapMarkerSeries
         const selectionStyle = this.getSelectionStyle(datumIndex);
         const baseStyle = mergeDefaults(selectionStyle, highlightStyle, properties.getStyle());
 
-        if (!isHighlight && colorValue != null) {
-            baseStyle.fill = this.isColorScaleValid()
-                ? colorScale.convert(colorValue)
-                : colorRange?.[0] ?? baseStyle.fill;
+        if (colorValue != null) {
+            const fillOverride = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange?.[0];
+            if (fillOverride != null) {
+                baseStyle.fill = fillOverride;
+            }
         } else if (colorKey != null && missingDataFill != null && highlightStyle?.fill == null) {
             baseStyle.fill = missingDataFill;
         }

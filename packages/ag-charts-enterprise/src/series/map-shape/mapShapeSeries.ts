@@ -205,7 +205,9 @@ export class MapShapeSeries
                     processor: () => (datum) => featureById.get(datum as string),
                 }),
                 ...(labelKey ? [valueProperty(labelKey, 'category', { id: 'labelValue' })] : []),
-                ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue' })] : []),
+                ...(colorKey
+                    ? [valueProperty(colorKey, colorScaleType, { id: 'colorValue', invalidValue: undefined })]
+                    : []),
             ],
         });
 
