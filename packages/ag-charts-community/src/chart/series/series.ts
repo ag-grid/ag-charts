@@ -164,29 +164,6 @@ export type INodeEventConstructor<
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
-// Scratch objects + pre-computed key arrays for applyMarkerStyle.
-// Reused across calls to avoid per-call object literal allocation and Object.keys() in setProperties.
-const MARKER_TRANSLATE_PROPS: {
-    visible?: boolean;
-    shape?: any;
-    size?: number;
-    x?: number;
-    y?: number;
-    scalingCenterX?: number;
-    scalingCenterY?: number;
-} = {};
-const MARKER_TRANSLATE_KEYS: readonly string[] = [
-    'visible',
-    'shape',
-    'size',
-    'x',
-    'y',
-    'scalingCenterX',
-    'scalingCenterY',
-];
-const MARKER_NO_TRANSLATE_PROPS: { visible?: boolean; shape?: any; size?: number } = {};
-const MARKER_NO_TRANSLATE_KEYS: readonly string[] = ['visible', 'shape', 'size'];
-
 export class SeriesNodeEvent<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TEvent extends string = SeriesNodeEventTypes,
@@ -1433,22 +1410,7 @@ export abstract class Series<
         const visible = this.visible && size > 0 && point && !Number.isNaN(point.x) && !Number.isNaN(point.y);
 
         markerNode.setStyleProperties(style, fillBBox);
-
-        if (applyTranslation) {
-            MARKER_TRANSLATE_PROPS.visible = visible;
-            MARKER_TRANSLATE_PROPS.shape = shape;
-            MARKER_TRANSLATE_PROPS.size = size;
-            MARKER_TRANSLATE_PROPS.x = point?.x;
-            MARKER_TRANSLATE_PROPS.y = point?.y;
-            MARKER_TRANSLATE_PROPS.scalingCenterX = point?.x;
-            MARKER_TRANSLATE_PROPS.scalingCenterY = point?.y;
-            markerNode.setPropertiesWithKeys(MARKER_TRANSLATE_PROPS, MARKER_TRANSLATE_KEYS);
-        } else {
-            MARKER_NO_TRANSLATE_PROPS.visible = visible;
-            MARKER_NO_TRANSLATE_PROPS.shape = shape;
-            MARKER_NO_TRANSLATE_PROPS.size = size;
-            markerNode.setPropertiesWithKeys(MARKER_NO_TRANSLATE_PROPS, MARKER_NO_TRANSLATE_KEYS);
-        }
+        markerNode.setVisibilityAndPosition(!!visible, shape!, size, applyTranslation ? point : undefined);
 
         if (!selected) {
             markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;

@@ -714,33 +714,56 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { marker } = this.properties;
 
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        // Pre-compute per-pass invariants. resolveColumnById and getDomain don't depend on
+        // datumIndex — pulling them out of the loop avoids N×4 dataModel lookups for N markers.
+        const dataModel = this.dataModel!;
+        const processedData = this.processedData!;
+        const xColumn = dataModel.resolveColumnById<any>(this, 'xValue', processedData);
+        const yColumn = dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData);
+        const xDomain = dataModel.getDomain(this, 'xValue', 'key', processedData).domain;
+        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
+        const { xKey, yKey } = this.properties;
+
+        // getStyle(highlightState, selectionState) returns an identical object for the same
+        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
+        // chain once per distinct combination.
+        const styleByState = new Map<string, ReturnType<LineSeries['getStyle']>>();
+
         const thisSeries = this;
         datumSelection.each(function updateDatumSelectionStyles(node, datum) {
-            if (!datumSelection.isGarbage(node)) {
-                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-                const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
-                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+            if (datumSelection.isGarbage(node)) return;
 
-                const params = thisSeries.makeItemStylerParams(
-                    thisSeries.dataModel!,
-                    thisSeries.processedData!,
-                    datum.datumIndex,
-                    stylerStyle.marker
-                );
-                datum.style = thisSeries.getMarkerStyle(
-                    marker,
-                    datum,
-                    params,
-                    { isHighlight, highlightState, hideWithSize0 },
-                    stylerStyle.marker,
-                    {
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    }
-                );
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+            let stylerStyle = styleByState.get(stateKey);
+            if (stylerStyle === undefined) {
+                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                styleByState.set(stateKey, stylerStyle);
             }
+            const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+            const markerStyle = stylerStyle.marker;
+
+            const xValue = xColumn[datum.datumIndex];
+            const yValue = yColumn[datum.datumIndex];
+            const fill = thisSeries.filterItemStylerFillParams(markerStyle.fill) ?? markerStyle.fill;
+            const params: AgLineSeriesMarkerItemStylerParams<unknown, unknown> = {
+                ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
+                xValue,
+                yValue,
+                ...markerStyle,
+                fill,
+            };
+
+            datum.style = thisSeries.getMarkerStyle(
+                marker,
+                datum,
+                params,
+                { isHighlight, highlightState, hideWithSize0 },
+                markerStyle,
+                { stroke, strokeWidth, strokeOpacity }
+            );
         });
     }
 
@@ -765,8 +788,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
-            const state = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const style = datum.style ?? contextNodeData.styles[state];
+            // datum.style is populated by updateDatumStyles for non-garbage nodes,
+            // so getHighlightState only fires for the rare fallback path.
+            const style =
+                datum.style ??
+                contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];
             thisSeries.applyMarkerStyle(style, node, datum.point, fillBBox, {
                 applyTranslation,
                 selected: datum.selected,
