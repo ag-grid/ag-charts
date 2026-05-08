@@ -30,7 +30,6 @@ import {
     isGradientFill,
     isPatternFill,
     jsonDiff,
-    mergeDefaults,
     nearestSquared,
     without,
 } from 'ag-charts-core';
@@ -76,6 +75,7 @@ import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
+import { mergeMarkerStyles, mergeMarkerStylesPair } from './seriesMarker';
 import type { SeriesMarker } from './seriesMarker';
 import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
@@ -1384,15 +1384,13 @@ export abstract class Series<
             checkForHighlight && this.properties.selection.enabled
                 ? this.getSelectionStyle(datumIndex, selectionState)
                 : undefined;
-        const baseStyle = mergeDefaults(
+        let markerStyle = mergeMarkerStyles(
             selectionStyle,
             highlightStyle,
             defaultOverrideStyle,
             marker.getStyle(),
             inheritedStyle
         );
-
-        let markerStyle = baseStyle;
 
         if (itemStyler && params) {
             // Use the resolved highlightState directly when the caller provided one — avoids
@@ -1419,7 +1417,7 @@ export abstract class Series<
             });
             const resolved = this.ctx.optionsGraphService.resolvePartial(getResolvePath(), style);
 
-            markerStyle = mergeDefaults(resolved, markerStyle);
+            markerStyle = mergeMarkerStylesPair(resolved, markerStyle);
         }
 
         return markerStyle;

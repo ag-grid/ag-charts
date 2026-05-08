@@ -91,3 +91,64 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
         return this.size + this.strokeWidth;
     }
 }
+
+/**
+ * Source shape for marker-style merges. Highlight and selection styles are typed as
+ * AgSeriesMarkerStyle at most callsites but actually carry an extra `opacity` field
+ * (from HighlightOptions's StyleMixins) that propagates through to applyMarkerStyle.
+ */
+export type MergeMarkerStyleSource = AgSeriesMarkerStyle & { opacity?: number };
+type MergeMarkerStyleResult = AgSeriesMarkerStyle & { size: number; opacity?: number };
+
+/**
+ * Specialised mergeDefaults for AgSeriesMarkerStyle's known keys plus opacity. Avoids
+ * the generic merge's Object.keys/iterator/isPlainObject overhead per source — significant
+ * in per-datum paths where this runs once per visible marker.
+ *
+ * Semantics match mergeDefaults: left-most non-undefined value wins. None of the keys hold
+ * plain objects (lineDash is an array, shape can be a function), so no recursion is needed.
+ */
+export function mergeMarkerStyles(
+    a: MergeMarkerStyleSource | undefined,
+    b: MergeMarkerStyleSource | undefined,
+    c: AgSeriesMarkerStyle & { size: number },
+    d: AgSeriesMarkerStyle,
+    e: MergeMarkerStyleSource | undefined
+): MergeMarkerStyleResult {
+    return {
+        size: a?.size ?? b?.size ?? c.size,
+        shape: a?.shape ?? b?.shape ?? c.shape ?? d.shape ?? e?.shape,
+        fill: a?.fill ?? b?.fill ?? c.fill ?? d.fill ?? e?.fill,
+        fillOpacity: a?.fillOpacity ?? b?.fillOpacity ?? c.fillOpacity ?? d.fillOpacity ?? e?.fillOpacity,
+        stroke: a?.stroke ?? b?.stroke ?? c.stroke ?? d.stroke ?? e?.stroke,
+        strokeWidth: a?.strokeWidth ?? b?.strokeWidth ?? c.strokeWidth ?? d.strokeWidth ?? e?.strokeWidth,
+        strokeOpacity: a?.strokeOpacity ?? b?.strokeOpacity ?? c.strokeOpacity ?? d.strokeOpacity ?? e?.strokeOpacity,
+        lineDash: a?.lineDash ?? b?.lineDash ?? c.lineDash ?? d.lineDash ?? e?.lineDash,
+        lineDashOffset:
+            a?.lineDashOffset ?? b?.lineDashOffset ?? c.lineDashOffset ?? d.lineDashOffset ?? e?.lineDashOffset,
+        opacity: a?.opacity ?? b?.opacity ?? e?.opacity,
+    };
+}
+
+/**
+ * Two-source flat merge for AgSeriesMarkerStyle. Used after the itemStyler resolution
+ * step where only the user-resolved style and the base style need merging.
+ */
+export function mergeMarkerStylesPair(
+    a: MergeMarkerStyleSource | undefined,
+    b: MergeMarkerStyleResult
+): MergeMarkerStyleResult {
+    if (a == null) return b;
+    return {
+        size: a.size ?? b.size,
+        shape: a.shape ?? b.shape,
+        fill: a.fill ?? b.fill,
+        fillOpacity: a.fillOpacity ?? b.fillOpacity,
+        stroke: a.stroke ?? b.stroke,
+        strokeWidth: a.strokeWidth ?? b.strokeWidth,
+        strokeOpacity: a.strokeOpacity ?? b.strokeOpacity,
+        lineDash: a.lineDash ?? b.lineDash,
+        lineDashOffset: a.lineDashOffset ?? b.lineDashOffset,
+        opacity: a.opacity ?? b.opacity,
+    };
+}
