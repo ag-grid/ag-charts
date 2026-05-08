@@ -1340,6 +1340,143 @@ describe('OrganizationSeries', () => {
             chart = AgCharts.create(options);
             await compare();
         });
+
+        // AG-17253 pt2 follow-up (David Glickman QA) — clamping the card via `maxWidth`/
+        // `maxHeight` left children drawing outside the card. Mirrors three plunker repros:
+        //   plnkr.co/edit/0maSWVkHxeSLQ5Fb  (narrow width + theme-default top image)
+        //   plnkr.co/edit/jxPaPCmKEyWoTi3b  (narrow height, text-only)
+        //   plnkr.co/edit/oq0FP2LDZkapxUO4  (narrow height + image left)
+        //   plnkr.co/edit/qA05jRd478qdnhDe  (narrow width + height)
+        const OVERFLOW_DATA = [
+            {
+                id: 'ceo',
+                name: 'Alice Chen',
+                job: 'Chief Executive Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: null,
+            },
+            {
+                id: 'cto',
+                name: 'Bob Smith',
+                job: 'Chief Technology Officer',
+                location: 'London',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+            {
+                id: 'cfo',
+                name: 'Carol Wu',
+                job: 'Chief Financial Officer',
+                location: 'New York',
+                avatar: `${process.cwd()}/packages/ag-charts-website/public/example-assets/docs-images/brandColorsTile.png`,
+                parentId: 'ceo',
+            },
+        ];
+
+        it('AG-17253 pt2 should clip image overflow when card narrower than image width', async () => {
+            // maxWidth (30) is well under image.width (50); image must not poke out the card sides.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 30,
+                            image: { key: 'avatar', position: 'top' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow when card shorter than content (text-only)', async () => {
+            // maxHeight (50) cannot fit title + subtitle + label; trailing tiers must be cut at
+            // the card edge instead of bleeding onto the link/child rows below.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip vertical overflow with image-left layout', async () => {
+            // image-left forces the card to be at least image.height tall (50); maxHeight=50 then
+            // leaves zero room for text. Text must be clipped at the card edge.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'left' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
+
+        it('AG-17253 pt2 should clip overflow when both maxWidth and maxHeight are narrow', async () => {
+            // 50x50 card with theme-default top image (50x50): image fills the card and text has
+            // no space; both image bleed (rounded corners clipping) and text overflow must be
+            // contained.
+            const options: AgChartOptions = {
+                data: OVERFLOW_DATA,
+                series: [
+                    {
+                        type: 'organization',
+                        idKey: 'id',
+                        parentIdKey: 'parentId',
+                        node: {
+                            maxWidth: 50,
+                            maxHeight: 50,
+                            image: { key: 'avatar', position: 'top' },
+                            title: { key: 'name' },
+                            subtitle: { key: 'job' },
+                            labels: [{ key: 'location' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await compare();
+        });
     });
 
     describe('viewportGroup zoom transform', () => {
@@ -1555,7 +1692,9 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             // Identity-first ordering matches WAI-ARIA tree conventions: name before metadata.
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, expanded');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, expanded, 2 children, press Enter or Space to toggle'
+            );
         });
 
         it('omits collapsed-state from a leaf announcement', async () => {
@@ -1566,11 +1705,23 @@ describe('OrganizationSeries', () => {
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
             const announcement = readLiveAnnouncement();
-            expect(announcement).toBe('Dave Jones, level 3, 1 of 2');
+            expect(announcement).toBe('Dave Jones, Developer, New York, level 3, 1 of 2');
             // Guard against the empty-collapsedState stutter VoiceOver caught before the
             // leaf/parent locale-key split.
             expect(announcement).not.toContain(',,');
             expect(announcement).not.toContain(', ,');
+        });
+
+        it('uses the singular template when a parent has exactly one child', async () => {
+            await setupChart();
+            // ceo → cto → ArrowRight → cfo (Carol Wu, parent of acc — exactly one child).
+            pressArrowOnSeriesArea('ArrowDown');
+            await waitForChartStability(chart);
+            pressArrowOnSeriesArea('ArrowRight');
+            await waitForChartStability(chart);
+            expect(readLiveAnnouncement()).toBe(
+                'Carol Wu, Chief Financial Officer, London, level 2, 2 of 2, expanded, 1 child, press Enter or Space to toggle'
+            );
         });
 
         it('reports collapsed parents in the live announcement', async () => {
@@ -1580,7 +1731,50 @@ describe('OrganizationSeries', () => {
             await waitForChartStability(chart);
             pressArrowOnSeriesArea('ArrowDown');
             await waitForChartStability(chart);
-            expect(readLiveAnnouncement()).toBe('Bob Smith, level 2, 1 of 2, collapsed');
+            expect(readLiveAnnouncement()).toBe(
+                'Bob Smith, Chief Technology Officer, London, level 2, 1 of 2, collapsed, 2 children, press Enter or Space to toggle'
+            );
+        });
+    });
+
+    describe('AG-17239 native pixel floor', () => {
+        it('should not pan when a zoom request asks to zoom in past the 1:1 floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            // Land at the 1:1 floor (both axes saturate at fitX/fitY).
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(flooredState).toBeDefined();
+
+            // Further zoom-in with an off-centre mid must not translate the window.
+            setZoom(chart, 0.3, 0.4, 0.3, 0.4);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
+        });
+
+        it('should not pan when only one axis requests further zoom-in past the floor', async () => {
+            const options: AgChartOptions = { ...SQUARE_OVERFLOW_ORG_CHART };
+            prepareEnterpriseTestOptions(options);
+
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            setZoom(chart, 0.45, 0.55, 0.45, 0.55);
+            await waitForChartStability(chart);
+            const flooredState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+
+            // Shrink x only, leave y at the floored range. Off-isotropic input would otherwise
+            // land at floor (t = 1) with the new x mid, leaking through `clampMid`.
+            setZoom(chart, 0.3, 0.35, flooredState.y.min, flooredState.y.max);
+            await waitForChartStability(chart);
+            const afterState = (deproxy(chart) as any).ctx.chartState.getValue('zoom');
+            expect(afterState).toEqual(flooredState);
         });
     });
 

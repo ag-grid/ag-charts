@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number], ${collapsedState}',
+        '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number], ${collapsedState}, ${childCount}[number] деца, натиснете Enter или Space за превключване',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, ниво ${level}[number], ${posInSet}[number] от ${setSize}[number], ${collapsedState}, 1 дете, натиснете Enter или Space за превключване',
     ariaOrgChartCollapsed: 'свито',
     ariaOrgChartExpanded: 'разгънато',
     ariaAnnounceGaugeChart: 'графика тип манометър, ${caption}',

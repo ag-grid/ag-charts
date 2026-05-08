@@ -26,7 +26,7 @@ import type {
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 
 export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesOptions<TDatum, TContext>,
+    extends Omit<AgBaseSeriesOptions<TDatum, TContext>, 'selection'>,
         AgOrganizationSeriesOptionsKeys,
         AgOrganizationSeriesThemeableOptions<TDatum, TContext> {
     /** Configuration for the Organization Series. */
@@ -36,7 +36,7 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
 }
 
 export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TContext = ContextDefault>
-    extends AgBaseSeriesThemeableOptions<TDatum, TContext> {
+    extends Omit<AgBaseSeriesThemeableOptions<TDatum, TContext>, 'selection'> {
     innerSpacing?: PixelSize;
     /**
      * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout

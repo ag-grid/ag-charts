@@ -16,7 +16,9 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     ariaAnnounceOrgChartLeaf: '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number]',
     // Screen reader announcement when focusing a parent node in an Organization chart
     ariaAnnounceOrgChartParent:
-        '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number], ${collapsedState}',
+        '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number], ${collapsedState}, ${childCount}[number] дочірніх, натисніть Enter або пробіл, щоб перемкнути',
+    ariaAnnounceOrgChartParentSingular:
+        '${description}, рівень ${level}[number], ${posInSet}[number] з ${setSize}[number], ${collapsedState}, 1 дочірній, натисніть Enter або пробіл, щоб перемкнути',
     ariaOrgChartCollapsed: 'згорнуто',
     ariaOrgChartExpanded: 'розгорнуто',
     ariaAnnounceGaugeChart: 'діаграма циферблата, ${caption}',

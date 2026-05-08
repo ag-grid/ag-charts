@@ -339,6 +339,36 @@ describe('configureColorScale', () => {
         ]);
     });
 
+    test('fallback path respects discrete mode (AG-17288)', () => {
+        const scale = new ColorScale();
+        configureColorScale(
+            scale,
+            { fills: [], domain: undefined, mode: 'discrete' },
+            [0, 100],
+            ['red', 'yellow', 'green']
+        );
+        expect(scale.mode).toBe('discrete');
+        expect(scale.domain).toEqual([0, expect.closeTo(33.33, 1), expect.closeTo(66.67, 1), 100]);
+        expect(scale.range).toEqual(['red', 'yellow', 'green']);
+        expect(deriveNormalizedStops(scale)).toEqual([
+            { stop: 0, color: 'red' },
+            { stop: expect.closeTo(0.333, 2), color: 'red' },
+            { stop: expect.closeTo(0.333, 2), color: 'yellow' },
+            { stop: expect.closeTo(0.667, 2), color: 'yellow' },
+            { stop: expect.closeTo(0.667, 2), color: 'green' },
+            { stop: 1, color: 'green' },
+        ]);
+    });
+
+    test('fallback discrete path with explicit domain clamps bins', () => {
+        const scale = new ColorScale();
+        configureColorScale(scale, { fills: [], domain: [20, 80], mode: 'discrete' }, [0, 100], ['red', 'green']);
+        expect(scale.mode).toBe('discrete');
+        expect(scale.domain).toEqual([20, 50, 80]);
+        expect(scale.range).toEqual(['red', 'green']);
+        expect(scale.displayDomain).toEqual([20, 80]);
+    });
+
     test('fallback path with 3 colours evenly spaces gradient stops', () => {
         const scale = new ColorScale();
         configureColorScale(

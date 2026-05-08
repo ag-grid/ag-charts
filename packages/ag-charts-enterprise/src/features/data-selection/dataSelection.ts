@@ -6,6 +6,7 @@ import {
     type DynamicContext,
     Logger,
     type NormalisedSelectionOptions,
+    hasNoModifiers,
 } from 'ag-charts-core';
 
 import {
@@ -55,7 +56,11 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     private supportsSelectionDrag(): boolean {
-        return this.supportsSelection() && this.ctx.chartService.getChartType() !== 'topology';
+        return (
+            this.supportsSelection() &&
+            this.ctx.chartService.getChartType() !== 'topology' &&
+            this.ctx.chartService.getChartType() !== 'polar'
+        );
     }
 
     constructor(private readonly ctx: DynamicContext<_ModuleSupport.ChartRegistry>) {
@@ -86,7 +91,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     getSelection(): Iterable<AgSelectionItem<unknown>> {
-        if (!this.supportsSelection()) return [];
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return [];
 
         return function* getSelectionIterator(this: DataSelection) {
             for (const dataSet of getAllDataSets(this.ctx.chartService.series)) {
@@ -104,7 +110,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     setSelection(items: unknown): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -149,7 +156,8 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     }
 
     clearSelection(): void {
-        if (!this.supportsSelection()) return;
+        const { enabled } = this.opts;
+        if (!enabled || !this.supportsSelection()) return;
 
         const { chartService } = this.ctx;
 
@@ -211,7 +219,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         if (!this.supportsSelectionDrag()) return;
 
         const { enabled, enableDrag } = this.opts;
-        if (!enabled || !enableDrag) return;
+        if (!enabled || !enableDrag || !hasNoModifiers(dragStartEvent.sourceEvent)) return;
 
         this.dragStartEvent = dragStartEvent;
         this.dragRect.x = dragStartEvent.currentX;
@@ -219,6 +227,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = 0;
         this.dragRect.height = 0;
         this.dragRect.visible = true;
+        dragStartEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragMove(dragMoveEvent: _Widget.DragWidgetEvent<'drag-move'>) {
@@ -240,6 +249,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
         this.dragRect.width = canvasBounds.width;
         this.dragRect.height = canvasBounds.height;
         this.redraw(ChartUpdateType.PRE_SERIES_UPDATE);
+        dragMoveEvent.sourceEvent.preventDefault();
     }
 
     private onSeriesAreaDragEnd(dragEndEvent: _Widget.DragWidgetEvent<'drag-end'>) {
@@ -298,7 +308,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
 
             for (const interval of intervalSet.values()) {
                 // NOTE: `end` is inclusive in IntervalSet but exclusive in DataSetSelection
-                setSelectedRange(changes, series, data, shouldClearSelections, interval.start, interval.end + 1);
+                setSelectedRange(changes, series, data, interval.start, interval.end + 1);
             }
 
             if (changed) {

@@ -94,8 +94,7 @@ export function toggleSelection(changes: Changes, series: Series, data: DataSet,
             changes.added.push(item);
         }
     }
-    changes.countDelta += wasSelected ? -1 : 1;
-    selections.toggle(datumIndex);
+    changes.countDelta += selections.toggle(datumIndex);
 }
 
 export function setSelected(changes: Changes, series: Series, data: DataSet, datumIndex: number): void {
@@ -104,24 +103,12 @@ export function setSelected(changes: Changes, series: Series, data: DataSet, dat
     if (changes.added !== undefined && !wasSelected) {
         changes.added.push(makeChangeItem(series.id, data, datumIndex));
     }
-    changes.countDelta += Number(!wasSelected);
-    selections.select(datumIndex);
+    changes.countDelta += selections.select(datumIndex);
 }
 
-export function setSelectedRange(
-    changes: Changes,
-    series: Series,
-    data: DataSet,
-    assumeZeroInitialised: boolean,
-    start: number,
-    end: number
-): void {
+export function setSelectedRange(changes: Changes, series: Series, data: DataSet, start: number, end: number): void {
     const selection = data.enableSelection(series.id);
-    changes.countDelta += end - start;
-    if (!assumeZeroInitialised) {
-        changes.countDelta -= selection.countRange(start, end);
-    }
-    selection.selectRange(start, end);
+    changes.countDelta += selection.selectRange(start, end);
 }
 
 function* iterateSelections(dataSets: ReturnType<typeof getAllDataSets>) {
