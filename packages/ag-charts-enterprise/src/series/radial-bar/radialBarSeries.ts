@@ -19,7 +19,7 @@ import {
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import { readDatum } from '../../utils/datum';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
-import { getItemStyle, getStyle } from '../util/radialUtil';
+import { type RadialSeriesStyleResult, getItemStyle, getStyle } from '../util/radialUtil';
 import { RadialBarSeriesProperties } from './radialBarSeriesProperties';
 import { prepareRadialBarSeriesAnimationFunctions, resetRadialBarSelectionsFn } from './radialBarUtil';
 
@@ -86,10 +86,8 @@ interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     style?: Required<AgRadialSeriesStyle>;
 }
 
-export interface RadialBarSeriesNodeDataContext extends _ModuleSupport.DataModelSeriesNodeDataContext<
-    RadialBarNodeDatum,
-    RadialBarNodeDatum
-> {
+export interface RadialBarSeriesNodeDataContext
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<RadialBarNodeDatum, RadialBarNodeDatum> {
     styles: _ModuleSupport.SeriesNodeStyleContext<Required<AgRadialSeriesStyle>>;
 }
 
@@ -420,6 +418,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
+        // When no itemStyler is configured, the resolved style is purely a function of
+        // (highlightState, selectionState). Build a per-pass cache so the style object is
+        // computed once per distinct state combination rather than once per datum.
+        const styleCache =
+            hasItemStylers && this.properties.itemStyler == null
+                ? new Map<string, RadialSeriesStyleResult>()
+                : undefined;
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
@@ -430,7 +435,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
                     const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+
+                    if (styleCache == null) {
+                        nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                    } else {
+                        const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                        let cached = styleCache.get(stateKey);
+                        if (cached === undefined) {
+                            // Pass nodeDatum so getStyle does not skip the styler callback
+                            // (getStyle treats nodeDatum === undefined as "ignore styler").
+                            cached = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
+                            styleCache.set(stateKey, cached);
+                        }
+                        nodeDatum.style = cached;
+                    }
                 }
 
                 const style =
