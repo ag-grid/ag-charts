@@ -1072,10 +1072,21 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             return;
         }
 
-        datumSelection.each((_, datum) => {
+        // getStyle(highlightState, selectionState) returns an identical object for the same
+        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
+        // chain once per distinct combination. itemType is not part of the key because
+        // getStyle() is item-type-agnostic; individual item sub-styles are extracted per datum.
+        const styleByState = new Map<string, ReturnType<RangeAreaSeries['getStyle']>>();
+
+        datumSelection.each(function updateRangeAreaDatumSelectionStyles(_, datum) {
             const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-            const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+            let stylerStyle = styleByState.get(stateKey);
+            if (stylerStyle === undefined) {
+                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                styleByState.set(stateKey, stylerStyle);
+            }
             const { fill, fillOpacity, item } = stylerStyle;
             const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
             const { marker } = thisSeries.properties.item[datum.itemType];

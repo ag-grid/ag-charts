@@ -152,8 +152,10 @@ export interface BubbleScatterNodeDatum extends CartesianSeriesNodeDatum, ErrorB
     style?: AgSeriesMarkerStyle;
 }
 
-interface BubbleSeriesNodeDataContext
-    extends CartesianSeriesNodeDataContext<BubbleScatterNodeDatum, BubbleScatterNodeDatum> {
+interface BubbleSeriesNodeDataContext extends CartesianSeriesNodeDataContext<
+    BubbleScatterNodeDatum,
+    BubbleScatterNodeDatum
+> {
     styles: SeriesNodeStyleContext<AgSeriesMarkerStyle>;
 }
 
@@ -986,8 +988,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             // size-invariant portion of the merged marker style by (highlightState,
             // selectionState). Per-datum work then collapses to state resolution + a Map
             // lookup + a single object spread that splices in the per-datum size.
+            // NOTE: unlike other series, the cached value is a per-state *template* — the
+            // final datum.style may differ only in size.
             type StyleTemplate = ReturnType<typeof thisSeries.getMarkerStyle>;
-            const styleByState = new Map<string, StyleTemplate>();
+            const finalStyleByState = new Map<string, StyleTemplate>();
 
             datumSelection.each(function updateDatumSelectionStyles(node, datum) {
                 if (datumSelection.isGarbage(node)) return;
@@ -995,7 +999,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                 const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
                 const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
                 const stateKey = `${highlightState}:${selectionState ?? '-'}`;
-                let template = styleByState.get(stateKey);
+                let template = finalStyleByState.get(stateKey);
                 if (template === undefined) {
                     const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
                     template = thisSeries.getMarkerStyle(
@@ -1005,7 +1009,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
                         { isHighlight, highlightState, selectionState, resolveMarkerSubPath: [] },
                         { ...stylerStyle, size: datum.point.size }
                     );
-                    styleByState.set(stateKey, template);
+                    finalStyleByState.set(stateKey, template);
                 }
                 // datum.point.size is the only per-datum field in this path. Reuse the cached
                 // object directly when size matches (e.g. ScatterSeries with fixed size).
@@ -1015,12 +1019,21 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         }
 
         // Per-datum path: itemStyler present or colour-scale fill varies per datum.
+        // Both the colorScaleValid and missingDataFill branches mutate stylerStyle.fill
+        // per-datum, so we cannot safely share a cached stylerStyle when colorKey is set.
+        const styleByState = colorKey == null ? new Map<string, ReturnType<BubbleSeries['getStyle']>>() : null;
+
         datumSelection.each(function updateDatumSelectionStyles(node, datum) {
             if (datumSelection.isGarbage(node)) return;
 
             const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
-            const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+            let stylerStyle = styleByState?.get(stateKey);
+            if (stylerStyle === undefined) {
+                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                styleByState?.set(stateKey, stylerStyle);
+            }
 
             if (colorScaleValid && datum.colorValue != null) {
                 stylerStyle.fill = thisSeries.colorScale.convert(datum.colorValue);

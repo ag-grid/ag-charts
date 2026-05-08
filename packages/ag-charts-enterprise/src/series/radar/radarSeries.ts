@@ -424,11 +424,13 @@ export abstract class RadarSeries<
                 if (style === undefined) {
                     const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
                     const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+                    // hideWithSize0 is not applicable to RadarSeries — polar series do not
+                    // use the markerDrawMode/hideWithSize0 mechanism (cartesian-specific).
                     style = thisSeries.getMarkerStyle(
                         marker,
                         datum,
                         undefined,
-                        { isHighlight, highlightState },
+                        { isHighlight, highlightState, selectionState },
                         stylerStyle.marker,
                         { stroke, strokeWidth, strokeOpacity }
                     );
@@ -439,17 +441,30 @@ export abstract class RadarSeries<
             return;
         }
 
-        selection.each((_, datum) => {
-            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = this.getDataSelectionState(datum.datumIndex);
-            const stylerStyle = this.getStyle(highlightState, selectionState);
+        // getStyle(highlightState, selectionState) returns an identical object for the same
+        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
+        // chain once per distinct combination.
+        const styleByState = new Map<string, ReturnType<BaseRadarSeries['getStyle']>>();
+        const thisSeries = this;
+
+        selection.each(function updateRadarDatumSelectionStyles(_, datum) {
+            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+            const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+            let stylerStyle = styleByState.get(stateKey);
+            if (stylerStyle === undefined) {
+                stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                styleByState.set(stateKey, stylerStyle);
+            }
             const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-            datum.style = this.getMarkerStyle(
+            // hideWithSize0 is not applicable to RadarSeries — polar series do not use the
+            // markerDrawMode/hideWithSize0 mechanism (which is cartesian-specific).
+            datum.style = thisSeries.getMarkerStyle(
                 marker,
                 datum,
-                this.getDatumStylerProperties(datum.datum),
-                { isHighlight, highlightState },
+                thisSeries.getDatumStylerProperties(datum.datum),
+                { isHighlight, highlightState, selectionState },
                 stylerStyle.marker,
                 {
                     stroke,

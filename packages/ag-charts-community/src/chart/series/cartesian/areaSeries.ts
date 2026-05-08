@@ -1352,24 +1352,34 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             return;
         }
 
-        datumSelection.each((node, datum) => {
+        // getStyle(highlightState, selectionState) returns an identical object for the same
+        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
+        // chain once per distinct combination.
+        const styleByState = new Map<string, ReturnType<AreaSeries['getStyle']>>();
+
+        datumSelection.each(function updateAreaDatumSelectionStyles(node, datum) {
             if (!datumSelection.isGarbage(node)) {
-                const highlightState = this.getHighlightState(highlightedDatum, opts.isHighlight, datum.datumIndex);
-                const selectionState = this.getDataSelectionState(datum.datumIndex);
-                const stylerStyle = this.getStyle(highlightState, selectionState);
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let stylerStyle = styleByState.get(stateKey);
+                if (stylerStyle === undefined) {
+                    stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                    styleByState.set(stateKey, stylerStyle);
+                }
                 const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
-                const params = this.makeItemStylerParams(
-                    this.dataModel!,
-                    this.processedData!,
+                const params = thisSeries.makeItemStylerParams(
+                    thisSeries.dataModel!,
+                    thisSeries.processedData!,
                     datum.datumIndex,
                     stylerStyle.marker
                 );
-                datum.style = this.getMarkerStyle(
+                datum.style = thisSeries.getMarkerStyle(
                     marker,
                     datum,
                     params,
-                    { isHighlight, highlightState, hideWithSize0 },
+                    { isHighlight, highlightState, selectionState, hideWithSize0 },
                     stylerStyle.marker,
                     {
                         stroke,
