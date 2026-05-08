@@ -16,7 +16,21 @@ import type { TypedEvent } from '../../util/observable';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
-import type { SelectionState } from './seriesProperties';
+
+export enum HighlightState {
+    None,
+    Item,
+    Series,
+    OtherSeries,
+    OtherItem,
+}
+
+export enum SelectionState {
+    None,
+    Item,
+    OtherItem,
+    OtherSeries,
+}
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
