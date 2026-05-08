@@ -285,4 +285,16 @@ export abstract class DataModelSeries<
         const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
         return selectionCount === 0 ? SelectionState.OtherSeries : SelectionState.OtherItem;
     }
+
+    protected override getSeriesSelectionState(): SelectionState | undefined {
+        if (!this.properties.selection.enabled || !this.ctx.chartState.getValue('options')?.selection.enabled)
+            return undefined;
+
+        const selectionCount: number = this.data?.selections.get(this.id)?.getSelectedCount() ?? 0;
+        if (selectionCount === 0) {
+            return SelectionState.OtherSeries;
+        } else {
+            return SelectionState.Series;
+        }
+    }
 }

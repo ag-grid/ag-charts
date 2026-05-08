@@ -311,7 +311,7 @@ export abstract class RadialColumnSeriesBase<
 
         const nodeData: RadialColumnNodeDatum[] = [];
         const styles = getItemStyles((nodeDatum: RadialColumnNodeDatum | undefined, isHighlight, highlightState) =>
-            getItemStyle(this, nodeDatum, isHighlight, highlightState)
+            getItemStyle(this, nodeDatum, isHighlight, highlightState, undefined)
         );
         const context = {
             itemId: radiusKey,
@@ -458,7 +458,8 @@ export abstract class RadialColumnSeriesBase<
 
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState);
+                    const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
+                    nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
                 }
 
                 const style =
@@ -552,7 +553,7 @@ export abstract class RadialColumnSeriesBase<
         // eslint-disable-next-line sonarjs/different-types-comparison
         if (angleValue === undefined && !this.properties.allowNullKeys) return;
 
-        const format = getItemStyle(this, nodeDatum, false);
+        const format = getItemStyle(this, nodeDatum, false, undefined, undefined);
         return this.formatTooltipWithContext(
             tooltip,
             {
@@ -589,7 +590,8 @@ export abstract class RadialColumnSeriesBase<
         const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = getStyle(
             this,
             false,
-            _ModuleSupport.HighlightState.None
+            _ModuleSupport.HighlightState.None,
+            undefined
         );
 
         const markerStyle = {

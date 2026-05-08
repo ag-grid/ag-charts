@@ -790,6 +790,11 @@ export abstract class Series<
         return undefined;
     }
 
+    protected getSeriesSelectionState(): SelectionState | undefined {
+        // For override by subclasses.
+        return undefined;
+    }
+
     /**
      * Per-series aggregation-aware bucket lookup. Optional — populated
      * lazily for aggregating series only. Owns both the per-bucket SELECTED
@@ -841,6 +846,7 @@ export abstract class Series<
         selectionState?: SelectionState
     ): PublicSelectionState | undefined {
         selectionState ??= this.getDataSelectionState(datumIndex);
+        selectionState ??= this.getSeriesSelectionState();
         if (selectionState === undefined) return undefined;
         return toSelectionString(selectionState);
     }

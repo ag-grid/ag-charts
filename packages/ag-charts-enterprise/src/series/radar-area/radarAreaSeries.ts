@@ -11,7 +11,7 @@ import { ChartAxisDirection } from 'ag-charts-core';
 import { type RadarPathPoint, RadarSeries, type ResolvedRadarStyle } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, HighlightState, Path, PointerEvents, Selection, toHighlightString } = _ModuleSupport;
+const { Group, HighlightState, Path, PointerEvents, Selection, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type S = AgRadarAreaSeriesStyle;
 type O = AgRadarAreaSeriesOptions;
@@ -44,7 +44,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
 
     protected override getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
         if (highlightedStyle?.fill != null) return highlightedStyle.fill;
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined, undefined);
         return stylerStyle.marker.fill ?? stylerStyle.fill;
     }
 
@@ -117,7 +117,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         if (areaNode) {
             const { path: areaPath } = areaNode;
             const areaPoints = this.getAreaPoints();
-            const stylerStyle = superStyle ?? this.getStyle();
+            const stylerStyle = superStyle ?? this.getStyle(undefined, undefined);
             const fillBBox = this.getShapeFillBBox();
 
             areaNode.setStyleProperties(
@@ -152,10 +152,12 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
     }
 
     protected override makeStylerParams(
-        highlightStateEnum?: _ModuleSupport.HighlightState
+        highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRadarAreaSeriesStylerParams {
         const { properties } = this;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
         type MarkerRules = { marker: RequireOptional<AgSeriesMarkerStyle> };
         type ParamsRules = CallbackParamRules<AgRadarAreaSeriesStylerParams & MarkerRules>;
@@ -172,6 +174,7 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
                 lineDashOffset: properties.marker.lineDashOffset,
             },
             highlightState,
+            selectionState,
             fill: properties.fill,
             fillOpacity: properties.fillOpacity,
             lineDash: properties.lineDash,
@@ -185,11 +188,14 @@ export class RadarAreaSeries extends RadarSeries<S, O, P> {
         } satisfies ParamsRules;
     }
 
-    override getStyle(highlightState?: _ModuleSupport.HighlightState): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
+    override getStyle(
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
+    ): ResolvedRadarStyle<AgRadarAreaSeriesStyle> {
         const { marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
-        const stylerResult = this.getStylerResult({}, highlightState);
+        const stylerResult = this.getStylerResult({}, highlightState, selectionState);
         stylerResult.marker ??= {};
 
         return {

@@ -39,6 +39,7 @@ export enum HighlightState {
 export enum SelectionState {
     None,
     Item,
+    Series,
     OtherItem,
     OtherSeries,
 }
@@ -80,6 +81,8 @@ export function getSelectionStyleOptionKeys(selectionState: SelectionState): Sel
             return ['selectedItem'];
         case SelectionState.OtherItem:
             return ['unselectedItem'];
+        case SelectionState.Series:
+            return [];
         case SelectionState.OtherSeries:
             return ['unselectedSeries'];
         case SelectionState.None:
@@ -120,17 +123,21 @@ export function toHighlightString(state: HighlightState): PublicHighlightState {
     }
 }
 
-export function toSelectionString(state: SelectionState): PublicSelectionState {
+export function toSelectionString(state: SelectionState | undefined): PublicSelectionState | undefined {
     const unreachable = (a: never): never => a;
     switch (state) {
         case SelectionState.Item:
             return 'selected-item';
         case SelectionState.OtherItem:
             return 'unselected-item';
+        case SelectionState.Series:
+            return 'selected-series';
         case SelectionState.OtherSeries:
             return 'unselected-series';
         case SelectionState.None:
             return 'none';
+        case undefined:
+            return undefined;
         default:
             return unreachable(state);
     }
@@ -140,7 +147,7 @@ export function isUnselected(state: SelectionState | undefined): boolean {
     if (state === SelectionState.None || state === SelectionState.OtherItem || state == SelectionState.OtherSeries) {
         // Compile-time check for SelectionState exhaustiveness:
         type ActualComplement = Exclude<SelectionState, typeof state>;
-        type ExpectedComplement = SelectionState.Item;
+        type ExpectedComplement = SelectionState.Item | SelectionState.Series;
         return true satisfies AreExact<ActualComplement, ExpectedComplement>;
     }
     return false;

@@ -11,7 +11,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { Callback, CallbackParam, CallbackParamRules, DynamicContext, InternalAgColorType } from 'ag-charts-core';
 import { mergeDefaults } from 'ag-charts-core';
 
-const { createDatumId, toHighlightString } = _ModuleSupport;
+const { createDatumId, toHighlightString, toSelectionString } = _ModuleSupport;
 
 type BaseNodeDatum = _ModuleSupport.DataModelSeriesNodeDatum;
 
@@ -61,7 +61,8 @@ interface RadialSectorSeries<D extends BaseNodeDatum> {
 
 export function makeStylerParams(
     series: RadialSectorSeries<BaseNodeDatum>,
-    highlightStateEnum?: _ModuleSupport.HighlightState
+    highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+    selectionStateEnum: _ModuleSupport.SelectionState | undefined
 ): AgRadialSeriesStylerParams<unknown, unknown> {
     const { id: seriesId } = series;
     const {
@@ -78,6 +79,7 @@ export function makeStylerParams(
         strokeWidth,
     } = series.properties;
     const highlightState = toHighlightString(highlightStateEnum ?? _ModuleSupport.HighlightState.None);
+    const selectionState = toSelectionString(selectionStateEnum);
 
     type T = ReturnType<typeof makeStylerParams>;
     type Rules = CallbackParamRules<T>;
@@ -87,6 +89,7 @@ export function makeStylerParams(
         fill,
         fillOpacity,
         highlightState,
+        selectionState,
         lineDash,
         lineDashOffset,
         radiusKey,
@@ -101,12 +104,13 @@ export function makeStylerParams(
 export function getStyle(
     series: RadialSectorSeries<BaseNodeDatum>,
     ignoreStylerCallback: boolean,
-    highlightState?: _ModuleSupport.HighlightState
+    highlightState: _ModuleSupport.HighlightState | undefined,
+    selectionState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
     const { styler } = series.properties;
     let stylerResult: AgRadialSeriesStyle = {};
     if (!ignoreStylerCallback && styler) {
-        const stylerParams = makeStylerParams(series, highlightState);
+        const stylerParams = makeStylerParams(series, highlightState, selectionState);
         stylerResult =
             series.ctx.optionsGraphService.resolvePartial(
                 ['series', `${series.declarationOrder}`],
@@ -159,7 +163,8 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     series: S,
     nodeDatum: D | undefined,
     isHighlight: boolean,
-    highlightState?: _ModuleSupport.HighlightState
+    highlightState: _ModuleSupport.HighlightState | undefined,
+    selectionState: _ModuleSupport.SelectionState | undefined
 ): RadialSeriesStyleResult {
     const { properties } = series;
     const { itemStyler } = properties;
@@ -169,7 +174,7 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const baseStyle = mergeDefaults(
         selectionStyle,
         highlightStyle,
-        getStyle(series, nodeDatum === undefined, highlightState)
+        getStyle(series, nodeDatum === undefined, highlightState, selectionState)
     );
     let style = baseStyle;
 

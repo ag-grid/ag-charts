@@ -81,6 +81,7 @@ const {
     getMarkerStyles,
     calculateSegments,
     toHighlightString,
+    toSelectionString,
     HighlightState,
     AggregationManager,
     resetMarkerSelectionsDirect,
@@ -842,9 +843,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightState(highlightDatum, false);
+        const selectionState = this.getSeriesSelectionState();
         const highlightStyle = this.getHighlightStyle();
 
-        const { item, fill, fillOpacity, opacity } = mergeDefaults(highlightStyle, this.getStyle(highlightState));
+        const { item, fill, fillOpacity, opacity } = mergeDefaults(
+            highlightStyle,
+            this.getStyle(highlightState, selectionState)
+        );
 
         lowStrokePath.setProperties({
             datum: segments,
@@ -1007,7 +1012,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         datumSelection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const stylerStyle = this.getStyle(highlightState);
+            const selectionState = this.getDataSelectionState(datum.datumIndex);
+            const stylerStyle = this.getStyle(highlightState, selectionState);
             const { fill, fillOpacity, item } = stylerStyle;
             const { stroke, strokeWidth, strokeOpacity } = item[datum.itemType];
             const { marker } = this.properties.item[datum.itemType];
@@ -1118,20 +1124,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    private getStyle(highlightState?: _ModuleSupport.HighlightState): StylerResult {
-        return this.getStylerCouple(highlightState)[0];
+    private getStyle(
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
+    ): StylerResult {
+        return this.getStylerCouple(highlightState, selectionState)[0];
     }
 
     private getStylerMarkerOptions(): StylerMarkerOptionsResult {
-        return this.getStylerCouple()[1];
+        return this.getStylerCouple(undefined, undefined)[1];
     }
 
-    private getStylerCouple(highlightState?: _ModuleSupport.HighlightState): [StylerResult, StylerMarkerOptionsResult] {
+    private getStylerCouple(
+        highlightState: _ModuleSupport.HighlightState | undefined,
+        selectionState: _ModuleSupport.SelectionState | undefined
+    ): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
-            const stylerParams = this.makeStylerParams(highlightState);
+            const stylerParams = this.makeStylerParams(highlightState, selectionState);
             stylerResult =
                 this.ctx.optionsGraphService.resolvePartial(
                     ['series', `${this.declarationOrder}`],
@@ -1188,13 +1200,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     private makeStylerParams(
-        highlightStateEnum?: _ModuleSupport.HighlightState
+        highlightStateEnum: _ModuleSupport.HighlightState | undefined,
+        selectionStateEnum: _ModuleSupport.SelectionState | undefined
     ): AgRangeAreaSeriesStylerParams<unknown, unknown> {
         const { id: seriesId } = this;
         const { fill, fillOpacity, item, xKey, yHighKey, yLowKey } = this.properties;
         const highlightState = toHighlightString(highlightStateEnum ?? HighlightState.None);
+        const selectionState = toSelectionString(selectionStateEnum);
 
-        type ParamsRules = DeepRequired<AgRangeAreaSeriesStylerParams<unknown, unknown>, 'fill'>;
+        type T = AgRangeAreaSeriesStylerParams<unknown, unknown>;
+        type OptionalKey = 'selectionState';
+        type ParamsRules = DeepRequired<Omit<T, OptionalKey>, 'fill'> & Pick<RequireOptional<T>, OptionalKey>;
         type ResultRules = CallbackParamRules<ParamsRules>;
 
         const makeItemParam = (lowOrHigh: 'low' | 'high'): ResultRules['item'][typeof lowOrHigh] => {
@@ -1226,6 +1242,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             fill,
             fillOpacity,
             highlightState,
+            selectionState,
             seriesId,
             xKey,
             yLowKey,
@@ -1260,7 +1277,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const allowNullKeys = this.properties.allowNullKeys ?? false;
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined, undefined);
         const params = this.makeItemStylerParams(itemType);
         const format = this.getMarkerStyle(
             this.properties.item[itemType].marker,
@@ -1306,7 +1323,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, topLevel } = this.getStyle();
+        const { fill, topLevel } = this.getStyle(undefined, undefined);
         const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = topLevel;
 
         const markerStyle = {
@@ -1488,7 +1505,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {
-        const stylerStyle = this.getStyle();
+        const stylerStyle = this.getStyle(undefined, undefined);
         const params = this.makeItemStylerParams(datum.itemType);
 
         return this.getMarkerStyle(
