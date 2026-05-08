@@ -20,7 +20,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
     create(options: ChartOptions, resources?: TransferableResources) {
         return new CartesianChart(options, resources);
     },
-    validate(options: any, optionsDefs, path, opts) {
+    validate(options: any, optionsDefs, path, params) {
         const additionalErrors: ValidationError[] = [];
         if (options?.series?.[0]?.type === 'histogram') {
             if (Object.values(options?.axes ?? {}).some(invalidHistogramAxis)) {
@@ -37,7 +37,7 @@ export const CartesianChartModule: ChartModuleDefinition<AgCartesianChartOptions
             }
         }
 
-        const result = validate(options, optionsDefs, path, opts);
+        const result = validate(options, optionsDefs, path, params);
         result.invalid.push(...additionalErrors);
         return result;
     },
