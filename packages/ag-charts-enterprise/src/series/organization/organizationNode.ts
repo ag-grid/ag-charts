@@ -358,7 +358,7 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
 
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
-    private chevronNode?: _ModuleSupport.RotatableSvgPath;
+    private chevronNode?: ChevronPath;
 
     update(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
@@ -368,14 +368,14 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.countNode.text = `${descendantsCount}`;
         applyTextStyles(this.countNode, styles.expander.text);
 
-        this.chevronNode ??= this.appendChild(new _ModuleSupport.RotatableSvgPath('M4.75 9.75L8.25 6.25L11.75 9.75'));
-        this.chevronNode.translationY = styles.expander.padding;
-        this.chevronNode.rotationCenterX = 8;
-        this.chevronNode.rotationCenterY = 8;
-        this.chevronNode.rotation = isCollapsed ? Math.PI : 0;
-        this.chevronNode.stroke = styles.expander.text.color;
-        this.chevronNode.strokeWidth = 1;
-        this.chevronNode.fill = 'transparent';
+        this.chevronNode ??= this.appendChild(new ChevronPath());
+        this.chevronNode.update(
+            styles.expander.text.fontSize * (7 / 12),
+            styles.expander.text.fontSize * (3.5 / 12),
+            isCollapsed,
+            styles
+        );
+        this.chevronNode.translationY = styles.expander.padding + styles.expander.text.fontSize / 2;
 
         layoutScenesRow([this.countNode, this.chevronNode], styles.expander.padding * 1.5, [
             styles.expander.text.fontSize,
@@ -396,5 +396,24 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         applyFillStyles(this.shapeNode, styles.expander);
         applyStrokeStyles(this.shapeNode, styles.expander);
         this.shapeNode.cornerRadius = styles.expander.cornerRadius;
+    }
+}
+
+class ChevronPath extends _ModuleSupport.Rotatable(_ModuleSupport.Translatable(_ModuleSupport.Path)) {
+    update(width: number, height: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
+        const { path } = this;
+
+        path.clear();
+        path.moveTo(0, 0);
+        path.lineTo(width / 2, height);
+        path.lineTo(width, 0);
+
+        this.translationY = styles.expander.padding;
+        this.rotationCenterX = width / 2;
+        this.rotationCenterY = height / 2;
+        this.rotation = isCollapsed ? 0 : Math.PI;
+        this.stroke = styles.expander.text.color;
+        this.strokeWidth = 1;
+        this.fill = 'transparent';
     }
 }
