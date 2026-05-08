@@ -1,23 +1,16 @@
 import {
     AgChartOptions,
     AgCharts,
-    AnimationModule,
-    ContextMenuModule,
-    CrosshairModule,
     GradientLegendModule,
+    LegendModule,
     ModuleRegistry,
     TreemapSeriesModule,
 } from 'ag-charts-enterprise';
 
 import { data } from './data';
 
-ModuleRegistry.registerModules([
-    AnimationModule,
-    CrosshairModule,
-    GradientLegendModule,
-    TreemapSeriesModule,
-    ContextMenuModule,
-]);
+ModuleRegistry.registerModules([GradientLegendModule, LegendModule, TreemapSeriesModule]);
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data,
@@ -27,16 +20,27 @@ const options: AgChartOptions = {
             labelKey: 'title',
             colorKey: 'change',
             colorName: 'Change',
+            colorScale: {
+                mode: 'discrete',
+                fills: [
+                    { color: 'tomato', stop: -0.1, name: 'Decline' },
+                    { color: 'gold', stop: 0.1, name: 'Flat' },
+                    { color: 'seagreen', name: 'Growth' },
+                ],
+            },
         },
     ],
-    gradientLegend: {
+    legend: {
         enabled: true,
+    },
+    gradientLegend: {
+        enabled: false,
     },
     title: {
         text: 'UK Government Budget',
     },
     subtitle: {
-        text: '2024',
+        text: '2024 — Change from previous year',
     },
 };
 
