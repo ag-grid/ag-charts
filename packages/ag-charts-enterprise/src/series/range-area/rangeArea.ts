@@ -843,12 +843,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
 
         const highlightDatum = this.ctx.highlightManager?.getActiveHighlight();
         const highlightState = this.getHighlightState(highlightDatum, false);
-        const selectionState = this.getSeriesSelectionState();
         const highlightStyle = this.getHighlightStyle();
+        const selectionStyle = this.getSelectionStyle();
+        const seriesStyle = this.getStyle(highlightState, undefined);
 
-        const { item, fill, fillOpacity, opacity } = mergeDefaults(
+        const { item, stroke, strokeWidth, strokeOpacity, fill, fillOpacity, opacity } = mergeDefaults(
+            selectionStyle,
             highlightStyle,
-            this.getStyle(highlightState, selectionState)
+            seriesStyle
         );
 
         lowStrokePath.setProperties({
@@ -858,9 +860,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: item.low.stroke,
-            strokeWidth: item.low.strokeWidth,
-            strokeOpacity: item.low.strokeOpacity,
+            stroke: stroke ?? item.low.stroke,
+            strokeWidth: strokeWidth ?? item.low.strokeWidth,
+            strokeOpacity: strokeOpacity ?? item.low.strokeOpacity,
             lineDash: item.low.lineDash,
             lineDashOffset: item.low.lineDashOffset,
             opacity,
@@ -872,9 +874,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             lineCap: 'round',
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
-            stroke: item.high.stroke,
-            strokeWidth: item.high.strokeWidth,
-            strokeOpacity: item.high.strokeOpacity,
+            stroke: stroke ?? item.high.stroke,
+            strokeWidth: strokeWidth ?? item.high.strokeWidth,
+            strokeOpacity: strokeOpacity ?? item.high.strokeOpacity,
             lineDash: item.high.lineDash,
             lineDashOffset: item.high.lineDashOffset,
             opacity,
