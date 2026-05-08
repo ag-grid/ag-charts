@@ -5,12 +5,13 @@ import {
     CategoryAxisModule,
     GradientLegendModule,
     HeatmapSeriesModule,
+    LegendModule,
     ModuleRegistry,
 } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule]);
+ModuleRegistry.registerModules([CategoryAxisModule, GradientLegendModule, HeatmapSeriesModule, LegendModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
