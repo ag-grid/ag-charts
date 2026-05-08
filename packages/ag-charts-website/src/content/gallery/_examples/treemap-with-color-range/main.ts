@@ -37,7 +37,17 @@ const options: AgChartOptions<DataType> = {
             sizeKey: 'valuation',
             colorName: 'Daily Change',
             colorKey: 'change',
-            colorRange: ['#d32f2f', '#f44336', '#ffb74d', '#fff9c4', '#c5e1a5', '#66bb6a', '#2e7d32'],
+            colorScale: {
+                fills: [
+                    { color: '#d32f2f' },
+                    { color: '#f44336' },
+                    { color: '#ffb74d' },
+                    { color: '#fff9c4' },
+                    { color: '#c5e1a5' },
+                    { color: '#66bb6a' },
+                    { color: '#2e7d32' },
+                ],
+            },
             group: {
                 label: {
                     formatter({ value }) {
