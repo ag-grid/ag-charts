@@ -536,8 +536,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#2b5c95",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -611,8 +617,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#cc6f10",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -686,8 +698,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#1e652e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -761,8 +779,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#18859e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -839,8 +863,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#a69400",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -903,8 +933,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#603c88",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",
@@ -975,8 +1011,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#2b5c95",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1050,8 +1092,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#cc6f10",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1125,8 +1173,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#1e652e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1200,8 +1254,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#18859e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1278,8 +1338,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#a69400",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -1342,8 +1408,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#603c88",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",
@@ -1414,8 +1486,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#2b5c95",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1489,8 +1567,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#cc6f10",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1564,8 +1648,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#1e652e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1639,8 +1729,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#18859e",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "seriesGrouping": {
@@ -1717,8 +1813,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#a69400",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#e1cc00",
@@ -1781,8 +1883,14 @@ describe('ChartOptions', () => {
     "selection": {
       "enabled": false,
       "selectedItem": {
-        "stroke": "black",
+        "stroke": "#603c88",
         "strokeWidth": 2,
+      },
+      "unselectedItem": {
+        "opacity": 0.6,
+      },
+      "unselectedSeries": {
+        "opacity": 0.2,
       },
     },
     "stroke": "#9669cb",
