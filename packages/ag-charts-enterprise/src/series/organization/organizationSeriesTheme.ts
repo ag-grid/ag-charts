@@ -26,7 +26,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         expander: {
             enabled: true,
             cornerRadius: 4,
-            padding: 6,
+            padding: 5,
             spacing: 21,
             text: {
                 color: { $ref: 'subtleTextColor' },

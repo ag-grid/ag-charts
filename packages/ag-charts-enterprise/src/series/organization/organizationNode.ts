@@ -373,13 +373,20 @@ class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
         this.chevronNode.rotationCenterX = 8;
         this.chevronNode.rotationCenterY = 8;
         this.chevronNode.rotation = isCollapsed ? Math.PI : 0;
-        this.chevronNode.fill = styles.expander.text.color;
+        this.chevronNode.stroke = styles.expander.text.color;
+        this.chevronNode.strokeWidth = 1;
+        this.chevronNode.fill = 'transparent';
 
-        layoutScenesRow([this.countNode, this.chevronNode], styles.expander.padding, [styles.expander.text.fontSize]);
+        layoutScenesRow([this.countNode, this.chevronNode], styles.expander.padding * 1.5, [
+            styles.expander.text.fontSize,
+        ]);
 
-        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(
-            styles.expander.padding
-        );
+        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow({
+            top: styles.expander.padding,
+            right: styles.expander.padding * 1.5,
+            bottom: styles.expander.padding,
+            left: styles.expander.padding * 1.5,
+        });
 
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
