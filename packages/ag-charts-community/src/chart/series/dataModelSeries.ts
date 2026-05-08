@@ -20,11 +20,8 @@ export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
     itemId?: never;
 }
 
-export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum> extends SeriesNodeDataContext<
-    number,
-    TDatum,
-    TLabel
-> {}
+export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
+    extends SeriesNodeDataContext<number, TDatum, TLabel> {}
 
 export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>> = SeriesConstructorOpts<TProps> & {
     categoryKey: string | undefined;
@@ -268,7 +265,7 @@ export abstract class DataModelSeries<
         if (selectionState === undefined) return undefined;
 
         const options = this.ctx.chartState.getValue('options');
-        if (!options?.selection.enabled) return undefined;
+        if (!options?.selection?.enabled) return undefined;
 
         const totalNumberOfSelection = selectionState.selectedCount;
         if (totalNumberOfSelection === 0) {

@@ -43,7 +43,7 @@ export class DataSelection extends AbstractModuleInstance implements _ModuleSupp
     private readonly state: _ModuleSupport.DataSelectionState;
 
     private get opts(): NormalisedSelectionOptions {
-        return this.ctx.chartState.getValue('options', 'selection');
+        return this.ctx.chartState.getValue('options', 'selection')!;
     }
 
     private supportsSelection(): boolean {
