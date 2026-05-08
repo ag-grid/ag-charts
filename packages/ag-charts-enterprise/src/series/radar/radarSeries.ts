@@ -404,7 +404,41 @@ export abstract class RadarSeries<
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
+        const { marker } = this.properties;
+        const { itemStyler } = marker;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
+
+        if (itemStyler == null) {
+            // Without itemStyler, the resolved marker style is purely a function of
+            // (highlightState, selectionState) — no per-datum input reaches the result.
+            // Cache the full style by state so per-datum work collapses to state resolution
+            // + a Map lookup + a property write.
+            const finalStyleByState = new Map<string, AgSeriesMarkerStyle>();
+            const thisSeries = this;
+
+            selection.each(function updateDatumSelectionStyles(_, datum) {
+                const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+                const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+                const stateKey = `${highlightState}:${selectionState ?? '-'}`;
+                let style = finalStyleByState.get(stateKey);
+                if (style === undefined) {
+                    const stylerStyle = thisSeries.getStyle(highlightState, selectionState);
+                    const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+                    style = thisSeries.getMarkerStyle(
+                        marker,
+                        datum,
+                        undefined,
+                        { isHighlight, highlightState },
+                        stylerStyle.marker,
+                        { stroke, strokeWidth, strokeOpacity }
+                    );
+                    finalStyleByState.set(stateKey, style);
+                }
+                datum.style = style;
+            });
+            return;
+        }
+
         selection.each((_, datum) => {
             const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
             const selectionState = this.getDataSelectionState(datum.datumIndex);
@@ -412,7 +446,7 @@ export abstract class RadarSeries<
             const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
 
             datum.style = this.getMarkerStyle(
-                this.properties.marker,
+                marker,
                 datum,
                 this.getDatumStylerProperties(datum.datum),
                 { isHighlight, highlightState },
