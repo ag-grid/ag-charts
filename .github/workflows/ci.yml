@@ -458,8 +458,8 @@ jobs:
     playwright_image:
         runs-on: ubuntu-latest
         name: Playwright Image
-        needs: [detect-changes, init]
-        if: needs.detect-changes.outputs.run_full_ci == 'true' && needs.init.outputs.e2e_count > 0
+        needs: [detect-changes]
+        if: needs.detect-changes.outputs.run_full_ci == 'true'
         steps:
             - name: Pull Playwright Image
               run: |
