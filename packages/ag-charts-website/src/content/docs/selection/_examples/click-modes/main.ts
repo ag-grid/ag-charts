@@ -16,7 +16,7 @@ ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModul
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Quarterly Revenue' },
+    subtitle: { text: "clickMode: 'single', clickAwayToClear: true" },
     selection: {
         enabled: true,
         clickMode: 'single',
@@ -29,6 +29,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'revenue',
             yName: 'Revenue ($m)',
+            highlight: { enabled: false },
         },
     ],
     axes: {
@@ -39,12 +40,19 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
+function updateSubtitle() {
+    options.subtitle = {
+        text: `clickMode: '${options.selection!.clickMode}', clickAwayToClear: ${options.selection!.enableClickAwayToClear}`,
+    };
+    chart.update(options);
+}
+
 function setClickMode(value: AgSelectionClickMode) {
     options.selection = { ...options.selection, clickMode: value };
-    chart.update(options);
+    updateSubtitle();
 }
 
 function setClickAway(value: boolean) {
     options.selection = { ...options.selection, enableClickAwayToClear: value };
-    chart.update(options);
+    updateSubtitle();
 }

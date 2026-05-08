@@ -1,5 +1,5 @@
 import type { AgSeriesListeners } from '../chart/eventOptions';
-import type { AgSelectionOptions } from '../chart/selectionOptions';
+import type { AgSelectionOptions, AgSelectionStyleOptions } from '../chart/selectionOptions';
 import type { AxisValue, ContextDefault, DatumDefault, InteractionRange, Opacity } from '../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './cartesian/commonOptions';
 
@@ -27,8 +27,6 @@ export interface AgHighlightOptions<ItemHighlightStyleOptions = AgHighlightStyle
     unhighlightedItem?: ItemHighlightStyleOptions;
 }
 export interface AgHighlightStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
-
-export interface AgSelectionStyleOptions extends AgBaseHighlightStyleOptions, FillOptions {}
 
 export interface AgBaseHighlightStyleOptions extends StrokeOptions, LineDashOptions {
     /** The opacity of the whole series (line, fill, labels and markers, if any) */

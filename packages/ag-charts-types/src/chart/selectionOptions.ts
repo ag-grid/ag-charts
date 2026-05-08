@@ -1,3 +1,11 @@
+import type { FillOptions, LineDashOptions, StrokeOptions } from '../series/cartesian/commonOptions';
+import type { Opacity } from './types';
+
+export interface AgSelectionStyleOptions extends StrokeOptions, LineDashOptions, FillOptions {
+    /** The opacity of the whole series (line, fill, labels and markers, if any) */
+    opacity?: Opacity;
+}
+
 export type AgSelectionClickMode = 'single' | 'multiple';
 
 export type AgSelectionContainment = 'any' | 'all';
@@ -28,18 +36,15 @@ export interface AgChartSelectionOptions {
      */
     enableClickAwayToClear?: boolean;
     /**
-     * Click-to-select cardinality. Mode `'multiple'` toggles the selection on the clicked series-node. Mode `'single'`
-     * first deselects the current selection completely, and then sets the clicked node to selected. Clicking using the
-     * Control (or Command) modifier temporarily uses the `'multiple'` mode for that one click.
+     * Click-to-select mode. `'single'` replaces the current selection; `'multiple'` toggles each click.
+     * Holding Control (or Command) temporarily promotes a single click to `'multiple'`.
      *
      * Default: `'single'`
      */
     clickMode?: AgSelectionClickMode;
     /**
-     * Drag-to-select containment rule. Mode `'any'` selects a datum if any part of it overlaps the
-     * drag rectangle, including overlapping items at the same position. Mode `'all'` selects a datum
-     * only if it is entirely enclosed within the drag rectangle. Unlike click selection, which
-     * targets the topmost datum, drag selection includes all qualifying overlapping items.
+     * Drag-to-select containment rule. `'any'` selects a datum when any part overlaps the drag rectangle;
+     * `'all'` requires the datum to be fully enclosed.
      *
      * Default: `'any'`
      */
@@ -47,7 +52,7 @@ export interface AgChartSelectionOptions {
 }
 
 export interface AgSelectionOptions<
-    ItemSelectionStyleOptions,
+    ItemSelectionStyleOptions = AgSelectionStyleOptions,
     SeriesSelectionStyleOptions = ItemSelectionStyleOptions,
 > {
     /** Set to `true` to enable the data-selection on this series. */
@@ -58,7 +63,7 @@ export interface AgSelectionOptions<
      * Default: `chart.selection.containment`
      */
     containment?: AgSelectionContainment;
-    /** Styling options for selected items.  */
+    /** Styling options for selected items. */
     selectedItem?: ItemSelectionStyleOptions;
     /** Styling options for unselected items. */
     unselectedItem?: ItemSelectionStyleOptions;

@@ -220,15 +220,14 @@ export interface AgTypedChartInstance<TDatum, TContext, O extends AgChartInstanc
     setState(state: AgChartState): Promise<void>;
 
     /**
-     * Retrieve the current selection transient state. Requires the `SelectionModule` to be enabled.
+     * Retrieve the current selection.
      * An error may be thrown if the chart state mutates whilst the selection items are being iterated.
      *
-     * @returns An iterable list of all the selected items in the chart.
+     * @returns An iterable of all selected items.
      */
     getSelection(): Iterable<AgSelectionItem<TDatum>>;
     /**
-     * Set the current selection transient state. The current selection is cleared before setting the new selection
-     * state. Requires the `SelectionModule` to be enabled.
+     * Replaces the current selection.
      */
     setSelection(items: Iterable<AgSelectionItemIds>): void;
     /**

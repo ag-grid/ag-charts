@@ -18,6 +18,7 @@ const options: AgCartesianChartOptions = {
     title: { text: 'Quarterly Revenue' },
     selection: {
         enabled: true,
+        enableDrag: true,
     },
     data: getData(),
     series: [
@@ -26,14 +27,16 @@ const options: AgCartesianChartOptions = {
             xKey: 'quarter',
             yKey: 'revenue',
             yName: 'Revenue ($m)',
+            highlight: { enabled: false },
             selection: {
                 selectedItem: {
-                    fill: '#0b8043',
-                    stroke: '#054d27',
-                    strokeWidth: 2,
+                    fill: '#c0392b',
+                    stroke: '#922b21',
+                    strokeWidth: 3,
                 },
                 unselectedItem: {
-                    fillOpacity: 0.25,
+                    fill: '#bdc3c7',
+                    fillOpacity: 0.6,
                 },
             },
         },

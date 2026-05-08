@@ -1,6 +1,6 @@
 import type { AgAxisLabelFormatterParams, AgBaseAxisLabelOptions } from '../../chart/axisOptions';
 import type { Formatter } from '../../chart/callbackOptions';
-import type { AgSelectionOptions } from '../../chart/selectionOptions';
+import type { AgSelectionOptions, AgSelectionStyleOptions } from '../../chart/selectionOptions';
 import type {
     ContextDefault,
     CssColor,
@@ -16,7 +16,6 @@ import type {
     AgBaseSeriesThemeableOptions,
     AgHighlightOptions,
     AgHighlightStyleOptions,
-    AgSelectionStyleOptions,
 } from '../../series/seriesOptions';
 
 export interface AgBaseGaugeThemeableOptions<TContext = ContextDefault> {
