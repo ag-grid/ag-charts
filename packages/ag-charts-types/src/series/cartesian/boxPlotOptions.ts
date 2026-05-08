@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -71,7 +72,7 @@ export type AgBoxPlotSeriesItemStylerParams<TDatum = DatumDefault, TContext = Co
     Required<AgBoxPlotSeriesStyle>;
 
 export interface AgBoxPlotSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState>,
+    extends SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         BoxPlotOptionsKeys<TDatum>,
         BoxPlotOptionsNamesNoKey,

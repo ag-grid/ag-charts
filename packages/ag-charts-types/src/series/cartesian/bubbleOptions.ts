@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -41,7 +42,7 @@ export interface AgBubbleSeriesStyle extends AgSeriesMarkerStyle {}
 
 export interface AgBubbleSeriesStylerParams<TDatum, TContext>
     extends AgBubbleSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgBubbleSeriesStyle {
     /** The largest size a marker can be in pixels. */

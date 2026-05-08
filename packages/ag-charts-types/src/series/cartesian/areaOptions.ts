@@ -1,4 +1,10 @@
-import type { ContextCallbackParams, HighlightState, SeriesCallbackParams, Styler } from '../../chart/callbackOptions';
+import type {
+    ContextCallbackParams,
+    HighlightState,
+    SelectionState,
+    SeriesCallbackParams,
+    Styler,
+} from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
@@ -58,7 +64,7 @@ export interface AgAreaSeriesOptionsKeys<TDatum = DatumDefault> {
 
 export interface AgAreaSeriesStylerParams<TDatum, TContext>
     extends AgAreaSeriesOptionsKeys<TDatum>,
-        SeriesCallbackParams<HighlightState>,
+        SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         Required<StrokeOptions>,
         Required<FillOptions>,

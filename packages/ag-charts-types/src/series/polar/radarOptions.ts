@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -82,11 +83,10 @@ export type AgRadarSeriesItemStylerParams<TDatum = DatumDefault, TContext = Cont
     StrokeOptions &
     LineDashOptions;
 
-export type AgRadarSeriesStylerParams<
-    TDatum,
-    TContext,
-    TStyle extends AgRadarSeriesStyle,
-> = SeriesCallbackParams<HighlightState> &
+export type AgRadarSeriesStylerParams<TDatum, TContext, TStyle extends AgRadarSeriesStyle> = SeriesCallbackParams<
+    HighlightState,
+    SelectionState
+> &
     ContextCallbackParams<TContext> &
     AgRadialSeriesOptionsKeys<TDatum> &
     Required<TStyle>;

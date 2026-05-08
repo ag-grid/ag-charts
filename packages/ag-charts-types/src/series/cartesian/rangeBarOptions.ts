@@ -2,6 +2,7 @@ import type {
     ContextCallbackParams,
     DatumCallbackParams,
     HighlightState,
+    SelectionState,
     SeriesCallbackParams,
     Styler,
 } from '../../chart/callbackOptions';
@@ -27,7 +28,7 @@ export type AgRangeBarSeriesItemStylerParams<TDatum = DatumDefault, TContext = C
     Required<AgRangeBarSeriesStyle>;
 
 export interface AgRangeBarSeriesStylerParams<TDatum, TContext>
-    extends SeriesCallbackParams<HighlightState>,
+    extends SeriesCallbackParams<HighlightState, SelectionState>,
         ContextCallbackParams<TContext>,
         AgRangeBarSeriesOptionsKeys<TDatum>,
         Required<AgRangeBarSeriesStyle> {}
