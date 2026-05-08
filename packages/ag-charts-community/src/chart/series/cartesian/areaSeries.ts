@@ -879,6 +879,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         this.aggregationManager.ensureLevelForRange(range);
 
         const dataAggregationFilter = this.aggregationManager.getFilterForRange(range);
+        const { processedData } = this;
+        if (processedData) {
+            this.ensureBucketLookupFeature()?.setActiveFilter(processedData, dataAggregationFilter);
+        }
 
         if (dataAggregationFilter) {
             return this.stackAggregatedData(dataAggregationFilter);
