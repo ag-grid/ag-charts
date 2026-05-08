@@ -110,9 +110,9 @@ If neither is present, default formatting will be used: one granularity above ax
 
 In this example:
 
-- Clicking 'Remove formats' will remove both the axis and crosshair label formats, with both showing the default format.
-- Clicking 'Set axis.label.format' will add a format to the axis label. Both the axis and crosshair labels will use this format, unless a crosshair label format has been added.
-- Clicking 'Set crosshair.label.format' will add a format to the crosshair label. The crosshair labels will use this format, and the axis labels will be unaffected.
+-   Clicking 'Remove formats' will remove both the axis and crosshair label formats, with both showing the default format.
+-   Clicking 'Set axis.label.format' will add a format to the axis label. Both the axis and crosshair labels will use this format, unless a crosshair label format has been added.
+-   Clicking 'Set crosshair.label.format' will add a format to the crosshair label. The crosshair labels will use this format, and the axis labels will be unaffected.
 
 See [Formatters Inheritance and Precedence](./formatters/#inheritance-and-precedence) for more details on how formatters are inherited and precedence rules.
 
@@ -131,8 +131,8 @@ The default crosshair label is customisable using the crosshair label `renderer`
 }
 ```
 
-- The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
-- It returns an object with the `text` value as well as style attributes including `color`, `backgroundColor` and `opacity` for the crosshair label:
+-   The `renderer` is a callback function which receives the axis `value` and its `fractionDigits` used for formatting the value at the crosshair position.
+-   It returns an object with the `text` value as well as style attributes including `color`, `backgroundColor` and `opacity` for the crosshair label:
 
 ```js
 const labelRenderer = ({ value, fractionDigits }) => {
@@ -149,8 +149,8 @@ const labelRenderer = ({ value, fractionDigits }) => {
 
 The default label HTML element uses these CSS class names, which can be used to customise styling:
 
-- `ag-charts-crosshair-label` for the label itself
-- `ag-charts-crosshair-label-content` - for the label content
+-   `ag-charts-crosshair-label` for the label itself
+-   `ag-charts-crosshair-label-content` - for the label content
 
 For example, to set the label element's `border-radius` to `15px`, you would use a style configuration like so:
 
@@ -181,9 +181,9 @@ The effect of applying the `renderer` from the snippet above can be seen in the 
 
 Note that:
 
-- The structure of the returned DOM is up to you.
-- The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
-- The styles for the elements are defined in the external styles.css file.
+-   The structure of the returned DOM is up to you.
+-   The elements have custom CSS class attributes, but the default class names can also be used so that the label gets the default styling.
+-   The styles for the elements are defined in the external styles.css file.
 
 {% chartExampleRunner title="Crosshair Custom Label" name="crosshair-custom-label" type="generated" /%}
 
@@ -210,9 +210,9 @@ To enable the band highlight for a given axis, use the `bandHighlight` property 
 
 In the above example:
 
-- Hovering the chart shows a gray band highlight for the hovered category.
-- Unlike crosshairs, band highlights do not render an additional label.
-- Band highlights are available for `category`, `grouped-category`, `unit-time`, and `ordinal-time` axes.
+-   Hovering the chart shows a gray band highlight for the hovered category.
+-   Unlike crosshairs, band highlights do not render an additional label.
+-   Band highlights are available for `category`, `grouped-category`, `unit-time`, and `ordinal-time` axes.
 
 See the [Band Highlight API Reference](#reference-AgBandHighlightOptions) for more details on the available customisation options.
 
