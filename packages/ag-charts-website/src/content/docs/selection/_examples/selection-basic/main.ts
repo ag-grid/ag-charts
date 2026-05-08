@@ -17,7 +17,6 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: { text: 'Quarterly Revenue' },
     subtitle: { text: 'Click or drag to select' },
-    footnote: { text: 'No items selected' },
     selection: {
         enabled: true,
         enableDrag: true,
@@ -38,17 +37,15 @@ const options: AgCartesianChartOptions = {
     },
     listeners: {
         selectionChange: () => {
-            updateFootnote();
+            updateStatus();
         },
     },
 };
 
 const chart = AgCharts.create(options);
 
-function updateFootnote() {
+function updateStatus() {
     const count = Array.from(chart.getSelection()).length;
-    options.footnote = {
-        text: count === 0 ? 'No items selected' : `${count} item${count === 1 ? '' : 's'} selected`,
-    };
-    chart.update(options);
+    document.getElementById('selectionStatus')!.textContent =
+        count === 0 ? 'No items selected' : `${count} item${count === 1 ? '' : 's'} selected`;
 }
