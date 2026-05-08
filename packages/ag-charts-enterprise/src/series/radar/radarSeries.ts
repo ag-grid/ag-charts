@@ -658,8 +658,9 @@ export abstract class RadarSeries<
         const highlightState = this.getHighlightState(highlightDatum);
         const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
         const selectionState = this.getDataSelectionState(undefined);
+        const selectionStyle = this.getSelectionStyle(undefined, selectionState);
         const stylerStyle = this.getStyle(highlightState, selectionState);
-        return mergeDefaults(highlightStyle, stylerStyle);
+        return mergeDefaults(selectionStyle, highlightStyle, stylerStyle);
     }
 
     protected abstract updatePathNodes(): void;
