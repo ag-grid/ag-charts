@@ -38,6 +38,7 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
+    type SelectionState,
     type StrokeOptions,
 } from 'ag-charts-types';
 
@@ -118,8 +119,14 @@ class BubbleScatterSeriesNodeEvent<
     readonly sizeKey?: string;
     readonly colorKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: BubbleScatterNodeDatum, series: BubbleSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: BubbleScatterNodeDatum,
+        series: BubbleSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.sizeKey = series.properties.sizeKey;
         this.colorKey = series.properties.colorKey;
     }

@@ -6,6 +6,7 @@ import {
     type AgSeriesMarkerStyle,
     type ContextDefault,
     type DatumDefault,
+    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import {
@@ -83,8 +84,14 @@ class RadarSeriesNodeEvent<
 > extends _ModuleSupport.SeriesNodeEvent<RadarNodeDatum, TEvent> {
     readonly angleKey?: string;
     readonly radiusKey?: string;
-    constructor(type: TEvent, nativeEvent: Event, datum: RadarNodeDatum, series: BaseRadarSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: RadarNodeDatum,
+        series: BaseRadarSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.angleKey = series.properties.angleKey;
         this.radiusKey = series.properties.radiusKey;
     }

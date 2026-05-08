@@ -4,6 +4,7 @@ import {
     type AgBoxPlotSeriesOptions,
     type AgBoxPlotSeriesStyle,
     type AgBoxPlotSeriesStylerParams,
+    type SelectionState,
     _ModuleSupport,
 } from 'ag-charts-community';
 import type { CallbackParamRules, DeepRequired, DynamicContext, Mutable, RequireOptional } from 'ag-charts-core';
@@ -99,8 +100,14 @@ class BoxPlotSeriesNodeEvent<
     readonly q3Key?: string;
     readonly maxKey?: string;
 
-    constructor(type: TEvent, nativeEvent: Event, datum: BoxPlotNodeDatum, series: BoxPlotSeries) {
-        super(type, nativeEvent, datum, series);
+    constructor(
+        type: TEvent,
+        nativeEvent: Event,
+        datum: BoxPlotNodeDatum,
+        series: BoxPlotSeries,
+        selectionState: SelectionState | undefined
+    ) {
+        super(type, nativeEvent, datum, series, selectionState);
         this.xKey = series.properties.xKey;
         this.minKey = series.properties.minKey;
         this.q1Key = series.properties.q1Key;

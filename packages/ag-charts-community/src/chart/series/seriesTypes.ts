@@ -8,7 +8,7 @@ import type {
     PointLabelDatum,
     SizedPoint,
 } from 'ag-charts-core';
-import type { AgActiveItemState } from 'ag-charts-types';
+import type { AgActiveItemState, SelectionState as PublicSelectionState } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
@@ -16,6 +16,21 @@ import type { TypedEvent } from '../../util/observable';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
+
+export enum HighlightState {
+    None,
+    Item,
+    Series,
+    OtherSeries,
+    OtherItem,
+}
+
+export enum SelectionState {
+    None,
+    Item,
+    OtherItem,
+    OtherSeries,
+}
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
@@ -79,6 +94,7 @@ export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extend
     readonly itemId: string | number;
     readonly dataIdKey: string | undefined;
     readonly defaultPrevented: boolean;
+    readonly selectionState: PublicSelectionState | undefined;
 }
 
 export interface ISeriesProperties {
@@ -115,6 +131,10 @@ export interface ISeries<
     getCategoryValue(datumIndex: TDatumIndex): any;
     datumIndexForCategoryValue(categoryValue: any): TDatumIndex | undefined;
     isHighlightEnabled(): boolean;
+    getSelectionStateString(
+        datumIndex: TDatumIndex | undefined,
+        selectionState?: SelectionState
+    ): PublicSelectionState | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): DomainWithMetadata<any>;

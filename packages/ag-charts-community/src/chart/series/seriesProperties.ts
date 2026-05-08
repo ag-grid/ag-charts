@@ -27,21 +27,9 @@ import type {
 } from 'ag-charts-types';
 
 import type { SeriesTooltip } from './seriesTooltip';
+import { HighlightState, SelectionState } from './seriesTypes';
 
-export enum HighlightState {
-    None,
-    Item,
-    Series,
-    OtherSeries,
-    OtherItem,
-}
-
-export enum SelectionState {
-    None,
-    Item,
-    OtherItem,
-    OtherSeries,
-}
+export { HighlightState, SelectionState };
 
 export const highlightStates = [
     HighlightState.None,
