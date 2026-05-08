@@ -1,8 +1,6 @@
 <div class="example-controls">
     <div class="controls-row">
-        <span>Selected:</span>
-        <span id="selected-count">0</span>
-        <span class="gap-left">Series Type:</span>
+        <span>Series Type:</span>
         <select onchange="setSeries(event.target.value)">
             <option value="line" selected>Line</option>
             <option value="area">Area</option>
@@ -18,9 +16,8 @@
             <option value="histogram">Histogram</option>
         </select>
         <span class="gap-left">Selection:</span>
-        <button onclick="setSelectionFraction(0)">None</button>
-        <button onclick="setSelectionFraction(0.5)">50%</button>
-        <button onclick="setSelectionFraction(1)">All</button>
+        <button onclick="selectClear()">Clear</button>
+        <button onclick="selectHalf()">50% (drag left half)</button>
     </div>
 </div>
 <div id="myChart"></div>
