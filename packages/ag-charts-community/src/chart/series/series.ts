@@ -167,7 +167,8 @@ const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 export class SeriesNodeEvent<
     TDatum extends SeriesNodeDatum<DatumIndexType>,
     TEvent extends string = SeriesNodeEventTypes,
-> implements INodeEvent<TEvent> {
+> implements INodeEvent<TEvent>
+{
     readonly datum: unknown;
     readonly seriesId: string;
     readonly itemId: string | number;
@@ -265,17 +266,17 @@ function axisDirectionProperty(direction: ChartAxisDirection): FormatterProperty
 export type UnknownSeries = Series<DatumIndexType, SeriesNodeDatum<DatumIndexType>, object, SeriesProperties<object>>;
 
 export abstract class Series<
-    TDatumIndex extends DatumIndexType,
-    TDatum extends SeriesNodeDatum<TDatumIndex>,
-    TOpts extends object,
-    TProps extends SeriesProperties<TOpts>,
-    TLabel = TDatum,
-    TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
-        TDatumIndex,
-        TDatum,
-        TLabel
-    >,
->
+        TDatumIndex extends DatumIndexType,
+        TDatum extends SeriesNodeDatum<TDatumIndex>,
+        TOpts extends object,
+        TProps extends SeriesProperties<TOpts>,
+        TLabel = TDatum,
+        TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
+            TDatumIndex,
+            TDatum,
+            TLabel
+        >,
+    >
     extends Observable
     implements ISeries<TDatumIndex, TDatum, TProps, TLabel>
 {
@@ -546,7 +547,7 @@ export abstract class Series<
         if (isHighlight) {
             return highlightDrawingMode;
         }
-        return this.hasHighlightOpacity() ? (this.ctx.chartService.highlight?.drawingMode ?? 'overlay') : 'overlay';
+        return this.hasHighlightOpacity() ? this.ctx.chartService.highlight?.drawingMode ?? 'overlay' : 'overlay';
     }
 
     protected getAnimationDrawingModes() {

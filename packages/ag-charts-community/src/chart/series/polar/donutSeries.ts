@@ -161,7 +161,8 @@ enum DonutNodeTag {
 }
 
 interface PieDonutSeriesLabelFormatterParams
-    extends AgDonutSeriesLabelFormatterParams, AgPieSeriesLabelFormatterParams {}
+    extends AgDonutSeriesLabelFormatterParams,
+        AgPieSeriesLabelFormatterParams {}
 interface PieDonutSeriesStyle extends AgDonutSeriesStyle, AgPieSeriesStyle {}
 
 export class DonutSeries extends PolarSeries<

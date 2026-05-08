@@ -95,9 +95,8 @@ export interface BaseFunnelSeriesTypes extends _ModuleSupport.AbstractBarSeriesT
     readonly context: FunnelContext;
 }
 
-export interface FunnelAnimationData<
-    TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>,
-> extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
+export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode<FunnelNodeDatum>>
+    extends _ModuleSupport.CartesianAnimationData<FunnelNodeDatum, TNode, FunnelNodeLabelDatum, FunnelContext> {}
 
 class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,

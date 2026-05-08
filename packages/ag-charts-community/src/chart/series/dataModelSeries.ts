@@ -19,11 +19,8 @@ export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {
     itemId?: never;
 }
 
-export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum> extends SeriesNodeDataContext<
-    number,
-    TDatum,
-    TLabel
-> {}
+export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
+    extends SeriesNodeDataContext<number, TDatum, TLabel> {}
 
 export type DataModelSeriesConstructorOpts<TProps extends SeriesProperties<any>> = SeriesConstructorOpts<TProps> & {
     categoryKey: string | undefined;

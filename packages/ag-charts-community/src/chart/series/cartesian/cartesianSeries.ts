@@ -1378,8 +1378,8 @@ export abstract class CartesianSeries<TTypes extends CartesianSeriesTypes> exten
         const crossAxis = shouldFlipXY ? this.axes[ChartAxisDirection.Y]! : this.axes[ChartAxisDirection.X]!;
         const axis = shouldFlipXY ? this.axes[ChartAxisDirection.X]! : this.axes[ChartAxisDirection.Y]!;
 
-        const crossVisibleRange = shouldFlipXY ? (yVisibleRange ?? [0, 1]) : xVisibleRange;
-        const axisVisibleRange = shouldFlipXY ? xVisibleRange : (yVisibleRange ?? [0, 1]);
+        const crossVisibleRange = shouldFlipXY ? yVisibleRange ?? [0, 1] : xVisibleRange;
+        const axisVisibleRange = shouldFlipXY ? xVisibleRange : yVisibleRange ?? [0, 1];
 
         if (yVisibleRange == null) {
             const sortOrder = this.sortOrder(crossAxisKey);

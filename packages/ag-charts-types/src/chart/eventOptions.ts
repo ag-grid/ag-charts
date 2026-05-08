@@ -16,10 +16,8 @@ export interface AgPreventableEvent {
     preventDefault(): void;
 }
 
-export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault> extends AgChartEvent<
-    TEvent,
-    TContext
-> {
+export interface AgNodeClickEvent<TEvent extends string, TDatum, TContext = ContextDefault>
+    extends AgChartEvent<TEvent, TContext> {
     /** Event type. */
     type: TEvent;
     /** Series ID, as specified in `series.id` (or generated if not specified) */
