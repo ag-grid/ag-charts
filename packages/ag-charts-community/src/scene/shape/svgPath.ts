@@ -1,4 +1,4 @@
-import { Translatable } from '../transformable';
+import { Rotatable, Translatable } from '../transformable';
 import { Path } from './path';
 
 export class SvgPath<D = any> extends Path<D> {
@@ -27,3 +27,5 @@ export class TranslatableSvgPath extends Translatable(SvgPath) {
         return super.isPointInPath(x - this.translationX, y - this.translationY);
     }
 }
+
+export class RotatableSvgPath extends Rotatable(TranslatableSvgPath) {}

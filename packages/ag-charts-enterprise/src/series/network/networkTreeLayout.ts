@@ -20,7 +20,8 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     nodeWidth?: number;
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
-    expanderPillHeight: number;
+    expanderOffset: number;
+    expanderSpacing: number;
     regularDimensions: boolean;
     hiddenOnCollapse: boolean;
     verticalSpacing: number;
@@ -164,7 +165,15 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation, options.expanderPillHeight)
+                        this.drawLink(
+                            path,
+                            layoutBBox,
+                            bbox,
+                            interpolation,
+                            options.expanderOffset,
+                            options.expanderSpacing,
+                            options.verticalSpacing
+                        )
                     );
                 }
             }
@@ -184,7 +193,10 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         if (!children) return { childrenCount: 0 };
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
-        if (datumBBox) childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.expanderPillHeight;
+        if (datumBBox) {
+            childrenGroupBBox.y +=
+                datumBBox.height + options.verticalSpacing + options.expanderOffset + options.expanderSpacing;
+        }
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
             { ...options, vertices: children },
@@ -205,15 +217,15 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation = { type: 'step' },
-        expanderPillHeight: number
+        expanderOffset: number,
+        expanderSpacing: number,
+        verticalSpacing: number
     ) {
-        const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height);
+        const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height + expanderOffset);
         const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
 
-        const elbowDist = (end.y - start.y) / 2;
-
-        const elbow1 = Vec2.add(start, Vec2.from(0, elbowDist + expanderPillHeight / 2));
-        const elbow2 = Vec2.sub(end, Vec2.from(0, elbowDist - expanderPillHeight / 2));
+        const elbow1 = Vec2.add(start, Vec2.from(0, expanderSpacing));
+        const elbow2 = Vec2.sub(end, Vec2.from(0, verticalSpacing));
 
         const cornerRadius = clamp(
             0,

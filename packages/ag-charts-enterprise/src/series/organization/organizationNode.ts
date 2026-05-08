@@ -128,13 +128,17 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
         layoutScenesColumn(columnScenes, styles.padding, columnGaps);
         layoutScenesRow(rowScenes, styles.padding, rowGaps);
 
-        // For parent nodes the pill intrudes up into the card by half its height, so the
-        // effective bottom content padding must be at least `height/2 + spacing` to keep
-        // the last label clear of the pill.  Leaf nodes use plain `padding` on all sides.
-        const bottomPadding =
-            descendantsCount > 0
-                ? Math.max(styles.padding, styles.expander.height / 2 + styles.expander.spacing)
-                : styles.padding;
+        let lastElementSpacing = this.subtitleNode ? styles.subtitle.spacing : styles.title.spacing;
+        if (this.imageNode && styles.image.position === 'bottom') {
+            lastElementSpacing = styles.image.spacing;
+        } else if (this.labelNodes && this.labelNodes.length > 0) {
+            lastElementSpacing = styles.labels.at(-1)?.spacing ?? lastElementSpacing;
+        }
+
+        const bottomPadding = this.expanderNode
+            ? Math.max(styles.padding, this.expanderNode.getBBox().height / 2 + lastElementSpacing)
+            : styles.padding;
+
         const bbox = _ModuleSupport.Group.computeChildrenBBox(rowScenes.flat()).grow({
             top: styles.padding,
             right: styles.padding,
@@ -338,7 +342,7 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 
     private updateExpanderNode(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
-        if (descendantsCount === 0) {
+        if (descendantsCount === 0 || !styles.expander.enabled) {
             this.expanderNode?.remove();
             this.expanderNode = undefined;
             return;
@@ -349,80 +353,41 @@ export class OrganizationNode extends _ModuleSupport.TranslatableGroup<Organizat
     }
 }
 
-// Chevron geometry constants (all in px).
-const CHEVRON_WIDTH = 8;
-const CHEVRON_HEIGHT = 5;
-const CHEVRON_GAP = 5; // gap between count text right edge and chevron left edge
-// Inset the pill content by the same amount on both sides so the count text and the
-// chevron are visually balanced within the pill.
-const PILL_HORIZONTAL_PADDING = 12;
-// Render the chevron slightly muted versus the count digit so the number reads as the
-// primary affordance and the directional cue stays a secondary glyph.
-const CHEVRON_OPACITY = 0.7;
-
 class OrganizationExpanderNode extends _ModuleSupport.TranslatableGroup {
     override name = 'organization-node-expander';
 
     private shapeNode?: _ModuleSupport.Rect;
     private countNode?: _ModuleSupport.Text;
-    private chevronNode?: _ModuleSupport.Path;
+    private chevronNode?: _ModuleSupport.RotatableSvgPath;
 
     update(descendantsCount: number, isCollapsed: boolean, styles: RequiredOrganizationNodeStyle) {
         this.shapeNode ??= this.appendChild(new _ModuleSupport.Rect());
 
         this.countNode ??= this.appendChild(new _ModuleSupport.Text());
+        this.countNode.y = styles.expander.padding;
         this.countNode.text = `${descendantsCount}`;
-        this.countNode.textAlign = 'left';
-        applyTextStyles(this.countNode, styles.subtitle);
-        this.countNode.x = PILL_HORIZONTAL_PADDING;
+        applyTextStyles(this.countNode, styles.expander.text);
 
-        const rawBBox = this.countNode.getBBox();
-        // Render the pill at exactly `expander.height` so the layout reservation in
-        // `networkTreeLayout` matches the rendered pill — diverging here would let link
-        // elbows or child rows overlap the expander when `height` is under-specified.
-        // The public type contract documents that `height` must accommodate the count text.
-        const pillHeight = styles.expander.height;
-        this.countNode.y = (pillHeight - rawBBox.height) / 2;
+        this.chevronNode ??= this.appendChild(new _ModuleSupport.RotatableSvgPath('M4.75 9.75L8.25 6.25L11.75 9.75'));
+        this.chevronNode.translationY = styles.expander.padding;
+        this.chevronNode.rotationCenterX = 8;
+        this.chevronNode.rotationCenterY = 8;
+        this.chevronNode.rotation = isCollapsed ? Math.PI : 0;
+        this.chevronNode.fill = styles.expander.text.color;
 
-        const chevronLeft = this.countNode.x + rawBBox.width + CHEVRON_GAP;
-        const chevronMidY = pillHeight / 2;
+        layoutScenesRow([this.countNode, this.chevronNode], styles.expander.padding, [styles.expander.text.fontSize]);
 
-        this.chevronNode ??= this.appendChild(new _ModuleSupport.Path());
-        this.updateChevron(this.chevronNode, chevronLeft, chevronMidY, isCollapsed);
+        const bbox = _ModuleSupport.Group.computeChildrenBBox([this.countNode, this.chevronNode]).grow(
+            styles.expander.padding
+        );
 
-        // Pill width: leading padding + count text + gap + chevron + trailing padding.
-        const pillContentWidth = chevronLeft + CHEVRON_WIDTH + PILL_HORIZONTAL_PADDING;
         this.shapeNode.x = 0;
         this.shapeNode.y = 0;
-        this.shapeNode.width = Math.max(48, pillContentWidth);
-        this.shapeNode.height = pillHeight;
+        this.shapeNode.width = bbox.width;
+        this.shapeNode.height = bbox.height;
 
         applyFillStyles(this.shapeNode, styles);
         applyStrokeStyles(this.shapeNode, styles);
         this.shapeNode.cornerRadius = styles.cornerRadius;
-    }
-
-    private updateChevron(path: _ModuleSupport.Path, left: number, midY: number, isCollapsed: boolean) {
-        // Point-down chevron (expanded state) — apex at bottom centre, base at top.
-        // Flip vertically for collapsed state (point up, apex at top centre).
-        const halfW = CHEVRON_WIDTH / 2;
-        const halfH = CHEVRON_HEIGHT / 2;
-
-        const apexY = isCollapsed ? midY - halfH : midY + halfH;
-        const baseY = isCollapsed ? midY + halfH : midY - halfH;
-
-        path.path.clear();
-        path.path.moveTo(left, baseY);
-        path.path.lineTo(left + CHEVRON_WIDTH, baseY);
-        path.path.lineTo(left + halfW, apexY);
-        path.path.closePath();
-
-        // Match the count digit's colour so the chevron and number read as a single
-        // affordance inside the pill. countNode.fill is set immediately before this
-        // is called via `applyTextStyles`; it is always a string at runtime.
-        const countFill = this.countNode?.fill;
-        path.fill = typeof countFill === 'string' ? countFill : '#000';
-        path.stroke = 'none';
-        path.opacity = CHEVRON_OPACITY;
     }
 }

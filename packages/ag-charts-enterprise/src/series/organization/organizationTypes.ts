@@ -1,5 +1,6 @@
 import type { DeepRequired } from 'ag-charts-core';
 import type {
+    AgOrganizationSeriesExpanderStyle,
     AgOrganizationSeriesNodeStyle,
     AgOrganizationSeriesNodeTextStyle,
     CssColor,
@@ -51,5 +52,5 @@ export type RequiredOrganizationNodeStyle = DeepRequired<AgOrganizationSeriesNod
     title: RequiredOrganizationNodeTextStyle;
     subtitle: RequiredOrganizationNodeTextStyle;
     labels: RequiredOrganizationNodeTextStyle[];
-    expander: { height: number; spacing: number };
+    expander: DeepRequired<AgOrganizationSeriesExpanderStyle>;
 };

@@ -22,10 +22,19 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
     series: {
         innerSpacing: 20,
         outerSpacing: 40,
-        verticalSpacing: 52,
+        verticalSpacing: 21,
         expander: {
-            height: 24,
-            spacing: 4,
+            enabled: true,
+            cornerRadius: 4,
+            padding: 6,
+            spacing: 21,
+            text: {
+                color: { $ref: 'subtleTextColor' },
+                fontFamily: { $ref: 'fontFamily' },
+                fontSize: { $rem: FONT_SIZE_RATIO.SMALL },
+                fontStyle: 'normal',
+                fontWeight: 'normal',
+            },
         },
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },

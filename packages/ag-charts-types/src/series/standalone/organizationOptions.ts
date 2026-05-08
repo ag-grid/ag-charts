@@ -32,6 +32,7 @@ export interface AgOrganizationSeriesOptions<TDatum = DatumDefault, TContext = C
     /** Configuration for the Organization Series. */
     type: 'organization';
 
+    expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
     node?: AgOrganizationSeriesOptionsNode<TDatum, TContext>;
 }
 
@@ -48,7 +49,7 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     outerSpacing?: PixelSize;
     verticalSpacing?: PixelSize;
 
-    expander?: AgOrganizationSeriesOptionsExpander;
+    expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
 
     link?: AgOrganizationSeriesOptionsLink<TDatum, TContext>;
     node?: AgOrganizationSeriesThemeableOptionsNode<TDatum, TContext>;
@@ -57,26 +58,30 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     tooltip?: AgSeriesTooltip<AgOrganizationSeriesTooltipRendererParams<TDatum, TContext>>;
 }
 
-export interface AgOrganizationSeriesOptionsExpander {
-    /**
-     * Outer height of the expander pill, in pixels. Increasing this value reserves additional
-     * vertical space between a parent node and its children to fit a larger pill; decreasing it
-     * pulls children closer. Set this to at least the rendered subtitle's line height plus its
-     * top and bottom padding so the descendant-count text fits without overflow — the pill is
-     * rendered at exactly this value so layout reservations and rendered geometry stay aligned.
-     *
-     * Default: `24`
-     */
-    height?: PixelSize;
-    /**
-     * Vertical gap in pixels between the bottom of the last text element in a parent card
-     * and the top of the expander pill. The card's effective bottom padding is the maximum
-     * of `node.padding` and `expander.height / 2 + expander.spacing`, so a short pill has
-     * no effect on layout while a tall pill increases the reserved content space.
-     *
-     * Default: `4`
-     */
+export interface AgOrganizationSeriesOptionsExpander<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesExpanderStyle {
+    itemStyler?: Styler<
+        AgOrganizationSeriesExpanderItemStylerParams<TDatum, TContext>,
+        AgOrganizationSeriesExpanderStyle
+    >;
+    text?: AgOrganizationSeriesOptionsExpanderText<TDatum, TContext>;
+}
+
+export interface AgOrganizationSeriesExpanderStyle extends Toggleable, FillOptions, StrokeOptions {
+    cornerRadius?: PixelSize;
+    padding?: PixelSize;
     spacing?: PixelSize;
+    text?: AgOrganizationSeriesExpanderTextStyle;
+}
+
+export interface AgOrganizationSeriesExpanderTextStyle extends FontOptions {
+    color?: CssColor;
+    textAlign?: TextAlign;
+}
+
+export interface AgOrganizationSeriesOptionsExpanderText<TDatum = DatumDefault, TContext = ContextDefault>
+    extends AgOrganizationSeriesExpanderTextStyle {
+    formatter?: RichFormatter<AgOrganizationNodeTextFormatterParams<TDatum, TContext>>;
 }
 
 export interface AgOrganizationSeriesOptionsLink<TDatum = DatumDefault, TContext = ContextDefault>
@@ -198,6 +203,16 @@ export interface AgOrganizationNodeTextFormatterParams<TDatum = DatumDefault, TC
     isCollapsed: boolean;
     /** The default label value that would have been used without a formatter. */
     value: any;
+}
+
+export interface AgOrganizationSeriesExpanderItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
+    extends DatumCallbackParams<TDatum, HighlightState>,
+        ContextCallbackParams<TContext>,
+        AgOrganizationSeriesExpanderStyle {
+    /** The depth of the data point within the organization. */
+    depth: number;
+    /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
+    isCollapsed: boolean;
 }
 
 export interface AgOrganizationSeriesLinkItemStylerParams<TDatum = DatumDefault, TContext = ContextDefault>
