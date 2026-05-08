@@ -22,8 +22,10 @@ export function configureColorScale(
     const domainTuple: [number, number] = [dataDomain[0], dataDomain.at(-1)!];
     const displayDomain: [number, number] = colorScaleProps.domain ?? domainTuple;
 
-    if (colorScaleProps.fills.length > 0) {
-        const { domain, range } = computeColorBins(colorScaleProps.fills, displayDomain, colorScaleProps.mode);
+    if (colorScaleProps.fills.length > 0 || colorScaleProps.mode === 'discrete') {
+        const fills =
+            colorScaleProps.fills.length > 0 ? colorScaleProps.fills : fallbackRange.map((color) => ({ color }));
+        const { domain, range } = computeColorBins(fills, displayDomain, colorScaleProps.mode);
         colorScale.mode = colorScaleProps.mode;
         colorScale.domain = domain;
         colorScale.range = range;
