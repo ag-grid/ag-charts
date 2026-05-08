@@ -21,7 +21,6 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
     expanderOffset: number;
-    expanderSpacing: number;
     regularDimensions: boolean;
     hiddenOnCollapse: boolean;
     verticalSpacing: number;
@@ -165,15 +164,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(
-                            path,
-                            layoutBBox,
-                            bbox,
-                            interpolation,
-                            options.expanderOffset,
-                            options.expanderSpacing,
-                            options.verticalSpacing
-                        )
+                        this.drawLink(path, layoutBBox, bbox, interpolation, options.expanderOffset)
                     );
                 }
             }
@@ -194,8 +185,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
         if (datumBBox) {
-            childrenGroupBBox.y +=
-                datumBBox.height + options.verticalSpacing + options.expanderOffset + options.expanderSpacing;
+            childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.expanderOffset;
         }
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
@@ -217,15 +207,15 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         parentBBox: TBBox,
         childBBox: TBBox,
         interpolation: NetworkLinkInterpolation = { type: 'step' },
-        expanderOffset: number,
-        expanderSpacing: number,
-        verticalSpacing: number
+        expanderOffset: number
     ) {
         const start = Vec2.from(parentBBox.x + parentBBox.width / 2, parentBBox.y + parentBBox.height + expanderOffset);
         const end = Vec2.from(childBBox.x + childBBox.width / 2, childBBox.y);
 
-        const elbow1 = Vec2.add(start, Vec2.from(0, expanderSpacing));
-        const elbow2 = Vec2.sub(end, Vec2.from(0, verticalSpacing));
+        const elbowDist = (end.y - start.y) / 2;
+
+        const elbow1 = Vec2.add(start, Vec2.from(0, elbowDist));
+        const elbow2 = Vec2.sub(end, Vec2.from(0, elbowDist));
 
         const cornerRadius = clamp(
             0,

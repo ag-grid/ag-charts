@@ -72,10 +72,13 @@ class OrganizationSeriesExpanderProperties extends BaseProperties {
     >;
 
     @Property
-    padding: number = 6;
+    lineDash: number[] = [];
 
     @Property
-    spacing: number = 0;
+    lineDashOffset?: number;
+
+    @Property
+    padding: number = 6;
 
     @Property
     stroke: CssColor = 'black';
