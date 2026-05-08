@@ -4,25 +4,30 @@ description: 'Enable click-to-select and drag-to-select on $framework charts so 
 enterprise: true
 ---
 
-Data Selection lets users click or drag on the chart to mark individual datums as selected. Selected datums receive a distinct visual treatment and can be read back, set, or cleared programmatically.
+Data Selection allows users click or drag on the chart to mark individual datums as selected. Selected datums receive a distinct visual treatment and can be read back, set, or cleared programmatically.
 
-{% chartExampleRunner title="Data Selection" name="selection-basic" type="generated" /%}
+## Selection
 
 To enable this feature, set `selection.enabled` to `true`.
+
+{% chartExampleRunner title="Data Selection" name="selection-basic" type="generated" /%}
 
 ```js format="snippet"
 {
     selection: {
         enabled: true,
+        enableDrag: true,
     },
 }
 ```
 
-In the example above, click any bar to toggle its selection. Click an empty area of the chart to clear the selection.
+Selection can also be configured independently on each series via the `series.selection` options.
 
-## Click Modes
+## Click Selection
 
-The `clickMode` option controls how new clicks combine with the existing selection.
+Click selection is enabled by default. Use `enableClick: false` to disable.
+
+By default, clicking a datum replaces the current selection, and clicking on a blank space clears the selection. Use `clickMode` and `enableClickAwayToClear` to modify this behaviour.
 
 {% chartExampleRunner title="Click Modes" name="click-modes" type="generated" /%}
 
@@ -31,18 +36,22 @@ The `clickMode` option controls how new clicks combine with the existing selecti
     selection: {
         enabled: true,
         clickMode: 'single',
+        clickAwayToClear: true,
     },
 }
 ```
 
--   `'single'` (default) replaces the current selection with the clicked datum. Holding {% kbd "Ctrl" /%} or {% kbd "Cmd" /%} during the click temporarily promotes the click to `'multiple'`.
--   `'multiple'` toggles the clicked datum in or out of the existing selection.
+In the above example:
 
-Set `enableClickAwayToClear` to `false` to keep the selection in place when the user clicks an empty area of the chart.
+-   `'single'` replaces the current selection with the clicked datum.
+-   `'multiple'` toggles the clicked datum in or out of the existing selection. This mode is particularly useful on [touch](./touch/) devices.
+-   Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while clicking will always add or remove the clicked datum from the selection.
+-   When `enableClickAwayToClear` is set to `false`, the selection remains in place when the user clicks an empty area of the chart.
+-   Click range is determined by the `nodeClickRange` property on each series type.
 
 ## Drag-to-Select
 
-Set `enableDrag` to `true` to let the user draw a rectangle across the chart and select every datum the rectangle covers.
+Set `enableDrag` to `true` to allow the user draw a rectangle across the chart and select every datum the rectangle covers. This is only available on cartesian series types.
 
 {% chartExampleRunner title="Drag Selection" name="drag-selection" type="generated" /%}
 
@@ -56,14 +65,17 @@ Set `enableDrag` to `true` to let the user draw a rectangle across the chart and
 }
 ```
 
-The `containment` option controls which datums the drag rectangle picks up:
+In the above example:
 
--   `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
--   `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
+-   Dragging the mouse across the chart draws a rectangle. When the mouse is released, any datums that overlap the rectangle are selected.
+-   Holding {% kbd "Ctrl" /%}/{% kbd "Cmd" /%} key while while completing a drag adds the newly enclosed datums to the existing selection instead of replacing it.
+-   The `containment` option controls which datums the drag rectangle picks up.
+    -   `'any'` (default) selects a datum if any part of it overlaps the drag rectangle.
+    -   `'all'` selects a datum only when it is entirely enclosed by the drag rectangle.
 
-## Styling Selected and Unselected Items
+## Styling
 
-When data selection is active, the chart applies a default visual treatment that distinguishes selected datums from unselected ones. Override the styling per series with `series.selection.selectedItem` and `series.selection.unselectedItem`.
+Use the series `series.selection.selectedItem` and `series.selection.unselectedItem` options to customise the appearance of selected and unselected datums.
 
 {% chartExampleRunner title="Selection Styling" name="selection-styling" type="generated" /%}
 
@@ -76,12 +88,13 @@ When data selection is active, the chart applies a default visual treatment that
             yKey: 'revenue',
             selection: {
                 selectedItem: {
-                    fill: '#0b8043',
-                    stroke: '#054d27',
-                    strokeWidth: 2,
+                    fill: '#c0392b',
+                    stroke: '#922b21',
+                    strokeWidth: 3,
                 },
                 unselectedItem: {
-                    fillOpacity: 0.25,
+                    fill: '#bdc3c7',
+                    fillOpacity: 0.6,
                 },
             },
         },
@@ -89,44 +102,31 @@ When data selection is active, the chart applies a default visual treatment that
 }
 ```
 
-For dynamic per-datum styling, use the series item-styler — `params.selectionState` is set to `'none'`, `'selected-item'`, or `'unselected-item'` whenever the data selection module is enabled. See [Stylers](./stylers) for the full styler API.
+In this example:
 
-## Per-Series Configuration
+-   `selectedItem` sets the selected datum to a red fill and border.
+-   `unselectedItem` sets the unselected datums to a grey fill.
+-   For dynamic per-datum styling, use the series [item styler](./stylers/), which includes a `selectionState` property in the parameters.
 
-Use `series.selection.enabled` to opt individual series in or out, and `series.selection.containment` to override the chart-level drag rule for one series.
+## Selection API
 
-{% chartExampleRunner title="Per-Series Selection" name="per-series-selection" type="generated" /%}
+{% chartExampleRunner title="Selection API" name="selection-api" type="generated" /%}
 
-```js format="snippet"
-{
-    selection: {
-        enabled: true,
-        enableDrag: true,
-    },
-    series: [
-        {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'revenue',
-            selection: { enabled: true },
-        },
-        {
-            type: 'line',
-            xKey: 'quarter',
-            yKey: 'forecast',
-            selection: { enabled: false },
-        },
-    ],
-}
-```
+### Saving and Restoring
 
-Pie series omit the per-series `selection` field, but pie sectors still respond to chart-level click and drag selection.
+`chart.getSelection()` returns an `Iterable` of every currently selected item. Each item contains:
 
-## Reacting to Selection Changes
+-   `seriesId`- the series the datum belongs to.
+-   `itemId` - the unique identifier of the datum, derived from `dataIdKey` if set, otherwise the datum index.
+-   `datum` - the original data object from the chart data array.
 
-Listen for `selectionChange` to react when the selection is updated by either user interaction or an API call.
+`chart.setSelection(items)` replaces the current selection. Each item requires `seriesId` and `itemId` to identify the datum. The existing selection is cleared before the new items are applied.
 
-{% chartExampleRunner title="Selection Change Event" name="selection-change-event" type="generated" /%}
+`chart.clearSelection()` removes every selected item across all series.
+
+### Selection Change Event
+
+The `selectionChange` event fires whenever the selection is updated, whether by user interaction or an API call.
 
 ```js format="snippet"
 {
@@ -138,36 +138,21 @@ Listen for `selectionChange` to react when the selection is updated by either us
 }
 ```
 
-The event payload contains:
+The event contains:
 
--   `source` — `'user-interaction'` or `'api-call'`.
--   `added` — datums added to the selection by this change.
--   `removed` — datums removed from the selection by this change.
+-   `source` - `'user-interaction'` or `'api-call'`.
+-   `added` - an array of items added to the selection.
+-   `removed` - an array of items removed from the selection.
 
-Call `event.preventDefault()` from inside the listener to veto the change.
+## Feature Interactions
 
-## Programmatic Control
+### Highlighting
 
-The chart instance exposes three methods for reading and writing the current selection state.
+When both selection and [highlighting](./series-highlighting/) are enabled, the chart merges their visual styles. If there is a conflict, the selection style takes priority.
 
-{% chartExampleRunner title="Selection API" name="selection-api" type="generated" /%}
+### Zoom
 
-```js format="snippet"
-{
-    // chart instance methods
-    // chart.getSelection(): Iterable<AgSelectionItem>
-    // chart.setSelection(items: Iterable<AgSelectionItemIds>): void
-    // chart.clearSelection(): void
-}
-```
-
--   `chart.getSelection()` returns an iterable of every currently selected item, each with `seriesId`, `itemId`, and `datum`.
--   `chart.setSelection(items)` replaces the current selection with the supplied items.
--   `chart.clearSelection()` removes every selected item across all series.
-
-## Compatibility
-
-Data Selection is an enterprise feature and requires `SelectionModule` to be registered. It is not supported on histogram series or on standalone charts.
+When both selection drag and [zoom](./zoom/) drag-to-select (`enableSelecting`) are enabled, the selection drag takes precedence. Zoom panning uses the `panKey` modifier instead. See [Zoom Panning](./zoom/#panning) for details.
 
 ## API Reference
 

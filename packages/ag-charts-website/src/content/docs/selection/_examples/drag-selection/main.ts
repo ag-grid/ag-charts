@@ -2,9 +2,7 @@ import {
     AgCartesianChartOptions,
     AgCharts,
     AgSelectionContainment,
-    BarSeriesModule,
-    CategoryAxisModule,
-    LegendModule,
+    BubbleSeriesModule,
     ModuleRegistry,
     NumberAxisModule,
     SelectionModule,
@@ -12,11 +10,11 @@ import {
 
 import { getData } from './data';
 
-ModuleRegistry.registerModules([BarSeriesModule, CategoryAxisModule, LegendModule, NumberAxisModule, SelectionModule]);
+ModuleRegistry.registerModules([BubbleSeriesModule, NumberAxisModule, SelectionModule]);
 
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    title: { text: 'Drag across the chart to select multiple bars' },
+    title: { text: 'Drag to select' },
     selection: {
         enabled: true,
         enableDrag: true,
@@ -25,15 +23,19 @@ const options: AgCartesianChartOptions = {
     data: getData(),
     series: [
         {
-            type: 'bar',
-            xKey: 'quarter',
-            yKey: 'revenue',
-            yName: 'Revenue ($m)',
+            type: 'bubble',
+            xKey: 'height',
+            xName: 'Height',
+            yKey: 'weight',
+            yName: 'Weight',
+            sizeKey: 'age',
+            sizeName: 'Age',
+            highlight: { enabled: false },
         },
     ],
     axes: {
-        x: { type: 'category' },
-        y: { type: 'number' },
+        x: { type: 'number', title: { text: 'Height (cm)' } },
+        y: { type: 'number', title: { text: 'Weight (kg)' } },
     },
 };
 

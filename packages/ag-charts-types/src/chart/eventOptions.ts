@@ -79,9 +79,9 @@ export interface AgActiveChangeEvent<TDatum, TContext> extends AgActiveState, Ag
 }
 
 export interface AgSelectionItemIds {
-    /** Series ID, as specified in `series.id` (or generated if not specified) */
+    /** Series ID, as specified in `series.id` (or generated if not specified). */
     seriesId: string;
-    /** Legend item id - usually yKey value for cartesian series. */
+    /** The unique identifier of the datum as specified in `dataIdKey` if set (or generated if not specified). */
     itemId: string | number;
 }
 
