@@ -64,7 +64,8 @@ import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, BucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, SelectionState, toHighlightString, toSelectionString } from '../seriesProperties';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import {
     type AreaSeriesDataAggregationFilter,

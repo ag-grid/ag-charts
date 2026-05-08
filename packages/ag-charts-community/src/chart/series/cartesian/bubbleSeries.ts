@@ -38,8 +38,8 @@ import {
     type FillOptions,
     type FormatterPropertyType,
     type LineDashOptions,
-    type StrokeOptions,
     type SelectionState as PublicSelectionState,
+    type StrokeOptions,
 } from 'ag-charts-types';
 
 import type { ChartRegistry } from '../../../module/moduleContext';
@@ -77,8 +77,14 @@ import {
     type SeriesNodeStyleContext,
 } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, toHighlightString, toSelectionString } from '../seriesProperties';
-import type { BucketLookupFeature, ErrorBoundSeriesNodeDatum, SelectionState, SeriesNodeEventTypes } from '../seriesTypes';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import {
+    type BucketLookupFeature,
+    type ErrorBoundSeriesNodeDatum,
+    HighlightState,
+    type SelectionState,
+    type SeriesNodeEventTypes,
+} from '../seriesTypes';
 import {
     type BubbleAggregation,
     type BubbleAggregationOptions,

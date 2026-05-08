@@ -2,8 +2,15 @@ import { type BoxBounds, Color, findMaxIndex, findMinIndex, isString } from 'ag-
 import type { AgActiveItemState, AgDrawingMode } from 'ag-charts-types';
 
 import { Transformable } from '../../scene/transformable';
-import { type HighlightState, SelectionState, highlightStates } from './seriesProperties';
-import type { DatumIndexType, ErrorBoundSeriesNodeDatum, ISeries, SeriesNodeDatum } from './seriesTypes';
+import { highlightStates } from './seriesProperties';
+import type {
+    DatumIndexType,
+    ErrorBoundSeriesNodeDatum,
+    HighlightState,
+    ISeries,
+    SelectionState,
+    SeriesNodeDatum,
+} from './seriesTypes';
 
 function datumBoundaryPoints(datum: any, domain: any[]): [boolean, boolean] {
     if (domain.length === 0) {

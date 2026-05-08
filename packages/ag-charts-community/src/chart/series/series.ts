@@ -77,19 +77,21 @@ import type { Marker } from '../marker/marker';
 import type { TooltipContent, TooltipStructuredContent } from '../tooltip/tooltip';
 import { getItemId } from './pickManager';
 import type { SeriesMarker } from './seriesMarker';
-import { HighlightState, SelectionState, isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
+import { isUnselected, toHighlightString, toSelectionString } from './seriesProperties';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { SeriesTooltip } from './seriesTooltip';
-import type {
-    BucketLookupFeature,
-    DatumIndexType,
-    INodeEvent,
-    ISeries,
-    ISeriesProperties,
-    NodeDataDependencies,
-    SeriesNodeDatum,
-    SeriesNodeEventTypes,
+import {
+    type BucketLookupFeature,
+    type DatumIndexType,
+    HighlightState,
+    type INodeEvent,
+    type ISeries,
+    type ISeriesProperties,
+    type NodeDataDependencies,
+    SelectionState,
+    type SeriesNodeDatum,
+    type SeriesNodeEventTypes,
 } from './seriesTypes';
 import { type ShapeFillBBox } from './shapeUtil';
 import { hasDimmedOpacity, resolveMarkerDrawingMode } from './util';

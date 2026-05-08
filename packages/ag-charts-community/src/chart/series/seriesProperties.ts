@@ -29,8 +29,6 @@ import type {
 import type { SeriesTooltip } from './seriesTooltip';
 import { HighlightState, SelectionState } from './seriesTypes';
 
-export { HighlightState, SelectionState };
-
 export const highlightStates = [
     HighlightState.None,
     HighlightState.Item,

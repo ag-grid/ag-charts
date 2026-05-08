@@ -67,8 +67,8 @@ import { AggregationManager } from '../aggregationManager';
 import { type BucketLookupFeature, SplitBucketLookupManager } from '../bucketLookupFeature';
 import { type PickFocusInputs, SeriesNodePickMode, type SeriesNodeStyleContext } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { HighlightState, SelectionState, toHighlightString, toSelectionString } from '../seriesProperties';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { toHighlightString, toSelectionString } from '../seriesProperties';
+import { type ErrorBoundSeriesNodeDatum, HighlightState, SelectionState } from '../seriesTypes';
 import { datumStylerProperties, getItemStyles, visibleRangeIndices } from '../util';
 import {
     AbstractBarSeries,
