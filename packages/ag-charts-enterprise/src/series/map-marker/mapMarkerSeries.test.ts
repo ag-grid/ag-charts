@@ -445,6 +445,35 @@ describe('MapMarkerSeries', () => {
             );
         });
 
+        it('should preserve colorScale fill on highlighted marker', async () => {
+            const options: AgChartOptions = {
+                ...COLOR_EXAMPLE,
+                series: [
+                    { type: 'map-shape-background' },
+                    {
+                        type: 'map-marker',
+                        idKey: 'name',
+                        colorKey: 'population',
+                        colorScale: {
+                            fills: [{ color: 'blue' }, { color: 'yellow' }, { color: 'red' }],
+                        },
+                    },
+                ],
+            };
+            prepareEnterpriseTestOptions(options);
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            const seriesImpl = chart.series[1] as MapMarkerSeries;
+            const targetNode = seriesImpl?.['contextNodeData']?.nodeData[0];
+            expect(targetNode).toBeDefined();
+
+            const highlightManager = (chart as Chart).ctx.highlightManager;
+            highlightManager.updateHighlight(chart.id, targetNode as any);
+            await compare();
+        });
+
         it('should preserve missingDataFill on highlighted marker', async () => {
             const missingNames = new Set(['Wales', 'Northern Ireland']);
             const data = ukData.map((datum: any) => {
