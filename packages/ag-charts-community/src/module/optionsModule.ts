@@ -8,7 +8,7 @@ import {
     ModuleRegistry,
     ModuleType,
     type PlainObject,
-    type ValidateOptions,
+    type ValidateParams,
     deepClone,
     deepFreeze,
     distribute,
@@ -410,7 +410,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return { activeTheme, processedOptions, themeParameters, annotationThemes, googleFonts, optionsGraph };
     }
 
-    private validatePluginOptions(options: T, opts: ValidateOptions = {}) {
+    private validatePluginOptions(options: T, params: ValidateParams = {}) {
         for (const pluginDef of ModuleRegistry.listModulesByType(ModuleType.Plugin)) {
             const pluginKey = pluginDef.name as keyof T;
             if (
@@ -418,7 +418,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 pluginDef.options != null &&
                 (!pluginDef.chartType || pluginDef.chartType === this.chartDef?.name)
             ) {
-                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, opts);
+                const { cleared, invalid } = validate(options[pluginKey], pluginDef.options, pluginDef.name, params);
                 for (const error of invalid) {
                     Logger.warn(error);
                 }
@@ -427,7 +427,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private validateSeriesOptions(options: T, opts: ValidateOptions = {}): ModulePlaceholder[] {
+    private validateSeriesOptions(options: T, params: ValidateParams = {}): ModulePlaceholder[] {
         const chartType = this.chartDef?.name;
         const validatedSeriesOptions: any[] = [];
         const seriesCount = options.series?.length ?? 0;
@@ -479,7 +479,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateSeries = validate } = seriesDef;
-            const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, opts);
+            const { cleared, invalid } = validateSeries(seriesOptions, seriesDef.options, keyPath, params);
 
             for (const error of invalid) {
                 Logger.warn(error);
@@ -494,7 +494,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         return missingModules;
     }
 
-    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>, opts: ValidateOptions = {}) {
+    private validateAxesOptions(options: T, unmappedAxisKeys?: Map<string, string>, params: ValidateParams = {}) {
         if (!('axes' in options) || !options.axes) return;
 
         const chartType = this.chartDef?.name;
@@ -544,7 +544,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             }
 
             const { validate: validateAxis = validate } = axisDef;
-            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, opts);
+            const { cleared, invalid } = validateAxis(axisOptions, axisDef.options, keyPath, params);
 
             for (const error of invalid) {
                 Logger.warn(error);

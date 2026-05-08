@@ -88,7 +88,7 @@ export interface ValidatorContext {
     silentAdvisories?: boolean;
 }
 
-export interface ValidateOptions {
+export interface ValidateParams {
     silentAdvisories?: boolean;
 }
 
@@ -182,7 +182,7 @@ export function validate<T>(
     options: unknown,
     optionsDefs: OptionsDefs<T>,
     path = '',
-    opts: ValidateOptions = {}
+    params: ValidateParams = {}
 ): ValidationResult<T> {
     if (!isObject(options)) {
         return { cleared: null, invalid: [new ValidationError(ErrorType.Required, 'an object', options, path)] };
@@ -201,7 +201,7 @@ export function validate<T>(
             (options.type == null && defaultType != null)
         ) {
             const { type = defaultType, ...rest } = options;
-            const nestedResult = validate(rest, (optionsDefs as any)[type], path, opts);
+            const nestedResult = validate(rest, (optionsDefs as any)[type], path, params);
             Object.assign(cleared, { type }, nestedResult.cleared);
             for (const error of nestedResult.invalid) {
                 error.setUnionType(type, path);
@@ -231,7 +231,7 @@ export function validate<T>(
 
         const keyPath = extendPath(path, key);
         if (isFunction(validatorOrDefs)) {
-            const context: ValidatorContext = { options, path: keyPath, silentAdvisories: opts.silentAdvisories };
+            const context: ValidatorContext = { options, path: keyPath, silentAdvisories: params.silentAdvisories };
             const validatorResult = validatorOrDefs(value, context);
             const objectResult = typeof validatorResult === 'object';
 
@@ -257,7 +257,7 @@ export function validate<T>(
                 )
             );
         } else {
-            const nestedResult = validate(value, validatorOrDefs, keyPath, opts);
+            const nestedResult = validate(value, validatorOrDefs, keyPath, params);
             if (nestedResult.cleared != null) {
                 cleared[key as keyof T] = nestedResult.cleared as any;
             }
