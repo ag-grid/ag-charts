@@ -813,9 +813,8 @@ export abstract class Series<
     /**
      * Lazy-init `bucketLookup` on first access. The just-created feature is
      * refreshed once so it reflects the current selection bitset and
-     * aggregation filters — without this any earlier
-     * `aggregate({ onChange })` callbacks would have been no-ops (the field
-     * was still undefined when they fired).
+     * aggregation filters — without this any `filtersChanged` events emitted
+     * before the lazy-init would have been missed.
      */
     public ensureBucketLookupFeature(): BucketLookupFeature | undefined {
         if (this.bucketLookup === undefined) {

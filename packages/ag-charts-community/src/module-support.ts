@@ -300,7 +300,6 @@ export type { GaugeSeries } from './chart/series/gaugeSeries';
 export { getShapeFill, getShapeStyle } from './chart/series/shapeUtil';
 export type { ShapeFillBBox } from './chart/series/shapeUtil';
 export { AggregationManager } from './chart/series/aggregationManager';
-export { makeAggregateRangeReader, prepareAggregateBucketContext } from './chart/series/aggregationRangeReader';
 export {
     BucketLookupManager,
     IndexSetBucketLookupManager,

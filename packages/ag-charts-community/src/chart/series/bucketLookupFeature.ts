@@ -297,10 +297,7 @@ export class BucketLookupManager<TFilter extends ExtremesFilter>
             return [indexData[bucket + AGGREGATION_INDEX_X_MIN], indexData[bucket + AGGREGATION_INDEX_X_MAX]];
         }
 
-        const selectedReader = readSelectedExtremes;
-        const rangeReader: DatumRangeReader = readRangeExtremes;
-
-        this.cache.set(processedData, filter, selectedReader, rangeReader);
+        this.cache.set(processedData, filter, readSelectedExtremes, readRangeExtremes);
         return this.cache;
     }
 }
@@ -438,10 +435,7 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
             return [data[bucket + AGGREGATION_INDEX_X_MIN], data[bucket + AGGREGATION_INDEX_X_MAX]];
         }
 
-        const selectedReader = readSelectedSplit;
-        const rangeReader: DatumRangeReader = readRangeSplit;
-
-        this.cache.set(processedData, filter, selectedReader, rangeReader);
+        this.cache.set(processedData, filter, readSelectedSplit, readRangeSplit);
         return this.cache;
     }
 }
