@@ -52,6 +52,8 @@ ModuleRegistry.registerModules([
     ContextMenuModule,
 ]);
 
+(window as any).agChartsDebug = 'scene:stats';
+
 let dataLabel = '1K';
 let seriesType = 'Line';
 let datapoints = 1e3;
