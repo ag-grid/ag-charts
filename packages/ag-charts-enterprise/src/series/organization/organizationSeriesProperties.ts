@@ -202,6 +202,9 @@ class OrganizationSeriesNodeProperties extends BaseProperties {
 
 export class OrganizationSeriesNodeImageProperties extends BaseProperties {
     @Property
+    cornerRadius: number = 0;
+
+    @Property
     enabled: boolean = true;
 
     @Property
@@ -215,9 +218,6 @@ export class OrganizationSeriesNodeImageProperties extends BaseProperties {
 
     @Property
     position: 'bottom' | 'left' | 'right' | 'top' = 'top';
-
-    @Property
-    shape: 'circle' | 'square' = 'square';
 
     @Property
     spacing: number = 0;

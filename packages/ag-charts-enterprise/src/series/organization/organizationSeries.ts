@@ -900,12 +900,12 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             fillOpacity,
             height: height ?? Number.NaN,
             image: {
+                cornerRadius: image.cornerRadius,
                 enabled: image.enabled,
                 key: image.key,
                 height: image.height,
                 width: image.width,
                 position: image.position,
-                shape: image.shape,
                 spacing: image.spacing,
             },
             lineDash,

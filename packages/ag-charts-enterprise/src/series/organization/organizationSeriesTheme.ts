@@ -39,7 +39,7 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
         highlight: {
             enabled: { $path: ['/highlight/enabled', true] },
             highlightedItem: {
-                stroke: { $foregroundBackgroundMix: 0.5 },
+                stroke: { $ref: 'accentColor' },
                 strokeWidth: 2,
             },
         },
@@ -64,12 +64,12 @@ export const organizationSeriesTheme: ExtensibleTheme<'organization'> = {
             strokeOpacity: 1,
             strokeWidth: 1,
             image: {
+                cornerRadius: 0,
                 key: 'image',
-                width: 50,
                 height: 50,
                 position: 'top',
-                shape: 'circle',
                 spacing: 8,
+                width: 50,
             },
             title: {
                 color: { $ref: 'foregroundColor' },

@@ -44,8 +44,7 @@ data field via `key` and stacks vertically below the subtitle.
 
 {% chartExampleRunner title="Org Chart Images" name="org-chart-images" type="generated" /%}
 
-The `image` property accepts a URL string and supports `shape` (`'circle'` or `'square'`), `width`,
-`height`, and `position` within the card.
+The `image` property accepts a URL string and supports `cornerRadius`, `width`, `height`, and `position` within the card.
 
 ```js format="snippet"
 {
@@ -55,7 +54,7 @@ The `image` property accepts a URL string and supports `shape` (`'circle'` or `'
             node: {
                 image: {
                     key: 'photoUrl',
-                    shape: 'circle',
+                    cornerRadius: 4,
                     width: 48,
                     height: 48,
                     position: 'left',

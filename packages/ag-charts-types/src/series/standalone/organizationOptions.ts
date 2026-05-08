@@ -130,6 +130,7 @@ export interface AgOrganizationSeriesOptionsNode<TDatum = DatumDefault, TContext
 }
 
 export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
+    cornerRadius?: PixelSize;
     /**
      * Default: `image`
      */
@@ -137,14 +138,9 @@ export interface AgOrganizationSeriesOptionsNodeImage extends Toggleable {
     height?: number;
     width?: number;
     position?: AgOrganizationSeriesOptionsNodeImagePosition;
-    /**
-     * Default: `'circle'`
-     */
-    shape?: AgOrganizationSeriesOptionsNodeImageShape;
     spacing?: number;
 }
 
-export type AgOrganizationSeriesOptionsNodeImageShape = 'circle' | 'square';
 export type AgOrganizationSeriesOptionsNodeImagePosition = 'bottom' | 'left' | 'right' | 'top';
 
 export interface AgOrganizationSeriesOptionsNodeSubtitle<TDatum = DatumDefault, TContext = ContextDefault>

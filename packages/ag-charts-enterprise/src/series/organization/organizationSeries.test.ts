@@ -373,7 +373,7 @@ interface StandaloneTestCase extends ChartTestCase {
 function createTextImageExample(
     textAlign: TextAlign,
     imagePosition: AgOrganizationSeriesOptionsNodeImagePosition,
-    imageShape?: 'circle' | 'square'
+    imageCornerRadius?: number
 ): any {
     return {
         ...SIMPLE_ORG_CHART,
@@ -386,7 +386,7 @@ function createTextImageExample(
                     image: {
                         position: imagePosition,
                         key: 'avatar',
-                        ...(imageShape == null ? {} : { shape: imageShape }),
+                        ...(imageCornerRadius == null ? {} : { cornerRadius: imageCornerRadius }),
                     },
                     title: { key: 'name', textAlign },
                     subtitle: { key: 'job', textAlign },
@@ -431,21 +431,19 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_TOP: {
-        // Verifies `shape: 'circle'` clips the image to a circle (width === height) when the
-        // image sits above the text tiers.
-        options: createTextImageExample('center', 'top', 'circle'),
+        options: createTextImageExample('center', 'top', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_BOTTOM: {
-        options: createTextImageExample('left', 'bottom', 'circle'),
+        options: createTextImageExample('left', 'bottom', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_LEFT: {
-        options: createTextImageExample('left', 'left', 'circle'),
+        options: createTextImageExample('left', 'left', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     IMAGE_CIRCLE_RIGHT: {
-        options: createTextImageExample('right', 'right', 'circle'),
+        options: createTextImageExample('right', 'right', 20),
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
     SEGMENT_TITLE_LEFT_ALIGNED: {
