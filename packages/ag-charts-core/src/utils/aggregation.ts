@@ -668,6 +668,9 @@ export function populateBucketSelectedFromSparse(
 
     if (sparseSelection.length === 0) return;
 
+    // Bucket assignment mirrors aggregationXRatioForXValue / aggregationXRatioForDatumIndex
+    // / aggregationIndexForXRatio (inlined here to avoid per-datum function-call overhead
+    // in the sparse loop). Keep in sync if the canonical formula changes.
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const xValuesLength = xValues.length;
     const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
@@ -717,6 +720,9 @@ export function populateBucketSelectedFromSparseSplit(
 
     if (sparseSelection.length === 0) return;
 
+    // Bucket assignment mirrors aggregationXRatioForXValue / aggregationXRatioForDatumIndex
+    // / aggregationIndexForXRatio (inlined here to avoid per-datum function-call overhead
+    // in the sparse loop). Keep in sync if the canonical formula changes.
     const continuous = Number.isFinite(d0) && Number.isFinite(d1);
     const xValuesLength = xValues.length;
     const scaleFactor = continuous ? bucketCount / (d1 - d0) : bucketCount * (1 / xValuesLength);
