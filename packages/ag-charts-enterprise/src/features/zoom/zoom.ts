@@ -5,6 +5,7 @@ import type {
     CartesianAxisDirection,
     DefinedZoomState,
     DynamicContext,
+    NormalisedSelectionOptions,
     NormalisedZoomOptions,
     ZoomMinMax,
 } from 'ag-charts-core';
@@ -74,6 +75,10 @@ export type ZoomCtx = Omit<DynamicContext<_ModuleSupport.ChartRegistry>, 'zoomMa
 export class Zoom extends AbstractModuleInstance {
     private get opts(): ZoomOpts {
         return this.ctx.chartState.getValue('options', 'zoom') ?? DISABLED_OPTS;
+    }
+
+    private get selectionOpts(): NormalisedSelectionOptions {
+        return this.ctx.chartState.getValue('options', 'selection');
     }
 
     // Public getter required by `hasViewportSupport()` in chart.ts.
@@ -318,7 +323,11 @@ export class Zoom extends AbstractModuleInstance {
             newDragState = DragState.Pan;
             this.panner.start();
         } else if (enableSelecting && !panKeyPressed) {
-            newDragState = DragState.Select;
+            const selectionOpts = this.selectionOpts;
+            const hasDataSelection = selectionOpts.enabled && selectionOpts.enableDrag;
+            if (!hasDataSelection) {
+                newDragState = DragState.Select;
+            }
         }
 
         if ((this.dragState = newDragState) !== DragState.None) {
