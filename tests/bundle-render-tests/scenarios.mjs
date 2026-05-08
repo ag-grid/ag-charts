@@ -170,7 +170,15 @@ export const scenarios = [
         ],
         chartOptions: {
             data: heatmapData,
-            series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] }],
+            series: [
+                {
+                    type: 'heatmap',
+                    xKey: 'x',
+                    yKey: 'y',
+                    colorKey: 'value',
+                    colorScale: { fills: [{ color: '#c7e9c0' }, { color: '#00441b' }] },
+                },
+            ],
         },
     },
     {

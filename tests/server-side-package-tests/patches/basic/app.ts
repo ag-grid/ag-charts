@@ -426,7 +426,15 @@ async function main() {
                     { x: 'B', y: '1', value: 30 },
                     { x: 'B', y: '2', value: 40 },
                 ],
-                series: [{ type: 'heatmap', xKey: 'x', yKey: 'y', colorKey: 'value', colorRange: ['#c7e9c0', '#00441b'] }],
+                series: [
+                    {
+                        type: 'heatmap',
+                        xKey: 'x',
+                        yKey: 'y',
+                        colorKey: 'value',
+                        colorScale: { fills: [{ color: '#c7e9c0' }, { color: '#00441b' }] },
+                    },
+                ],
             },
             width: 400,
             height: 300,

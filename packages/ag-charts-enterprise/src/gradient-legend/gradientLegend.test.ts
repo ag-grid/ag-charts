@@ -44,7 +44,15 @@ describe('GradientLegend', () => {
                 xKey: 'year',
                 yKey: 'person',
                 colorKey: 'spending',
-                colorRange: ['white', 'yellow', 'red', 'blue', 'black'],
+                colorScale: {
+                    fills: [
+                        { color: 'white' },
+                        { color: 'yellow' },
+                        { color: 'red' },
+                        { color: 'blue' },
+                        { color: 'black' },
+                    ],
+                },
             },
         ],
         legend: {
@@ -138,7 +146,15 @@ describe('GradientLegend', () => {
                     xKey: 'year',
                     yKey: 'person',
                     colorKey: 'spending',
-                    colorRange: ['white', 'yellow', 'red', 'blue', 'black'],
+                    colorScale: {
+                        fills: [
+                            { color: 'white' },
+                            { color: 'yellow' },
+                            { color: 'red' },
+                            { color: 'blue' },
+                            { color: 'black' },
+                        ],
+                    },
                     highlight: { enabled: false },
                 },
             ],

@@ -17,7 +17,7 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
     create(options: ChartOptions, resources?: TransferableResources) {
         return new PolarChart(options, resources);
     },
-    validate(options: any, optionsDefs, path) {
+    validate(options: any, optionsDefs, path, opts) {
         const additionalErrors: ValidationError[] = [];
         const baseType = options?.series?.[0]?.type;
         if (baseType === 'pie' || baseType === 'donut') {
@@ -27,7 +27,7 @@ export const PolarChartModule: ChartModuleDefinition<AgPolarChartOptions> = {
             }
         }
 
-        const result = validate(options, optionsDefs, path);
+        const result = validate(options, optionsDefs, path, opts);
         result.invalid.push(...additionalErrors);
         return result;
     },

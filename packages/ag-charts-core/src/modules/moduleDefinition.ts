@@ -1,7 +1,7 @@
 import type { DatumDefault, ExtensibleTheme, SeriesDefaultAxes, SeriesPredictAxis, SeriesType } from 'ag-charts-types';
 
 import type { DynamicContext } from '../module/dynamicContext';
-import type { OptionsDefs, ValidationResult } from '../state/validation';
+import type { OptionsDefs, ValidateOptions, ValidationResult } from '../state/validation';
 import type { AxisID } from '../types/idBranding';
 import type { Normalised } from '../types/normalised-options/normalise';
 import type { ScaleType } from '../types/scales';
@@ -100,7 +100,8 @@ export interface ModuleDefinition<
         this: void,
         options: unknown,
         optionsDefs: OptionsDefs<TOptions>,
-        path: string
+        path: string,
+        opts?: ValidateOptions
     ): ValidationResult<TOptions>;
 }
 

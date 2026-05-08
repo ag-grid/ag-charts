@@ -64,7 +64,9 @@ describe('HeatmapSeries', () => {
                 xKey: 'year',
                 yKey: 'person',
                 colorKey: 'spending',
-                colorRange: ['yellow', 'red', 'blue'],
+                colorScale: {
+                    fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }],
+                },
             },
         ],
         legend: {
@@ -1013,7 +1015,7 @@ describe('HeatmapSeries', () => {
                         xKey: 'category',
                         yKey: 'quarter',
                         colorKey: 'sales',
-                        colorRange: ['yellow', 'red', 'blue'],
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
                         label: { enabled: true },
                     },
                 ],
@@ -1037,7 +1039,7 @@ describe('HeatmapSeries', () => {
                         xKey: 'quarter',
                         yKey: 'category',
                         colorKey: 'sales',
-                        colorRange: ['yellow', 'red', 'blue'],
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
                         label: { enabled: true },
                     },
                 ],
@@ -1082,7 +1084,7 @@ describe('HeatmapSeries', () => {
                         xKey: 'period',
                         yKey: 'category',
                         colorKey: 'sales',
-                        colorRange: ['yellow', 'red', 'blue'],
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
                     },
                 ],
                 axes: {
@@ -1167,7 +1169,7 @@ describe('HeatmapSeries', () => {
                         xKey: 'category',
                         yKey: 'quarter',
                         colorKey: 'sales',
-                        colorRange: ['yellow', 'red', 'blue'],
+                        colorScale: { fills: [{ color: 'yellow' }, { color: 'red' }, { color: 'blue' }] },
                     },
                 ],
                 axes: {
