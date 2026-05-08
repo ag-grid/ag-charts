@@ -74,6 +74,7 @@ export const EXAMPLE_OPTIONS: Record<string, Record<string, ExampleOverrides>> =
     },
     'sparklines-test': {
         '*': { frameworks: ['vanilla'] },
+        'debug-sequential-render': { frameworks: [] },
     },
     'example-logger-test': {
         'console-logs': { frameworks: [] },
