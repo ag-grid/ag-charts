@@ -1,12 +1,8 @@
 // @ag-skip-fws
 // @ag-skip-container-check
-import { AgChartsCommunityModule } from 'ag-charts-community';
-
 declare const agGrid: any;
 
-const { ModuleRegistry, SparklinesModule, createGrid, themeQuartz } = agGrid;
-
-ModuleRegistry.registerModules([SparklinesModule.with(AgChartsCommunityModule)]);
+const { createGrid, themeQuartz } = agGrid;
 
 const SPARKLINE_COUNT = 10;
 
