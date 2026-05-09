@@ -400,13 +400,79 @@ export abstract class RadarSeries<
         };
     }
 
+    // --- Static callbacks for runMarkerStylePass ---
+    // Static methods have stable function identity across calls, keeping V8's inline cache
+    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+    // Typed as `RadarSeries<any, any, any>` to avoid propagating TStyle/TOpts/TProps into
+    // the static method signatures (abstract generic class constraint).
+
+    private static computeNoStylerMarkerStyle(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        datum: RadarNodeDatum
+    ): AgSeriesMarkerStyle {
+        const stylerStyle = series.getStyle(highlightState, selectionState);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        // hideWithSize0 is not applicable to RadarSeries — polar series do not
+        // use the markerDrawMode/hideWithSize0 mechanism (cartesian-specific).
+        return series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            undefined,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState },
+            stylerStyle.marker,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
+    private static computeStylerStyle(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        _ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        _datum: RadarNodeDatum
+    ): ResolvedRadarStyle<any> {
+        return series.getStyle(highlightState, selectionState);
+    }
+
+    private static applyStylerDatum(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        datum: RadarNodeDatum,
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        stylerStyle: ResolvedRadarStyle<any>
+    ): void {
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        // hideWithSize0 is not applicable to RadarSeries — polar series do not use the
+        // markerDrawMode/hideWithSize0 mechanism (which is cartesian-specific).
+        datum.style = series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            series.getDatumStylerProperties(datum.datum),
+            { isHighlight: ctx.isHighlight, highlightState, selectionState },
+            stylerStyle.marker,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
     protected updateDatumStyles(
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
         const { marker } = this.properties;
         const { itemStyler } = marker;
+        const ctx = { marker, isHighlight };
 
+        // Cast the static callbacks to `any` to satisfy the `series: this` polymorphic-this
+        // constraint. The abstract generic class (TStyle/TOpts/TProps) prevents TypeScript
+        // from verifying the static method's `RadarSeries<any, any, any>` parameter matches
+        // the concrete `this` type, but the assignment is correct at runtime.
         if (itemStyler == null) {
             // Without itemStyler, the resolved marker style is purely a function of
             // (highlightState, selectionState) — no per-datum input reaches the result.
@@ -415,25 +481,11 @@ export abstract class RadarSeries<
             this.runMarkerStylePass(
                 selection,
                 isHighlight,
+                ctx,
                 undefined,
                 true,
-                (highlightState, selectionState, datum) => {
-                    const stylerStyle = this.getStyle(highlightState, selectionState);
-                    const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-                    // hideWithSize0 is not applicable to RadarSeries — polar series do not
-                    // use the markerDrawMode/hideWithSize0 mechanism (cartesian-specific).
-                    return this.getMarkerStyle(
-                        marker,
-                        datum,
-                        undefined,
-                        { isHighlight, highlightState, selectionState },
-                        stylerStyle.marker,
-                        { stroke, strokeWidth, strokeOpacity }
-                    );
-                },
-                (datum, _h, _s, cached) => {
-                    datum.style = cached;
-                }
+                RadarSeries.computeNoStylerMarkerStyle as any,
+                RadarSeries.assignCachedStyle as any
             );
             return;
         }
@@ -444,22 +496,11 @@ export abstract class RadarSeries<
         this.runMarkerStylePass(
             selection,
             isHighlight,
+            ctx,
             undefined,
             true,
-            (highlightState, selectionState) => this.getStyle(highlightState, selectionState),
-            (datum, highlightState, selectionState, stylerStyle) => {
-                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-                // hideWithSize0 is not applicable to RadarSeries — polar series do not use the
-                // markerDrawMode/hideWithSize0 mechanism (which is cartesian-specific).
-                datum.style = this.getMarkerStyle(
-                    marker,
-                    datum,
-                    this.getDatumStylerProperties(datum.datum),
-                    { isHighlight, highlightState, selectionState },
-                    stylerStyle.marker,
-                    { stroke, strokeWidth, strokeOpacity }
-                );
-            }
+            RadarSeries.computeStylerStyle as any,
+            RadarSeries.applyStylerDatum as any
         );
     }
 

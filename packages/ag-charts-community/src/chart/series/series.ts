@@ -1468,25 +1468,36 @@ export abstract class Series<
      * cache fit this shape — they differ only in what they cache (final marker style vs styler
      * style) and what `perDatum` does with it.
      *
+     * Callbacks are typed to receive `series` and `ctx` explicitly rather than closing over
+     * `this` and per-pass locals. This lets callers pass **static class methods** (stable
+     * function identity across calls) so V8's inline cache can stay monomorphic per series
+     * type instead of going megamorphic across the five series that share this helper.
+     *
      * @param datumSelection - the marker selection to iterate
      * @param isHighlight - whether this is the highlight render pass
+     * @param ctx - opaque per-pass context object forwarded to both callbacks unchanged
      * @param keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
      * @param cacheable - false disables caching (e.g. bubble with active colorScale, where
      *                   `stylerStyle.fill` is mutated per datum)
      * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
      * @param perDatum - called per non-garbage datum with the cached value
      */
-    protected runMarkerStylePass<TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache>(
+    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache>(
         datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
         isHighlight: boolean,
+        ctx: TCtx,
         keyExtra: ((datum: TPassDatum) => string) | undefined,
         cacheable: boolean,
         computeCacheValue: (
+            series: this,
+            ctx: TCtx,
             highlightState: HighlightState,
             selectionState: SelectionState | undefined,
             datum: TPassDatum
         ) => TCache,
         perDatum: (
+            series: this,
+            ctx: TCtx,
             datum: TPassDatum,
             highlightState: HighlightState,
             selectionState: SelectionState | undefined,
@@ -1504,11 +1515,28 @@ export abstract class Series<
             const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
             let cached = cache?.get(stateKey);
             if (cached === undefined) {
-                cached = computeCacheValue(highlightState, selectionState, datum);
+                cached = computeCacheValue(thisSeries, ctx, highlightState, selectionState, datum);
                 cache?.set(stateKey, cached);
             }
-            perDatum(datum, highlightState, selectionState, cached);
+            perDatum(thisSeries, ctx, datum, highlightState, selectionState, cached);
         });
+    }
+
+    /**
+     * Common `perDatum` callback for the no-itemStyler path: writes the cached style object
+     * directly onto the datum. Defined as a static method so callers can pass a stable
+     * function reference to `runMarkerStylePass` without allocating a new closure each render.
+     */
+    protected static assignCachedStyle(
+        this: void,
+        _series: unknown,
+        _ctx: unknown,
+        datum: { style?: unknown },
+        _highlightState: HighlightState,
+        _selectionState: SelectionState | undefined,
+        cached: unknown
+    ): void {
+        datum.style = cached;
     }
 
     protected _nodeDataDependencies?: NodeDataDependencies;

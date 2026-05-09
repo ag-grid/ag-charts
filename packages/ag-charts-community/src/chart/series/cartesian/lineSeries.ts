@@ -109,6 +109,19 @@ interface LineSeriesTypes extends CartesianSeriesTypes {
 
 type LineAnimationData = CartesianAnimationDataOf<LineSeriesTypes>;
 
+/** Per-pass context for the itemStyler marker-style pass. */
+interface LineStylerPassCtx {
+    marker: LineSeriesProperties['marker'];
+    hideWithSize0: boolean;
+    isHighlight: boolean;
+    xColumn: any[];
+    yColumn: any[];
+    xDomain: any[];
+    yDomain: any[];
+    xKey: string;
+    yKey: string;
+}
+
 export class LineSeries extends CartesianSeries<LineSeriesTypes> {
     static override readonly className = 'LineSeries';
     static readonly type = 'line' as const;
@@ -714,6 +727,75 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
+    // --- Static callbacks for runMarkerStylePass ---
+    // Static methods have stable function identity across calls, keeping V8's inline cache
+    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+
+    private static computeNoStylerMarkerStyle(
+        this: void,
+        series: LineSeries,
+        ctx: { marker: LineSeriesProperties['marker']; hideWithSize0: boolean; isHighlight: boolean },
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        datum: LineNodeDatum
+    ): AgSeriesMarkerStyle {
+        const stylerStyle = series.getStyle(highlightState, selectionState);
+        return series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            undefined,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            stylerStyle.marker,
+            {
+                stroke: stylerStyle.stroke,
+                strokeWidth: stylerStyle.strokeWidth,
+                strokeOpacity: stylerStyle.strokeOpacity,
+            }
+        );
+    }
+
+    private static computeStylerStyle(
+        this: void,
+        series: LineSeries,
+        _ctx: LineStylerPassCtx,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        _datum: LineNodeDatum
+    ): ReturnType<LineSeries['getStyle']> {
+        return series.getStyle(highlightState, selectionState);
+    }
+
+    private static applyStylerDatum(
+        this: void,
+        series: LineSeries,
+        ctx: LineStylerPassCtx,
+        datum: LineNodeDatum,
+        highlightState: HighlightState,
+        selectionState: SelectionState | undefined,
+        stylerStyle: ReturnType<LineSeries['getStyle']>
+    ): void {
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        const markerStyle = stylerStyle.marker;
+        const xValue = ctx.xColumn[datum.datumIndex];
+        const yValue = ctx.yColumn[datum.datumIndex];
+        const fill = series.filterItemStylerFillParams(markerStyle.fill) ?? markerStyle.fill;
+        const params: AgLineSeriesMarkerItemStylerParams<unknown, unknown> = {
+            ...datumStylerProperties(xValue, yValue, ctx.xKey, ctx.yKey, ctx.xDomain, ctx.yDomain),
+            xValue,
+            yValue,
+            ...markerStyle,
+            fill,
+        };
+        datum.style = series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            params,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState, hideWithSize0: ctx.hideWithSize0 },
+            markerStyle,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
     protected override updateDatumStyles(opts: {
         datumSelection: Selection<LineNodeDatum, Marker<LineNodeDatum>>;
         isHighlight: boolean;
@@ -731,26 +813,11 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             this.runMarkerStylePass(
                 datumSelection,
                 isHighlight,
+                { marker, hideWithSize0, isHighlight },
                 undefined,
                 true,
-                (highlightState, selectionState, datum) => {
-                    const stylerStyle = this.getStyle(highlightState, selectionState);
-                    return this.getMarkerStyle(
-                        marker,
-                        datum,
-                        undefined,
-                        { isHighlight, highlightState, selectionState, hideWithSize0 },
-                        stylerStyle.marker,
-                        {
-                            stroke: stylerStyle.stroke,
-                            strokeWidth: stylerStyle.strokeWidth,
-                            strokeOpacity: stylerStyle.strokeOpacity,
-                        }
-                    );
-                },
-                (datum, _h, _s, cached) => {
-                    datum.style = cached;
-                }
+                LineSeries.computeNoStylerMarkerStyle,
+                LineSeries.assignCachedStyle
             );
             return;
         }
@@ -768,34 +835,25 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         // getStyle(highlightState, selectionState) returns an identical object for the same
         // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
         // chain once per distinct combination.
+        const ctx: LineStylerPassCtx = {
+            marker,
+            hideWithSize0,
+            isHighlight,
+            xColumn,
+            yColumn,
+            xDomain,
+            yDomain,
+            xKey,
+            yKey,
+        };
         this.runMarkerStylePass(
             datumSelection,
             isHighlight,
+            ctx,
             undefined,
             true,
-            (highlightState, selectionState) => this.getStyle(highlightState, selectionState),
-            (datum, highlightState, selectionState, stylerStyle) => {
-                const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-                const markerStyle = stylerStyle.marker;
-                const xValue = xColumn[datum.datumIndex];
-                const yValue = yColumn[datum.datumIndex];
-                const fill = this.filterItemStylerFillParams(markerStyle.fill) ?? markerStyle.fill;
-                const params: AgLineSeriesMarkerItemStylerParams<unknown, unknown> = {
-                    ...datumStylerProperties(xValue, yValue, xKey, yKey, xDomain, yDomain),
-                    xValue,
-                    yValue,
-                    ...markerStyle,
-                    fill,
-                };
-                datum.style = this.getMarkerStyle(
-                    marker,
-                    datum,
-                    params,
-                    { isHighlight, highlightState, selectionState, hideWithSize0 },
-                    markerStyle,
-                    { stroke, strokeWidth, strokeOpacity }
-                );
-            }
+            LineSeries.computeStylerStyle,
+            LineSeries.applyStylerDatum
         );
     }
 
