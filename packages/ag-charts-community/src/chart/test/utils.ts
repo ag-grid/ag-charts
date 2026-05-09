@@ -199,6 +199,7 @@ export interface SeriesAggregationInternals {
               isBucketSelected(datumIndex: number): boolean | undefined;
               getRangeReader(): ((sampledDatumIndex: number) => [number, number] | undefined) | undefined;
               getIndexSet(datumIndex: number): Iterable<number> | undefined;
+              setActiveFilter(processedData: unknown, filter: unknown): void;
           }
         | undefined;
 }

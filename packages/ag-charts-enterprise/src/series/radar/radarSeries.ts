@@ -400,30 +400,93 @@ export abstract class RadarSeries<
         };
     }
 
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
+    // `series: RadarSeries<any, any, any>` avoids spreading TStyle/TOpts/TProps into the static signatures.
+
+    private static computeNoStylerMarkerStyle(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        datum: RadarNodeDatum
+    ): AgSeriesMarkerStyle {
+        const stylerStyle = series.getStyle(highlightState, selectionState);
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
+        return series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            undefined,
+            { isHighlight: ctx.isHighlight, highlightState, selectionState },
+            stylerStyle.marker,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
+    private static computeStylerStyle(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        _ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        _datum: RadarNodeDatum
+    ): ResolvedRadarStyle<any> {
+        return series.getStyle(highlightState, selectionState);
+    }
+
+    private static applyStylerDatum(
+        this: void,
+        series: RadarSeries<any, any, any>,
+        ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
+        datum: RadarNodeDatum,
+        highlightState: _ModuleSupport.HighlightState,
+        selectionState: _ModuleSupport.SelectionState | undefined,
+        stylerStyle: ResolvedRadarStyle<any>
+    ): void {
+        const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
+        datum.style = series.getMarkerStyle(
+            ctx.marker,
+            datum,
+            series.getDatumStylerProperties(datum.datum),
+            { isHighlight: ctx.isHighlight, highlightState, selectionState },
+            stylerStyle.marker,
+            { stroke, strokeWidth, strokeOpacity }
+        );
+    }
+
     protected updateDatumStyles(
         selection: _ModuleSupport.Selection<RadarNodeDatum, _ModuleSupport.Marker<RadarNodeDatum>>,
         isHighlight: boolean
     ) {
-        const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        selection.each((_, datum) => {
-            const highlightState = this.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = this.getDataSelectionState(datum.datumIndex);
-            const stylerStyle = this.getStyle(highlightState, selectionState);
-            const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
+        const { marker } = this.properties;
+        const { itemStyler } = marker;
+        const ctx = { marker, isHighlight };
 
-            datum.style = this.getMarkerStyle(
-                this.properties.marker,
-                datum,
-                this.getDatumStylerProperties(datum.datum),
-                { isHighlight, highlightState },
-                stylerStyle.marker,
-                {
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                }
+        if (itemStyler == null) {
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
+            this.runMarkerStylePass(
+                selection,
+                isHighlight,
+                ctx,
+                undefined,
+                true,
+                RadarSeries.computeNoStylerMarkerStyle,
+                RadarSeries.assignCachedStyle
             );
-        });
+            return;
+        }
+
+        this.runMarkerStylePass(
+            selection,
+            isHighlight,
+            ctx,
+            undefined,
+            true,
+            RadarSeries.computeStylerStyle,
+            RadarSeries.applyStylerDatum
+        );
     }
 
     protected updateMarkers(
