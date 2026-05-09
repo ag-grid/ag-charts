@@ -147,7 +147,8 @@ function buildSeries(type: SeriesType): AgCartesianChartOptions['series'] {
                 },
             ];
         case 'histogram':
-            return [{ type, xKey: 'close', selection: { enabled: true } }];
+            // Histogram doesn't support per-series selection; serves as a zoom-only control.
+            return [{ type, xKey: 'close' }];
     }
 }
 

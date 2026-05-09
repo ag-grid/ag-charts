@@ -469,10 +469,6 @@ export abstract class RadarSeries<
         const { itemStyler } = marker;
         const ctx = { marker, isHighlight };
 
-        // Cast the static callbacks to `any` to satisfy the `series: this` polymorphic-this
-        // constraint. The abstract generic class (TStyle/TOpts/TProps) prevents TypeScript
-        // from verifying the static method's `RadarSeries<any, any, any>` parameter matches
-        // the concrete `this` type, but the assignment is correct at runtime.
         if (itemStyler == null) {
             // Without itemStyler, the resolved marker style is purely a function of
             // (highlightState, selectionState) — no per-datum input reaches the result.
@@ -484,8 +480,8 @@ export abstract class RadarSeries<
                 ctx,
                 undefined,
                 true,
-                RadarSeries.computeNoStylerMarkerStyle as any,
-                RadarSeries.assignCachedStyle as any
+                RadarSeries.computeNoStylerMarkerStyle,
+                RadarSeries.assignCachedStyle
             );
             return;
         }
@@ -499,8 +495,8 @@ export abstract class RadarSeries<
             ctx,
             undefined,
             true,
-            RadarSeries.computeStylerStyle as any,
-            RadarSeries.applyStylerDatum as any
+            RadarSeries.computeStylerStyle,
+            RadarSeries.applyStylerDatum
         );
     }
 

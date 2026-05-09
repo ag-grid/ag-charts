@@ -323,8 +323,8 @@ export abstract class Node<TDatum = unknown> {
             // Direct assignment is faster than assignIfNotStrictlyEqual here:
             // change-detection setters already short-circuit unchanged values internally,
             // so the outer "read-then-compare" via propertyGetter is pure overhead in the hot path.
-            const target = this as any;
-            const source = styles as any;
+            const target = this as unknown as Record<string, unknown>;
+            const source = styles as Record<string, unknown>;
             const keys = Object.keys(source);
             for (let i = 0, n = keys.length; i < n; i++) {
                 const key = keys[i];
@@ -344,8 +344,8 @@ export abstract class Node<TDatum = unknown> {
         this.batchLevel++;
         try {
             // Direct assignment — see setProperties for rationale.
-            const target = this as any;
-            const source = styles as any;
+            const target = this as unknown as Record<string, unknown>;
+            const source = styles as Record<string, unknown>;
             for (let i = 0, n = keys.length; i < n; i++) {
                 const key = keys[i];
                 target[key] = source[key];

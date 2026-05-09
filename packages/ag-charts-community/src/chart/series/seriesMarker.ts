@@ -74,7 +74,7 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
             return this._cachedStyle;
         }
         const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
-        return (this._cachedStyle = {
+        const style = {
             size,
             shape,
             fill,
@@ -84,7 +84,9 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
             strokeOpacity,
             lineDash,
             lineDashOffset,
-        } satisfies RequireOptional<AgSeriesMarkerStyle>);
+        } satisfies RequireOptional<AgSeriesMarkerStyle>;
+        this._cachedStyle = style;
+        return style;
     }
 
     getDiameter(): number {
@@ -109,24 +111,64 @@ type MergeMarkerStyleResult = AgSeriesMarkerStyle & { size: number; opacity?: nu
  * plain objects (lineDash is an array, shape can be a function), so no recursion is needed.
  */
 export function mergeMarkerStyles(
-    a: MergeMarkerStyleSource | undefined,
-    b: MergeMarkerStyleSource | undefined,
-    c: AgSeriesMarkerStyle & { size: number },
-    d: AgSeriesMarkerStyle,
-    e: MergeMarkerStyleSource | undefined
+    selectionStyle: MergeMarkerStyleSource | undefined,
+    highlightStyle: MergeMarkerStyleSource | undefined,
+    defaultOverride: AgSeriesMarkerStyle & { size: number },
+    markerStyle: AgSeriesMarkerStyle,
+    inheritedStyle: MergeMarkerStyleSource | undefined
 ): MergeMarkerStyleResult {
     return {
-        size: a?.size ?? b?.size ?? c.size,
-        shape: a?.shape ?? b?.shape ?? c.shape ?? d.shape ?? e?.shape,
-        fill: a?.fill ?? b?.fill ?? c.fill ?? d.fill ?? e?.fill,
-        fillOpacity: a?.fillOpacity ?? b?.fillOpacity ?? c.fillOpacity ?? d.fillOpacity ?? e?.fillOpacity,
-        stroke: a?.stroke ?? b?.stroke ?? c.stroke ?? d.stroke ?? e?.stroke,
-        strokeWidth: a?.strokeWidth ?? b?.strokeWidth ?? c.strokeWidth ?? d.strokeWidth ?? e?.strokeWidth,
-        strokeOpacity: a?.strokeOpacity ?? b?.strokeOpacity ?? c.strokeOpacity ?? d.strokeOpacity ?? e?.strokeOpacity,
-        lineDash: a?.lineDash ?? b?.lineDash ?? c.lineDash ?? d.lineDash ?? e?.lineDash,
+        size: selectionStyle?.size ?? highlightStyle?.size ?? defaultOverride.size,
+        shape:
+            selectionStyle?.shape ??
+            highlightStyle?.shape ??
+            defaultOverride.shape ??
+            markerStyle.shape ??
+            inheritedStyle?.shape,
+        fill:
+            selectionStyle?.fill ??
+            highlightStyle?.fill ??
+            defaultOverride.fill ??
+            markerStyle.fill ??
+            inheritedStyle?.fill,
+        fillOpacity:
+            selectionStyle?.fillOpacity ??
+            highlightStyle?.fillOpacity ??
+            defaultOverride.fillOpacity ??
+            markerStyle.fillOpacity ??
+            inheritedStyle?.fillOpacity,
+        stroke:
+            selectionStyle?.stroke ??
+            highlightStyle?.stroke ??
+            defaultOverride.stroke ??
+            markerStyle.stroke ??
+            inheritedStyle?.stroke,
+        strokeWidth:
+            selectionStyle?.strokeWidth ??
+            highlightStyle?.strokeWidth ??
+            defaultOverride.strokeWidth ??
+            markerStyle.strokeWidth ??
+            inheritedStyle?.strokeWidth,
+        strokeOpacity:
+            selectionStyle?.strokeOpacity ??
+            highlightStyle?.strokeOpacity ??
+            defaultOverride.strokeOpacity ??
+            markerStyle.strokeOpacity ??
+            inheritedStyle?.strokeOpacity,
+        lineDash:
+            selectionStyle?.lineDash ??
+            highlightStyle?.lineDash ??
+            defaultOverride.lineDash ??
+            markerStyle.lineDash ??
+            inheritedStyle?.lineDash,
         lineDashOffset:
-            a?.lineDashOffset ?? b?.lineDashOffset ?? c.lineDashOffset ?? d.lineDashOffset ?? e?.lineDashOffset,
-        opacity: a?.opacity ?? b?.opacity ?? e?.opacity,
+            selectionStyle?.lineDashOffset ??
+            highlightStyle?.lineDashOffset ??
+            defaultOverride.lineDashOffset ??
+            markerStyle.lineDashOffset ??
+            inheritedStyle?.lineDashOffset,
+        // defaultOverride and markerStyle don't carry opacity — see MergeMarkerStyleSource.
+        opacity: selectionStyle?.opacity ?? highlightStyle?.opacity ?? inheritedStyle?.opacity,
     };
 }
 
@@ -135,20 +177,20 @@ export function mergeMarkerStyles(
  * step where only the user-resolved style and the base style need merging.
  */
 export function mergeMarkerStylesPair(
-    a: MergeMarkerStyleSource | undefined,
-    b: MergeMarkerStyleResult
+    resolved: MergeMarkerStyleSource | undefined,
+    base: MergeMarkerStyleResult
 ): MergeMarkerStyleResult {
-    if (a == null) return b;
+    if (resolved == null) return base;
     return {
-        size: a.size ?? b.size,
-        shape: a.shape ?? b.shape,
-        fill: a.fill ?? b.fill,
-        fillOpacity: a.fillOpacity ?? b.fillOpacity,
-        stroke: a.stroke ?? b.stroke,
-        strokeWidth: a.strokeWidth ?? b.strokeWidth,
-        strokeOpacity: a.strokeOpacity ?? b.strokeOpacity,
-        lineDash: a.lineDash ?? b.lineDash,
-        lineDashOffset: a.lineDashOffset ?? b.lineDashOffset,
-        opacity: a.opacity ?? b.opacity,
+        size: resolved.size ?? base.size,
+        shape: resolved.shape ?? base.shape,
+        fill: resolved.fill ?? base.fill,
+        fillOpacity: resolved.fillOpacity ?? base.fillOpacity,
+        stroke: resolved.stroke ?? base.stroke,
+        strokeWidth: resolved.strokeWidth ?? base.strokeWidth,
+        strokeOpacity: resolved.strokeOpacity ?? base.strokeOpacity,
+        lineDash: resolved.lineDash ?? base.lineDash,
+        lineDashOffset: resolved.lineDashOffset ?? base.lineDashOffset,
+        opacity: resolved.opacity ?? base.opacity,
     };
 }

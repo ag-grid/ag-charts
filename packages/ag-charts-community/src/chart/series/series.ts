@@ -1396,14 +1396,14 @@ export abstract class Series<
             // Use the resolved highlightState directly when the caller provided one — avoids
             // a redundant trip through highlightManager.getActiveHighlight() + getHighlightState().
             const highlightStateString =
-                highlightState !== undefined
-                    ? toHighlightString(highlightState)
-                    : this.getHighlightStateString(
+                highlightState === undefined
+                    ? this.getHighlightStateString(
                           this.ctx.highlightManager?.getActiveHighlight(),
                           isHighlight,
                           datumIndex
-                      );
-            const selectionStateString = selectionState !== undefined ? toSelectionString(selectionState) : undefined;
+                      )
+                    : toHighlightString(highlightState);
+            const selectionStateString = selectionState === undefined ? undefined : toSelectionString(selectionState);
             const fill = this.filterItemStylerFillParams(markerStyle.fill);
 
             const style = this.cachedCallWithContext(itemStyler, {
@@ -1482,21 +1482,21 @@ export abstract class Series<
      * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
      * @param perDatum - called per non-garbage datum with the cached value
      */
-    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache>(
+    protected runMarkerStylePass<TCtx, TPassDatum extends SeriesNodeDatum<TDatumIndex>, TCache, TSeries = this>(
         datumSelection: Selection<TPassDatum, Marker<TPassDatum>>,
         isHighlight: boolean,
         ctx: TCtx,
         keyExtra: ((datum: TPassDatum) => string) | undefined,
         cacheable: boolean,
         computeCacheValue: (
-            series: this,
+            series: TSeries,
             ctx: TCtx,
             highlightState: HighlightState,
             selectionState: SelectionState | undefined,
             datum: TPassDatum
         ) => TCache,
         perDatum: (
-            series: this,
+            series: TSeries,
             ctx: TCtx,
             datum: TPassDatum,
             highlightState: HighlightState,
@@ -1506,19 +1506,24 @@ export abstract class Series<
     ): void {
         const cache = cacheable ? new Map<string, TCache>() : null;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const thisSeries = this;
+        // The TSeries generic lets generic-class subclasses (e.g. RadarSeries<TStyle, TOpts, TProps>)
+        // declare their static callbacks against a closed instance type like RadarSeries<any, any, any>.
+        // `self` keeps the precise `this` type for internal method access, while `seriesArg`
+        // forwards it to the user callbacks at the type they declared.
+        const self = this;
+        const seriesArg = self as unknown as TSeries;
         datumSelection.each(function runMarkerStylePass(node, datum) {
             if (datumSelection.isGarbage(node)) return;
-            const highlightState = thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
-            const selectionState = thisSeries.getDataSelectionState(datum.datumIndex);
+            const highlightState = self.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex);
+            const selectionState = self.getDataSelectionState(datum.datumIndex);
             const extra = keyExtra === undefined ? '' : `:${keyExtra(datum)}`;
             const stateKey = `${highlightState}:${selectionState ?? '-'}${extra}`;
             let cached = cache?.get(stateKey);
             if (cached === undefined) {
-                cached = computeCacheValue(thisSeries, ctx, highlightState, selectionState, datum);
+                cached = computeCacheValue(seriesArg, ctx, highlightState, selectionState, datum);
                 cache?.set(stateKey, cached);
             }
-            perDatum(thisSeries, ctx, datum, highlightState, selectionState, cached);
+            perDatum(seriesArg, ctx, datum, highlightState, selectionState, cached);
         });
     }
 

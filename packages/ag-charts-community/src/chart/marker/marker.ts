@@ -86,6 +86,13 @@ class InternalMarker<D = any> extends Path<D> {
 
 // Needed to ensure correct order of operations WRT computeBBox().
 export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(InternalMarker<any>))) {
+    // Re-declare Scalable mixin backing fields so optimised hot-path writes (in
+    // setVisibilityAndPosition / resetAnimationProperties) can address them without
+    // routing through the public setter. Type-only declarations — runtime fields are
+    // owned by the Scalable mixin.
+    declare __scalingCenterX: number;
+    declare __scalingCenterY: number;
+
     override get datum(): D | undefined {
         return super.datum;
     }
@@ -179,15 +186,12 @@ export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(Interna
                 this.__y = y;
                 dirty = true;
             }
-            // __scalingCenterX/Y are declared on the Scalable mixin — accessible at runtime
-            // but not visible on the typed Marker surface, so cast through `any`.
-            const scalingHost = this as any;
-            if (scalingHost.__scalingCenterX !== x) {
-                scalingHost.__scalingCenterX = x;
+            if (this.__scalingCenterX !== x) {
+                this.__scalingCenterX = x;
                 dirty = true;
             }
-            if (scalingHost.__scalingCenterY !== y) {
-                scalingHost.__scalingCenterY = y;
+            if (this.__scalingCenterY !== y) {
+                this.__scalingCenterY = y;
                 dirty = true;
             }
         }
