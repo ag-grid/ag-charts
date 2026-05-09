@@ -50,8 +50,7 @@ export class DataModelResolvers<D extends object, K extends keyof D & string> {
     }
 
     resolveProcessedDataIndexById(scope: ScopeProvider, searchId: string): number {
-        // Inlined to avoid the `{ index, def }` allocation in resolveProcessedDataDefById:
-        // this is a hot path and most callers only need the index.
+        // Inlined to skip the `{ index, def }` allocation in resolveProcessedDataDefById on the hot path.
         const def = this.ctx.scopeCache.get(scope.id)?.get(searchId);
         if (!def) {
             throw new Error(`AG Charts - didn't find property definition for [${searchId}, ${scope.id}]`);

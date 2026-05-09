@@ -320,9 +320,7 @@ export abstract class Node<TDatum = unknown> {
     setProperties<T extends Node>(this: T, styles: { [K in keyof T]?: T[K] }) {
         this.batchLevel++;
         try {
-            // Direct assignment is faster than assignIfNotStrictlyEqual here:
-            // change-detection setters already short-circuit unchanged values internally,
-            // so the outer "read-then-compare" via propertyGetter is pure overhead in the hot path.
+            // Direct assignment beats assignIfNotStrictlyEqual: change-detection setters already short-circuit unchanged values.
             const target = this as unknown as Record<string, unknown>;
             const source = styles as Record<string, unknown>;
             const keys = Object.keys(source);

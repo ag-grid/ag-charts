@@ -173,8 +173,7 @@ export function getItemStyle<D extends BaseNodeDatum, S extends RadialSectorSeri
     const { itemStyler } = properties;
 
     const highlightStyle = series.getHighlightStyle(isHighlight, nodeDatum?.datumIndex, highlightState);
-    // Pass selectionState directly when pre-resolved by the caller (no-itemStyler cache path) to
-    // avoid a redundant per-datum getDataSelectionState lookup inside getSelectionStyle.
+    // Pre-resolved selectionState is forwarded by the no-itemStyler cache path.
     const selectionStyle = series.getSelectionStyle(nodeDatum?.datumIndex, selectionState);
     const baseStyle = mergeDefaults(
         selectionStyle,

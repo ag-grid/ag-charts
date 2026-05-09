@@ -727,9 +727,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         return datumSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    // --- Static callbacks for runMarkerStylePass ---
-    // Static methods have stable function identity across calls, keeping V8's inline cache
-    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
 
     private static computeNoStylerMarkerStyle(
         this: void,
@@ -806,10 +804,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
         const { itemStyler } = marker;
 
         if (itemStyler == null) {
-            // Without itemStyler, the resolved marker style is purely a function of
-            // (highlightState, selectionState) — none of the per-datum inputs reach the
-            // result. Cache the full style by state so per-datum work collapses to
-            // state resolution + a Map lookup + a property write.
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
             this.runMarkerStylePass(
                 datumSelection,
                 isHighlight,
@@ -822,27 +817,18 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
             return;
         }
 
-        // Pre-compute per-pass invariants. resolveColumnById and getDomain don't depend on
-        // datumIndex — pulling them out of the loop avoids N×4 dataModel lookups for N markers.
+        // Hoist resolveColumnById/getDomain out of the per-datum loop — they don't depend on datumIndex.
         const dataModel = this.dataModel!;
         const processedData = this.processedData!;
-        const xColumn = dataModel.resolveColumnById<any>(this, 'xValue', processedData);
-        const yColumn = dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData);
-        const xDomain = dataModel.getDomain(this, 'xValue', 'key', processedData).domain;
-        const yDomain = dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain;
         const { xKey, yKey } = this.properties;
-
-        // getStyle(highlightState, selectionState) returns an identical object for the same
-        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
-        // chain once per distinct combination.
         const ctx: LineStylerPassCtx = {
             marker,
             hideWithSize0,
             isHighlight,
-            xColumn,
-            yColumn,
-            xDomain,
-            yDomain,
+            xColumn: dataModel.resolveColumnById<any>(this, 'xValue', processedData),
+            yColumn: dataModel.resolveColumnById<any>(this, 'yValueRaw', processedData),
+            xDomain: dataModel.getDomain(this, 'xValue', 'key', processedData).domain,
+            yDomain: dataModel.getDomain(this, this.yCumulativeKey(processedData), 'value', processedData).domain,
             xKey,
             yKey,
         };
@@ -878,8 +864,7 @@ export class LineSeries extends CartesianSeries<LineSeriesTypes> {
 
         const thisSeries = this;
         datumSelection.each(function datumSelectionUpdate(node, datum) {
-            // datum.style is populated by updateDatumStyles for non-garbage nodes,
-            // so getHighlightState only fires for the rare fallback path.
+            // updateDatumStyles populates datum.style for non-garbage nodes; the fallback below is rare.
             const style =
                 datum.style ??
                 contextNodeData.styles[thisSeries.getHighlightState(highlightedDatum, isHighlight, datum.datumIndex)];

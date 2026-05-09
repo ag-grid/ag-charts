@@ -138,12 +138,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
         opts.aggregationManager.events.on('filtersChanged', () => this.populateStaleFilters());
     }
 
-    /**
-     * Render-pass entrypoint — series resolves `dataAggregationFilter` once via
-     * `aggregationManager.getFilterForRange(range)` in `createNodeDatumContext`
-     * and pushes it here. Skips the per-datum `xAxis.scale.range` /
-     * `getFilterForRange` lookup that the lazy `ensureReaders` path requires.
-     */
+    /** Render-pass entrypoint — series pushes the resolved filter directly, skipping the lazy axis-poll path. */
     setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void {
         if (filter === undefined) {
             this.cache.clear();
@@ -214,9 +209,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
     }
 
     isBucketSelected(datumIndex: number): boolean | undefined {
-        // Direct cache access on the hot path — `setActiveFilter` is called by
-        // the series each render pass, so the per-datum loop never falls
-        // through to the lazy axis-poll path.
+        // Hot path: setActiveFilter primes the cache each render pass, so ensureReaders is rare.
         return (this.cache.selectedReader ?? this.ensureReaders()?.selectedReader)?.(datumIndex);
     }
 
@@ -228,12 +221,7 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
         return undefined;
     }
 
-    /**
-     * Lazy fallback for callers (e.g. interactive drag-select) that haven't
-     * explicitly resolved the active filter via {@link setActiveFilter}.
-     * Re-resolves `(processedData, filter)` from the axis range and populates
-     * the cache.
-     */
+    /** Lazy fallback for callers that haven't primed the cache via {@link setActiveFilter} (e.g. drag-select). */
     protected ensureReaders(): LookupCache<TFilter> | undefined {
         const xAxis = this.opts.getXAxis();
         const processedData = this.opts.getProcessedData();
@@ -509,8 +497,6 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
     }
 
     setActiveFilter(): void {
-        // No-op: cluster-based aggregation doesn't poll the axis or
-        // aggregation manager — `isBucketSelected` walks the cluster's index
-        // list against the selection bitset directly.
+        // No-op: cluster-based aggregation doesn't depend on the active filter.
     }
 }

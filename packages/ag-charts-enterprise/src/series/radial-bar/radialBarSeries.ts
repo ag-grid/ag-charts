@@ -420,9 +420,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const fillBBox = this.getShapeFillBBox();
         const hasItemStylers = this.hasItemStylers();
-        // When no itemStyler is configured, the resolved style is purely a function of
-        // (highlightState, selectionState). Build a per-pass cache so the style object is
-        // computed once per distinct state combination rather than once per datum.
+        // No itemStyler: style is a pure function of (highlightState, selectionState); cache by state.
         const styleCache =
             hasItemStylers && this.properties.itemStyler == null
                 ? new Map<string, RadialSeriesStyleResult>()
@@ -444,8 +442,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         const stateKey = `${highlightState}:${selectionState ?? '-'}`;
                         let cached = styleCache.get(stateKey);
                         if (cached === undefined) {
-                            // Pass nodeDatum so getStyle does not skip the styler callback
-                            // (getStyle treats nodeDatum === undefined as "ignore styler").
+                            // Concrete nodeDatum required: getStyle treats `undefined` as "ignore styler".
                             cached = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
                             styleCache.set(stateKey, cached);
                         }

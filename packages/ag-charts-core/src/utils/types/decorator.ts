@@ -73,10 +73,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         };
     }
 
-    // Cache the per-property config object so the property-key string lookup happens
-    // once at decoration time, not on every getter/setter call. The arrays inside the
-    // config are mutated by addTransformToInstanceProperty/addObserverToInstanceProperty
-    // but the object identity is stable.
+    // Hoist the per-property config lookup out of the hot getter/setter path; the array contents mutate but the object identity is stable.
     const propertyConfig = config[propertyKey];
 
     const getter = function (this: any) {
@@ -99,8 +96,7 @@ function initialiseConfig(target: any, propertyKeyOrSymbol: string | symbol) {
         const setters = propertyConfig.setters;
         const observers = propertyConfig.observers;
 
-        // Lazily retrieve old value only if any setter actually consumes it
-        // (`setTransform` arity > 2 means the function declared an `oldValue` param).
+        // Only resolve oldValue if a setter declares the `oldValue` parameter (arity > 2).
         let oldValue;
         for (let i = 0, n = setters.length; i < n; i++) {
             if (setters[i].length > 2) {

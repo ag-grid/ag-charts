@@ -207,10 +207,7 @@ export function cartesianMarkerDrawMode(
         markerEnabled(processedData.input.count, axes[ChartAxisDirection.X]!.scale, marker, markerStyle);
 
     if (properties.selection.enabled && !isMiniChart) {
-        // selection.enabled needs NodeData for selected-style overrides to function.
-        // Mini-chart series inherit selection.enabled from the main chart but the navigator
-        // preview never renders selection visualisations, so the size-0 marker placeholders
-        // are pure overhead — fall through to the marker-disabled path.
+        // selection.enabled needs NodeData for the selected-style overrides; mini-charts never render selection.
         return { needsNodeData: true, hideWithSize0: !markersEnabled };
     } else {
         return { needsNodeData: markersEnabled, hideWithSize0: false };

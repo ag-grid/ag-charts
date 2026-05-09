@@ -1026,9 +1026,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         );
     }
 
-    // --- Static callbacks for runMarkerStylePass ---
-    // Static methods have stable function identity across calls, keeping V8's inline cache
-    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
 
     private static computeNoStylerMarkerStyle(
         this: void,
@@ -1109,9 +1107,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         const ctx = { hideWithSize0, isHighlight };
 
         if (this.properties.marker.itemStyler == null) {
-            // Without itemStyler, the resolved marker style is purely a function of
-            // (highlightState, selectionState, itemType). Cache the full style by composite
-            // key so per-datum work collapses to state resolution + a Map lookup + a write.
+            // No itemStyler: style is a pure function of (highlightState, selectionState, itemType).
             this.runMarkerStylePass(
                 datumSelection,
                 isHighlight,
@@ -1124,10 +1120,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
             return;
         }
 
-        // getStyle(highlightState, selectionState) returns an identical object for the same
-        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
-        // chain once per distinct combination. itemType is not part of the key because
-        // getStyle() is item-type-agnostic; individual item sub-styles are extracted per datum.
+        // No itemType in the cache key: getStyle() is item-type-agnostic; sub-styles are extracted per datum.
         this.runMarkerStylePass(
             datumSelection,
             isHighlight,

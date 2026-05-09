@@ -71,9 +71,7 @@ export class OrdinalTimeScale extends DiscreteTimeScale {
             return this._uniformityCache;
         }
 
-        // For partial visible range, cache by (startIdx, endIdx). The hot path
-        // is the per-datum render loop reading `xAxis.scale` (via getActiveScale)
-        // which calls this with the same visibleRange for every datum in a pass.
+        // Partial-range result cached by (startIdx, endIdx) — per-datum render loops re-call with the same visibleRange.
         const startIdx = Math.floor(visibleRange[0] * n);
         const endIdx = Math.min(Math.ceil(visibleRange[1] * n), n - 1);
         if (

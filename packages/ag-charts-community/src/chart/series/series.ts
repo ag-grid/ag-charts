@@ -911,8 +911,7 @@ export abstract class Series<
         highlightState?: HighlightState,
         legendItemValues?: string[]
     ) {
-        // Skip the highlightManager + getHighlightState chain entirely when the caller
-        // already knows the resolved state (the per-datum hot path always does).
+        // Caller-provided highlightState skips the highlightManager + getHighlightState resolution.
         if (highlightState === undefined) {
             const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
             highlightState = this.getHighlightState(highlightedDatum, isHighlight, datumIndex, legendItemValues);
@@ -1331,9 +1330,7 @@ export abstract class Series<
         params?: TParams,
         opts?: {
             highlightState?: HighlightState;
-            // Pre-resolved selection state. Per-datum hot paths already compute this for
-            // their own purposes (e.g. line-series styler params); pass it through to skip
-            // the redundant getDataSelectionState() call here.
+            /** Pre-resolved by per-datum hot paths to skip the getDataSelectionState() lookup. */
             selectionState?: SelectionState;
             isHighlight?: boolean;
             checkForHighlight?: boolean;
@@ -1360,8 +1357,7 @@ export abstract class Series<
             return { size: 0 } satisfies AgSeriesMarkerStyle;
         }
 
-        // resolvePath is only consumed by the resolveStyler/itemStyler branches —
-        // build it lazily so the (common) no-styler path skips an array allocation per call.
+        // Lazy resolvePath — only the resolveStyler/itemStyler branches consume it.
         let resolvePath: string[] | undefined;
         const getResolvePath = () => (resolvePath ??= ['series', `${this.declarationOrder}`, ...resolveMarkerSubPath]);
 
@@ -1393,8 +1389,6 @@ export abstract class Series<
         );
 
         if (itemStyler && params) {
-            // Use the resolved highlightState directly when the caller provided one — avoids
-            // a redundant trip through highlightManager.getActiveHighlight() + getHighlightState().
             const highlightStateString =
                 highlightState === undefined
                     ? this.getHighlightStateString(
@@ -1460,25 +1454,13 @@ export abstract class Series<
     }
 
     /**
-     * Iterates the marker datum-selection, resolving highlight + selection state per datum,
-     * managing a state-keyed cache of computed values, and invoking a series-supplied per-datum
-     * callback. Used by the `updateDatumStyles` of every marker-rendering series.
+     * Per-datum marker-style pass with a state-keyed cache, shared across all marker-rendering series.
+     * Callbacks take `series` and `ctx` explicitly so callers can pass static methods (stable function
+     * identity) and keep V8's inline cache monomorphic across series sharing this helper.
      *
-     * Both the no-itemStyler full-style cache and the itemStyler-present upstream-getStyle()
-     * cache fit this shape — they differ only in what they cache (final marker style vs styler
-     * style) and what `perDatum` does with it.
-     *
-     * Callbacks are typed to receive `series` and `ctx` explicitly rather than closing over
-     * `this` and per-pass locals. This lets callers pass **static class methods** (stable
-     * function identity across calls) so V8's inline cache can stay monomorphic per series
-     * type instead of going megamorphic across the five series that share this helper.
-     *
-     * @param datumSelection - the marker selection to iterate
-     * @param isHighlight - whether this is the highlight render pass
-     * @param ctx - opaque per-pass context object forwarded to both callbacks unchanged
+     * @param ctx - opaque per-pass context forwarded to both callbacks
      * @param keyExtra - optional extra cache-key dimension (e.g. range-area's `datum.itemType`)
-     * @param cacheable - false disables caching (e.g. bubble with active colorScale, where
-     *                   `stylerStyle.fill` is mutated per datum)
+     * @param cacheable - disable caching when the cached value is mutated per datum (e.g. bubble + colorScale)
      * @param computeCacheValue - called once per distinct (highlight, selection[, keyExtra]) tuple
      * @param perDatum - called per non-garbage datum with the cached value
      */
@@ -1506,10 +1488,7 @@ export abstract class Series<
     ): void {
         const cache = cacheable ? new Map<string, TCache>() : null;
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        // The TSeries generic lets generic-class subclasses (e.g. RadarSeries<TStyle, TOpts, TProps>)
-        // declare their static callbacks against a closed instance type like RadarSeries<any, any, any>.
-        // `self` keeps the precise `this` type for internal method access, while `seriesArg`
-        // forwards it to the user callbacks at the type they declared.
+        // TSeries lets generic subclasses (e.g. RadarSeries<...>) declare callbacks against a closed instance type.
         const self = this;
         const seriesArg = self as unknown as TSeries;
         datumSelection.each(function runMarkerStylePass(node, datum) {
@@ -1527,11 +1506,7 @@ export abstract class Series<
         });
     }
 
-    /**
-     * Common `perDatum` callback for the no-itemStyler path: writes the cached style object
-     * directly onto the datum. Defined as a static method so callers can pass a stable
-     * function reference to `runMarkerStylePass` without allocating a new closure each render.
-     */
+    /** Default `perDatum` for the no-itemStyler path — writes the cached style straight onto the datum. */
     protected static assignCachedStyle(
         this: void,
         _series: unknown,

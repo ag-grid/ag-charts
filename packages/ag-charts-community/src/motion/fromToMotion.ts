@@ -265,8 +265,7 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
             }
         },
         onUpdate(props) {
-            // Hoist Object.keys() out of the per-node loop: animation passes the same
-            // interpolated `props` object to every node within a single frame.
+            // Hoist Object.keys() out of the per-node loop — same `props` for every node.
             const propKeys = Object.keys(props);
             for (const node of nodes) {
                 node.setPropertiesWithKeys(props, propKeys);
@@ -281,7 +280,7 @@ export function staticFromToMotion<D, N extends Node<D>, T extends AnimationValu
             }
         },
         onStop: () => {
-            // Hoist both the spread and Object.keys() — every node gets the same end-state.
+            // Hoist Object.keys() and the spread — every node gets the same end-state.
             const endProps = { ...to, ...finish };
             const endKeys = Object.keys(endProps);
             for (const node of nodes) {

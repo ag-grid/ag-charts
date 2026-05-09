@@ -85,13 +85,7 @@ export interface BucketLookupFeature {
     getIndexSet(datumIndex: number): Iterable<number> | undefined;
     /** Recompute the per-bucket SELECTED slot across every cached aggregation level. */
     refresh(): void;
-    /**
-     * Render-pass entrypoint — series resolves `dataAggregationFilter` once
-     * via `aggregationManager.getFilterForRange(range)` in
-     * `createNodeDatumContext` and pushes it here. Lets the manager skip the
-     * per-datum `xAxis.scale.range` / `getFilterForRange` resolution that the
-     * lazy fallback path requires.
-     */
+    /** Render-pass entrypoint — series pushes the resolved filter directly, skipping the lazy axis-poll path. */
     setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void;
 }
 

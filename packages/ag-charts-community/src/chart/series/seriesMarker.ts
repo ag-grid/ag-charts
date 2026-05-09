@@ -59,17 +59,13 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     private _cachedStyle?: AgSeriesMarkerStyle;
 
     override onChangeDetection(property: string): void {
-        // Any property change invalidates the cached snapshot. lineDash / lineDashOffset
-        // aren't change-detected and so don't reach here; they're part of the cache build
-        // itself, so a snapshot mismatch on those still reflects the latest values.
+        // Invalidate the snapshot on any decorated property change.
         this._cachedStyle = undefined;
         super.onChangeDetection(property);
     }
 
     getStyle(): AgSeriesMarkerStyle {
-        // Cached snapshot — cleared on any decorated property change. Returning the same
-        // object across calls is safe: callers feed it into mergeDefaults / spreads, which
-        // read keys but don't mutate.
+        // Returning the shared snapshot is safe: callers spread / read but never mutate it.
         if (this._cachedStyle !== undefined) {
             return this._cachedStyle;
         }
@@ -94,22 +90,11 @@ export class SeriesMarker<TParams = never> extends ChangeDetectableProperties {
     }
 }
 
-/**
- * Source shape for marker-style merges. Highlight and selection styles are typed as
- * AgSeriesMarkerStyle at most callsites but actually carry an extra `opacity` field
- * (from HighlightOptions's StyleMixins) that propagates through to applyMarkerStyle.
- */
+/** Highlight/selection styles carry an extra `opacity` field via HighlightOptions's StyleMixins. */
 export type MergeMarkerStyleSource = AgSeriesMarkerStyle & { opacity?: number };
 type MergeMarkerStyleResult = AgSeriesMarkerStyle & { size: number; opacity?: number };
 
-/**
- * Specialised mergeDefaults for AgSeriesMarkerStyle's known keys plus opacity. Avoids
- * the generic merge's Object.keys/iterator/isPlainObject overhead per source — significant
- * in per-datum paths where this runs once per visible marker.
- *
- * Semantics match mergeDefaults: left-most non-undefined value wins. None of the keys hold
- * plain objects (lineDash is an array, shape can be a function), so no recursion is needed.
- */
+/** Specialised mergeDefaults: left-most non-undefined wins, no recursion (no source holds plain objects). */
 export function mergeMarkerStyles(
     selectionStyle: MergeMarkerStyleSource | undefined,
     highlightStyle: MergeMarkerStyleSource | undefined,
@@ -172,10 +157,7 @@ export function mergeMarkerStyles(
     };
 }
 
-/**
- * Two-source flat merge for AgSeriesMarkerStyle. Used after the itemStyler resolution
- * step where only the user-resolved style and the base style need merging.
- */
+/** Two-source flat merge: applied after itemStyler resolution to overlay the user style on the base. */
 export function mergeMarkerStylesPair(
     resolved: MergeMarkerStyleSource | undefined,
     base: MergeMarkerStyleResult

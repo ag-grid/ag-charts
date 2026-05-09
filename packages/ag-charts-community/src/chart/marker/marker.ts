@@ -86,10 +86,7 @@ class InternalMarker<D = any> extends Path<D> {
 
 // Needed to ensure correct order of operations WRT computeBBox().
 export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(InternalMarker<any>))) {
-    // Re-declare Scalable mixin backing fields so optimised hot-path writes (in
-    // setVisibilityAndPosition / resetAnimationProperties) can address them without
-    // routing through the public setter. Type-only declarations — runtime fields are
-    // owned by the Scalable mixin.
+    // Type-only re-declarations of Scalable backing fields, exposed for the optimised hot-path writes.
     declare __scalingCenterX: number;
     declare __scalingCenterY: number;
 
@@ -154,11 +151,8 @@ export class Marker<D = unknown> extends Rotatable(Scalable(Translatable(Interna
     }
 
     /**
-     * Optimised visibility/position write for the per-datum marker render hot path
-     * (`Series.applyMarkerStyle`). Direct backing-field writes bypass the change-detection
-     * setter chain. Path's onChangeDetection override unconditionally dirties the path on any
-     * decorated write, so we mirror that — a single markDirty() + dirtyPath flip at the end
-     * reproduces the same invalidation the setters would have produced.
+     * Hot-path visibility/position write — bypasses change-detection setters and consolidates
+     * dirtying into a single dirtyPath + markDirty() at the end (matches Path's onChangeDetection).
      */
     setVisibilityAndPosition(visible: boolean, shape: AgMarkerShape, size: number, point?: Point): void {
         let dirty = false;

@@ -870,10 +870,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         if (itemStyler == null) {
-            // Without itemStyler, the resolved item style is purely a function of
-            // (highlightState, selectionState) — the styler is also state-only, not per-datum.
-            // Cache the full style by state so per-datum work collapses to state resolution
-            // + a Map lookup + a property write.
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
             const styleByState = new Map<string, Required<AgBoxPlotSeriesStyle>>();
             const thisSeries = this;
 
@@ -887,8 +884,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<BoxPlotSerie
                 const stateKey = `${highlightState}:${selectionState ?? '-'}`;
                 let style = styleByState.get(stateKey);
                 if (style === undefined) {
-                    // Pass a concrete datumIndex so getStyle does not skip the styler callback
-                    // (getStyle treats datumIndex === undefined as "ignore styler").
+                    // Concrete datumIndex required: getStyle treats `undefined` as "ignore styler".
                     style = thisSeries.getItemStyle(nodeDatum.datumIndex, isHighlight, highlightState, selectionState);
                     styleByState.set(stateKey, style);
                 }

@@ -400,11 +400,8 @@ export abstract class RadarSeries<
         };
     }
 
-    // --- Static callbacks for runMarkerStylePass ---
-    // Static methods have stable function identity across calls, keeping V8's inline cache
-    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
-    // Typed as `RadarSeries<any, any, any>` to avoid propagating TStyle/TOpts/TProps into
-    // the static method signatures (abstract generic class constraint).
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
+    // `series: RadarSeries<any, any, any>` avoids spreading TStyle/TOpts/TProps into the static signatures.
 
     private static computeNoStylerMarkerStyle(
         this: void,
@@ -416,8 +413,7 @@ export abstract class RadarSeries<
     ): AgSeriesMarkerStyle {
         const stylerStyle = series.getStyle(highlightState, selectionState);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-        // hideWithSize0 is not applicable to RadarSeries — polar series do not
-        // use the markerDrawMode/hideWithSize0 mechanism (cartesian-specific).
+        // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
         return series.getMarkerStyle(
             ctx.marker,
             datum,
@@ -449,8 +445,7 @@ export abstract class RadarSeries<
         stylerStyle: ResolvedRadarStyle<any>
     ): void {
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
-        // hideWithSize0 is not applicable to RadarSeries — polar series do not use the
-        // markerDrawMode/hideWithSize0 mechanism (which is cartesian-specific).
+        // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
         datum.style = series.getMarkerStyle(
             ctx.marker,
             datum,
@@ -470,10 +465,7 @@ export abstract class RadarSeries<
         const ctx = { marker, isHighlight };
 
         if (itemStyler == null) {
-            // Without itemStyler, the resolved marker style is purely a function of
-            // (highlightState, selectionState) — no per-datum input reaches the result.
-            // Cache the full style by state so per-datum work collapses to state resolution
-            // + a Map lookup + a property write.
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
             this.runMarkerStylePass(
                 selection,
                 isHighlight,
@@ -486,9 +478,6 @@ export abstract class RadarSeries<
             return;
         }
 
-        // getStyle(highlightState, selectionState) returns an identical object for the same
-        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
-        // chain once per distinct combination.
         this.runMarkerStylePass(
             selection,
             isHighlight,

@@ -981,9 +981,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return datumSelection.update(nodeData, undefined, getId);
     }
 
-    // --- Static callbacks for runMarkerStylePass ---
-    // Static methods have stable function identity across calls, keeping V8's inline cache
-    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
 
     private static computeNoStylerMarkerTemplate(
         this: void,
@@ -1012,8 +1010,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         _selectionState: SelectionState | undefined,
         template: AgSeriesMarkerStyle
     ): void {
-        // datum.point.size is the only per-datum field in this path. Reuse the cached
-        // object directly when size matches (e.g. ScatterSeries with fixed size).
+        // Reuse the cached object directly when size matches (e.g. ScatterSeries with fixed size).
         datum.style = template.size === datum.point.size ? template : { ...template, size: datum.point.size };
     }
 
@@ -1063,18 +1060,11 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         const { xKey, yKey, sizeKey, labelKey, colorKey, marker } = this.properties;
         const colorScaleValid = this.isColorScaleValid();
 
-        // params is consumed only by the itemStyler branch of getMarkerStyle.
-        // Hoist it here so both paths can share the allocation.
         const params = { xKey, yKey, sizeKey, labelKey, colorKey };
 
         if (marker.itemStyler == null && !colorScaleValid) {
-            // Without an itemStyler or colour-scale fill, every per-datum input falls out of
-            // the result except datum.point.size (which sets the bubble radius). Cache the
-            // size-invariant portion of the merged marker style by (highlightState,
-            // selectionState). Per-datum work then collapses to state resolution + a Map
-            // lookup + a single object spread that splices in the per-datum size.
-            // NOTE: unlike other series, the cached value is a per-state *template* — the
-            // final datum.style may differ only in size.
+            // No itemStyler / colour-scale: only datum.point.size varies per datum, so cache a
+            // per-state template and splice the size in at apply time.
             this.runMarkerStylePass(
                 datumSelection,
                 isHighlight,
@@ -1087,9 +1077,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
             return;
         }
 
-        // Per-datum path: itemStyler present or colour-scale fill varies per datum.
-        // Both the colorScaleValid and missingDataFill branches mutate stylerStyle.fill
-        // per-datum, so we cannot safely share a cached stylerStyle when colorKey is set.
+        // colorKey forces cacheable=false: applyPerDatumStyle mutates stylerStyle.fill per datum.
         this.runMarkerStylePass(
             datumSelection,
             isHighlight,

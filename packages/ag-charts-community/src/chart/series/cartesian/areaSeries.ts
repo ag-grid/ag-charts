@@ -1319,9 +1319,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         return datumSelection.update(data, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    // --- Static callbacks for runMarkerStylePass ---
-    // Static methods have stable function identity across calls, keeping V8's inline cache
-    // monomorphic. The `series` and `ctx` parameters replace captured closure variables.
+    // Static callbacks for runMarkerStylePass — see helper for the V8 IC rationale.
 
     private static computeNoStylerMarkerStyle(
         this: void,
@@ -1393,9 +1391,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { itemStyler } = marker;
 
         if (itemStyler == null) {
-            // Without itemStyler, the resolved marker style is purely a function of
-            // (highlightState, selectionState). Cache the full style by state so per-datum
-            // work collapses to state resolution + a Map lookup + a property write.
+            // No itemStyler: style is a pure function of (highlightState, selectionState).
             this.runMarkerStylePass(
                 datumSelection,
                 isHighlight,
@@ -1408,9 +1404,6 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
             return;
         }
 
-        // getStyle(highlightState, selectionState) returns an identical object for the same
-        // (state, sel) pair within a pass. Cache by composite key so we only walk the styler
-        // chain once per distinct combination.
         const ctx: AreaStylerPassCtx = {
             marker,
             hideWithSize0,

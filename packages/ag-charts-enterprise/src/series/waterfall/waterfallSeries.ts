@@ -853,9 +853,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<WaterfallS
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
 
         if (!hasItemStyler) {
-            // Without any itemStyler the resolved style is purely a function of
-            // (itemType, highlightState, selectionState). Cache the full style by composite
-            // key so per-datum work collapses to state resolution + Map lookup + property write.
+            // No itemStyler: style is a pure function of (itemType, highlightState, selectionState).
             const styleByState = new Map<string, Required<AgWaterfallSeriesStyle>>();
             const thisSeries = this;
 
