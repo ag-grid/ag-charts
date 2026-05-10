@@ -18,12 +18,22 @@ import { chromium } from 'playwright';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
+// Without this, stderr writes buffer when the runner is launched with `> log 2>&1`;
+// progress lines lag by minutes, which makes a healthy run look wedged.
+process.stderr._handle?.setBlocking?.(true);
+process.stdout._handle?.setBlocking?.(true);
+
 const OUTPUT_DIR = resolve(process.env.OUTPUT_DIR ?? '.');
 const SCREENSHOT_ROOT = `${OUTPUT_DIR}/screenshots`;
 const RESULTS_PATH = `${OUTPUT_DIR}/results.json`;
 const SIDES_FILE = resolve(process.env.SIDES_FILE ?? `${OUTPUT_DIR}/sides.json`);
 const MATRIX_FILE = resolve(process.env.MATRIX_FILE ?? `${OUTPUT_DIR}/matrix.json`);
 const CONCURRENCY = parseInt(process.env.CONCURRENCY ?? '4', 10);
+// When set, restrict the run to (page, example, framework) tuples that had any
+// exception or non-zero pixel diff in the existing results.json, then merge
+// fresh results back in place. Use this to iterate on harness/example fixes
+// without re-running the full ~30-minute sweep.
+const RERUN_EXCEPTIONS = process.env.RERUN_EXCEPTIONS === '1';
 
 mkdirSync(SCREENSHOT_ROOT, { recursive: true });
 
@@ -68,25 +78,40 @@ const SELECTORS = {
     canvas: '.ag-charts-wrapper canvas',
     canvasCenter: '.ag-charts-canvas-center',
     legendItems: 'button[role="switch"].ag-charts-proxy-elem',
-    tooltip: '.ag-charts-tooltip:not(.ag-charts-tooltip-hidden)',
+    // The tooltip element is long-lived (HTML Popover API: popover='manual'),
+    // so presence in the DOM is not a visibility signal — use isTooltipShowing().
+    tooltip: '.ag-charts-tooltip',
     crosshairLabel: '.ag-charts-crosshair-label',
-    exampleControlsButton: '.example-controls > button',
+    // The deployed site nests buttons under a .controls-row wrapper inside
+    // .example-controls; the local dev server used by the upstream e2e tests
+    // does not, hence the more permissive descendant combinator here.
+    exampleControlsButton: '.example-controls button',
 };
 
-const LICENCE_BANNER_RE = /^\*+$|License Key Not Found|^For more information|trial|licen[sc]e/i;
-const NOISE_RE = /Hotjar|Plausible|OneTrust|gtm|googletagmanager|Vite|React DevTools|Quirks Mode/i;
+// Mirrors setupIntrinsicAssertions() in packages/ag-charts-website/e2e/util.ts:
+//   - License banner lines start with '*'
+//   - Quirks Mode warning
+//   - favicon 404s
+//   - Vite HMR / React DevTools hello banners
+//   - Third-party analytics and consent scripts
+const NOISE_RE = /Hotjar|Plausible|OneTrust|gtm|googletagmanager|^\[vite\]|React DevTools|Quirks Mode/i;
 
-function isNoise(text) {
-    return LICENCE_BANNER_RE.test(text) || NOISE_RE.test(text);
+function isNoise(text, location) {
+    if (typeof text === 'string' && text.startsWith('*')) return true;
+    if (location?.url?.includes('/favicon.ico')) return true;
+    return NOISE_RE.test(text);
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function buildUrl(side, entry) {
-    if (entry.page === 'gallery') {
-        return `${side.baseUrl}/gallery/examples/${entry.example}`;
-    }
-    return `${side.baseUrl}/${entry.framework}/${entry.page}/examples/${entry.example}`;
+    return `${exampleUrl(side, entry)}#e2e=true`;
+}
+
+function exampleUrl(side, entry) {
+    return entry.page === 'gallery'
+        ? `${side.baseUrl}/gallery/examples/${entry.example}`
+        : `${side.baseUrl}/${entry.framework}/${entry.page}/examples/${entry.example}`;
 }
 
 function slug(s) {
@@ -133,6 +158,50 @@ async function dismissCookieBanner(page) {
     return null;
 }
 
+// Mirrors waitForCharts/waitForChartUpdate in packages/ag-charts-website/e2e/{fixture,util}.ts:
+// rAF→setTimeout(0) flush so DOMElementProxy's deferred mutations land, then
+// poll for data-update-pending=false and data-animating=false on every wrapper.
+async function waitForCharts(page, timeoutMs = 5000) {
+    await page
+        .evaluate(() => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0))))
+        .catch(() => null);
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const ready = await page
+            .evaluate((sel) => {
+                const wrappers = document.querySelectorAll(sel);
+                if (wrappers.length === 0) return false;
+                for (const w of wrappers) {
+                    if (w.getAttribute('data-update-pending') !== 'false') return false;
+                    if (w.getAttribute('data-animating') !== 'false') return false;
+                }
+                return true;
+            }, SELECTORS.chartWrapper)
+            .catch(() => false);
+        if (ready) return true;
+        await sleep(80);
+    }
+    return false;
+}
+
+async function isTooltipShowing(page) {
+    return page
+        .evaluate(() => {
+            const t = document.querySelector('.ag-charts-tooltip');
+            if (!t) return false;
+            if (typeof t.matches === 'function' && t.matches(':popover-open')) return true;
+            const r = t.getBoundingClientRect();
+            return r.width > 0 && r.height > 0;
+        })
+        .catch(() => false);
+}
+
+async function countWrappers(page) {
+    return page
+        .evaluate((sel) => document.querySelectorAll(sel).length, SELECTORS.chartWrapper)
+        .catch(() => 0);
+}
+
 async function waitForCanvas(page, timeoutMs = 20000) {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
@@ -170,16 +239,17 @@ async function waitForSceneRenderBump(page, before, timeoutMs = 5000) {
 
 async function takeWrapperScreenshot(page, outPath) {
     mkdirSync(dirname(outPath), { recursive: true });
-    const wrapper = await page.$(SELECTORS.chartWrapper);
-    if (wrapper) {
-        const box = await wrapper.boundingBox();
-        if (box && box.width > 0 && box.height > 0) {
-            await page.screenshot({ path: outPath, clip: box });
-            return true;
-        }
+    // Locator.screenshot() captures the full element irrespective of viewport
+    // height, scrolling as needed. page.screenshot({ clip }) would silently
+    // crop wrappers taller than the viewport.
+    const wrapper = page.locator(SELECTORS.chartWrapper).first();
+    try {
+        await wrapper.screenshot({ path: outPath, timeout: 15000 });
+        return true;
+    } catch {
+        await page.screenshot({ path: outPath, fullPage: false }).catch(() => null);
+        return false;
     }
-    await page.screenshot({ path: outPath, fullPage: false });
-    return false;
 }
 
 function newPhase(name) {
@@ -217,7 +287,8 @@ async function captureOne(browser, side, entry) {
     page.on('console', (msg) => {
         const type = msg.type();
         const text = msg.text();
-        if (isNoise(text)) return;
+        const location = msg.location?.();
+        if (isNoise(text, location)) return;
         if (type === 'error') result.consoleErrors.push(text);
         else if (type === 'warning' || type === 'warn') result.consoleWarnings.push(text);
     });
@@ -245,7 +316,30 @@ async function captureOne(browser, side, entry) {
 
     const canvasReady = await waitForCanvas(page);
     result.canvasFound = canvasReady;
-    await sleep(1500);
+    await waitForCharts(page);
+
+    // Multi-chart pages can't be driven by the generic fixture — mirrors
+    // examples-util.ts:165 (`if (canvases.length > 1) return`). We capture
+    // the initial wrapper screenshot for the A/B diff and skip the
+    // controls/tooltip/legend phases. Without this, page.screenshot times
+    // out at 30s on the multiple-* gallery examples.
+    const wrapperCount = await countWrappers(page);
+    result.wrapperCount = wrapperCount;
+    if (wrapperCount > 1) {
+        const initial = newPhase('initial');
+        const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-initial.png`;
+        try {
+            await page.screenshot({ path: out, fullPage: false, timeout: 10000 });
+            initial.screenshots.push({ phase: 'initial', path: out });
+        } catch (err) {
+            pushException(initial, 'screenshot-error', { error: err.message });
+        }
+        initial.notes.push(`multi-canvas-skipped (${wrapperCount} wrappers)`);
+        result.phases.initial = initial;
+        result.notes.push('multi-canvas');
+        await context.close();
+        return result;
+    }
 
     // Phase: initial
     const initial = newPhase('initial');
@@ -300,6 +394,7 @@ async function captureOne(browser, side, entry) {
                     });
                 }
             }
+            await waitForCharts(page);
 
             const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-control-${i}-${slug(label)}.png`;
             try {
@@ -336,16 +431,32 @@ async function captureOne(browser, side, entry) {
     {
         const errBefore = result.consoleErrors.length + result.pageErrors.length;
         try {
+            // Mirror triggerExampleTooltips() in examples-util.ts: each step is gated on
+            // the previous one not having opened the tooltip, so we don't accidentally
+            // close a freshly-opened popover by Tabbing focus elsewhere.
             const focusTarget = page.locator(`${SELECTORS.chartWrapper} [tabindex="0"]`).first();
+            let tooltipVisible = false;
+            let trigger = 'none';
             if ((await focusTarget.count()) > 0) {
                 await focusTarget.focus().catch(() => null);
-                await page.keyboard.press('Tab').catch(() => null);
-                await sleep(300);
-                await page.keyboard.press('ArrowRight').catch(() => null);
-                await sleep(700);
-            }
+                await waitForCharts(page);
+                tooltipVisible = await isTooltipShowing(page);
+                if (tooltipVisible) trigger = 'focus';
 
-            let tooltipVisible = (await page.locator(SELECTORS.tooltip).count()) > 0;
+                if (!tooltipVisible) {
+                    await page.keyboard.press('Tab').catch(() => null);
+                    await waitForCharts(page);
+                    tooltipVisible = await isTooltipShowing(page);
+                    if (tooltipVisible) trigger = 'tab';
+                }
+
+                if (!tooltipVisible) {
+                    await page.keyboard.press('ArrowRight').catch(() => null);
+                    await waitForCharts(page);
+                    tooltipVisible = await isTooltipShowing(page);
+                    if (tooltipVisible) trigger = 'arrow-right';
+                }
+            }
 
             if (!tooltipVisible && canvasBox) {
                 const tx = canvasBox.x + canvasBox.width * 0.5;
@@ -353,10 +464,12 @@ async function captureOne(browser, side, entry) {
                 await page.mouse.move(tx - 30, ty - 30);
                 await sleep(120);
                 await page.mouse.move(tx, ty, { steps: 10 });
-                await sleep(900);
-                tooltipVisible = (await page.locator(SELECTORS.tooltip).count()) > 0;
+                await waitForCharts(page);
+                tooltipVisible = await isTooltipShowing(page);
+                if (tooltipVisible) trigger = 'hover';
             }
             tooltip.data.tooltipVisible = tooltipVisible;
+            tooltip.data.tooltipTrigger = trigger;
             tooltip.data.crosshairLabelVisible = (await page.locator(SELECTORS.crosshairLabel).count()) > 0;
 
             const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-tooltip.png`;
@@ -370,8 +483,22 @@ async function captureOne(browser, side, entry) {
         result.phases.tooltip = tooltip;
     }
 
+    // The tooltip phase typically left the popover open (focus-triggered). Blur
+    // and move the pointer well away so subsequent legend phases don't capture
+    // the tooltip in their screenshots.
+    await page
+        .evaluate(() => {
+            if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+            const t = document.querySelector('.ag-charts-tooltip');
+            if (t && typeof t.hidePopover === 'function' && t.matches(':popover-open')) {
+                try {
+                    t.hidePopover();
+                } catch {}
+            }
+        })
+        .catch(() => null);
     await page.mouse.move(10, 10).catch(() => null);
-    await sleep(300);
+    await waitForCharts(page);
 
     const legendItems = await page.locator(SELECTORS.legendItems).all();
     result.legendItemCount = legendItems.length;
@@ -384,7 +511,7 @@ async function captureOne(browser, side, entry) {
         try {
             if (firstLegend) {
                 await firstLegend.hover({ timeout: 3000 }).catch(() => null);
-                await sleep(700);
+                await waitForCharts(page);
                 legendHover.data.legendItemTargeted = true;
             } else {
                 legendHover.notes.push('no legend item');
@@ -411,7 +538,7 @@ async function captureOne(browser, side, entry) {
             if (firstLegend) {
                 const beforeAria = await firstLegend.getAttribute('aria-checked').catch(() => null);
                 await firstLegend.click({ timeout: 3000 }).catch(() => null);
-                await sleep(700);
+                await waitForCharts(page);
                 const afterAria = await firstLegend.getAttribute('aria-checked').catch(() => null);
                 legendToggle.data.toggleResult = { before: beforeAria, after: afterAria };
                 if (beforeAria === afterAria) {
@@ -419,14 +546,14 @@ async function captureOne(browser, side, entry) {
                 }
 
                 await page.mouse.move(10, 10).catch(() => null);
-                await sleep(400);
+                await waitForCharts(page);
 
                 const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-toggle.png`;
                 await takeWrapperScreenshot(page, out);
                 legendToggle.screenshots.push({ phase: 'legend-toggle', path: out });
 
                 await firstLegend.click({ timeout: 3000 }).catch(() => null);
-                await sleep(300);
+                await waitForCharts(page);
             } else {
                 legendToggle.notes.push('no legend item');
                 const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-toggle.png`;
@@ -486,10 +613,65 @@ async function runPool(items, fn) {
     return results;
 }
 
+async function fetchSideMetadata(side) {
+    // /debug/meta.json is emitted by every Astro build of the website (see
+    // packages/ag-charts-website/src/pages/debug/meta.json.ts). Used here to
+    // surface the charts version + git hash + build date in the report header.
+    // New/removed-example detection is derived from per-result navigation-error
+    // data rather than a debug endpoint — gallery isn't covered by docs-examples.json.
+    const baseUrl = side.baseUrl.replace(/\/$/, '');
+    try {
+        const res = await fetch(`${baseUrl}/debug/meta.json`);
+        if (!res.ok) return { meta: null, error: `HTTP ${res.status}` };
+        return { meta: await res.json(), error: null };
+    } catch (err) {
+        return { meta: null, error: err.message };
+    }
+}
+
+function resultHasFailure(r) {
+    if (!r) return true;
+    if (r.error) return true;
+    let sawAnySide = false;
+    for (const side of ['left', 'right']) {
+        const s = r[side];
+        if (!s) continue;
+        sawAnySide = true;
+        if (s.error) return true;
+        for (const phase of Object.values(s.phases ?? {})) {
+            if (phase.exceptions?.length) return true;
+            for (const d of phase.imageDiffs ?? []) {
+                if (typeof d.percent === 'number' && d.percent > 0) return true;
+            }
+        }
+    }
+    return !sawAnySide;
+}
+
 (async () => {
     const browser = await chromium.launch({ headless: true });
-    const filtered = matrix.filter((e) => e.framework === framework);
+    let filtered = matrix.filter((e) => e.framework === framework);
     const dropped = matrix.length - filtered.length;
+
+    let priorBundle = null;
+    if (RERUN_EXCEPTIONS) {
+        if (!existsSync(RESULTS_PATH)) {
+            process.stderr.write(`RERUN_EXCEPTIONS=1 requires existing ${RESULTS_PATH} — run a full sweep first.\n`);
+            await browser.close();
+            process.exit(2);
+        }
+        priorBundle = JSON.parse(readFileSync(RESULTS_PATH, 'utf8'));
+        const failingKeys = new Set();
+        for (const r of priorBundle.results ?? []) {
+            if (resultHasFailure(r)) failingKeys.add(`${r.page}/${r.example}/${r.framework}`);
+        }
+        const before = filtered.length;
+        filtered = filtered.filter((e) => failingKeys.has(`${e.page}/${e.example}/${e.framework}`));
+        process.stderr.write(
+            `>> RERUN_EXCEPTIONS=1: ${filtered.length} of ${before} matrix entries had prior exceptions or pixel diffs\n`
+        );
+    }
+
     process.stderr.write(
         `>> ${filtered.length} examples × 2 sides @ concurrency=${CONCURRENCY}\n` +
             `   framework=${framework}\n` +
@@ -500,12 +682,49 @@ async function runPool(items, fn) {
         process.stderr.write(`   skipped ${dropped} matrix entries with a different framework\n`);
     }
     if (filtered.length === 0) {
-        process.stderr.write(`   no matrix entries match framework=${framework}; re-run discover.mjs with --framework ${framework}\n`);
+        process.stderr.write(
+            RERUN_EXCEPTIONS
+                ? `   no prior failures to rerun; clean state.\n`
+                : `   no matrix entries match framework=${framework}; re-run discover.mjs with --framework ${framework}\n`
+        );
         await browser.close();
-        process.exit(2);
+        process.exit(RERUN_EXCEPTIONS ? 0 : 2);
     }
-    const all = await runPool(filtered, async (entry) => captureBoth(browser, entry));
+    const [leftMeta, rightMeta] = await Promise.all([fetchSideMetadata(sides.left), fetchSideMetadata(sides.right)]);
+    const sideMetadata = { left: leftMeta, right: rightMeta };
+    for (const [k, m] of Object.entries(sideMetadata)) {
+        if (m.error) process.stderr.write(`   ${k} /debug/meta.json fetch failed: ${m.error}\n`);
+        else if (m.meta?.git?.shortHash)
+            process.stderr.write(
+                `   ${k}: charts ${m.meta?.versions?.charts ?? '?'} @ ${m.meta.git.shortHash} (${m.meta.git.date ?? '?'})\n`
+            );
+    }
+
+    const fresh = await runPool(filtered, async (entry) => captureBoth(browser, entry));
     await browser.close();
-    writeFileSync(RESULTS_PATH, JSON.stringify({ sides, framework, results: all }, null, 2));
-    console.log(`Wrote ${all.length} results to ${RESULTS_PATH}`);
+
+    if (RERUN_EXCEPTIONS && priorBundle) {
+        const idx = new Map();
+        priorBundle.results.forEach((r, i) => idx.set(`${r.page}/${r.example}/${r.framework}`, i));
+        let replaced = 0;
+        for (const f of fresh) {
+            const i = idx.get(`${f.page}/${f.example}/${f.framework}`);
+            if (i != null) {
+                priorBundle.results[i] = f;
+                replaced++;
+            }
+        }
+        // Refresh sides metadata in case the user changed sides.json between runs.
+        priorBundle.sides = sides;
+        priorBundle.framework = framework;
+        priorBundle.sideMetadata = sideMetadata;
+        writeFileSync(RESULTS_PATH, JSON.stringify(priorBundle, null, 2));
+        console.log(`Merged ${replaced} fresh results into ${RESULTS_PATH} (total ${priorBundle.results.length})`);
+    } else {
+        writeFileSync(
+            RESULTS_PATH,
+            JSON.stringify({ sides, framework, sideMetadata, results: fresh }, null, 2)
+        );
+        console.log(`Wrote ${fresh.length} results to ${RESULTS_PATH}`);
+    }
 })();

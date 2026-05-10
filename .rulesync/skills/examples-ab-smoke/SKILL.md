@@ -127,6 +127,21 @@ node plans/examples-ab-smoke/run-ab-smoke.mjs
 
 Wall time scales linearly with `(examples × 2 sides) / concurrency`. Concurrency 4 keeps the dev server happy.
 
+#### Iterating: re-run only the exceptions
+
+When you fix a harness bug, an `EXAMPLE_OPTIONS` entry, or an example itself, you don't need a full re-sweep. Set `RERUN_EXCEPTIONS=1` to filter the run to (page, example, framework) tuples that had any exception or non-zero pixel diff in the existing `results.json`, and merge the fresh outcomes back over the prior ones in place.
+
+```bash
+SIDES_FILE=plans/examples-ab-smoke/sides.json \
+MATRIX_FILE=plans/examples-ab-smoke/matrix.json \
+CONCURRENCY=4 \
+OUTPUT_DIR=./plans/examples-ab-smoke \
+RERUN_EXCEPTIONS=1 \
+node plans/examples-ab-smoke/run-ab-smoke.mjs
+```
+
+After the rerun, re-run `diff.mjs`, `triage-queue.mjs`, and `generate-report.mjs` as normal — they read the updated `results.json` and refresh the report. Always finish with one full sweep (without `RERUN_EXCEPTIONS=1`) before relying on the report for a release decision, so previously-clean rows are revalidated against the latest harness.
+
 ### Step 5 — pixel-diff and pre-classify
 
 ```bash

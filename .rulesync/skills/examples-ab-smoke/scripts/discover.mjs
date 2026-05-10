@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { glob } from 'node:fs/promises';
 
-import { resolveOptions, IGNORE_PAGES, FRAMEWORKS } from './example-options.mjs';
+import { resolveOptions, IGNORE_PAGES, FRAMEWORKS, isUnsupportedGeneric } from './example-options.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -89,7 +89,7 @@ async function main() {
     }
 
     const matrix = [];
-    const skipped = { hidden: 0, ignored: 0, filtered: 0 };
+    const skipped = { hidden: 0, ignored: 0, filtered: 0, unsupported: 0 };
 
     for await (const file of glob('**/_examples/*/main.ts', { cwd: CONTENT_DIR })) {
         const astroPath = file; // e.g. 'docs/legend/_examples/legend-position/main.ts'
@@ -109,6 +109,10 @@ async function main() {
         const options = resolveOptions(page, example);
         if (options.status === '404') {
             skipped.hidden++;
+            continue;
+        }
+        if (isUnsupportedGeneric(page, example)) {
+            skipped.unsupported++;
             continue;
         }
 
@@ -133,7 +137,7 @@ async function main() {
     }
 
     process.stderr.write(
-        `Discovered ${matrix.length} examples for framework=${args.framework} (skipped ${skipped.hidden} hidden, ${skipped.ignored} ignored, ${skipped.filtered} filtered).\n`
+        `Discovered ${matrix.length} examples for framework=${args.framework} (skipped ${skipped.hidden} hidden, ${skipped.ignored} ignored, ${skipped.filtered} filtered, ${skipped.unsupported} unsupported-generic).\n`
     );
 
     process.stdout.write(JSON.stringify(matrix, null, 2) + '\n');

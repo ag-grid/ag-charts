@@ -111,6 +111,12 @@ for (const entry of data.results) {
         const lp = entry.left.phases[phaseName];
         const rp = entry.right.phases[phaseName];
         if (!rp) continue;
+        // Reset diff metadata before recomputing so reruns replace rather than
+        // append to the prior diff results.
+        lp.imageDiffs = [];
+        lp.exceptions = (lp.exceptions ?? []).filter(
+            (e) => e.type !== 'image-diff' && e.type !== 'image-diff-major'
+        );
         const paired = pairScreenshots(lp, rp);
         for (const p of paired) {
             pairs++;
@@ -118,9 +124,7 @@ for (const entry of data.results) {
             const baseName = p.key.replace(/[#/]/g, '-');
             const outPath = `${DIFF_DIR}/${entry.page}-${entry.example}-${entry.framework}-${baseName}.png`;
             const r = diffPair(p.left, p.right, outPath);
-            const target = lp; // attach to left phase for reporting locality
-            target.imageDiffs ??= [];
-            target.imageDiffs.push({ key: p.key, label: p.label, ...r });
+            lp.imageDiffs.push({ key: p.key, label: p.label, ...r });
             if (r.ok && r.diffPath) {
                 lp.exceptions.push({
                     type: r.severity === 'major' ? 'image-diff-major' : 'image-diff',

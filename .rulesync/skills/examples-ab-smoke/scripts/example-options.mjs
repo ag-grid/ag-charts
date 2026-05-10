@@ -137,6 +137,19 @@ export const ALL_OPTIONS = { ...DOCS_OPTIONS, ...GALLERY_OPTIONS };
 
 export const IGNORE_PAGES = ['benchmarks'];
 
+// Pages handled by dedicated e2e specs (security.spec.ts, layout shadow-dom variants).
+// The generic harness here cannot inspect their canvases — they don't render a
+// reachable .ag-charts-wrapper canvas under the standard fixture.
+export const UNSUPPORTED_GENERIC = [
+    /^security-test\//,
+    /^layout-test\/layout-(shadow-dom|detached-shadow-dom|sparkline-shadow-dom)/,
+];
+
+export function isUnsupportedGeneric(page, example) {
+    const key = `${page}/${example}`;
+    return UNSUPPORTED_GENERIC.some((re) => re.test(key));
+}
+
 // Resolve the merged options for a (page, example) pair, mirroring convertPageUrls
 // in examples-util.ts. Returns the effective overrides object.
 export function resolveOptions(page, example) {
