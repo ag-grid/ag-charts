@@ -1,5 +1,6 @@
 import {
     AgCharts,
+    AgOrganizationSeriesOptions,
     AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
@@ -22,6 +23,9 @@ const options: AgStandaloneChartOptions = {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
+            innerSpacing: 20,
+            outerSpacing: 40,
+            verticalSpacing: 52,
             node: {
                 image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
                 title: { key: 'name' },
@@ -34,34 +38,23 @@ const options: AgStandaloneChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function expandAll() {
-    const { version } = chart.getState();
-    chart.setState({ version, collapsed: [] });
+function changeInnerSpacing(event: any) {
+    const value = Number(event.target.value);
+    document.getElementById('innerSpacingValue')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).innerSpacing = value;
+    chart.update(options);
 }
 
-function collapseAll() {
-    const { version } = chart.getState();
-    chart.setState({
-        version,
-        collapsed: [
-            'Joseph Howe',
-            'Gary Garcia',
-            'Mr. Jeffrey Brown',
-            'Nicole Jones',
-            'Justin Contreras',
-            'Lawrence Martinez',
-            'Eric Jensen',
-        ],
-    });
+function changeOuterSpacing(event: any) {
+    const value = Number(event.target.value);
+    document.getElementById('outerSpacingValue')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).outerSpacing = value;
+    chart.update(options);
 }
 
-function toggleCTO() {
-    const { version, collapsed: prev } = chart.getState();
-
-    const collapsed = prev?.filter((id) => id !== 'Joseph Howe');
-    if (!prev?.includes('Joseph Howe')) {
-        collapsed?.push('Joseph Howe');
-    }
-
-    chart.setState({ version, collapsed });
+function changeVerticalSpacing(event: any) {
+    const value = Number(event.target.value);
+    document.getElementById('verticalSpacingValue')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).verticalSpacing = value;
+    chart.update(options);
 }

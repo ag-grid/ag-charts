@@ -1,6 +1,7 @@
 import {
     AgChartOptions,
     AgCharts,
+    AgOrganizationSeriesNodeTextStylerParams,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -12,60 +13,35 @@ ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Company Organisation',
-    },
+    title: { text: 'Company Organisation' },
     data: getData(),
+    initialState: {
+        collapsed: ['Mr. Jeffrey Brown', 'Nicole Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
+    },
     series: [
         {
             type: 'organization',
             idKey: 'id',
             parentIdKey: 'parentId',
             node: {
-                title: {
-                    key: 'name',
-                    itemStyler: (params: any) => {
-                        if (params.datum.job === 'Chief Financial Officer') {
-                            return {
-                                color: '#ff7faa',
-                                fontSize: 18,
-                            };
-                        }
-                    },
-                },
-                subtitle: {
-                    key: 'job',
-                    formatter: (params: any) => {
-                        if (params.value === 'Quality Assurance') {
-                            return [
-                                { text: 'QUALITY', fontSize: 14, fontWeight: 'bold', color: 'purple' },
-                                { text: ' Assurance' },
-                            ];
-                        }
-                        return params.value;
-                    },
-                    itemStyler: (params: any) => {
-                        if (params.datum.job === 'Developer') {
-                            return {
-                                color: '#006f9b',
-                                fontStyle: 'italic',
-                            };
-                        }
-                    },
-                },
+                image: { key: 'avatar', position: 'left', height: 50, width: 50 },
+                title: { key: 'name', textAlign: 'left', fontSize: 16 },
+                subtitle: { key: 'job', textAlign: 'left', fontStyle: 'italic' },
                 labels: [
+                    { key: 'location', textAlign: 'left' },
                     {
-                        key: 'location',
-                    },
-                    {
-                        key: 'tenure',
-                        itemStyler: (params: any) => {
-                            if (params.datum.tenure > 2) {
-                                return {
-                                    color: '#ff7faa',
-                                    fontWeight: 'bold',
-                                };
-                            }
+                        key: 'status',
+                        textAlign: 'right',
+                        itemStyler: (params: AgOrganizationSeriesNodeTextStylerParams) => {
+                            const isRemote = params.datum.status === 'Remote';
+                            return {
+                                fill: isRemote ? '#fff3e0' : '#e8f5e9',
+                                stroke: isRemote ? '#ff9800' : '#4caf50',
+                                color: isRemote ? '#e65100' : '#2e7d32',
+                                cornerRadius: 8,
+                                padding: 4,
+                                fontWeight: 'bold',
+                            };
                         },
                     },
                 ],

@@ -41,6 +41,11 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
     AgBaseSeriesThemeableOptions<TDatum, TContext>,
     'selection'
 > {
+    /**
+     * Gap in pixels between sibling nodes (nodes that share the same parent).
+     *
+     * Default: `20`
+     */
     innerSpacing?: PixelSize;
     /**
      * Gap in pixels between adjacent nodes whose immediate parents differ (cousins). The layout
@@ -50,6 +55,11 @@ export interface AgOrganizationSeriesThemeableOptions<TDatum = DatumDefault, TCo
      * Default: `40`
      */
     outerSpacing?: PixelSize;
+    /**
+     * Vertical gap in pixels between parent and child rows.
+     *
+     * Default: `52`
+     */
     verticalSpacing?: PixelSize;
 
     expander?: AgOrganizationSeriesOptionsExpander<TDatum, TContext>;
@@ -198,7 +208,18 @@ export interface AgOrganizationSeriesNodeTextStyle extends FontOptions, FillCssO
 }
 
 export interface AgOrganizationSeriesOptionsKeys {
+    /**
+     * The key of the data field containing the unique node identifier.
+     *
+     * Default: `'id'`
+     */
     idKey?: string;
+    /**
+     * The key of the data field containing the parent node identifier. The root node should
+     * have a `null` value for this field.
+     *
+     * Default: `'parentId'`
+     */
     parentIdKey?: string;
 }
 
@@ -253,7 +274,7 @@ export interface AgOrganizationSeriesNodeTextStylerParams<TDatum = DatumDefault,
         DatumCallbackParams<TDatum, HighlightState>,
         ContextCallbackParams<TContext>,
         AgOrganizationSeriesNodeTextStyle {
-    /** The depth of the data */
+    /** The depth of the data point within the organisation. */
     depth: number;
     /** `true` when the node is collapsed (its descendants are hidden); `false` otherwise. */
     isCollapsed: boolean;

@@ -7,14 +7,13 @@ enterprise: true
 An Organisation Chart displays hierarchical relationships between people, departments, or entities as a
 tree of connected cards.
 
-{% chartExampleRunner title="Simple Org Chart" name="simple-org-chart" type="generated" /%}
+## Simple Organisation Chart
 
-The Organisation Series is an enterprise feature and is created using the `organization` series type.
+{% chartExampleRunner title="Simple Organisation Chart" name="simple-org-chart" type="generated" /%}
 
-## Setup
+The Org Chart is designed to display a single series and is created using the `organization` series type.
 
-Each data row represents a node. The `idKey` and `parentIdKey` properties define the parent-child
-relationships. The root node has a `null` parent, and sibling order follows the data array order.
+The data passed in should be an array of nodes, with each node containing a unique identifier field, and a second field that references the identifier of its parent node. The root node should have a `null` value for its `parentId`.
 
 ```js format="snippet"
 {
@@ -25,8 +24,8 @@ relationships. The root node has a `null` parent, and sibling order follows the 
             parentIdKey: 'parentId',
             node: {
                 title: { key: 'name' },
-                subtitle: { key: 'jobTitle' },
-                image: { key: 'photoUrl' },
+                subtitle: { key: 'job' },
+                image: { key: 'avatar' },
                 labels: [{ key: 'location' }],
             },
         },
@@ -34,121 +33,18 @@ relationships. The root node has a `null` parent, and sibling order follows the 
 }
 ```
 
-## Node Presentation
+In this configuration:
 
-Each card can display a `title`, `subtitle`, additional `labels`, and an `image`. The `title` and
-`subtitle` support `fontSize`, `fontWeight`, and `color`. Each entry in the `labels` array maps a
-data field via `key` and stacks vertically below the subtitle.
+- `idKey` and `parentIdKey` define parent-child relationships. These default to `'id'` and `'parentId'` respectively.
+- `title` and `subtitle` display the primary and secondary card text with the values from the provided data fields. The keys default to `'title'` and `'subtitle'` respectively.
+- `image` displays an image sourced from the data field specified by `key`. The key defaults to `'image'`.
+- `labels` allow adding additional text rows below the subtitle, each mapping a data field via `key`.
 
-### Image
+## Text
 
-{% chartExampleRunner title="Org Chart Images" name="org-chart-images" type="generated" /%}
+Each node can display a `title`, `subtitle` as well as an array of `labels`.
 
-The `image` property accepts a URL string and supports `cornerRadius`, `width`, `height`, and `position` within the card.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            node: {
-                image: {
-                    key: 'photoUrl',
-                    cornerRadius: 4,
-                    width: 48,
-                    height: 48,
-                    position: 'left',
-                },
-            },
-        },
-    ],
-}
-```
-
-## Connectors
-
-Connectors are the lines drawn between parent and child nodes, configured via the `link` property.
-
-{% chartExampleRunner title="Org Chart Links" name="org-chart-links" type="generated" /%}
-
-{% chartExampleRunner title="Org Chart Link Customisation" name="org-chart-link-customisation" type="generated" /%}
-
-The `cornerRadius` property rounds the corners of the step routing. Use `link.itemStyler` to style
-connectors per-relationship — the callback receives `fromDatum` (parent) and `toDatum` (child).
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            link: {
-                stroke: '#999',
-                strokeWidth: 2,
-                interpolation: { type: 'step', cornerRadius: 8 },
-                itemStyler: ({ fromDatum }) => {
-                    if (fromDatum.department === 'Engineering') {
-                        return { stroke: '#43A047' };
-                    }
-                },
-            },
-        },
-    ],
-}
-```
-
-## Collapse and Expand
-
-{% chartExampleRunner title="Collapse and Expand" name="org-chart-expand-collapse" type="generated" /%}
-
-Nodes with children can be collapsed and expanded by clicking. Use `initialState.collapsed` to
-specify which node subtrees start collapsed.
-
-```js format="snippet"
-{
-    initialState: {
-        collapsed: ['finance', 'hr'],
-    },
-    series: [{ type: 'organization' }],
-}
-```
-
-The chart state can also be read and updated programmatically. `setState()` performs a full
-replacement — to toggle a single node, read the current state, modify the array, then set it back.
-
-```js
-const { version, collapsed = [] } = chart.getState();
-chart.setState({ version, collapsed: [...collapsed, 'marketing'] });
-```
-
-When a node is set as the active item via `initialState.active`, all its collapsed ancestors are
-automatically expanded and the viewport pans to centre on it. This enables deep-linking to a
-specific person in a large chart.
-
-## Tooltips
-
-Tooltips are disabled by default. When enabled, they display all label fields for the hovered node.
-A `tooltip.renderer` callback can be used for custom formatting.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            tooltip: { enabled: true },
-        },
-    ],
-}
-```
-
-## Customisation
-
-### Node Styling
-
-{% chartExampleRunner title="Org Chart Node Customisation" name="org-chart-node-customisation" type="generated" /%}
-
-The `node.itemStyler` callback provides per-node visual customisation based on data and tree state.
-It receives `datum`, `depth`, and `isCollapsed`, and can return `fill`, `fillOpacity`, `stroke`,
-`strokeWidth`, `strokeOpacity`, `cornerRadius`, and `lineDash`.
+{% chartExampleRunner title="Text Customisation" name="org-chart-label-customisation" type="generated" /%}
 
 ```js format="snippet"
 {
@@ -156,36 +52,22 @@ It receives `datum`, `depth`, and `isCollapsed`, and can return `fill`, `fillOpa
         {
             type: 'organization',
             node: {
-                itemStyler: ({ datum, depth }) => {
-                    if (depth === 0) return { fill: '#1565C0', stroke: '#0D47A1' };
-                    if (datum.department === 'Engineering') return { fill: '#E8F5E9', stroke: '#43A047' };
-                },
-            },
-        },
-    ],
-}
-```
-
-### Label Styling
-
-{% chartExampleRunner title="Org Chart Label Customisation" name="org-chart-label-customisation" type="generated" /%}
-
-Each entry in the `labels` array supports an `itemStyler` callback for per-node text customisation.
-
-```js format="snippet"
-{
-    series: [
-        {
-            type: 'organization',
-            node: {
+                image: { key: 'avatar', position: 'left', height: 50, width: 50 },
+                title: { key: 'name', textAlign: 'left', fontSize: 16 },
+                subtitle: { key: 'job', textAlign: 'left', fontStyle: 'italic' },
                 labels: [
+                    { key: 'location', textAlign: 'left' },
                     {
-                        key: 'department',
-                        itemStyler: ({ datum }) => {
-                            if (datum.department === 'Engineering') {
-                                return { color: '#2E7D32', fontWeight: 'bold' };
-                            }
-                        },
+                        key: 'status',
+                        textAlign: 'right',
+                        itemStyler: ({ datum }) => ({
+                            fill: datum.status === 'Remote' ? '#fff3e0' : '#e8f5e9',
+                            stroke: datum.status === 'Remote' ? '#ff9800' : '#4caf50',
+                            color: datum.status === 'Remote' ? '#e65100' : '#2e7d32',
+                            cornerRadius: 8,
+                            padding: 4,
+                            fontWeight: 'bold',
+                        }),
                     },
                 ],
             },
@@ -194,22 +76,216 @@ Each entry in the `labels` array supports an `itemStyler` callback for per-node 
 }
 ```
 
-## Navigation
+In this configuration:
 
-Click and drag on the chart background to pan across the hierarchy. The viewport centres on the root
-node on first render and adjusts to keep a node visible after expanding or collapsing.
+- `title` and `subtitle` display the primary and secondary text with their own `key`, `textAlign`, and font styles.
+- `labels` is an array with each entry mapping a data field to a label stacked vertically below the subtitle.
+- An `itemStyler` is used to add a pill-style background to the 'status' label, with the fill and stroke colour determined by the label value.
 
-Organisation Charts support full keyboard navigation:
+See the [API Reference](#api-reference) for the available styling options for each text element.
 
-| Key       | Action                            |
-| --------- | --------------------------------- |
-| **Up**    | Move to parent                    |
-| **Down**  | Move to first child (if expanded) |
-| **Left**  | Move to previous sibling          |
-| **Right** | Move to next sibling              |
-| **Enter** | Toggle expand/collapse            |
+## Image
 
-Screen readers announce the node content and sibling position (e.g. "3 of 5").
+Each node can display an optional image by referencing a data field containing an image URL.
+
+{% chartExampleRunner title="Image Position" name="org-chart-images" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            node: {
+                image: {
+                    key: 'avatar',
+                    cornerRadius: 25,
+                    width: 50,
+                    height: 50,
+                    position: 'left',
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `key` maps to a data field containing an image URL.
+- `position` places the image within the card (`'top'`, `'bottom'`, `'left'`, or `'right'`).
+    - The image position dictates the layout of the text within the card.
+- `width` and `height` control the image dimensions.
+- `cornerRadius` rounds the image corners, allowing rounded rectangles or circles.
+
+## Customisation
+
+### Node Styling
+
+{% chartExampleRunner title="Node Styling" name="org-chart-node-customisation" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            node: {
+                width: 180,
+                cornerRadius: 12,
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Executive')
+                        return { fill: '#e3f2fd', stroke: '#1565C0', strokeWidth: 2 };
+                    if (datum.department === 'Technology')
+                        return { fill: '#e8f5e9', stroke: '#2e7d32', strokeWidth: 2 };
+                    if (datum.department === 'Operations')
+                        return { fill: '#fff3e0', stroke: '#e65100', strokeWidth: 2 };
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- The `width` option is used to set the card dimensions. This causes text wrapping when the content exceeds the available space.
+- `cornerRadius` rounds the card corners.
+- Each department is assigned a specific colour by using the `itemStyler` callback based on the `department` field in the data.
+
+See the [API Reference](#reference-AgOrganizationSeriesOptions-node) for the full list of available styling options.
+
+### Connectors
+
+Connectors are the lines drawn between parent and child nodes and are configured via the `link` property.
+
+{% chartExampleRunner title="Connector Styling" name="org-chart-link-customisation" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            link: {
+                stroke: '#ff8833',
+                strokeWidth: 2,
+                lineDash: [8, 2],
+                interpolation: { type: 'step', cornerRadius: 8 },
+                itemStyler: ({ fromDatum }) => {
+                    if (fromDatum.department === 'Technology') {
+                        return { stroke: '#00994d' };
+                    } else if (fromDatum.job === 'CEO') {
+                        return { stroke: '#006f9b', strokeWidth: 4, lineDash: [] };
+                    }
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `interpolation.cornerRadius` rounds the corners of each step.
+- `lineDash` sets a dashed line pattern.
+- `link.itemStyler` styles connectors per-relationship, receiving `fromDatum` (parent) and `toDatum` (child).
+
+### Expander
+
+The expander is the button displayed on nodes with children, used to
+[collapse and expand](#collapse-and-expand) subtrees. Its appearance can be customised via the
+`expander` property.
+
+{% chartExampleRunner title="Expander Styling" name="org-chart-expander-styling" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            expander: {
+                cornerRadius: 25,
+                strokeWidth: 2,
+                padding: 15,
+                text: { fontSize: 18, fontWeight: 'bold', color: 'red' },
+                itemStyler: ({ datum }) => {
+                    if (datum.department === 'Technology') return { fill: '#e8f5e9', stroke: '#2e7d32' };
+                    if (datum.department === 'Operations') return { fill: '#fff3e0', stroke: '#e65100' };
+                },
+            },
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `cornerRadius`, `strokeWidth`, and `padding` control the button shape and border.
+- `text` options control the text appearance.
+- `expander.itemStyler` provides per-node styling based on the department.
+
+### Node Spacing
+
+Three spacing properties control the gaps between nodes. These values apply at the leaf level, with
+higher levels in the hierarchy deriving their spacing from these.
+
+{% chartExampleRunner title="Spacing" name="org-chart-spacing" type="generated" /%}
+
+```js format="snippet"
+{
+    series: [
+        {
+            type: 'organization',
+            innerSpacing: 20,
+            outerSpacing: 40,
+            verticalSpacing: 52,
+        },
+    ],
+}
+```
+
+In this configuration:
+
+- `innerSpacing` is the horizontal gap between sibling nodes, such as the gap between 'Lawrence Martinez' and 'Eric Jensen'.
+- `outerSpacing` is the horizontal gap between cousin nodes, such as the gap between 'Justin Contreras' and 'Lawrence Martinez'.
+- `verticalSpacing` is the vertical gap between parent and child rows.
+
+## Interactivity
+
+### Collapse and Expand
+
+Nodes with children can be collapsed and expanded by clicking the expander button. They can also be controlled programmatically.
+
+{% chartExampleRunner title="Collapse and Expand" name="org-chart-expand-collapse" type="generated" /%}
+
+```js format="snippet"
+{
+    initialState: {
+        collapsed: ['Lawrence Martinez', 'Eric Jensen'],
+    },
+    series: [{ type: 'organization' }],
+}
+```
+
+In this example:
+
+- The subtrees under 'Lawrence Martinez' and 'Eric Jensen' will start in a collapsed state. This uses the `initialState.collapsed` property to specify which subtrees start collapsed.
+- To read or update the collapsed state at runtime, use `getState()` and `setState()`. The `collapsed` array contains the identifiers of all currently collapsed nodes.
+
+See the [State](./api-state/) page for the full state management API.
+
+### Zoom
+
+Organisation Charts have zoom and pan enabled by default. Scroll to zoom in and out, and click and
+drag the background to pan across the hierarchy.
+
+See the [Zoom](./zoom/) page for the full range of
+zoom options.
+
+## Accessibility
+
+Organisation Charts support full keyboard navigation using arrow keys, {% kbd "Enter" /%} to toggle
+expand/collapse as well as screen reader support.
+
+See [Accessibility](./accessibility/) for details.
 
 ## API Reference
 
