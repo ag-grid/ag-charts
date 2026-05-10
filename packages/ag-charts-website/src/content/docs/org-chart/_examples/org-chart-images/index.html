@@ -1,9 +1,24 @@
 <div class="example-controls">
     <div class="controls-row">
+        Position:
         <button onclick="changePosition('top')">Top</button>
         <button onclick="changePosition('right')">Right</button>
         <button onclick="changePosition('bottom')">Bottom</button>
         <button onclick="changePosition('left')">Left</button>
+        <span class="gap-left">
+            Corner Radius:
+            <input
+                type="range"
+                id="cornerRadiusInput"
+                min="0"
+                max="25"
+                value="25"
+                step="1"
+                oninput="changeCornerRadius(event)"
+                onchange="changeCornerRadius(event)"
+            />
+            <span id="cornerRadiusValue" style="display: inline-block; min-width: 3ch; text-align: right">25</span>
+        </span>
     </div>
 </div>
 <div id="myChart"></div>

@@ -1,6 +1,9 @@
 import {
     AgChartOptions,
     AgCharts,
+    AgOrganizationSeriesLinkItemStylerParams,
+    AgOrganizationSeriesOptions,
+    AgStandaloneChartOptions,
     ContextMenuModule,
     ModuleRegistry,
     OrganizationSeriesModule,
@@ -10,12 +13,13 @@ import { getData } from './data';
 
 ModuleRegistry.registerModules([OrganizationSeriesModule, ContextMenuModule]);
 
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
-    title: {
-        text: 'Company Organisation',
-    },
+    title: { text: 'Company Organisation' },
     data: getData(),
+    initialState: {
+        collapsed: ['Mr. Jeffrey Brown', 'Nicole Jones', 'Justin Contreras', 'Lawrence Martinez', 'Eric Jensen'],
+    },
     series: [
         {
             type: 'organization',
@@ -25,37 +29,30 @@ const options: AgChartOptions = {
                 stroke: '#ff8833',
                 strokeWidth: 2,
                 lineDash: [8, 2],
-                itemStyler: (params: any) => {
-                    if (params.fromDatum.job === 'Chief Technology Officer' && params.toDatum.job === 'Developer') {
+                interpolation: { type: 'step', cornerRadius: 8 },
+                itemStyler: (params: AgOrganizationSeriesLinkItemStylerParams) => {
+                    if (params.fromDatum.department === 'Technology') {
                         return { stroke: '#00994d' };
-                    } else if (params.fromDatum.job === 'Chief Executive Officer') {
-                        return {
-                            stroke: '#006f9b',
-                            strokeWidth: 4,
-                            lineDash: [],
-                            interpolation: {
-                                type: 'step',
-                                cornerRadius: 8,
-                            },
-                        };
+                    } else if (params.fromDatum.job === 'CEO') {
+                        return { stroke: '#006f9b', strokeWidth: 4, lineDash: [] };
                     }
                 },
             },
             node: {
-                title: {
-                    key: 'name',
-                },
-                subtitle: {
-                    key: 'job',
-                },
-                labels: [
-                    {
-                        key: 'location',
-                    },
-                ],
+                image: { key: 'avatar', position: 'left', height: 50, width: 50, cornerRadius: 25 },
+                title: { key: 'name' },
+                subtitle: { key: 'job' },
+                labels: [{ key: 'location' }],
             },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function changeCornerRadius(event: any) {
+    const value = Number(event.target.value);
+    document.getElementById('cornerRadiusValue')!.innerHTML = String(value);
+    (options.series![0] as AgOrganizationSeriesOptions).link!.interpolation = { type: 'step', cornerRadius: value };
+    chart.update(options);
+}
