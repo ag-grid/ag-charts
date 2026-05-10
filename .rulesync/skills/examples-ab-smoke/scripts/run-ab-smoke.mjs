@@ -260,6 +260,25 @@ function pushException(phase, type, evidence) {
     phase.exceptions.push({ type, ...evidence });
 }
 
+function snapshotErrorCounts(result) {
+    return { console: result.consoleErrors.length, page: result.pageErrors.length };
+}
+
+function pushErrorExceptionsSince(phase, result, before) {
+    if (result.consoleErrors.length > before.console) {
+        pushException(phase, 'console-error', {
+            newConsoleErrors: result.consoleErrors.slice(before.console),
+            newCount: result.consoleErrors.length - before.console,
+        });
+    }
+    if (result.pageErrors.length > before.page) {
+        pushException(phase, 'page-error', {
+            newPageErrors: result.pageErrors.slice(before.page),
+            newCount: result.pageErrors.length - before.page,
+        });
+    }
+}
+
 async function captureOne(browser, side, entry) {
     const url = buildUrl(side, entry);
     const sideKey = side.name;
@@ -293,6 +312,10 @@ async function captureOne(browser, side, entry) {
         else if (type === 'warning' || type === 'warn') result.consoleWarnings.push(text);
     });
     page.on('pageerror', (err) => result.pageErrors.push(err.message));
+
+    // Sample baseline before navigation so the initial phase covers errors
+    // emitted during page load, cookie dismissal, and chart settling.
+    const initialErrBefore = snapshotErrorCounts(result);
 
     try {
         const resp = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -344,7 +367,6 @@ async function captureOne(browser, side, entry) {
     // Phase: initial
     const initial = newPhase('initial');
     {
-        const errBefore = result.consoleErrors.length + result.pageErrors.length;
         const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-initial.png`;
         try {
             await takeWrapperScreenshot(page, out);
@@ -353,12 +375,7 @@ async function captureOne(browser, side, entry) {
             pushException(initial, 'screenshot-error', { error: err.message });
         }
         if (!canvasReady) pushException(initial, 'canvas-missing', { url });
-        const errAfter = result.consoleErrors.length + result.pageErrors.length;
-        if (errAfter > errBefore) {
-            pushException(initial, 'console-error', {
-                newConsoleErrors: result.consoleErrors.slice(errBefore),
-            });
-        }
+        pushErrorExceptionsSince(initial, result, initialErrBefore);
         result.phases.initial = initial;
     }
 
@@ -372,7 +389,7 @@ async function captureOne(browser, side, entry) {
         for (let i = 0; i < buttons.length; i++) {
             const btn = buttons[i];
             const label = (await btn.textContent().catch(() => null))?.trim() ?? `button-${i}`;
-            const errBefore = result.consoleErrors.length + result.pageErrors.length;
+            const errBefore = snapshotErrorCounts(result);
             const before = await getSceneRenders(page);
             try {
                 await btn.click({ timeout: 5000 });
@@ -403,14 +420,7 @@ async function captureOne(browser, side, entry) {
             } catch (err) {
                 pushException(controls, 'screenshot-error', { buttonIndex: i, label, error: err.message });
             }
-            const errAfter = result.consoleErrors.length + result.pageErrors.length;
-            if (errAfter > errBefore) {
-                pushException(controls, 'console-error', {
-                    buttonIndex: i,
-                    label,
-                    newCount: errAfter - errBefore,
-                });
-            }
+            pushErrorExceptionsSince(controls, result, errBefore);
         }
     } catch (err) {
         pushException(controls, 'phase-error', { error: err.message });
@@ -429,7 +439,7 @@ async function captureOne(browser, side, entry) {
     // Phase: tooltip — keyboard-driven (mirrors triggerExampleTooltips), with mouse fallback.
     const tooltip = newPhase('tooltip');
     {
-        const errBefore = result.consoleErrors.length + result.pageErrors.length;
+        const errBefore = snapshotErrorCounts(result);
         try {
             // Mirror triggerExampleTooltips() in examples-util.ts: each step is gated on
             // the previous one not having opened the tooltip, so we don't accidentally
@@ -478,8 +488,7 @@ async function captureOne(browser, side, entry) {
         } catch (err) {
             pushException(tooltip, 'phase-error', { error: err.message });
         }
-        const errAfter = result.consoleErrors.length + result.pageErrors.length;
-        if (errAfter > errBefore) pushException(tooltip, 'console-error', { newCount: errAfter - errBefore });
+        pushErrorExceptionsSince(tooltip, result, errBefore);
         result.phases.tooltip = tooltip;
     }
 
@@ -507,7 +516,7 @@ async function captureOne(browser, side, entry) {
     // Phase: legend-hover
     const legendHover = newPhase('legend-hover');
     {
-        const errBefore = result.consoleErrors.length + result.pageErrors.length;
+        const errBefore = snapshotErrorCounts(result);
         try {
             if (firstLegend) {
                 await firstLegend.hover({ timeout: 3000 }).catch(() => null);
@@ -522,8 +531,7 @@ async function captureOne(browser, side, entry) {
         } catch (err) {
             pushException(legendHover, 'phase-error', { error: err.message });
         }
-        const errAfter = result.consoleErrors.length + result.pageErrors.length;
-        if (errAfter > errBefore) pushException(legendHover, 'console-error', { newCount: errAfter - errBefore });
+        pushErrorExceptionsSince(legendHover, result, errBefore);
         result.phases['legend-hover'] = legendHover;
     }
 
@@ -533,7 +541,7 @@ async function captureOne(browser, side, entry) {
     // Phase: legend-toggle (click first proxy, screenshot, click again to restore).
     const legendToggle = newPhase('legend-toggle');
     {
-        const errBefore = result.consoleErrors.length + result.pageErrors.length;
+        const errBefore = snapshotErrorCounts(result);
         try {
             if (firstLegend) {
                 const beforeAria = await firstLegend.getAttribute('aria-checked').catch(() => null);
@@ -563,8 +571,7 @@ async function captureOne(browser, side, entry) {
         } catch (err) {
             pushException(legendToggle, 'phase-error', { error: err.message });
         }
-        const errAfter = result.consoleErrors.length + result.pageErrors.length;
-        if (errAfter > errBefore) pushException(legendToggle, 'console-error', { newCount: errAfter - errBefore });
+        pushErrorExceptionsSince(legendToggle, result, errBefore);
         result.phases['legend-toggle'] = legendToggle;
     }
 

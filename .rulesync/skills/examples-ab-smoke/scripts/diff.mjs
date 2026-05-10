@@ -63,6 +63,7 @@ function diffPair(leftPath, rightPath, outPath) {
             changed: left.width * left.height,
             total: left.width * left.height,
             percent: 1,
+            severity: 'major',
         };
     }
     const { width, height } = left;
@@ -125,16 +126,22 @@ for (const entry of data.results) {
             const outPath = `${DIFF_DIR}/${entry.page}-${entry.example}-${entry.framework}-${baseName}.png`;
             const r = diffPair(p.left, p.right, outPath);
             lp.imageDiffs.push({ key: p.key, label: p.label, ...r });
-            if (r.ok && r.diffPath) {
-                lp.exceptions.push({
+            if (r.ok && (r.diffPath || r.sizeMismatch)) {
+                const exception = {
                     type: r.severity === 'major' ? 'image-diff-major' : 'image-diff',
                     key: p.key,
                     label: p.label,
                     percent: r.percent,
                     changed: r.changed,
                     total: r.total,
-                    diffPath: r.diffPath,
-                });
+                };
+                if (r.diffPath) exception.diffPath = r.diffPath;
+                if (r.sizeMismatch) {
+                    exception.sizeMismatch = true;
+                    exception.leftSize = r.leftSize;
+                    exception.rightSize = r.rightSize;
+                }
+                lp.exceptions.push(exception);
                 exceptionsAdded++;
             }
         }
