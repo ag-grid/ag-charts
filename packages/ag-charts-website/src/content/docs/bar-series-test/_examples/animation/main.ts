@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgChartLegendPosition, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const legendPositions: Array<AgChartLegendPosition> = ['bottom', 'left', 'right', 'top'];
 const stackGroups = ['Devices', 'Devices', 'Devices', 'Wearables', 'Series'];
@@ -109,7 +110,7 @@ function randomise() {
     options.data = [
         ...data.map((d: any) => ({
             ...d,
-            iphone: d.iphone + Math.floor(Math.random() * 50 - 25),
+            iphone: d.iphone + Math.floor(random() * 50 - 25),
         })),
     ];
     chart.update(options as any);

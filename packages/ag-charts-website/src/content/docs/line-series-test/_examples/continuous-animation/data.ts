@@ -1,3 +1,5 @@
+import { random } from './randomHelpers';
+
 export interface DataType {
     date: Date;
     value1: number;
@@ -696,16 +698,16 @@ export function getData(): DataType[] {
 export function getRandomisedData(): DataType[] {
     return getData().map((d) => ({
         ...d,
-        value1: d.value1 + Math.random() * 4 - 2,
-        value2: d.value2 + Math.random() * 4 - 2,
-        value3: d.value3 + Math.random() * 4 - 2,
-        value4: d.value4 + Math.random() * 4 - 2,
-        value5: d.value5 + Math.random() * 4 - 2,
-        value6: d.value6 + Math.random() * 4 - 2,
-        value7: d.value7 + Math.random() * 4 - 2,
-        value8: d.value8 + Math.random() * 4 - 2,
-        value9: d.value9 + Math.random() * 4 - 2,
-        value10: d.value10 + Math.random() * 4 - 2,
+        value1: d.value1 + random() * 4 - 2,
+        value2: d.value2 + random() * 4 - 2,
+        value3: d.value3 + random() * 4 - 2,
+        value4: d.value4 + random() * 4 - 2,
+        value5: d.value5 + random() * 4 - 2,
+        value6: d.value6 + random() * 4 - 2,
+        value7: d.value7 + random() * 4 - 2,
+        value8: d.value8 + random() * 4 - 2,
+        value9: d.value9 + random() * 4 - 2,
+        value10: d.value10 + random() * 4 - 2,
     }));
 }
 

@@ -1,6 +1,8 @@
 import { AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 import { AgCartesianChartOptions } from 'ag-charts-types';
 
+import { random } from './randomHelpers';
+
 const data = [
     { time: 'week 3', week: 3, iphone: 60 },
     { time: 'week 4', week: 4, iphone: 185 },
@@ -45,7 +47,7 @@ function actionAddEndWeek() {
         {
             time: `week ${nextWeek}`,
             week: nextWeek,
-            iphone: 78 * (Math.random() - 0.5),
+            iphone: 78 * (random() - 0.5),
         },
     ];
     chart.update(options);
@@ -58,7 +60,7 @@ function actionAddStartWeek() {
         {
             time: `week ${prevWeek}`,
             week: prevWeek,
-            iphone: 78 * (Math.random() - 0.5),
+            iphone: 78 * (random() - 0.5),
         },
         ...data,
     ];
@@ -87,7 +89,7 @@ function actionAddWeek7and8() {
 
 function reorder() {
     options.data = [...(options.data ?? [])];
-    options.data?.forEach((d) => (d.random = Math.random()));
+    options.data?.forEach((d) => (d.random = random()));
     options.data?.sort((a, b) => a.random - b.random);
 
     chart.update(options);

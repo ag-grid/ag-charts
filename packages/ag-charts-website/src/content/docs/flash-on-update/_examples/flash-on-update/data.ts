@@ -1,3 +1,5 @@
+import { createSeededRandom, random } from './seededRandom';
+
 export interface DataType {
     date: Date;
     open: number;
@@ -6,12 +8,7 @@ export interface DataType {
     close: number;
 }
 
-let seed = 1234;
-
-function random() {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-}
+let seededRng = createSeededRandom(1234);
 
 function addBusinessDays(start: Date, days: number): Date {
     const result = new Date(start);
@@ -25,7 +22,7 @@ function addBusinessDays(start: Date, days: number): Date {
 }
 
 export function getInitialData(): DataType[] {
-    seed = 1234;
+    seededRng = createSeededRandom(1234);
 
     const data: DataType[] = [];
     const startDate = new Date('2025-01-27');
@@ -33,11 +30,11 @@ export function getInitialData(): DataType[] {
 
     for (let i = 0; i < 30; i++) {
         const date = i === 0 ? new Date(startDate) : addBusinessDays(startDate, i);
-        const dailyChange = (random() - 0.5) * 6;
-        const open = previousClose + (random() - 0.5) * 1.5;
+        const dailyChange = (seededRng() - 0.5) * 6;
+        const open = previousClose + (seededRng() - 0.5) * 1.5;
         const close = open + dailyChange;
-        const wickUp = random() * 2;
-        const wickDown = random() * 2;
+        const wickUp = seededRng() * 2;
+        const wickDown = seededRng() * 2;
         const high = Math.max(open, close) + wickUp;
         const low = Math.min(open, close) - wickDown;
 
@@ -58,7 +55,7 @@ export function getInitialData(): DataType[] {
 export function applyLiveUpdate(data: DataType[]): DataType[] {
     const result = data.map((d) => ({ ...d }));
     const last = result[result.length - 1];
-    const tick = (Math.random() - 0.5) * 3;
+    const tick = (random() - 0.5) * 3;
     last.close = Math.round((last.close + tick) * 100) / 100;
     last.high = Math.round(Math.max(last.high, last.close) * 100) / 100;
     last.low = Math.round(Math.min(last.low, last.close) * 100) / 100;

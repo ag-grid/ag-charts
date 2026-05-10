@@ -2,6 +2,7 @@ import { AgCharts, AgPolarChartOptions, LegendModule } from 'ag-charts-community
 import { ModuleRegistry, PieSeriesModule } from 'ag-charts-community';
 
 import { getData } from './data';
+import { random } from './seededRandom';
 
 ModuleRegistry.registerModules([LegendModule, PieSeriesModule]);
 const options: AgPolarChartOptions = {
@@ -20,12 +21,12 @@ const options: AgPolarChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function random(n: any) {
-    return Math.floor(Math.random() * (n + 1));
+function randomChannel() {
+    return Math.floor(random() * 256);
 }
 
 function randomColor() {
-    const color = `rgb(${random(255)}, ${random(255)}, ${random(255)})`;
+    const color = `rgb(${randomChannel()}, ${randomChannel()}, ${randomChannel()})`;
     options.background = {
         fill: color,
     };
