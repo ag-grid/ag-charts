@@ -1,3 +1,5 @@
+import { random } from './randomHelpers';
+
 const years: number[] = [];
 for (let year = 2005; year <= 2022; year++) {
     years.push(year);
@@ -31,6 +33,6 @@ export function getData(): any[] {
     return years.map((year, idx) => ({
         year,
         country: countries[idx],
-        value: Math.round(Math.random() * 1000),
+        value: Math.round(random() * 1000),
     }));
 }

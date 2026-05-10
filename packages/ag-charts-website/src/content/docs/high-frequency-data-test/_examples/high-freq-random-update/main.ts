@@ -1,5 +1,7 @@
 import { type AgCartesianChartOptions, type AgCartesianSeriesOptions, AgCharts } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 (window as any).agChartsDebug = ['scene:stats'];
 
 type ValueDatum = {
@@ -258,20 +260,20 @@ let data: Datum[] = seedResult.data;
 // Mutation functions for each datum type
 // Large changes to make updates visually obvious
 function mutateValueDatum(item: ValueDatum) {
-    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    const change = (random() - 0.5) * 200; // ±100 on values ~1000
     item.value = Number((item.value + change).toFixed(2));
 }
 
 function mutateOhlcDatum(item: OhlcDatum) {
-    const change = (Math.random() - 0.5) * 100; // ±50 on values ~1000
+    const change = (random() - 0.5) * 100; // ±50 on values ~1000
     item.open = Number((item.open + change).toFixed(2));
     item.close = Number((item.close + change).toFixed(2));
-    item.high = Number((Math.max(item.open, item.close) + Math.random() * 20).toFixed(2));
-    item.low = Number((Math.min(item.open, item.close) - Math.random() * 20).toFixed(2));
+    item.high = Number((Math.max(item.open, item.close) + random() * 20).toFixed(2));
+    item.low = Number((Math.min(item.open, item.close) - random() * 20).toFixed(2));
 }
 
 function mutateRangeDatum(item: RangeDatum) {
-    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    const change = (random() - 0.5) * 200; // ±100 on values ~1000
     item.low = Number((item.low + change).toFixed(2));
     item.high = Number((item.high + change).toFixed(2));
     // Ensure low < high
@@ -283,9 +285,9 @@ function mutateRangeDatum(item: RangeDatum) {
 }
 
 function mutateBubbleDatum(item: BubbleDatum) {
-    const change = (Math.random() - 0.5) * 200; // ±100 on values ~1000
+    const change = (random() - 0.5) * 200; // ±100 on values ~1000
     item.value = Number((item.value + change).toFixed(2));
-    item.size = Math.max(1, item.size + (Math.random() - 0.5) * 10);
+    item.size = Math.max(1, item.size + (random() - 0.5) * 10);
 }
 
 function mutateDatum(item: Datum) {
@@ -302,7 +304,7 @@ function mutateDatum(item: Datum) {
 
 // ID-based replacement functions — create new objects instead of mutating in place
 function replaceValueDatum(item: ValueDatum): ValueDatum {
-    const change = (Math.random() - 0.5) * 200;
+    const change = (random() - 0.5) * 200;
     return {
         id: item.id,
         timestamp: item.timestamp,
@@ -311,7 +313,7 @@ function replaceValueDatum(item: ValueDatum): ValueDatum {
 }
 
 function replaceOhlcDatum(item: OhlcDatum): OhlcDatum {
-    const change = (Math.random() - 0.5) * 100;
+    const change = (random() - 0.5) * 100;
     const open = Number((item.open + change).toFixed(2));
     const close = Number((item.close + change).toFixed(2));
     return {
@@ -319,13 +321,13 @@ function replaceOhlcDatum(item: OhlcDatum): OhlcDatum {
         timestamp: item.timestamp,
         open,
         close,
-        high: Number((Math.max(open, close) + Math.random() * 20).toFixed(2)),
-        low: Number((Math.min(open, close) - Math.random() * 20).toFixed(2)),
+        high: Number((Math.max(open, close) + random() * 20).toFixed(2)),
+        low: Number((Math.min(open, close) - random() * 20).toFixed(2)),
     };
 }
 
 function replaceRangeDatum(item: RangeDatum): RangeDatum {
-    const change = (Math.random() - 0.5) * 200;
+    const change = (random() - 0.5) * 200;
     let low = Number((item.low + change).toFixed(2));
     let high = Number((item.high + change).toFixed(2));
     if (low > high) {
@@ -337,12 +339,12 @@ function replaceRangeDatum(item: RangeDatum): RangeDatum {
 }
 
 function replaceBubbleDatum(item: BubbleDatum): BubbleDatum {
-    const change = (Math.random() - 0.5) * 200;
+    const change = (random() - 0.5) * 200;
     return {
         id: item.id,
         timestamp: item.timestamp,
         value: Number((item.value + change).toFixed(2)),
-        size: Math.max(1, item.size + (Math.random() - 0.5) * 10),
+        size: Math.max(1, item.size + (random() - 0.5) * 10),
     };
 }
 
@@ -614,7 +616,7 @@ async function updateRandomSubset() {
     // Select random indices to update
     const indicesToUpdate = new Set<number>();
     while (indicesToUpdate.size < UPDATE_COUNT && indicesToUpdate.size < data.length) {
-        indicesToUpdate.add(Math.floor(Math.random() * data.length));
+        indicesToUpdate.add(Math.floor(random() * data.length));
     }
 
     const itemsToUpdate: Datum[] = [];
