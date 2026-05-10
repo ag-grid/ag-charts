@@ -8,8 +8,6 @@ export interface DataType {
     close: number;
 }
 
-let seededRng = createSeededRandom(1234);
-
 function addBusinessDays(start: Date, days: number): Date {
     const result = new Date(start);
     let added = 0;
@@ -22,7 +20,7 @@ function addBusinessDays(start: Date, days: number): Date {
 }
 
 export function getInitialData(): DataType[] {
-    seededRng = createSeededRandom(1234);
+    const seededRng = createSeededRandom(1234);
 
     const data: DataType[] = [];
     const startDate = new Date('2025-01-27');

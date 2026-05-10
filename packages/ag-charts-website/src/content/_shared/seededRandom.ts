@@ -1,5 +1,3 @@
-// Park-Miller LCG. Drop-in replacement for Math.random() in examples that
-// need deterministic output for visual smoke testing.
 export function createSeededRandom(seed = 42): () => number {
     let state = seed;
     return () => {
