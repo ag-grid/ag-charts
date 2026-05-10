@@ -1,4 +1,10 @@
-import { createSeededRandom } from './randomHelpers';
+// Inline LCG: data is generated at module scope, which runs before sibling
+// helper scripts in vanilla bundles.
+let seed = 1;
+function random() {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+}
 
 /**
  * This fake database generates and returns randomised data of objects with time, price and quantity. If you are a
@@ -16,8 +22,6 @@ export const month = day * 30;
 
 export const dataStart = new Date('2019-01-01 00:00:00').getTime();
 export const dataEnd = new Date('2024-12-30 23:59:59').getTime();
-
-const random = createSeededRandom(1);
 
 // Generate data for the fake database
 const data: Array<Datum> = [];
