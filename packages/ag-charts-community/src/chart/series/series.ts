@@ -884,6 +884,7 @@ export abstract class Series<
     }
 
     public bringToFront() {
+        if (this.hasDataSelection()) return true;
         return (
             this.properties.highlight.enabled &&
             this.properties.highlight.bringToFront &&
@@ -903,6 +904,14 @@ export abstract class Series<
         // If this function is being invoked, we have already determined that the series is highlighted.
         if (highlightedDatum?.datumIndex == null || datumIndex == null) return;
         return highlightedDatum.datumIndex === datumIndex;
+    }
+
+    private getDataSelectionCount(): number {
+        return this.data?.selections?.get(this.id)?.getSelectedCount() ?? 0;
+    }
+
+    private hasDataSelection(): boolean {
+        return this.getDataSelectionCount() > 0;
     }
 
     public getHighlightStyle(
