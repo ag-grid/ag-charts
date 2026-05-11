@@ -95,11 +95,6 @@ export class AxisTicks {
             case 'top':
             case 'top-right':
             case 'top-left':
-                textBaseline = 'bottom';
-                textAlign = 'center';
-                this.mirrored = false;
-                this.parallel = true;
-                break;
             case 'bottom':
             case 'bottom-right':
             case 'bottom-left':
