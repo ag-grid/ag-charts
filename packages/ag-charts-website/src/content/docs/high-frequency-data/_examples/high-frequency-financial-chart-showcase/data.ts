@@ -1,18 +1,13 @@
+import { random } from './seededRandom';
+
 const STARTING_PRICE = 185;
 const DAILY_VOLATILITY = 0.015;
 const DAILY_DRIFT = 0.0001;
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-let seed = 42;
-
-function seededRandom() {
-    seed = (seed * 16807) % 2147483647;
-    return (seed - 1) / 2147483646;
-}
-
 function randomNormal() {
-    const u1 = seededRandom();
-    const u2 = seededRandom();
+    const u1 = random();
+    const u2 = random();
     return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 }
 
@@ -26,7 +21,7 @@ export interface Candle {
 }
 
 function generateCandle(prevClose: number, date: number): Candle {
-    const open = prevClose * (1 + (seededRandom() - 0.5) * 0.002);
+    const open = prevClose * (1 + (random() - 0.5) * 0.002);
     let price = open;
     let high = open;
     let low = open;
@@ -48,7 +43,7 @@ function generateCandle(prevClose: number, date: number): Candle {
         high: Number(high.toFixed(2)),
         low: Number(low.toFixed(2)),
         close: Number(price.toFixed(2)),
-        volume: Math.round(1000000 + seededRandom() * 500000),
+        volume: Math.round(1000000 + random() * 500000),
     };
 }
 

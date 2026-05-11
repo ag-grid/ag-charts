@@ -1,5 +1,7 @@
 import { AgCharts, AgFinancialChartOptions, FinancialChartModule, ModuleRegistry } from 'ag-charts-enterprise';
 
+import { random } from './randomHelpers';
+
 ModuleRegistry.registerModules([FinancialChartModule]);
 
 (window as any).agChartsDebug = ['scene:stats'];
@@ -107,7 +109,7 @@ function generateOhlcDatum(index: number, previousClose?: number): OhlcDatum {
     const low = Number((Math.min(open, close) - range).toFixed(2));
 
     const baseVolume = 1_000_000 + Math.sin(index / 100) * 500_000;
-    const volumeVariation = Math.random() * 200_000;
+    const volumeVariation = random() * 200_000;
     const volume = Math.floor(baseVolume + volumeVariation);
 
     return {
@@ -135,12 +137,12 @@ function createSeedData(count: number): OhlcDatum[] {
 let data: OhlcDatum[] = createSeedData(INITIAL_POINTS);
 
 function mutateDatum(item: OhlcDatum) {
-    const change = (Math.random() - 0.5) * 20;
+    const change = (random() - 0.5) * 20;
     item.open = Number((item.open + change).toFixed(2));
     item.close = Number((item.close + change).toFixed(2));
-    item.high = Number((Math.max(item.open, item.close) + Math.random() * 5).toFixed(2));
-    item.low = Number((Math.min(item.open, item.close) - Math.random() * 5).toFixed(2));
-    item.volume = Math.max(100_000, Math.floor(item.volume + (Math.random() - 0.5) * 500_000));
+    item.high = Number((Math.max(item.open, item.close) + random() * 5).toFixed(2));
+    item.low = Number((Math.min(item.open, item.close) - random() * 5).toFixed(2));
+    item.volume = Math.max(100_000, Math.floor(item.volume + (random() - 0.5) * 500_000));
 }
 
 // Load config first
@@ -302,7 +304,7 @@ async function dispatchUpdate(itemsToUpdate: OhlcDatum[]) {
 async function updateRandomSubset() {
     const indicesToUpdate = new Set<number>();
     while (indicesToUpdate.size < UPDATE_COUNT && indicesToUpdate.size < data.length) {
-        indicesToUpdate.add(Math.floor(Math.random() * data.length));
+        indicesToUpdate.add(Math.floor(random() * data.length));
     }
 
     const itemsToUpdate: OhlcDatum[] = [];

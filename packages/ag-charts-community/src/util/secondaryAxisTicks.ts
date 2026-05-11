@@ -71,10 +71,24 @@ export function calculateNiceSecondaryAxis<D extends number>(
     const d: [D, D] = [scale.toDomain(start), scale.toDomain(stop)];
     if (reverse) d.reverse();
 
-    const step = baseStep * ((primaryTickCount.unzoomed - 1) / (primaryTickCount.zoomed - 1));
-    const ticks = getTicks(start, step, Math.floor(primaryTickCount.zoomed));
+    // Subdivide baseStep by a nice {1,2,5}*10^n factor so secondary labels stay on round values.
+    const zoomedSegments = Math.max(1, Math.floor(primaryTickCount.zoomed) - 1);
+    const subdivision = niceSubdivisionFactor(zoomedSegments / segments);
+    const step = baseStep / subdivision;
+    const tickCount = Math.min(segments * subdivision + 1, Math.floor(primaryTickCount.zoomed));
+    const ticks = getTicks(start, step, tickCount);
 
     return { domain: d, ticks };
+}
+
+function niceSubdivisionFactor(rawFactor: number): number {
+    if (rawFactor <= 1) return 1;
+    const order = Math.floor(Math.log10(rawFactor));
+    const magnitude = Math.pow(10, order);
+    const m = rawFactor / magnitude;
+    if (m >= 5) return 5 * magnitude;
+    if (m >= 2) return 2 * magnitude;
+    return magnitude;
 }
 
 function domainWithOddTickCount(d0: number, d1: number): [number, number] {

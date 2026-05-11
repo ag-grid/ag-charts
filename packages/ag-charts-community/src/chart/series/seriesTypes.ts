@@ -13,9 +13,11 @@ import type { AgActiveItemState, SelectionState as PublicSelectionState } from '
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { TypedEvent } from '../../util/observable';
+import type { ProcessedData } from '../data/dataModelTypes';
 import type { DataSet } from '../data/dataSet';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltipContent';
+import type { AggregationFilterBase } from './aggregationManager';
 
 export enum HighlightState {
     None,
@@ -83,6 +85,8 @@ export interface BucketLookupFeature {
     getIndexSet(datumIndex: number): Iterable<number> | undefined;
     /** Recompute the per-bucket SELECTED slot across every cached aggregation level. */
     refresh(): void;
+    /** Render-pass entrypoint — series pushes the resolved filter directly, skipping the lazy axis-poll path. */
+    setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void;
 }
 
 export interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends TypedEvent {

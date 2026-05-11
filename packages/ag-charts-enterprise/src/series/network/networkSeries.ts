@@ -194,7 +194,11 @@ export abstract class AbstractNetworkSeries<
     abstract getLinkInterpolation(from: Vertex<TVertex, TEdge>, to: Vertex<TVertex, TEdge>): NetworkLinkInterpolation;
     abstract getFocusedVertex(): Vertex<TVertex, TEdge> | undefined;
     abstract getDefaultFocusedVertices(): Vertex<TVertex, TEdge>[] | undefined;
-    abstract positionDatumNode(node: TNode, groupBBox: _ModuleSupport.BBox, regularBBox?: _ModuleSupport.BBox): void;
+    abstract positionDatumNode(
+        node: TNode,
+        groupBBox: _ModuleSupport.BBox,
+        regularBBox?: _ModuleSupport.BBox
+    ): _ModuleSupport.BBox | undefined;
     abstract updateOffset(offset: Point): void;
 
     abstract expandNetworkToItem(itemIdOrIndex: string | number): void;
@@ -396,7 +400,7 @@ export abstract class AbstractNetworkSeries<
         const node = this.datumSelection.at(nodeDatumIndex);
         if (!node) return;
 
-        this.positionDatumNode(node, groupBBox, regularBBox);
+        return this.positionDatumNode(node, groupBBox, regularBBox);
     }
 
     private layoutLinkNode(vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) {

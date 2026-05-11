@@ -132,9 +132,24 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
     private selectionEpoch = 0;
     private sparseSelection?: Uint32Array;
     private readonly populatedEpochs = new WeakMap<TFilter, number>();
+    protected readonly cache = new LookupCache<TFilter>();
 
     constructor(protected readonly opts: BucketLookupManagerOpts<TFilter>) {
         opts.aggregationManager.events.on('filtersChanged', () => this.populateStaleFilters());
+    }
+
+    /** Render-pass entrypoint — series pushes the resolved filter directly, skipping the lazy axis-poll path. */
+    setActiveFilter(processedData: ProcessedData<any>, filter: AggregationFilterBase | undefined): void {
+        if (filter === undefined) {
+            this.cache.clear();
+            return;
+        }
+        const typedFilter = filter as TFilter;
+        if (this.cache.has(processedData, typedFilter)) return;
+        const dataModel = this.opts.getDataModel();
+        const xAxis = this.opts.getXAxis();
+        if (!dataModel || !xAxis) return;
+        this.populateCache(typedFilter, dataModel, processedData, xAxis);
     }
 
     /**
@@ -194,26 +209,48 @@ abstract class AbstractBucketLookupManager<TFilter extends AggregationFilterBase
     }
 
     isBucketSelected(datumIndex: number): boolean | undefined {
-        return this.ensureReaders()?.selectedReader?.(datumIndex);
+        // Hot path: setActiveFilter primes the cache each render pass, so ensureReaders is rare.
+        return (this.cache.selectedReader ?? this.ensureReaders()?.selectedReader)?.(datumIndex);
     }
 
     getRangeReader(): DatumRangeReader | undefined {
-        return this.ensureReaders()?.rangeReader;
+        return this.cache.rangeReader ?? this.ensureReaders()?.rangeReader;
     }
 
     getIndexSet(_datumIndex: number): Iterable<number> | undefined {
         return undefined;
     }
 
-    /**
-     * Hot path — called by `dataModelSeries.getDataSelectionState` per marker
-     * during render. The returned cache survives until either `processedData`
-     * or the resolved filter changes (a different zoom level becomes active).
-     */
-    protected abstract ensureReaders(): LookupCache<TFilter> | undefined;
+    /** Lazy fallback for callers that haven't primed the cache via {@link setActiveFilter} (e.g. drag-select). */
+    protected ensureReaders(): LookupCache<TFilter> | undefined {
+        const xAxis = this.opts.getXAxis();
+        const processedData = this.opts.getProcessedData();
+        const dataModel = this.opts.getDataModel();
+        if (!xAxis || !processedData || !dataModel) return undefined;
+
+        const [r0, r1] = xAxis.scale.range;
+        const filter = this.opts.aggregationManager.getFilterForRange(Math.abs(r1 - r0));
+        if (!filter) {
+            this.cache.clear();
+            return undefined;
+        }
+
+        if (this.cache.has(processedData, filter)) return this.cache;
+        return this.populateCache(filter, dataModel, processedData, xAxis);
+    }
+
+    protected invalidateCache(): void {
+        this.cache.clear();
+    }
+
+    protected abstract populateCache(
+        filter: TFilter,
+        dataModel: DataModel<any, any, any>,
+        processedData: ProcessedData<any>,
+        xAxis: ChartAxis
+    ): LookupCache<TFilter> | undefined;
     protected abstract clearSelectedSlot(filter: TFilter): void;
     protected abstract populateFilter(filter: TFilter, sparse: Uint32Array, inputs: BucketingInputs): void;
-    protected abstract invalidateCache(): void;
 }
 
 /**
@@ -224,8 +261,6 @@ export class BucketLookupManager<TFilter extends ExtremesFilter>
     extends AbstractBucketLookupManager<TFilter>
     implements BucketLookupFeature
 {
-    private readonly cache = new LookupCache<TFilter>();
-
     protected override clearSelectedSlot(filter: TFilter): void {
         const { indexData, maxRange } = filter;
         for (let i = 0; i < maxRange; i++) {
@@ -245,25 +280,12 @@ export class BucketLookupManager<TFilter extends ExtremesFilter>
         );
     }
 
-    protected override invalidateCache(): void {
-        this.cache.clear();
-    }
-
-    protected override ensureReaders(): LookupCache<TFilter> | undefined {
-        const xAxis = this.opts.getXAxis();
-        const processedData = this.opts.getProcessedData();
-        const dataModel = this.opts.getDataModel();
-        if (!xAxis || !processedData || !dataModel) return undefined;
-
-        const [r0, r1] = xAxis.scale.range;
-        const filter = this.opts.aggregationManager.getFilterForRange(Math.abs(r1 - r0));
-        if (!filter) {
-            this.cache.clear();
-            return undefined;
-        }
-
-        if (this.cache.has(processedData, filter)) return this.cache;
-
+    protected override populateCache(
+        filter: TFilter,
+        dataModel: DataModel<any, any, any>,
+        processedData: ProcessedData<any>,
+        xAxis: ChartAxis
+    ): LookupCache<TFilter> {
         const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
             this.opts.series,
             xAxis,
@@ -329,8 +351,6 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
     extends AbstractBucketLookupManager<TFilter>
     implements BucketLookupFeature
 {
-    private readonly cache = new LookupCache<TFilter>();
-
     constructor(private readonly splitOpts: SplitBucketLookupManagerOpts<TFilter>) {
         super(splitOpts);
     }
@@ -365,25 +385,12 @@ export class SplitBucketLookupManager<TFilter extends SplitFilter>
         );
     }
 
-    protected override invalidateCache(): void {
-        this.cache.clear();
-    }
-
-    protected override ensureReaders(): LookupCache<TFilter> | undefined {
-        const xAxis = this.splitOpts.getXAxis();
-        const processedData = this.splitOpts.getProcessedData();
-        const dataModel = this.splitOpts.getDataModel();
-        if (!xAxis || !processedData || !dataModel) return undefined;
-
-        const [r0, r1] = xAxis.scale.range;
-        const filter = this.splitOpts.aggregationManager.getFilterForRange(Math.abs(r1 - r0));
-        if (!filter) {
-            this.cache.clear();
-            return undefined;
-        }
-
-        if (this.cache.has(processedData, filter)) return this.cache;
-
+    protected override populateCache(
+        filter: TFilter,
+        dataModel: DataModel<any, any, any>,
+        processedData: ProcessedData<any>,
+        xAxis: ChartAxis
+    ): LookupCache<TFilter> {
         const { xValues, d0, d1, xNeedsValueOf } = resolveBucketingInputs(
             this.splitOpts.series,
             xAxis,
@@ -487,5 +494,9 @@ export class IndexSetBucketLookupManager implements BucketLookupFeature {
         // No-op: cluster lookups are computed lazily against the live
         // selection bitset, so there's no cache to invalidate when selections
         // change.
+    }
+
+    setActiveFilter(): void {
+        // No-op: cluster-based aggregation doesn't depend on the active filter.
     }
 }

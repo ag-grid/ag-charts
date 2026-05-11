@@ -53,6 +53,7 @@ export type SimpleAxis = {
 };
 
 export type CartesianAxisLike = SimpleAxis & {
+    type: string;
     visibleRange: [number, number];
     scale: Scale<any, any>;
     range: [number, number];
@@ -377,6 +378,13 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
         // recreates axes with the same IDs.
         const oldState = this.state;
 
+        // Saved {min,max} ratios don't translate across a scale-type change; preserving them lets
+        // downstream `preserveDomain` collapse to a degenerate zoom.
+        const previousTypeByAxisId = new Map<AxisID, string>();
+        for (const axis of this.axes) {
+            previousTypeByAxisId.set(axis.id, axis.type);
+        }
+
         const { axes, allAxes } = this;
         axes.length = 0;
         allAxes.length = 0;
@@ -387,7 +395,15 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
             }
         }
 
-        const changes = refreshCoreState(nextAxes, oldState);
+        const adjustedOldState: Record<AxisID, CoreZoomEntry | undefined> = { ...oldState };
+        for (const axis of axes) {
+            const prevType = previousTypeByAxisId.get(axis.id);
+            if (prevType !== undefined && prevType !== axis.type) {
+                delete adjustedOldState[axis.id];
+            }
+        }
+
+        const changes = refreshCoreState(nextAxes, adjustedOldState);
         this.state = changes;
 
         this.updateChanges({ source: 'chart-update', sourceDetail: 'internal-setAxes', changes, isReset: false });

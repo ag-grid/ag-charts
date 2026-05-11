@@ -17,7 +17,7 @@ export interface NetworkLayoutUpdateOptions<TVertex, TEdge> {
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: _ModuleSupport.BBox,
         regularBBox?: _ModuleSupport.BBox
-    ) => void;
+    ) => _ModuleSupport.BBox | undefined;
     layoutLinkNode: (vertex: Vertex<TVertex, TEdge>, drawLink: (path: _ModuleSupport.ExtendedPath2D) => void) => void;
     updateOffset: (offset: Point) => void;
 }

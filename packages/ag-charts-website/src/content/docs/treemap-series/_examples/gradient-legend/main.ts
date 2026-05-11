@@ -1,6 +1,7 @@
 import {
-    AgChartOptions,
     AgCharts,
+    AgStandaloneChartOptions,
+    AgTreemapSeriesOptions,
     GradientLegendModule,
     LegendModule,
     ModuleRegistry,
@@ -11,7 +12,7 @@ import { data } from './data';
 
 ModuleRegistry.registerModules([GradientLegendModule, LegendModule, TreemapSeriesModule]);
 
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data,
     series: [
@@ -21,20 +22,16 @@ const options: AgChartOptions = {
             colorKey: 'change',
             colorName: 'Change',
             colorScale: {
-                mode: 'discrete',
-                fills: [
-                    { color: 'tomato', stop: -0.1, name: 'Decline' },
-                    { color: 'gold', stop: 0.1, name: 'Flat' },
-                    { color: 'seagreen', name: 'Growth' },
-                ],
+                fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+                domain: [-40, 40],
             },
         },
     ],
     legend: {
-        enabled: true,
+        enabled: false,
     },
     gradientLegend: {
-        enabled: false,
+        enabled: true,
     },
     title: {
         text: 'UK Government Budget',
@@ -44,4 +41,28 @@ const options: AgChartOptions = {
     },
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function toggleMode(mode: 'stops' | 'gradient') {
+    const series = options.series![0] as AgTreemapSeriesOptions;
+    if (mode === 'stops') {
+        series.colorScale = {
+            mode: 'discrete',
+            fills: [
+                { color: 'tomato', stop: -0.1, name: 'Decline' },
+                { color: 'gold', stop: 0.1, name: 'Flat' },
+                { color: 'seagreen', name: 'Growth' },
+            ],
+        };
+        options.legend = { enabled: true };
+        options.gradientLegend = { enabled: false };
+    } else {
+        series.colorScale = {
+            fills: [{ color: 'tomato' }, { color: 'gold' }, { color: 'seagreen' }],
+            domain: [-40, 40],
+        };
+        options.legend = { enabled: false };
+        options.gradientLegend = { enabled: true };
+    }
+    chart.update(options);
+}

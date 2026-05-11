@@ -68,8 +68,11 @@ const options: AgCartesianChartOptions = {
                     const increase = sales2023 - sales2022;
                     const growthRate = ((increase / sales2022) * 100).toFixed(1);
 
+                    const fill = increase / sales2022 > 0 ? '#10b981' : '#ef4444';
+
                     return {
                         title: 'Sales Range',
+                        symbol: { marker: { fill } },
                         data: [
                             { label: '2022 Sales', value: `£${sales2022.toLocaleString()}K` },
                             { label: '2023 Sales', value: `£${sales2023.toLocaleString()}K` },

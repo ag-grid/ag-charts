@@ -129,6 +129,12 @@ Exercise:
 
 {% chartExampleRunner title="Large Dataset (4x 100k series)" name="large-dataset" type="generated" initialLoadDeferred=true /%}
 
+## Data Selection at Scale
+
+Exercises the per-datum styling pipeline when `selection.enabled` is on across every series type that supports data selection. Two scenarios per series: zoom with no selection (cold path) and zoom with ~50% of datums selected (warm path).
+
+{% chartExampleRunner title="Data Selection Zoom" name="data-selection-zoom" type="generated" initialLoadDeferred=true /%}
+
 ## High-Frequency Data Updates
 
 Exercise incremental data update operations (append, remove, rolling window) with large datasets:

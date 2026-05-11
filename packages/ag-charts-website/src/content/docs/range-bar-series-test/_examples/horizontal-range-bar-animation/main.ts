@@ -1,6 +1,7 @@
 import { AgCartesianChartOptions, AgCharts, ContextMenuModule } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+import { random } from './randomHelpers';
 
 const data = getData();
 
@@ -55,7 +56,7 @@ function getUpdatedData() {
 
     // Update
     console.log('updating');
-    const randomNumber = Math.random();
+    const randomNumber = random();
     const scaleBy = randomNumber < 0.5 ? randomNumber + 1 : randomNumber;
     const updatedData = optionsData.map((d: any) => ({
         ...d,
@@ -65,19 +66,19 @@ function getUpdatedData() {
 
     // Add
     console.log('adding');
-    const datum = data[Math.floor(Math.random() * updatedData.length)];
+    const datum = data[Math.floor(random() * updatedData.length)];
     const newDatum = {
         ...datum,
-        date: `Nov ${Math.floor(Math.random() * 100)}`,
+        date: `Nov ${Math.floor(random() * 100)}`,
     };
     const usedDates = new Set(updatedData.map(({ date }) => date));
     if (!usedDates.has(newDatum.date)) {
-        const addIndex = Math.floor(Math.random() * updatedData.length);
+        const addIndex = Math.floor(random() * updatedData.length);
         updatedData.splice(addIndex, 0, newDatum);
     }
 
     // Remove
-    const removeIndex = Math.floor(updatedData.length * Math.random());
+    const removeIndex = Math.floor(updatedData.length * random());
     updatedData.splice(removeIndex, 1);
 
     // Shuffle
@@ -86,7 +87,7 @@ function getUpdatedData() {
     let randomIndex;
 
     while (currentIndex > 0) {
-        randomIndex = Math.floor(Math.random() * currentIndex);
+        randomIndex = Math.floor(random() * currentIndex);
         currentIndex--;
 
         [updatedData[currentIndex], updatedData[randomIndex]] = [updatedData[randomIndex], updatedData[currentIndex]];
