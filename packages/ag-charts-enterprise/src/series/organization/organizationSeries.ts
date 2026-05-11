@@ -391,6 +391,10 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             node.updateBBox(regularBBox);
             node.realign(regularBBox);
         }
+
+        const focusBBox = node.getFocusBBox();
+
+        return new _ModuleSupport.BBox(bbox.x, bbox.y, focusBBox.width, focusBBox.height);
     }
 
     // Exclude the expander pill from measurements — its overhang would compound into
@@ -641,16 +645,16 @@ export class OrganizationSeries extends AbstractNetworkSeries<
             nodeWidth: this.properties.node.width,
             nodeMaxHeight: this.properties.node.maxHeight,
             nodeMaxWidth: this.properties.node.maxWidth,
-            expanderOffset: this.properties.expander.enabled
-                ? this.properties.expander.text.fontSize / 2 +
-                  this.properties.expander.padding +
-                  this.properties.expander.strokeWidth
-                : 0,
             regularDimensions: true,
             hiddenOnCollapse: true,
             innerSpacing: this.properties.innerSpacing ?? 0,
             outerSpacing: this.properties.outerSpacing ?? 0,
             verticalSpacing: this.properties.verticalSpacing ?? 0,
+            verticalSpacingExtra: this.properties.expander.enabled
+                ? this.properties.expander.text.fontSize / 2 +
+                  this.properties.expander.padding +
+                  this.properties.expander.strokeWidth
+                : 0,
         };
     }
 

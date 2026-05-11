@@ -20,10 +20,10 @@ export interface NetworkTreeLayoutUpdateOptions<TVertex, TEdge> extends NetworkL
     nodeWidth?: number;
     nodeMaxHeight?: number;
     nodeMaxWidth?: number;
-    expanderOffset: number;
     regularDimensions: boolean;
     hiddenOnCollapse: boolean;
     verticalSpacing: number;
+    verticalSpacingExtra: number;
     outerSpacing: number;
     innerSpacing: number;
 }
@@ -117,11 +117,13 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                   groupBBox.x + groupBBox.width;
 
             const layoutBBox = new BBox(x, groupBBox.y, nodeBBox.width, nodeBBox.height);
-            layoutBBoxes.push({ vertex, bbox: layoutBBox });
-            this.accumulateContentBounds(layoutBBox);
 
-            // Request the series to layout the node per the calculated bbox.
-            layoutDatumNode(vertex, layoutBBox, this.regularBBox);
+            // Request the series to layout the node per the calculated bbox. Override the layoutBBox for the accumulator
+            // if the node extends outside its default size, e.g. for an expander pill.
+            const overrideAccumulateBBox = layoutDatumNode(vertex, layoutBBox, this.regularBBox);
+
+            layoutBBoxes.push({ vertex, bbox: layoutBBox });
+            this.accumulateContentBounds(overrideAccumulateBBox ?? layoutBBox);
 
             // Merge the bboxes into the group.
             if (descendentsContainerBBox) {
@@ -140,7 +142,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
                     const interpolation = getLinkInterpolation(vertex, childVertex);
                     layoutLinkNode(childVertex, (path: _ModuleSupport.ExtendedPath2D) =>
-                        this.drawLink(path, layoutBBox, bbox, interpolation, options.expanderOffset)
+                        this.drawLink(path, layoutBBox, bbox, interpolation, options.verticalSpacingExtra)
                     );
                 }
             }
@@ -162,7 +164,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
         if (datumBBox) {
-            childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.expanderOffset;
+            childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.verticalSpacingExtra;
         }
 
         // Add spacing to the left if the parent's previous sibling does not have visible children.
