@@ -191,6 +191,7 @@ export {
     SeriesProperties,
     toHighlightString,
     toSelectionString,
+    isUnselected,
 } from './chart/series/seriesProperties';
 export { SeriesMarker } from './chart/series/seriesMarker';
 export { makeSeriesTooltip, SeriesTooltip } from './chart/series/seriesTooltip';

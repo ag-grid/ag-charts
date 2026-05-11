@@ -470,9 +470,9 @@ export abstract class RadialColumnSeriesBase<
             .each((node, nodeDatum) => {
                 const { midPoint } = nodeDatum;
 
+                const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
                 if (hasItemStylers) {
                     const highlightState = this.getHighlightState(activeHighlight, isHighlight, nodeDatum.datumIndex);
-                    const selectionState = this.getDataSelectionState(nodeDatum.datumIndex);
 
                     if (styleCache == null) {
                         nodeDatum.style = getItemStyle(this, nodeDatum, isHighlight, highlightState, selectionState);
@@ -487,6 +487,8 @@ export abstract class RadialColumnSeriesBase<
                         nodeDatum.style = cached;
                     }
                 }
+                const bringToFront = !_ModuleSupport.isUnselected(selectionState);
+                node.zIndex = bringToFront ? 1 : 0;
 
                 const style =
                     nodeDatum.style ??
