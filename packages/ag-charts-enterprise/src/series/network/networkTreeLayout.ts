@@ -53,23 +53,6 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         this.updateOffset(options, containerBBox);
     }
 
-    private accumulateContentBounds(bbox: TBBox) {
-        const acc = this.contentBoundsAccumulator;
-        if (acc.count === 0) {
-            acc.left = bbox.x;
-            acc.top = bbox.y;
-            acc.right = bbox.x + bbox.width;
-            acc.bottom = bbox.y + bbox.height;
-            acc.count = 1;
-            return;
-        }
-        if (bbox.x < acc.left) acc.left = bbox.x;
-        if (bbox.y < acc.top) acc.top = bbox.y;
-        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
-        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
-        acc.count++;
-    }
-
     protected override calculateRegularDimensions(options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>) {
         if (options.regularDimensions && (options.nodeWidth == null || options.nodeHeight == null)) {
             super.calculateRegularDimensions(options);
@@ -104,7 +87,7 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         // Iterate through the sibling vertices calculating their layout positions.
         let index = -1;
-        let prevHasChildren = false;
+        let prevHasVisibleChildren = false;
         for (const vertex of vertices) {
             index++;
 
@@ -114,30 +97,18 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
             nodeBBox = this.regularBBox ?? nodeBBox;
             if (!nodeBBox) continue;
 
-            // Pre-check whether this vertex has children. The structural graph check is
-            // used (rather than post-layout visibility) so that gaps between siblings stay
-            // stable across collapse/expand toggles, and so the decision can be made
-            // before laying out descendants.
-            const currentHasChildren =
-                (options.graph.neighboursWithEdgeValue(vertex, 'child' as TEdge)?.length ?? 0) > 0;
-
-            // Apply spacing between this vertex and the previous one. outerSpacing
-            // protects subtree boundaries when either side roots a subtree (cousin gap);
-            // innerSpacing is the tighter gap reserved for two leaf siblings sharing a
-            // parent.
-            if (index > 0) {
-                groupBBox.width += prevHasChildren || currentHasChildren ? options.outerSpacing : options.innerSpacing;
+            // Add spacing to the left if the previous sibling has visible children.
+            if (prevHasVisibleChildren) {
+                groupBBox.width += options.outerSpacing;
             }
 
             // Layout children before their parent so that the parent can be aligned to match the children.
-            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes } = this.updateChildren(
-                options,
-                vertex,
-                groupBBox,
-                nodeBBox
-            );
+            const { descendentsContainerBBox, childrenBBoxes, mergedChildrenBBoxes, childrenCount } =
+                this.updateChildren(options, vertex, groupBBox, nodeBBox, prevHasVisibleChildren || index === 0);
 
-            prevHasChildren = currentHasChildren;
+            const hasVisibleChildren =
+                childrenCount > 0 && mergedChildrenBBoxes != null && mergedChildrenBBoxes.width > 0;
+            prevHasVisibleChildren = hasVisibleChildren;
 
             const x = mergedChildrenBBoxes
                 ? // When a node has children, align it centred to those immediate children, but not all descendents.
@@ -159,6 +130,11 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
                 groupBBox = BBox.merge([groupBBox, layoutBBox]);
             }
 
+            // Add inner padding to childless siblings in the group except for the last node.
+            if (index < vertices.length - 1 && !hasVisibleChildren) {
+                groupBBox.width += options.innerSpacing;
+            }
+
             // Request the series to layout the links between children and their parents.
             if (childrenBBoxes) {
                 for (const { vertex: childVertex, bbox } of childrenBBoxes) {
@@ -177,15 +153,21 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
         options: NetworkTreeLayoutUpdateOptions<TVertex, TEdge>,
         vertex: Vertex<TVertex, TEdge>,
         groupBBox: TBBox,
-        datumBBox?: TBBox
+        datumBBox: TBBox | undefined,
+        prevHasVisibleChildren: boolean
     ) {
         const { graph } = options;
         const children = graph.neighboursWithEdgeValue(vertex, 'child' as TEdge) as Vertex<TVertex, TEdge>[];
-        if (!children) return { childrenCount: 0 };
+        if (!children || children.length == 0) return { childrenCount: 0 };
 
         const childrenGroupBBox = new BBox(groupBBox.x, groupBBox.y, groupBBox.width, groupBBox.height);
         if (datumBBox) {
             childrenGroupBBox.y += datumBBox.height + options.verticalSpacing + options.expanderOffset;
+        }
+
+        // Add spacing to the left if the parent's previous sibling does not have visible children.
+        if (!prevHasVisibleChildren) {
+            childrenGroupBBox.x += options.outerSpacing - options.innerSpacing;
         }
 
         const { containerBBox, childrenBBoxes } = this.updateNodes(
@@ -269,5 +251,22 @@ export class NetworkTreeLayout<TVertex, TEdge> extends NetworkLayout<TVertex, TE
 
         // Auto-centre only — Zoom feature owns pan/clamp.
         options.updateOffset(offset);
+    }
+
+    private accumulateContentBounds(bbox: TBBox) {
+        const acc = this.contentBoundsAccumulator;
+        if (acc.count === 0) {
+            acc.left = bbox.x;
+            acc.top = bbox.y;
+            acc.right = bbox.x + bbox.width;
+            acc.bottom = bbox.y + bbox.height;
+            acc.count = 1;
+            return;
+        }
+        if (bbox.x < acc.left) acc.left = bbox.x;
+        if (bbox.y < acc.top) acc.top = bbox.y;
+        if (bbox.x + bbox.width > acc.right) acc.right = bbox.x + bbox.width;
+        if (bbox.y + bbox.height > acc.bottom) acc.bottom = bbox.y + bbox.height;
+        acc.count++;
     }
 }
