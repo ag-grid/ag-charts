@@ -119,6 +119,38 @@ describe('GradientLegend', () => {
         });
     });
 
+    describe('CRT-1108 top-position label placement', () => {
+        it('should position labels below the gradient bar for top placement', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            options.gradientLegend!.position = 'top';
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+            const axisTicks = gradientLegend.axisTicks[0];
+            const gradientRect = gradientLegend.gradientRectSelection.at(0);
+
+            expect(axisTicks.translationY).toBeGreaterThanOrEqual(gradientRect.y + gradientRect.height);
+        });
+
+        it('should position labels below the gradient bar for bottom placement', async () => {
+            const options: AgChartOptions = { ...EXAMPLE_OPTIONS };
+            prepareEnterpriseTestOptions(options as any);
+            options.gradientLegend!.position = 'bottom';
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const chartInstance = deproxy(chart);
+            const gradientLegend: any = chartInstance.modulesManager.getModule('gradientLegend');
+            const axisTicks = gradientLegend.axisTicks[0];
+            const gradientRect = gradientLegend.gradientRectSelection.at(0);
+
+            expect(axisTicks.translationY).toBeGreaterThanOrEqual(gradientRect.y + gradientRect.height);
+        });
+    });
+
     it('should render fill and border as expected', async () => {
         const options: AgChartOptions = {
             ...EXAMPLE_OPTIONS,
