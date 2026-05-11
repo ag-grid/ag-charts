@@ -288,12 +288,7 @@ export abstract class DataModelSeries<
             } else {
                 return SelectionState.OtherItem;
             }
-        } else {
-            const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-            if (selectionCount === 0) {
-                return SelectionState.OtherSeries;
-            }
         }
-        return undefined;
+        return SelectionState.OtherSeries;
     }
 }
