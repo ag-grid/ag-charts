@@ -58,25 +58,35 @@ function classifyPhase(phase) {
 function classifyEntry(entry) {
     if (entry.error) return { status: 'error', exceptions: [{ type: 'runner-error', error: entry.error }] };
     const exceptions = [];
-    let leftHasPhases = false;
-    let rightHasPhases = false;
     for (const sideKey of ['left', 'right']) {
         const side = entry[sideKey];
         if (!side?.phases) continue;
-        if (sideKey === 'left') leftHasPhases = Object.keys(side.phases).length > 0;
-        else rightHasPhases = Object.keys(side.phases).length > 0;
         for (const [phaseName, phase] of Object.entries(side.phases)) {
             for (const ex of phase.exceptions ?? []) {
                 exceptions.push({ side: sideKey, phase: phaseName, ...ex });
             }
         }
     }
-    // One-sided: navigation-error on one side, phases on the other → page exists on only one side.
-    const navErrors = exceptions.filter((e) => e.type === 'navigation-error');
-    const oneSided =
-        (leftHasPhases && !rightHasPhases && navErrors.some((e) => e.side === 'right')) ||
-        (rightHasPhases && !leftHasPhases && navErrors.some((e) => e.side === 'left'));
-    if (oneSided) return { status: 'one-sided', exceptions };
+    // Added / removed: a navigation error on one side and at least one
+    // non-error phase on the other means the example only exists on that
+    // other side. With left = baseline (older) and right = candidate (newer):
+    //   nav on left  → page is `added`   in the candidate
+    //   nav on right → page was `removed` from the candidate
+    // The 404 side still has a `phases.initial` containing the nav-error, so
+    // checking `phases` length is not sufficient — inspect the phases.
+    function sideLoadedOk(sideKey) {
+        const phases = entry[sideKey]?.phases;
+        if (!phases) return false;
+        for (const phase of Object.values(phases)) {
+            const hasNav = (phase.exceptions ?? []).some((e) => e.type === 'navigation-error');
+            if (!hasNav) return true;
+        }
+        return false;
+    }
+    const leftOk = sideLoadedOk('left');
+    const rightOk = sideLoadedOk('right');
+    if (leftOk && !rightOk) return { status: 'removed', exceptions };
+    if (rightOk && !leftOk) return { status: 'added', exceptions };
     if (exceptions.length === 0) return { status: 'clean', exceptions };
 
     // Auto-suppress symmetric noise: if every exception is a control-no-render
@@ -192,7 +202,7 @@ function renderExceptionDetail(ex) {
 function renderRow(row) {
     const e = row.entry;
     const id = `${e.page}/${e.example}/${e.framework}`;
-    const open = ['regression', 'needs-human', 'untriaged', 'error', 'one-sided'].includes(row.status);
+    const open = ['regression', 'needs-human', 'untriaged', 'error', 'added', 'removed'].includes(row.status);
     const leftUrl = buildExampleUrl(data.sides.left, e);
     const rightUrl = buildExampleUrl(data.sides.right, e);
 
@@ -291,7 +301,7 @@ function renderRow(row) {
 </details>`;
 }
 
-const counts = { clean: 0, untriaged: 0, 'triaged-benign': 0, regression: 0, 'needs-human': 0, error: 0, 'one-sided': 0 };
+const counts = { clean: 0, untriaged: 0, 'triaged-benign': 0, regression: 0, 'needs-human': 0, error: 0, added: 0, removed: 0 };
 const rows = [];
 for (const entry of data.results) {
     const c = classifyEntry(entry);
@@ -299,13 +309,8 @@ for (const entry of data.results) {
     rows.push({ entry, ...c });
 }
 
-const oneSided = rows.filter((r) => r.status === 'one-sided');
-const oneSidedByDirection = { onlyLeft: [], onlyRight: [] };
-for (const r of oneSided) {
-    const navOnRight = r.exceptions.some((e) => e.type === 'navigation-error' && e.side === 'right');
-    if (navOnRight) oneSidedByDirection.onlyLeft.push(r);
-    else oneSidedByDirection.onlyRight.push(r);
-}
+const addedRows = rows.filter((r) => r.status === 'added');
+const removedRows = rows.filter((r) => r.status === 'removed');
 
 function renderSideMeta(label, side, sideMeta) {
     const parts = [
@@ -323,10 +328,10 @@ function renderSideMeta(label, side, sideMeta) {
     return `<div class="side-meta">${parts.join('')}</div>`;
 }
 
-function renderOneSidedList(rows, otherSideName) {
+function renderOneSidedList(label, rows) {
     if (!rows.length) return '';
     return `<details>
-      <summary>${rows.length} only on ${escapeHtml(otherSideName)}</summary>
+      <summary>${escapeHtml(label)} (${rows.length})</summary>
       <ul>${rows.map((r) => `<li><strong>${escapeHtml(r.entry.page)}</strong>/${escapeHtml(r.entry.example)} <span class="meta">[${escapeHtml(r.entry.framework)}]</span></li>`).join('')}</ul>
     </details>`;
 }
@@ -349,7 +354,8 @@ const html = `<!doctype html>
     --regression-bg: #fde0e0; --regression-fg: #8a1414;
     --needs-bg: #fff1a8; --needs-fg: #5a3e00;
     --error-bg: #f5c2c7; --error-fg: #58151c;
-    --onesided-bg: #ecdcfa; --onesided-fg: #4a148c;
+    --added-bg: #dcf3e3; --added-fg: #1b5e20;
+    --removed-bg: #ecdcfa; --removed-fg: #4a148c;
   }
   * { box-sizing: border-box; }
   body { font: 13px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; margin: 0; padding: 0 0 24px 0; color: var(--text); background: var(--bg); }
@@ -376,7 +382,8 @@ const html = `<!doctype html>
   .chip-regression[aria-pressed="true"] { background: var(--regression-bg); color: var(--regression-fg); }
   .chip-needs-human[aria-pressed="true"] { background: var(--needs-bg); color: var(--needs-fg); }
   .chip-error[aria-pressed="true"] { background: var(--error-bg); color: var(--error-fg); }
-  .chip-one-sided[aria-pressed="true"] { background: var(--onesided-bg); color: var(--onesided-fg); }
+  .chip-added[aria-pressed="true"] { background: var(--added-bg); color: var(--added-fg); }
+  .chip-removed[aria-pressed="true"] { background: var(--removed-bg); color: var(--removed-fg); }
   .chip-divider { width: 1px; align-self: stretch; background: var(--border); margin: 0 4px; }
   .chip-action { background: var(--card); }
   .chip-action.active { background: #ffe66e; }
@@ -413,7 +420,8 @@ const html = `<!doctype html>
   .b-regression { background: var(--regression-bg); color: var(--regression-fg); }
   .b-needs-human { background: var(--needs-bg); color: var(--needs-fg); }
   .b-error { background: var(--error-bg); color: var(--error-fg); }
-  .b-one-sided { background: var(--onesided-bg); color: var(--onesided-fg); }
+  .b-added { background: var(--added-bg); color: var(--added-fg); }
+  .b-removed { background: var(--removed-bg); color: var(--removed-fg); }
 
   .exception-list { margin-bottom: 10px; }
   .exception { border-top: 1px solid var(--border-soft); padding: 8px 0; }
@@ -461,7 +469,7 @@ const html = `<!doctype html>
   .v-needs-human { background: var(--needs-bg); color: var(--needs-fg); }
   .meta { color: var(--muted); font-size: 11px; }
 
-  .one-sided-panel { padding: 12px 14px; margin: 0 0 12px 0; background: var(--card); border: 1px solid var(--onesided-bg); border-left: 3px solid #b06af0; border-radius: 6px; font-size: 12px; }
+  .one-sided-panel { padding: 12px 14px; margin: 0 0 12px 0; background: var(--card); border: 1px solid var(--removed-bg); border-left: 3px solid #b06af0; border-radius: 6px; font-size: 12px; }
   .one-sided-panel ul { margin: 4px 0 0 18px; padding: 0; columns: 2; }
 
   .feedback { margin-top: 12px; padding: 10px 12px; background: #fffbe9; border: 1px solid #f3eccb; border-radius: 6px; }
@@ -521,12 +529,13 @@ const html = `<!doctype html>
   ${renderSideMeta('left', data.sides.left, data.sideMetadata?.left).replace('class="side-meta"', 'class="side-meta left"')}
   ${renderSideMeta('right', data.sides.right, data.sideMetadata?.right).replace('class="side-meta"', 'class="side-meta right"')}
 </div>
-${counts['one-sided'] > 0
+${counts.added + counts.removed > 0
     ? `<div class="one-sided-panel">
-        <strong>Examples present on only one side</strong>
+        <strong>Example set drift</strong>
+        <span class="meta">left = ${escapeHtml(data.sides.left.name)} (baseline), right = ${escapeHtml(data.sides.right.name)} (candidate)</span>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px">
-          <div>${renderOneSidedList(oneSidedByDirection.onlyLeft, data.sides.left.name)}</div>
-          <div>${renderOneSidedList(oneSidedByDirection.onlyRight, data.sides.right.name)}</div>
+          <div>${renderOneSidedList(`added in ${data.sides.right.name}`, addedRows)}</div>
+          <div>${renderOneSidedList(`removed from ${data.sides.right.name}`, removedRows)}</div>
         </div>
       </div>`
     : ''}
@@ -537,7 +546,8 @@ ${counts['one-sided'] > 0
     <button class="chip chip-needs-human" data-status="needs-human" aria-pressed="true">needs human <span class="count">${counts['needs-human']}</span></button>
     <button class="chip chip-untriaged" data-status="untriaged" aria-pressed="true">untriaged <span class="count">${counts.untriaged}</span></button>
     <button class="chip chip-error" data-status="error" aria-pressed="true">runner error <span class="count">${counts.error}</span></button>
-    <button class="chip chip-one-sided" data-status="one-sided" aria-pressed="true">one-sided <span class="count">${counts['one-sided']}</span></button>
+    <button class="chip chip-added" data-status="added" aria-pressed="true">added <span class="count">${counts.added}</span></button>
+    <button class="chip chip-removed" data-status="removed" aria-pressed="true">removed <span class="count">${counts.removed}</span></button>
     <span class="chip-divider"></span>
     <button class="chip chip-triaged-benign" data-status="triaged-benign" aria-pressed="false">triaged-benign <span class="count">${counts['triaged-benign']}</span></button>
     <button class="chip chip-clean" data-status="clean" aria-pressed="false">clean <span class="count">${counts.clean}</span></button>

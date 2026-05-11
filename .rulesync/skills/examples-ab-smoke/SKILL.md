@@ -229,7 +229,9 @@ node plans/examples-ab-smoke/generate-report.mjs
 open plans/examples-ab-smoke/report.html
 ```
 
-The report leads with the exception list. Verified-clean rows are collapsed. Header counters: `clean / untriaged / triaged-benign / regression / needs-human / runner-error`. Each exception card shows side-by-side screenshots, the diff image where applicable, the captured console output, and the LLM verdict + reason. Untriaged `image-diff-major` rows automatically count as `regression` so they cannot be missed in the summary.
+The report leads with the exception list. Verified-clean rows are collapsed. Header counters: `clean / untriaged / triaged-benign / regression / needs-human / added / removed / runner-error`. Each exception card shows side-by-side screenshots, the diff image where applicable, the captured console output, and the LLM verdict + reason. Untriaged `image-diff-major` rows automatically count as `regression` so they cannot be missed in the summary.
+
+`added` and `removed` describe the example set drift between sides — with left = baseline and right = candidate, `added` means the example exists only in the candidate (404 on the baseline side), `removed` means it has disappeared from the candidate. The report's "Example set drift" panel lists them grouped by direction.
 
 ### Step 8 — publish the report (optional)
 
