@@ -7,11 +7,11 @@
         <button onclick="setPosition('top')">Top</button>
     </div>
     <div class="controls-row">
-        Thickness: <input type="range" min="5" max="60" value="16" step="1" oninput="setThickness(this.value)" />
+        Thickness: <input type="range" min="5" max="60" value="16" step="1" oninput="setThickness(event)" />
         <span id="thicknessValue">16</span> <span class="gap-left">Length:</span>
-        <input type="range" min="50" max="500" value="100" step="10" oninput="setLength(this.value)" />
+        <input type="range" min="50" max="500" value="100" step="10" oninput="setLength(event)" />
         <span id="lengthValue">100</span> <span class="gap-left">Padding:</span>
-        <input type="range" min="0" max="40" value="10" step="1" oninput="setPadding(this.value)" />
+        <input type="range" min="0" max="40" value="10" step="1" oninput="setPadding(event)" />
         <span id="paddingValue">10</span>
     </div>
 </div>
