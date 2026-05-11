@@ -361,7 +361,13 @@ export class OrganizationSeries extends AbstractNetworkSeries<
                 this.formatText(label, this.properties.node.labels[index]?.formatter, datumIndex, isCollapsed)
             );
 
-            node.update({ image: fields.image, title, subtitle, labels }, descendantsCount, styles, isCollapsed);
+            node.update(
+                { image: fields.image, title, subtitle, labels },
+                descendantsCount,
+                styles,
+                isCollapsed,
+                this.ctx.domManager.isRtl
+            );
         });
     }
 

@@ -406,6 +406,10 @@ const EXAMPLES: Record<string, StandaloneTestCase> = {
         options: SIMPLE_ORG_CHART_THEMED,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
     },
+    SIMPLE_ORG_CHART_RTL: {
+        options: { ...SIMPLE_ORG_CHART, enableRtl: true },
+        assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
+    },
     LINKS_ROUNDED_INTERPOLATION: {
         options: LINKS_ROUNDED_INTERPOLATION,
         assertions: standaloneChartAssertions({ seriesTypes: ['organization'] }),
