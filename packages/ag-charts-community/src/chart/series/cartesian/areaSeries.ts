@@ -1329,7 +1329,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         selectionState: SelectionState | undefined,
         datum: MarkerSelectionDatum
     ): AgSeriesMarkerStyle {
-        const stylerStyle = series.getStyle(highlightState, selectionState);
+        const stylerStyle = series.getStyle(highlightState);
         return series.getMarkerStyle(
             ctx.marker,
             datum,
@@ -1349,10 +1349,10 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         series: AreaSeries,
         _ctx: AreaStylerPassCtx,
         highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
+        _selectionState: SelectionState | undefined,
         _datum: MarkerSelectionDatum
     ): ReturnType<AreaSeries['getStyle']> {
-        return series.getStyle(highlightState, selectionState);
+        return series.getStyle(highlightState);
     }
 
     private static applyStylerDatum(
@@ -1786,14 +1786,14 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     public getStyle(
-        highlightState: HighlightState | undefined,
-        selectionState: SelectionState | undefined
+        highlightState: HighlightState | undefined
     ): Required<AgAreaSeriesStylerResult> & { marker: Required<AgSeriesMarkerStyle> & { enabled: boolean } } {
         const { styler, marker, fill, fillOpacity, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } =
             this.properties;
         const { size, shape, fill: markerFill = 'transparent', fillOpacity: markerFillOpacity } = marker;
         let stylerResult: AgAreaSeriesStylerResult & { marker?: { enabled?: boolean } } = {};
         if (styler) {
+            const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
             const stylerParams = this.makeStylerParams(highlightState, selectionState);
             const cbResult = this.cachedCallWithContext(styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(

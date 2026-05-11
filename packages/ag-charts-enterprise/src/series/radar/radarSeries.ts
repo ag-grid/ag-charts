@@ -411,7 +411,7 @@ export abstract class RadarSeries<
         selectionState: _ModuleSupport.SelectionState | undefined,
         datum: RadarNodeDatum
     ): AgSeriesMarkerStyle {
-        const stylerStyle = series.getStyle(highlightState, selectionState);
+        const stylerStyle = series.getStyle(highlightState);
         const { stroke, strokeWidth, strokeOpacity } = stylerStyle;
         // No hideWithSize0 — polar series don't use the cartesian markerDrawMode mechanism.
         return series.getMarkerStyle(
@@ -429,10 +429,10 @@ export abstract class RadarSeries<
         series: RadarSeries<any, any, any>,
         _ctx: { marker: RadarSeriesProperties<any, any>['marker']; isHighlight: boolean },
         highlightState: _ModuleSupport.HighlightState,
-        selectionState: _ModuleSupport.SelectionState | undefined,
+        _selectionState: _ModuleSupport.SelectionState | undefined,
         _datum: RadarNodeDatum
     ): ResolvedRadarStyle<any> {
-        return series.getStyle(highlightState, selectionState);
+        return series.getStyle(highlightState);
     }
 
     private static applyStylerDatum(
@@ -908,10 +908,7 @@ export abstract class RadarSeries<
         return stylerResult;
     }
 
-    abstract getStyle(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
-    ): ResolvedRadarStyle<TStyle>;
+    abstract getStyle(highlightState: _ModuleSupport.HighlightState | undefined): ResolvedRadarStyle<TStyle>;
 
     public getFormattedMarkerStyle(datum: RadarNodeDatum) {
         const { angleKey, radiusKey } = this.properties;

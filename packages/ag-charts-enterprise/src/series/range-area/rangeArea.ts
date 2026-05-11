@@ -1061,10 +1061,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         series: RangeAreaSeries,
         _ctx: RangeAreaStylerPassCtx,
         highlightState: _ModuleSupport.HighlightState,
-        selectionState: _ModuleSupport.SelectionState | undefined,
+        _selectionState: _ModuleSupport.SelectionState | undefined,
         _datum: RangeAreaMarkerDatum
     ): StylerResult {
-        return series.getStyle(highlightState, selectionState);
+        return series.getStyle(highlightState);
     }
 
     private static applyStylerDatum(
@@ -1215,23 +1215,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<RangeAreaSer
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
-    private getStyle(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
-    ): StylerResult {
-        return this.getStylerCouple(highlightState, selectionState)[0];
+    private getStyle(highlightState: _ModuleSupport.HighlightState | undefined): StylerResult {
+        return this.getStylerCouple(highlightState)[0];
     }
 
     private getStylerMarkerOptions(): StylerMarkerOptionsResult {
-        return this.getStylerCouple(undefined, undefined)[1];
+        return this.getStylerCouple(undefined)[1];
     }
 
     private getStylerCouple(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        highlightState: _ModuleSupport.HighlightState | undefined
     ): [StylerResult, StylerMarkerOptionsResult] {
         const { fill, fillOpacity, item, styler } = this.properties;
 
+        const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         let stylerResult: AgRangeAreaSeriesStyle & ResolvedStyleMixin = {};
         if (styler) {
             const stylerParams = this.makeStylerParams(highlightState, selectionState);
