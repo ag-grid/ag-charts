@@ -29,7 +29,6 @@ import type {
     RequireOptional,
     Scale,
     ZoomMinMax,
-    ZoomMinMaxDirection,
     ZoomState,
 } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
