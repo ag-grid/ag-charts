@@ -71,13 +71,12 @@ export function calculateNiceSecondaryAxis<D extends number>(
     const d: [D, D] = [scale.toDomain(start), scale.toDomain(stop)];
     if (reverse) d.reverse();
 
-    // Subdivide baseStep by a "nice" integer factor (1/2/5 × 10^n) so labels stay on round values,
-    // and rebuild the tick count from that subdivision rather than from the raw zoomed count.
+    // Subdivide baseStep by a nice {1,2,5}*10^n factor so secondary labels stay on round values.
     const zoomedSegments = Math.max(1, Math.floor(primaryTickCount.zoomed) - 1);
-    const rawSubdivision = zoomedSegments / segments;
-    const subdivision = niceSubdivisionFactor(rawSubdivision);
+    const subdivision = niceSubdivisionFactor(zoomedSegments / segments);
     const step = baseStep / subdivision;
-    const ticks = getTicks(start, step, segments * subdivision + 1);
+    const tickCount = Math.min(segments * subdivision + 1, Math.floor(primaryTickCount.zoomed));
+    const ticks = getTicks(start, step, tickCount);
 
     return { domain: d, ticks };
 }
