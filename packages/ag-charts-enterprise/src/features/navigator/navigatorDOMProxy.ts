@@ -143,9 +143,6 @@ export class NavigatorDOMProxy {
     }
 
     private onKeyDown(slider: _Widget.Widget) {
-        for (const s of this.sliders) {
-            s.setFocusOverride(undefined);
-        }
         const elem = slider.getElement();
         if (elem === elem.ownerDocument.activeElement) {
             slider.setFocusOverride(true);
