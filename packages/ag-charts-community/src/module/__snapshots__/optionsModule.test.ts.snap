@@ -313,7 +313,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#3d7ab0",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -386,7 +385,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#b03d65",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -459,7 +457,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#80b03d",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -857,7 +854,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#c16068",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -939,7 +935,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a2bf8a",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1025,7 +1020,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#80a0c3",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1371,7 +1365,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#aa4520",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1446,7 +1439,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#b07513",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1521,7 +1513,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#3d803d",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1596,7 +1587,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2d768d",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1671,7 +1661,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2e3e8d",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1746,7 +1735,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#6c2e8c",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -1821,7 +1809,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#8c2d46",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2160,7 +2147,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2243,7 +2229,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2326,7 +2311,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e652e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2409,7 +2393,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#18859e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2492,7 +2475,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a69400",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2575,7 +2557,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#603c88",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2658,7 +2639,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#575757",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -2741,7 +2721,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#7d2f6d",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -3080,7 +3059,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -3450,7 +3428,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#5BC0EB",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -3523,7 +3500,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#FDE74C",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -3596,7 +3572,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#9BC53D",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -3669,7 +3644,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#E55934",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4017,7 +3991,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#af5517",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4103,7 +4076,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#4086a4",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4189,7 +4161,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#6c8a2b",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4275,7 +4246,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a03e24",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4361,7 +4331,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#b1a235",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -4706,7 +4675,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -5061,7 +5029,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -5411,7 +5378,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -5748,7 +5714,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -6091,7 +6056,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#19A0AA",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -6171,7 +6135,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#F15F36",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -6523,7 +6486,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "rgba(0, 117, 163, 0.9)",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -6608,7 +6570,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "rgba(226, 188, 34, 0.9)",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -6966,7 +6927,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7053,7 +7013,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7140,7 +7099,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e652e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7227,7 +7185,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#18859e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7314,7 +7271,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a69400",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7401,7 +7357,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#603c88",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7488,7 +7443,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#575757",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7849,7 +7803,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#0b1791",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -7925,7 +7878,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#f6d24a",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8001,7 +7953,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#f6d24a",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8077,7 +8028,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#ce1126",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8153,7 +8103,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#ce1126",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8229,7 +8178,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#fade4b",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8305,7 +8253,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#be2a2c",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8381,7 +8328,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#0073cf",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8457,7 +8403,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#469c65",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8533,7 +8478,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#fed100",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8609,7 +8553,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#ce1126",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8685,7 +8628,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e5190",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8761,7 +8703,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#bf2b30",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8837,7 +8778,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#4997d0",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8913,7 +8853,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2868c1",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -8989,7 +8928,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#459945",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -9326,7 +9264,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -9675,7 +9612,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -9769,7 +9705,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -9863,7 +9798,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e652e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -9957,7 +9891,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#18859e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10051,7 +9984,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a69400",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10145,7 +10077,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#603c88",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10239,7 +10170,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#575757",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10597,7 +10527,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#006428",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10683,7 +10612,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#996500",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -10769,7 +10697,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a10000",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11122,7 +11049,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#f39c12",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11205,7 +11131,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#d35400",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11288,7 +11213,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#27ae60",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11371,7 +11295,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2980b9",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11454,7 +11377,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#8e44ad",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11537,7 +11459,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2c3e50",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -11924,7 +11845,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -12007,7 +11927,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -12090,7 +12009,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e652e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -12173,7 +12091,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#18859e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -12520,7 +12437,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -12830,7 +12746,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -13223,7 +13138,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -13297,7 +13211,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -13560,7 +13473,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_PIE_CHART_EXAMPLE it should pre
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -13902,7 +13814,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14274,7 +14185,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#4086a4",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14364,7 +14274,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#b1a235",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14454,7 +14363,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#6c8a2b",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14544,7 +14452,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a03e24",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14634,7 +14541,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#af5517",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -14724,7 +14630,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#af225a",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15080,7 +14985,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#2b5c95",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15165,7 +15069,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#cc6f10",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15250,7 +15153,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#1e652e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15335,7 +15237,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#18859e",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15691,7 +15592,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#4086a4",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15776,7 +15676,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#b1a235",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15861,7 +15760,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#6c8a2b",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -15946,7 +15844,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#a03e24",
           "strokeWidth": 2,
         },
         "unselectedItem": {
@@ -16031,7 +15928,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
       "selection": {
         "enabled": false,
         "selectedItem": {
-          "stroke": "#af5517",
           "strokeWidth": 2,
         },
         "unselectedItem": {
