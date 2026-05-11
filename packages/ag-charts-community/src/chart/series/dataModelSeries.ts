@@ -287,7 +287,7 @@ export abstract class DataModelSeries<
         }
 
         const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-        if (datumIndex === undefined && selectionCount === 0) {
+        if (datumIndex === undefined || selectionCount === 0) {
             return SelectionState.OtherSeries;
         }
         if (datumIndex !== undefined && selectionCount > 0) {
