@@ -83,11 +83,11 @@ export class RadarLineSeries extends RadarSeries<S, O, P> {
     }
 
     override getStyle(
-        highlightState: _ModuleSupport.HighlightState | undefined,
-        selectionState: _ModuleSupport.SelectionState | undefined
+        highlightState: _ModuleSupport.HighlightState | undefined
     ): ResolvedRadarStyle<AgRadarLineSeriesStyle> {
         const { marker, lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = this.properties;
         const { size, shape, fill = 'transparent', fillOpacity } = marker;
+        const selectionState: _ModuleSupport.SelectionState | undefined = this.getDataSelectionState(undefined);
         const stylerResult = this.getStylerResult({}, highlightState, selectionState);
         stylerResult.marker ??= {};
 

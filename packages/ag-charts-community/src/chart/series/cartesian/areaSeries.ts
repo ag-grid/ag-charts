@@ -1212,7 +1212,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
 
         const highlightStyle = this.getHighlightStyle();
         const selectionStyle = this.getSelectionStyle();
-        const seriesStyle = this.getStyle(undefined, undefined);
+        const seriesStyle = this.getStyle(undefined);
         const merged = mergeDefaults(selectionStyle, highlightStyle, seriesStyle);
         const { strokeWidth, stroke, strokeOpacity, lineDash, lineDashOffset, fill, fillOpacity, opacity } = merged;
 
@@ -1293,7 +1293,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         const { contextNodeData, processedData, axes, properties } = this;
         const { marker, styler } = properties;
 
-        const markerStyle = styler ? this.getStyle(undefined, undefined).marker : undefined;
+        const markerStyle = styler ? this.getStyle(undefined).marker : undefined;
 
         const markerDrawMode = cartesianMarkerDrawMode(
             properties,
@@ -1572,7 +1572,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
         // sonarjs/different-types-comparison: array access can return undefined if index is out of bounds
         if (xValue === undefined && !allowNullKeys) return; // eslint-disable-line sonarjs/different-types-comparison
 
-        const stylerStyle = this.getStyle(undefined, undefined);
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(dataModel, processedData, datumIndex, stylerStyle.marker);
 
         const format = this.getMarkerStyle<AgAreaSeriesMarkerItemStylerParams<unknown, unknown>>(
@@ -1612,10 +1612,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(
-            undefined,
-            undefined
-        );
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.getStyle(undefined);
         const useAreaFill = !marker.enabled || marker.fill == null;
         const legendMarkerFill = useAreaFill ? fill : marker.fill;
 
@@ -1828,7 +1825,7 @@ export class AreaSeries extends CartesianSeries<AreaSeriesTypes> {
     }
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum) {
-        const stylerStyle = this.getStyle(undefined, undefined);
+        const stylerStyle = this.getStyle(undefined);
         const params = this.makeItemStylerParams(
             this.dataModel!,
             this.processedData!,

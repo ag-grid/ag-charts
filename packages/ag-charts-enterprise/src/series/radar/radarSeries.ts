@@ -362,7 +362,7 @@ export abstract class RadarSeries<
             this.itemSelection = Selection.select(this.itemGroup, () => this.nodeFactory(), false);
         }
 
-        const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined, undefined).marker.enabled;
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined).marker.enabled;
         const data = this.visible && marker.shape && markersEnabled ? this.nodeData : [];
         this.itemSelection.update(data);
     }
@@ -375,7 +375,7 @@ export abstract class RadarSeries<
             this.highlightSelection = Selection.select(this.highlightGroup, () => this.nodeFactory(), false);
         }
 
-        const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined, undefined).marker.enabled;
+        const markersEnabled = styler == null ? marker.enabled : this.getStyle(undefined).marker.enabled;
         const highlighted = this.ctx.highlightManager?.getActiveHighlight();
         const data =
             this.visible && marker.shape && markersEnabled && highlighted?.datum
@@ -385,7 +385,7 @@ export abstract class RadarSeries<
     }
 
     protected getMarkerFill(highlightedStyle?: _ModuleSupport.SeriesItemHighlightStyle) {
-        return highlightedStyle?.fill ?? this.getStyle(undefined, undefined).marker.fill;
+        return highlightedStyle?.fill ?? this.getStyle(undefined).marker.fill;
     }
 
     protected getDatumStylerProperties(datum: any) {
@@ -595,7 +595,7 @@ export abstract class RadarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(undefined, undefined);
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.getStyle(undefined);
 
         const markerStyle = {
             shape: marker.shape,
@@ -722,7 +722,7 @@ export abstract class RadarSeries<
         const highlightStyle = this.getHighlightStyle(undefined, undefined, highlightState);
         const selectionState = this.getDataSelectionState(undefined);
         const selectionStyle = this.getSelectionStyle(undefined, selectionState);
-        const stylerStyle = this.getStyle(highlightState, selectionState);
+        const stylerStyle = this.getStyle(highlightState);
         return mergeDefaults(selectionStyle, highlightStyle, stylerStyle);
     }
 
@@ -853,7 +853,7 @@ export abstract class RadarSeries<
         if (lineNode) {
             const { path: linePath } = lineNode;
             const linePoints = this.getLinePoints();
-            const stylerStyle = this.getStyle(undefined, undefined);
+            const stylerStyle = this.getStyle(undefined);
 
             lineNode.fill = undefined;
             lineNode.stroke = stylerStyle.stroke;
