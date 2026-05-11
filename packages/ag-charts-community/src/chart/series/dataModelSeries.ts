@@ -283,15 +283,16 @@ export abstract class DataModelSeries<
         if (datumIndex !== undefined) {
             const aggregated = this.ensureBucketLookupFeature()?.isBucketSelected(datumIndex);
             const isItem = aggregated ?? selectionBuffer?.isSelected(datumIndex) ?? false;
-            if (isItem) return SelectionState.Item;
-        }
-
-        const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
-        if (datumIndex === undefined || selectionCount === 0) {
-            return SelectionState.OtherSeries;
-        }
-        if (datumIndex !== undefined && selectionCount > 0) {
-            return SelectionState.OtherItem;
+            if (isItem) {
+                return SelectionState.Item;
+            } else {
+                return SelectionState.OtherItem;
+            }
+        } else {
+            const selectionCount: number = selectionBuffer?.getSelectedCount() ?? 0;
+            if (selectionCount === 0) {
+                return SelectionState.OtherSeries;
+            }
         }
         return undefined;
     }
