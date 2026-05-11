@@ -161,27 +161,40 @@ async function dismissCookieBanner(page) {
 // Mirrors waitForCharts/waitForChartUpdate in packages/ag-charts-website/e2e/{fixture,util}.ts:
 // rAF→setTimeout(0) flush so DOMElementProxy's deferred mutations land, then
 // poll for data-update-pending=false and data-animating=false on every wrapper.
-async function waitForCharts(page, timeoutMs = 5000) {
+// Returns { settled: boolean, reason?: 'no-wrappers' | 'update-pending' | 'animating', timedOutMs?: number }.
+// On settle we also wait two more rAFs so the final animation frame is painted
+// before the caller screenshots — without this we sometimes capture the
+// penultimate frame because data-animating flips to "false" between the last
+// rAF tick and the actual paint commit.
+async function waitForCharts(page, timeoutMs = 10000) {
     await page
         .evaluate(() => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0))))
         .catch(() => null);
     const deadline = Date.now() + timeoutMs;
+    let lastReason = 'no-wrappers';
     while (Date.now() < deadline) {
-        const ready = await page
+        const status = await page
             .evaluate((sel) => {
                 const wrappers = document.querySelectorAll(sel);
-                if (wrappers.length === 0) return false;
+                if (wrappers.length === 0) return { ready: false, reason: 'no-wrappers' };
                 for (const w of wrappers) {
-                    if (w.getAttribute('data-update-pending') !== 'false') return false;
-                    if (w.getAttribute('data-animating') !== 'false') return false;
+                    if (w.getAttribute('data-update-pending') !== 'false') return { ready: false, reason: 'update-pending' };
+                    if (w.getAttribute('data-animating') !== 'false') return { ready: false, reason: 'animating' };
                 }
-                return true;
+                return { ready: true };
             }, SELECTORS.chartWrapper)
-            .catch(() => false);
-        if (ready) return true;
+            .catch(() => ({ ready: false, reason: 'eval-error' }));
+        if (status.ready) {
+            // Allow the just-finished frame to flush to screen.
+            await page
+                .evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))))
+                .catch(() => null);
+            return { settled: true };
+        }
+        lastReason = status.reason;
         await sleep(80);
     }
-    return false;
+    return { settled: false, reason: lastReason, timedOutMs: timeoutMs };
 }
 
 async function isTooltipShowing(page) {
@@ -237,12 +250,70 @@ async function waitForSceneRenderBump(page, before, timeoutMs = 5000) {
     return null;
 }
 
+// Wait for chart stability and, if the wait times out, push a
+// `chart-not-settled` exception onto the supplied phase so the screenshot
+// that follows is flagged as a potentially-mid-animation capture rather
+// than treated as ground truth.
+async function settleForScreenshot(page, phase, label, timeoutMs = 12000) {
+    const result = await waitForCharts(page, timeoutMs);
+    if (!result.settled) {
+        pushException(phase, 'chart-not-settled', {
+            reason: result.reason ?? 'unknown',
+            timedOutMs: result.timedOutMs ?? timeoutMs,
+            ...(label ? { label } : {}),
+        });
+    }
+    return result.settled;
+}
+
 async function takeWrapperScreenshot(page, outPath) {
     mkdirSync(dirname(outPath), { recursive: true });
-    // Locator.screenshot() captures the full element irrespective of viewport
-    // height, scrolling as needed. page.screenshot({ clip }) would silently
-    // crop wrappers taller than the viewport.
+    // The chart canvas can be larger than its `.ag-charts-wrapper` parent on
+    // gallery iframe pages (wrapper height is constrained by CSS, canvas is
+    // sized to the chart's intrinsic dims). Screenshotting the wrapper would
+    // crop the chart vertically. Compute a clip that unions the wrapper and
+    // canvas bounding boxes, falling back to the wrapper element shot if the
+    // probe fails.
     const wrapper = page.locator(SELECTORS.chartWrapper).first();
+    const clip = await page
+        .evaluate((sel) => {
+            const w = document.querySelector(sel);
+            if (!w) return null;
+            const c = w.querySelector('canvas');
+            const wr = w.getBoundingClientRect();
+            const cr = c?.getBoundingClientRect();
+            const x1 = Math.min(wr.left, cr?.left ?? wr.left);
+            const y1 = Math.min(wr.top, cr?.top ?? wr.top);
+            const x2 = Math.max(wr.right, cr?.right ?? wr.right);
+            const y2 = Math.max(wr.bottom, cr?.bottom ?? wr.bottom);
+            return { x: x1, y: y1, width: x2 - x1, height: y2 - y1 };
+        }, SELECTORS.chartWrapper)
+        .catch(() => null);
+
+    if (clip && clip.width > 0 && clip.height > 0) {
+        try {
+            // Resize viewport so the chart fits without page-level scroll, then
+            // clip to the union region. page.screenshot honours clip but caps
+            // at the viewport bottom — hence the resize.
+            const orig = page.viewportSize() ?? { width: 1280, height: 800 };
+            const vh = Math.max(orig.height, Math.ceil(clip.y + clip.height) + 16);
+            const vw = Math.max(orig.width, Math.ceil(clip.x + clip.width) + 16);
+            if (vh !== orig.height || vw !== orig.width) {
+                await page.setViewportSize({ width: vw, height: vh }).catch(() => null);
+            }
+            await page.screenshot({
+                path: outPath,
+                clip: { x: Math.max(0, clip.x), y: Math.max(0, clip.y), width: clip.width, height: clip.height },
+                timeout: 15000,
+            });
+            if (vh !== orig.height || vw !== orig.width) {
+                await page.setViewportSize(orig).catch(() => null);
+            }
+            return true;
+        } catch {
+            // fall through to wrapper-locator shot
+        }
+    }
     try {
         await wrapper.screenshot({ path: outPath, timeout: 15000 });
         return true;
@@ -367,6 +438,9 @@ async function captureOne(browser, side, entry) {
     // Phase: initial
     const initial = newPhase('initial');
     {
+        // Initial-load animations can take longer than steady-state updates;
+        // give them extra headroom before flagging.
+        await settleForScreenshot(page, initial, null, 15000);
         const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-initial.png`;
         try {
             await takeWrapperScreenshot(page, out);
@@ -411,7 +485,7 @@ async function captureOne(browser, side, entry) {
                     });
                 }
             }
-            await waitForCharts(page);
+            await settleForScreenshot(page, controls, label);
 
             const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-control-${i}-${slug(label)}.png`;
             try {
@@ -482,6 +556,7 @@ async function captureOne(browser, side, entry) {
             tooltip.data.tooltipTrigger = trigger;
             tooltip.data.crosshairLabelVisible = (await page.locator(SELECTORS.crosshairLabel).count()) > 0;
 
+            await settleForScreenshot(page, tooltip);
             const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-tooltip.png`;
             await takeWrapperScreenshot(page, out);
             tooltip.screenshots.push({ phase: 'tooltip', path: out });
@@ -512,38 +587,51 @@ async function captureOne(browser, side, entry) {
     const legendItems = await page.locator(SELECTORS.legendItems).all();
     result.legendItemCount = legendItems.length;
     const firstLegend = legendItems[0];
+    // Some charts ship a11y proxy elements even when the visible legend is
+    // suppressed (legend.enabled=false, or position renders the legend
+    // off-canvas). Probe for actual visibility — if the proxy is invisible
+    // and has zero size, skip the legend phases entirely so they don't
+    // generate spurious image-diffs against the other side.
+    const legendVisible = firstLegend
+        ? await firstLegend
+              .evaluate((el) => {
+                  const r = el.getBoundingClientRect();
+                  if (r.width <= 0 || r.height <= 0) return false;
+                  const cs = window.getComputedStyle(el);
+                  if (cs.visibility === 'hidden' || cs.display === 'none') return false;
+                  return true;
+              })
+              .catch(() => false)
+        : false;
+    result.legendVisible = legendVisible;
 
-    // Phase: legend-hover
-    const legendHover = newPhase('legend-hover');
-    {
-        const errBefore = snapshotErrorCounts(result);
-        try {
-            if (firstLegend) {
+    if (legendVisible) {
+        // Phase: legend-hover
+        const legendHover = newPhase('legend-hover');
+        {
+            const errBefore = snapshotErrorCounts(result);
+            try {
                 await firstLegend.hover({ timeout: 3000 }).catch(() => null);
-                await waitForCharts(page);
+                await settleForScreenshot(page, legendHover);
                 legendHover.data.legendItemTargeted = true;
-            } else {
-                legendHover.notes.push('no legend item');
+                const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-hover.png`;
+                await takeWrapperScreenshot(page, out);
+                legendHover.screenshots.push({ phase: 'legend-hover', path: out });
+            } catch (err) {
+                pushException(legendHover, 'phase-error', { error: err.message });
             }
-            const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-hover.png`;
-            await takeWrapperScreenshot(page, out);
-            legendHover.screenshots.push({ phase: 'legend-hover', path: out });
-        } catch (err) {
-            pushException(legendHover, 'phase-error', { error: err.message });
+            pushErrorExceptionsSince(legendHover, result, errBefore);
+            result.phases['legend-hover'] = legendHover;
         }
-        pushErrorExceptionsSince(legendHover, result, errBefore);
-        result.phases['legend-hover'] = legendHover;
-    }
 
-    await page.mouse.move(10, 10).catch(() => null);
-    await sleep(300);
+        await page.mouse.move(10, 10).catch(() => null);
+        await sleep(300);
 
-    // Phase: legend-toggle (click first proxy, screenshot, click again to restore).
-    const legendToggle = newPhase('legend-toggle');
-    {
-        const errBefore = snapshotErrorCounts(result);
-        try {
-            if (firstLegend) {
+        // Phase: legend-toggle (click first proxy, screenshot, click again to restore).
+        const legendToggle = newPhase('legend-toggle');
+        {
+            const errBefore = snapshotErrorCounts(result);
+            try {
                 const beforeAria = await firstLegend.getAttribute('aria-checked').catch(() => null);
                 await firstLegend.click({ timeout: 3000 }).catch(() => null);
                 await waitForCharts(page);
@@ -554,7 +642,7 @@ async function captureOne(browser, side, entry) {
                 }
 
                 await page.mouse.move(10, 10).catch(() => null);
-                await waitForCharts(page);
+                await settleForScreenshot(page, legendToggle);
 
                 const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-toggle.png`;
                 await takeWrapperScreenshot(page, out);
@@ -562,17 +650,15 @@ async function captureOne(browser, side, entry) {
 
                 await firstLegend.click({ timeout: 3000 }).catch(() => null);
                 await waitForCharts(page);
-            } else {
-                legendToggle.notes.push('no legend item');
-                const out = `${SCREENSHOT_ROOT}/${sideKey}/${entry.page}-${entry.example}-${entry.framework}-legend-toggle.png`;
-                await takeWrapperScreenshot(page, out);
-                legendToggle.screenshots.push({ phase: 'legend-toggle', path: out });
+            } catch (err) {
+                pushException(legendToggle, 'phase-error', { error: err.message });
             }
-        } catch (err) {
-            pushException(legendToggle, 'phase-error', { error: err.message });
+            pushErrorExceptionsSince(legendToggle, result, errBefore);
+            result.phases['legend-toggle'] = legendToggle;
         }
-        pushErrorExceptionsSince(legendToggle, result, errBefore);
-        result.phases['legend-toggle'] = legendToggle;
+    } else {
+        result.notes = result.notes ?? [];
+        result.notes.push(firstLegend ? 'legend proxy not visible — phases skipped' : 'no legend — phases skipped');
     }
 
     await context.close();
@@ -584,10 +670,29 @@ async function captureBoth(browser, entry) {
         captureOne(browser, sides.left, entry),
         captureOne(browser, sides.right, entry),
     ]);
+    // Flag legend-visibility asymmetry: if one side rendered legend phases
+    // and the other deliberately skipped them, that's a meaningful difference,
+    // not a false positive.
+    const legendAsymmetry = !!left.legendVisible !== !!right.legendVisible
+        && (left.phases || right.phases);
+    if (legendAsymmetry) {
+        const target = left.legendVisible ? left : right;
+        const phaseName = target.phases?.['legend-hover'] ? 'legend-hover' : 'legend-toggle';
+        const phase = target.phases?.[phaseName];
+        if (phase) {
+            phase.exceptions = phase.exceptions ?? [];
+            phase.exceptions.push({
+                type: 'legend-asymmetry',
+                leftVisible: !!left.legendVisible,
+                rightVisible: !!right.legendVisible,
+            });
+        }
+    }
     return {
         page: entry.page,
         example: entry.example,
         framework: entry.framework,
+        randomData: entry.randomData,
         left,
         right,
     };
