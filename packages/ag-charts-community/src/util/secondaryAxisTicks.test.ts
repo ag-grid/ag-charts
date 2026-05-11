@@ -79,6 +79,23 @@ describe('secondaryAxisTicks', () => {
         expect(ticks).toEqual([7, 7.5, 8]);
     });
 
+    test('CRT-1116: heavy primary-axis zoom does not produce fractional steps on secondary axis', () => {
+        // Primary's zoomed tick count expands as ~1/visibleRange, so a deeply zoomed primary
+        // requests far more secondary ticks than the secondary's baseStep cleanly divides into.
+        const { ticks } = calculateNiceSecondaryAxis(
+            scale,
+            [27385, 31348],
+            { unzoomed: 7, zoomed: 700 },
+            false,
+            [0, 0.01]
+        );
+
+        expect(ticks.every(Number.isInteger)).toBe(true);
+        // Subdivision must actually happen — otherwise a future regression that skips it would still
+        // produce all-integer ticks and pass the assertion above vacuously.
+        expect(ticks.length).toBeGreaterThan(7);
+    });
+
     test.each([
         // Ensure magnitude is reflected
         { domain: 0.005, expected: [0, 0.002, 0.004, 0.006, 0.008] },
