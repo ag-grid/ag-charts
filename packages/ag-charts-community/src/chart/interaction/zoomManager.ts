@@ -29,6 +29,7 @@ import type {
     RequireOptional,
     Scale,
     ZoomMinMax,
+    ZoomMinMaxDirection,
     ZoomState,
 } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomEventSource, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
@@ -765,21 +766,23 @@ export class ZoomManager extends BaseManager implements MementoOriginator<ZoomMe
     private constrainZoomToRequiredWidth(event: ZoomChangeRequestEvent) {
         if (this.lastRestoredRequiredRange == null || this.lastRestoredRequiredRangeDirection == null) return;
 
-        const axis = this.lastRestoredRequiredRangeDirection;
-
         const crossAxisId = this.getPrimaryAxisId(this.lastRestoredRequiredRangeDirection);
         if (!crossAxisId) return;
 
-        const zoom = event.stateAsDefinedZoom();
-        const oldState = event.oldState[crossAxisId]!;
+        const zoom = event.state[crossAxisId];
+        const oldState = event.oldState[crossAxisId];
+        if (!zoom || !oldState) return;
 
-        const delta = zoom[axis].max - zoom[axis].min;
+        const delta = zoom.max - zoom.min;
         const minDelta = 1 / this.lastRestoredRequiredRange;
         if (Math.abs(delta - minDelta) < 1e-12 || delta <= minDelta) return;
 
-        event.constrainZoom({
-            ...zoom,
-            [axis]: { min: oldState.min, max: oldState.min + minDelta },
+        event.constrainChanges({
+            [crossAxisId]: {
+                direction: this.lastRestoredRequiredRangeDirection,
+                min: oldState.min,
+                max: oldState.min + minDelta,
+            },
         });
     }
 
