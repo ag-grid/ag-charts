@@ -1,4 +1,4 @@
-import { type AgRadiusCategoryAxisOptions, VERSION, _ModuleSupport } from 'ag-charts-community';
+import { type AgRadiusCategoryAxisOptions, PolarChartModule, VERSION, _ModuleSupport } from 'ag-charts-community';
 import {
     type AxisModuleDefinition,
     type DynamicContext,
@@ -6,6 +6,7 @@ import {
     mergeDefaults,
 } from 'ag-charts-core';
 
+import { CrossLinesModule } from '../polar-crosslines/crossLinesModule';
 import { RadiusCategoryAxis } from './radiusCategoryAxis';
 
 export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxisOptions, RadiusCategoryAxis> = {
@@ -14,6 +15,7 @@ export const RadiusCategoryAxisModule: AxisModuleDefinition<AgRadiusCategoryAxis
     chartType: 'polar',
     enterprise: true,
     version: VERSION,
+    dependencies: [PolarChartModule, CrossLinesModule],
 
     options: _ModuleSupport.radiusCategoryAxisOptionsDefs,
     themeTemplate: mergeDefaults(
