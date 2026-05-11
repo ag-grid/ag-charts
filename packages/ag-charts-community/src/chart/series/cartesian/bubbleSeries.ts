@@ -991,7 +991,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         selectionState: SelectionState | undefined,
         datum: BubbleScatterNodeDatum
     ): AgSeriesMarkerStyle {
-        const stylerStyle = series.getStyle(highlightState, selectionState);
+        const stylerStyle = series.getStyle(highlightState);
         return series.getMarkerStyle(
             ctx.marker,
             datum,
@@ -1019,10 +1019,10 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         series: BubbleSeries,
         _ctx: BubbleStylerPassCtx,
         highlightState: HighlightState,
-        selectionState: SelectionState | undefined,
+        _selectionState: SelectionState | undefined,
         _datum: BubbleScatterNodeDatum
     ): ReturnType<BubbleSeries['getStyle']> {
-        return series.getStyle(highlightState, selectionState);
+        return series.getStyle(highlightState);
     }
 
     private static applyPerDatumStyle(
@@ -1483,7 +1483,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     private legendItemSymbol(styleOverride?: Partial<AgSeriesMarkerStyle>): LegendSymbolOptions {
-        const style = this.getStyle(undefined, undefined);
+        const style = this.getStyle(undefined);
         const marker = this.getMarkerStyle<AgBubbleSeriesOptionsKeys>(
             this.properties.marker,
             {},
@@ -1578,14 +1578,12 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
         return new Marker<BubbleScatterNodeDatum>();
     }
 
-    public getStyle(
-        highlightState: HighlightState | undefined,
-        selectionState: SelectionState | undefined
-    ): Required<AgBubbleSeriesStylerResult> {
+    public getStyle(highlightState: HighlightState | undefined): Required<AgBubbleSeriesStylerResult> {
         const { properties } = this;
 
         let stylerResult: AgBubbleSeriesStylerResult = {};
         if (properties.styler) {
+            const selectionState: SelectionState | undefined = this.getDataSelectionState(undefined);
             const stylerParams = this.makeStylerParams(highlightState, selectionState);
             const cbResult = this.cachedCallWithContext(properties.styler, stylerParams) ?? {};
             const resolved = this.ctx.optionsGraphService.resolvePartial(
@@ -1611,7 +1609,7 @@ export class BubbleSeries extends CartesianSeries<BubbleSeriesTypes> {
     }
 
     public getSizeRange(): [number, number] {
-        const { size, maxSize } = this.getStyle(undefined, undefined);
+        const { size, maxSize } = this.getStyle(undefined);
         return [size, maxSize];
     }
 
