@@ -580,7 +580,7 @@ const html = `<!doctype html>
 </nav>
 <div class="container">
 <h1>AG Charts Examples A/B Smoke Report</h1>
-<div class="subtitle">${escapeHtml(data.sides.left.name)} vs ${escapeHtml(data.sides.right.name)} · framework <code>${escapeHtml(data.sides.framework ?? 'vanilla')}</code> · ${data.results.length} examples</div>
+<div class="subtitle">${escapeHtml(data.sides.left.name)} vs ${escapeHtml(data.sides.right.name)} · framework <code>${escapeHtml(data.framework ?? data.sides.framework ?? 'vanilla')}</code> · ${data.results.length} examples</div>
 <div class="meta-row">
   ${renderSideMeta('left', data.sides.left, data.sideMetadata?.left).replace('class="side-meta"', 'class="side-meta left"')}
   ${renderSideMeta('right', data.sides.right, data.sideMetadata?.right).replace('class="side-meta"', 'class="side-meta right"')}
@@ -668,7 +668,7 @@ ${pageOrder
 </div>
 <script>
   // Storage key is unique per (left+right side names) so different runs don't collide.
-  const STORAGE_KEY = 'ab-smoke-feedback:' + ${JSON.stringify(`${data.sides.left.name}__vs__${data.sides.right.name}__${data.sides.framework ?? 'vanilla'}`)};
+  const STORAGE_KEY = 'ab-smoke-feedback:' + ${JSON.stringify(`${data.sides.left.name}__vs__${data.sides.right.name}__${data.framework ?? data.sides.framework ?? 'vanilla'}`)};
   document.getElementById('fb-key').textContent = STORAGE_KEY;
 
   function loadFeedback() {
@@ -757,6 +757,23 @@ ${pageOrder
     a.download = 'ab-smoke-feedback-' + Date.now() + '.csv';
     a.click();
   });
+  const VALID_VERDICTS = new Set(['regression', 'benign-cosmetic', 'benign-flake', 'needs-human', 'skip']);
+  const KNOWN_ROW_IDS = new Set([...document.querySelectorAll('.row[data-id]')].map((r) => r.dataset.id));
+  function sanitiseImport(incoming) {
+    if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return { entries: {}, dropped: 0, reason: 'not an object' };
+    const out = {};
+    let dropped = 0;
+    for (const [id, value] of Object.entries(incoming)) {
+      if (!KNOWN_ROW_IDS.has(id) || !value || typeof value !== 'object') { dropped++; continue; }
+      const verdict = typeof value.verdict === 'string' && VALID_VERDICTS.has(value.verdict) ? value.verdict : undefined;
+      const note = typeof value.note === 'string' ? value.note : undefined;
+      if (!verdict && !note) { dropped++; continue; }
+      out[id] = { ts: typeof value.ts === 'string' ? value.ts : new Date().toISOString() };
+      if (verdict) out[id].verdict = verdict;
+      if (note) out[id].note = note;
+    }
+    return { entries: out, dropped };
+  }
   document.getElementById('fb-import').addEventListener('change', async (ev) => {
     const file = ev.target.files?.[0];
     if (!file) return;
@@ -764,8 +781,15 @@ ${pageOrder
       const text = await file.text();
       const parsed = JSON.parse(text);
       const incoming = parsed.entries ?? parsed;
-      Object.assign(fb, incoming);
+      const { entries, dropped, reason } = sanitiseImport(incoming);
+      const accepted = Object.keys(entries).length;
+      if (accepted === 0) {
+        alert('Nothing imported: ' + (reason ?? 'no valid entries') + (dropped ? ' (' + dropped + ' rejected)' : ''));
+        return;
+      }
+      Object.assign(fb, entries);
       saveFeedback(fb);
+      console.warn('Imported ' + accepted + ' entries; rejected ' + dropped + ' invalid entries.');
       location.reload();
     } catch (err) {
       alert('Import failed: ' + err.message);

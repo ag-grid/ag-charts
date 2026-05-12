@@ -14,7 +14,12 @@ import { mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from 
 import { resolve } from 'node:path';
 
 const OUTPUT_DIR = resolve(process.env.OUTPUT_DIR ?? '.');
-const CHUNK_SIZE = Number(process.env.CHUNK_SIZE ?? 20);
+const DEFAULT_CHUNK_SIZE = 20;
+const rawChunkSize = process.env.CHUNK_SIZE != null ? Number(process.env.CHUNK_SIZE) : DEFAULT_CHUNK_SIZE;
+const CHUNK_SIZE = Number.isInteger(rawChunkSize) && rawChunkSize > 0 ? rawChunkSize : DEFAULT_CHUNK_SIZE;
+if (CHUNK_SIZE !== rawChunkSize) {
+    process.stderr.write(`!! CHUNK_SIZE='${process.env.CHUNK_SIZE}' is not a positive integer; using default ${DEFAULT_CHUNK_SIZE}\n`);
+}
 const QUEUE_PATH = `${OUTPUT_DIR}/triage-queue.json`;
 const CHUNK_DIR = `${OUTPUT_DIR}/triage-chunks`;
 const VERDICT_DIR = `${OUTPUT_DIR}/triage-verdicts`;

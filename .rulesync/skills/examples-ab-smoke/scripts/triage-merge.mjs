@@ -30,6 +30,11 @@ for (const f of readdirSync(VERDICT_DIR).sort()) {
 const entryByKey = new Map();
 for (const e of results.results) entryByKey.set(`${e.page}|${e.example}|${e.framework}`, e);
 
+// Track which exception slots have already been claimed so duplicates within
+// a phase (same type/side/label/buttonIndex/percent) don't all map to the
+// first match — claimed slots are skipped during predicate matching.
+const claimedExceptions = new WeakSet();
+
 let merged = 0;
 let missingVerdict = 0;
 let unmatched = 0;
@@ -57,8 +62,11 @@ for (const item of queue.items) {
         if (unmatchedSamples.length < 10) unmatchedSamples.push({ id: item.id, reason: 'no phase/exceptions' });
         continue;
     }
+    const itemKey = item.evidence?.key ?? item.key;
     const ex = phase.exceptions.find((e) => {
+        if (claimedExceptions.has(e)) return false;
         if (e.type !== item.type) return false;
+        if (itemKey != null && e.key !== itemKey) return false;
         if (item.evidence?.label != null && e.label !== item.evidence.label) return false;
         if (item.evidence?.buttonIndex != null && e.buttonIndex !== item.evidence.buttonIndex) return false;
         if (item.evidence?.percent != null && e.percent !== item.evidence.percent) return false;
@@ -69,6 +77,7 @@ for (const item of queue.items) {
         if (unmatchedSamples.length < 10) unmatchedSamples.push({ id: item.id, reason: 'no matching exception' });
         continue;
     }
+    claimedExceptions.add(ex);
     ex.triage = { verdict: v.verdict, reason: v.reason };
     merged++;
 }
